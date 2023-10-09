@@ -9,7 +9,11 @@ import no.nav.su.se.bakover.common.infrastructure.ident.BrukerrolleJson.Companio
  * Hvis man gjør ikke-bakoverkompatible endringer må man migrere database og oppdatere su-se-framover og andre klienter.
  */
 enum class BrukerrolleJson {
-    VEILEDER, SAKSBEHANDLER, ATTESTANT, DRIFT;
+    VEILEDER,
+    SAKSBEHANDLER,
+    ATTESTANT,
+    DRIFT,
+    ;
 
     fun toNavIdentBruker(ident: String): NavIdentBruker {
         return when (this) {

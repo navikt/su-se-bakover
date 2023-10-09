@@ -1,10 +1,11 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import java.lang.Double.max
-
 sealed class FradragStrategy {
 
     abstract fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>>

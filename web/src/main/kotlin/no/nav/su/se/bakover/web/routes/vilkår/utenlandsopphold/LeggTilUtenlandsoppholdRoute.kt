@@ -33,9 +33,9 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
-import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
+import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import java.util.UUID
@@ -44,7 +44,7 @@ internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/utenlandsopphold") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
@@ -77,7 +77,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/utenlandsopphold") {
+    post("$REVURDERING_PATH/{revurderingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->

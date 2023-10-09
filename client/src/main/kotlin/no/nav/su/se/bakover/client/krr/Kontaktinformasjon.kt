@@ -5,7 +5,8 @@ data class Kontaktinformasjon(
     val mobiltelefonnummer: String?,
     val reservert: Boolean?,
     val kanVarsles: Boolean?,
-    val språk: String?, // "nb"
+    // "nb"
+    val språk: String?,
 ) {
     fun kanKontaktesDigitalt(): Boolean {
         return reservert != null && !reservert && kanVarsles != null && kanVarsles

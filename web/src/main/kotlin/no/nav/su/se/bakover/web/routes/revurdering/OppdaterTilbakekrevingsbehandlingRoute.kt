@@ -29,7 +29,7 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
     data class Body(
         val avgjørelse: OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse,
     )
-    post("$revurderingPath/{revurderingId}/tilbakekreving") {
+    post("$REVURDERING_PATH/{revurderingId}/tilbakekreving") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->

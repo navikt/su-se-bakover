@@ -101,16 +101,19 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         verify(mocks.tilbakekrevingsbehandlingRepo).lagre(
             argThat {
                 it shouldBe OpprettetTilbakekrevingsbehandlingHendelse(
-                    hendelseId = it.hendelseId, // Denne blir generert av domenet.
+                    // Denne blir generert av domenet.
+                    hendelseId = it.hendelseId,
                     sakId = sakId,
-                    hendelsestidspunkt = it.hendelsestidspunkt, // vi bruker tikkende-klokke
+                    // vi bruker tikkende-klokke
+                    hendelsestidspunkt = it.hendelsestidspunkt,
                     versjon = Hendelsesversjon(value = 2),
                     meta = DefaultHendelseMetadata(
                         correlationId = correlationId,
                         ident = saksbehandler,
                         brukerroller = brukerroller,
                     ),
-                    id = it.id, // Denne blir generert av domenet.
+                    // Denne blir generert av domenet.
+                    id = it.id,
                     opprettetAv = opprettetAv,
                     kravgrunnlagsId = kravgrunnlag.eksternKravgrunnlagId,
                 )
@@ -120,10 +123,12 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         verify(mocks.oppgaveHendelseRepo).lagre(
             argThat {
                 it shouldBe OppgaveHendelse.opprettet(
-                    hendelseId = it.hendelseId, // Denne blir generert av domenet.
+                    // Denne blir generert av domenet.
+                    hendelseId = it.hendelseId,
                     sakId = sakId,
                     versjon = Hendelsesversjon(value = 3),
-                    hendelsestidspunkt = it.hendelsestidspunkt, // vi bruker tikkende-klokke
+                    // vi bruker tikkende-klokke
+                    hendelsestidspunkt = it.hendelsestidspunkt,
                     meta = DefaultHendelseMetadata(
                         correlationId = correlationId,
                         ident = saksbehandler,

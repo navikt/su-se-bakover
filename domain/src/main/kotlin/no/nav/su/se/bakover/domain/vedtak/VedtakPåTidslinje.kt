@@ -84,7 +84,7 @@ data class VedtakPåTidslinje private constructor(
                 bosituasjon = grunnlagsdata.bosituasjon
                     .map { it.fullstendigOrThrow() }
                     .lagTidslinje(periode),
-                /**
+                /*
                  * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
                  * Se hva vi gjør for [nyPeriode] i denne funksjonen.
                  * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt

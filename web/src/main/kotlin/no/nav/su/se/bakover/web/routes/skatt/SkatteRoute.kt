@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.routes.person.tilResultat
 import java.time.Year
 
-internal const val skattPath = "/skatt"
+internal const val SKATTE_PATH = "/skatt"
 
 sealed interface FrioppslagValideringsFeil {
     data object InntektsårErFør2020 : FrioppslagValideringsFeil
@@ -74,7 +74,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         }
     }
 
-    post("$skattPath/person/{fnr}/forhandsvis") {
+    post("$SKATTE_PATH/person/{fnr}/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->
                 call.withBody<FrioppslagRequestBody> { body ->
@@ -99,7 +99,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         }
     }
 
-    post("$skattPath/person/{fnr}") {
+    post("$SKATTE_PATH/person/{fnr}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->
                 call.withBody<FrioppslagRequestBody> { body ->

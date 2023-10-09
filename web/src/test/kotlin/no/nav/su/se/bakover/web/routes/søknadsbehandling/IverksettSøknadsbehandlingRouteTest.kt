@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -51,7 +51,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                     ),
                 )
             }
-            client.patch("$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
+            client.patch("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(
@@ -81,7 +81,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                     ),
                 )
             }
-            client.patch("$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
+            client.patch("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(
@@ -116,7 +116,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
             }
             requestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
                 bodyAsText() shouldContain "Kunne ikke utføre utbetaling"
@@ -141,7 +141,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
             }
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
+                "$SAK_PATH/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
                 listOf(Brukerrolle.Saksbehandler),
                 navIdentSaksbehandler,
             ).apply {
@@ -150,7 +150,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe HttpStatusCode.Forbidden

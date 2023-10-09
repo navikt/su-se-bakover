@@ -1168,7 +1168,6 @@ class TestDataHelper(
                 kvittering = kvittering,
             )
         },
-
     ): Tuple4<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling> {
         return persisterSøknadsbehandlingIverksatt(
             sakOgSøknad = sakOgSøknad,

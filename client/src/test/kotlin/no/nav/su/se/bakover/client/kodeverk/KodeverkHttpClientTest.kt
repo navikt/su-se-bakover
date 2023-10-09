@@ -16,7 +16,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     @Test
     fun `Sjekk at vi finner poststed`() {
         wireMockServer.stubFor(
-            wiremockBuilder(kodeverkPoststedPath)
+            wiremockBuilder(KODEVERK_POSTSTED_PATH)
                 .willReturn(
                     WireMock.ok(resultatPoststedJson),
                 ),
@@ -28,7 +28,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     @Test
     fun `Sjekk at vi takler manglende correlationid`() {
         wireMockServer.also { removeCorrelationId() }.stubFor(
-            WireMock.get(WireMock.urlPathEqualTo(kodeverkPoststedPath))
+            WireMock.get(WireMock.urlPathEqualTo(KODEVERK_POSTSTED_PATH))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Nav-Call-Id", WireMock.matching(".+"))
                 .withHeader("Nav-Consumer-Id", WireMock.equalTo("srvsupstonad"))
@@ -47,7 +47,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     @Test
     fun `Sjekk at vi får null hvis postnummer ikke finnes`() {
         wireMockServer.stubFor(
-            wiremockBuilder(kodeverkPoststedPath)
+            wiremockBuilder(KODEVERK_POSTSTED_PATH)
                 .willReturn(
                     WireMock.ok(resultatPoststedJson),
                 ),
@@ -59,7 +59,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     @Test
     fun `Sjekk at vi får CouldNotGetKodeverk`() {
         wireMockServer.stubFor(
-            wiremockBuilder(kodeverkPoststedPath)
+            wiremockBuilder(KODEVERK_POSTSTED_PATH)
                 .willReturn(
                     WireMock.serverError(),
                 ),
@@ -72,7 +72,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     fun `Sjekk at vi finner kommunenavn`() {
         wireMockServer.stubFor(
             wiremockBuilder(
-                kodeverkKommunePath,
+                KODEVERK_KOMMUNENAVN_PATH,
             )
                 .willReturn(
                     WireMock.ok(resultatKommuneJson),

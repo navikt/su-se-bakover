@@ -61,8 +61,10 @@ internal class PersonhendelseConsumerKafkaTest {
             personhendelseService = personhendelseService,
             topicName = TOPIC,
             pollTimeoutDuration = Duration.ofMillis(500),
-            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            // Don't spam logs running tests
+            log = NOPLogger.NOP_LOGGER,
+            // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER,
         )
         kafkaConsumer.lastComittedShouldBe(6)
         val hendelser = argumentCaptor<no.nav.su.se.bakover.domain.personhendelse.Personhendelse.IkkeTilknyttetSak>()
@@ -104,8 +106,10 @@ internal class PersonhendelseConsumerKafkaTest {
             personhendelseService = personhendelseService,
             topicName = TOPIC,
             pollTimeoutDuration = Duration.ofMillis(500),
-            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            // Don't spam logs running tests
+            log = NOPLogger.NOP_LOGGER,
+            // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER,
         )
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
         verify(personhendelseService, timeout(1000).times(0)).prosesserNyHendelse(any())
@@ -129,25 +133,44 @@ internal class PersonhendelseConsumerKafkaTest {
         )
 
         val personhendelse = Personhendelse(
-            offset.toString(), // hendelseId (UUID)
-            personIdenter, // personIdenter (liste med mix av fnr(11 siffer), ident(13 siffer), ++?)
-            "FREG", // master (f.eks. FREG)
-            fixedTidspunkt.instant, // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
-            "DOEDSFALL_V1", // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
-            Endringstype.OPPRETTET, // endringstype (OPPRETTET,KORRIGERT,ANNULLERT,OPPHOERT)
-            null, // tidligereHendelseId (Peker til tidligere hendelse ved korrigering og annullering.)
-            Doedsfall(fixedLocalDate), // doedsfall (https://navikt.github.io/pdl/#_d%C3%B8dsfall)
+            // hendelseId (UUID)
+            offset.toString(),
+
+            // personIdenter (liste med mix av fnr(11 siffer), ident(13 siffer), ++?)
+            personIdenter,
+
+            // master (f.eks. FREG)
+            "FREG",
+
+            // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
+            fixedTidspunkt.instant,
+
+            // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
+            "DOEDSFALL_V1",
+
+            // endringstype (OPPRETTET,KORRIGERT,ANNULLERT,OPPHOERT)
+            Endringstype.OPPRETTET,
+
+            // tidligereHendelseId (Peker til tidligere hendelse ved korrigering og annullering.)
+            null,
+
+            // doedsfall (https://navikt.github.io/pdl/#_d%C3%B8dsfall)
+            Doedsfall(fixedLocalDate),
+
+            // sivilstand (https://navikt.github.io/pdl/#_sivilstand)
             Sivilstand(
                 "GIFT",
                 fixedLocalDate,
                 "12345678910",
                 null,
-            ), // sivilstand (https://navikt.github.io/pdl/#_sivilstand)
+            ),
+
+            // utflyttingFraNorge (https://navikt.github.io/pdl/#_utflytting)
             UtflyttingFraNorge(
                 "ESP",
                 "Barcelona",
                 fixedLocalDate,
-            ), // utflyttingFraNorge (https://navikt.github.io/pdl/#_utflytting)
+            ),
             Kontaktadresse(
                 1.januar(2021), 5.juni(2025),
                 "Innland", "coAdressenavn", null,

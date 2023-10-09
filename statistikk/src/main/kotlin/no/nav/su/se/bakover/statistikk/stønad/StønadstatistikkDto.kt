@@ -16,7 +16,8 @@ internal data class StønadstatistikkDto(
     val stonadstype: Stønadstype,
     val sakId: UUID,
     val aktorId: Long,
-    val sakstype: Vedtakstype, // TODO: Skulle denne være noe annet enn en duplikat av vedtakstype?
+    // TODO: Skulle denne være noe annet enn en duplikat av vedtakstype?
+    val sakstype: Vedtakstype,
     val vedtaksdato: LocalDate,
     val vedtakstype: Vedtakstype,
     val vedtaksresultat: Vedtaksresultat,
@@ -30,7 +31,8 @@ internal data class StønadstatistikkDto(
     val versjon: String?,
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
-    val flyktningsstatus: String? = "FLYKTNING", // Alle som gjelder SU Ufør vil være flyktning
+    // Alle som gjelder SU Ufør vil være flyktning
+    val flyktningsstatus: String? = "FLYKTNING",
 ) {
     enum class Stønadstype(val beskrivelse: String) {
         SU_UFØR("SU Ufør"),

@@ -64,7 +64,7 @@ val fixedLocalDate: LocalDate = 1.januar(2021)
 val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 val veileder = NavIdentBruker.Veileder("veileder")
 
-const val saksbehandlerNavn = "Sak S. Behandler"
+const val SAKSBEHANDLER_NAVN = "Sak S. Behandler"
 
 val saksnummer = Saksnummer(nummer = 12345676)
 

@@ -15,7 +15,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class MånedsberegningJsonTest {
     companion object {
         //language=JSON
-        internal const val expectedMånedsberegningJson =
+        private val expectedMånedsberegningJson =
             """
             {
                 "fraOgMed":"2020-01-01",

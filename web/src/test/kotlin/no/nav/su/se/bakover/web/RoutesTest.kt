@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jwt.asBearerToken
-import no.nav.su.se.bakover.web.routes.person.personPath
+import no.nav.su.se.bakover.web.routes.person.PERSON_PATH
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -44,7 +44,7 @@ class RoutesTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
+            defaultRequest(Get, SECURE_ENDPOINT, listOf(Brukerrolle.Veileder)).apply {
                 this.status shouldBe OK
                 this.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
             }
@@ -57,7 +57,7 @@ class RoutesTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
@@ -96,7 +96,7 @@ class RoutesTest {
                     ),
                 )
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }.apply {
                 this.status shouldBe InternalServerError
@@ -111,7 +111,7 @@ class RoutesTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            val response = defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            val response = defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
             response.contentType().toString() shouldBe "${ContentType.Application.Json}"

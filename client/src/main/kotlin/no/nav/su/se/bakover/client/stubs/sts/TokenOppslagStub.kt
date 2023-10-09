@@ -12,7 +12,7 @@ data object TokenOppslagStub : TokenOppslag {
             mapOf(
                 "authorization_endpoint" to "http://localhost:8080/login",
                 "token_endpoint" to "http://localhost:8080/login",
-                "issuer" to AuthStubCommonConfig.issuer,
+                "issuer" to AuthStubCommonConfig.ISSUER,
                 "end_session_endpoint" to "http://localhost:8080/logout",
                 "jwks_uri" to "http://localhost:8080/jwks",
             ),

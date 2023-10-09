@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 
-const val nøkkeltallPath = "/nøkkeltall"
+const val NØKKELTALL_PATH = "/nøkkeltall"
 internal fun Route.nøkkeltallRoutes(nøkkeltallService: NøkkeltallService) {
-    get(nøkkeltallPath) {
+    get(NØKKELTALL_PATH) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(nøkkeltallService.hentNøkkeltall().toJson())))
         }

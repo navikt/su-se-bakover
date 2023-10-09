@@ -17,7 +17,8 @@ data class Boforhold private constructor(
     val oppgittAdresse: OppgittAdresse,
 ) {
     enum class DelerBoligMed {
-        EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle (14/10/2020 LOL)
+        // TODO AI: Skal endres till ektefelle (14/10/2020 LOL)
+        EKTEMAKE_SAMBOER,
         VOKSNE_BARN,
         ANNEN_VOKSEN,
     }
@@ -96,7 +97,8 @@ sealed class OppgittAdresse {
     ) : OppgittAdresse() {
 
         enum class IngenAdresseGrunn {
-            BOR_PÅ_ANNEN_ADRESSE, HAR_IKKE_FAST_BOSTED
+            BOR_PÅ_ANNEN_ADRESSE,
+            HAR_IKKE_FAST_BOSTED,
         }
     }
 }

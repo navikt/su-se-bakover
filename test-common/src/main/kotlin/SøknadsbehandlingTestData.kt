@@ -550,7 +550,8 @@ fun nySøknadsbehandlingUtenStønadsperiode(
     }
     val (sak, søknad) = sakOgSøknad
     return sak.copy(
-        søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
+        // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
+        søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad,
     ).opprettNySøknadsbehandling(
         søknadId = søknad.id,
         clock = clock,

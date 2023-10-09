@@ -34,7 +34,7 @@ internal fun Route.sendRevurderingTilAttestering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/tilAttestering") {
+    post("$REVURDERING_PATH/{revurderingId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 revurderingService.sendTilAttestering(

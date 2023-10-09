@@ -59,7 +59,7 @@ data class CefField(val cefFieldName: CefFieldName, val value: String)
  * sproc=40e4608e-7157-415d-86c2-697f4c3c7358
  */
 data object CefAuditLogger : AuditLogger {
-    private const val deviceName = "Supplerende stønad"
+    private const val DEVICE_NAME = "Supplerende stønad"
 
     override fun log(logEvent: AuditLogEvent) {
         auditLogg.info(compileLogMessage(logEvent))
@@ -74,7 +74,7 @@ data object CefAuditLogger : AuditLogger {
         /*
         Arena, Bisys etc
          */
-        val deviceVendor = deviceName
+        val deviceVendor = DEVICE_NAME
         /*
         The name of the log that originated the event. Auditlog, leselogg, ABAC-Audit, Sporingslogg
          */
@@ -90,7 +90,7 @@ data object CefAuditLogger : AuditLogger {
         /*
         The description of the event. For example 'ABAC sporingslogg' or 'Database query'
          */
-        val name = "$deviceName audit log"
+        val name = "$DEVICE_NAME audit log"
         /*
         The severity of the event (INFO or WARN)
          */

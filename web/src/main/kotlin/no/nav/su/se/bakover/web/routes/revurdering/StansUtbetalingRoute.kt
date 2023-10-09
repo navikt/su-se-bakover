@@ -45,7 +45,7 @@ internal fun Route.stansUtbetaling(
     /**
      * Oppretter en ny stansbehandling.
      */
-    post("$revurderingPath/stans") {
+    post("$REVURDERING_PATH/stans") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
@@ -79,7 +79,7 @@ internal fun Route.stansUtbetaling(
     /**
      * Oppdaterer en allerede opprettet stansbehandling.
      */
-    patch("$revurderingPath/stans/{revurderingId}") {
+    patch("$REVURDERING_PATH/stans/{revurderingId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
@@ -111,7 +111,7 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    post("$revurderingPath/stans/{revurderingId}/iverksett") {
+    post("$REVURDERING_PATH/stans/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

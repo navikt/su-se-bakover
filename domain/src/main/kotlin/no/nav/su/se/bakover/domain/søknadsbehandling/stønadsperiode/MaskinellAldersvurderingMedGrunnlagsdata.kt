@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.vilkår.uføretrygdMaxAlder
+import no.nav.su.se.bakover.domain.vilkår.UFØRETRYGD_MAX_ALDER
 import java.time.LocalDate
 import java.time.Year
 
@@ -23,7 +23,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
     companion object {
         // Hvis du har fødselsdag 1 dag før dette, så er du for gammel
         fun Stønadsperiode.tidligsteGyldigeFødselsdato(): LocalDate =
-            periode.tilOgMed.startOfMonth().minusYears(uføretrygdMaxAlder.toLong())
+            periode.tilOgMed.startOfMonth().minusYears(UFØRETRYGD_MAX_ALDER.toLong())
 
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
             stønadsperiode: Stønadsperiode,

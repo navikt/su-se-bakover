@@ -88,7 +88,9 @@ internal fun Application.configureAuthentication(
                 if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
                     log.debug("Frikort Auth: Invalid subject")
                     null
-                } else { JWTPrincipal(credentials.payload) }
+                } else {
+                    JWTPrincipal(credentials.payload)
+                }
             }
         }
     }

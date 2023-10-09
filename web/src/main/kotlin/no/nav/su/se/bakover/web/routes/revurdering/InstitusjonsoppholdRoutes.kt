@@ -25,7 +25,7 @@ internal fun Route.institusjonsoppholdRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$revurderingPath/{revurderingId}/institusjonsopphold") {
+    post("$REVURDERING_PATH/{revurderingId}/institusjonsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<LeggTilVurderingsperiodeInstitusjonsoppholdJson> { body ->

@@ -23,7 +23,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("DatapakkerSøknad")
-private const val location = "europe-north1"
+private const val LOCATION = "europe-north1"
 
 fun main() {
     val databaseUrl = System.getenv("DATABASE_JDBC_URL")
@@ -84,13 +84,13 @@ fun deleteAndWriteToBigQuery(
     val bq = BigQueryOptions
         .newBuilder()
         .setCredentials(credentials)
-        .setLocation(location)
+        .setLocation(LOCATION)
         .setProjectId(project)
         .build().service
 
     deleteAll(bq)
 
-    val jobId = JobId.newBuilder().setLocation(location).setJob(UUID.randomUUID().toString()).build()
+    val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
 
     val configuration = WriteChannelConfiguration.newBuilder(
         TableId.of(project, dataset, table),

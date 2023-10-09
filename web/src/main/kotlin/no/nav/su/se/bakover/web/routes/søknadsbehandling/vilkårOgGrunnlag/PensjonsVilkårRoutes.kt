@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.LeggTilVurderingsperiodePensjonsvilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toDomain
@@ -29,7 +29,7 @@ internal fun Route.pensjonsVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/pensjon") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/pensjon") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodePensjonsvilkårJson>> { body ->

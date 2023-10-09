@@ -7,7 +7,7 @@ import java.util.Base64
 
 internal data object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(
-        AuthStubCommonConfig.keyId,
+        AuthStubCommonConfig.KEY_ID,
         "RSA",
         "RS256",
         null,

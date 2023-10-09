@@ -393,10 +393,12 @@ fun simuleringNy(
         clock = clock,
         uføregrunnlag = uføregrunnlag,
         kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE,
     ).generate().let {
         SimuleringStub(
-            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            clock = nåtidForSimuleringStub,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
@@ -423,12 +425,14 @@ fun simuleringOpphørt(
         behandler = saksbehandler,
         clock = clock,
         periode = opphørsperiode,
-        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE,
     ).generate().let {
         val opphør = it.utbetalingslinjer.filterIsInstance<Utbetalingslinje.Endring.Opphør>().single()
 
         SimuleringStub(
-            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            clock = nåtidForSimuleringStub,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
@@ -650,7 +654,8 @@ fun simulertDetaljDebetFeilutbetaling(
         sats = 0,
         typeSats = "",
         antallSats = 0,
-        uforegrad = 0, // Denne er alltid 0 (kun satt for ordinær/tilbakeføring)
+        // Denne er alltid 0 (kun satt for ordinær/tilbakeføring)
+        uforegrad = 0,
         klassekode = KlasseKode.SUUFORE,
         klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
@@ -678,7 +683,8 @@ fun simulertDetaljTilbakeføring(
         konto = "4952000",
         belop = -beløp,
         tilbakeforing = true,
-        sats = beløp, // Positivt (motsatt av beløp)
+        // Positivt (motsatt av beløp)
+        sats = beløp,
         typeSats = "MND",
         antallSats = 0,
         uforegrad = uføregrad,

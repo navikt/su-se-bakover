@@ -31,7 +31,7 @@ internal class AvstemmingServiceImplTest {
         val avstemmingRepoMock = mock<AvstemmingRepo> {
             on { hentUtbetalingerForKonsistensavstemming(any(), any(), any()) } doReturn emptyList()
         }
-        val publisherMock = mock<AvstemmingPublisher>() {
+        val publisherMock = mock<AvstemmingPublisher> {
             doAnswer {
                 (it.arguments[0] as Avstemming.Konsistensavstemming.Ny).copy(avstemmingXmlRequest = "jippi").right()
             }.whenever(mock).publish(any<Avstemming.Konsistensavstemming.Ny>())

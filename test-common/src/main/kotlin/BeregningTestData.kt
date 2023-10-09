@@ -89,7 +89,8 @@ fun beregning(
                     periode,
                     bosituasjon.utledBeregningsstrategi(
                         satsFactoryTestPåDato(),
-                        Sakstype.UFØRE, // TODO("endre oppsett av testdata slik at dette kan hentes fra aktuell behandling")
+                        // TODO("endre oppsett av testdata slik at dette kan hentes fra aktuell behandling")
+                        Sakstype.UFØRE,
                     ),
                 ),
             ),

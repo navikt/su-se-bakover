@@ -17,7 +17,7 @@ import java.time.Clock
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
-internal const val frikortPath = "/frikort"
+internal const val FRIKORT_PATH = "/frikort"
 private val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
 internal fun Route.frikortVedtakRoutes(
@@ -35,7 +35,7 @@ internal fun Route.frikortVedtakRoutes(
     }
 
     // Responsen kan inneholde skjermede fødselsnumre. Dette er avklart med dagens konsument og må avklares med potensielt fremtidige konsumenter.
-    get("$frikortPath/{aktivDato?}") {
+    get("$FRIKORT_PATH/{aktivDato?}") {
         val forMåned = call.parameters["aktivDato"] // yyyy-MM  2021-02
             ?.let {
                 hentDato(it).getOrElse {

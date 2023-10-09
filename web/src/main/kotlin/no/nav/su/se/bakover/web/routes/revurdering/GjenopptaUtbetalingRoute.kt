@@ -41,7 +41,7 @@ internal fun Route.gjenopptaUtbetaling(
     service: GjenopptaYtelseService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/gjenoppta") {
+    post("$REVURDERING_PATH/gjenoppta") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<GjenopptaUtbetalingBody> { body ->
@@ -71,7 +71,7 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    patch("$revurderingPath/gjenoppta/{revurderingId}") {
+    patch("$REVURDERING_PATH/gjenoppta/{revurderingId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
@@ -104,7 +104,7 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    post("$revurderingPath/gjenoppta/{revurderingId}/iverksett") {
+    post("$REVURDERING_PATH/gjenoppta/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

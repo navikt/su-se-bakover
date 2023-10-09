@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.LeggTilVurderingsperiodeInstitusjonsoppholdJson
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.tilResultat
 import java.time.Clock
@@ -28,7 +28,7 @@ internal fun Route.institusjonsoppholdRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/institusjonsopphold") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/institusjonsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilVurderingsperiodeInstitusjonsoppholdJson> { body ->

@@ -57,7 +57,7 @@ internal fun Route.leggTilFradragRevurdering(
             }
     }
 
-    post("$revurderingPath/{revurderingId}/fradrag") {
+    post("$REVURDERING_PATH/{revurderingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

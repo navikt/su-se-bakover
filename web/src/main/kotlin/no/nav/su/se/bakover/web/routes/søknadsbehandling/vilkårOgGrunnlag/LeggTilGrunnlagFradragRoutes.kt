@@ -37,8 +37,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import java.time.Clock
 import java.util.UUID
@@ -84,7 +84,7 @@ internal fun Route.leggTilGrunnlagFradrag(
             ).right()
     }
 
-    post("$søknadsbehandlingPath/{behandlingId}/fradrag") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

@@ -68,7 +68,8 @@ class RevurderingSimulerTest {
                             simulerOpphør(
                                 sak = sak,
                                 revurdering = beregnet,
-                                simuleringsperiode = beregnet.periode, // bruk feil periode
+                                // bruk feil periode
+                                simuleringsperiode = beregnet.periode,
                                 clock = clock,
                             )
                         },

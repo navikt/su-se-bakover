@@ -41,7 +41,7 @@ internal fun Route.oppdaterRevurderingRoute(
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
 
-    put("$revurderingPath/{revurderingId}") {
+    put("$REVURDERING_PATH/{revurderingId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->

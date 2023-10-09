@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("{}")
@@ -69,7 +69,7 @@ internal class BeregnRoutesKtTest {
             // ugyldig søknadsbehandling id
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/blabla/beregn",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/blabla/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 application {
@@ -92,7 +92,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/$behandlingEksisterIkke/beregn",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/$behandlingEksisterIkke/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("{}")
@@ -104,7 +104,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {

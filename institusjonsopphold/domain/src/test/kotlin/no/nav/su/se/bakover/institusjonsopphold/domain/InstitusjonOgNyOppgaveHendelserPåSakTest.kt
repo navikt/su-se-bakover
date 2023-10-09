@@ -25,7 +25,8 @@ class InstitusjonOgNyOppgaveHendelserPåSakTest {
                             institusjonsoppholdHendelse.hendelseId,
                         ),
                         nesteVersjon = institusjonsoppholdHendelse.versjon.inc(),
-                        sakId = UUID.randomUUID(), // ulik sakId
+                        // ulik sakId
+                        sakId = UUID.randomUUID(),
                     ),
                 ),
             )
@@ -44,7 +45,8 @@ class InstitusjonOgNyOppgaveHendelserPåSakTest {
                             institusjonsoppholdHendelse.hendelseId,
                         ),
                         nesteVersjon = institusjonsoppholdHendelse.versjon.inc(),
-                        sakId = institusjonsoppholdHendelse.sakId, // ulik sakId
+                        // ulik sakId
+                        sakId = institusjonsoppholdHendelse.sakId,
                     ),
                 ),
             )

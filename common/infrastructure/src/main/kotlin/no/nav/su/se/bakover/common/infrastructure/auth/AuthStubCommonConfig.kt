@@ -7,8 +7,8 @@ import java.security.interfaces.RSAPublicKey
 
 data object AuthStubCommonConfig {
     private val keypair = generateKeypair()
-    const val keyId = "key-1234"
-    const val issuer = "localhost"
+    const val KEY_ID = "key-1234"
+    const val ISSUER = "localhost"
     val public = keypair.first
     val private = keypair.second
 

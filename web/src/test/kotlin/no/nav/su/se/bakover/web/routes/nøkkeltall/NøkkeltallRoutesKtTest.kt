@@ -24,7 +24,7 @@ internal class NøkkeltallRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(nøkkeltallPath).apply {
+            client.get(NØKKELTALL_PATH).apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -53,7 +53,7 @@ internal class NøkkeltallRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services(nøkkeltallService = nøkkelServiceMock))
             }
-            defaultRequest(HttpMethod.Get, nøkkeltallPath, listOf(Brukerrolle.Saksbehandler)).apply {
+            defaultRequest(HttpMethod.Get, NØKKELTALL_PATH, listOf(Brukerrolle.Saksbehandler)).apply {
                 val expected = """
                 {
                     "søknader": {

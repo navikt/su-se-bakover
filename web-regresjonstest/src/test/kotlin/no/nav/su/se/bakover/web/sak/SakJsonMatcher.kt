@@ -60,8 +60,10 @@ fun assertSakJson(
         "vedtak[*].utbetalingId",
         "vedtak[*].sakId",
         "vedtak[*].behandlingId",
-        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
-        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].opprettet", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
+        // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
+        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id",
+        // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
+        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].opprettet",
         "vedtakPåTidslinje[*].vedtakId",
     )
 }

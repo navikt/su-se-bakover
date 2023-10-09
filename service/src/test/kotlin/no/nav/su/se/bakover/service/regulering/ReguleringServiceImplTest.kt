@@ -540,7 +540,7 @@ internal class ReguleringServiceImplTest {
         scrambleUtbetaling: Boolean = true,
         clock: Clock = tikkendeFixedClock(),
     ): ReguleringServiceImpl {
-        val _sak = if (scrambleUtbetaling) {
+        val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
                 // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
                 utbetalinger = Utbetalinger(
@@ -592,18 +592,18 @@ internal class ReguleringServiceImplTest {
 
         return ReguleringServiceImpl(
             reguleringRepo = mock {
-                on { hent(any()) } doReturn _sak.reguleringer.firstOrNull()
-                on { hentForSakId(any(), any()) } doReturn _sak.reguleringer
+                on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
+                on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepo = mock {
-                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(_sak.info())
-                on { hentSak(any<UUID>()) } doReturn _sak
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
+                on { hentSak(any<UUID>()) } doReturn sakMedEndringer
             },
             utbetalingService = mock { service ->
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak = _sak,
+                        sak = sakMedEndringer,
                         utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                     )
                 }.whenever(service).simulerUtbetaling(any(), any())

@@ -68,13 +68,25 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal enum class VedtakType {
-    SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
-    AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
-    ENDRING, // Revurdering innvilget                       -> EndringIYtelse
-    REGULERING, // Regulering innvilget                     -> EndringIYtelse
-    OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
+    // Innvilget Søknadsbehandling                  -> EndringIYtelse
+    SØKNAD,
+
+    // Avslått Søknadsbehandling                    -> Avslag
+    AVSLAG,
+
+    // Revurdering innvilget                       -> EndringIYtelse
+    ENDRING,
+
+    // Regulering innvilget                     -> EndringIYtelse
+    REGULERING,
+
+    // Revurdering ført til opphør                  -> EndringIYtelse
+    OPPHØR,
+
     STANS_AV_YTELSE,
+
     GJENOPPTAK_AV_YTELSE,
+
     AVVIST_KLAGE,
 }
 

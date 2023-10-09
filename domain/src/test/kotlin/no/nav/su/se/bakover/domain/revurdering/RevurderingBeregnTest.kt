@@ -285,7 +285,8 @@ internal class RevurderingBeregnTest {
             clock = clock,
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = stønadsperiode2021.periode,
-            utbetalingerKjørtTilOgMed = { 1.mai(2021) }, // feilutbetaling for jan-apr
+            // feilutbetaling for jan-apr
+            utbetalingerKjørtTilOgMed = { 1.mai(2021) },
         )
 
         beregnetRevurdering(
@@ -313,7 +314,8 @@ internal class RevurderingBeregnTest {
         val (sak, _) = sakMedUteståendeAvkorting(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = stønadsperiode2021.periode,
-            utbetalingerKjørtTilOgMed = { 1.mai(2021) }, // feilutbetaling for jan-apr
+            // feilutbetaling for jan-apr
+            utbetalingerKjørtTilOgMed = { 1.mai(2021) },
             clock = clock,
         )
 
@@ -415,7 +417,8 @@ internal class RevurderingBeregnTest {
         val (sak, _) = sakMedUteståendeAvkorting(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = stønadsperiode2021.periode,
-            utbetalingerKjørtTilOgMed = { 1.mai(2021) }, // feilutbetaling for jan-apr
+            // feilutbetaling for jan-apr
+            utbetalingerKjørtTilOgMed = { 1.mai(2021) },
             clock = clock,
         )
 

@@ -7,7 +7,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.CorrelationIdHeader
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
-internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
+internal const val DOK_ARKIV_PATH = "/rest/journalpostapi/v1/journalpost"
 
 // https://confluence.adeo.no/display/BOA/opprettJournalpost
 // swagger: https://dokarkiv-q2.dev.intern.nav.no/swagger-ui/index.html#/
@@ -31,11 +31,11 @@ class DokArkivClient(
     ): Either<ClientError, JournalpostId> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
-        val (request, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
+        val (request, response, result) = "$baseUrl$DOK_ARKIV_PATH".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header(CorrelationIdHeader, correlationId)
+            .header(CORRELATION_ID_HEADER, correlationId)
             .body(dokumentInnhold.tilJson()).responseString()
 
         return result.fold(

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.komponenttest
 
-// TODO john skal se på dette en eller annen gang
+val antiktlint: Nothing = TODO("john skal se på dette en eller annen gang")
 /*
 class TilbakekrevingKomponentTest {
     @Test

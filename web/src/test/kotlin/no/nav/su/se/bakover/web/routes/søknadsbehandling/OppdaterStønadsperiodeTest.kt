@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -24,7 +24,7 @@ import org.mockito.kotlin.mock
 import java.util.UUID
 
 class OppdaterStønadsperiodeTest {
-    private val url = "$sakPath/$sakId/behandlinger/${UUID.randomUUID()}/stønadsperiode"
+    private val url = "$SAK_PATH/$sakId/behandlinger/${UUID.randomUUID()}/stønadsperiode"
     private val services = TestServicesBuilder.services()
 
     @Test

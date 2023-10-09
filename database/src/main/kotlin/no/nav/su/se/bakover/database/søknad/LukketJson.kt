@@ -34,6 +34,8 @@ internal data class LukketJson(
     }
 
     enum class Type {
-        BORTFALT, AVVIST, TRUKKET,
+        BORTFALT,
+        AVVIST,
+        TRUKKET,
     }
 }

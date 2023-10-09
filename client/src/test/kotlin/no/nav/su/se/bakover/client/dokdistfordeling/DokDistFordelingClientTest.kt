@@ -38,7 +38,7 @@ internal class DokDistFordelingClientTest : WiremockBase {
         )
         client.bestillDistribusjon(journalpostId, distribusjonstype, distribusjonstidspunkt) shouldBe BrevbestillingId("id på tingen").right()
     }
-    private val wiremockBuilder: MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(dokDistFordelingPath))
+    private val wiremockBuilder: MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(DOK_DIST_FORDELING_PATH))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))

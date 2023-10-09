@@ -15,14 +15,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 
 internal fun Route.hentSamletSkattegrunnlagRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    get("$søknadsbehandlingPath/{behandlingId}/samletSkattegrunnlag") {
+    get("$SØKNADSBEHANDLING_PATH/{behandlingId}/samletSkattegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.leggTilEksternSkattegrunnlag(

@@ -12,14 +12,17 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
 import org.slf4j.LoggerFactory
 import java.math.RoundingMode
 
+/**
+ * @param benyttetGrunnbeløp Bare relevant for uføre.
+ * @param periode Siden denne serialiseres/deserialiseres kan man ikke rename periode uten migrering eller annotasjoner.
+ */
 internal data class PersistertMånedsberegning(
     val sumYtelse: Int,
     val sumFradrag: Double,
-    val benyttetGrunnbeløp: Int?, // bare relevant for uføre
+    val benyttetGrunnbeløp: Int?,
     val sats: Satskategori,
     val satsbeløp: Double,
     val fradrag: List<PersistertFradrag>,
-    // Siden denne serialiseres/deserialiseres kan man ikke rename periode uten migrering eller annotasjoner.
     val periode: MånedJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),

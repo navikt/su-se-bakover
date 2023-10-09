@@ -1,3 +1,3 @@
 package no.nav.su.se.bakover.common
 
-const val suSeBakoverConsumerId = "srvsupstonad"
+const val SU_SE_BAKOVER_CONSUMER_ID = "srvsupstonad"

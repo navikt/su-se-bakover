@@ -48,14 +48,14 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import java.time.Clock
 import java.time.LocalDate
 
-internal const val sakPath = "/saker"
+internal const val SAK_PATH = "/saker"
 
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
     satsFactory: SatsFactory,
 ) {
-    post("$sakPath/søk") {
+    post("$SAK_PATH/søk") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
@@ -138,7 +138,7 @@ internal fun Route.sakRoutes(
         }
     }
 
-    get("$sakPath/info/{fnr}") {
+    get("$SAK_PATH/info/{fnr}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.parameter("fnr")
                 .flatMap {
@@ -170,7 +170,7 @@ internal fun Route.sakRoutes(
         }
     }
 
-    get("$sakPath/{sakId}") {
+    get("$SAK_PATH/{sakId}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.svar(
@@ -192,7 +192,7 @@ internal fun Route.sakRoutes(
 
     data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
 
-    post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
+    post("$SAK_PATH/{sakId}/gjeldendeVedtaksdata") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
@@ -220,14 +220,14 @@ internal fun Route.sakRoutes(
         }
     }
 
-    get("$sakPath/behandlinger/apne") {
+    get("$SAK_PATH/behandlinger/apne") {
         authorize(Brukerrolle.Saksbehandler) {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
         }
     }
 
-    get("$sakPath/behandlinger/ferdige") {
+    get("$SAK_PATH/behandlinger/ferdige") {
         authorize(Brukerrolle.Saksbehandler) {
             val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
@@ -239,7 +239,7 @@ internal fun Route.sakRoutes(
         val fritekst: String,
     )
 
-    post("$sakPath/{sakId}/fritekstDokument/lagreOgSend") {
+    post("$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
@@ -261,7 +261,7 @@ internal fun Route.sakRoutes(
         }
     }
 
-    post("$sakPath/{sakId}/fritekstDokument") {
+    post("$SAK_PATH/{sakId}/fritekstDokument") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
@@ -282,7 +282,7 @@ internal fun Route.sakRoutes(
         }
     }
 
-    get("$sakPath/{sakId}/journalposter") {
+    get("$SAK_PATH/{sakId}/journalposter") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId {
                 sakService.hentAlleJournalposter(it).fold(

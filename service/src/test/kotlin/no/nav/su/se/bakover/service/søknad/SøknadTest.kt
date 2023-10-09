@@ -135,9 +135,11 @@ class SøknadTest {
                 first shouldBe sak.saksnummer
                 second.shouldBeEqualToIgnoringFields(
                     Søknad.Ny(
-                        id = UUID.randomUUID(), // ignored
+                        // ignored
+                        id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        sakId = UUID.randomUUID(), // ignored
+                        // ignored
+                        sakId = UUID.randomUUID(),
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
@@ -218,9 +220,11 @@ class SøknadTest {
                 first shouldBe sak.saksnummer
                 second.shouldBeEqualToIgnoringFields(
                     Søknad.Ny(
-                        id = UUID.randomUUID(), // ignored
+                        // ignored
+                        id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        sakId = UUID.randomUUID(), // ignored
+                        // ignored
+                        sakId = UUID.randomUUID(),
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
@@ -301,7 +305,8 @@ class SøknadTest {
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
                             Søknad.Journalført.UtenOppgave(
-                                id = UUID.randomUUID(), // ignored
+                                // ignored
+                                id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 sakId = sak.id,
                                 søknadInnhold = søknadInnhold,
@@ -319,7 +324,8 @@ class SøknadTest {
                             OppgaveConfig.Søknad(
                                 sakstype = Sakstype.UFØRE,
                                 journalpostId = journalpostId,
-                                søknadId = UUID.randomUUID(), // ignored
+                                // ignored
+                                søknadId = UUID.randomUUID(),
                                 aktørId = person.ident.aktørId,
                                 tilordnetRessurs = null,
                                 clock = fixedClock,
@@ -334,9 +340,11 @@ class SøknadTest {
                 first shouldBe sak.saksnummer
                 second.shouldBeEqualToIgnoringFields(
                     Søknad.Ny(
-                        id = UUID.randomUUID(), // ignored
+                        // ignored
+                        id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        sakId = UUID.randomUUID(), // ignored
+                        // ignored
+                        sakId = UUID.randomUUID(),
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
@@ -420,7 +428,8 @@ class SøknadTest {
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
                             Søknad.Journalført.UtenOppgave(
-                                id = UUID.randomUUID(), // ignored
+                                // ignored
+                                id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 sakId = sakId,
                                 søknadInnhold = søknadInnhold,
@@ -437,7 +446,8 @@ class SøknadTest {
                             OppgaveConfig.Søknad(
                                 sakstype = Sakstype.UFØRE,
                                 journalpostId = journalpostId,
-                                søknadId = UUID.randomUUID(), // ignored
+                                // ignored
+                                søknadId = UUID.randomUUID(),
                                 aktørId = person.ident.aktørId,
                                 tilordnetRessurs = null,
                                 clock = fixedClock,
@@ -451,7 +461,8 @@ class SøknadTest {
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
                             Søknad.Journalført.MedOppgave.IkkeLukket(
-                                id = UUID.randomUUID(), // ignored
+                                // ignored
+                                id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 sakId = sakId,
                                 søknadInnhold = søknadInnhold,
@@ -477,9 +488,11 @@ class SøknadTest {
                 first shouldBe sak.saksnummer
                 second.shouldBeEqualToIgnoringFields(
                     Søknad.Ny(
-                        id = UUID.randomUUID(), // ignored
+                        // ignored
+                        id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        sakId = UUID.randomUUID(), // ignored
+                        // ignored
+                        sakId = UUID.randomUUID(),
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),

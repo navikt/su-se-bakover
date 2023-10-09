@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package no.nav.su.se.bakover.client
 
 import arrow.core.Either

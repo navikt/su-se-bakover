@@ -57,7 +57,7 @@ internal class SakRoutesKtTest {
                     ),
                 )
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
             }.apply {
                 status shouldBe OK
@@ -94,7 +94,7 @@ internal class SakRoutesKtTest {
                 }
                 defaultRequest(
                     Get,
-                    "$sakPath/info/$sakFnr01",
+                    "$SAK_PATH/info/$sakFnr01",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
@@ -140,7 +140,7 @@ internal class SakRoutesKtTest {
                 }
                 defaultRequest(
                     Get,
-                    "$sakPath/info/$sakFnr01",
+                    "$SAK_PATH/info/$sakFnr01",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
@@ -189,7 +189,7 @@ internal class SakRoutesKtTest {
                 }
                 defaultRequest(
                     Get,
-                    "$sakPath/info/$sakFnr01",
+                    "$SAK_PATH/info/$sakFnr01",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
@@ -220,25 +220,25 @@ internal class SakRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/søk",
+                "$SAK_PATH/søk",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe BadRequest
             }
 
-            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}", type: "uføre"}""")
             }.apply {
                 status shouldBe Forbidden
             }
 
-            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"696969"}""")
             }.apply {
                 status shouldBe NotFound
             }
 
-            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"asdf"}""")
             }.apply {
                 status shouldBe BadRequest
@@ -246,7 +246,7 @@ internal class SakRoutesKtTest {
 
             defaultRequest(
                 Get,
-                "$sakPath/${UUID.randomUUID()}",
+                "$SAK_PATH/${UUID.randomUUID()}",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe NotFound
@@ -254,7 +254,7 @@ internal class SakRoutesKtTest {
 
             defaultRequest(
                 Get,
-                "$sakPath/adad",
+                "$SAK_PATH/adad",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe BadRequest

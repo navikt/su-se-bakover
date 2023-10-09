@@ -553,7 +553,8 @@ internal class SimuleringTest {
             .forEach { (_, _) ->
                 Simulering(
                     gjelderId = fnr,
-                    gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
+                    // Usually returned by response, which in this case is empty.
+                    gjelderNavn = fnr.toString(),
                     datoBeregnet = fixedLocalDate,
                     nettoBeløp = 0,
                     måneder = SimulertMåned.create(år(2021)),

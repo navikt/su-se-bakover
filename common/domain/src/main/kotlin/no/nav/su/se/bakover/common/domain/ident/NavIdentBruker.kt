@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.common.ident
 
 import com.fasterxml.jackson.annotation.JsonValue
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 
 /**
  * TODO jah: Bør lage en Json-versjon, domenetyper skal ikke serialiseres/deserialiseres direkte.
@@ -39,7 +39,7 @@ sealed class NavIdentBruker : Comparable<NavIdentBruker> {
         }
 
         companion object {
-            fun systembruker() = Saksbehandler(suSeBakoverConsumerId)
+            fun systembruker() = Saksbehandler(SU_SE_BAKOVER_CONSUMER_ID)
         }
 
         override fun toString(): String = navIdent

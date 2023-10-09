@@ -39,7 +39,7 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(HttpMethod.Get, frikortPath, navIdent = "Z990Lokal", jwtSubject = "unknownSubject").apply {
+            defaultRequest(HttpMethod.Get, FRIKORT_PATH, navIdent = "Z990Lokal", jwtSubject = "unknownSubject").apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -55,7 +55,7 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services(vedtakService = vedtakServiceMock))
             }
-            client.get(frikortPath) {
+            client.get(FRIKORT_PATH) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -73,7 +73,7 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get("$frikortPath/202121") {
+            client.get("$FRIKORT_PATH/202121") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -101,7 +101,7 @@ internal class FrikortRoutesKtTest {
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
-            val response = client.get(frikortPath) {
+            val response = client.get(FRIKORT_PATH) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -128,7 +128,7 @@ internal class FrikortRoutesKtTest {
                 )
             }
 
-            val response = client.get("$frikortPath/2021-02") {
+            val response = client.get("$FRIKORT_PATH/2021-02") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -154,7 +154,7 @@ internal class FrikortRoutesKtTest {
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
-            val response = client.get("$frikortPath/2021-02") {
+            val response = client.get("$FRIKORT_PATH/2021-02") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,

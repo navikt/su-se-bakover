@@ -25,10 +25,10 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbake
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
+import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
-import tilbakekreving.presentation.api.tilbakekrevingPath
 import java.util.UUID
 
 private data class Body(
@@ -61,7 +61,7 @@ private data class Body(
 internal fun Route.forhåndsvarsleTilbakekrevingRoute(
     forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
 ) {
-    post("$tilbakekrevingPath/{tilbakekrevingsId}/forhandsvarsel") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->

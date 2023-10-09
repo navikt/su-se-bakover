@@ -24,7 +24,8 @@ internal fun toUtbetalingRequest(
 ): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
-            kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
+            // Kodeaksjon brukes ikke av simulering
+            kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
             kodeEndring = if (utbetaling.trengerNyttOppdrag()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = utbetaling.sakstype.toFagområde().toString(),
             fagsystemId = utbetaling.saksnummer.toString(),
@@ -47,8 +48,9 @@ internal fun toUtbetalingRequest(
                             datoStatusFom = it.periode.fraOgMed.toOppdragDate(),
                             kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                             delytelseId = it.id.toString(),
+                            // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde
                             kodeKlassifik = utbetaling.sakstype.toFagområde()
-                                .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde
+                                .toString(),
                             datoVedtakFom = it.originalFraOgMed().toOppdragDate(),
                             datoVedtakTom = it.originalTilOgMed().toOppdragDate(),
                             sats = it.beløp.toString(),
@@ -61,8 +63,7 @@ internal fun toUtbetalingRequest(
                             refFagsystemId = null,
                             attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
                             grad = it.tilUføregrad(),
-                            /** Referanse til hvilken utbetaling linjen tilhører */
-                            /** Referanse til hvilken utbetaling linjen tilhører */
+                            // Referanse til hvilken utbetaling linjen tilhører
                             utbetalingId = utbetaling.id.toString(),
                         )
                     }
@@ -73,8 +74,9 @@ internal fun toUtbetalingRequest(
                             datoStatusFom = null,
                             kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
                             delytelseId = it.id.toString(),
+                            // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde,
                             kodeKlassifik = utbetaling.sakstype.toFagområde()
-                                .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde,
+                                .toString(),
                             datoVedtakFom = it.originalFraOgMed().toOppdragDate(),
                             datoVedtakTom = it.originalTilOgMed().toOppdragDate(),
                             sats = it.beløp.toString(),
@@ -87,8 +89,7 @@ internal fun toUtbetalingRequest(
                             refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                             attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
                             grad = it.tilUføregrad(),
-                            /** Referanse til hvilken utbetaling linjen tilhører */
-                            /** Referanse til hvilken utbetaling linjen tilhører */
+                            // Referanse til hvilken utbetaling linjen tilhører
                             utbetalingId = utbetaling.id.toString(),
                         )
                     }

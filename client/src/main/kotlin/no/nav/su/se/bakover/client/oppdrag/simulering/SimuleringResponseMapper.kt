@@ -179,7 +179,8 @@ private fun Utbetaling.mapTomResponsFraOppdrag(
 ): Simulering {
     return Simulering(
         gjelderId = fnr,
-        gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
+        // Usually returned by response, which in this case is empty.
+        gjelderNavn = fnr.toString(),
         datoBeregnet = LocalDate.now(clock),
         nettoBeløp = 0,
         måneder = SimulertMåned.create(simuleringsperiode),

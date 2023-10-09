@@ -20,7 +20,8 @@ internal class RegistrerUtenlandsoppholdIT {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
             val nySøknadResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
-                expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
+                // Første saksnummer er alltid 2021 i en ny-migrert database.
+                expectedSaksnummerInResponse = 2021,
             )
             val sakId = NySøknadJson.Response.hentSakId(nySøknadResponseJson)
 

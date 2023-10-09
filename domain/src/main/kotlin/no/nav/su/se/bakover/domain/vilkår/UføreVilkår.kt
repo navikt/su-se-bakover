@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 
-const val uføretrygdMinsteAlder = 18
-const val uføretrygdMaxAlder = 67
-val uføretrygdAldersIntervall = uføretrygdMinsteAlder..uføretrygdMaxAlder
+const val UFØRETRYGD_MINSTE_ALDER = 18
+const val UFØRETRYGD_MAX_ALDER = 67
+val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDER
 
 sealed interface UføreVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Uførhet

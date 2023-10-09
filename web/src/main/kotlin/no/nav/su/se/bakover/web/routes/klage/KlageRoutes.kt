@@ -60,12 +60,12 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal const val klagePath = "$sakPath/{sakId}/klager"
+internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 
 private enum class Grunn {
     INNGANGSVILKÅRENE_ER_FEILVURDERT,
@@ -85,7 +85,7 @@ internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
 ) {
-    post(klagePath) {
+    post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(val journalpostId: String, val datoKlageMottatt: LocalDate)
             call.withSakId { sakId ->
@@ -124,7 +124,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/vilkår/vurderinger") {
+    post("$KLAGE_PATH/{klageId}/vilkår/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val vedtakId: UUID?,
@@ -179,7 +179,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/vilkår/vurderinger/bekreft") {
+    post("$KLAGE_PATH/{klageId}/vilkår/vurderinger/bekreft") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 val resultat = klageService.bekreftVilkårsvurderinger(
@@ -199,7 +199,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/avvist/fritekstTilBrev") {
+    post("$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(val fritekst: String)
             call.withKlageId { klageId ->
@@ -223,7 +223,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/brevutkast") {
+    post("$KLAGE_PATH/{klageId}/brevutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 klageService.brevutkast(
@@ -241,7 +241,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/vurderinger") {
+    post("$KLAGE_PATH/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
                 return when (this) {
@@ -308,7 +308,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/vurderinger/bekreft") {
+    post("$KLAGE_PATH/{klageId}/vurderinger/bekreft") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 klageService.bekreftVurderinger(
@@ -329,7 +329,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/tilAttestering") {
+    post("$KLAGE_PATH/{klageId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 klageService.sendTilAttestering(klageId, call.suUserContext.saksbehandler).map {
@@ -374,7 +374,7 @@ internal fun Route.klageRoutes(
             ).right()
         }
     }
-    post("$klagePath/{klageId}/underkjenn") {
+    post("$KLAGE_PATH/{klageId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
@@ -404,7 +404,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/oversend") {
+    post("$KLAGE_PATH/{klageId}/oversend") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 klageService.oversend(
@@ -441,7 +441,7 @@ internal fun Route.klageRoutes(
     }
 
     // TODO jah: Denne er i bruk, men har en litt snodig url?
-    post("$klagePath/{klageId}/iverksett(AvvistKlage)") {
+    post("$KLAGE_PATH/{klageId}/iverksett(AvvistKlage)") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 klageService.iverksettAvvistKlage(
@@ -471,7 +471,7 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/avslutt") {
+    post("$KLAGE_PATH/{klageId}/avslutt") {
         data class Body(val begrunnelse: String)
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->

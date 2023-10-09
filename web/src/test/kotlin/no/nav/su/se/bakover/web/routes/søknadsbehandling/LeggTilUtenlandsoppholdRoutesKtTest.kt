@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -35,7 +35,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -69,7 +69,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -109,7 +109,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -143,7 +143,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

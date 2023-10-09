@@ -28,9 +28,9 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -75,7 +75,7 @@ class StubClientsBuilder(
             },
             dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
-            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, suSeBakoverConsumerId),
+            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, SU_SE_BAKOVER_CONSUMER_ID),
             simuleringClient = SimuleringStub(
                 clock = clock,
                 utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },

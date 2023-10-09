@@ -5,7 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.common.CorrelationIdHeader
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.serialize
@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen"
+internal const val SU_PDF_GEN_PATH = "/api/v1/genpdf/supdfgen"
 internal const val SOKNAD_TEMPLATE = "soknad"
 
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
@@ -31,9 +31,9 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     }
 
     private fun genererPdf(input: String, template: String): Either<ClientError, PdfA> {
-        val (_, response, result) = "$baseUrl$suPdfGenPath/$template".httpPost()
+        val (_, response, result) = "$baseUrl$SU_PDF_GEN_PATH/$template".httpPost()
             .header("Content-Type", "application/json")
-            .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
+            .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal())
             .body(input).response()
 
         return result.fold(

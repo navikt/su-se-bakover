@@ -42,18 +42,22 @@ data class LagBrevinnholdForBeregning(
     private fun finnFradragForEps(beregningsperiode: SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder.EkvivalenteMånedsberegninger): Fradrag.Eps {
         // find all input-fradrag that are applicable for the period in question
         val epsFradragFraSaksbehandler = EpsFradragFraSaksbehandlerIBeregningsperiode(
-            beregning.getFradrag(), // found from the original input-fradrag
+            // found from the original input-fradrag
+            beregning.getFradrag(),
             beregningsperiode.periode,
         ).fradrag
 
         return when (beregningsperiode.erFradragForEpsBenyttetIBeregning()) {
             true -> Fradrag.Eps(
                 fradrag = epsFradragFraSaksbehandler,
-                harFradragMedSumSomErLavereEnnFribeløp = false, // eps fradrag used in calculation excludes this (eps fradrag below fribeløp will not be used in beregning)
+                // eps fradrag used in calculation excludes this (eps fradrag below fribeløp will not be used in beregning)
+                harFradragMedSumSomErLavereEnnFribeløp = false,
             )
             false -> Fradrag.Eps(
-                fradrag = emptyList(), // no fradrag for eps are actually used for the calculation, avoid display of all eps fradrag entirely
-                harFradragMedSumSomErLavereEnnFribeløp = epsFradragFraSaksbehandler.isNotEmpty(), // fradrag for eps are present, but not included in actual beregning
+                // no fradrag for eps are actually used for the calculation, avoid display of all eps fradrag entirely
+                fradrag = emptyList(),
+                // fradrag for eps are present, but not included in actual beregning
+                harFradragMedSumSomErLavereEnnFribeløp = epsFradragFraSaksbehandler.isNotEmpty(),
             )
         }
     }

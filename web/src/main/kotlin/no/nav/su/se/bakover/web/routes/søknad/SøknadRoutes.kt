@@ -57,10 +57,11 @@ import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import java.time.Clock
 
 enum class Søknadstype(val value: String) {
-    ALDER("alder"), UFØRE("ufore")
+    ALDER("alder"),
+    UFØRE("ufore"),
 }
 
-const val søknadPath = "/soknad"
+const val SØKNAD_PATH = "/soknad"
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -69,7 +70,7 @@ internal fun Route.søknadRoutes(
     clock: Clock,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadPath/{type}") {
+    post("$SØKNAD_PATH/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
                 call.withBody<SøknadsinnholdJson> { søknadsinnholdJson ->
@@ -109,7 +110,7 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    get("$søknadPath/{søknadId}/utskrift") {
+    get("$SØKNAD_PATH/{søknadId}/utskrift") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 søknadService.hentSøknadPdf(søknadId).fold(
@@ -136,7 +137,7 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    post("$søknadPath/{søknadId}/lukk") {
+    post("$SØKNAD_PATH/{søknadId}/lukk") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
@@ -171,7 +172,7 @@ internal fun Route.søknadRoutes(
 
     data class WithFritekstBody(val fritekst: String)
 
-    post("$søknadPath/{søknadId}/avslag") {
+    post("$SØKNAD_PATH/{søknadId}/avslag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
@@ -192,7 +193,7 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    post("$søknadPath/{søknadId}/avslag/brevutkast") {
+    post("$SØKNAD_PATH/{søknadId}/avslag/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
@@ -213,7 +214,7 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    post("$søknadPath/{søknadId}/lukk/brevutkast") {
+    post("$SØKNAD_PATH/{søknadId}/lukk/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(

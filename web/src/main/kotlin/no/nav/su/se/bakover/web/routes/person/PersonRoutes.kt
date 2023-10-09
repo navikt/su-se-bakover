@@ -24,13 +24,13 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import java.time.Clock
 import java.time.LocalDate
 
-internal const val personPath = "/person"
+internal const val PERSON_PATH = "/person"
 
 internal fun Route.personRoutes(
     personService: PersonService,
     clock: Clock,
 ) {
-    post("$personPath/søk") {
+    post("$PERSON_PATH/søk") {
         data class Body(
             val fnr: String,
         )

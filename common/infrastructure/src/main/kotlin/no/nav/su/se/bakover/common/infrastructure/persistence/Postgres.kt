@@ -30,7 +30,10 @@ class Postgres(
     }
 
     enum class Role {
-        Admin, User, ReadOnly;
+        Admin,
+        User,
+        ReadOnly,
+        ;
 
         override fun toString() = name.lowercase()
     }

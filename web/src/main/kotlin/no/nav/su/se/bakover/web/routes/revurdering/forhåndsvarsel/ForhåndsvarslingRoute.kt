@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
-import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 
 internal fun Route.forhåndsvarslingRoute(
@@ -30,7 +30,7 @@ internal fun Route.forhåndsvarslingRoute(
     satsFactory: SatsFactory,
 ) {
     data class ForhåndsvarsleBody(val fritekst: String)
-    post("$revurderingPath/{revurderingId}/forhandsvarsel") {
+    post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
                 call.withRevurderingId { revurderingId ->
@@ -51,7 +51,7 @@ internal fun Route.forhåndsvarslingRoute(
     }
 
     data class ForhåndsvarselBrevutkastBody(val fritekst: String)
-    post("$revurderingPath/{revurderingId}/brevutkastForForhandsvarsel") {
+    post("$REVURDERING_PATH/{revurderingId}/brevutkastForForhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->

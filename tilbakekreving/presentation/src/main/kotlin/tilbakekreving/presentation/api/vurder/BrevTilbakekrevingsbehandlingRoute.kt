@@ -26,10 +26,10 @@ import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingSe
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
+import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
-import tilbakekreving.presentation.api.tilbakekrevingPath
 import java.util.UUID
 
 private data class BrevtekstBody(
@@ -67,7 +67,7 @@ private data class BrevtekstBody(
 internal fun Route.brevTilbakekrevingsbehandlingRoute(
     brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
 ) {
-    post("$tilbakekrevingPath/{tilbakekrevingsId}/brevtekst") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/brevtekst") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->

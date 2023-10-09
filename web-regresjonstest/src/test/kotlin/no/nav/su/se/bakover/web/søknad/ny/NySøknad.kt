@@ -96,7 +96,8 @@ fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
 private fun ApplicationTestBuilder.nySøknadOgVerifiser(
     requestJson: String,
     expectedResponseJson: String,
-    brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    brukerrolle: Brukerrolle,
 ): String {
     return nySøknad(
         requestJson = requestJson,
@@ -124,7 +125,8 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
  */
 private fun nySøknad(
     requestJson: String,
-    brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    brukerrolle: Brukerrolle,
     client: HttpClient,
 ): String {
     return runBlocking {
@@ -146,7 +148,8 @@ private fun nySøknad(
 
 private fun nyAlderssøknad(
     requestJson: String,
-    brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    brukerrolle: Brukerrolle,
     client: HttpClient,
 ): String {
     return runBlocking {

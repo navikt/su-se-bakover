@@ -23,7 +23,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
-const val oversendelsePath = "/api/oversendelse/v3/sak"
+const val OVERSENDELSE_PATH = "/api/oversendelse/v3/sak"
 
 /**
  * For docs og swagger, se [KabalRequest]
@@ -65,7 +65,7 @@ class KabalHttpClient(
             ),
         )
         return Either.catch {
-            val request = HttpRequest.newBuilder().uri(URI.create("${kabalConfig.url}$oversendelsePath"))
+            val request = HttpRequest.newBuilder().uri(URI.create("${kabalConfig.url}$OVERSENDELSE_PATH"))
                 .header("Authorization", "Bearer $token").header("Accept", "application/json")
                 .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(requestBody))

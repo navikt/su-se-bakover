@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import java.util.UUID
 
@@ -30,7 +30,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/familiegjenforening") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<FamiliegjenforeningBody> { body ->
