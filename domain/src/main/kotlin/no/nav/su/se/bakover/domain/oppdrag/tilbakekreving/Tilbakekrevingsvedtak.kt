@@ -47,29 +47,27 @@ sealed interface Tilbakekrevingsvedtak {
         val periode: Periode,
         val renterBeregnes: Boolean,
         val beløpRenter: BigDecimal,
-        val tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>,
+        val feilutbetaling: Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling,
+        val ytelse: Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse,
     ) {
         fun brutto(): MånedBeløp {
             return MånedBeløp(
                 periode.tilMåned(),
-                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
-                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.brutto() },
+                ytelse.brutto(),
             )
         }
 
         fun netto(): MånedBeløp {
             return MånedBeløp(
                 periode.tilMåned(),
-                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
-                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.netto() },
+                ytelse.netto(),
             )
         }
 
         fun skatt(): MånedBeløp {
             return MånedBeløp(
                 periode.tilMåned(),
-                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
-                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.skatt() },
+                ytelse.skatt(),
             )
         }
 

@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.presentation.api.common.GrunnlagsbeløpJson.Companion.toJson
+import tilbakekreving.presentation.api.common.GrunnlagsbeløpFeilutbetalingJson.Companion.toJson
+import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KlasseKodeJson.Companion.toJson
-import tilbakekreving.presentation.api.common.KlasseTypeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
@@ -37,22 +37,23 @@ data class GrunnlagsperiodeJson(
     // TODO bytt till et uuuu-MM format (f.eks. toString() av YearMonth)
     val periode: PeriodeJson,
     val beløpSkattMnd: String,
-    val grunnlagsbeløp: List<GrunnlagsbeløpJson>,
+    val ytelse: GrunnlagsbeløpYtelseJson,
+    val feilutbetaling: GrunnlagsbeløpFeilutbetalingJson,
 ) {
     companion object {
         fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
             GrunnlagsperiodeJson(
                 periode = it.måned.toJson(),
                 beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
-                grunnlagsbeløp = it.grunnlagsbeløp.toJson(),
+                ytelse = it.ytelse.toJson(),
+                feilutbetaling = it.feilutbetaling.toJson(),
             )
         }
     }
 }
 
-data class GrunnlagsbeløpJson(
+data class GrunnlagsbeløpYtelseJson(
     val kode: KlasseKodeJson,
-    val type: KlasseTypeJson,
     val beløpTidligereUtbetaling: String,
     val beløpNyUtbetaling: String,
     val beløpSkalTilbakekreves: String,
@@ -60,15 +61,32 @@ data class GrunnlagsbeløpJson(
     val skatteProsent: String,
 ) {
     companion object {
-        fun List<Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp>.toJson(): List<GrunnlagsbeløpJson> = this.map {
-            GrunnlagsbeløpJson(
-                kode = it.kode.toJson(),
-                type = it.type.toJson(),
-                beløpTidligereUtbetaling = it.beløpTidligereUtbetaling.toString(),
-                beløpNyUtbetaling = it.beløpNyUtbetaling.toString(),
-                beløpSkalTilbakekreves = it.beløpSkalTilbakekreves.toString(),
-                beløpSkalIkkeTilbakekreves = it.beløpSkalIkkeTilbakekreves.toString(),
-                skatteProsent = it.skatteProsent.toString(),
+        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
+            kode = this.klassekode.toJson(),
+            beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
+            beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
+            beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
+            beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
+            skatteProsent = this.skatteProsent.toString(),
+        )
+    }
+}
+
+data class GrunnlagsbeløpFeilutbetalingJson(
+    val kode: KlasseKodeJson,
+    val beløpTidligereUtbetaling: String,
+    val beløpNyUtbetaling: String,
+    val beløpSkalTilbakekreves: String,
+    val beløpSkalIkkeTilbakekreves: String,
+) {
+    companion object {
+        fun Kravgrunnlag.Grunnlagsmåned.Feilutbetaling.toJson(): GrunnlagsbeløpFeilutbetalingJson {
+            return GrunnlagsbeløpFeilutbetalingJson(
+                kode = this.klassekode.toJson(),
+                beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
+                beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
+                beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
+                beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
             )
         }
     }

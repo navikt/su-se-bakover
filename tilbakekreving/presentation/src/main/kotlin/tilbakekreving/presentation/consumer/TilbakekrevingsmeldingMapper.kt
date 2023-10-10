@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -84,17 +83,29 @@ data object TilbakekrevingsmeldingMapper {
                                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                                         ),
                                         betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
-                                        grunnlagsbeløp = tilbakekrevingsperiode.tilbakekrevingsbeløp.map {
-                                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                                                kode = KlasseKode.valueOf(it.kodeKlasse),
-                                                type = KlasseType.valueOf(it.typeKlasse),
-                                                beløpTidligereUtbetaling = BigDecimal(it.belopOpprUtbet),
-                                                beløpNyUtbetaling = BigDecimal(it.belopNy),
-                                                beløpSkalTilbakekreves = BigDecimal(it.belopTilbakekreves),
-                                                beløpSkalIkkeTilbakekreves = BigDecimal(it.belopUinnkrevd),
-                                                skatteProsent = BigDecimal(it.skattProsent),
-                                            )
-                                        },
+                                        ytelse = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "YTEL" }
+                                            .let {
+                                                it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
+                                                Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                                                    klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
+                                                    beløpTidligereUtbetaling = it.single().belopOpprUtbet.toInt(),
+                                                    beløpNyUtbetaling = it.single().belopNy.toInt(),
+                                                    beløpSkalTilbakekreves = it.single().belopTilbakekreves.toInt(),
+                                                    beløpSkalIkkeTilbakekreves = it.single().belopUinnkrevd.toInt(),
+                                                    skatteProsent = BigDecimal(it.single().skattProsent),
+                                                )
+                                            },
+                                        feilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "FEIL" }
+                                            .let {
+                                                it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
+                                                Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                                                    klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
+                                                    beløpTidligereUtbetaling = it.single().belopOpprUtbet.toInt(),
+                                                    beløpNyUtbetaling = it.single().belopNy.toInt(),
+                                                    beløpSkalTilbakekreves = it.single().belopTilbakekreves.toInt(),
+                                                    beløpSkalIkkeTilbakekreves = it.single().belopUinnkrevd.toInt(),
+                                                )
+                                            },
                                     )
                                 },
                                 eksternTidspunkt = Tidspunkt(
