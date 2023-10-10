@@ -26,6 +26,8 @@ dependencies {
     implementation(project(":tilbakekreving:application"))
     implementation(project(":tilbakekreving:infrastructure"))
 
+    implementation(project(":person:domain"))
+
     implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

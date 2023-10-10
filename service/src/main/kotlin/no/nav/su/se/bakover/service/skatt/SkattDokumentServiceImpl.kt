@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonOppslag
 import java.time.Clock
 import java.util.UUID
 
