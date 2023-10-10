@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.person
+package person.domain
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident

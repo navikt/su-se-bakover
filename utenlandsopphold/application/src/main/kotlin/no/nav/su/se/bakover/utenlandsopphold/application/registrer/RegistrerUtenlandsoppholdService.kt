@@ -5,13 +5,13 @@ import no.nav.su.se.bakover.common.audit.AuditLogger
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.registrerUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
+import person.domain.PersonService
 
 class RegistrerUtenlandsoppholdService(
     private val sakRepo: SakRepo,

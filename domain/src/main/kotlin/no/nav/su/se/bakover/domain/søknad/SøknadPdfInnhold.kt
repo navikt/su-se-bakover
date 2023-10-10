@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import person.domain.Person
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

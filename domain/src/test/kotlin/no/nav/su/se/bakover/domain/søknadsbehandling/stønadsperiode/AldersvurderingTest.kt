@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
+import person.domain.Person
 import java.time.Year
 
 internal class AldersvurderingTest {

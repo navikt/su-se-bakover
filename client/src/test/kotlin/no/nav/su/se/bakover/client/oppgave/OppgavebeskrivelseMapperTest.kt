@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
+import person.domain.SivilstandTyper
 import java.time.LocalDate
 
 internal class OppgavebeskrivelseMapperTest {

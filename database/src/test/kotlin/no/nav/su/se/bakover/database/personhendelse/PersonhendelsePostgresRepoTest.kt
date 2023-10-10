@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.test.fixedClock
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
+import person.domain.SivilstandTyper
 import java.util.UUID
 import javax.sql.DataSource
 

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -21,6 +20,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import person.domain.KunneIkkeHentePerson
+import person.domain.SivilstandTyper
 import java.time.LocalDate
 
 internal class PdlClientTest : WiremockBase {

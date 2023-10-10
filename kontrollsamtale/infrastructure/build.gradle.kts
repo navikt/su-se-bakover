@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
+    implementation(project(":person:domain"))
 
     testImplementation(project(":test-common"))
 }

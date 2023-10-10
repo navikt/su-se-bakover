@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.service.person
 import arrow.core.Either
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.PersonService
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
+import person.domain.PersonOppslag
+import person.domain.PersonService
 
 class PersonServiceImpl(
     private val personOppslag: PersonOppslag,

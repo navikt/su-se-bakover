@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.person
+package person.domain
 
 sealed class KunneIkkeHenteNavnForNavIdent {
     data object FeilVedHentingAvOnBehalfOfToken : KunneIkkeHenteNavnForNavIdent()

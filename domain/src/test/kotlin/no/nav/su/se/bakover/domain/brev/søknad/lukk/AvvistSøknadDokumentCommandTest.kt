@@ -13,13 +13,13 @@ import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.AvvistSøknadFritekstPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.AvvistSøknadVedtakPdfInnhold
-import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.person.Person.Navn
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
+import person.domain.Person
+import person.domain.Person.Navn
 import java.time.Year
 
 internal class AvvistSøknadDokumentCommandTest {

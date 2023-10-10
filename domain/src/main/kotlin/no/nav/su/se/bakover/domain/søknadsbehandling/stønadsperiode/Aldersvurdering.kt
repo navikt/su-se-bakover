@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.person.Person
+import person.domain.Person
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year

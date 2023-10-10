@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.IdentClient
+import person.domain.KunneIkkeHenteNavnForNavIdent
 
 private data class MicrosoftGraphResponse(
     val displayName: String,

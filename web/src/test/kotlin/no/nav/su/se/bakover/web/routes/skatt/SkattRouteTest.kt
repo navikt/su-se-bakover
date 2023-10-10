@@ -12,7 +12,6 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
 import no.nav.su.se.bakover.service.skatt.SkatteService
@@ -27,6 +26,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import person.domain.PersonService
 import java.time.Year
 
 class SkattRouteTest {

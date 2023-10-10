@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import person.domain.KunneIkkeHenteNavnForNavIdent
 import java.util.UUID
 
 interface SakService {

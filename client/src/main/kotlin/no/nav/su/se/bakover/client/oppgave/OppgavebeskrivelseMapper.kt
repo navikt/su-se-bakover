@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.oppgave
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
+import person.domain.SivilstandTyper
 
 data object OppgavebeskrivelseMapper {
     fun map(config: OppgaveConfig.Klage.Klageinstanshendelse): String {

@@ -3,8 +3,8 @@ package tilbakekreving.application.service.common
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.PersonRepo
-import no.nav.su.se.bakover.domain.person.PersonService
+import person.domain.PersonRepo
+import person.domain.PersonService
 import tilbakekreving.domain.IkkeTilgangTilSak
 import java.util.UUID
 

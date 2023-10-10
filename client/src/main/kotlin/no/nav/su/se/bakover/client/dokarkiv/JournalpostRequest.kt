@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import person.domain.Person
 import java.util.Base64
 
 internal data class JournalpostRequest(

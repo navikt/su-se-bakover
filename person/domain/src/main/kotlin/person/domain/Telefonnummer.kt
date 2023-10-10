@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.person
+package person.domain
 
 data class Telefonnummer(
     val landskode: String,

@@ -4,7 +4,6 @@ import arrow.core.Either
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 
 internal class KafkaStatistikkEventObserver(

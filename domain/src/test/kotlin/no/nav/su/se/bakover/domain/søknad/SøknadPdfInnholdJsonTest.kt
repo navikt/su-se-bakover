@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.InnlagtPåInstitusjon
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.boforhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.Person
 import java.time.Clock
 import java.util.UUID
 

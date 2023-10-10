@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":common:infrastructure"))
     implementation(project(":domain"))
     implementation(project(":client"))
+    implementation(project(":person:domain"))
 
     testImplementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))

@@ -7,10 +7,10 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.common.extensions.orNull
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import person.domain.SivilstandTyper
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 internal data object PersonhendelseMapper {

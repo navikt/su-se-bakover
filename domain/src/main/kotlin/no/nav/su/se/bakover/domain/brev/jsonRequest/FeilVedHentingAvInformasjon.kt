@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import person.domain.KunneIkkeHenteNavnForNavIdent
 
 sealed interface FeilVedHentingAvInformasjon {
     data class KunneIkkeHentePerson(

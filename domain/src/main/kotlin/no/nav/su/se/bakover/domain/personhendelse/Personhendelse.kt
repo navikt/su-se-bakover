@@ -4,8 +4,8 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import person.domain.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
 

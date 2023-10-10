@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.OppjusteringAvEieri
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.VerdsettingsrabattSomGirGjeldsreduksjon.Companion.tilPdfJson
 import no.nav.su.se.bakover.client.pdf.SpesifiseringPdfJson.KjøretøyJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import person.domain.Person
 import java.time.LocalDate
 
 data class SkattPdfDataJson(

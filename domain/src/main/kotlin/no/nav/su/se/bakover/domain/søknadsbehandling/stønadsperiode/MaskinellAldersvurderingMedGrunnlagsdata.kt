@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import no.nav.su.se.bakover.common.extensions.startOfMonth
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.vilkår.UFØRETRYGD_MAX_ALDER
+import person.domain.Person
 import java.time.LocalDate
 import java.time.Year
 

@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
+import person.domain.PersonOppslag
 import java.time.Duration
 import java.time.Year
 

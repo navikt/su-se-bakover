@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
+import person.domain.Person
 import java.util.UUID
 
 fun pdfATom(): PdfA = PdfA("".toByteArray())

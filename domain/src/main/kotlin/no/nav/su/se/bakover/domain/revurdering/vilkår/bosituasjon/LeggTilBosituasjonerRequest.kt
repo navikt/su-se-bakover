@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.raise.either
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.person.Person
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
 import java.time.Clock
 import java.util.UUID
 

@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.Telefonnummer
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
+import person.domain.PersonOppslag
+import person.domain.Telefonnummer
 
 data object PersonOppslagStub :
     PersonOppslag {

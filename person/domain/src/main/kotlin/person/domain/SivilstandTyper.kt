@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.person
+package person.domain
 
 enum class SivilstandTyper {
     UOPPGITT,
