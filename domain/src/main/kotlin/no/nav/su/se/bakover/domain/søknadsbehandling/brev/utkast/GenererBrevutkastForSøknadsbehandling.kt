@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast
 import arrow.core.Either
 import arrow.core.left
 import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanGenerereBrev

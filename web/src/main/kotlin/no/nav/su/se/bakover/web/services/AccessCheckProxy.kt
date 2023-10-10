@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import arrow.core.Either
 import arrow.core.getOrElse
 import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Attestering
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest

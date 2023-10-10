@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak.brev
 
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
+import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse

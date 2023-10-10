@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.Either
 import arrow.core.flatMap
 import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo

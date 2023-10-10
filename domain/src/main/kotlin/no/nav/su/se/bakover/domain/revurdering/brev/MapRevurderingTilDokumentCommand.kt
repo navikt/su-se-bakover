@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
+import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering

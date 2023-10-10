@@ -3,6 +3,7 @@
 
 package no.nav.su.se.bakover.domain.brev.command
 
+import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.dokumentMapper
 
 import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
+import java.lang.IllegalStateException
 import java.time.Clock
 import java.util.UUID
 
@@ -60,6 +61,8 @@ fun PdfA.tilDokument(
                 pdfInnhold,
             )
         }
+
+        else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
     }
 }
 

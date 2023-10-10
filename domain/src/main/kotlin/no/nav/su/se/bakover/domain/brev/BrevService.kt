@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.Either
 import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import java.util.UUID
 
