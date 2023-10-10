@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.PdfTemplateMedDokumentNavn
+import dokument.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer

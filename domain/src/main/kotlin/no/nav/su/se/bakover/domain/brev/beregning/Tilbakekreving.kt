@@ -12,10 +12,13 @@ data class BrevTilbakekrevingInfo(
 )
 
 data class Tilbakekreving(
-    // TODO jah: Dersom man bruker periodeStart/periodeSlutt får man en NoSuchElementException elements exceptions
-    //  Kan vi bytte til NEL?
     private val månedBeløp: List<MånedBeløp>,
 ) {
+    init {
+        require(månedBeløp.isNotEmpty()) {
+            "Kan ikke lage et tilbakekrevingsbrev uten måneder"
+        }
+    }
     val tilbakekrevingavdrag = månedBeløp.map {
         BrevTilbakekrevingInfo(
             periode = it.periode.toBrevPeriode(),

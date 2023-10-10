@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev.jsonRequest
+package dokument.domain.brev
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty

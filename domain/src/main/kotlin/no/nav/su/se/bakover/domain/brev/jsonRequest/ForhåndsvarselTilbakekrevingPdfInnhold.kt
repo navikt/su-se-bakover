@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import dokument.domain.PdfTemplateMedDokumentNavn
+import dokument.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.common.extensions.norwegianLocale
 import no.nav.su.se.bakover.common.extensions.toBrevformat
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo

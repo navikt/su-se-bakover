@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.PdfTemplateMedDokumentNavn
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev
+import dokument.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 
 data class AvvistSøknadVedtakPdfInnhold(

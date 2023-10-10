@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.client.stubs.pdf
 
 import arrow.core.Either
 import arrow.core.right
+import dokument.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 
 data object PdfGeneratorStub : PdfGenerator {

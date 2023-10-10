@@ -87,7 +87,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     hendelser = tilbakekrevingsHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
-                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId).filter {
+                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId, openSessionContext).filter {
                         it.relaterteHendelser.containsAll(tilbakekrevingsHendelser.map { it.hendelseId })
                     }.sorted(),
                 )

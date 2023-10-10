@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
