@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast
 
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import kotlin.reflect.KClass
 

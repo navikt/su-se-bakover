@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanGenerereBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling

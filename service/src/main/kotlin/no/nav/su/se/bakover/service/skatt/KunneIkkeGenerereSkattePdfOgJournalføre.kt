@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.skatt
 
-import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
+import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 

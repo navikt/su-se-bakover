@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService

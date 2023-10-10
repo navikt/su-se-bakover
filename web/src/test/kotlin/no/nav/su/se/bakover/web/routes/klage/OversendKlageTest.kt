@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -27,7 +27,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class OversendKlageTest {
@@ -111,32 +110,13 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `fant ikke person`() {
+    fun `finner ikke personinformasjon`() {
         verifiserFeilkode(
             feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
-                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ),
             status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
-        )
-    }
-
-    @Test
-    fun `fant ikke saksbehandler`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
-                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                    ),
-                ),
-            ),
-            status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
+            body = "{\"message\":\"Feil ved henting av personinformasjon\",\"code\":\"feil_ved_henting_av_personInformasjon\"}",
         )
     }
 
@@ -144,7 +124,7 @@ internal class OversendKlageTest {
     fun `kunne ikke generere PDF`() {
         verifiserFeilkode(
             feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
-                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+                KunneIkkeLageDokument.FeilVedGenereringAvPdf,
             ),
             status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Feil ved generering av dokument\",\"code\":\"feil_ved_generering_av_dokument\"}",

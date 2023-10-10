@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.saksbehandler
@@ -18,7 +18,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 class LagBrevutkastForForhåndsvarslingTest {
@@ -69,11 +68,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ).left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -81,11 +76,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 saksbehandler,
                 "fritekst til forhåndsvarsling",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
         }
     }

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -13,11 +14,8 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -27,7 +25,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class ForhåndsvisBrevForKlageTest {
@@ -91,32 +88,13 @@ internal class ForhåndsvisBrevForKlageTest {
     }
 
     @Test
-    fun `fant ikke person`() {
+    fun `finner ikke personinformasjon`() {
         verifiserFeilkode(
             feilkode = KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ),
             status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
-        )
-    }
-
-    @Test
-    fun `fant ikke saksbehandler og eller attestant`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                    ),
-                ),
-            ),
-            status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
+            body = "{\"message\":\"Feil ved henting av personinformasjon\",\"code\":\"feil_ved_henting_av_personInformasjon\"}",
         )
     }
 

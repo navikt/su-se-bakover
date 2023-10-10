@@ -92,6 +92,6 @@ sealed interface KunneIkkeOversendeKlage {
     ) : KunneIkkeOversendeKlage
 
     data class KunneIkkeLageDokument(
-        val feil: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument,
+        val feil: dokument.domain.KunneIkkeLageDokument,
     ) : KunneIkkeOversendeKlage
 }

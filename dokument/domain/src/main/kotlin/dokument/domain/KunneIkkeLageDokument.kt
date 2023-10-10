@@ -1,13 +1,12 @@
-package no.nav.su.se.bakover.domain.dokument
+package dokument.domain
 
 sealed interface KunneIkkeLageDokument {
 
     /**
      * Dette er steget før vi genererer PDFen / dokumentet.
+     * se [no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon]
      */
-    data class FeilVedHentingAvInformasjon(
-        val underliggende: no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon,
-    ) : KunneIkkeLageDokument
+    data object FeilVedHentingAvInformasjon : KunneIkkeLageDokument
 
     /**
      * Vi klarte innhente nødvendig informasjon, men noe feil skjedde under genereringa av PDFen.

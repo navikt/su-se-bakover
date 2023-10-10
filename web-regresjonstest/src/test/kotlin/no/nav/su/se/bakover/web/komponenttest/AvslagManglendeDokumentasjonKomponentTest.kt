@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
+import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.extensions.april
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag

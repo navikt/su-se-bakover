@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service
 
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo

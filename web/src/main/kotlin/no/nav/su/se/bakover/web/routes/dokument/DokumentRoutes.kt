@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.brev.BrevService
+import dokument.domain.brev.HentDokumenterForIdType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -16,8 +18,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import java.util.UUID
 
 private const val ID_PARAMETER = "id"

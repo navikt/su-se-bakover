@@ -4,6 +4,8 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -20,10 +22,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger

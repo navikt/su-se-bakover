@@ -4,6 +4,8 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
@@ -13,10 +15,8 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup
 
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService

@@ -5,11 +5,11 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService

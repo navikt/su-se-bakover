@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.service.tilbakekreving
 
 import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo

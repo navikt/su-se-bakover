@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver

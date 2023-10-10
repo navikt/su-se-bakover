@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -10,10 +12,8 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
@@ -43,7 +43,6 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
-import person.domain.KunneIkkeHentePerson
 import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
 import java.time.LocalDate
@@ -123,22 +122,14 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ).left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ) {
             val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(utbetaling)
             feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.journalføring
 
 import arrow.core.Either
+import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
+import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
-import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService

@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak.Companion.lagJournalpost
 import no.nav.su.se.bakover.domain.sak.SakService

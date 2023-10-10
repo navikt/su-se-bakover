@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService

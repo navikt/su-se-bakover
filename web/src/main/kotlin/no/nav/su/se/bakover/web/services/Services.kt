@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.services
 
-import no.nav.su.se.bakover.domain.brev.BrevService
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService

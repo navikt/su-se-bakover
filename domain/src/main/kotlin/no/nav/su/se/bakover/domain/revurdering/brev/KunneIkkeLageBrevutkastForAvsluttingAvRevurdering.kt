@@ -9,6 +9,6 @@ sealed interface KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
     ) : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 
     data class KunneIkkeLageDokument(
-        val underliggende: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument,
+        val underliggende: dokument.domain.KunneIkkeLageDokument,
     ) : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 }

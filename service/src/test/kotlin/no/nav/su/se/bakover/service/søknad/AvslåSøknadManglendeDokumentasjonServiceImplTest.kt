@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
+import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 
 sealed interface KunneIkkeFerdigstilleVedtakMedUtbetaling {
     data class FantIkkeVedtakForUtbetalingId(val utbetalingId: UUID30) : KunneIkkeFerdigstilleVedtakMedUtbetaling

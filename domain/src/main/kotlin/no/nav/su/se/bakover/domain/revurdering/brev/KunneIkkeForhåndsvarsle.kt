@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 
 sealed class KunneIkkeForhåndsvarsle {

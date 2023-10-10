@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Attestering
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage

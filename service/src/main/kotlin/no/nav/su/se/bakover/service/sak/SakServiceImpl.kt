@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.journalpost.Journalpost

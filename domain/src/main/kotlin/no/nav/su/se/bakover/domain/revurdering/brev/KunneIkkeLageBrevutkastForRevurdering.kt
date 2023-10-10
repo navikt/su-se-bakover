@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import dokument.domain.KunneIkkeLageDokument
 
 sealed interface KunneIkkeLageBrevutkastForRevurdering {
     data object FantIkkeRevurdering : KunneIkkeLageBrevutkastForRevurdering

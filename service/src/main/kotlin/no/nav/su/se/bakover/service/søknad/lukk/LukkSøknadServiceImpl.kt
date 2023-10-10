@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.service.søknad.lukk
 import arrow.core.getOrElse
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver

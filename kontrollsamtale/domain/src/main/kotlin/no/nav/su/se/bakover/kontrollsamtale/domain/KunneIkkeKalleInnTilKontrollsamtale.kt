@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import dokument.domain.KunneIkkeLageDokument
 
 sealed interface KunneIkkeKalleInnTilKontrollsamtale {
     data object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale

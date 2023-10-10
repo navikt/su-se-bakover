@@ -3,13 +3,12 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -26,7 +25,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.KunneIkkeHentePerson
 
 internal class SøknadsbehandlingServiceBrevTest {
     private val tilAttesteringInnvilget = søknadsbehandlingTilAttesteringInnvilget().second
@@ -35,11 +33,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                    KunneIkkeHentePerson.FantIkkePerson,
-                ),
-            ).left()
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -55,11 +49,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                     utførtAv = attestant,
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
 
             verify(it.brevService).lagDokument(any())
@@ -71,11 +61,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner navn på attestant eller saksbehandler`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                    KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                ),
-            ).left()
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -90,11 +76,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                     utførtAv = attestant,
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
             verify(it.brevService).lagDokument(any())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)

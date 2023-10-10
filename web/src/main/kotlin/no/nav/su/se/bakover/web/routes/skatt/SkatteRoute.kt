@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.skatt
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.brev.KunneIkkeJournalføreDokument
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding

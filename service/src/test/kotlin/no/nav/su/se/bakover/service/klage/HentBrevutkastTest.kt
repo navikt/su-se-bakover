@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -10,11 +11,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avvistKlage
@@ -37,7 +36,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import person.domain.KunneIkkeHentePerson
 import java.time.ZoneOffset
 import java.util.UUID
 
@@ -91,22 +89,14 @@ internal class HentBrevutkastTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                    ),
-                ).left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
         mocks.service.brevutkast(
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
-            KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                    KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                ),
-            ),
+            KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
         verify(mocks.brevServiceMock).lagDokument(any())
@@ -126,11 +116,7 @@ internal class HentBrevutkastTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ).left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
 
@@ -138,11 +124,7 @@ internal class HentBrevutkastTest {
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
-            KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                    KunneIkkeHentePerson.FantIkkePerson,
-                ),
-            ),
+            KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
         verify(mocks.brevServiceMock).lagDokument(any())

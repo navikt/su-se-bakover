@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain.klage.brev
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage

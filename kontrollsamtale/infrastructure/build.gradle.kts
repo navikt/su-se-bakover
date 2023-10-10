@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":common:infrastructure"))
     implementation(project(":database"))
     implementation(project(":domain"))
+    implementation(project(":dokument:domain"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
 

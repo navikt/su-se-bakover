@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.komponenttest
 
 import dokument.domain.Dokument
 import dokument.domain.brev.Distribusjonstype
+import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeType

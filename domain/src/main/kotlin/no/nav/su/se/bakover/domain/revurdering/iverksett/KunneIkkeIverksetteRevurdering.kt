@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering

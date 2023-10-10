@@ -4,15 +4,15 @@ import arrow.core.Either
 import arrow.core.flatMap
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
+import dokument.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import java.time.Clock
@@ -38,7 +38,7 @@ class BrevServiceImpl(
             // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
             hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer) },
             hentNavnForIdent = identClient::hentNavnForNavIdent,
-        ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon(it) }
+        ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }
             .flatMap { pdfInnhold ->
                 pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
                     .map { pdfA ->

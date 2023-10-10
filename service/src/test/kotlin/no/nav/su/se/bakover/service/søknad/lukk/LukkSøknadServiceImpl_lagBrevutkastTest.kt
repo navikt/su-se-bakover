@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.søknad.lukk
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.BrevService
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -10,9 +12,7 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakInfo

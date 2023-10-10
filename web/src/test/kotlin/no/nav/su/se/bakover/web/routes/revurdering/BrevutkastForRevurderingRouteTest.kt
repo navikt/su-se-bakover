@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
@@ -13,8 +14,6 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
@@ -28,7 +27,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class BrevutkastForRevurderingRouteTest {
@@ -117,41 +115,16 @@ internal class BrevutkastForRevurderingRouteTest {
     }
 
     @Test
-    fun `fant ikke person`() {
+    fun `finner ikke personinformasjon`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        KunneIkkeHentePerson.FantIkkePerson,
-                    ),
-                ),
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Fant ikke person",
-                    "code":"fant_ikke_person"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
-    fun `kunne ikke hente navn for saksbehandler eller attestant`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                    ),
-                ),
-            ),
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke saksbehandler eller attestant",
-                    "code":"fant_ikke_saksbehandler_eller_attestant"
+                    "message":"Feil ved henting av personinformasjon",
+                    "code":"feil_ved_henting_av_personInformasjon"
                 }
             """.trimIndent(),
 

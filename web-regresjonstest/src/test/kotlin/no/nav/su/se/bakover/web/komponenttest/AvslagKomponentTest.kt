@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import dokument.domain.Dokument
+import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.test.fixedClock

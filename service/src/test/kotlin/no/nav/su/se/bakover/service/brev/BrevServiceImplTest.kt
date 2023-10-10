@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -11,7 +13,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.Person
@@ -209,11 +209,7 @@ internal class BrevServiceImplTest {
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
                 ),
-            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                    KunneIkkeHentePerson.FantIkkePerson,
-                ),
-            ).left()
+            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
     }
 
@@ -236,11 +232,7 @@ internal class BrevServiceImplTest {
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
                 ),
-            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
-                FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
-                    KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet,
-                ),
-            ).left()
+            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()

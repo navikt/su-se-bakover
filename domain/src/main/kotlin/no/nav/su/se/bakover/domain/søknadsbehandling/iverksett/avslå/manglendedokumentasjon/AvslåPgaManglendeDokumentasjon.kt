@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling

@@ -6,5 +6,5 @@ sealed interface KunneIkkeLageBrevutkast {
     data object FantIkkeKlage : KunneIkkeLageBrevutkast
     data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevKommandoForKlage) : KunneIkkeLageBrevutkast
 
-    data class KunneIkkeGenererePdf(val feil: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument) : KunneIkkeLageBrevutkast
+    data class KunneIkkeGenererePdf(val feil: dokument.domain.KunneIkkeLageDokument) : KunneIkkeLageBrevutkast
 }

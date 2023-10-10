@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
