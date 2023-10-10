@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Behandlingstema
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import person.domain.Person
 import java.util.Base64
 

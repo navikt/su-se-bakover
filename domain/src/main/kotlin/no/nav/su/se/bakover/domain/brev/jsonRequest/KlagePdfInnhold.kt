@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 
 sealed class KlagePdfInnhold : PdfInnhold() {

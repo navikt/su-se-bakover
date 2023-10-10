@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.extensions.norwegianLocale
 import no.nav.su.se.bakover.common.extensions.toBrevformat
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import java.text.NumberFormat

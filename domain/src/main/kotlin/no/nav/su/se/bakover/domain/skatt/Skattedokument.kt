@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.skatt
 
+import dokument.domain.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import java.util.UUID
 
 sealed interface Skattedokument {

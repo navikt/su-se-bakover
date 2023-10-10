@@ -5,14 +5,14 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.PdfTemplateMedDokumentNavn
+import dokument.domain.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
-import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import person.domain.KunneIkkeHentePerson

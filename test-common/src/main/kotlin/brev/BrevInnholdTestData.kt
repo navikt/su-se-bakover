@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.brev
 
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingP
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
-import no.nav.su.se.bakover.domain.sak.Sakstype
 
 fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
     personalia = pdfInnholdPersonalia(),

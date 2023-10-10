@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev
+package dokument.domain
 
 data object SkattegrunnlagPdfTemplate : PdfTemplateMedDokumentNavn(
     pdfTemplate = PdfTemplate.Skattegrunnlag,

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.idag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.time.Clock

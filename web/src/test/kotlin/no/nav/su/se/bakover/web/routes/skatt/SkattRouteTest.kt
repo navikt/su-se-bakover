@@ -11,8 +11,8 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.test.fnr

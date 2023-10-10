@@ -23,3 +23,14 @@ fun Periode.tilBrevperiode(): BrevPeriode {
         tilOgMed = tilOgMed.ddMMyyyy(),
     )
 }
+
+fun List<Beregningsperiode>.harFradrag(): Boolean {
+    return this.any {
+        it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
+            .isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty()
+    }
+}
+
+fun List<Beregningsperiode>.harAvkorting(): Boolean {
+    return this.any { it.fradrag.bruker.any { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" } }
+}

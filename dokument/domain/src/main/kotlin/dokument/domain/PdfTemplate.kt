@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev
+package dokument.domain
 
 /**
  * 1-1 mapping to templates defined by pdf-generator.

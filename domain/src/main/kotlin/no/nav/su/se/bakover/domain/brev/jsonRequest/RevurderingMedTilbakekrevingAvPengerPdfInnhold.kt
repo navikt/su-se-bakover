@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
+import dokument.domain.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import no.nav.su.se.bakover.domain.brev.beregning.harAvkorting
+import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 
 data class RevurderingMedTilbakekrevingAvPengerPdfInnhold(

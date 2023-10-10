@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import dokument.domain.PdfTemplateMedDokumentNavn
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.brev.FormueForBrev
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.tilFormueForBrev
-import no.nav.su.se.bakover.domain.sak.Sakstype
 
 data class AvslagSøknadsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,

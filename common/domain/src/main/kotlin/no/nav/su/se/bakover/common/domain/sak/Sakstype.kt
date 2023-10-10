@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.sak
+package no.nav.su.se.bakover.common.domain.sak
 
 enum class Sakstype(val value: String) {
     ALDER("alder"),

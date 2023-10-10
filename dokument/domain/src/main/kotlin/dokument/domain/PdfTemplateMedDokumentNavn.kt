@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev
+package dokument.domain
 
 // TODO jah: Flytt disse til de respektive plassene.
 sealed class PdfTemplateMedDokumentNavn(

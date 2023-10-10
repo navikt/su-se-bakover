@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

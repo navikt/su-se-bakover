@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.PdfTemplateMedDokumentNavn
 import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold

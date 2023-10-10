@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
+import dokument.domain.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 
 data class ForhåndsvarselPdfInnhold(

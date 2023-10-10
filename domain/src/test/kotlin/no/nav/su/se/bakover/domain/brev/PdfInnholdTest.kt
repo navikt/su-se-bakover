@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.right
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDok
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
 import no.nav.su.se.bakover.test.brev.pdfInnholdTrukketSøknad
 import no.nav.su.se.bakover.test.fixedClock

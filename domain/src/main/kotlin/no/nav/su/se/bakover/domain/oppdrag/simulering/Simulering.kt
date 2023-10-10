@@ -4,11 +4,11 @@ import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.time.LocalDate
