@@ -114,13 +114,6 @@ internal class TilbakekrevingsbehandlingIT {
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"4395",
-        "feilutbetaling": {
-            "kode":"KL_KODE_FEIL_INNT",
-            "beløpTidligereUtbetaling":"0",
-            "beløpNyUtbetaling":"12383",
-            "beløpSkalTilbakekreves":"0",
-            "beløpSkalIkkeTilbakekreves":"0",
-          },
           "ytelse": {
             "kode":"SUUFORE",
             "beløpTidligereUtbetaling":"20946",

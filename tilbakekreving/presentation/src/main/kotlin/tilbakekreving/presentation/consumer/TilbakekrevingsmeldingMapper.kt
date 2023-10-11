@@ -83,9 +83,8 @@ data object TilbakekrevingsmeldingMapper {
                                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                                         ),
                                         betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
-                                        ytelse = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "YTEL" }
+                                        ytelse = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
                                             .let {
-                                                it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
                                                 Kravgrunnlag.Grunnlagsmåned.Ytelse(
                                                     klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
                                                     beløpTidligereUtbetaling = BigDecimal(it.single().belopOpprUtbet).intValueExact(),
@@ -95,9 +94,8 @@ data object TilbakekrevingsmeldingMapper {
                                                     skatteProsent = BigDecimal(it.single().skattProsent),
                                                 )
                                             },
-                                        feilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "FEIL" }
+                                        feilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
                                             .let {
-                                                it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
                                                 Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
                                                     klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
                                                     beløpTidligereUtbetaling = BigDecimal(it.single().belopOpprUtbet).intValueExact(),

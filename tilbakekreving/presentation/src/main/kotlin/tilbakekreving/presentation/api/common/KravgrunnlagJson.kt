@@ -4,13 +4,11 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.presentation.api.common.GrunnlagsbeløpFeilutbetalingJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KlasseKodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
 import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 
 data class KravgrunnlagJson(
     val eksternKravgrunnlagsId: String,
@@ -38,7 +36,6 @@ data class GrunnlagsperiodeJson(
     val periode: PeriodeJson,
     val beløpSkattMnd: String,
     val ytelse: GrunnlagsbeløpYtelseJson,
-    val feilutbetaling: GrunnlagsbeløpFeilutbetalingJson,
 ) {
     companion object {
         fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
@@ -46,7 +43,6 @@ data class GrunnlagsperiodeJson(
                 periode = it.måned.toJson(),
                 beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
                 ytelse = it.ytelse.toJson(),
-                feilutbetaling = it.feilutbetaling.toJson(),
             )
         }
     }
@@ -72,26 +68,6 @@ data class GrunnlagsbeløpYtelseJson(
     }
 }
 
-data class GrunnlagsbeløpFeilutbetalingJson(
-    val kode: KlasseKodeJson,
-    val beløpTidligereUtbetaling: String,
-    val beløpNyUtbetaling: String,
-    val beløpSkalTilbakekreves: String,
-    val beløpSkalIkkeTilbakekreves: String,
-) {
-    companion object {
-        fun Kravgrunnlag.Grunnlagsmåned.Feilutbetaling.toJson(): GrunnlagsbeløpFeilutbetalingJson {
-            return GrunnlagsbeløpFeilutbetalingJson(
-                kode = this.klassekode.toJson(),
-                beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
-                beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
-                beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
-                beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
-            )
-        }
-    }
-}
-
 enum class KlasseKodeJson {
     SUUFORE,
     KL_KODE_FEIL_INNT,
@@ -111,23 +87,6 @@ enum class KlasseKodeJson {
             KlasseKode.UFOREUT -> UFOREUT
             KlasseKode.SUALDER -> SUALDER
             KlasseKode.KL_KODE_FEIL -> KL_KODE_FEIL
-        }
-    }
-}
-
-enum class KlasseTypeJson {
-    YTEL,
-    SKAT,
-    FEIL,
-    MOTP,
-    ;
-
-    companion object {
-        fun KlasseType.toJson(): KlasseTypeJson = when (this) {
-            KlasseType.YTEL -> YTEL
-            KlasseType.SKAT -> SKAT
-            KlasseType.FEIL -> FEIL
-            KlasseType.MOTP -> MOTP
         }
     }
 }

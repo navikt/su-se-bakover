@@ -35,9 +35,6 @@ data class Kravgrunnlag(
     val utbetalingId: UUID30,
     val grunnlagsmåneder: List<Grunnlagsmåned>,
 ) {
-    /**
-     * @throws ArithmeticException Dersom [Grunnlagsmåned.Ytelse.beløpSkalTilbakekreves] ikke er et heltall.
-     */
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
         return Månedsbeløp(
             grunnlagsmåneder
@@ -54,9 +51,6 @@ data class Kravgrunnlag(
         val feilutbetaling: Feilutbetaling,
     ) {
 
-        /**
-         * @throws ArithmeticException Dersom [Ytelse.beløpSkalTilbakekreves] ikke er et heltall.
-         */
         fun hentBeløpSkalTilbakekreves(): MånedBeløp {
             return MånedBeløp(
                 periode = måned,
