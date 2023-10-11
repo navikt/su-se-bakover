@@ -65,6 +65,10 @@ data class Simulering(
         return tolkning.hentFeilutbetalteBeløp()
     }
 
+    fun hentFeilutbetalteBeløp(måned: Måned): MånedBeløp? {
+        return hentFeilutbetalteBeløp().singleOrNull { it.periode == måned }
+    }
+
     /**
      * Beløpet som til slutt vil/burde være utbetalt.
      * Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.

@@ -16,7 +16,7 @@ class RåttKravgrunnlagService(
      * Vi har ikke noe de-dup i dette leddet, så vi kan få "duplikat"-hendelser i databasen.
      * Vi løser de-dup i neste ledd, når vi knytter den mot en utbetaling på en sak.
      */
-    fun lagreRåKvitteringshendelse(
+    fun lagreRåttkravgrunnlagshendelse(
         råttKravgrunnlag: RåttKravgrunnlag,
         meta: JMSHendelseMetadata,
     ) {

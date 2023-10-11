@@ -8,9 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse
 import java.math.BigDecimal
@@ -32,9 +30,7 @@ internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId:
 }
 
 internal fun AppComponents.sendTilbakekrevingsvedtakTilØkonomi() {
-    services.tilbakekrevingService.sendTilbakekrevingsvedtak {
-        TilbakekrevingsmeldingMapper.toKravgrunnlag(it).getOrFail()
-    }
+    services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
 }
 
 internal fun lagUtbetalingsKvittering(utbetalingsrequest: Utbetalingsrequest): String {

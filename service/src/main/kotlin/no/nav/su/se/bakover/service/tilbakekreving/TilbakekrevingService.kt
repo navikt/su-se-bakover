@@ -16,9 +16,7 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.time.Clock
 import java.util.UUID
 
@@ -31,7 +29,7 @@ interface TilbakekrevingService {
     /**
      * Sender utestående tilbakekrevings-avgjørelser til Oppdrag, så fremt vi har tilstrekkelig data.
      */
-    fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag)
+    fun sendUteståendeTilbakekrevingsvedtak()
 
     fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
     fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag?
@@ -55,14 +53,13 @@ class TilbakekrevingServiceImpl(
     }
 
     /**
-     * Ved å ta inn en mapper gjør det at vi slipper lagre den serialiserte versjonen i databasen samtidig som vi i større grad skiller domenet fra infrastruktur.
+     * Ment å kalles fra en jobb. Denne sender alle tilbakekrevingsvedtak hvor tilbakekrevingsbehandlingen er gjort under revurderingen, hvor vi også har mottatt et rått kravgrunnlag og knyttet det til saken, utbetalingen og revurderingen (via utbetalingen).
      */
-    override fun sendTilbakekrevingsvedtak(
-        mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
-    ) {
+    override fun sendUteståendeTilbakekrevingsvedtak() {
         tilbakekrevingRepo.hentMottattKravgrunnlag()
             .forEach { tilbakekrevingsbehandling ->
-                val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
+                val tilbakekrevingsvedtak =
+                    tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(tilbakekrevingsbehandling.kravgrunnlag)
                 val vedtak =
                     vedtakService.hentForRevurderingId(tilbakekrevingsbehandling.avgjort.revurderingId)!! as Stønadsvedtak
 

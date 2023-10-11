@@ -14,7 +14,7 @@ fun AppComponents.nyttKravgrunnlag(
     correlationId: CorrelationId = CorrelationId.generate(),
     meta: JMSHendelseMetadata = JMSHendelseMetadata.fromCorrelationId(correlationId),
 ) {
-    this.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåKvitteringshendelse(
+    this.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
         råttKravgrunnlag = råttKravgrunnlag,
         meta = meta,
     )

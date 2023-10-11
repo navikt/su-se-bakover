@@ -32,7 +32,7 @@ class KravgrunnlagIbmMqConsumer(
                     log.info("Mottok kravgrunnlag fra køen: $queueName. Se sikkerlogg for meldingsinnhold.")
                     message.getBody(String::class.java).let {
                         sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
-                        service.lagreRåKvitteringshendelse(
+                        service.lagreRåttkravgrunnlagshendelse(
                             råttKravgrunnlag = RåttKravgrunnlag(it),
                             meta = message.toJMSHendelseMetadata(correlationId),
                         )

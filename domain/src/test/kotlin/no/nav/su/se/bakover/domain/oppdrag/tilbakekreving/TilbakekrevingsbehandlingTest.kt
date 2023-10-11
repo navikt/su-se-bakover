@@ -10,10 +10,9 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import org.junit.jupiter.api.Test
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -29,8 +28,8 @@ internal class TilbakekrevingsbehandlingTest {
             ),
             utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
-        val kravgrunnlag = matchendeKravgrunnlag(
-            revurdering = revurdering,
+        val kravgrunnlag = genererKravgrunnlagFraSimulering(
+            saksnummer = revurdering.saksnummer,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
@@ -44,9 +43,9 @@ internal class TilbakekrevingsbehandlingTest {
                 revurderingId = revurdering.id,
                 periode = revurdering.periode,
             ),
-            kravgrunnlag = RåttKravgrunnlag(kravgrunnlag.toString()),
+            kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = fixedTidspunkt,
-        ).lagTilbakekrevingsvedtak { kravgrunnlag } shouldBe Tilbakekrevingsvedtak.FullTilbakekreving(
+        ).lagTilbakekrevingsvedtak(kravgrunnlag) shouldBe Tilbakekrevingsvedtak.FullTilbakekreving(
             vedtakId = "654321",
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
@@ -67,7 +66,7 @@ internal class TilbakekrevingsbehandlingTest {
                         beløpNyUtbetaling = BigDecimal("8446"),
                         beløpSomSkalTilbakekreves = BigDecimal("12500"),
                         beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
-                        beløpSkatt = BigDecimal("4395"),
+                        beløpSkatt = BigDecimal("6250"),
                         tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                         skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
                     ),
@@ -81,12 +80,12 @@ internal class TilbakekrevingsbehandlingTest {
             )
             it.netto() shouldBe Månedsbeløp(
                 listOf(
-                    MånedBeløp(mai(2021), Beløp(12500 - 4395)),
+                    MånedBeløp(mai(2021), Beløp(6250)),
                 ),
             )
             it.skatt() shouldBe Månedsbeløp(
                 listOf(
-                    MånedBeløp(mai(2021), Beløp(4395)),
+                    MånedBeløp(mai(2021), Beløp(6250)),
                 ),
             )
         }
@@ -102,8 +101,8 @@ internal class TilbakekrevingsbehandlingTest {
                 ),
             ),
         )
-        val kravgrunnlag = matchendeKravgrunnlag(
-            revurdering = revurdering,
+        val kravgrunnlag = genererKravgrunnlagFraSimulering(
+            saksnummer = revurdering.saksnummer,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
@@ -117,9 +116,9 @@ internal class TilbakekrevingsbehandlingTest {
                 revurderingId = revurdering.id,
                 periode = revurdering.periode,
             ),
-            kravgrunnlag = RåttKravgrunnlag(kravgrunnlag.toString()),
+            kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = fixedTidspunkt,
-        ).lagTilbakekrevingsvedtak { kravgrunnlag }.let { tilbakekrevingsvedtak ->
+        ).lagTilbakekrevingsvedtak(kravgrunnlag).let { tilbakekrevingsvedtak ->
             tilbakekrevingsvedtak.tilbakekrevingsperioder
                 .filterIsInstance<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
                 .all { it.beløpSkatt == BigDecimal("1759") && it.beløpSkatt < kravgrunnlag.grunnlagsmåneder[0].betaltSkattForYtelsesgruppen } shouldBe true
@@ -136,8 +135,8 @@ internal class TilbakekrevingsbehandlingTest {
                 ),
             ),
         )
-        val kravgrunnlag = matchendeKravgrunnlag(
-            revurdering = revurdering,
+        val kravgrunnlag = genererKravgrunnlagFraSimulering(
+            saksnummer = revurdering.saksnummer,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
@@ -151,9 +150,9 @@ internal class TilbakekrevingsbehandlingTest {
                 revurderingId = revurdering.id,
                 periode = revurdering.periode,
             ),
-            kravgrunnlag = RåttKravgrunnlag(kravgrunnlag.toString()),
+            kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = fixedTidspunkt,
-        ).lagTilbakekrevingsvedtak { kravgrunnlag }.let { tilbakekrevingsvedtak ->
+        ).lagTilbakekrevingsvedtak(kravgrunnlag).let { tilbakekrevingsvedtak ->
             tilbakekrevingsvedtak.tilbakekrevingsperioder
                 .filterIsInstance<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
                 .all { it.beløpSkatt == BigDecimal("4395") } shouldBe true
@@ -171,8 +170,8 @@ internal class TilbakekrevingsbehandlingTest {
             ),
             utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
-        val kravgrunnlag = matchendeKravgrunnlag(
-            revurdering = revurdering,
+        val kravgrunnlag = genererKravgrunnlagFraSimulering(
+            saksnummer = revurdering.saksnummer,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
@@ -186,9 +185,9 @@ internal class TilbakekrevingsbehandlingTest {
                 revurderingId = revurdering.id,
                 periode = revurdering.periode,
             ),
-            kravgrunnlag = RåttKravgrunnlag(kravgrunnlag.toString()),
+            kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = fixedTidspunkt,
-        ).lagTilbakekrevingsvedtak { kravgrunnlag } shouldBe Tilbakekrevingsvedtak.IngenTilbakekreving(
+        ).lagTilbakekrevingsvedtak(kravgrunnlag) shouldBe Tilbakekrevingsvedtak.IngenTilbakekreving(
             vedtakId = "654321",
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,

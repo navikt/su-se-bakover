@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID
@@ -77,15 +76,13 @@ data class AvventerKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
     override fun mottattKravgrunnlag(
-        kravgrunnlag: RåttKravgrunnlag,
+        kravgrunnlag: Kravgrunnlag,
         kravgrunnlagMottatt: Tidspunkt,
         hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
-        kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
     ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
         kontrollerKravgrunnlagMotRevurdering(
-            råttKravgrunnlag = kravgrunnlag,
+            kravgrunnlag = kravgrunnlag,
             hentRevurdering = hentRevurdering,
-            kravgrunnlagMapper = kravgrunnlagMapper,
         )
         return MottattKravgrunnlag(
             avgjort = avgjort,
@@ -95,9 +92,8 @@ data class AvventerKravgrunnlag(
     }
 
     private fun kontrollerKravgrunnlagMotRevurdering(
-        råttKravgrunnlag: RåttKravgrunnlag,
+        kravgrunnlag: Kravgrunnlag,
         hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
-        kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
     ) {
         val simulering = hentRevurdering(avgjort.revurderingId).let {
             when (it) {
@@ -111,23 +107,22 @@ data class AvventerKravgrunnlag(
             }
         }
 
-        val kravgrunnlag = kravgrunnlagMapper(råttKravgrunnlag)
         val fraSimulering = simulering.hentFeilutbetalteBeløp()
         val fraKravgrunnlag = kravgrunnlag.hentBeløpSkalTilbakekreves()
 
-        if (fraSimulering != fraKravgrunnlag) throw IllegalStateException("Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:${avgjort.revurderingId}")
+        if (fraSimulering != fraKravgrunnlag) {
+            throw IllegalStateException("Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:${avgjort.revurderingId}. Simulering: $fraSimulering, Kravgrunnlag: $fraKravgrunnlag")
+        }
     }
 }
 
 data class MottattKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-    override val kravgrunnlag: RåttKravgrunnlag,
+    override val kravgrunnlag: Kravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
 
-    override fun lagTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag): Tilbakekrevingsvedtak {
-        val kravgrunnlag = mapper(kravgrunnlag)
-
+    override fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak {
         /**
          * Forskjellig resultat basert på valgene som er gjort i løpet av denne behandlingen, pt kun 1 valg.
          */
@@ -243,7 +238,7 @@ data class MottattKravgrunnlag(
 
 data class SendtTilbakekrevingsvedtak(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-    override val kravgrunnlag: RåttKravgrunnlag,
+    override val kravgrunnlag: Kravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
     override val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak
@@ -335,17 +330,16 @@ sealed interface Tilbakekrevingsbehandling {
                 }
 
                 fun mottattKravgrunnlag(
-                    kravgrunnlag: RåttKravgrunnlag,
+                    kravgrunnlag: Kravgrunnlag,
                     kravgrunnlagMottatt: Tidspunkt,
                     hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
-                    kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
                 ): MedKravgrunnlag.MottattKravgrunnlag
             }
         }
 
         sealed interface MedKravgrunnlag : Ferdigbehandlet {
             val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
-            val kravgrunnlag: RåttKravgrunnlag
+            val kravgrunnlag: Kravgrunnlag
             val kravgrunnlagMottatt: Tidspunkt
 
             override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort> {
@@ -356,7 +350,7 @@ sealed interface Tilbakekrevingsbehandling {
             }
 
             sealed interface MottattKravgrunnlag : MedKravgrunnlag {
-                fun lagTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag): Tilbakekrevingsvedtak
+                fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak
 
                 fun sendtTilbakekrevingsvedtak(
                     tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,

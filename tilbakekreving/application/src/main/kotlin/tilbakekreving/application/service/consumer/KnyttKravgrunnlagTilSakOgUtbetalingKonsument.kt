@@ -44,10 +44,13 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
 
     override val konsumentId = HendelseskonsumentId("KnyttKravgrunnlagTilSakOgUtbetaling")
 
+    /**
+     * Funksjonen logger feilene selv, men returnerer en throwable for testene sin del.
+     */
     fun knyttKravgrunnlagTilSakOgUtbetaling(
         correlationId: CorrelationId,
-    ) {
-        Either.catch {
+    ): Either<Throwable, Unit> {
+        return Either.catch {
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
             ).forEach { hendelseId ->
@@ -107,10 +110,9 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                             )
                         val mottatt = revurdering?.let {
                             (revurdering.tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
-                                kravgrunnlag = råttKravgrunnlagHendelse.råttKravgrunnlag,
+                                kravgrunnlag = kravgrunnlagPåHendelsen,
                                 kravgrunnlagMottatt = Tidspunkt.now(clock),
                                 hentRevurdering = { revurdering },
-                                kravgrunnlagMapper = { kravgrunnlagPåHendelsen },
                             )
                         }
 

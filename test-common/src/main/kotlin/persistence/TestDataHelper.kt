@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.persistence
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.Tuple4
 import arrow.core.nonEmptyListOf
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
@@ -156,8 +158,11 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
@@ -171,6 +176,7 @@ class TestDataHelper(
     val dbMetrics: DbMetrics = dbMetricsStub,
     val clock: Clock = TikkendeKlokke(),
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
+    råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag> = TilbakekrevingsmeldingMapper::toKravgrunnlag,
 ) {
     val sessionFactory: PostgresSessionFactory =
         PostgresSessionFactory(dataSource, dbMetrics, sessionCounterStub, listOf(DomainToQueryParameterMapper))
@@ -180,6 +186,7 @@ class TestDataHelper(
         dbMetrics = dbMetrics,
         clock = clock,
         satsFactory = satsFactory,
+        råttKravgrunnlagMapper = råttKravgrunnlagMapper,
     )
     val avstemmingRepo = databaseRepos.avstemming
     val avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
@@ -669,12 +676,14 @@ class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
+        revurderingsperiode: Periode = år(2021),
     ): Pair<Sak, SimulertRevurdering.Opphørt> {
         return persisterSimulertRevurdering(sakOgVedtak) { (sak, vedtak) ->
             simulertRevurdering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
                 clock = clock,
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode, opprettet = Tidspunkt.now(clock))),
+                revurderingsperiode = revurderingsperiode,
             )
         }.let { (sak, revurdering) ->
             sak to revurdering as SimulertRevurdering.Opphørt

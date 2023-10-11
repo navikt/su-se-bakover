@@ -22,6 +22,7 @@ import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Clock
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
@@ -59,22 +60,31 @@ internal class LokalMottaKravgrunnlagJob(
 
 /**
  * Denne kan gjenbrukes fra regresjonstester.
+ *
+ * @param overstyrUtbetalingId er ment for å trigge mismatch mellom kravgrunnlag og utbetaling. Dersom det er flere som mangler kravgrunnlag, må man sende for alle.
  */
 fun lagreRåttKravgrunnlagForUtbetalingerSomMangler(
     sessionFactory: SessionFactory,
     service: RåttKravgrunnlagService,
     clock: Clock,
+    overstyrUtbetalingId: List<UUID30?>? = null,
 ) {
     withCorrelationId { correlationId ->
-        finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(sessionFactory).map { (saksnummer, utbetalingId, simulering) ->
+        finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(sessionFactory).also {
+            if (overstyrUtbetalingId != null) {
+                require(it.size == overstyrUtbetalingId.size) {
+                    "Dersom man ønsker overstyre utbetalingId, må man sende et element per kravgrunnlag som mangler. Kan sende null hvis man ikke vil overstyre et element."
+                }
+            }
+        }.mapIndexed { index, (saksnummer, utbetalingId, simulering) ->
             lagKravgrunnlagXml(
                 saksnummer = saksnummer,
                 simulering = simulering,
-                utbetalingId = utbetalingId,
+                utbetalingId = overstyrUtbetalingId?.get(index) ?: utbetalingId,
                 clock = clock,
             )
         }.forEach {
-            service.lagreRåKvitteringshendelse(
+            service.lagreRåttkravgrunnlagshendelse(
                 råttKravgrunnlag = RåttKravgrunnlag(it),
                 meta = JMSHendelseMetadata.fromCorrelationId(correlationId),
             )
@@ -88,12 +98,22 @@ fun lagKravgrunnlagXml(
     utbetalingId: UUID30,
     clock: Clock,
 ): String {
-    val kravgrunnlag = matchendeKravgrunnlag(
+    val kravgrunnlag = genererKravgrunnlagFraSimulering(
         saksnummer = saksnummer,
         simulering = simulering,
         utbetalingId = utbetalingId,
         clock = clock,
     )
+    return lagKravgrunnlagXml(
+        kravgrunnlag = kravgrunnlag,
+        fnr = simulering.gjelderId.toString(),
+    )
+}
+
+fun lagKravgrunnlagXml(
+    kravgrunnlag: Kravgrunnlag,
+    fnr: String,
+): String {
     return TilbakekrevingsmeldingMapper.toXml(
         KravgrunnlagRootDto(
             kravgrunnlagDto = KravgrunnlagDto(
@@ -101,12 +121,12 @@ fun lagKravgrunnlagXml(
                 vedtakId = kravgrunnlag.eksternVedtakId,
                 kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
                 kodeFagområde = "SUUFORE",
-                fagsystemId = saksnummer.toString(),
+                fagsystemId = kravgrunnlag.saksnummer.toString(),
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = null,
-                vedtakGjelderId = simulering.gjelderId.toString(),
+                vedtakGjelderId = fnr,
                 idTypeGjelder = "PERSON",
-                utbetalesTilId = simulering.gjelderId.toString(),
+                utbetalesTilId = fnr,
                 idTypeUtbet = "PERSON",
                 kodeHjemmel = "ANNET",
                 renterBeregnes = "N",
@@ -151,11 +171,12 @@ fun lagKravgrunnlagXml(
 }
 
 /**
- * @see [no.nav.su.se.bakover.test.matchendeKravgrunnlag]
+ * TODO dobbeltimplementasjon i test
+ * @see [no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering]
  *
  * @param clock Brukes til å sette default eksternTidspunkt
  */
-fun matchendeKravgrunnlag(
+fun genererKravgrunnlagFraSimulering(
     saksnummer: Saksnummer,
     simulering: Simulering,
     utbetalingId: UUID30,
@@ -165,39 +186,46 @@ fun matchendeKravgrunnlag(
     behandler: String = "K231B433",
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
     status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+    skatteprosent: BigDecimal = BigDecimal("50"),
 ): Kravgrunnlag {
-    return simulering.let {
-        Kravgrunnlag(
-            saksnummer = saksnummer,
-            eksternKravgrunnlagId = eksternKravgrunnlagId,
-            eksternVedtakId = eksternVedtakId,
-            eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
-            status = status,
-            behandler = behandler,
-            utbetalingId = utbetalingId,
-            eksternTidspunkt = eksternTidspunkt,
-            grunnlagsmåneder = it.hentFeilutbetalteBeløp()
-                .map { (måned, feilutbetaling) ->
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = måned,
-                        betaltSkattForYtelsesgruppen = BigDecimal(4395),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = feilutbetaling.sum(),
-                            beløpSkalTilbakekreves = 0,
-                            beløpSkalIkkeTilbakekreves = 0,
-                        ),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            beløpTidligereUtbetaling = it.hentUtbetalteBeløp(måned)!!.sum(),
-                            beløpNyUtbetaling = it.hentTotalUtbetaling(måned)!!.sum(),
-                            beløpSkalTilbakekreves = feilutbetaling.sum(),
-                            beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal("43.9983"),
-                        ),
-                    )
-                },
-        )
-    }
+    return Kravgrunnlag(
+        saksnummer = saksnummer,
+        eksternKravgrunnlagId = eksternKravgrunnlagId,
+        eksternVedtakId = eksternVedtakId,
+        eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
+        status = status,
+        behandler = behandler,
+        utbetalingId = utbetalingId,
+        eksternTidspunkt = eksternTidspunkt,
+        grunnlagsmåneder = simulering.hentFeilutbetalteBeløp()
+            .map { (måned, feilutbetaling) ->
+                val beløpTidligereUtbetaling = simulering.hentUtbetalteBeløp(måned)!!.sum()
+                val beløpNyUtbetaling = simulering.hentTotalUtbetaling(måned)!!.sum()
+                val beløpSkalTilbakekreves = feilutbetaling.sum()
+                require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves) {
+                    "Forventet at beløpTidligereUtbetaling ($beløpTidligereUtbetaling) - beløpNyUtbetaling($beløpNyUtbetaling) == beløpSkalTilbakekreves($beløpSkalTilbakekreves)."
+                }
+                Kravgrunnlag.Grunnlagsmåned(
+                    måned = måned,
+                    betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves)).divide(
+                        BigDecimal(100.0000),
+                    ).setScale(0, RoundingMode.UP),
+                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
+                        beløpNyUtbetaling = beløpNyUtbetaling,
+                        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
+                        beløpSkalIkkeTilbakekreves = 0,
+                        skatteProsent = skatteprosent,
+                    ),
+                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        beløpTidligereUtbetaling = 0,
+                        beløpNyUtbetaling = simulering.hentFeilutbetalteBeløp(måned)!!.sum(),
+                        beløpSkalTilbakekreves = 0,
+                        beløpSkalIkkeTilbakekreves = 0,
+                    ),
+                )
+            },
+    )
 }
 
 private fun Kravgrunnlag.KravgrunnlagStatus.toDtoStatus(): String = when (this) {
@@ -235,14 +263,19 @@ private fun finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(
                         xml_content::xml
                     ))[1]::text AS extracted_value
                 FROM xml_data          
-            )          
-          select DISTINCT ON(u.id) s.saksnummer, u.id, u.simulering from utbetaling u
+            )
+          , distinct_utbetaling AS (
+          select DISTINCT ON(u.id) s.saksnummer, u.id, u.simulering, u.opprettet from utbetaling u
           join sak s on u.sakid = s.id
           JOIN LATERAL jsonb_array_elements_text(simulering->'periodeList') pl ON TRUE
           JOIN LATERAL jsonb_array_elements_text((pl::jsonb)->'utbetaling') ut ON TRUE
           WHERE (ut::jsonb)->>'feilkonto' = 'true'
           AND u.id not in (SELECT extracted_value FROM xml_values where extracted_value is not null)
-          ORDER BY u.id;
+          ORDER BY u.id, u.opprettet
+          )
+          SELECT saksnummer, id, simulering 
+          FROM distinct_utbetaling
+          ORDER BY opprettet;
         """.trimIndent().hentListe(
             params = emptyMap(),
             session = it,
