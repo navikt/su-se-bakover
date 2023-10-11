@@ -130,8 +130,8 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
             // Liste over 443 - Tilbakekrevingsbeløp
             tilbakekrevingsbelop.addAll(
                 listOf(
-                    mapTilbakekrevingsbeløp(it.ytelse),
                     mapTilbakekrevingsbeløp(it.feilutbetaling),
+                    mapTilbakekrevingsbeløp(it.ytelse),
                 ),
             )
         }

@@ -182,20 +182,20 @@ fun matchendeKravgrunnlag(
                     Kravgrunnlag.Grunnlagsmåned(
                         måned = måned,
                         betaltSkattForYtelsesgruppen = BigDecimal(4395),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
                             klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                             beløpTidligereUtbetaling = 0,
                             beløpNyUtbetaling = feilutbetaling.sum(),
                             beløpSkalTilbakekreves = 0,
                             beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal.ZERO,
                         ),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
                             klassekode = KlasseKode.SUUFORE,
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = feilutbetaling.sum(),
-                            beløpSkalTilbakekreves = 0,
+                            beløpTidligereUtbetaling = it.hentUtbetalteBeløp(måned)!!.sum(),
+                            beløpNyUtbetaling = it.hentTotalUtbetaling(måned)!!.sum(),
+                            beløpSkalTilbakekreves = feilutbetaling.sum(),
                             beløpSkalIkkeTilbakekreves = 0,
+                            skatteProsent = BigDecimal("43.9983"),
                         ),
                     )
                 },

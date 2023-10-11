@@ -88,10 +88,10 @@ data object TilbakekrevingsmeldingMapper {
                                                 it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
                                                 Kravgrunnlag.Grunnlagsmåned.Ytelse(
                                                     klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
-                                                    beløpTidligereUtbetaling = it.single().belopOpprUtbet.toInt(),
-                                                    beløpNyUtbetaling = it.single().belopNy.toInt(),
-                                                    beløpSkalTilbakekreves = it.single().belopTilbakekreves.toInt(),
-                                                    beløpSkalIkkeTilbakekreves = it.single().belopUinnkrevd.toInt(),
+                                                    beløpTidligereUtbetaling = BigDecimal(it.single().belopOpprUtbet).intValueExact(),
+                                                    beløpNyUtbetaling = BigDecimal(it.single().belopNy).intValueExact(),
+                                                    beløpSkalTilbakekreves = BigDecimal(it.single().belopTilbakekreves).intValueExact(),
+                                                    beløpSkalIkkeTilbakekreves = BigDecimal(it.single().belopUinnkrevd).intValueExact(),
                                                     skatteProsent = BigDecimal(it.single().skattProsent),
                                                 )
                                             },
@@ -100,10 +100,10 @@ data object TilbakekrevingsmeldingMapper {
                                                 it.single() // TODO - sjekk om vi alltid får tilbake 1. kaster hvis det potensielt finnes flere
                                                 Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
                                                     klassekode = KlasseKode.valueOf(it.single().kodeKlasse),
-                                                    beløpTidligereUtbetaling = it.single().belopOpprUtbet.toInt(),
-                                                    beløpNyUtbetaling = it.single().belopNy.toInt(),
-                                                    beløpSkalTilbakekreves = it.single().belopTilbakekreves.toInt(),
-                                                    beløpSkalIkkeTilbakekreves = it.single().belopUinnkrevd.toInt(),
+                                                    beløpTidligereUtbetaling = BigDecimal(it.single().belopOpprUtbet).intValueExact(),
+                                                    beløpNyUtbetaling = BigDecimal(it.single().belopNy).intValueExact(),
+                                                    beløpSkalTilbakekreves = BigDecimal(it.single().belopTilbakekreves).intValueExact(),
+                                                    beløpSkalIkkeTilbakekreves = BigDecimal(it.single().belopUinnkrevd).intValueExact(),
                                                 )
                                             },
                                     )

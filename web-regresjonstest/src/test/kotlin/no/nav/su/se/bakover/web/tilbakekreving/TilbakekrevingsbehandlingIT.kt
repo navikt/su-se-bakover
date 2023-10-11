@@ -114,26 +114,21 @@ internal class TilbakekrevingsbehandlingIT {
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"4395",
-        "grunnlagsbeløp":[
-          {
+        "feilutbetaling": {
             "kode":"KL_KODE_FEIL_INNT",
-            "type":"FEIL",
             "beløpTidligereUtbetaling":"0",
             "beløpNyUtbetaling":"12383",
             "beløpSkalTilbakekreves":"0",
             "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"0"
           },
-          {
+          "ytelse": {
             "kode":"SUUFORE",
-            "type":"YTEL",
             "beløpTidligereUtbetaling":"20946",
             "beløpNyUtbetaling":"8563",
             "beløpSkalTilbakekreves":"12383",
             "beløpSkalIkkeTilbakekreves":"0",
             "skatteProsent":"43.9983"
-          }
-        ]
+          },
       }
     ]
   },

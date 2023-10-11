@@ -189,15 +189,11 @@ data class MottattKravgrunnlag(
                         kodeKlasse = grunnlagsperiode.ytelse.klassekode,
                         beløpTidligereUtbetaling = BigDecimal(grunnlagsperiode.ytelse.beløpTidligereUtbetaling),
                         beløpNyUtbetaling = BigDecimal(grunnlagsperiode.ytelse.beløpNyUtbetaling),
-                        beløpSomSkalTilbakekreves = BigDecimal(grunnlagsperiode.ytelse.beløpSkalTilbakekreves),
-                        beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
-                        beløpSkatt = BigDecimal(grunnlagsperiode.ytelse.beløpSkalTilbakekreves)
-                            .multiply(grunnlagsperiode.ytelse.skatteProsent)
-                            .divide(BigDecimal("100"))
-                            .setScale(0, RoundingMode.DOWN)
-                            .min(grunnlagsperiode.betaltSkattForYtelsesgruppen),
-                        tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
-                        skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
+                        beløpSomSkalTilbakekreves = BigDecimal.ZERO,
+                        beløpSomIkkeTilbakekreves = BigDecimal(grunnlagsperiode.ytelse.beløpSkalTilbakekreves),
+                        beløpSkatt = BigDecimal.ZERO,
+                        tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
+                        skyld = Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT,
                     ),
                     feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode.feilutbetaling),
                 )
