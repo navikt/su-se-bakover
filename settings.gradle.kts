@@ -53,7 +53,9 @@ include("institusjonsopphold:infrastructure")
 include("institusjonsopphold:application")
 include("institusjonsopphold:domain")
 include("institusjonsopphold:presentation")
+
 include("oppgave:domain")
+include("oppgave:application")
 include("oppgave:infrastructure")
 
 include("økonomi:domain")
