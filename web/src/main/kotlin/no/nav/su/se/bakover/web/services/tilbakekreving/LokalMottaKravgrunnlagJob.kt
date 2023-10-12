@@ -21,7 +21,6 @@ import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Duration
@@ -126,7 +125,7 @@ fun lagKravgrunnlagXml(
                         skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
                         tilbakekrevingsbeløp = listOf(
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = it.ytelse.klassekode.toString(),
+                                kodeKlasse = "SUUFORE",
                                 typeKlasse = "YTEL",
                                 belopOpprUtbet = it.ytelse.beløpTidligereUtbetaling.toString(),
                                 belopNy = it.ytelse.beløpNyUtbetaling.toString(),
@@ -135,7 +134,7 @@ fun lagKravgrunnlagXml(
                                 skattProsent = it.ytelse.skatteProsent.toString(),
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = it.feilutbetaling.klassekode.toString(),
+                                kodeKlasse = "KL_KODE_FEIL_INNT",
                                 typeKlasse = "FEIL",
                                 belopOpprUtbet = it.feilutbetaling.beløpTidligereUtbetaling.toString(),
                                 belopNy = it.feilutbetaling.beløpNyUtbetaling.toString(),
@@ -183,14 +182,12 @@ fun matchendeKravgrunnlag(
                         måned = måned,
                         betaltSkattForYtelsesgruppen = BigDecimal(4395),
                         feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                             beløpTidligereUtbetaling = 0,
                             beløpNyUtbetaling = feilutbetaling.sum(),
                             beløpSkalTilbakekreves = 0,
                             beløpSkalIkkeTilbakekreves = 0,
                         ),
                         ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            klassekode = KlasseKode.SUUFORE,
                             beløpTidligereUtbetaling = it.hentUtbetalteBeløp(måned)!!.sum(),
                             beløpNyUtbetaling = it.hentTotalUtbetaling(måned)!!.sum(),
                             beløpSkalTilbakekreves = feilutbetaling.sum(),

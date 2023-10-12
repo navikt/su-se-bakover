@@ -6,10 +6,11 @@ import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
-import tilbakekreving.presentation.api.common.KlasseKodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
-import økonomi.domain.KlasseKode
 
+/**
+ * Kontrakten mot su-se-framover
+ */
 data class KravgrunnlagJson(
     val eksternKravgrunnlagsId: String,
     val eksternVedtakId: String,
@@ -49,7 +50,6 @@ data class GrunnlagsperiodeJson(
 }
 
 data class GrunnlagsbeløpYtelseJson(
-    val kode: KlasseKodeJson,
     val beløpTidligereUtbetaling: String,
     val beløpNyUtbetaling: String,
     val beløpSkalTilbakekreves: String,
@@ -58,36 +58,12 @@ data class GrunnlagsbeløpYtelseJson(
 ) {
     companion object {
         fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
-            kode = this.klassekode.toJson(),
             beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
             beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
             beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
             beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
             skatteProsent = this.skatteProsent.toString(),
         )
-    }
-}
-
-enum class KlasseKodeJson {
-    SUUFORE,
-    KL_KODE_FEIL_INNT,
-    TBMOTOBS,
-    FSKTSKAT,
-    UFOREUT,
-    SUALDER,
-    KL_KODE_FEIL,
-    ;
-
-    companion object {
-        fun KlasseKode.toJson(): KlasseKodeJson = when (this) {
-            KlasseKode.SUUFORE -> SUUFORE
-            KlasseKode.KL_KODE_FEIL_INNT -> KL_KODE_FEIL_INNT
-            KlasseKode.TBMOTOBS -> TBMOTOBS
-            KlasseKode.FSKTSKAT -> FSKTSKAT
-            KlasseKode.UFOREUT -> UFOREUT
-            KlasseKode.SUALDER -> SUALDER
-            KlasseKode.KL_KODE_FEIL -> KL_KODE_FEIL
-        }
     }
 }
 

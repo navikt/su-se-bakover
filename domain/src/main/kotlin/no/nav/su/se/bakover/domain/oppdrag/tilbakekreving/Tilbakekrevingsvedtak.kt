@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 
 sealed interface Tilbakekrevingsvedtak {
@@ -72,26 +71,19 @@ sealed interface Tilbakekrevingsvedtak {
         }
 
         sealed interface Tilbakekrevingsbeløp {
-            val kodeKlasse: KlasseKode
             val beløpTidligereUtbetaling: BigDecimal
             val beløpNyUtbetaling: BigDecimal
             val beløpSomSkalTilbakekreves: BigDecimal
             val beløpSomIkkeTilbakekreves: BigDecimal
 
             data class TilbakekrevingsbeløpFeilutbetaling(
-                override val kodeKlasse: KlasseKode,
                 override val beløpTidligereUtbetaling: BigDecimal,
                 override val beløpNyUtbetaling: BigDecimal,
                 override val beløpSomSkalTilbakekreves: BigDecimal,
                 override val beløpSomIkkeTilbakekreves: BigDecimal,
-            ) : Tilbakekrevingsbeløp {
-                init {
-                    require(kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT)
-                }
-            }
+            ) : Tilbakekrevingsbeløp
 
             data class TilbakekrevingsbeløpYtelse(
-                override val kodeKlasse: KlasseKode,
                 override val beløpTidligereUtbetaling: BigDecimal,
                 override val beløpNyUtbetaling: BigDecimal,
                 override val beløpSomSkalTilbakekreves: BigDecimal,
@@ -100,9 +92,6 @@ sealed interface Tilbakekrevingsvedtak {
                 val tilbakekrevingsresultat: Tilbakekrevingsresultat,
                 val skyld: Skyld,
             ) : Tilbakekrevingsbeløp {
-                init {
-                    require(kodeKlasse == KlasseKode.SUUFORE)
-                }
 
                 fun brutto(): Beløp {
                     return Beløp(beløpSomSkalTilbakekreves.intValueExact())

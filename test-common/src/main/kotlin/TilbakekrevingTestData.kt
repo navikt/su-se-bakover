@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
@@ -45,7 +44,6 @@ fun matchendeKravgrunnlag(
                         måned = periode.tilMåned(),
                         betaltSkattForYtelsesgruppen = BigDecimal(4395),
                         ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            klassekode = KlasseKode.SUUFORE,
                             beløpTidligereUtbetaling = it.hentUtbetalteBeløp(periode)!!.sum(),
                             beløpNyUtbetaling = it.hentTotalUtbetaling(periode)!!.sum(),
                             beløpSkalTilbakekreves = feilutbetaling.sum(),
@@ -53,7 +51,6 @@ fun matchendeKravgrunnlag(
                             skatteProsent = BigDecimal("43.9983"),
                         ),
                         feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                             beløpTidligereUtbetaling = 0,
                             beløpNyUtbetaling = feilutbetaling.sum(),
                             beløpSkalTilbakekreves = 0,

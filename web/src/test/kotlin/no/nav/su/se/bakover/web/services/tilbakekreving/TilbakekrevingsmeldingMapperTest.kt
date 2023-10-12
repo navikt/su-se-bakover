@@ -16,7 +16,6 @@ import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
 import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringDto
 import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -92,7 +91,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                     måned = oktober(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(4395).setScale(2),
                     ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                        klassekode = KlasseKode.SUUFORE,
                         beløpTidligereUtbetaling = 9989,
                         beløpNyUtbetaling = 0,
                         beløpSkalTilbakekreves = 9989,
@@ -100,7 +98,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                         skatteProsent = BigDecimal("43.9983").setScale(4, RoundingMode.HALF_UP),
                     ),
                     feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                         beløpTidligereUtbetaling = 0,
                         beløpNyUtbetaling = 9989,
                         beløpSkalTilbakekreves = 0,
@@ -209,7 +206,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                     måned = oktober(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
                     ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                        klassekode = KlasseKode.SUUFORE,
                         beløpTidligereUtbetaling = 21989,
                         beløpNyUtbetaling = 9989,
                         beløpSkalTilbakekreves = 12000,
@@ -218,7 +214,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                             .setScale(4, RoundingMode.HALF_UP),
                     ),
                     feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                         beløpTidligereUtbetaling = 0,
                         beløpNyUtbetaling = 12000,
                         beløpSkalTilbakekreves = 0,
@@ -230,7 +225,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                     måned = november(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
                     ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                        klassekode = KlasseKode.SUUFORE,
                         beløpTidligereUtbetaling = 21989,
                         beløpNyUtbetaling = 9989,
                         beløpSkalTilbakekreves = 12000,
@@ -239,7 +233,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                             .setScale(4, RoundingMode.HALF_UP),
                     ),
                     feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
                         beløpTidligereUtbetaling = 0,
                         beløpNyUtbetaling = 12000,
                         beløpSkalTilbakekreves = 0,

@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.infrastructure.FeilutbetalingDb.Companion.toDbJson
 import tilbakekreving.infrastructure.YtelseDb.Companion.toDbJson
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.time.YearMonth
 
@@ -37,7 +36,6 @@ internal data class GrunnlagsmånedDb(
 }
 
 internal data class YtelseDb(
-    val kode: String,
     val beløpTidligereUtbetaling: Int,
     val beløpNyUtbetaling: Int,
     val beløpSkalTilbakekreves: Int,
@@ -50,12 +48,10 @@ internal data class YtelseDb(
         beløpSkalTilbakekreves = this.beløpSkalTilbakekreves,
         beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves,
         skatteProsent = BigDecimal(this.skatteProsent),
-        klassekode = KlasseKode.valueOf(this.kode),
     )
 
     companion object {
         internal fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toDbJson(): YtelseDb = YtelseDb(
-            kode = this.klassekode.toString(),
             beløpTidligereUtbetaling = this.beløpTidligereUtbetaling,
             beløpNyUtbetaling = this.beløpNyUtbetaling,
             beløpSkalTilbakekreves = this.beløpSkalTilbakekreves,
@@ -66,7 +62,6 @@ internal data class YtelseDb(
 }
 
 internal data class FeilutbetalingDb(
-    val kode: String,
     val beløpTidligereUtbetaling: Int,
     val beløpNyUtbetaling: Int,
     val beløpSkalTilbakekreves: Int,
@@ -77,12 +72,10 @@ internal data class FeilutbetalingDb(
         beløpNyUtbetaling = this.beløpNyUtbetaling,
         beløpSkalTilbakekreves = this.beløpSkalTilbakekreves,
         beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves,
-        klassekode = KlasseKode.valueOf(this.kode),
     )
 
     companion object {
         internal fun Kravgrunnlag.Grunnlagsmåned.Feilutbetaling.toDbJson(): FeilutbetalingDb = FeilutbetalingDb(
-            kode = this.klassekode.toString(),
             beløpTidligereUtbetaling = this.beløpTidligereUtbetaling,
             beløpNyUtbetaling = this.beløpNyUtbetaling,
             beløpSkalTilbakekreves = this.beløpSkalTilbakekreves,

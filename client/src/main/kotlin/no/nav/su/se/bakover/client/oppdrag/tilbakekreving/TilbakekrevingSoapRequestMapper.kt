@@ -142,7 +142,10 @@ private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: Tilbakekrevingsvedta
     tilbakekrevingsbeløp.let {
         TilbakekrevingsbelopDto().apply {
             // 1 - 443 - Kode-klasse - X(20) - Krav - Klassifisering av stønad, skatt, trekk etc. Det må minimum sendes med klassekoder for feilutbetaling og de ytelsesklassekoder som er feilutbetalt.
-            this.kodeKlasse = it.kodeKlasse.toString()
+            this.kodeKlasse = when (it) {
+                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> "KL_KODE_FEIL_INNT"
+                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> "SUUFORE"
+            }
 
             // 3 - 443 - Belop-oppr-utbet - 9(8)V99 - Krav - Opprinnelig beregnet beløp, dvs. utbetalingen som førte til feilutbetaling. Dersom saksbehandler deler opp i perioder annerledes enn det som er levert på kravgrunnlaget, må beløp-oppr og beløp-ny beregnes på de nye perioder, med beløp fordelt pr. virkedag.
             this.belopOpprUtbet = it.beløpTidligereUtbetaling

@@ -31,7 +31,6 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -156,7 +155,6 @@ fun grunnlagsmåned(
 }
 
 fun grunnlagsbeløpYtel(
-    kode: KlasseKode = KlasseKode.SUUFORE,
     beløpTidligereUtbetaling: Int = 2000,
     beløpNyUtbetaling: Int = 1000,
     beløpSkalTilbakekreves: Int = 1000,
@@ -168,7 +166,6 @@ fun grunnlagsbeløpYtel(
     }
     require(skatteProsent >= BigDecimal.ZERO && skatteProsent <= BigDecimal("100.0000"))
     return Kravgrunnlag.Grunnlagsmåned.Ytelse(
-        klassekode = kode,
         beløpTidligereUtbetaling = beløpTidligereUtbetaling,
         beløpNyUtbetaling = beløpNyUtbetaling,
         beløpSkalTilbakekreves = beløpSkalTilbakekreves,
@@ -178,12 +175,10 @@ fun grunnlagsbeløpYtel(
 }
 
 fun grunnlagsbeløpFeil(
-    kode: KlasseKode = KlasseKode.KL_KODE_FEIL_INNT,
     beløpNyUtbetaling: Int = 1000,
 ): Kravgrunnlag.Grunnlagsmåned.Feilutbetaling {
     require(beløpNyUtbetaling >= 0)
     return Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-        klassekode = kode,
         beløpTidligereUtbetaling = 0,
         beløpNyUtbetaling = beløpNyUtbetaling,
         beløpSkalTilbakekreves = 0,

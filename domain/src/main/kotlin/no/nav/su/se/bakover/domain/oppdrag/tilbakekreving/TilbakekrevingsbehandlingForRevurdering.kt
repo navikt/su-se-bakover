@@ -193,7 +193,6 @@ data class MottattKravgrunnlag(
         resultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat,
     ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-            kodeKlasse = ytelse.klassekode,
             beløpTidligereUtbetaling = BigDecimal(ytelse.beløpTidligereUtbetaling),
             beløpNyUtbetaling = BigDecimal(ytelse.beløpNyUtbetaling),
             beløpSomSkalTilbakekreves = when (resultat) {
@@ -223,7 +222,6 @@ data class MottattKravgrunnlag(
 
     private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsmåned.Feilutbetaling): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-            kodeKlasse = it.klassekode,
             beløpTidligereUtbetaling = BigDecimal(it.beløpTidligereUtbetaling),
             beløpNyUtbetaling = BigDecimal(it.beløpNyUtbetaling),
             beløpSomSkalTilbakekreves = BigDecimal(it.beløpSkalTilbakekreves),

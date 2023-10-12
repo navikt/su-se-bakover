@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Month
@@ -145,7 +144,6 @@ private fun tilbakekrevingsperiodetestData(type: Tilbakekrevingsvedtak.Tilbakekr
             renterBeregnes = false,
             beløpRenter = BigDecimal.ZERO,
             ytelse = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-                kodeKlasse = KlasseKode.SUUFORE,
                 beløpTidligereUtbetaling = BigDecimal(9989),
                 beløpNyUtbetaling = BigDecimal("0.00"),
                 beløpSomSkalTilbakekreves = when (type) {
@@ -164,7 +162,6 @@ private fun tilbakekrevingsperiodetestData(type: Tilbakekrevingsvedtak.Tilbakekr
                 },
             ),
             feilutbetaling = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-                kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT,
                 beløpTidligereUtbetaling = BigDecimal("0.00"),
                 beløpNyUtbetaling = BigDecimal("9989.00"),
                 beløpSomSkalTilbakekreves = BigDecimal("0.00"),

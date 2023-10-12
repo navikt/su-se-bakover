@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -58,14 +57,12 @@ internal class TilbakekrevingsbehandlingTest {
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     feilutbetaling = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-                        kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT,
                         beløpTidligereUtbetaling = BigDecimal.ZERO,
                         beløpNyUtbetaling = BigDecimal("12500"),
                         beløpSomSkalTilbakekreves = BigDecimal.ZERO,
                         beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
                     ),
                     ytelse = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-                        kodeKlasse = KlasseKode.SUUFORE,
                         beløpTidligereUtbetaling = BigDecimal("20946"),
                         beløpNyUtbetaling = BigDecimal("8446"),
                         beløpSomSkalTilbakekreves = BigDecimal("12500"),
@@ -202,14 +199,12 @@ internal class TilbakekrevingsbehandlingTest {
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     feilutbetaling = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-                        kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT,
                         beløpTidligereUtbetaling = BigDecimal.ZERO,
                         beløpNyUtbetaling = BigDecimal("12500"),
                         beløpSomSkalTilbakekreves = BigDecimal.ZERO,
                         beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
                     ),
                     ytelse = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-                        kodeKlasse = KlasseKode.SUUFORE,
                         beløpTidligereUtbetaling = BigDecimal("20946"),
                         beløpNyUtbetaling = BigDecimal("8446"),
                         beløpSomSkalTilbakekreves = BigDecimal.ZERO,

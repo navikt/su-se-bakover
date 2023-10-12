@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 
 data class Kravgrunnlag(
@@ -77,7 +76,6 @@ data class Kravgrunnlag(
             val beløpSkalTilbakekreves: Int,
             val beløpSkalIkkeTilbakekreves: Int,
             val skatteProsent: BigDecimal,
-            val klassekode: KlasseKode,
         ) {
             init {
                 // TODO jah: Det er også mulig å legge inn noen forventninger på tvers av feltene
@@ -86,8 +84,6 @@ data class Kravgrunnlag(
                 require(beløpSkalTilbakekreves >= 0)
                 require(beløpSkalIkkeTilbakekreves == 0)
                 require(skatteProsent > BigDecimal.ZERO)
-
-                require(klassekode == KlasseKode.SUUFORE)
             }
         }
 
@@ -107,12 +103,7 @@ data class Kravgrunnlag(
             val beløpNyUtbetaling: Int,
             val beløpSkalTilbakekreves: Int,
             val beløpSkalIkkeTilbakekreves: Int,
-            val klassekode: KlasseKode,
-        ) {
-            init {
-                require(klassekode == KlasseKode.KL_KODE_FEIL_INNT)
-            }
-        }
+        )
     }
 
     enum class KravgrunnlagStatus {

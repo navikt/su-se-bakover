@@ -115,7 +115,6 @@ internal class TilbakekrevingsbehandlingIT {
         },
         "beløpSkattMnd":"4395",
           "ytelse": {
-            "kode":"SUUFORE",
             "beløpTidligereUtbetaling":"20946",
             "beløpNyUtbetaling":"8563",
             "beløpSkalTilbakekreves":"12383",
