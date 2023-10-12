@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.Either
 import arrow.core.flatMap
 import dokument.domain.Dokument
+import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import person.domain.IdentClient
 import person.domain.PersonService
 import java.time.Clock

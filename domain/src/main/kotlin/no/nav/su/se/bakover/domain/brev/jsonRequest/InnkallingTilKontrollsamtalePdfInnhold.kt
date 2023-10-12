@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import dokument.domain.PdfTemplateMedDokumentNavn
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 
 data class InnkallingTilKontrollsamtalePdfInnhold(
     val personalia: PersonaliaPdfInnhold,

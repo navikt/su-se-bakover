@@ -72,6 +72,5 @@ include("person:infrastructure")
 include("person:application")
 
 include("dokument:domain")
-include("dokument:database")
 include("dokument:application")
 include("dokument:infrastructure")

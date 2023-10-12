@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database
 
+import dokument.domain.JournalføringOgBrevdistribusjon
+import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

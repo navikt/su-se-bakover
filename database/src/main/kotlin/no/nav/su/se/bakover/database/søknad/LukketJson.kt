@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.søknad
 
-import dokument.database.BrevvalgDbJson
-import dokument.database.BrevvalgDbJson.Companion.toJson
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson.Companion.toJson
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import java.time.LocalDate
 

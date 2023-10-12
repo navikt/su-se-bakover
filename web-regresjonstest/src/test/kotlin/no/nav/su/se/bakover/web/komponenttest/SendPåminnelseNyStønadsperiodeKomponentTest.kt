@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.komponenttest
 
-import dokument.domain.PdfTemplateMedDokumentNavn
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.august

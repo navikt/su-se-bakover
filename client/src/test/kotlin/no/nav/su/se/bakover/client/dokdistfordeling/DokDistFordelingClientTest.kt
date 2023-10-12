@@ -3,14 +3,14 @@ package no.nav.su.se.bakover.client.dokdistfordeling
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
-import dokument.domain.brev.Distribusjonstidspunkt
-import dokument.domain.brev.Distribusjonstype
+import dokument.domain.Distribusjonstidspunkt
+import dokument.domain.Distribusjonstype
+import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import org.junit.jupiter.api.Test
 
 internal class DokDistFordelingClientTest : WiremockBase {

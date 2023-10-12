@@ -1,4 +1,4 @@
-package dokument.domain
+package dokument.domain.pdf
 
 data object SkattegrunnlagPdfTemplate : PdfTemplateMedDokumentNavn(
     pdfTemplate = PdfTemplate.Skattegrunnlag,

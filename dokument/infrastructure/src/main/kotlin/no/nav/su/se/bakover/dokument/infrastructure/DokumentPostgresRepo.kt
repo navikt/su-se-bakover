@@ -1,6 +1,10 @@
-package no.nav.su.se.bakover.database.dokument
+package no.nav.su.se.bakover.dokument.infrastructure
 
 import dokument.domain.Dokument
+import dokument.domain.DokumentRepo
+import dokument.domain.Dokumentdistribusjon
+import dokument.domain.JournalføringOgBrevdistribusjon
+import dokument.domain.brev.BrevbestillingId
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -16,14 +20,10 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import java.time.Clock
 import java.util.UUID
 
-internal class DokumentPostgresRepo(
+class DokumentPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val clock: Clock,

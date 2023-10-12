@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.brev.dokumentMapper
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand

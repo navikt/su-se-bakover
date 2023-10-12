@@ -4,13 +4,13 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.DokumentRepo
+import dokument.domain.Dokumentdistribusjon
+import dokument.domain.KunneIkkeJournalføreOgDistribuereBrev
 import dokument.domain.brev.KunneIkkeJournalføreBrev
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.sak.SakService

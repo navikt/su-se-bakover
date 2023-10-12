@@ -1,12 +1,9 @@
-package no.nav.su.se.bakover.domain.dokument
+package dokument.domain
 
 import arrow.core.Either
-import dokument.domain.Dokument
+import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import java.util.UUID
 
 /**

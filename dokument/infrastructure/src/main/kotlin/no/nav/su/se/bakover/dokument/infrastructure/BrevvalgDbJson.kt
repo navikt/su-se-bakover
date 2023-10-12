@@ -1,4 +1,4 @@
-package dokument.database
+package no.nav.su.se.bakover.dokument.infrastructure
 
 import dokument.domain.brev.Brevvalg
 

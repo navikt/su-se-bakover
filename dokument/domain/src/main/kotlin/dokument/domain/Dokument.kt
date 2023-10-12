@@ -1,7 +1,5 @@
 package dokument.domain
 
-import dokument.domain.brev.Distribusjonstidspunkt
-import dokument.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID

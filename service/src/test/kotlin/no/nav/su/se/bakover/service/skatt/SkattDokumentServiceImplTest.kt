@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator

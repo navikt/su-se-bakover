@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.DokumentRepo
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet

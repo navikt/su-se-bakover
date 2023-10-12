@@ -1,8 +1,7 @@
-package dokument.domain.brev
+package dokument.domain.pdf
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import dokument.domain.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 

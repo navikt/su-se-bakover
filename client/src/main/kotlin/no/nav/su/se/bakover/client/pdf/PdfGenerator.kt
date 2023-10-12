@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.pdf
 
 import arrow.core.Either
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold

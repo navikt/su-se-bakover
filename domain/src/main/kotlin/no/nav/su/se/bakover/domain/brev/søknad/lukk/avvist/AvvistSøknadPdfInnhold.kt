@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.PdfTemplateMedDokumentNavn
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 

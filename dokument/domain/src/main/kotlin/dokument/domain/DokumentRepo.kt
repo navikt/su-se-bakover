@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover.domain.dokument
+package dokument.domain
 
-import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 

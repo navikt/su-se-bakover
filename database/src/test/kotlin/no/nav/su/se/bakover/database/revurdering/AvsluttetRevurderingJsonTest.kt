@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import dokument.database.BrevvalgDbJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test

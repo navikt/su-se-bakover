@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.client.stubs.dokdistfordeling
 
 import arrow.core.Either
 import arrow.core.right
-import dokument.domain.brev.Distribusjonstidspunkt
-import dokument.domain.brev.Distribusjonstype
+import dokument.domain.Distribusjonstidspunkt
+import dokument.domain.Distribusjonstype
+import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 
 data object DokDistFordelingStub : DokDistFordeling {
     override fun bestillDistribusjon(

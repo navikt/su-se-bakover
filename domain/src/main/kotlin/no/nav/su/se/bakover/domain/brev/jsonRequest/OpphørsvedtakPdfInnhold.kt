@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.PdfTemplateMedDokumentNavn
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.brev.Satsoversikt

@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.PdfA

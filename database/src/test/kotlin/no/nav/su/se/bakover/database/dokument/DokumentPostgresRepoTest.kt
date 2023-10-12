@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.database.dokument
 import arrow.core.getOrElse
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.JournalføringOgBrevdistribusjon
+import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oppgaveIdKlage
 import no.nav.su.se.bakover.test.pdfATom

@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.domain.eksterneiverksettingssteg
+package dokument.domain
 
 import arrow.core.Either
 import arrow.core.left
+import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
+import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
 
 sealed class JournalføringOgBrevdistribusjon {
     abstract fun journalpostId(): JournalpostId?

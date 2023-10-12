@@ -2,7 +2,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":common:domain"))
     implementation(project(":dokument:domain"))
-    implementation(project(":dokument:database"))
+    implementation(project(":dokument:infrastructure"))
     implementation(project(":hendelse:domain"))
     implementation(project(":tilbakekreving:domain"))
 

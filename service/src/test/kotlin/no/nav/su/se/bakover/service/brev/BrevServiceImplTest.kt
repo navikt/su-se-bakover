@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentRepo
 import dokument.domain.KunneIkkeLageDokument
-import dokument.domain.PdfTemplateMedDokumentNavn
 import dokument.domain.brev.HentDokumenterForIdType
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock

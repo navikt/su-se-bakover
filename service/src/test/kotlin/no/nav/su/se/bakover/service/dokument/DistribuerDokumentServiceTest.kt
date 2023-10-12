@@ -2,9 +2,13 @@ package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Distribusjonstidspunkt
+import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
-import dokument.domain.brev.Distribusjonstidspunkt
-import dokument.domain.brev.Distribusjonstype
+import dokument.domain.DokumentRepo
+import dokument.domain.Dokumentdistribusjon
+import dokument.domain.JournalføringOgBrevdistribusjon
+import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -13,10 +17,6 @@ import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt

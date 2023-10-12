@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test.brev
 
-import dokument.domain.brev.PdfInnhold
+import dokument.domain.pdf.PdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt

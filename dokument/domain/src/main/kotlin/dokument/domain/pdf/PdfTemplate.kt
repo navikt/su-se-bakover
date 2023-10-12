@@ -1,4 +1,4 @@
-package dokument.domain
+package dokument.domain.pdf
 
 /**
  * 1-1 mapping to templates defined by pdf-generator.

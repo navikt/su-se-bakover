@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapp
 import no.nav.su.se.bakover.common.infrastructure.persistence.SessionCounter
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
-import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
@@ -52,6 +51,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo

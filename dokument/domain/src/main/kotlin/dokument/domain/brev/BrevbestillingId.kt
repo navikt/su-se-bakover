@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev
+package dokument.domain.brev
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue

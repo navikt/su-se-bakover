@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.vedtak
 import arrow.core.getOrElse
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.februar
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag

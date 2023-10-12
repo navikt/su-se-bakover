@@ -1,4 +1,4 @@
-package dokument.domain
+package dokument.domain.pdf
 
 // TODO jah: Flytt disse til de respektive plassene.
 sealed class PdfTemplateMedDokumentNavn(
