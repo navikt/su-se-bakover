@@ -16,8 +16,6 @@ import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
 import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringDto
 import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -92,26 +90,18 @@ internal class TilbakekrevingsmeldingMapperTest {
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(4395).setScale(2),
-                    grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.KL_KODE_FEIL_INNT,
-                            type = KlasseType.FEIL,
-                            beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
-                            beløpNyUtbetaling = BigDecimal(9989).setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal.ZERO.setScale(4),
-                        ),
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.SUUFORE,
-                            type = KlasseType.YTEL,
-                            beløpTidligereUtbetaling = BigDecimal(9989).setScale(2),
-                            beløpNyUtbetaling = BigDecimal.ZERO.setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal(9989).setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal("43.9983")
-                                .setScale(4, RoundingMode.HALF_UP),
-                        ),
+                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        beløpTidligereUtbetaling = 9989,
+                        beløpNyUtbetaling = 0,
+                        beløpSkalTilbakekreves = 9989,
+                        beløpSkalIkkeTilbakekreves = 0,
+                        skatteProsent = BigDecimal("43.9983").setScale(4, RoundingMode.HALF_UP),
+                    ),
+                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        beløpTidligereUtbetaling = 0,
+                        beløpNyUtbetaling = 9989,
+                        beløpSkalTilbakekreves = 0,
+                        beløpSkalIkkeTilbakekreves = 0,
                     ),
                 ),
             ),
@@ -215,51 +205,38 @@ internal class TilbakekrevingsmeldingMapperTest {
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
-                    grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.KL_KODE_FEIL_INNT,
-                            type = KlasseType.FEIL,
-                            beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
-                            beløpNyUtbetaling = BigDecimal(12000).setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal.ZERO.setScale(4),
-                        ),
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.SUUFORE,
-                            type = KlasseType.YTEL,
-                            beløpTidligereUtbetaling = BigDecimal(21989).setScale(2),
-                            beløpNyUtbetaling = BigDecimal(9989).setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal(12000).setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal("43.9992")
-                                .setScale(4, RoundingMode.HALF_UP),
-                        ),
+                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        beløpTidligereUtbetaling = 21989,
+                        beløpNyUtbetaling = 9989,
+                        beløpSkalTilbakekreves = 12000,
+                        beløpSkalIkkeTilbakekreves = 0,
+                        skatteProsent = BigDecimal("43.9992")
+                            .setScale(4, RoundingMode.HALF_UP),
                     ),
+                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        beløpTidligereUtbetaling = 0,
+                        beløpNyUtbetaling = 12000,
+                        beløpSkalTilbakekreves = 0,
+                        beløpSkalIkkeTilbakekreves = 0,
+                    ),
+
                 ),
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = november(2021),
                     betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
-                    grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.KL_KODE_FEIL_INNT,
-                            type = KlasseType.FEIL,
-                            beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
-                            beløpNyUtbetaling = BigDecimal(12000).setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal.ZERO.setScale(4),
-                        ),
-                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                            kode = KlasseKode.SUUFORE,
-                            type = KlasseType.YTEL,
-                            beløpTidligereUtbetaling = BigDecimal(21989).setScale(2),
-                            beløpNyUtbetaling = BigDecimal(9989).setScale(2),
-                            beløpSkalTilbakekreves = BigDecimal(12000).setScale(2),
-                            beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal("43.9992")
-                                .setScale(4, RoundingMode.HALF_UP),
-                        ),
+                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        beløpTidligereUtbetaling = 21989,
+                        beløpNyUtbetaling = 9989,
+                        beløpSkalTilbakekreves = 12000,
+                        beløpSkalIkkeTilbakekreves = 0,
+                        skatteProsent = BigDecimal("43.9992")
+                            .setScale(4, RoundingMode.HALF_UP),
+                    ),
+                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        beløpTidligereUtbetaling = 0,
+                        beløpNyUtbetaling = 12000,
+                        beløpSkalTilbakekreves = 0,
+                        beløpSkalIkkeTilbakekreves = 0,
                     ),
                 ),
             ),

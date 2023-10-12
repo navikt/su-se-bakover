@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID
@@ -105,6 +104,7 @@ data class AvventerKravgrunnlag(
                 is IverksattRevurdering.Innvilget -> {
                     it.simulering
                 }
+
                 is IverksattRevurdering.Opphørt -> {
                     it.simulering
                 }
@@ -135,6 +135,7 @@ data class MottattKravgrunnlag(
             is Tilbakekrev -> {
                 fullTilbakekreving(kravgrunnlag)
             }
+
             is IkkeTilbakekrev -> {
                 ingenTilbakekreving(kravgrunnlag)
             }
@@ -152,32 +153,12 @@ data class MottattKravgrunnlag(
                     periode = grunnlagsperiode.måned,
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
-                    tilbakekrevingsbeløp = grunnlagsperiode.grunnlagsbeløp.map {
-                        when (it.kode) {
-                            KlasseKode.SUUFORE -> {
-                                Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-                                    kodeKlasse = it.kode,
-                                    beløpTidligereUtbetaling = it.beløpTidligereUtbetaling,
-                                    beløpNyUtbetaling = it.beløpNyUtbetaling,
-                                    beløpSomSkalTilbakekreves = it.beløpSkalTilbakekreves,
-                                    beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
-                                    beløpSkatt = it.beløpSkalTilbakekreves
-                                        .multiply(it.skatteProsent)
-                                        .divide(BigDecimal("100"))
-                                        .setScale(0, RoundingMode.DOWN)
-                                        .min(grunnlagsperiode.betaltSkattForYtelsesgruppen),
-                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
-                                    skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
-                                )
-                            }
-                            KlasseKode.KL_KODE_FEIL_INNT -> {
-                                mapDelkomponentForFeilutbetaling(it)
-                            }
-                            else -> {
-                                throw IllegalStateException("Ukjent klassekode")
-                            }
-                        }
-                    },
+                    ytelse = mapDelkomponentForYtelse(
+                        ytelse = grunnlagsperiode.ytelse,
+                        betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
+                        resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
+                    ),
+                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode.feilutbetaling),
                 )
             },
         )
@@ -195,40 +176,56 @@ data class MottattKravgrunnlag(
                     periode = grunnlagsperiode.måned,
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
-                    tilbakekrevingsbeløp = grunnlagsperiode.grunnlagsbeløp.map {
-                        when (it.kode) {
-                            KlasseKode.SUUFORE -> {
-                                Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-                                    kodeKlasse = it.kode,
-                                    beløpTidligereUtbetaling = it.beløpTidligereUtbetaling,
-                                    beløpNyUtbetaling = it.beløpNyUtbetaling,
-                                    beløpSomSkalTilbakekreves = BigDecimal.ZERO,
-                                    beløpSomIkkeTilbakekreves = it.beløpSkalTilbakekreves,
-                                    beløpSkatt = BigDecimal.ZERO,
-                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
-                                    skyld = Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT,
-                                )
-                            }
-                            KlasseKode.KL_KODE_FEIL_INNT -> {
-                                mapDelkomponentForFeilutbetaling(it)
-                            }
-                            else -> {
-                                throw IllegalStateException("Ukjent klassekode")
-                            }
-                        }
-                    },
+                    ytelse = mapDelkomponentForYtelse(
+                        ytelse = grunnlagsperiode.ytelse,
+                        betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
+                        resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
+                    ),
+                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode.feilutbetaling),
                 )
             },
         )
     }
 
-    private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp {
+    private fun mapDelkomponentForYtelse(
+        ytelse: Kravgrunnlag.Grunnlagsmåned.Ytelse,
+        betaltSkattForYtelsesgruppen: BigDecimal,
+        resultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat,
+    ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse {
+        return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
+            beløpTidligereUtbetaling = BigDecimal(ytelse.beløpTidligereUtbetaling),
+            beløpNyUtbetaling = BigDecimal(ytelse.beløpNyUtbetaling),
+            beløpSomSkalTilbakekreves = when (resultat) {
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
+            },
+            beløpSomIkkeTilbakekreves = when (resultat) {
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal.ZERO
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
+            },
+            beløpSkatt = when (resultat) {
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
+                    .multiply(ytelse.skatteProsent)
+                    .divide(BigDecimal("100"))
+                    .setScale(0, RoundingMode.DOWN)
+                    .min(betaltSkattForYtelsesgruppen)
+
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
+            },
+            tilbakekrevingsresultat = resultat,
+            skyld = when (resultat) {
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.BRUKER
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT
+            },
+        )
+    }
+
+    private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsmåned.Feilutbetaling): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-            kodeKlasse = it.kode,
-            beløpTidligereUtbetaling = it.beløpTidligereUtbetaling,
-            beløpNyUtbetaling = it.beløpNyUtbetaling,
-            beløpSomSkalTilbakekreves = it.beløpSkalTilbakekreves,
-            beløpSomIkkeTilbakekreves = it.beløpSkalIkkeTilbakekreves,
+            beløpTidligereUtbetaling = BigDecimal(it.beløpTidligereUtbetaling),
+            beløpNyUtbetaling = BigDecimal(it.beløpNyUtbetaling),
+            beløpSomSkalTilbakekreves = BigDecimal(it.beløpSkalTilbakekreves),
+            beløpSomIkkeTilbakekreves = BigDecimal(it.beløpSkalIkkeTilbakekreves),
         )
     }
 

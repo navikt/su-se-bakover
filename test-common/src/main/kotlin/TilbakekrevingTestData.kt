@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
@@ -45,25 +43,18 @@ fun matchendeKravgrunnlag(
                     Kravgrunnlag.Grunnlagsmåned(
                         måned = periode.tilMåned(),
                         betaltSkattForYtelsesgruppen = BigDecimal(4395),
-                        grunnlagsbeløp = listOf(
-                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                                kode = KlasseKode.KL_KODE_FEIL_INNT,
-                                type = KlasseType.FEIL,
-                                beløpTidligereUtbetaling = BigDecimal.ZERO,
-                                beløpNyUtbetaling = BigDecimal(feilutbetaling.sum()),
-                                beløpSkalTilbakekreves = BigDecimal.ZERO,
-                                beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
-                                skatteProsent = BigDecimal.ZERO,
-                            ),
-                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                                kode = KlasseKode.SUUFORE,
-                                type = KlasseType.YTEL,
-                                beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(periode)!!.sum()),
-                                beløpNyUtbetaling = BigDecimal(it.hentTotalUtbetaling(periode)!!.sum()),
-                                beløpSkalTilbakekreves = BigDecimal(feilutbetaling.sum()),
-                                beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
-                                skatteProsent = BigDecimal("43.9983"),
-                            ),
+                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                            beløpTidligereUtbetaling = it.hentUtbetalteBeløp(periode)!!.sum(),
+                            beløpNyUtbetaling = it.hentTotalUtbetaling(periode)!!.sum(),
+                            beløpSkalTilbakekreves = feilutbetaling.sum(),
+                            beløpSkalIkkeTilbakekreves = 0,
+                            skatteProsent = BigDecimal("43.9983"),
+                        ),
+                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                            beløpTidligereUtbetaling = 0,
+                            beløpNyUtbetaling = feilutbetaling.sum(),
+                            beløpSkalTilbakekreves = 0,
+                            beløpSkalIkkeTilbakekreves = 0,
                         ),
                     )
                 },

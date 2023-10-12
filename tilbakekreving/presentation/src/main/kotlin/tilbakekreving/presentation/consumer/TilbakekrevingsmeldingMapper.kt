@@ -14,8 +14,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -78,23 +76,41 @@ data object TilbakekrevingsmeldingMapper {
                                 behandler = kravgrunnlagDto.saksbehId,
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                                 grunnlagsmåneder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
+                                    require(tilbakekrevingsperiode.tilbakekrevingsbeløp.size == 2) {
+                                        "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
+                                    }
                                     Kravgrunnlag.Grunnlagsmåned(
                                         måned = Måned.Companion.fra(
                                             LocalDate.parse(tilbakekrevingsperiode.periode.fraOgMed),
                                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                                         ),
                                         betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
-                                        grunnlagsbeløp = tilbakekrevingsperiode.tilbakekrevingsbeløp.map {
-                                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-                                                kode = KlasseKode.valueOf(it.kodeKlasse),
-                                                type = KlasseType.valueOf(it.typeKlasse),
-                                                beløpTidligereUtbetaling = BigDecimal(it.belopOpprUtbet),
-                                                beløpNyUtbetaling = BigDecimal(it.belopNy),
-                                                beløpSkalTilbakekreves = BigDecimal(it.belopTilbakekreves),
-                                                beløpSkalIkkeTilbakekreves = BigDecimal(it.belopUinnkrevd),
-                                                skatteProsent = BigDecimal(it.skattProsent),
-                                            )
-                                        },
+                                        ytelse = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
+                                            .let {
+                                                // Vi forventer kun en ytelse per måned
+                                                val tilbakekrevingsbeløp = it.single()
+                                                Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                                                    beløpTidligereUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopOpprUtbet).intValueExact(),
+                                                    beløpNyUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopNy).intValueExact(),
+                                                    beløpSkalTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopTilbakekreves).intValueExact(),
+                                                    beløpSkalIkkeTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopUinnkrevd).intValueExact(),
+                                                    skatteProsent = BigDecimal(tilbakekrevingsbeløp.skattProsent),
+                                                )
+                                            },
+                                        feilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
+                                            .let {
+                                                // Vi forventer kun en feilutbetaling per måned
+                                                val tilbakekrevingsbeløp = it.single()
+                                                require(BigDecimal(tilbakekrevingsbeløp.skattProsent).compareTo(BigDecimal.ZERO) == 0) {
+                                                    "Forventer at skatteprosenten alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløp.skattProsent}"
+                                                }
+                                                Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                                                    beløpTidligereUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopOpprUtbet).intValueExact(),
+                                                    beløpNyUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopNy).intValueExact(),
+                                                    beløpSkalTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopTilbakekreves).intValueExact(),
+                                                    beløpSkalIkkeTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopUinnkrevd).intValueExact(),
+                                                )
+                                            },
                                     )
                                 },
                                 eksternTidspunkt = Tidspunkt(

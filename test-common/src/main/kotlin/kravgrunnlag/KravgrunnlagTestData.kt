@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test.kravgrunnlag
 
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
@@ -32,8 +31,6 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -146,34 +143,29 @@ fun kravgrunnlagPåSakHendelse(
 fun grunnlagsmåned(
     måned: Måned = januar(2021),
     betaltSkattForYtelsesgruppen: BigDecimal = BigDecimal("1000.00"),
-    grunnlagsbeløps: NonEmptyList<Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp> = nonEmptyListOf(
-        grunnlagsbeløpFeil(),
-        grunnlagsbeløpYtel(),
-    ),
+    ytelse: Kravgrunnlag.Grunnlagsmåned.Ytelse = grunnlagsbeløpYtel(),
+    feilutbetaling: Kravgrunnlag.Grunnlagsmåned.Feilutbetaling = grunnlagsbeløpFeil(),
 ): Kravgrunnlag.Grunnlagsmåned {
     return Kravgrunnlag.Grunnlagsmåned(
         måned = måned,
         betaltSkattForYtelsesgruppen = betaltSkattForYtelsesgruppen,
-        grunnlagsbeløp = grunnlagsbeløps,
+        ytelse = ytelse,
+        feilutbetaling = feilutbetaling,
     )
 }
 
 fun grunnlagsbeløpYtel(
-    kode: KlasseKode = KlasseKode.SUUFORE,
-    type: KlasseType = KlasseType.YTEL,
-    beløpTidligereUtbetaling: BigDecimal = BigDecimal("2000.00"),
-    beløpNyUtbetaling: BigDecimal = BigDecimal("1000.00"),
-    beløpSkalTilbakekreves: BigDecimal = BigDecimal("1000.00"),
-    beløpSkalIkkeTilbakekreves: BigDecimal = BigDecimal("0.00"),
+    beløpTidligereUtbetaling: Int = 2000,
+    beløpNyUtbetaling: Int = 1000,
+    beløpSkalTilbakekreves: Int = 1000,
+    beløpSkalIkkeTilbakekreves: Int = 0,
     skatteProsent: BigDecimal = BigDecimal("50.0000"),
-): Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp {
+): Kravgrunnlag.Grunnlagsmåned.Ytelse {
     require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves) {
         "beløpTidligereUtbetaling $beløpTidligereUtbetaling - beløpNyUtbetaling $beløpNyUtbetaling må være lik beløpSkalTilbakekreves $beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves $beløpSkalIkkeTilbakekreves"
     }
     require(skatteProsent >= BigDecimal.ZERO && skatteProsent <= BigDecimal("100.0000"))
-    return Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-        kode = kode,
-        type = type,
+    return Kravgrunnlag.Grunnlagsmåned.Ytelse(
         beløpTidligereUtbetaling = beløpTidligereUtbetaling,
         beløpNyUtbetaling = beløpNyUtbetaling,
         beløpSkalTilbakekreves = beløpSkalTilbakekreves,
@@ -183,19 +175,14 @@ fun grunnlagsbeløpYtel(
 }
 
 fun grunnlagsbeløpFeil(
-    kode: KlasseKode = KlasseKode.KL_KODE_FEIL_INNT,
-    type: KlasseType = KlasseType.FEIL,
-    beløpNyUtbetaling: BigDecimal = BigDecimal("1000"),
-): Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp {
-    require(beløpNyUtbetaling >= BigDecimal.ZERO)
-    return Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
-        kode = kode,
-        type = type,
-        beløpTidligereUtbetaling = BigDecimal.ZERO,
+    beløpNyUtbetaling: Int = 1000,
+): Kravgrunnlag.Grunnlagsmåned.Feilutbetaling {
+    require(beløpNyUtbetaling >= 0)
+    return Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+        beløpTidligereUtbetaling = 0,
         beløpNyUtbetaling = beløpNyUtbetaling,
-        beløpSkalTilbakekreves = BigDecimal.ZERO,
-        beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
-        skatteProsent = BigDecimal.ZERO,
+        beløpSkalTilbakekreves = 0,
+        beløpSkalIkkeTilbakekreves = 0,
     )
 }
 

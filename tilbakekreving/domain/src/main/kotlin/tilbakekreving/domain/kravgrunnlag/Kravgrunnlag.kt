@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.math.BigDecimal
 
 data class Kravgrunnlag(
@@ -48,25 +46,63 @@ data class Kravgrunnlag(
         val måned: Måned,
         /** Kravgrunnlaget oppgir kun total skatt som er betalt for hele ytelsesgruppen til SU. Så denne kan bare brukes som en øvre grense. */
         val betaltSkattForYtelsesgruppen: BigDecimal,
-        val grunnlagsbeløp: List<Grunnlagsbeløp>,
+        val ytelse: Ytelse,
+        val feilutbetaling: Feilutbetaling,
     ) {
 
         fun hentBeløpSkalTilbakekreves(): MånedBeløp {
             return MånedBeløp(
                 periode = måned,
-                beløp = Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }),
+                beløp = Beløp(ytelse.beløpSkalTilbakekreves),
             )
         }
 
-        data class Grunnlagsbeløp(
-            // TODO jah: kode/type, må vi ta høyde for alle variantene vi kan få her? (vi får bare et begrenset sett) ref. dok.
-            val kode: KlasseKode,
-            val type: KlasseType,
-            val beløpTidligereUtbetaling: BigDecimal,
-            val beløpNyUtbetaling: BigDecimal,
-            val beløpSkalTilbakekreves: BigDecimal,
-            val beløpSkalIkkeTilbakekreves: BigDecimal,
+        /**
+         * Vi bruker denne til visning i domenet, men vi endrer ikke på feltene.
+         * SU betaler kun ut hele kroner og denne vil derfor ikke ha desimaler, selvom oppdrag støtter dette.
+         *
+         * Denne har klassetype YTEL og klassekode SUUFORE
+         * @param beløpTidligereUtbetaling Gitt at vi tidligere har utbetalt 10k for en måned (på brukers konto) vil dette feltet inneholde 10k.
+         * @param beløpNyUtbetaling Gitt at vi reduserer fra utbetalte 10k til 5k, vil dette feltet være 5k. Opphører vi vil dette feltet være 0.
+         * @param beløpSkalTilbakekreves Dette vil være differanse mellom [beløpTidligereUtbetaling] og [beløpNyUtbetaling]. Usikker på hva som skjer dersom differansen er negativ eller om det kan oppstå.
+         * @param beløpSkalIkkeTilbakekreves Dette feltet er transient. Vi må sende det Antar at denne alltid er 0. Hvis denne er større enn 0, har oppdrag bestemt at vi ikke skal tilbakekreve denne delen, men siden vi ikke har konfigurert noen brøk eller tilbakekrevingsregler i oppdrag.
+         * @param skatteProsent Kommer ofte med 4 desimaler i preprod.
+         *
+         * Summen av [beløpSkalTilbakekreves] og [beløpSkalIkkeTilbakekreves] er lik differansen mellom [beløpTidligereUtbetaling] og [beløpNyUtbetaling].
+         */
+        data class Ytelse(
+            val beløpTidligereUtbetaling: Int,
+            val beløpNyUtbetaling: Int,
+            val beløpSkalTilbakekreves: Int,
+            val beløpSkalIkkeTilbakekreves: Int,
             val skatteProsent: BigDecimal,
+        ) {
+            init {
+                // TODO jah: Det er også mulig å legge inn noen forventninger på tvers av feltene
+                require(beløpTidligereUtbetaling > 0)
+                require(beløpNyUtbetaling >= 0)
+                require(beløpSkalTilbakekreves >= 0)
+                require(beløpSkalIkkeTilbakekreves == 0)
+                require(skatteProsent > BigDecimal.ZERO)
+            }
+        }
+
+        /**
+         * Hele denne typen er transient. Dvs. at vi ikke bruker den i domenet, men sender den rått videre til tilbakekrevingskomponenten.
+         * SU betaler kun ut hele kroner og denne vil derfor ikke ha desimaler, selvom oppdrag støtter dette.
+         *
+         * Denne har klassetype FEIL og klassekode KL_KODE_FEIL_INT
+         *
+         * @param beløpTidligereUtbetaling Antar at den alltid kommer som 0.00, men vi beholder den som transient, siden vi må sende den til tilbakekrevingskomponenten.
+         * @param beløpNyUtbetaling Antar at det kun er denne som er utfylt for klassetype FEIL.
+         * @param beløpSkalTilbakekreves Antar at den alltid kommer som 0.00, men vi beholder den som transient, siden vi må sende den til tilbakekrevingskomponenten.
+         * @param beløpSkalIkkeTilbakekreves Antar at den alltid kommer som 0.00, men vi beholder den som transient, siden vi må sende den til tilbakekrevingskomponenten.
+         */
+        data class Feilutbetaling(
+            val beløpTidligereUtbetaling: Int,
+            val beløpNyUtbetaling: Int,
+            val beløpSkalTilbakekreves: Int,
+            val beløpSkalIkkeTilbakekreves: Int,
         )
     }
 

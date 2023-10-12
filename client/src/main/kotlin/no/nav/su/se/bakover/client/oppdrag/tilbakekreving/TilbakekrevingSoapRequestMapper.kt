@@ -36,6 +36,7 @@ internal enum class Tilbakekrevingsresultat {
                 Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> {
                     FULL_TILBAKEKREV
                 }
+
                 Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> {
                     INGEN_TILBAKEKREV
                 }
@@ -59,6 +60,7 @@ enum class Skyld {
                 Tilbakekrevingsvedtak.Skyld.BRUKER -> {
                     BRUKER
                 }
+
                 Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT -> {
                     IKKE_FORDELT
                 }
@@ -126,16 +128,24 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
             belopRenter = it.beløpRenter
 
             // Liste over 443 - Tilbakekrevingsbeløp
-            tilbakekrevingsbelop.addAll(mapTilbakekrevingsbeløp(it.tilbakekrevingsbeløp))
+            tilbakekrevingsbelop.addAll(
+                listOf(
+                    mapTilbakekrevingsbeløp(it.feilutbetaling),
+                    mapTilbakekrevingsbeløp(it.ytelse),
+                ),
+            )
         }
     }
 }
 
-private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp>): List<TilbakekrevingsbelopDto> {
-    return tilbakekrevingsbeløp.map {
+private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp): TilbakekrevingsbelopDto {
+    tilbakekrevingsbeløp.let {
         TilbakekrevingsbelopDto().apply {
             // 1 - 443 - Kode-klasse - X(20) - Krav - Klassifisering av stønad, skatt, trekk etc. Det må minimum sendes med klassekoder for feilutbetaling og de ytelsesklassekoder som er feilutbetalt.
-            this.kodeKlasse = it.kodeKlasse.toString()
+            this.kodeKlasse = when (it) {
+                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> "KL_KODE_FEIL_INNT"
+                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> "SUUFORE"
+            }
 
             // 3 - 443 - Belop-oppr-utbet - 9(8)V99 - Krav - Opprinnelig beregnet beløp, dvs. utbetalingen som førte til feilutbetaling. Dersom saksbehandler deler opp i perioder annerledes enn det som er levert på kravgrunnlaget, må beløp-oppr og beløp-ny beregnes på de nye perioder, med beløp fordelt pr. virkedag.
             this.belopOpprUtbet = it.beløpTidligereUtbetaling
@@ -151,11 +161,8 @@ private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevings
 
             // 11 - 443 - Belop-skatt - 9(8)V99 - Valgfritt - Skattebeløp, som skal redusere beløp til innkreving.
 
-            when (it) {
-                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> {
-                    // ingen flere verdier å fylle ut
-                    return@map this
-                }
+            return when (it) {
+                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> this
                 is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> {
                     this.belopSkatt = it.beløpSkatt
 
@@ -163,7 +170,7 @@ private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevings
                     this.kodeAarsak = TilbakekrevingsÅrsak.ANNET.toString()
                     this.kodeSkyld = Skyld.fra(it.skyld).toString()
 
-                    return@map this
+                    this
                 }
             }
         }

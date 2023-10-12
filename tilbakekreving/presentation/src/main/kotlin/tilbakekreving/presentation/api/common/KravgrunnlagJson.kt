@@ -4,14 +4,13 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.presentation.api.common.GrunnlagsbeløpJson.Companion.toJson
+import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
-import tilbakekreving.presentation.api.common.KlasseKodeJson.Companion.toJson
-import tilbakekreving.presentation.api.common.KlasseTypeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 
+/**
+ * Kontrakten mot su-se-framover
+ */
 data class KravgrunnlagJson(
     val eksternKravgrunnlagsId: String,
     val eksternVedtakId: String,
@@ -37,22 +36,20 @@ data class GrunnlagsperiodeJson(
     // TODO bytt till et uuuu-MM format (f.eks. toString() av YearMonth)
     val periode: PeriodeJson,
     val beløpSkattMnd: String,
-    val grunnlagsbeløp: List<GrunnlagsbeløpJson>,
+    val ytelse: GrunnlagsbeløpYtelseJson,
 ) {
     companion object {
         fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
             GrunnlagsperiodeJson(
                 periode = it.måned.toJson(),
                 beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
-                grunnlagsbeløp = it.grunnlagsbeløp.toJson(),
+                ytelse = it.ytelse.toJson(),
             )
         }
     }
 }
 
-data class GrunnlagsbeløpJson(
-    val kode: KlasseKodeJson,
-    val type: KlasseTypeJson,
+data class GrunnlagsbeløpYtelseJson(
     val beløpTidligereUtbetaling: String,
     val beløpNyUtbetaling: String,
     val beløpSkalTilbakekreves: String,
@@ -60,57 +57,13 @@ data class GrunnlagsbeløpJson(
     val skatteProsent: String,
 ) {
     companion object {
-        fun List<Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp>.toJson(): List<GrunnlagsbeløpJson> = this.map {
-            GrunnlagsbeløpJson(
-                kode = it.kode.toJson(),
-                type = it.type.toJson(),
-                beløpTidligereUtbetaling = it.beløpTidligereUtbetaling.toString(),
-                beløpNyUtbetaling = it.beløpNyUtbetaling.toString(),
-                beløpSkalTilbakekreves = it.beløpSkalTilbakekreves.toString(),
-                beløpSkalIkkeTilbakekreves = it.beløpSkalIkkeTilbakekreves.toString(),
-                skatteProsent = it.skatteProsent.toString(),
-            )
-        }
-    }
-}
-
-enum class KlasseKodeJson {
-    SUUFORE,
-    KL_KODE_FEIL_INNT,
-    TBMOTOBS,
-    FSKTSKAT,
-    UFOREUT,
-    SUALDER,
-    KL_KODE_FEIL,
-    ;
-
-    companion object {
-        fun KlasseKode.toJson(): KlasseKodeJson = when (this) {
-            KlasseKode.SUUFORE -> SUUFORE
-            KlasseKode.KL_KODE_FEIL_INNT -> KL_KODE_FEIL_INNT
-            KlasseKode.TBMOTOBS -> TBMOTOBS
-            KlasseKode.FSKTSKAT -> FSKTSKAT
-            KlasseKode.UFOREUT -> UFOREUT
-            KlasseKode.SUALDER -> SUALDER
-            KlasseKode.KL_KODE_FEIL -> KL_KODE_FEIL
-        }
-    }
-}
-
-enum class KlasseTypeJson {
-    YTEL,
-    SKAT,
-    FEIL,
-    MOTP,
-    ;
-
-    companion object {
-        fun KlasseType.toJson(): KlasseTypeJson = when (this) {
-            KlasseType.YTEL -> YTEL
-            KlasseType.SKAT -> SKAT
-            KlasseType.FEIL -> FEIL
-            KlasseType.MOTP -> MOTP
-        }
+        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
+            beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
+            beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
+            beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
+            beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
+            skatteProsent = this.skatteProsent.toString(),
+        )
     }
 }
 
