@@ -79,11 +79,21 @@ data class Kravgrunnlag(
         ) {
             init {
                 // TODO jah: Det er også mulig å legge inn noen forventninger på tvers av feltene
-                require(beløpTidligereUtbetaling > 0)
-                require(beløpNyUtbetaling >= 0)
-                require(beløpSkalTilbakekreves >= 0)
-                require(beløpSkalIkkeTilbakekreves == 0)
-                require(skatteProsent > BigDecimal.ZERO)
+                require(beløpTidligereUtbetaling > 0) {
+                    "Forventer at kravgrunnlag.beløpTidligereUtbetaling > 0, men var $beløpTidligereUtbetaling"
+                }
+                require(beløpNyUtbetaling >= 0) {
+                    "Forventer at kravgrunnlag.beløpNyUtbetaling >= 0, men var $beløpNyUtbetaling"
+                }
+                require(beløpSkalTilbakekreves >= 0) {
+                    "Forventer at kravgrunnlag.beløpSkalTilbakekreves >= 0, men var $beløpSkalTilbakekreves"
+                }
+                require(beløpSkalIkkeTilbakekreves == 0) {
+                    "Forventer at kravgrunnlag.beløpSkalIkkeTilbakekreves == 0, men var $beløpSkalIkkeTilbakekreves"
+                }
+                require(skatteProsent > BigDecimal.ZERO) {
+                    "Forventer at kravgrunnlag.beløpSkalTilbakekreves > 0, men var $skatteProsent"
+                }
             }
         }
 

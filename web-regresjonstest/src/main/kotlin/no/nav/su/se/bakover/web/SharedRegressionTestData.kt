@@ -101,6 +101,7 @@ data object SharedRegressionTestData {
             dbMetrics = dbMetricsStub,
             clock = clock,
             satsFactory = satsFactory,
+            råttKravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
         )
     }
 

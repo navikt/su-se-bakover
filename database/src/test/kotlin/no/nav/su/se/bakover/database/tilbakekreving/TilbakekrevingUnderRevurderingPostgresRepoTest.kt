@@ -2,24 +2,26 @@ package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.util.UUID
 
-internal class TilbakekrevingPostgresRepoTest {
+internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
 
     @Test
     fun `kan lagre og hente uten behov for tilbakekrevingsbehandling`() {
@@ -36,8 +38,12 @@ internal class TilbakekrevingPostgresRepoTest {
     @Test
     fun `kan lagre og hente tilbakekrevingsbehandlinger`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget()
+            // Får da feilutbetalingen for januar
+            val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+            val testDataHelper = TestDataHelper(dataSource, clock = clock)
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertOpphørt(
+                revurderingsperiode = januar(2021),
+            )
 
             val ikkeAvgjort = IkkeAvgjort(
                 id = UUID.randomUUID(),
@@ -49,7 +55,7 @@ internal class TilbakekrevingPostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = ikkeAvgjort))
 
-            val tilbakekrevingRepo = testDataHelper.tilbakekrevingRepo as TilbakekrevingPostgresRepo
+            val tilbakekrevingRepo = testDataHelper.tilbakekrevingRepo as TilbakekrevingUnderRevurderingPostgresRepo
             testDataHelper.sessionFactory.withSession { session ->
                 tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurderingId = revurdering.id,
@@ -118,21 +124,19 @@ internal class TilbakekrevingPostgresRepoTest {
             ).getOrFail().tilIverksatt(
                 attestant = attestant,
                 uteståendeAvkortingPåSak = null,
-                clock = fixedClock,
+                clock = clock,
             ).getOrFail()
 
             val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
-                kravgrunnlag = RåttKravgrunnlag("xml"),
+                kravgrunnlag = genererKravgrunnlagFraSimulering(
+                    saksnummer = iverksatt.saksnummer,
+                    simulering = iverksatt.simulering,
+                    // Vi har ikke laget et vedtak her.
+                    utbetalingId = UUID30.randomUUID(),
+                    clock = clock,
+                ),
                 kravgrunnlagMottatt = fixedTidspunkt,
                 hentRevurdering = { iverksatt },
-                kravgrunnlagMapper = {
-                    matchendeKravgrunnlag(
-                        iverksatt,
-                        iverksatt.simulering,
-                        UUID30.randomUUID(),
-                        fixedClock,
-                    )
-                },
             )
             testDataHelper.sessionFactory.withSession { session ->
                 tilbakekrevingRepo.lagreTilbakekrevingsbehandling(

@@ -1,11 +1,15 @@
 package tilbakekreving.infrastructure
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.infrastructure.FeilutbetalingDb.Companion.toDbJson
 import tilbakekreving.infrastructure.GrunnlagsmånedDb.Companion.toDbJson
+import tilbakekreving.infrastructure.KravgrunnlagDbJson.Companion.toDbJson
 import tilbakekreving.infrastructure.YtelseDb.Companion.toDbJson
 
 /**
@@ -72,4 +76,12 @@ internal data class KravgrunnlagDbJson(
             )
         }
     }
+}
+fun mapDbJsonToKravgrunnlag(value: String): Either<Throwable, Kravgrunnlag> {
+    return Either.catch {
+        deserialize<KravgrunnlagDbJson>(value).toDomain()
+    }
+}
+fun mapKravgrunnlagToDbJson(kravgrunnlag: Kravgrunnlag): String {
+    return serialize(kravgrunnlag.toDbJson())
 }

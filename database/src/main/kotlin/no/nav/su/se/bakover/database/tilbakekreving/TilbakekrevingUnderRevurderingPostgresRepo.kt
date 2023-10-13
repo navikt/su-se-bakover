@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
+import arrow.core.Either
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
@@ -15,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -24,13 +27,23 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsve
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import org.slf4j.LoggerFactory
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.infrastructure.mapDbJsonToKravgrunnlag
+import tilbakekreving.infrastructure.mapKravgrunnlagToDbJson
 import java.util.UUID
 
-internal class TilbakekrevingPostgresRepo(
+/**
+ * @param råttKravgrunnlagMapper brukes for de historiske tilfellene, der vi lagres RåttKravgrunnlag og ikke json-versjonen av Kravgrunnlag
+ */
+internal class TilbakekrevingUnderRevurderingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
 ) : TilbakekrevingRepo {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
         sessionFactory.withSession { session ->
@@ -112,7 +125,7 @@ internal class TilbakekrevingPostgresRepo(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.avgjort.id,
                     "tilstand" to Tilstand.MOTTATT_KRAVGRUNNLAG.toString(),
-                    "kravgrunnlag" to tilbakrekrevingsbehanding.kravgrunnlag.melding,
+                    "kravgrunnlag" to mapKravgrunnlagToDbJson(tilbakrekrevingsbehanding.kravgrunnlag),
                     "kravgrunnlagMottatt" to tilbakrekrevingsbehanding.kravgrunnlagMottatt,
                 ),
                 session,
@@ -175,7 +188,22 @@ internal class TilbakekrevingPostgresRepo(
         )
         val tilstand = Tilstand.fromValue(string("tilstand"))
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
-        val kravgrunnlag = stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
+        val kravgrunnlag: Kravgrunnlag? = stringOrNull("kravgrunnlag")?.let { dbJson ->
+            log.info("Prøver først og deserialisere den nye kravgrunnlag-json typen. For revurdering $revurderingId.")
+            mapDbJsonToKravgrunnlag(dbJson).getOrElse {
+                log.info("Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. Antar det er et historisk rått kravgrunnlag.For revurdering $revurderingId.")
+                råttKravgrunnlagMapper(deserialize<RåttKravgrunnlag>(dbJson)).getOrElse {
+                    sikkerLogg.error(
+                        "Klarte ikke mappe rått kravgrunnlag til domenemodellen for revurdering $revurderingId. Se vanlig logg for stack trace. Rått kravgrunnlag: $dbJson",
+                        it,
+                    )
+                    throw IllegalStateException(
+                        "Klarte ikke mappe det rå kravgrunnlaget til domenemodellen for revurdering $revurderingId. Se sikkerlogg for det rå kravgrunnlaget",
+                        it,
+                    )
+                }
+            }
+        }
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
         val tilbakekrevingsvedtakForsendelse =
             stringOrNull("tilbakekrevingsvedtakForsendelse")?.let { forsendelseJson ->
@@ -196,6 +224,7 @@ internal class TilbakekrevingPostgresRepo(
                 revurderingId = revurderingId,
                 periode = periode,
             )
+
             Avgjørelsestype.IKKE_TILBAKEKREV -> IkkeTilbakekrev(
                 id = id,
                 opprettet = opprettet,
@@ -203,6 +232,7 @@ internal class TilbakekrevingPostgresRepo(
                 revurderingId = revurderingId,
                 periode = periode,
             )
+
             Avgjørelsestype.IKKE_AVGJORT -> IkkeAvgjort(
                 id = id,
                 opprettet = opprettet,
@@ -216,11 +246,13 @@ internal class TilbakekrevingPostgresRepo(
             Tilstand.UNDER_BEHANDLING -> {
                 tilbakekrevingsbehandling
             }
+
             Tilstand.AVVENTER_KRAVGRUNNLAG -> {
                 AvventerKravgrunnlag(
                     avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
                 )
             }
+
             Tilstand.MOTTATT_KRAVGRUNNLAG -> {
                 MottattKravgrunnlag(
                     avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
@@ -228,6 +260,7 @@ internal class TilbakekrevingPostgresRepo(
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
                 )
             }
+
             Tilstand.SENDT_TILBAKEKREVINGSVEDTAK -> {
                 SendtTilbakekrevingsvedtak(
                     avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,

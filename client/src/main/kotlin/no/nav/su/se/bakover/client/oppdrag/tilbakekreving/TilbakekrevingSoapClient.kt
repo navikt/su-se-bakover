@@ -35,6 +35,9 @@ class TilbakekrevingSoapClient(
                     it
                 }
                 .map {
+                    sikkerLogg.info(
+                        "SOAP kall mot tilbakekrevingskomponenten OK. Response-mmel: ${response.mmel}, Response-dto: ${response.tilbakekrevingsvedtak}",
+                    )
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = TilbakekrevingSoapClientMapper.toXml(request),
                         tidspunkt = Tidspunkt.now(clock),

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import arrow.core.Either
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -48,7 +49,7 @@ import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
-import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentPostgresRepo
@@ -60,6 +61,8 @@ import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHend
 import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import java.time.Clock
@@ -72,6 +75,7 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper>,
+        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
@@ -90,7 +94,7 @@ data object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, dbMetrics, clock, satsFactory, queryParameterMappers)
+        return buildInternal(userDatastore, dbMetrics, clock, satsFactory, queryParameterMappers, råttKravgrunnlagMapper)
     }
 
     @TestOnly
@@ -100,9 +104,10 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
+        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
-        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory, queryParameterMappers)
+        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory, queryParameterMappers, råttKravgrunnlagMapper)
     }
 
     @TestOnly
@@ -133,6 +138,7 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
+        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): DatabaseRepos {
         val sessionCounter = SessionCounter()
         val sessionFactory = PostgresSessionFactory(
@@ -203,8 +209,9 @@ data object DatabaseBuilder {
         val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
         val klageRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelseRepo)
 
-        val tilbakekrevingRepo = TilbakekrevingPostgresRepo(
+        val tilbakekrevingRepo = TilbakekrevingUnderRevurderingPostgresRepo(
             sessionFactory = sessionFactory,
+            råttKravgrunnlagMapper = råttKravgrunnlagMapper,
         )
         val reguleringRepo = ReguleringPostgresRepo(
             sessionFactory = sessionFactory,

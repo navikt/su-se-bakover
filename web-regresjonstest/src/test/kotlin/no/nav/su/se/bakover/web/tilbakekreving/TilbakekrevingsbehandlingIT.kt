@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.tilbakekreving
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.person.Fnr
@@ -11,9 +10,9 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlag
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.sak.hent.hentSak
-import no.nav.su.se.bakover.web.services.tilbakekreving.lagreRåttKravgrunnlagForUtbetalingerSomMangler
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -57,18 +56,7 @@ internal class TilbakekrevingsbehandlingIT {
                 ).let {
                     RevurderingJson.hentRevurderingId(it)
                 }
-                // Emulerer at det kommer et kravgrunnlag på køen som matcher revurderingen sin simulering.
-                lagreRåttKravgrunnlagForUtbetalingerSomMangler(
-                    sessionFactory = appComponents.databaseRepos.sessionFactory,
-                    service = appComponents.tilbakekrevingskomponenter.services.råttKravgrunnlagService,
-                    clock = clock,
-                )
-                verifiserKravgrunnlagPåSak(sakId, client, false, 1)
-                // Siden vi ikke kjører jobbene i test-miljøet må vi også kjøre denne konsumenten.
-                appComponents.tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(
-                    // Denne får versjon 2
-                    correlationId = CorrelationId.generate(),
-                )
+                appComponents.emulerViMottarKravgrunnlag()
                 verifiserKravgrunnlagPåSak(sakId, client, true, 2)
                 opprett(
                     // Denne vil få versjon 3 (vi bekrefter at siste versjonen er 2)
@@ -100,7 +88,7 @@ internal class TilbakekrevingsbehandlingIT {
 {
   "id":"ignore-me",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:44.456789Z",
+  "opprettet":"2021-02-01T01:03:43.456789Z",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
@@ -113,13 +101,13 @@ internal class TilbakekrevingsbehandlingIT {
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "beløpSkattMnd":"4395",
+        "beløpSkattMnd":"6192",
           "ytelse": {
             "beløpTidligereUtbetaling":"20946",
             "beløpNyUtbetaling":"8563",
             "beløpSkalTilbakekreves":"12383",
             "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"43.9983"
+            "skatteProsent":"50"
           },
       }
     ]

@@ -22,9 +22,9 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
 import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
 import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
-import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -201,8 +201,8 @@ fun sakMedUteståendeKravgrunnlag(
         val revurdering = vedtak.behandling as IverksattRevurdering
         require(LocalDate.now(clock) >= periode.fraOgMed.plusMonths(1))
         sak.copy(
-            uteståendeKravgrunnlag = matchendeKravgrunnlag(
-                revurdering = revurdering,
+            uteståendeKravgrunnlag = genererKravgrunnlagFraSimulering(
+                saksnummer = revurdering.saksnummer,
                 simulering = vedtak.simulering,
                 utbetalingId = vedtak.utbetalingId!!,
                 clock = clock,

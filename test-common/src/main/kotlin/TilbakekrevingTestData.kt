@@ -2,11 +2,10 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -14,52 +13,62 @@ import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Clock
 import java.util.UUID
 
 /**
- * TODO dobbeltimplementasjon
- * @see [no.nav.su.se.bakover.web.services.tilbakekreving.matchendeKravgrunnlag]
+ * TODO dobbeltimplementasjon i prod: [no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob]
+ * @see [no.nav.su.se.bakover.web.services.tilbakekreving.genererKravgrunnlagFraSimulering]
  */
-fun matchendeKravgrunnlag(
-    revurdering: Revurdering,
+fun genererKravgrunnlagFraSimulering(
+    saksnummer: Saksnummer,
     simulering: Simulering,
     utbetalingId: UUID30,
     clock: Clock,
+    eksternKravgrunnlagId: String = "123456",
+    eksternVedtakId: String = "654321",
+    behandler: String = "K231B433",
+    eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
+    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+    skatteprosent: BigDecimal = BigDecimal("50"),
 ): Kravgrunnlag {
-    val now = Tidspunkt.now(clock)
-    return simulering.let {
-        Kravgrunnlag(
-            saksnummer = revurdering.saksnummer,
-            eksternKravgrunnlagId = "123456",
-            eksternVedtakId = "654321",
-            eksternKontrollfelt = now.toOppdragTimestamp(),
-            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = "K231B433",
-            utbetalingId = utbetalingId,
-            eksternTidspunkt = now,
-            grunnlagsmåneder = it.hentFeilutbetalteBeløp()
-                .map { (periode, feilutbetaling) ->
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = periode.tilMåned(),
-                        betaltSkattForYtelsesgruppen = BigDecimal(4395),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            beløpTidligereUtbetaling = it.hentUtbetalteBeløp(periode)!!.sum(),
-                            beløpNyUtbetaling = it.hentTotalUtbetaling(periode)!!.sum(),
-                            beløpSkalTilbakekreves = feilutbetaling.sum(),
-                            beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal("43.9983"),
-                        ),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = feilutbetaling.sum(),
-                            beløpSkalTilbakekreves = 0,
-                            beløpSkalIkkeTilbakekreves = 0,
-                        ),
-                    )
-                },
-        )
-    }
+    return Kravgrunnlag(
+        saksnummer = saksnummer,
+        eksternKravgrunnlagId = eksternKravgrunnlagId,
+        eksternVedtakId = eksternVedtakId,
+        eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
+        status = status,
+        behandler = behandler,
+        utbetalingId = utbetalingId,
+        eksternTidspunkt = eksternTidspunkt,
+        grunnlagsmåneder = simulering.hentFeilutbetalteBeløp()
+            .map { (måned, feilutbetaling) ->
+                val beløpTidligereUtbetaling = simulering.hentUtbetalteBeløp(måned)!!.sum()
+                val beløpNyUtbetaling = simulering.hentTotalUtbetaling(måned)!!.sum()
+                val beløpSkalTilbakekreves = feilutbetaling.sum()
+                require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves) {
+                    "Forventet at beløpTidligereUtbetaling ($beløpTidligereUtbetaling) - beløpNyUtbetaling($beløpNyUtbetaling) == beløpSkalTilbakekreves($beløpSkalTilbakekreves)."
+                }
+                Kravgrunnlag.Grunnlagsmåned(
+                    måned = måned,
+                    betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves)).divide(BigDecimal(100.0000)).setScale(0, RoundingMode.UP),
+                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
+                        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
+                        beløpNyUtbetaling = beløpNyUtbetaling,
+                        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
+                        beløpSkalIkkeTilbakekreves = 0,
+                        skatteProsent = skatteprosent,
+                    ),
+                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
+                        beløpTidligereUtbetaling = 0,
+                        beløpNyUtbetaling = simulering.hentFeilutbetalteBeløp(måned)!!.sum(),
+                        beløpSkalTilbakekreves = 0,
+                        beløpSkalIkkeTilbakekreves = 0,
+                    ),
+                )
+            },
+    )
 }
 
 fun nyOpprettetTilbakekrevingsbehandlingHendelse(

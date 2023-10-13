@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
-import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson.Companion.toJson
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -378,7 +378,7 @@ internal class RevurderingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
-    private val tilbakekrevingRepo: TilbakekrevingPostgresRepo,
+    private val tilbakekrevingRepo: TilbakekrevingUnderRevurderingPostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : RevurderingRepo {
 

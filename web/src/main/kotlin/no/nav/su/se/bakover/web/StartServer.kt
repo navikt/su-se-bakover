@@ -45,6 +45,7 @@ fun startServer() {
     ).start(true)
 }
 
+val mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -61,6 +62,7 @@ fun Application.susebakover(
         clock = clock,
         satsFactory = satsFactory,
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
+        råttKravgrunnlagMapper = mapRåttKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -105,7 +107,7 @@ fun Application.susebakover(
                 sakService = services.sak,
                 tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
                 oppgaveService = services.oppgave,
-                mapRåttKravgrunnlag = { TilbakekrevingsmeldingMapper.toKravgrunnlag(it) },
+                mapRåttKravgrunnlag = mapRåttKravgrunnlag,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                 hendelseRepo = repos.hendelseRepo,
             ),

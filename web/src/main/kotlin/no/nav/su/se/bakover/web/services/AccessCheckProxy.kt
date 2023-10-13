@@ -215,8 +215,6 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonRepo
 import person.domain.PersonService
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import økonomi.domain.kvittering.Kvittering
 import java.time.LocalDate
 import java.util.UUID
@@ -1113,9 +1111,7 @@ open class AccessCheckProxy(
                     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun sendTilbakekrevingsvedtak(
-                    mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
-                ) = kastKanKunKallesFraAnnenService()
+                override fun sendUteståendeTilbakekrevingsvedtak() = kastKanKunKallesFraAnnenService()
 
                 override fun hentAvventerKravgrunnlag(sakId: UUID) = kastKanKunKallesFraAnnenService()
 
