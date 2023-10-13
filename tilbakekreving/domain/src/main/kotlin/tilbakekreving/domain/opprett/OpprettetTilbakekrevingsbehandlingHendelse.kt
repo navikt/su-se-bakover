@@ -31,6 +31,8 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     val kravgrunnlagsId: String,
 ) : TilbakekrevingsbehandlingHendelse {
 
+    override val utførtAv: NavIdentBruker.Saksbehandler = opprettetAv
+
     // Dette vil være den første hendelsen i denne behandlingen.
     override val tidligereHendelseId: HendelseId? = null
 

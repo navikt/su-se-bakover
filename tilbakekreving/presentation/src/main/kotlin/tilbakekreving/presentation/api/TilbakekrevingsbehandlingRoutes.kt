@@ -3,10 +3,12 @@ package tilbakekreving.presentation.api
 import io.ktor.server.routing.Route
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.brevTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.månedsvurderingerTilbakekrevingsbehandlingRoute
 
@@ -17,9 +19,11 @@ fun Route.tilbakekrevingRoutes(
     månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
     brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
     forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
+    tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
     this.månedsvurderingerTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
     this.brevTilbakekrevingsbehandlingRoute(brevTilbakekrevingsbehandlingService)
     this.forhåndsvarsleTilbakekrevingRoute(forhåndsvarsleTilbakekrevingsbehandlingService)
+    this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)
 }

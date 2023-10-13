@@ -132,6 +132,11 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                             hendelse,
                         ),
                     ).minus(hendelse.tidligereHendelseId)
+                    is TilAttesteringHendelse -> acc.plus(
+                        hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
+                            hendelse,
+                        ),
+                    ).minus(hendelse.tidligereHendelseId)
                 }
             }.values.toList().sortedBy { it.versjon }.let {
                 Tilbakekrevingsbehandlinger(sakId, it)

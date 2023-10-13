@@ -20,7 +20,7 @@ data class BrevTilbakekrevingsbehandlingHendelse(
     override val meta: DefaultHendelseMetadata,
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     val brevvalg: Brevvalg.SaksbehandlersValg,
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId

@@ -15,6 +15,7 @@ import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbe
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -97,5 +98,8 @@ class TilbakekrevingServices(
         sessionFactory = sessionFactory,
         clock = clock,
     ),
-
+    val tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
+        tilgangstyring = tilgangstyringService,
+        sakService = sakService,
+    ),
 )
