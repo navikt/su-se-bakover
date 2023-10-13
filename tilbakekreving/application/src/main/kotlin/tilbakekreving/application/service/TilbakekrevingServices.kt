@@ -101,5 +101,7 @@ class TilbakekrevingServices(
     val tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
         tilgangstyring = tilgangstyringService,
         sakService = sakService,
+        clock = clock,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
     ),
 )

@@ -18,3 +18,8 @@ internal val ikkeTilgangTilSak = HttpStatusCode.Forbidden.errorJson(
     "Ikke tilgang til sak",
     "ikke_tilgang_til_sak",
 )
+
+internal val kravgrunnlagetHarEndretSeg = HttpStatusCode.BadRequest.errorJson(
+    "Kravgrunnlaget har endret seg siden behandlingen ble opprettet. Kravgrunnlaget må oppdateres på behandlingen.",
+    "kravgrunnlaget_har_endret_seg",
+)

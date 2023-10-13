@@ -12,6 +12,9 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.time.Clock
 import java.util.UUID
 
+/**
+ * @param simulering Vi gjør en kontrollsimulering før vi sender behandlingen til attestering (på samme måte som vi gjør ved iverksetting).
+ */
 data class TilAttesteringHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
@@ -21,7 +24,6 @@ data class TilAttesteringHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    // val simulering: Simulering, TODO jah: Flytt Simulering en felles plass.
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val entitetId: UUID = sakId
@@ -32,7 +34,8 @@ data class TilAttesteringHendelse(
 
     companion object {
         fun tilAttestering(
-            forrigeHendelse: TilbakekrevingsbehandlingHendelse,
+            sakId: UUID,
+            tidligereHendelseId: HendelseId,
             meta: DefaultHendelseMetadata,
             versjon: Hendelsesversjon,
             clock: Clock,
@@ -40,18 +43,35 @@ data class TilAttesteringHendelse(
             utførtAv: NavIdentBruker.Saksbehandler,
         ) = TilAttesteringHendelse(
             hendelseId = HendelseId.generer(),
-            sakId = forrigeHendelse.sakId,
+            sakId = sakId,
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = versjon,
             meta = meta,
             id = id,
-            tidligereHendelseId = forrigeHendelse.hendelseId,
+            tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
         )
     }
 }
 
-internal fun Tilbakekrevingsbehandling.applyHendelse(
+fun VurdertTilbakekrevingsbehandling.Utfylt.tilAttestering(
+    meta: DefaultHendelseMetadata,
+    nesteVersjon: Hendelsesversjon,
+    clock: Clock,
+    utførtAv: NavIdentBruker.Saksbehandler,
+): TilAttesteringHendelse {
+    return TilAttesteringHendelse.tilAttestering(
+        sakId = this.sakId,
+        tidligereHendelseId = this.hendelseId,
+        meta = meta,
+        versjon = nesteVersjon,
+        clock = clock,
+        id = this.id,
+        utførtAv = utførtAv,
+    )
+}
+
+fun Tilbakekrevingsbehandling.applyHendelse(
     @Suppress("UNUSED_PARAMETER") hendelse: TilAttesteringHendelse,
 ): TilbakekrevingsbehandlingTilAttestering {
     return when (this) {

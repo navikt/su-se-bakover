@@ -22,6 +22,7 @@ import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttester
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
+import tilbakekreving.presentation.api.common.kravgrunnlagetHarEndretSeg
 
 private data class Body(
     val saksversjon: Long,
@@ -39,7 +40,7 @@ internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
                             command = TilbakekrevingsbehandlingTilAttesteringCommand(
                                 sakId = sakId,
                                 tilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId(id),
-                                opprettetAv = call.suUserContext.saksbehandler,
+                                utførtAv = call.suUserContext.saksbehandler,
                                 correlationId = call.correlationId,
                                 brukerroller = call.suUserContext.roller.toNonEmptyList(),
                                 klientensSisteSaksversjon = Hendelsesversjon(body.saksversjon),
@@ -57,4 +58,5 @@ internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
 
 private fun KunneIkkeSendeTilAttestering.tilResultat(): Resultat = when (this) {
     is KunneIkkeSendeTilAttestering.IkkeTilgang -> ikkeTilgangTilSak
+    is KunneIkkeSendeTilAttestering.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
 }
