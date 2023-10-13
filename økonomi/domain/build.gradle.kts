@@ -3,6 +3,8 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":dokument:domain"))
     testImplementation(project(":test-common"))
+    // Bruker Beregning
+    testImplementation(project(":domain"))
 }
 
 tasks.named<Jar>("jar") {

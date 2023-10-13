@@ -10,12 +10,12 @@ import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Companion.toDatabaseJson
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Utbetaling.Companion.toDatabaseJson
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Utbetaling.Detaljer.Companion.toDatabaseJson
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
+import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimulertDetaljer
+import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.simulering.SimulertUtbetaling
 import java.time.LocalDate
 
 /**

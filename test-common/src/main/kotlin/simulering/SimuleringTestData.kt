@@ -27,11 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -56,6 +52,10 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
+import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimulertDetaljer
+import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.simulering.SimulertUtbetaling
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

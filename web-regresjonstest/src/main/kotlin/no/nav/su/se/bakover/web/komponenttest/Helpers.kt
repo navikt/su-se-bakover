@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.test.shouldBeType
+import økonomi.domain.simulering.toYtelsekode
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse
 import java.math.BigDecimal

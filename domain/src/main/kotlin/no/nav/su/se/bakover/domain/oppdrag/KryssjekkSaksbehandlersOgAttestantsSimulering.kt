@@ -5,9 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import økonomi.domain.simulering.Simulering
 
 class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val saksbehandlersSimulering: Simulering,

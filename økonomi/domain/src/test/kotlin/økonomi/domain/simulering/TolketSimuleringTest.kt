@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.simulering
+package økonomi.domain.simulering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp

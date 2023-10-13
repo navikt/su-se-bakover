@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import økonomi.domain.simulering.Simulering
 
 /**
  * Grupperer de forskjellige revurderingsvedtakene, så man får et felles abstraksjonnivå.

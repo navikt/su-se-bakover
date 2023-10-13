@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.simulering
+package økonomi.domain.simulering
 
 import kotlin.math.abs
 

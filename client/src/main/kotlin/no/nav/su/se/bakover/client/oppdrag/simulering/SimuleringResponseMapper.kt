@@ -7,10 +7,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
 import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
@@ -19,6 +15,10 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import org.slf4j.LoggerFactory
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
+import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimulertDetaljer
+import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.simulering.SimulertUtbetaling
 import java.time.Clock
 import java.time.LocalDate
 
@@ -75,7 +75,7 @@ private fun BeregningsPeriode.toSimulertPeriode(
     rawResponse: String,
 ): SimulertMåned {
     return SimulertMåned(
-        måned = Måned.Companion.fra(LocalDate.parse(periodeFom), LocalDate.parse(periodeTom)),
+        måned = Måned.fra(LocalDate.parse(periodeFom), LocalDate.parse(periodeTom)),
         utbetaling = beregningStoppnivaa
             .filter { utbetaling ->
                 val fagsystemId = utbetaling.fagsystemId.trim()

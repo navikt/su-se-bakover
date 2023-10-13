@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 /**

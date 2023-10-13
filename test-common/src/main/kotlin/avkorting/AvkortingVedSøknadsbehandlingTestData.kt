@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.IkkeVurdert
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.IngenAvkorting
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.SkalAvkortes
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.avkortingsvarselAvkortet
 import no.nav.su.se.bakover.test.avkortingsvarselSkalAvkortes
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 fun avkortingVedSøknadsbehandlingIngenAvkorting() = IngenAvkorting

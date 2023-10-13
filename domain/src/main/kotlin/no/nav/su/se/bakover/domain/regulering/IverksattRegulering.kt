@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import økonomi.domain.simulering.Simulering
 
 data class IverksattRegulering(
     /**

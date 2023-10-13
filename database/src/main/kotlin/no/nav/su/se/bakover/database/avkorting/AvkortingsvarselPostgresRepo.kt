@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.simulering.deserializeSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 internal class AvkortingsvarselPostgresRepo(

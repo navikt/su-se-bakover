@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
@@ -165,6 +164,7 @@ import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.simulering
+package økonomi.domain.simulering
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Beløp

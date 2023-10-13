@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.O
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 sealed interface Avkortingsvarsel {

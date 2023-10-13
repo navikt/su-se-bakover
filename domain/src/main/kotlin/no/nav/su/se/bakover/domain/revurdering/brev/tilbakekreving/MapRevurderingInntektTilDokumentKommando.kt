@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt.lagRevurderingInntektDokumentKommando
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import økonomi.domain.simulering.Simulering
 import java.lang.IllegalArgumentException
 
 /**

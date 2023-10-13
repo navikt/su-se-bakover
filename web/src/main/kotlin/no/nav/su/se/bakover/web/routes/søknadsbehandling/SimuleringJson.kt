@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
+import økonomi.domain.simulering.PeriodeOppsummering
+import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimuleringsOppsummering
 import java.time.LocalDate
 
 internal data class UtbetalingJson(

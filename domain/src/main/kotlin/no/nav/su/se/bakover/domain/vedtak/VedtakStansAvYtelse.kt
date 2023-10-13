@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 

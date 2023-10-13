@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.simulering.deserializeSimulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.RåttKravgrunnlagService
@@ -21,6 +20,7 @@ import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock

@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatus
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandli
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 internal class ReguleringPostgresRepo(

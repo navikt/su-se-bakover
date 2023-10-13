@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 sealed interface Utbetaling : Comparable<Utbetaling> {

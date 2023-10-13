@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.time.LocalDate
 
