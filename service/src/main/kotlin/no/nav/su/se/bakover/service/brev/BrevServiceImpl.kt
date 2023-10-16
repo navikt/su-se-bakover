@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import person.domain.IdentClient
 import person.domain.PersonService
 import java.time.Clock
+import java.util.UUID
 
 /**
  * TODO jah: Prøve å finne skillet/abstraksjonen mellom brev og dokument
@@ -32,6 +33,7 @@ class BrevServiceImpl(
 
     override fun lagDokument(
         command: GenererDokumentCommand,
+        id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
         return command.tilPdfInnhold(
             clock = clock,

@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
@@ -93,7 +94,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     KunneIkkeLageDokument.FeilVedGenereringAvPdf.left(),
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
@@ -141,7 +142,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
 
             val captor = argumentCaptor<GenererDokumentCommand>()
-            verify(serviceAndMocks.brevService, times(2)).lagDokument(captor.capture())
+            verify(serviceAndMocks.brevService, times(2)).lagDokument(captor.capture(), anyOrNull())
 
             captor.lastValue shouldBe PåminnelseNyStønadsperiodeDokumentCommand(
                 saksnummer = Saksnummer(3001),
@@ -194,7 +195,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
@@ -319,7 +320,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),

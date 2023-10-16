@@ -16,10 +16,12 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.KanForhåndsvarsle
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
+import tilbakekreving.domain.leggTilForhåndsvarsel
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 
@@ -36,21 +38,27 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * TODO
-     *  mulig vi burde lagre forhåndsvarsel hendelsen alene, og ha en jobb som gjør dokument genereringen
-     */
-    fun forhåndsvarsle(command: ForhåndsvarselTilbakekrevingsbehandlingCommand): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
-        tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
+    fun forhåndsvarsle(
+        command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
+    ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
+        val sakId = command.sakId
+        val id = command.behandlingId
+        tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
             return KunneIkkeForhåndsvarsle.IkkeTilgang(it).left()
         }
 
-        val sak = sakService.hentSak(command.sakId).getOrElse {
-            throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak ${command.sakId}")
+        val sak = sakService.hentSak(sakId).getOrElse {
+            throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak $sakId")
         }
 
-        val behandling = sak.behandlinger.tilbakekrevinger.hent(command.behandlingId)
-            ?: throw IllegalStateException("Fan ikke Tilbakekrevingsbehandling ${command.behandlingId}, Sak id ${sak.id}, saksnummer ${sak.saksnummer}")
+        val behandling = (
+            sak.behandlinger.tilbakekrevinger.hent(id)
+                ?: throw IllegalStateException("Fant ikke Tilbakekrevingsbehandling $id, Sak id $sakId, saksnummer ${sak.saksnummer}")
+            )
+            .let {
+                it as? KanForhåndsvarsle
+                    ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. For sak $sakId")
+            }
 
         val (forhåndsvarsletHendelse, forhåndsvarsletBehandling) = behandling.leggTilForhåndsvarsel(
             command = command,
@@ -59,8 +67,10 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             clock = clock,
         )
 
+        // TODO jah: Flytt denne til en asynkron konsument
         val dokument = brevService.lagDokument(
-            ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
+            id = forhåndsvarsletHendelse.dokumentId,
+            command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
                 fritekst = command.fritekst,
@@ -70,7 +80,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             return KunneIkkeForhåndsvarsle.FeilVedDokumentGenerering(it).left()
         }.leggTilMetadata(Dokument.Metadata(sakId = sak.id, tilbakekrevingsbehandlingId = behandling.id.value))
 
-        val (lagretDokumentHendelse, behandlingMedLagretDokument) = forhåndsvarsletBehandling.lagreDokument(
+        val lagretDokumentHendelse = forhåndsvarsletBehandling.nyLagretDokumentHendelse(
             command = command,
             dokument = dokument,
             nesteVersjon = forhåndsvarsletHendelse.versjon.inc(),
@@ -79,7 +89,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
         )
 
         val (tidligereOppgaveHendelse, oppgaveId) =
-            tilbakekrevingsbehandlingRepo.hentForSak(sakId = command.sakId).hentOppgaveIdForBehandling(behandling.id)
+            tilbakekrevingsbehandlingRepo.hentForSak(sakId = sakId).hentOppgaveIdForBehandling(behandling.id)
                 ?: throw IllegalStateException("Fant ikke oppgaveId som skal bli oppdatert for tilbakekreving ${behandling.id} for sak ${sak.id}")
 
         oppgaveService.oppdaterOppgave(oppgaveId = oppgaveId, beskrivelse = "Forhåndsvarsel er opprettet")
@@ -106,6 +116,6 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     dokumentHendelseRepo.lagre(lagretDokumentHendelse, it)
                 }
             }
-        return behandlingMedLagretDokument.right()
+        return forhåndsvarsletBehandling.right()
     }
 }

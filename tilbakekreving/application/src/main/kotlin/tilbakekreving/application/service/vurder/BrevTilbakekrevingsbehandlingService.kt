@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.vurderTilba
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
+import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
@@ -24,7 +24,7 @@ class BrevTilbakekrevingsbehandlingService(
 
     fun lagreBrevtekst(
         command: OppdaterBrevtekstCommand,
-    ): Either<KunneIkkeLagreBrevtekst, VurdertTilbakekrevingsbehandling.Utfylt> {
+    ): Either<KunneIkkeLagreBrevtekst, UnderBehandling.Utfylt> {
         tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
             return KunneIkkeLagreBrevtekst.IkkeTilgang(it).left()
         }

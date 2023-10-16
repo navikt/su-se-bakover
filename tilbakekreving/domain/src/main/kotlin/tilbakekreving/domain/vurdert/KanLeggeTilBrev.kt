@@ -4,42 +4,17 @@
 package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.vurdert.Månedsvurderinger
-import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
-import java.time.Clock
 
-sealed interface KanLeggeTilBrev : KanVurdere {
-    override val månedsvurderinger: Månedsvurderinger
-    override val brevvalg: Brevvalg.SaksbehandlersValg?
+sealed interface KanLeggeTilBrev : KanEndres {
+    override val månedsvurderinger: Månedsvurderinger?
+    override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
 
-    fun leggTilBrevtekst(
-        command: OppdaterBrevtekstCommand,
-        tidligereHendelsesId: HendelseId,
-        nesteVersjon: Hendelsesversjon,
-        clock: Clock,
-    ): Pair<BrevTilbakekrevingsbehandlingHendelse, VurdertTilbakekrevingsbehandling.Utfylt> {
-        val hendelse = BrevTilbakekrevingsbehandlingHendelse(
-            hendelseId = HendelseId.generer(),
-            sakId = command.sakId,
-            hendelsestidspunkt = Tidspunkt.now(clock),
-            versjon = nesteVersjon,
-            meta = DefaultHendelseMetadata(
-                correlationId = command.correlationId,
-                ident = command.utførtAv,
-                brukerroller = command.brukerroller,
-            ),
-            tidligereHendelseId = tidligereHendelsesId,
-            id = command.behandlingId,
-            utførtAv = command.utførtAv,
-            brevvalg = command.brevvalg,
-        )
-
-        return hendelse to this.applyHendelse(hendelse)
-    }
+    fun oppdaterVedtaksbrev(
+        hendelseId: HendelseId,
+        vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
+    ): UnderBehandling.Utfylt
 
     override fun erÅpen() = true
 }

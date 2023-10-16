@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
-import java.lang.IllegalStateException
 import java.time.Clock
 import java.util.UUID
 
 fun PdfA.tilDokument(
+    id: UUID = UUID.randomUUID(),
     pdfInnhold: PdfInnhold,
     command: GenererDokumentCommand,
     clock: Clock,
@@ -31,36 +31,51 @@ fun PdfA.tilDokument(
         is IverksettRevurderingDokumentCommand,
         is IverksettSøknadsbehandlingDokumentCommand,
         is KlageDokumentCommand.Avvist,
-        -> vedtak(clock, pdfInnhold)
+        -> vedtak(
+            id = id,
+            clock = clock,
+            pdfInnhold = pdfInnhold,
+        )
 
         is ForhåndsvarselDokumentCommand,
         is ForhåndsvarselTilbakekrevingDokumentCommand,
         is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
         is InnkallingTilKontrollsamtaleDokumentCommand,
         is PåminnelseNyStønadsperiodeDokumentCommand,
-        -> informasjonViktig(clock, pdfInnhold)
+        -> informasjonViktig(
+            id = id,
+            clock = clock,
+            pdfInnhold = pdfInnhold,
+        )
 
         // På sikt vil vi kanskje la saksbehandler velge viktighetsgraden (viktig/annet) ved sending av fritekstbrev.
         is FritekstDokumentCommand,
         is KlageDokumentCommand.Oppretthold,
         is AvsluttRevurderingDokumentCommand,
         is TrukketSøknadDokumentCommand,
-        -> informasjonAnnet(clock, pdfInnhold)
+        -> informasjonAnnet(
+            id = id,
+            clock = clock,
+            pdfInnhold = pdfInnhold,
+        )
 
         is AvvistSøknadDokumentCommand -> when (command.brevvalg) {
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
-                clock,
-                pdfInnhold,
+                id = id,
+                clock = clock,
+                pdfInnhold = pdfInnhold,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
-                clock,
-                pdfInnhold,
+                id = id,
+                clock = clock,
+                pdfInnhold = pdfInnhold,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
-                clock,
-                pdfInnhold,
+                id = id,
+                clock = clock,
+                pdfInnhold = pdfInnhold,
             )
         }
 
@@ -69,10 +84,11 @@ fun PdfA.tilDokument(
 }
 
 private fun PdfA.vedtak(
+    id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
 ) = Dokument.UtenMetadata.Vedtak(
-    id = UUID.randomUUID(),
+    id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
@@ -80,10 +96,11 @@ private fun PdfA.vedtak(
 )
 
 private fun PdfA.informasjonViktig(
+    id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
 ) = Dokument.UtenMetadata.Informasjon.Viktig(
-    id = UUID.randomUUID(),
+    id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
@@ -91,10 +108,11 @@ private fun PdfA.informasjonViktig(
 )
 
 private fun PdfA.informasjonAnnet(
+    id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
 ) = Dokument.UtenMetadata.Informasjon.Annet(
-    id = UUID.randomUUID(),
+    id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,

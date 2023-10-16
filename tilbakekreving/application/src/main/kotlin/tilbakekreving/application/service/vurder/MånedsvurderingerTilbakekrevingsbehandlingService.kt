@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.vurderTilba
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
+import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
@@ -24,7 +24,7 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
 
     fun vurder(
         command: OppdaterMånedsvurderingerCommand,
-    ): Either<KunneIkkeVurdereTilbakekrevingsbehandling, VurdertTilbakekrevingsbehandling> {
+    ): Either<KunneIkkeVurdereTilbakekrevingsbehandling, UnderBehandling> {
         val sakId = command.sakId
 
         tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {

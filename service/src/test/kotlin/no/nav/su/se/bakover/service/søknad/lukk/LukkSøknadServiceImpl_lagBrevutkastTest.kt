@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -112,7 +113,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
 
         ).let { serviceAndMocks ->
@@ -197,7 +198,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             }
         },
         private val brevService: BrevService = mock {
-            on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+            on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
@@ -256,6 +257,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                         søknadOpprettet = søknad!!.opprettet,
                     )
                 },
+                anyOrNull(),
             )
         }
 

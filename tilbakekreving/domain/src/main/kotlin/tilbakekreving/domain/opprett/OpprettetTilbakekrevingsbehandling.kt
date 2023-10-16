@@ -21,18 +21,33 @@ data class OpprettetTilbakekrevingsbehandling(
     override val kravgrunnlag: Kravgrunnlag,
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
-    override val forhåndsvarselDokumentIder: List<UUID>,
-) : KanVurdere {
+) : KanForhåndsvarsle, KanVurdere {
+
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+    override val forhåndsvarselDokumentIder: List<UUID> = emptyList()
+
+    override fun erÅpen() = true
+
+    override fun leggTilForhåndsvarselDokumentId(
+        hendelseId: HendelseId,
+        dokumentId: UUID,
+    ) = UnderBehandling.Påbegynt(
+        forrigeSteg = this,
+        hendelseId = hendelseId,
+        månedsvurderinger = this.månedsvurderinger,
+        forhåndsvarselDokumentIder = listOf(dokumentId),
+    )
+
+    override fun leggTilVurderinger(
+        hendelseId: HendelseId,
+        månedsvurderinger: Månedsvurderinger,
+    ) = UnderBehandling.Påbegynt(
+        forrigeSteg = this,
+        hendelseId = hendelseId,
+        månedsvurderinger = månedsvurderinger,
+        forhåndsvarselDokumentIder = listOf(),
+    )
 
     override val månedsvurderinger: Månedsvurderinger? = null
-    override val brevvalg: Brevvalg.SaksbehandlersValg? = null
-
-    override fun leggTilBrevtekst(): VurdertTilbakekrevingsbehandling.Utfylt {
-        TODO("Not yet implemented")
-    }
-
-    override fun leggTilForhåndsvarselDokumentId(dokumentId: UUID): Tilbakekrevingsbehandling = this.copy(
-        forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
-    )
+    override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
 }

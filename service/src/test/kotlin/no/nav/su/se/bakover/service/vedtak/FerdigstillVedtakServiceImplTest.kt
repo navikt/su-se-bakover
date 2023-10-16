@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
@@ -37,8 +36,10 @@ import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -122,7 +123,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ) {
             val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
@@ -133,7 +134,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(brevService).lagDokument(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato()))
+            verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato())), anyOrNull())
         }
     }
 
@@ -147,7 +148,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn underliggendeFeil.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
             },
         ) {
             val utbetaling =
@@ -162,7 +163,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() })
+                verify(brevService).lagDokument(
+                    argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                    anyOrNull(),
+                )
             }
         }
     }
@@ -180,7 +184,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = pdf,
@@ -196,7 +200,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() })
+                verify(brevService).lagDokument(
+                    argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                    anyOrNull(),
+                )
                 verify(brevService).lagreDokument(
                     argThat {
                         it.generertDokument shouldBe pdf

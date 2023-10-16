@@ -15,7 +15,7 @@ import java.time.Clock
 import java.util.UUID
 
 /**
- * [OpprettTilbakekrevingsbehandlingCommand] fører potensielt til en [OpprettetTilbakekrevingsbehandlingHendelse].
+ * [tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand] fører potensielt til en [OpprettetTilbakekrevingsbehandlingHendelse].
  * Selve tilstanden (som knyttes til Sak.kt) representeres ved [OpprettetTilbakekrevingsbehandling]
  *
  * @param id knytter en serie med tilbakekrevingsbehandling hendelser (de som hører til samme behandling)
@@ -64,12 +64,15 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             kravgrunnlagsId = kravgrunnlagsId,
         )
     }
-
-    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse, forhåndsvarselDokumentIder: List<UUID>): OpprettetTilbakekrevingsbehandling {
-        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag, forhåndsvarselDokumentIder)
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): Tilbakekrevingsbehandling {
+        throw IllegalArgumentException("En tilbakekrevingsbehandling kan kun starte med en Opprettet hendelse ${this.hendelseId}, for sak ${this.sakId} ")
     }
 
-    fun toDomain(kravgrunnlag: Kravgrunnlag, forhåndsvarselDokumentIder: List<UUID>): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse): OpprettetTilbakekrevingsbehandling {
+        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag)
+    }
+
+    fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {
         require(kravgrunnlag.eksternKravgrunnlagId == this.kravgrunnlagsId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
@@ -79,7 +82,6 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             kravgrunnlag = kravgrunnlag,
             versjon = versjon,
             hendelseId = hendelseId,
-            forhåndsvarselDokumentIder = forhåndsvarselDokumentIder,
         )
     }
 }

@@ -8,8 +8,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
-import tilbakekreving.domain.applyHendelse
+import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.tilAttestering
 import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
@@ -39,7 +38,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
             sak.behandlinger.tilbakekrevinger.hent(id)
                 ?: throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, fant ikke tilbakekrevingsbehandling på sak ${command.sakId}")
             ).let {
-            it as? VurdertTilbakekrevingsbehandling.Utfylt
+            it as? UnderBehandling.Utfylt
                 ?: throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, behandlingen er ikke i tilstanden utfylt")
         }
 
@@ -55,7 +54,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
             utførtAv = command.utførtAv,
         ).let {
             tilbakekrevingsbehandlingRepo.lagre(it)
-            behandling.applyHendelse(it).right()
+            it.applyToState(behandling).right()
         }
     }
 }

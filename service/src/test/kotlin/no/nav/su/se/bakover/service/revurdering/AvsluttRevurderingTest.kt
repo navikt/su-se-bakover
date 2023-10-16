@@ -122,7 +122,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn simulert
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -147,6 +147,7 @@ internal class AvsluttRevurderingTest {
             argThat {
                 it shouldBe AvsluttRevurderingDokumentCommand(fødselsnummer = simulert.fnr, saksnummer = Saksnummer(12345676), saksbehandler = saksbehandler, fritekst = "medFritekst")
             },
+            anyOrNull(),
         )
         verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock)
     }

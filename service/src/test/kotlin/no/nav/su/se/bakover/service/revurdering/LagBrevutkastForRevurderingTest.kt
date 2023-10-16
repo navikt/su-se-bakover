@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.tikkendeFixedClock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
@@ -39,7 +40,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = pdfATom(),
@@ -55,7 +56,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettRevurderingDokumentCommand.Inntekt>() })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettRevurderingDokumentCommand.Inntekt>() }, anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -69,7 +70,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -82,7 +83,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any())
+                verify(it.brevService).lagDokument(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -96,7 +97,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -109,7 +110,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any())
+                verify(it.brevService).lagDokument(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -123,7 +124,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -136,7 +137,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any())
+                verify(it.brevService).lagDokument(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -152,7 +153,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn opprettetRevurdering
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doThrow IllegalArgumentException("fra en test")
+                    on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
             ).let {
                 it.revurderingService.lagBrevutkastForRevurdering(
@@ -178,7 +179,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doThrow IllegalArgumentException("fra en test")
+                    on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
             ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,

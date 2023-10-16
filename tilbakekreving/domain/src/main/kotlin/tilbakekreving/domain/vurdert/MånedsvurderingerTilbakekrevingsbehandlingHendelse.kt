@@ -3,6 +3,7 @@
 
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -10,6 +11,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
+import java.time.Clock
 import java.util.UUID
 
 data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
@@ -28,30 +31,41 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
         return this.versjon.compareTo(other.versjon)
     }
+
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+        return when (behandling) {
+            is KanVurdere -> behandling.leggTilVurderinger(
+                hendelseId = this.hendelseId,
+                månedsvurderinger = this.vurderinger,
+            )
+            is AvbruttTilbakekrevingsbehandling,
+            is IverksattTilbakekrevingsbehandling,
+            is TilbakekrevingsbehandlingTilAttestering,
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+        }
+    }
 }
 
-internal fun Tilbakekrevingsbehandling.applyHendelse(
-    hendelse: MånedsvurderingerTilbakekrevingsbehandlingHendelse,
-): VurdertTilbakekrevingsbehandling {
-    return when (this) {
-        is OpprettetTilbakekrevingsbehandling -> VurdertTilbakekrevingsbehandling.Påbegynt(
-            forrigeSteg = this,
-            hendelseId = hendelse.hendelseId,
-            månedsvurderinger = hendelse.vurderinger,
-        )
-        is VurdertTilbakekrevingsbehandling.Påbegynt -> VurdertTilbakekrevingsbehandling.Påbegynt(
-            forrigeSteg = this,
-            hendelseId = hendelse.hendelseId,
-            månedsvurderinger = hendelse.vurderinger,
-        )
-        is VurdertTilbakekrevingsbehandling.Utfylt -> VurdertTilbakekrevingsbehandling.Utfylt(
-            forrigeSteg = this,
-            hendelseId = hendelse.hendelseId,
-            månedsvurderinger = hendelse.vurderinger,
-        )
-        is AvbruttTilbakekrevingsbehandling,
-        is IverksattTilbakekrevingsbehandling,
-        is TilbakekrevingsbehandlingTilAttestering,
-        -> TODO("implementer")
-    }
+fun KanVurdere.leggTilVurdering(
+    command: OppdaterMånedsvurderingerCommand,
+    tidligereHendelsesId: HendelseId,
+    nesteVersjon: Hendelsesversjon,
+    clock: Clock,
+): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
+    val hendelse = MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+        hendelseId = HendelseId.generer(),
+        sakId = command.sakId,
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        versjon = nesteVersjon,
+        tidligereHendelseId = tidligereHendelsesId,
+        meta = DefaultHendelseMetadata(
+            correlationId = command.correlationId,
+            ident = command.utførtAv,
+            brukerroller = command.brukerroller,
+        ),
+        id = command.behandlingsId,
+        utførtAv = command.utførtAv,
+        vurderinger = Månedsvurderinger(command.vurderinger.toNonEmptyList()),
+    )
+    return hendelse to hendelse.applyToState(this)
 }

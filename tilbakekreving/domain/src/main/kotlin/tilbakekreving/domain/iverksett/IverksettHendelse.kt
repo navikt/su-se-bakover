@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.time.Clock
 import java.util.UUID
 
-data class TilAttesteringHendelse(
+data class IverksettHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -30,7 +30,7 @@ data class TilAttesteringHendelse(
     }
 
     companion object {
-        fun tilAttestering(
+        fun iverksett(
             sakId: UUID,
             tidligereHendelseId: HendelseId,
             meta: DefaultHendelseMetadata,
@@ -38,7 +38,7 @@ data class TilAttesteringHendelse(
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
             utførtAv: NavIdentBruker.Saksbehandler,
-        ) = TilAttesteringHendelse(
+        ) = IverksettHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
             hendelsestidspunkt = Tidspunkt.now(clock),
@@ -50,29 +50,28 @@ data class TilAttesteringHendelse(
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): TilbakekrevingsbehandlingTilAttestering {
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
-            is UnderBehandling.Påbegynt,
-            is TilbakekrevingsbehandlingTilAttestering,
+            is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Påbegynt, TilAttestering, Avbrutt, Iverksatt] -> TilAttestering. Den må vurderes først. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Iverksatt. Støtter kun å fra TilAttestering Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingTilAttestering(
+            is TilbakekrevingsbehandlingTilAttestering -> IverksattTilbakekrevingsbehandling(
                 forrigeSteg = behandling,
             )
         }
     }
 }
 
-fun UnderBehandling.Utfylt.tilAttestering(
+fun TilbakekrevingsbehandlingTilAttestering.iverksett(
     meta: DefaultHendelseMetadata,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Saksbehandler,
-): TilAttesteringHendelse {
-    return TilAttesteringHendelse.tilAttestering(
+): IverksettHendelse {
+    return IverksettHendelse.iverksett(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,
         meta = meta,

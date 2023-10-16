@@ -7,7 +7,9 @@ import tilbakekreving.domain.KanVurdere
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
+import tilbakekreving.domain.UnderBehandling
+import tilbakekreving.domain.leggTilBrevtekst
+import tilbakekreving.domain.leggTilVurdering
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import java.time.Clock
@@ -15,7 +17,7 @@ import java.time.Clock
 fun Sak.vurderTilbakekrevingsbehandling(
     command: OppdaterMånedsvurderingerCommand,
     clock: Clock,
-): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, VurdertTilbakekrevingsbehandling> {
+): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
     return (this.hentTilbakekrevingsbehandling(command.behandlingsId) as? KanVurdere)?.let { behandling ->
         behandling.leggTilVurdering(
             command = command,
@@ -30,7 +32,7 @@ fun Sak.vurderTilbakekrevingsbehandling(
 fun Sak.vurderTilbakekrevingsbehandling(
     command: OppdaterBrevtekstCommand,
     clock: Clock,
-): Pair<BrevTilbakekrevingsbehandlingHendelse, VurdertTilbakekrevingsbehandling.Utfylt> {
+): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {
     return (this.hentTilbakekrevingsbehandling(command.behandlingId) as? KanLeggeTilBrev)?.let { behandling ->
         behandling.leggTilBrevtekst(
             command = command,

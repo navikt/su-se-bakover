@@ -170,7 +170,7 @@ class KontrollsamtaleServiceImpl(
             fødselsnummer = fødselsnummer,
             saksnummer = saksnummer,
         )
-        return brevService.lagDokument(brevCommand)
+        return brevService.lagDokument(command = brevCommand)
             .mapLeft {
                 KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(it)
             }

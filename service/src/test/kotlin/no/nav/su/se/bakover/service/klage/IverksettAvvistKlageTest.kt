@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -239,7 +240,7 @@ internal class IverksettAvvistKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
@@ -277,6 +278,7 @@ internal class IverksettAvvistKlageTest {
                     saksnummer = klage.saksnummer,
                 )
             },
+            anyOrNull(),
         )
         var expectedVedtak: Klagevedtak.Avvist? = null
         verify(mocks.vedtakServiceMock).lagreITransaksjon(

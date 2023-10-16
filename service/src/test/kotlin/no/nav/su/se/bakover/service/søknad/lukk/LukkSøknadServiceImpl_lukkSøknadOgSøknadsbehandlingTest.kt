@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -73,7 +74,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 on { hentSakForSøknad(any()) } doReturn FantIkkeSak.left()
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
             },
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
@@ -251,7 +252,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknadsbehandling = søknadsbehandling,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
@@ -278,7 +279,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -317,7 +318,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("Fritekst"),
             ),
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -342,7 +343,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -429,6 +430,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         is LukkSøknadCommand.UtenBrev -> fail("Skal ikke trigge brevService.lagBrev(...) i dette tilfellet.")
                     }
                 },
+                anyOrNull(),
             )
         }
 

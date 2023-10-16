@@ -221,7 +221,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn avslagTilAttestering
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn underliggendeFeil.left()
+                    on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
                 },
             )
             val response = serviceAndMocks.service.iverksett(
@@ -271,7 +271,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().second shouldBe expectedAvslag
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() })
+            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() }, anyOrNull())
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 argThat { it is VedtakAvslagBeregning },
@@ -353,7 +353,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
                     doThrow(RuntimeException("kastet fra testen.")).whenever(it).lagreDokument(any(), anyOrNull())
                 },
             )
@@ -718,7 +718,7 @@ private data class ServiceAndMocks(
     },
     val observer: StatistikkEventObserver = mock(),
     val brevService: BrevService = mock {
-        on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+        on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
     },
     val vedtakRepo: VedtakRepo = mock {
         doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())

@@ -4,5 +4,5 @@
 package tilbakekreving.domain
 
 data class TilbakekrevingsbehandlingTilAttestering(
-    val forrigeSteg: VurdertTilbakekrevingsbehandling.Utfylt,
+    val forrigeSteg: UnderBehandling.Utfylt,
 ) : Tilbakekrevingsbehandling by forrigeSteg

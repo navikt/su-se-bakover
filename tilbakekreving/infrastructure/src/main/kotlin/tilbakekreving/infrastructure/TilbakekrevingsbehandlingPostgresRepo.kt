@@ -62,7 +62,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
 
     override fun hentHendelse(id: HendelseId, sessionContext: SessionContext?): TilbakekrevingsbehandlingHendelse? {
         return sessionFactory.withSessionContext(sessionContext) {
-            (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(id)
+            (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(id, it)
         }.let {
             it?.toTilbakekrevingsbehandlingHendelse()
         }
@@ -100,9 +100,10 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     oppgaveHendelser = oppgaveRepo.hentForSak(sakId, openSessionContext).filter { oppgaveHendelse ->
                         tilbakekrevingsHendelser.any { oppgaveHendelse.relaterteHendelser.contains(it.hendelseId) }
                     }.sorted(),
-                    dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext).filter { dokumentHendelse ->
-                        tilbakekrevingsHendelser.any { dokumentHendelse.relaterteHendelser.contains(it.hendelseId) }
-                    }.sorted(),
+                    dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
+                        .filter { dokumentHendelse ->
+                            tilbakekrevingsHendelser.any { dokumentHendelse.relaterteHendelser.contains(it.hendelseId) }
+                        }.sorted(),
                 )
             }
         }
