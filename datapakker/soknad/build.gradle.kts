@@ -20,7 +20,7 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
-    implementation(platform("com.google.cloud:libraries-bom:26.24.0"))
+    implementation(platform("com.google.cloud:libraries-bom:26.25.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
