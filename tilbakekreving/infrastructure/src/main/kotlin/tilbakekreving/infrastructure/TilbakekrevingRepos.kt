@@ -1,6 +1,8 @@
 package tilbakekreving.infrastructure
 
+import dokument.domain.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -19,6 +21,9 @@ class TilbakekrevingRepos(
     val hendelseRepo: HendelseRepo,
     val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     val oppgaveHendelseRepo: OppgaveHendelseRepo,
+    val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
+        hendelseRepo = hendelseRepo,
+    ),
     val kravgrunnlagRepo: KravgrunnlagRepo = KravgrunnlagPostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,
@@ -29,5 +34,6 @@ class TilbakekrevingRepos(
         clock = clock,
         kravgrunnlagRepo = kravgrunnlagRepo,
         oppgaveRepo = oppgaveHendelseRepo,
+        dokumentHendelseRepo = dokumentHendelseRepo,
     ),
 )

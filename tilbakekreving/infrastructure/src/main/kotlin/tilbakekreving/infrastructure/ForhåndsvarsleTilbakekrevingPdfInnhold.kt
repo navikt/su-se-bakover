@@ -4,8 +4,8 @@ package tilbakekreving.infrastructure
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
-import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 
 /**
  * @param dagensDato brukes øverst til venstre i brevet for å datere det.

@@ -5,6 +5,7 @@ import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfIn
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(
@@ -162,6 +164,13 @@ fun fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+            )
+
+            is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand -> ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
+                command = command,
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                clock = clock,
             )
 
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")

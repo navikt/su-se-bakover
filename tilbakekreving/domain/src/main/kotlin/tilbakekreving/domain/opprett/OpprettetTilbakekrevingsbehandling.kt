@@ -21,6 +21,7 @@ data class OpprettetTilbakekrevingsbehandling(
     override val kravgrunnlag: Kravgrunnlag,
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
+    override val forhåndsvarselDokumentIder: List<UUID>,
 ) : KanVurdere {
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
@@ -30,4 +31,8 @@ data class OpprettetTilbakekrevingsbehandling(
     override fun leggTilBrevtekst(): VurdertTilbakekrevingsbehandling.Utfylt {
         TODO("Not yet implemented")
     }
+
+    override fun leggTilForhåndsvarselDokumentId(dokumentId: UUID): Tilbakekrevingsbehandling = this.copy(
+        forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
+    )
 }

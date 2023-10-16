@@ -16,6 +16,7 @@ sealed class PdfTemplate(
     data object Opphørsvedtak : PdfTemplate("opphørsvedtak")
     data object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
     data object ForhåndsvarselTilbakekreving : PdfTemplate("forhåndsvarselTilbakekreving")
+    data object ForhåndsvarselTilbakekrevingsbehandling : PdfTemplate("forhåndsvarselTilbakekrevingsbehandling")
     data object InnkallingTilKontrollsamtale : PdfTemplate("innkallingKontrollsamtale")
     data object PåminnelseNyStønadsperiode : PdfTemplate("påminnelseOmNyStønadsperiode")
 

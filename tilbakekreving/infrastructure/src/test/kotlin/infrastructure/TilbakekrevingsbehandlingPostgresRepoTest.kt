@@ -24,6 +24,7 @@ class TilbakekrevingsbehandlingPostgresRepoTest {
                 hendelser = listOf(opprettet),
                 kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(emptyList()),
                 oppgaveHendelser = listOf(oppgaveHendelse),
+                dokumentHendelser = listOf(),
             )
         }
     }

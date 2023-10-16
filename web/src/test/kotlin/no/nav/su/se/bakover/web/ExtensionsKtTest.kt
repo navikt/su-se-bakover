@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import org.junit.jupiter.api.Test
@@ -37,5 +38,13 @@ internal class ExtensionsKtTest {
             isEmpty = { },
             isNotEmpty = { fail("isNotEmpty skal ikke kjøre på en tom liste") },
         )
+    }
+
+    @Test
+    fun `filtrerer basert på en condition`() {
+        val list = listOf(1, 2, 3, 4)
+        val list2 = listOf(3, 4, 5)
+        val res = list.pickByCondition(list2) { first, second -> first >= second }
+        res shouldBe listOf(3, 4)
     }
 }

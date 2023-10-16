@@ -1,6 +1,8 @@
 package tilbakekreving.application.service
 
 import arrow.core.Either
+import dokument.domain.DokumentHendelseRepo
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -14,6 +16,7 @@ import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgan
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
@@ -43,6 +46,8 @@ class TilbakekrevingServices(
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
     private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     private val hendelseRepo: HendelseRepo,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
+    private val brevService: BrevService,
     private val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
         personRepo = personRepo,
         personService = personService,
@@ -86,6 +91,15 @@ class TilbakekrevingServices(
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
         oppgaveService = oppgaveService,
         oppgaveHendelseRepo = oppgaveHendelseRepo,
+        brevService = brevService,
+        dokumentHendelseRepo = dokumentHendelseRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
+    ),
+    val forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
+        tilgangstyring = tilgangstyringService,
+        sakService = sakService,
+        brevService = brevService,
     ),
     val opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
         sakService = sakService,

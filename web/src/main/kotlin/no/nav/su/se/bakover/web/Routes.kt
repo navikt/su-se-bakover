@@ -140,8 +140,8 @@ internal fun Application.setupKtorRoutes(
                         månedsvurderingerTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.månedsvurderingerTilbakekrevingsbehandlingService,
                         brevTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.brevTilbakekrevingsbehandlingService,
                         forhåndsvarsleTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.forhåndsvarsleTilbakekrevingsbehandlingService,
+                        forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
                         tilbakekrevingsbehandlingTilAttesteringService = tilbakekrevingskomponenter.services.tilbakekrevingsbehandlingTilAttesteringService,
-
                     )
                 }
             }

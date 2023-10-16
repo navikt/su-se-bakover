@@ -84,3 +84,7 @@ infix fun Year.erI(yearRange: YearRange): Boolean = yearRange.any { it == this }
 fun <T : List<Any>, R> T.whenever(isEmpty: () -> R, isNotEmpty: (T) -> R): R {
     return if (this.isEmpty()) isEmpty() else isNotEmpty(this)
 }
+
+fun <T, R> List<T>.pickByCondition(targetList: List<R>, condition: (T, R) -> Boolean): List<T> {
+    return this.filter { mainElement -> targetList.any { condition(mainElement, it) } }
+}

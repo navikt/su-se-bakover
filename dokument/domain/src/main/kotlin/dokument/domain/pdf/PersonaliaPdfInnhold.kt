@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.brev.jsonRequest
+package dokument.domain.pdf
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy

@@ -12,6 +12,7 @@ value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
     }
 
     operator fun inc() = Hendelsesversjon(this.value + 1)
+    operator fun inc(value: Int) = Hendelsesversjon(this.value + value)
 
     override fun toString() = value.toString()
 

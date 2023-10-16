@@ -114,7 +114,8 @@ internal class TilbakekrevingsbehandlingIT {
   },
   "status":"OPPRETTET",
   "månedsvurderinger":[],
-  "fritekst":null
+  "fritekst":null,
+  "forhåndsvarselDokumenter": []
 }"""
         JSONAssert.assertEquals(
             expected,

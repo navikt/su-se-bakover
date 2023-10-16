@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 
 /**

@@ -131,6 +131,8 @@ internal fun withKomptestApplication(
                 oppgaveService = services.oppgave,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                 hendelseRepo = repos.hendelseRepo,
+                brevService = services.brev,
+                dokumentHendelseRepo = repos.dokumentHendelseRepo,
             ),
         )
     },

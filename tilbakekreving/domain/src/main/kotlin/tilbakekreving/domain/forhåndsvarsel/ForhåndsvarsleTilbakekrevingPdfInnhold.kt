@@ -1,24 +1,26 @@
-package no.nav.su.se.bakover.domain.brev.jsonRequest
+package tilbakekreving.domain.forhåndsvarsel
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 
-data class ForhåndsvarselPdfInnhold(
+/**
+ * TODO - vil helst at denne kanskhe skal bo nærmere tilbakekreving
+ */
+data class ForhåndsvarsleTilbakekrevingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String,
 ) : PdfInnhold() {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.Forhåndsvarsel
+    override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekreving
 
     companion object {
         fun fromBrevCommand(
-            command: ForhåndsvarselDokumentCommand,
+            command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
             personalia: PersonaliaPdfInnhold,
             saksbehandlerNavn: String,
-        ): ForhåndsvarselPdfInnhold {
-            return ForhåndsvarselPdfInnhold(
+        ): ForhåndsvarsleTilbakekrevingPdfInnhold {
+            return ForhåndsvarsleTilbakekrevingPdfInnhold(
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = command.fritekst,

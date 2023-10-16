@@ -8,7 +8,7 @@ import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
 import tilbakekreving.presentation.api.common.KravgrunnlagJson.Companion.toJson
-import java.lang.IllegalStateException
+import java.util.UUID
 
 data class TilbakekrevingsbehandlingJson(
     val id: String,
@@ -19,6 +19,7 @@ data class TilbakekrevingsbehandlingJson(
     val status: TilbakekrevingsbehandlingStatus,
     val månedsvurderinger: List<MånedsvurderingJson>,
     val fritekst: String?,
+    val forhåndsvarselDokumenter: List<UUID>,
 ) {
 
     companion object {
@@ -45,6 +46,7 @@ data class TilbakekrevingsbehandlingJson(
                     it.vurdering.toString(),
                 )
             } ?: emptyList(),
+            forhåndsvarselDokumenter = forhåndsvarselDokumentIder,
             fritekst = this.brevvalg?.fritekst,
         )
     }

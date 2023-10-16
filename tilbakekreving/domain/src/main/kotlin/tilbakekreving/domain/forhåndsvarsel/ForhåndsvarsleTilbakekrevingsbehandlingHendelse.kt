@@ -3,6 +3,7 @@
 
 package tilbakekreving.domain
 
+import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -29,9 +30,22 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     }
 }
 
+/**
+ * Ved [ForhåndsvarsleTilbakekrevingsbehandlingHendelse] gjøres det ikke noe endringer på selve behandlingen
+ */
+@Suppress("UNUSED_PARAMETER")
 internal fun Tilbakekrevingsbehandling.applyHendelse(
     hendelse: ForhåndsvarsleTilbakekrevingsbehandlingHendelse,
 ): Tilbakekrevingsbehandling {
-    println(hendelse)
-    TODO()
+    return this
+}
+
+/**
+ * Denne burde bo på et finere sted.
+ * Denne lagrer nye dokumenter på det som er forhåndsvarsel. Dersom det skal være andre brev, må noe endres
+ */
+internal fun Tilbakekrevingsbehandling.applyHendelse(
+    hendelse: LagretDokumentHendelse,
+): Tilbakekrevingsbehandling {
+    return this.leggTilForhåndsvarselDokumentId(hendelse.dokument.id)
 }

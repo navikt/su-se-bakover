@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 
 data class TrukketSøknadPdfInnhold(
     val personalia: PersonaliaPdfInnhold,

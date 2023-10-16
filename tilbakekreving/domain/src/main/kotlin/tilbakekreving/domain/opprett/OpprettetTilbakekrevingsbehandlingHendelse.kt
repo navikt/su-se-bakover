@@ -65,11 +65,11 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         )
     }
 
-    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse): OpprettetTilbakekrevingsbehandling {
-        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag)
+    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse, forhåndsvarselDokumentIder: List<UUID>): OpprettetTilbakekrevingsbehandling {
+        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag, forhåndsvarselDokumentIder)
     }
 
-    fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(kravgrunnlag: Kravgrunnlag, forhåndsvarselDokumentIder: List<UUID>): OpprettetTilbakekrevingsbehandling {
         require(kravgrunnlag.eksternKravgrunnlagId == this.kravgrunnlagsId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
@@ -79,6 +79,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             kravgrunnlag = kravgrunnlag,
             versjon = versjon,
             hendelseId = hendelseId,
+            forhåndsvarselDokumentIder = forhåndsvarselDokumentIder,
         )
     }
 }

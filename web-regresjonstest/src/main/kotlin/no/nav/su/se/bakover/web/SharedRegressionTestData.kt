@@ -190,6 +190,8 @@ data object SharedRegressionTestData {
                             oppgaveService = services.oppgave,
                             oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                             hendelseRepo = repos.hendelseRepo,
+                            brevService = services.brev,
+                            dokumentHendelseRepo = repos.dokumentHendelseRepo,
                         ),
                     )
                 },

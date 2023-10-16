@@ -1,5 +1,6 @@
 package tilbakekreving.infrastructure
 
+import dokument.domain.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgres
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
@@ -19,9 +21,14 @@ import java.time.Clock
 import java.util.UUID
 
 val OpprettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETT_TILBAKEKREVINGSBEHANDLING")
-private val VurderMånederTilbakekrevingsbehandlingHendelsestype = Hendelsestype("VURDER_MÅNEDER_TILBAKEKREVINGSBEHANDLING")
-private val OppdaterBrevTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPDATER_BREV_TILBAKEKREVINGSBEHANDLING")
-private val TilAttesteringTilbakekrevingsbehandlingHendelsestype = Hendelsestype("TIL_ATTESTERING_TILBAKEKREVINGSBEHANDLING")
+private val ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("FORHÅNDSVARSLER_TILBAKEKREVINGSBEHANDLING")
+private val VurderMånederTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("VURDER_MÅNEDER_TILBAKEKREVINGSBEHANDLING")
+private val OppdaterBrevTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("OPPDATER_BREV_TILBAKEKREVINGSBEHANDLING")
+private val TilAttesteringTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("TIL_ATTESTERING_TILBAKEKREVINGSBEHANDLING")
 private val UnderkjennTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENN_TILBAKEKREVINGSBEHANDLING")
 private val IverksettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSETT_TILBAKEKREVINGSBEHANDLING")
 private val AvbrytTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRYT_TILBAKEKREVINGSBEHANDLING")
@@ -32,6 +39,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
     private val clock: Clock,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
     private val oppgaveRepo: OppgaveHendelseRepo,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : TilbakekrevingsbehandlingRepo {
     override fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
@@ -44,6 +52,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
                 is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
                 is BrevTilbakekrevingsbehandlingHendelse -> OppdaterBrevTilbakekrevingsbehandlingHendelsestype
+                is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype
                 else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-lagre mangler type for ${hendelse.id}")
             },
             data = hendelse.toJson(),
@@ -66,6 +75,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
         return sessionFactory.withSessionContext(sessionContext) { openSessionContext ->
             listOf(
                 OpprettTilbakekrevingsbehandlingHendelsestype,
+                ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype,
                 VurderMånederTilbakekrevingsbehandlingHendelsestype,
                 OppdaterBrevTilbakekrevingsbehandlingHendelsestype,
                 TilAttesteringTilbakekrevingsbehandlingHendelsestype,
@@ -87,8 +97,11 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     hendelser = tilbakekrevingsHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
-                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId, openSessionContext).filter {
-                        it.relaterteHendelser.containsAll(tilbakekrevingsHendelser.map { it.hendelseId })
+                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId, openSessionContext).filter { oppgaveHendelse ->
+                        tilbakekrevingsHendelser.any { oppgaveHendelse.relaterteHendelser.contains(it.hendelseId) }
+                    }.sorted(),
+                    dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext).filter { dokumentHendelse ->
+                        tilbakekrevingsHendelser.any { dokumentHendelse.relaterteHendelser.contains(it.hendelseId) }
                     }.sorted(),
                 )
             }
@@ -102,6 +115,16 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = this.defaultHendelseMetadata(),
+        )
+
+        ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            tidligereHendelsesId = this.tidligereHendelseId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
             meta = this.defaultHendelseMetadata(),
@@ -133,6 +156,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
 fun TilbakekrevingsbehandlingHendelse.toJson(): String {
     return when (this) {
         is OpprettetTilbakekrevingsbehandlingHendelse -> this.toJson()
+        is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> this.toJson()
         is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> this.toJson()
         is BrevTilbakekrevingsbehandlingHendelse -> this.toJson()
         else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-toJson() mangler type for å mappe ${this.id}")

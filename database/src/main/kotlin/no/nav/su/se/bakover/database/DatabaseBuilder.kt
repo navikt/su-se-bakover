@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
@@ -94,7 +95,14 @@ data object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, dbMetrics, clock, satsFactory, queryParameterMappers, råttKravgrunnlagMapper)
+        return buildInternal(
+            userDatastore,
+            dbMetrics,
+            clock,
+            satsFactory,
+            queryParameterMappers,
+            råttKravgrunnlagMapper,
+        )
     }
 
     @TestOnly
@@ -107,7 +115,14 @@ data object DatabaseBuilder {
         råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
-        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory, queryParameterMappers, råttKravgrunnlagMapper)
+        return buildInternal(
+            embeddedDatasource,
+            dbMetrics,
+            clock,
+            satsFactory,
+            queryParameterMappers,
+            råttKravgrunnlagMapper,
+        )
     }
 
     @TestOnly
@@ -267,6 +282,9 @@ data object DatabaseBuilder {
             clock = clock,
             kravgrunnlagRepo = kravgrunnlagRepo,
             oppgaveRepo = oppgaveHendelseRepo,
+            dokumentHendelseRepo = DokumentHendelsePostgresRepo(
+                hendelseRepo = hendelseRepo,
+            ),
         )
 
         return DatabaseRepos(

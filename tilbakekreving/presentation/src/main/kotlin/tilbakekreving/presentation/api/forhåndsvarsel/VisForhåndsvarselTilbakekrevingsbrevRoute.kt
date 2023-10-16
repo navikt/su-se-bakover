@@ -5,8 +5,10 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeLageDokument
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.CorrelationId
@@ -24,19 +26,18 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
-import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
 import java.util.UUID
 
-private data class Body(
+private data class ForhåndsvisBody(
     val versjon: Long,
-    val fritekst: String,
+    val fritekst: String?,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -44,12 +45,12 @@ private data class Body(
         utførtAv: NavIdentBruker.Saksbehandler,
         correlationId: CorrelationId,
         brukerroller: List<Brukerrolle>,
-    ): Either<Resultat, ForhåndsvarselTilbakekrevingsbehandlingCommand> {
+    ): Either<Resultat, ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand> {
         val validatedBrukerroller = Either.catch { brukerroller.toNonEmptyList() }.getOrElse {
             return manglerBrukkerroller.left()
         }
 
-        return ForhåndsvarselTilbakekrevingsbehandlingCommand(
+        return ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand(
             sakId = sakId,
             behandlingId = TilbakekrevingsbehandlingId(value = behandlingsId),
             utførtAv = utførtAv,
@@ -61,14 +62,14 @@ private data class Body(
     }
 }
 
-internal fun Route.forhåndsvarsleTilbakekrevingRoute(
-    forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
+internal fun Route.visForhåndsvarselTilbakekrevingsbrev(
+    service: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
 ) {
-    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<ForhåndsvisBody> { body ->
                         body.toCommand(
                             sakId = sakId,
                             behandlingsId = tilbakekrevingId,
@@ -78,9 +79,9 @@ internal fun Route.forhåndsvarsleTilbakekrevingRoute(
                         ).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
-                                forhåndsvarsleTilbakekrevingsbehandlingService.forhåndsvarsle(it).fold(
+                                service.forhåndsvisBrev(it).fold(
                                     { call.svar(it.tilResultat()) },
-                                    { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
+                                    { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
                                 )
                             },
                         )
@@ -91,11 +92,11 @@ internal fun Route.forhåndsvarsleTilbakekrevingRoute(
     }
 }
 
-internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {
-    is KunneIkkeForhåndsvarsle.IkkeTilgang -> ikkeTilgangTilSak
+internal fun KunneIkkeForhåndsviseForhåndsvarsel.tilResultat(): Resultat = when (this) {
+    is KunneIkkeForhåndsviseForhåndsvarsel.IkkeTilgang -> ikkeTilgangTilSak
 
-    // dobbel-impl av [KunneIkkeLageDokumentErrorMapper.kt] i web
-    is KunneIkkeForhåndsvarsle.FeilVedDokumentGenerering -> when (this.kunneIkkeLageDokument) {
+    // dobbel-impl av [forhådsvarsleTilbakekrevingRoute]
+    is KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering -> when (this.kunneIkkeLageDokument) {
         is KunneIkkeLageDokument.FeilVedHentingAvInformasjon -> HttpStatusCode.InternalServerError.errorJson(
             "Feil ved henting av personinformasjon",
             "feil_ved_henting_av_personInformasjon",

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
@@ -209,12 +210,14 @@ class TestDataHelper(
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
     val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
+    val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo)
     val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,
         clock = fixedClock,
         kravgrunnlagRepo = kravgrunnlagPostgresRepo,
         oppgaveRepo = oppgaveHendelseRepo,
+        dokumentHendelseRepo = dokumentHendelseRepo,
     )
 
     /**
@@ -682,7 +685,12 @@ class TestDataHelper(
             simulertRevurdering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
                 clock = clock,
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode, opprettet = Tidspunkt.now(clock))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = revurderingsperiode,
+                        opprettet = Tidspunkt.now(clock),
+                    ),
+                ),
                 revurderingsperiode = revurderingsperiode,
             )
         }.let { (sak, revurdering) ->
@@ -1665,7 +1673,11 @@ class TestDataHelper(
         relatertHendelse: () -> T,
     ): OppgaveHendelse {
         return relatertHendelse().let {
-            nyOppgaveHendelse(sakId = (it as? Sakshendelse)?.sakId ?: UUID.randomUUID(), nesteVersjon = it.versjon.inc(), relaterteHendelser = listOf(it.hendelseId))
+            nyOppgaveHendelse(
+                sakId = (it as? Sakshendelse)?.sakId ?: UUID.randomUUID(),
+                nesteVersjon = it.versjon.inc(),
+                relaterteHendelser = listOf(it.hendelseId),
+            )
         }.also { oppgaveHendelse ->
             sessionFactory.withSessionContext {
                 oppgaveHendelseRepo.lagre(oppgaveHendelse, it)

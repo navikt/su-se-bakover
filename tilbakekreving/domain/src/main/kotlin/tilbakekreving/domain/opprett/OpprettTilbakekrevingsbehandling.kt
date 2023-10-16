@@ -25,6 +25,6 @@ fun opprettTilbakekrevingsbehandling(
         clock = clock,
         kravgrunnlagsId = kravgrunnlag.eksternKravgrunnlagId,
     ).let {
-        it to it.toDomain(kravgrunnlag)
+        it to it.toDomain(kravgrunnlag, emptyList())
     }
 }

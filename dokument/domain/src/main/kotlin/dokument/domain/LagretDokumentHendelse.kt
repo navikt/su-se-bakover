@@ -1,6 +1,7 @@
-package dokument.domain.dokument.domain
+package dokument.domain
 
-import dokument.domain.Dokument
+import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -22,6 +23,7 @@ data class LagretDokumentHendelse(
     override val versjon: Hendelsesversjon,
     override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
+    val relaterteHendelser: NonEmptyList<HendelseId>,
     val dokument: Dokument.MedMetadata,
 ) : Sakshendelse {
 
@@ -41,8 +43,9 @@ data class LagretDokumentHendelse(
             hendelsestidspunkt: Tidspunkt,
             hendelseMetadata: DefaultHendelseMetadata,
             entitetId: UUID,
-            forrigeVersjon: Hendelsesversjon,
+            versjon: Hendelsesversjon,
             sakId: UUID,
+            relaterteHendelser: List<HendelseId>,
             dokument: Dokument.MedMetadata,
         ): LagretDokumentHendelse {
             return LagretDokumentHendelse(
@@ -50,7 +53,8 @@ data class LagretDokumentHendelse(
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,
                 sakId = sakId,
-                versjon = forrigeVersjon,
+                versjon = versjon,
+                relaterteHendelser = relaterteHendelser.toNonEmptyList(),
                 dokument = dokument,
             ).also {
                 require(it.entitetId == entitetId) {

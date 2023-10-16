@@ -143,6 +143,7 @@ sealed interface Dokument {
         val vedtakId: UUID? = null,
         val revurderingId: UUID? = null,
         val klageId: UUID? = null,
+        val tilbakekrevingsbehandlingId: UUID? = null,
         val journalpostId: String? = null,
         val brevbestillingId: String? = null,
     )

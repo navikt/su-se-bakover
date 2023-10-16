@@ -110,6 +110,8 @@ fun Application.susebakover(
                 mapRåttKravgrunnlag = mapRåttKravgrunnlag,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                 hendelseRepo = repos.hendelseRepo,
+                brevService = services.brev,
+                dokumentHendelseRepo = repos.dokumentHendelseRepo,
             ),
             repos = repos,
         )

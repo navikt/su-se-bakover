@@ -5,8 +5,8 @@ import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Informasjo
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 
 data class AvvistSøknadVedtakPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
