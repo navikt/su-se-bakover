@@ -188,18 +188,17 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
         )
         val tilstand = Tilstand.fromValue(string("tilstand"))
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
-        val kravgrunnlag: Kravgrunnlag? = stringOrNull("kravgrunnlag")?.let { dbJson ->
+        val kravgrunnlag: Kravgrunnlag? = stringOrNull("kravgrunnlag")?.let { dbJsonOrXml ->
             log.info("Prøver først og deserialisere den nye kravgrunnlag-json typen. For revurdering $revurderingId.")
-            mapDbJsonToKravgrunnlag(dbJson).getOrElse {
-                log.info("Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. Antar det er et historisk rått kravgrunnlag.For revurdering $revurderingId.")
-                råttKravgrunnlagMapper(deserialize<RåttKravgrunnlag>(dbJson)).getOrElse {
+            mapDbJsonToKravgrunnlag(dbJsonOrXml).getOrElse {
+                log.info("Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. Antar det er et historisk rått kravgrunnlag. For revurdering $revurderingId.")
+                råttKravgrunnlagMapper(RåttKravgrunnlag(dbJsonOrXml)).getOrElse {
                     sikkerLogg.error(
-                        "Klarte ikke mappe rått kravgrunnlag til domenemodellen for revurdering $revurderingId. Se vanlig logg for stack trace. Rått kravgrunnlag: $dbJson",
+                        "Klarte ikke mappe rått kravgrunnlag til domenemodellen for revurdering $revurderingId. Rått kravgrunnlag: $dbJsonOrXml",
                         it,
                     )
                     throw IllegalStateException(
-                        "Klarte ikke mappe det rå kravgrunnlaget til domenemodellen for revurdering $revurderingId. Se sikkerlogg for det rå kravgrunnlaget",
-                        it,
+                        "Klarte ikke mappe det rå kravgrunnlaget til domenemodellen for revurdering $revurderingId. Se sikkerlogg for det rå kravgrunnlaget og stack trace",
                     )
                 }
             }
