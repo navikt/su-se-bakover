@@ -16,7 +16,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    implementation("org.json:json:20230618")
+    implementation("org.json:json:20231013")
 
     implementation(
         "com.github.navikt.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion",
