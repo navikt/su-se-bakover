@@ -188,21 +188,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
         )
         val tilstand = Tilstand.fromValue(string("tilstand"))
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
-        val kravgrunnlag: Kravgrunnlag? = stringOrNull("kravgrunnlag")?.let { dbJsonOrXml ->
-            log.info("Prøver først og deserialisere den nye kravgrunnlag-json typen. For revurdering $revurderingId.")
-            mapDbJsonToKravgrunnlag(dbJsonOrXml).getOrElse {
-                log.info("Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. Antar det er et historisk rått kravgrunnlag. For revurdering $revurderingId.")
-                råttKravgrunnlagMapper(RåttKravgrunnlag(dbJsonOrXml)).getOrElse {
-                    sikkerLogg.error(
-                        "Klarte ikke mappe rått kravgrunnlag til domenemodellen for revurdering $revurderingId. Rått kravgrunnlag: $dbJsonOrXml",
-                        it,
-                    )
-                    throw IllegalStateException(
-                        "Klarte ikke mappe det rå kravgrunnlaget til domenemodellen for revurdering $revurderingId. Se sikkerlogg for det rå kravgrunnlaget og stack trace",
-                    )
-                }
-            }
-        }
+        val kravgrunnlag: Kravgrunnlag? = getKravgrunnlag(revurderingId)
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
         val tilbakekrevingsvedtakForsendelse =
             stringOrNull("tilbakekrevingsvedtakForsendelse")?.let { forsendelseJson ->
@@ -267,6 +253,53 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
                     tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse!!,
                 )
+            }
+        }
+    }
+
+    private fun Row.getKravgrunnlag(revurderingId: UUID): Kravgrunnlag? {
+        return stringOrNull("kravgrunnlag")?.trim()?.let { dbJsonOrXml ->
+            when {
+                dbJsonOrXml.startsWith("<") -> {
+                    log.info("revurdering_tilbakekreving.kravgrunnlag er xml; rått kravgrunnlag fra oppdrag.")
+                    Either.catch {
+                        // Virker som mapperen kan kaste exceptions, så vi wrapper den for ikke å logge innholdet i XMLen.
+                        råttKravgrunnlagMapper(RåttKravgrunnlag(dbJsonOrXml)).getOrElse { throw it }
+                    }.getOrElse {
+                        sikkerLogg.error(
+                            "Klarte ikke mappe rått kravgrunnlag til domenemodellen for revurdering $revurderingId. Rått kravgrunnlag: $dbJsonOrXml",
+                            it,
+                        )
+                        throw IllegalStateException(
+                            "Klarte ikke mappe det rå kravgrunnlaget til domenemodellen for revurdering $revurderingId. Se sikkerlogg for det rå kravgrunnlaget og stack trace",
+                        )
+                    }.also {
+                        log.info("revurdering_tilbakekreving.kravgrunnlag mappet suksessfullt.")
+                    }
+                }
+
+                dbJsonOrXml.startsWith("{") -> {
+                    log.info("revurdering_tilbakekreving.kravgrunnlag er json; ny json-type for kravgrunnlag")
+                    mapDbJsonToKravgrunnlag(dbJsonOrXml).getOrElse {
+                        sikkerLogg.error(
+                            "Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. For revurdering $revurderingId. Rått kravgrunnlag: $dbJsonOrXml",
+                            it,
+                        )
+                        throw IllegalStateException("Klarte ikke deseralisere til den nye kravgrunnlag-json-typen. For revurdering $revurderingId. Se sikkerlogg for mer informasjon.")
+                    }.also {
+                        log.info("revurdering_tilbakekreving.kravgrunnlag mappet suksessfullt.")
+                    }
+                }
+
+                else -> {
+                    sikkerLogg.error(
+                        "Ukjent format på revurdering_tilbakekreving.kravgrunnlag, forventet json eller xml, men var: $dbJsonOrXml",
+                        RuntimeException("Trigger en exception for å få stacktrace"),
+                    )
+                    throw IllegalStateException(
+                        "Ukjent format på revurdering_tilbakekreving.kravgrunnlag, forventet json eller xml. Se sikkerlogg for det rå kravgrunnlaget.",
+                    )
+                }
             }
         }
     }
