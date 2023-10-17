@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.infrastructure.OpprettTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.OpprettTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 

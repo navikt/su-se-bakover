@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.repo.kravgrunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.test.kravgrunnlag.råttKravgrunnlagHendelse
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
-import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import java.util.UUID
 
 class KravgrunnlagPostgresRepoTest {

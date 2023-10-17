@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.infrastructure.mapDbJsonToKravgrunnlag
-import tilbakekreving.infrastructure.mapKravgrunnlagToDbJson
+import tilbakekreving.infrastructure.repo.kravgrunnlag.mapDbJsonToKravgrunnlag
+import tilbakekreving.infrastructure.repo.kravgrunnlag.mapKravgrunnlagToDbJson
 import java.util.UUID
 
 /**

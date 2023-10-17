@@ -33,7 +33,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.infrastructure.OpprettTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.OpprettTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 

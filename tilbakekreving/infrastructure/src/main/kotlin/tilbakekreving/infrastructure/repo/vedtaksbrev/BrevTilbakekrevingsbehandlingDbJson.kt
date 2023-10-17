@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.vedtaksbrev
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.deserialize

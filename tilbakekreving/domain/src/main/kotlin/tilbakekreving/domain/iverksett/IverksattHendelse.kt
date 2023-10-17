@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.time.Clock
 import java.util.UUID
 
-data class IverksettHendelse(
+data class IverksattHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -38,7 +38,7 @@ data class IverksettHendelse(
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
             utførtAv: NavIdentBruker.Saksbehandler,
-        ) = IverksettHendelse(
+        ) = IverksattHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
             hendelsestidspunkt = Tidspunkt.now(clock),
@@ -70,8 +70,8 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Saksbehandler,
-): IverksettHendelse {
-    return IverksettHendelse.iverksett(
+): IverksattHendelse {
+    return IverksattHendelse.iverksett(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,
         meta = meta,

@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -12,8 +12,8 @@ import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
-import tilbakekreving.infrastructure.RåttKravgrunnlagDbJson.Companion.toJson
-import tilbakekreving.infrastructure.RåttKravgrunnlagDbJson.Companion.toRåttKravgrunnlagHendelse
+import tilbakekreving.infrastructure.repo.kravgrunnlag.RåttKravgrunnlagDbJson.Companion.toJson
+import tilbakekreving.infrastructure.repo.kravgrunnlag.RåttKravgrunnlagDbJson.Companion.toRåttKravgrunnlagHendelse
 import java.util.UUID
 
 val MottattKravgrunnlagHendelsestype = Hendelsestype("MOTTATT_KRAVGRUNNLAG")

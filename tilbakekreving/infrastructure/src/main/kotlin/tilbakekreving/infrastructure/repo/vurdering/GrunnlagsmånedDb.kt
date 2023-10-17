@@ -1,10 +1,10 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.vurdering
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.infrastructure.FeilutbetalingDb.Companion.toDbJson
-import tilbakekreving.infrastructure.YtelseDb.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.vurdering.FeilutbetalingDb.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.vurdering.YtelseDb.Companion.toDbJson
 import java.math.BigDecimal
 import java.time.YearMonth
 

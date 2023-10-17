@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
@@ -7,10 +7,9 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.infrastructure.FeilutbetalingDb.Companion.toDbJson
-import tilbakekreving.infrastructure.GrunnlagsmånedDb.Companion.toDbJson
-import tilbakekreving.infrastructure.KravgrunnlagDbJson.Companion.toDbJson
-import tilbakekreving.infrastructure.YtelseDb.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsmånedDb
+import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsmånedDb.Companion.toDbJson
 
 /**
  * Databasejsontype for [tilbakekreving.domain.kravgrunnlag.Kravgrunnlag]

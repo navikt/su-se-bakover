@@ -64,8 +64,8 @@ import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.Utenlands
 import org.jetbrains.annotations.TestOnly
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
-import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
+import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
+import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import java.time.Clock
 import javax.sql.DataSource
 

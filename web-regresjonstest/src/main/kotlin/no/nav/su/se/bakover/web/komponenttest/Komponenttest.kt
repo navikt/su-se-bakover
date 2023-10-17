@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
-import tilbakekreving.infrastructure.TilbakekrevingRepos
+import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock

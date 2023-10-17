@@ -115,8 +115,19 @@ fun kravgrunnlagPåSakHendelse(
     grunnlagsmåneder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
         grunnlagsmåned(),
     ),
-    revurderingId: UUID? = null,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    kravgrunnlag: Kravgrunnlag = Kravgrunnlag(
+        eksternKravgrunnlagId = eksternKravgrunnlagId,
+        eksternVedtakId = eksternVedtakId,
+        eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
+        status = status,
+        behandler = behandler,
+        utbetalingId = utbetalingId,
+        grunnlagsmåneder = grunnlagsmåneder,
+        saksnummer = saksnummer,
+        eksternTidspunkt = eksternTidspunkt,
+    ),
+    revurderingId: UUID? = null,
 ): KravgrunnlagPåSakHendelse {
     return KravgrunnlagPåSakHendelse(
         hendelseId = hendelseId,
@@ -125,17 +136,7 @@ fun kravgrunnlagPåSakHendelse(
         hendelsestidspunkt = hendelsestidspunkt,
         meta = meta,
         tidligereHendelseId = tidligereHendelseId,
-        kravgrunnlag = Kravgrunnlag(
-            eksternKravgrunnlagId = eksternKravgrunnlagId,
-            eksternVedtakId = eksternVedtakId,
-            eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
-            status = status,
-            behandler = behandler,
-            utbetalingId = utbetalingId,
-            grunnlagsmåneder = grunnlagsmåneder,
-            saksnummer = saksnummer,
-            eksternTidspunkt = eksternTidspunkt,
-        ),
+        kravgrunnlag = kravgrunnlag,
         revurderingId = revurderingId,
     )
 }
