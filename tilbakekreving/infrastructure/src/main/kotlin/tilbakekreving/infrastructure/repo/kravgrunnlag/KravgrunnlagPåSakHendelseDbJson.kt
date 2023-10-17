@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
-import tilbakekreving.infrastructure.KravgrunnlagDbJson.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
 import java.util.UUID
 
 fun KravgrunnlagPåSakHendelse.toJson(): String {

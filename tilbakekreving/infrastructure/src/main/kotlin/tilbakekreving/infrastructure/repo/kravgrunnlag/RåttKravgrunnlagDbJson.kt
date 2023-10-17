@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize

@@ -240,6 +240,10 @@ fun beregnetRevurdering(
     }
 }
 
+/**
+ * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
+ * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
+ */
 fun simulertRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -257,6 +261,7 @@ fun simulertRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    skalUtsetteTilbakekreving: Boolean = false,
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
@@ -275,7 +280,7 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    skalUtsetteTilbakekreving = false,
+                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,
@@ -288,7 +293,7 @@ fun simulertRevurdering(
                         }
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(simulert, skalTilbakekreve)
+                oppdaterTilbakekrevingsbehandling(simulert, skalUtsetteTilbakekreving, skalTilbakekreve)
             }
 
             is BeregnetRevurdering.Opphørt -> {
@@ -307,7 +312,7 @@ fun simulertRevurdering(
                         )
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(simulert)
+                oppdaterTilbakekrevingsbehandling(simulert, skalUtsetteTilbakekreving, skalTilbakekreve)
             }
         }.leggTilBrevvalg(brevvalg)
 
@@ -315,6 +320,10 @@ fun simulertRevurdering(
     }
 }
 
+/**
+ * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
+ * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
+ */
 fun revurderingTilAttestering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -333,6 +342,7 @@ fun revurderingTilAttestering(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    skalUtsetteTilbakekreving: Boolean = false,
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
@@ -347,6 +357,7 @@ fun revurderingTilAttestering(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
         skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
@@ -407,9 +418,10 @@ fun revurderingUnderkjent(
 
 private fun oppdaterTilbakekrevingsbehandling(
     revurdering: SimulertRevurdering,
+    skalUtsetteTilbakekreving: Boolean = false,
     skalTilbakekreve: Boolean = true,
 ): SimulertRevurdering {
-    return when (revurdering.simulering.harFeilutbetalinger()) {
+    return when (revurdering.simulering.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
         true -> {
             when (skalTilbakekreve) {
                 true -> revurdering.oppdaterTilbakekrevingsbehandling(
@@ -442,6 +454,10 @@ private fun oppdaterTilbakekrevingsbehandling(
     }
 }
 
+/**
+ * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
+ * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
+ */
 fun iverksattRevurdering(
     clock: Clock = tikkendeFixedClock(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -461,6 +477,7 @@ fun iverksattRevurdering(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    skalUtsetteTilbakekreving: Boolean = false,
     skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
@@ -478,6 +495,7 @@ fun iverksattRevurdering(
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
         skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, tilAttestering) ->
         sak.iverksettRevurdering(
@@ -525,8 +543,17 @@ fun iverksattRevurdering(
                             // Utbetalingen finnes fra før, så vi oppdaterer den.
                             it.map { if (it.id == oversendtUtbetaling.id) oversendtUtbetaling else it }
                         }
-                    }
-                        .let { Utbetalinger(it) },
+                    }.let { Utbetalinger(it) },
+                    uteståendeKravgrunnlag = if (response.vedtak.behandling.simulering?.harFeilutbetalinger() == true && skalUtsetteTilbakekreving) {
+                        genererKravgrunnlagFraSimulering(
+                            saksnummer = response.sak.saksnummer,
+                            simulering = response.vedtak.behandling.simulering!!,
+                            utbetalingId = response.vedtak.utbetalingId!!,
+                            clock = clock,
+                        )
+                    } else {
+                        null
+                    },
                 ),
                 second = when (response) {
                     is IverksettInnvilgetRevurderingResponse -> {

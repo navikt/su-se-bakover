@@ -309,7 +309,7 @@ internal class PersonPostgresRepoTest {
                 )
             }
 
-            val revurderingVedtak = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
+            val revurderingVedtak = testDataHelper.persisterIverksattRevurdering(sakOgVedtak = (sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) {
@@ -372,7 +372,7 @@ internal class PersonPostgresRepoTest {
                 )
             }
 
-            val (sak2, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
+            val (sak2, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering(sakOgVedtak = (sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) {

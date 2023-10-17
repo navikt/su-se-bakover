@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.forhåndsvarsel
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn

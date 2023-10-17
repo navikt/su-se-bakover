@@ -56,7 +56,7 @@ import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
-import tilbakekreving.infrastructure.TilbakekrevingRepos
+import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 import java.time.LocalDate

@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure
+package tilbakekreving.infrastructure.repo.vurdering
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.deserialize
@@ -15,7 +15,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.Vurdering
-import tilbakekreving.infrastructure.MånedsvurderingerDbJson.Companion.toDomain
+import tilbakekreving.infrastructure.repo.vurdering.MånedsvurderingerDbJson.Companion.toDomain
 import java.lang.IllegalArgumentException
 import java.time.YearMonth
 import java.util.UUID
