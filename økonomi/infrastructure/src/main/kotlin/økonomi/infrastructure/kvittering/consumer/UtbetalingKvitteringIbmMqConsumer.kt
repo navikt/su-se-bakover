@@ -3,6 +3,7 @@ package økonomi.infrastructure.kvittering.consumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
+import java.lang.RuntimeException
 import javax.jms.JMSContext
 import javax.jms.Session
 
@@ -33,7 +34,7 @@ class UtbetalingKvitteringIbmMqConsumer(
                 }
             } catch (ex: Exception) {
                 log.error("Feil ved prosessering av melding fra: $kvitteringQueueName", ex)
-                throw ex
+                throw RuntimeException("Feil ved prosessering av melding fra: $kvitteringQueueName. Vi må kaste for å nacke meldingen. Se tilhørende errorlogg.")
             }
         }
 

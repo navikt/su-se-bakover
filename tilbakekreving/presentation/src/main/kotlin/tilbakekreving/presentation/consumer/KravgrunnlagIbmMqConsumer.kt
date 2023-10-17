@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMet
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import java.lang.RuntimeException
 import javax.jms.JMSContext
 import javax.jms.Session
 
@@ -41,7 +42,7 @@ class KravgrunnlagIbmMqConsumer(
                 }
             } catch (ex: Exception) {
                 log.error("Feil ved prosessering av melding fra: $queueName", ex)
-                throw ex
+                throw RuntimeException("Feil ved prosessering av melding fra: $queueName. Vi må kaste for å nacke meldingen. Se tilhørende errorlogg.")
             }
         }
         jmsContext.setExceptionListener { exception -> log.error("Feil mot $queueName", exception) }
