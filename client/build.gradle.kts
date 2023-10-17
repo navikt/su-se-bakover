@@ -36,7 +36,7 @@ dependencies {
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.36")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
 
     testImplementation(project(":test-common"))
     testImplementation("org.wiremock:wiremock:3.2.0") {
