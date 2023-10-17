@@ -17,7 +17,7 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     val fritekst: String?,
     val dato: String,
 ) : PdfInnhold() {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekreving
+    override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
 
     companion object {
         fun fromBrevCommand(

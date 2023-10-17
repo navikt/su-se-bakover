@@ -11,7 +11,6 @@ import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehan
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
 
-// ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
     private val sakService: SakService,
