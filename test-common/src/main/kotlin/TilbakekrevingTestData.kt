@@ -1,16 +1,28 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.nonEmptyListOf
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.IverksattHendelse
+import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.TilAttesteringHendelse
+import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.vurdert.Månedsvurdering
+import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.Vurdering
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -52,7 +64,8 @@ fun genererKravgrunnlagFraSimulering(
                 }
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = måned,
-                    betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves)).divide(BigDecimal(100.0000)).setScale(0, RoundingMode.UP),
+                    betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves))
+                        .divide(BigDecimal(100.0000)).setScale(0, RoundingMode.UP),
                     ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
                         beløpTidligereUtbetaling = beløpTidligereUtbetaling,
                         beløpNyUtbetaling = beløpNyUtbetaling,
@@ -89,4 +102,229 @@ fun nyOpprettetTilbakekrevingsbehandlingHendelse(
     id = behandlingId,
     opprettetAv = opprettetAv,
     kravgrunnlagsId = kravgrunnlagsId,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagsId: String = "123",
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagsId = kravgrunnlagsId,
+        opprettetAv = utførtAv,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    fritekst: String = "",
+    dokumentId: UUID = UUID.randomUUID(),
+): ForhåndsvarsleTilbakekrevingsbehandlingHendelse = ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    fritekst = fritekst,
+    dokumentId = dokumentId,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyVurdertTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagsId: String = "123456",
+    dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagsId = kravgrunnlagsId,
+        dokumentId = dokumentId,
+        utførtAv = utførtAv,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    vurderinger: Månedsvurderinger = Månedsvurderinger(
+        vurderinger = nonEmptyListOf(
+            Månedsvurdering(
+                måned = januar(2021),
+                vurdering = Vurdering.SkalTilbakekreve,
+            ),
+        ),
+    ),
+): MånedsvurderingerTilbakekrevingsbehandlingHendelse = MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    vurderinger = vurderinger,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagsId: String = "123456",
+    dokumentId: UUID = UUID.randomUUID(),
+    vurderinger: Månedsvurderinger = Månedsvurderinger(
+        vurderinger = nonEmptyListOf(
+            Månedsvurdering(
+                måned = januar(2021),
+                vurdering = Vurdering.SkalTilbakekreve,
+            ),
+        ),
+    ),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagsId = kravgrunnlagsId,
+        dokumentId = dokumentId,
+        vurderinger = vurderinger,
+        utførtAv = utførtAv,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+        fritekst = "fritekst",
+    ),
+): BrevTilbakekrevingsbehandlingHendelse = BrevTilbakekrevingsbehandlingHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    brevvalg = brevvalg,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagsId: String = "123456",
+    dokumentId: UUID = UUID.randomUUID(),
+    vurderinger: Månedsvurderinger = Månedsvurderinger(
+        vurderinger = nonEmptyListOf(
+            Månedsvurdering(
+                måned = januar(2021),
+                vurdering = Vurdering.SkalTilbakekreve,
+            ),
+        ),
+    ),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+        fritekst = "fritekst",
+    ),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagsId = kravgrunnlagsId,
+        dokumentId = dokumentId,
+        vurderinger = vurderinger,
+        utførtAv = utførtAv,
+        brevvalg = brevvalg,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+): TilAttesteringHendelse = TilAttesteringHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyIverksattTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagsId: String = "123456",
+    dokumentId: UUID = UUID.randomUUID(),
+    vurderinger: Månedsvurderinger = Månedsvurderinger(
+        vurderinger = nonEmptyListOf(
+            Månedsvurdering(
+                måned = januar(2021),
+                vurdering = Vurdering.SkalTilbakekreve,
+            ),
+        ),
+    ),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+        fritekst = "fritekst",
+    ),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagsId = kravgrunnlagsId,
+        dokumentId = dokumentId,
+        vurderinger = vurderinger,
+        utførtAv = utførtAv,
+        brevvalg = brevvalg,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+): IverksattHendelse = IverksattHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
 )

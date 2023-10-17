@@ -15,6 +15,7 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
     val behandlingsId: UUID,
     val utførtAv: String,
     val fritekst: String,
+    val dokumentId: UUID,
 ) {
     companion object {
         fun toDomain(
@@ -38,6 +39,7 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
                 tidligereHendelseId = tidligereHendelsesId,
                 utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),
                 fritekst = deserialized.fritekst,
+                dokumentId = deserialized.dokumentId,
             )
         }
     }
@@ -48,4 +50,5 @@ internal fun ForhåndsvarsleTilbakekrevingsbehandlingHendelse.toJson(): String =
         fritekst = this.fritekst,
         behandlingsId = this.id.value,
         utførtAv = this.utførtAv.navIdent,
+        dokumentId = this.dokumentId,
     ).let { serialize(it) }

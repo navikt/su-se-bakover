@@ -16,24 +16,23 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 class OpprettTilbakekrevingsbehandlingRepoTest {
 
     @Test
-    fun `henter alle tilbakekrevingsbehandlingHendelser & tilhørende hendelser for sak`() {
+    fun `kan opprette og hente tilbakekrevingsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak, _, _, _, opprettetHendelse) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
-            val oppgaveHendelse = testDataHelper.persisterOppgaveHendelseFraRelatertHendelse { opprettetHendelse }
+            val (sak, _, _, _, _, _, hendelse, oppgaveHendelse) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
 
-            val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(opprettetHendelse.sakId)
+            val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             val actualKravgrunnlag =
                 testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak.id).also {
                     it.size shouldBe 1
                     it.first().kravgrunnlag shouldBe sak.uteståendeKravgrunnlag
                 }
             actual shouldBe TilbakekrevingsbehandlingHendelser.create(
-                sakId = opprettetHendelse.sakId,
+                sakId = sak.id,
                 clock = fixedClock,
-                hendelser = listOf(opprettetHendelse),
+                hendelser = listOf(hendelse),
                 kravgrunnlagPåSak = actualKravgrunnlag,
                 oppgaveHendelser = listOf(oppgaveHendelse),
                 dokumentHendelser = listOf(),

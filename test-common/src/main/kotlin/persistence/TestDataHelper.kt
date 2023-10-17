@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.Tuple4
 import arrow.core.Tuple5
+import arrow.core.Tuple6
+import arrow.core.Tuple8
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import kotliquery.using
@@ -125,6 +127,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagPåSakHendelse
 import no.nav.su.se.bakover.test.kravgrunnlag.råttKravgrunnlagHendelse
+import no.nav.su.se.bakover.test.nyForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
@@ -161,8 +164,12 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
@@ -211,9 +218,9 @@ class TestDataHelper(
     val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
     val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
-    val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
+    private val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
-    val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo)
+    private val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo)
     val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,
@@ -424,7 +431,9 @@ class TestDataHelper(
      * 1. [VedtakInnvilgetRevurdering]
      */
     fun persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
+        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering().let {
+            Tuple4(it.first, it.second, it.third, it.fourth)
+        },
     ): Pair<VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return sakOgRevurdering.let { (sak, _, utbetaling, vedtak) ->
             databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling, null)
@@ -603,34 +612,38 @@ class TestDataHelper(
                 skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
             )
         },
-    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {
+    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagPåSakHendelse?> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
             databaseRepos.vedtakRepo.lagre(vedtak)
-            sak.uteståendeKravgrunnlag?.also {
+            val (råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) = sak.uteståendeKravgrunnlag?.let {
                 // XMLen her er tom, men det går bra siden vi lagrer knytt kravgrunnlag mot sak hendelsen selv.
                 val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse()
                 kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse)
-                kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
-                    kravgrunnlagPåSakHendelse(
-                        kravgrunnlag = it,
-                        sakId = sak.id,
-                        tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
-                    ),
+                val kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse(
+                    kravgrunnlag = it,
+                    sakId = sak.id,
+                    tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
                 )
-            }
+                kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
+                    kravgrunnlagPåSakHendelse,
+                )
+                råttKravgrunnlagHendelse to kravgrunnlagPåSakHendelse
+            } ?: Pair(null, null)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                 sak.uteståendeKravgrunnlag?.also {
                     require(sak.uteståendeKravgrunnlag == persistertSak!!.uteståendeKravgrunnlag) {
                         "Forventet at kravgrunnlaget skulle være det samme som det som ble sendt inn."
                     }
                 }
-                Tuple4(
+                Tuple6(
                     first = persistertSak!!,
                     second = persistertSak.revurderinger.single { it.id == revurdering.id } as IverksattRevurdering,
                     third = persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
                     fourth = persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakEndringIYtelse,
+                    fifth = råttKravgrunnlagHendelse,
+                    sixth = kravgrunnlagPåSakHendelse,
                 )
             }
         }
@@ -735,8 +748,14 @@ class TestDataHelper(
             sak to vedtak
         },
     ): Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakInnvilgetRevurdering> {
-        @Suppress("UNCHECKED_CAST")
-        return persisterIverksattRevurdering(sakOgVedtak = sakOgVedtak) as Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakInnvilgetRevurdering>
+        return persisterIverksattRevurdering(sakOgVedtak = sakOgVedtak).let {
+            Tuple4(
+                it.first,
+                it.second as IverksattRevurdering.Innvilget,
+                it.third,
+                it.fourth as VedtakInnvilgetRevurdering,
+            )
+        }
     }
 
     fun persisterRevurderingIverksattOpphørt(
@@ -744,7 +763,7 @@ class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {
+    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagPåSakHendelse?> {
         return persisterIverksattRevurdering(
             sakOgVedtak = sakOgVedtak,
             skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
@@ -1675,7 +1694,7 @@ class TestDataHelper(
         }
     }
 
-    fun <T : Hendelse<T>> persisterOppgaveHendelseFraRelatertHendelse(
+    private fun <T : Hendelse<T>> persisterOppgaveHendelseFraRelatertHendelse(
         relatertHendelse: () -> T,
     ): OppgaveHendelse {
         return relatertHendelse().let {
@@ -1726,23 +1745,62 @@ class TestDataHelper(
         }
     }
 
+    fun persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterOpprettetTilbakekrevingsbehandlingHendelse().let {
+            // TODO jah: Dokumenthendelse
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = TilbakekrevingsbehandlingHendelser.create(
+                    sakId = it.first.id,
+                    hendelser = listOf(
+                        it.seventh,
+                        nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
+                            forrigeHendelse = it.seventh,
+                            // Oppgaven blir lagret etter.
+                            versjon = it.eighth.versjon.inc(),
+                        ).also {
+                            tilbakekrevingHendelseRepo.lagre(it)
+                        },
+                    ),
+                    clock = fixedClock,
+                    kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(listOf(it.sixth)),
+                    oppgaveHendelser = listOf(it.eighth),
+                    dokumentHendelser = listOf(),
+                ),
+            )
+        }
+    }
+
     /**
      * Oppretter en søknadsbehandling for 2021 og opphører samme perioden.
      * Setter skalUtsetteTilbakekreving til true (dvs.) vi ikke gjør noen tilbakekrevingsbehandling i revurderinga.
      * Må passe på og sette klokka fram i tid, hvis ikke vil ikke søknadsbehandlingene bli utbetalt.
      *
      */
-    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, OpprettetTilbakekrevingsbehandlingHendelse> {
+    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
         return persisterRevurderingIverksattOpphørt(
             skalUtsetteTilbakekreving = true,
-        ).let { (sak, revurdering, utbetaling, vedtak) ->
+        ).let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) ->
             nyOpprettetTilbakekrevingsbehandlingHendelse(
                 sakId = sak.id,
                 kravgrunnlagsId = sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId ?: "fake kravgrunnlagsId",
                 versjon = sak.versjon.inc(),
-            ).let {
-                tilbakekrevingHendelseRepo.lagre(it)
-                Tuple5(sak, revurdering, utbetaling, vedtak, it)
+            ).let { opprettetHendelse ->
+                tilbakekrevingHendelseRepo.lagre(opprettetHendelse)
+                val oppgaveHendelse = persisterOppgaveHendelseFraRelatertHendelse { opprettetHendelse }
+                Tuple8(
+                    first = sak,
+                    second = revurdering,
+                    third = utbetaling,
+                    fourth = vedtak,
+                    fifth = råttKravgrunnlagHendelse!!,
+                    sixth = kravgrunnlagPåSakHendelse!!,
+                    seventh = opprettetHendelse,
+                    eighth = oppgaveHendelse,
+                )
             }
         }
     }
