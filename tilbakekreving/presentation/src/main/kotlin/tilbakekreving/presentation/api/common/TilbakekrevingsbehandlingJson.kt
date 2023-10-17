@@ -6,7 +6,7 @@ import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
+import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.presentation.api.common.KravgrunnlagJson.Companion.toJson
 import java.util.UUID
 
@@ -34,8 +34,8 @@ data class TilbakekrevingsbehandlingJson(
             kravgrunnlag = this.kravgrunnlag.toJson(),
             status = when (this) {
                 is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
-                is VurdertTilbakekrevingsbehandling.Påbegynt -> TilbakekrevingsbehandlingStatus.VURDERT_UTEN_BREV
-                is VurdertTilbakekrevingsbehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VURDERT_MED_BREV
+                is UnderBehandling.Påbegynt -> TilbakekrevingsbehandlingStatus.VURDERT_UTEN_BREV
+                is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VURDERT_MED_BREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")
@@ -47,7 +47,7 @@ data class TilbakekrevingsbehandlingJson(
                 )
             } ?: emptyList(),
             forhåndsvarselDokumenter = forhåndsvarselDokumentIder,
-            fritekst = this.brevvalg?.fritekst,
+            fritekst = this.vedtaksbrevvalg?.fritekst,
         )
     }
 }

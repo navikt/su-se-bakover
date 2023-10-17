@@ -127,7 +127,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
@@ -153,6 +153,7 @@ internal class OversendKlageTest {
                     saksnummer = Saksnummer(12345676),
                 )
             },
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -168,7 +169,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn null
@@ -194,6 +195,7 @@ internal class OversendKlageTest {
                     saksnummer = Saksnummer(12345676),
                 )
             },
+            anyOrNull(),
         )
         verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         mocks.verifyNoMoreInteractions()
@@ -214,7 +216,7 @@ internal class OversendKlageTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
@@ -243,6 +245,7 @@ internal class OversendKlageTest {
                     saksnummer = sak.saksnummer,
                 )
             },
+            anyOrNull(),
         )
         verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         val expectedKlage = OversendtKlage(
@@ -430,7 +433,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
@@ -472,6 +475,7 @@ internal class OversendKlageTest {
                     saksnummer = klage.saksnummer,
                 )
             },
+            anyOrNull(),
         )
         verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         verify(mocks.klageClient).sendTilKlageinstans(

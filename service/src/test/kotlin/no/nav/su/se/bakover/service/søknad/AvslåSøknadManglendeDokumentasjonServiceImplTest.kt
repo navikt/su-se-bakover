@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -94,7 +95,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn mockedDokument.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
@@ -242,7 +243,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn mockedDokument.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
         ).let { serviceAndMocks ->
 

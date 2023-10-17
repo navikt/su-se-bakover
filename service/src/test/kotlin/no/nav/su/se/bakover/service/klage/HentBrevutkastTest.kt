@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.ZoneOffset
@@ -89,7 +89,7 @@ internal class HentBrevutkastTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
         mocks.service.brevutkast(
@@ -99,7 +99,7 @@ internal class HentBrevutkastTest {
             KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
-        verify(mocks.brevServiceMock).lagDokument(any())
+        verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -116,7 +116,7 @@ internal class HentBrevutkastTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
 
@@ -127,7 +127,7 @@ internal class HentBrevutkastTest {
             KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
-        verify(mocks.brevServiceMock).lagDokument(any())
+        verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -145,7 +145,7 @@ internal class HentBrevutkastTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
 
@@ -168,6 +168,7 @@ internal class HentBrevutkastTest {
                     saksnummer = Saksnummer(12345676),
                 )
             },
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -186,7 +187,7 @@ internal class HentBrevutkastTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -209,6 +210,7 @@ internal class HentBrevutkastTest {
                     attestant = null,
                 )
             },
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -226,7 +228,7 @@ internal class HentBrevutkastTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -249,6 +251,7 @@ internal class HentBrevutkastTest {
                     saksnummer = Saksnummer(12345676),
                 )
             },
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -409,7 +412,7 @@ internal class HentBrevutkastTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -444,6 +447,7 @@ internal class HentBrevutkastTest {
                     )
                 }
             },
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }

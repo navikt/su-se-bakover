@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse.Oppgavestatus.OPPRETT
 import java.util.UUID
 
 /**
+ * TODO jah: Lag en Oppgavehendelser
  * @param relaterteHendelser Den eller de hendelsene som førte til opprettelsen av oppgaven. Kan f.eks. være en institusjonsoppdholdshendelse.
  */
 data class OppgaveHendelse private constructor(

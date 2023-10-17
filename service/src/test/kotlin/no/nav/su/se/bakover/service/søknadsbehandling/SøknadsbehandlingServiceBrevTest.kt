@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -32,7 +33,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -51,7 +52,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
 
-            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             it.verifyNoMoreInteractions()
         }
@@ -60,7 +61,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner navn på attestant eller saksbehandler`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -77,7 +78,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
-            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             it.verifyNoMoreInteractions()
         }
@@ -87,7 +88,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     fun `svarer med feil hvis generering av pdf feiler`() {
         val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn underliggendeFeil.left()
+            on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -103,7 +104,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                     utførtAv = attestant,
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(underliggendeFeil).left()
-            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             it.verifyNoMoreInteractions()
         }
@@ -119,7 +120,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             generertDokumentJson = "{}",
         )
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
+            on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -160,6 +161,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                         sakstype = Sakstype.UFØRE,
                     )
                 },
+                anyOrNull(),
             )
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             it.verifyNoMoreInteractions()

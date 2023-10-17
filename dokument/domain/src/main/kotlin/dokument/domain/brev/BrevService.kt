@@ -11,6 +11,7 @@ interface BrevService {
 
     fun lagDokument(
         command: GenererDokumentCommand,
+        id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
     fun lagreDokument(dokument: Dokument.MedMetadata)

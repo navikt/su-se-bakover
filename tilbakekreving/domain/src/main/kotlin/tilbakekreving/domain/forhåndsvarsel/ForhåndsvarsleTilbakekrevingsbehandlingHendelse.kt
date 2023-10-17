@@ -3,15 +3,20 @@
 
 package tilbakekreving.domain
 
-import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
+import java.time.Clock
 import java.util.UUID
 
+/**
+ * Vi genererer dokumentId på forhånd også vil neste bruke denne videre.
+ * Merk at frontend ikke vil kunne hente dokumentet før den asynkrone konsumentet har kjørt.
+ */
 data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
@@ -22,30 +27,46 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
     val fritekst: String,
+    val dokumentId: UUID = UUID.randomUUID(),
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
         return this.versjon.compareTo(other.versjon)
     }
+
+    /**
+     * Et forhåndsvarsel muterer ikke tilstanden til behandlingen for øyeblikket. Brevene hentes separat.
+     */
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+        return when (behandling) {
+            is TilbakekrevingsbehandlingTilAttestering,
+            is AvbruttTilbakekrevingsbehandling,
+            is IverksattTilbakekrevingsbehandling,
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+
+            is KanForhåndsvarsle -> behandling.leggTilForhåndsvarselDokumentId(
+                hendelseId = hendelseId,
+                dokumentId = dokumentId,
+            )
+        }
+    }
 }
 
-/**
- * Ved [ForhåndsvarsleTilbakekrevingsbehandlingHendelse] gjøres det ikke noe endringer på selve behandlingen
- */
-@Suppress("UNUSED_PARAMETER")
-internal fun Tilbakekrevingsbehandling.applyHendelse(
-    hendelse: ForhåndsvarsleTilbakekrevingsbehandlingHendelse,
-): Tilbakekrevingsbehandling {
-    return this
-}
-
-/**
- * Denne burde bo på et finere sted.
- * Denne lagrer nye dokumenter på det som er forhåndsvarsel. Dersom det skal være andre brev, må noe endres
- */
-internal fun Tilbakekrevingsbehandling.applyHendelse(
-    hendelse: LagretDokumentHendelse,
-): Tilbakekrevingsbehandling {
-    return this.leggTilForhåndsvarselDokumentId(hendelse.dokument.id)
-}
+fun KanForhåndsvarsle.leggTilForhåndsvarsel(
+    command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
+    tidligereHendelsesId: HendelseId,
+    nesteVersjon: Hendelsesversjon,
+    clock: Clock,
+): Pair<ForhåndsvarsleTilbakekrevingsbehandlingHendelse, UnderBehandling> =
+    ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+        hendelseId = HendelseId.generer(),
+        sakId = command.sakId,
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        versjon = nesteVersjon,
+        meta = command.toDefaultHendelsesMetadata(),
+        tidligereHendelseId = tidligereHendelsesId,
+        id = command.behandlingId,
+        utførtAv = command.utførtAv,
+        fritekst = command.fritekst,
+    ).let { it to it.applyToState(this) }

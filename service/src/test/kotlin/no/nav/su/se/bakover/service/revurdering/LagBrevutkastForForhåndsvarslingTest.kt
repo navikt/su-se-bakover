@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -31,7 +32,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
         ).let {
             simulertRevurdering.saksbehandler shouldNotBe saksbehandlerSomLagerBrev
@@ -41,7 +42,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 "saksbehandler og saksbehandler som lager brev er ikke de samme",
             ).shouldBeRight()
             verify(it.revurderingRepo).hent(simulertRevurdering.id)
-            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagDokument(any(), anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -68,7 +69,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -89,7 +90,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             },
 
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()

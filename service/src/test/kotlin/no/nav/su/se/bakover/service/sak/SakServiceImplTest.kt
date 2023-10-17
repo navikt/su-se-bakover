@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.tikkendeFixedClock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
@@ -293,7 +294,7 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val brevService = mock<BrevService> {
-            on { lagDokument(any<GenererDokumentCommand>()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
+            on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
         }
 
         SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock())

@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
+import java.time.Clock
 import java.util.UUID
 
 data class BrevTilbakekrevingsbehandlingHendelse(
@@ -39,24 +41,44 @@ data class BrevTilbakekrevingsbehandlingHendelse(
             -> Unit
         }
     }
+
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
+        return when (behandling) {
+            is TilbakekrevingsbehandlingTilAttestering,
+            is AvbruttTilbakekrevingsbehandling,
+            is IverksattTilbakekrevingsbehandling,
+            is OpprettetTilbakekrevingsbehandling,
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+
+            is UnderBehandling -> behandling.oppdaterVedtaksbrev(
+                hendelseId = this.hendelseId,
+                vedtaksbrevvalg = this.brevvalg,
+            )
+        }
+    }
 }
 
-internal fun Tilbakekrevingsbehandling.applyHendelse(
-    hendelse: BrevTilbakekrevingsbehandlingHendelse,
-): VurdertTilbakekrevingsbehandling.Utfylt {
-    return when (this) {
-        is OpprettetTilbakekrevingsbehandling -> throw IllegalArgumentException("Kan ikke gå fra en OpprettetTilbakekrevingsbehandling til BrevTilbakekrevingshendelse. Den må månedsvurderes først. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
-        is VurdertTilbakekrevingsbehandling -> VurdertTilbakekrevingsbehandling.Utfylt(
-            forrigeSteg = this,
-            månedsvurderinger = this.månedsvurderinger,
-            hendelseId = hendelse.hendelseId,
-            brevvalg = hendelse.brevvalg,
-            attesteringer = this.attesteringer,
-        )
+fun KanLeggeTilBrev.leggTilBrevtekst(
+    command: OppdaterBrevtekstCommand,
+    tidligereHendelsesId: HendelseId,
+    nesteVersjon: Hendelsesversjon,
+    clock: Clock,
+): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {
+    val hendelse = BrevTilbakekrevingsbehandlingHendelse(
+        hendelseId = HendelseId.generer(),
+        sakId = command.sakId,
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        versjon = nesteVersjon,
+        meta = DefaultHendelseMetadata(
+            correlationId = command.correlationId,
+            ident = command.utførtAv,
+            brukerroller = command.brukerroller,
+        ),
+        tidligereHendelseId = tidligereHendelsesId,
+        id = command.behandlingId,
+        utførtAv = command.utførtAv,
+        brevvalg = command.brevvalg,
+    )
 
-        is AvbruttTilbakekrevingsbehandling,
-        is IverksattTilbakekrevingsbehandling,
-        is TilbakekrevingsbehandlingTilAttestering,
-        -> TODO("implementer")
-    }
+    return hendelse to hendelse.applyToState(this)
 }

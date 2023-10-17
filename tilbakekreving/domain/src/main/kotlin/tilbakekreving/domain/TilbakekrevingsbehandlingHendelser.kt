@@ -4,11 +4,11 @@ import arrow.core.NonEmptyList
 import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.pickByCondition
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import java.time.Clock
 import java.util.UUID
 
@@ -19,11 +19,11 @@ import java.util.UUID
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
-    private val kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
+    private val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
     private val tilhørendeOgSorterteOppgaveHendelser: List<OppgaveHendelse>,
     private val tilhørendeOgSorterteDokumentHendelser: List<LagretDokumentHendelse>,
     private val clock: Clock,
-) {
+) : List<TilbakekrevingsbehandlingHendelse> by sorterteHendelser {
     init {
         require(sorterteHendelser.sorted() == sorterteHendelser) {
             "TilbakekrevingsbehandlingHendelser må være sortert etter stigende versjon."
@@ -34,6 +34,18 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         require(sorterteHendelser.distinctBy { it.versjon } == sorterteHendelser) {
             "TilbakekrevingsbehandlingHendelser kan ikke ha duplikat versjon."
         }
+
+        sorterteHendelser.groupBy { it.id }.forEach {
+            require(it.value.first() is OpprettetTilbakekrevingsbehandlingHendelse) {
+                "Den første hendelsen må være en opprettet hendelse"
+            }
+            it.value.filterIsInstance<OpprettetTilbakekrevingsbehandlingHendelse>().let {
+                require(it.size == 1) {
+                    "Den første hendelse (og kun den første) må være en OpprettetTilbakekrevingsbehandlingHendelse, men fant: ${it.size}"
+                }
+            }
+        }
+
         sorterteHendelser.mapNotNull { it.tidligereHendelseId }.let {
             require(it.distinct() == it) {
                 "En hendelse kan kun bli endret en gang. Oppdaget duplikate tidligereHendelseId: ${
@@ -76,12 +88,27 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         if (sorterteHendelser.isEmpty()) {
             Tilbakekrevingsbehandlinger.empty(sakId)
         } else {
-            toCurrentState(
-                sakId = sakId,
-                hendelser = sorterteHendelser.toNonEmptyList(),
-                kravgrunnlagPåSak = kravgrunnlagPåSak,
-                dokumentHendelser = tilhørendeOgSorterteDokumentHendelser,
-            )
+            toCurrentState()
+        }
+    }
+
+    private fun toCurrentState(): Tilbakekrevingsbehandlinger {
+        return this.fold(mapOf<HendelseId, Tilbakekrevingsbehandling>()) { acc, hendelse ->
+            val hendelseId = hendelse.hendelseId
+            when (hendelse) {
+                // Dette gjelder kun første hendelsen og er et spesialtilfelle.
+                is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.toDomain(
+                        kravgrunnlagPåSakHendelse = this.kravgrunnlagPåSak.first { it.kravgrunnlag.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
+                    ),
+                )
+
+                else -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId!!]!!),
+                ).minus(hendelse.tidligereHendelseId!!)
+            }
+        }.values.toList().sortedBy { it.versjon }.let {
+            Tilbakekrevingsbehandlinger(this.sakId, it)
         }
     }
 
@@ -106,7 +133,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sakId = sakId,
                 clock = clock,
                 sorterteHendelser = emptyList(),
-                kravgrunnlagPåSak = emptyList(),
+                kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(emptyList()),
                 tilhørendeOgSorterteOppgaveHendelser = emptyList(),
                 tilhørendeOgSorterteDokumentHendelser = emptyList(),
             )
@@ -124,57 +151,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sakId = sakId,
                 clock = clock,
                 sorterteHendelser = hendelser.sorted(),
-                kravgrunnlagPåSak = kravgrunnlagPåSak,
+                kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(kravgrunnlagPåSak),
                 tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
                 tilhørendeOgSorterteDokumentHendelser = dokumentHendelser.sorted(),
             )
-        }
-
-        private fun toCurrentState(
-            sakId: UUID,
-            hendelser: NonEmptyList<TilbakekrevingsbehandlingHendelse>,
-            kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
-            dokumentHendelser: List<LagretDokumentHendelse>,
-        ): Tilbakekrevingsbehandlinger {
-            return hendelser.fold(mapOf<HendelseId, Tilbakekrevingsbehandling>()) { acc, hendelse ->
-                val hendelseId = hendelse.hendelseId
-                when (hendelse) {
-                    is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
-                        hendelseId to hendelse.toDomain(
-                            kravgrunnlagPåSakHendelse = kravgrunnlagPåSak.first { it.kravgrunnlag.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
-                            // Id'ene må legges inn på et tidspunkt
-                            forhåndsvarselDokumentIder = hendelse.hentRelaterteDokumenter(hendelser, dokumentHendelser)
-                                .map { it.dokument.id },
-                        ),
-                    )
-
-                    is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(
-                        hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
-                            hendelse,
-                        ),
-                    ).minus(hendelse.tidligereHendelseId)
-
-                    is BrevTilbakekrevingsbehandlingHendelse -> acc.plus(
-                        hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
-                            hendelse,
-                        ),
-                    ).minus(hendelse.tidligereHendelseId)
-
-                    is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> acc.plus(
-                        hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
-                            hendelse,
-                        ),
-                    ).minus(hendelse.tidligereHendelseId)
-
-                    is TilAttesteringHendelse -> acc.plus(
-                        hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
-                            hendelse,
-                        ),
-                    ).minus(hendelse.tidligereHendelseId)
-                }
-            }.values.toList().sortedBy { it.versjon }.let {
-                Tilbakekrevingsbehandlinger(sakId, it)
-            }
         }
 
         private fun List<TilbakekrevingsbehandlingHendelse>.lagHendelsesSerier(): List<List<TilbakekrevingsbehandlingHendelse>> {

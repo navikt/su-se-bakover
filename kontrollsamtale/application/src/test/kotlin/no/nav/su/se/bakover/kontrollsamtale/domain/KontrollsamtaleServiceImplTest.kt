@@ -96,7 +96,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `feiler hvis vi ikke klarer å lage brev`() {
         val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         val brevService = mock<BrevService> {
-            on { lagDokument(any()) } doReturn underliggendeFeil.left()
+            on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
         }
 
         ServiceOgMocks(
@@ -130,7 +130,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = oppgaveService,
             sessionFactory = TestSessionFactory(),
@@ -151,7 +151,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
@@ -177,7 +177,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()

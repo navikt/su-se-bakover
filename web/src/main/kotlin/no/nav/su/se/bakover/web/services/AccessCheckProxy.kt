@@ -429,7 +429,7 @@ open class AccessCheckProxy(
             },
             brev = object : BrevService {
 
-                override fun lagDokument(command: GenererDokumentCommand): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                override fun lagDokument(command: GenererDokumentCommand, id: UUID): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
                 }
 
