@@ -106,6 +106,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -224,7 +225,7 @@ class TestDataHelper(
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
     private val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
-    private val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo)
+    private val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory))
     val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,

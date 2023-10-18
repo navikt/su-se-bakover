@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsekonsumenterPostgresRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsePostgresRepo
@@ -284,6 +285,7 @@ data object DatabaseBuilder {
             oppgaveRepo = oppgaveHendelseRepo,
             dokumentHendelseRepo = DokumentHendelsePostgresRepo(
                 hendelseRepo = hendelseRepo,
+                hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
             ),
         )
 

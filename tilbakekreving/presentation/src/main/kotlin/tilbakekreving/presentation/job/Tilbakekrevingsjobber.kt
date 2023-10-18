@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import java.time.Duration
@@ -17,6 +18,7 @@ import kotlin.concurrent.fixedRateTimer
 class Tilbakekrevingsjobber(
     private val knyttKravgrunnlagTilSakOgUtbetalingKonsument: KnyttKravgrunnlagTilSakOgUtbetalingKonsument,
     private val opprettOppgaveKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
+    private val genererDokumenterForForhåndsvarselKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument,
     private val initialDelay: Duration,
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,
@@ -40,6 +42,7 @@ class Tilbakekrevingsjobber(
                             correlationId = correlationId,
                         )
                         opprettOppgaveKonsument.opprettOppgaver(correlationId)
+                        genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

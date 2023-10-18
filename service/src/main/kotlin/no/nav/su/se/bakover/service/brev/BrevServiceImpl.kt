@@ -49,6 +49,7 @@ class BrevServiceImpl(
             }
             .map { (pdfA, pdfInnhold) ->
                 pdfA.tilDokument(
+                    id = id,
                     pdfInnhold = pdfInnhold,
                     command = command,
                     clock = clock,

@@ -4,16 +4,15 @@ import arrow.core.NonEmptyList
 import dokument.domain.Distribusjonstidspunkt
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentMetaDataDbJson.Companion.toHendelseDbJson
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import java.util.Base64
 import java.util.UUID
 
 internal data class LagretDokumentHendelseDbJson(
@@ -23,7 +22,6 @@ internal data class LagretDokumentHendelseDbJson(
     val distribusjonstidspunkt: DistribusjonstidspunktDbJson,
     val tittel: String,
     val generertDokumentJson: String,
-    val generertDokument: String,
     val relaterteHendelser: List<String>,
     val dokumentMeta: DokumentMetaDataDbJson,
 ) {
@@ -39,52 +37,6 @@ internal data class LagretDokumentHendelseDbJson(
         ): LagretDokumentHendelse {
             val deserialized = deserialize<LagretDokumentHendelseDbJson>(data)
 
-            val dokumentMetadata = Dokument.Metadata(
-                sakId = deserialized.dokumentMeta.sakId,
-                søknadId = null,
-                vedtakId = null,
-                revurderingId = null,
-                klageId = null,
-                tilbakekrevingsbehandlingId = deserialized.dokumentMeta.tilbakekrevingsbehandlingId,
-                journalpostId = deserialized.dokumentMeta.journalpostId,
-                brevbestillingId = deserialized.dokumentMeta.brevbestillingsId,
-            )
-
-            val dokument = when (deserialized.distribusjonstype) {
-                DistribusjonstypeDbJson.VEDTAK -> Dokument.MedMetadata.Vedtak(
-                    utenMetadata = Dokument.UtenMetadata.Vedtak(
-                        id = deserialized.id,
-                        opprettet = deserialized.opprettet,
-                        tittel = deserialized.tittel,
-                        generertDokument = PdfA(Base64.getDecoder().decode(deserialized.generertDokument)),
-                        generertDokumentJson = deserialized.generertDokumentJson,
-                    ),
-                    metadata = dokumentMetadata,
-                )
-
-                DistribusjonstypeDbJson.VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon.Viktig(
-                        id = deserialized.id,
-                        opprettet = deserialized.opprettet,
-                        tittel = deserialized.tittel,
-                        generertDokument = PdfA(Base64.getDecoder().decode(deserialized.generertDokument)),
-                        generertDokumentJson = deserialized.generertDokumentJson,
-                    ),
-                    metadata = dokumentMetadata,
-                )
-
-                DistribusjonstypeDbJson.ANNET -> Dokument.MedMetadata.Informasjon.Annet(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
-                        id = deserialized.id,
-                        opprettet = deserialized.opprettet,
-                        tittel = deserialized.tittel,
-                        generertDokument = PdfA(Base64.getDecoder().decode(deserialized.generertDokument)),
-                        generertDokumentJson = deserialized.generertDokumentJson,
-                    ),
-                    metadata = dokumentMetadata,
-                )
-            }
-
             return LagretDokumentHendelse.fraPersistert(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
@@ -93,11 +45,24 @@ internal data class LagretDokumentHendelseDbJson(
                 versjon = versjon,
                 sakId = sakId,
                 relaterteHendelser = deserialized.relaterteHendelser.map { HendelseId.fromString(it) },
-                dokument = dokument,
+                dokument = DokumentMedMetadataUtenFil(
+                    id = deserialized.id,
+                    opprettet = deserialized.opprettet,
+                    tittel = deserialized.tittel,
+                    metadata = Dokument.Metadata(
+                        sakId = deserialized.dokumentMeta.sakId,
+                        tilbakekrevingsbehandlingId = deserialized.dokumentMeta.tilbakekrevingsbehandlingId,
+                        journalpostId = deserialized.dokumentMeta.journalpostId,
+                        brevbestillingId = deserialized.dokumentMeta.brevbestillingsId,
+                    ),
+                    distribusjonstype = deserialized.distribusjonstype.toDomain(),
+                    distribusjonstidspunkt = deserialized.distribusjonstidspunkt.toDomain(),
+                    generertDokumentJson = deserialized.generertDokumentJson,
+                ),
             )
         }
 
-        internal fun Dokument.MedMetadata.toDbJson(relaterteHendelser: NonEmptyList<HendelseId>): String {
+        internal fun DokumentMedMetadataUtenFil.toDbJson(relaterteHendelser: NonEmptyList<HendelseId>): String {
             return LagretDokumentHendelseDbJson(
                 id = this.id,
                 opprettet = this.opprettet,
@@ -105,7 +70,6 @@ internal data class LagretDokumentHendelseDbJson(
                 distribusjonstidspunkt = this.distribusjonstidspunkt.toHendelseDbJson(),
                 tittel = this.tittel,
                 generertDokumentJson = this.generertDokumentJson,
-                generertDokument = Base64.getEncoder().encodeToString(this.generertDokument.getContent()),
                 relaterteHendelser = relaterteHendelser.map { it.toString() },
                 dokumentMeta = this.metadata.toHendelseDbJson(),
             ).let { serialize(it) }
@@ -113,30 +77,39 @@ internal data class LagretDokumentHendelseDbJson(
     }
 }
 
-internal fun Distribusjonstype.toHendelseDbJson(): DistribusjonstypeDbJson {
-    return when (this) {
-        Distribusjonstype.VEDTAK -> DistribusjonstypeDbJson.VEDTAK
-        Distribusjonstype.VIKTIG -> DistribusjonstypeDbJson.VIKTIG
-        Distribusjonstype.ANNET -> DistribusjonstypeDbJson.ANNET
-    }
+internal fun Distribusjonstype.toHendelseDbJson(): DistribusjonstypeDbJson = when (this) {
+    Distribusjonstype.VEDTAK -> DistribusjonstypeDbJson.VEDTAK
+    Distribusjonstype.VIKTIG -> DistribusjonstypeDbJson.VIKTIG
+    Distribusjonstype.ANNET -> DistribusjonstypeDbJson.ANNET
 }
 
-internal fun Distribusjonstidspunkt.toHendelseDbJson(): DistribusjonstidspunktDbJson {
-    return when (this) {
-        Distribusjonstidspunkt.UMIDDELBART -> DistribusjonstidspunktDbJson.UMIDDELBART
-        Distribusjonstidspunkt.KJERNETID -> DistribusjonstidspunktDbJson.KJERNETID
-    }
+internal fun Distribusjonstidspunkt.toHendelseDbJson(): DistribusjonstidspunktDbJson = when (this) {
+    Distribusjonstidspunkt.UMIDDELBART -> DistribusjonstidspunktDbJson.UMIDDELBART
+    Distribusjonstidspunkt.KJERNETID -> DistribusjonstidspunktDbJson.KJERNETID
 }
 
 internal enum class DistribusjonstypeDbJson {
     VEDTAK,
     VIKTIG,
     ANNET,
+    ;
+
+    fun toDomain(): Distribusjonstype = when (this) {
+        VEDTAK -> Distribusjonstype.VEDTAK
+        VIKTIG -> Distribusjonstype.VIKTIG
+        ANNET -> Distribusjonstype.ANNET
+    }
 }
 
 internal enum class DistribusjonstidspunktDbJson {
     UMIDDELBART,
     KJERNETID,
+    ;
+
+    fun toDomain(): Distribusjonstidspunkt = when (this) {
+        UMIDDELBART -> Distribusjonstidspunkt.UMIDDELBART
+        KJERNETID -> Distribusjonstidspunkt.KJERNETID
+    }
 }
 
 /**

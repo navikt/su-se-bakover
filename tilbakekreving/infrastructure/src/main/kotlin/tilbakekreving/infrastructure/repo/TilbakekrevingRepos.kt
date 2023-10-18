@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -24,6 +25,7 @@ class TilbakekrevingRepos(
     val oppgaveHendelseRepo: OppgaveHendelseRepo,
     val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
         hendelseRepo = hendelseRepo,
+        hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
     ),
     val kravgrunnlagRepo: KravgrunnlagRepo = KravgrunnlagPostgresRepo(
         hendelseRepo = hendelseRepo,

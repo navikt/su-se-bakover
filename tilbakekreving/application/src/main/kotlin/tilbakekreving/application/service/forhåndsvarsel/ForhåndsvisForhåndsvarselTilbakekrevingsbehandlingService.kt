@@ -31,6 +31,8 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 saksnummer = sak.saksnummer,
                 fritekst = command.fritekst,
                 saksbehandler = command.utførtAv,
+                correlationId = command.correlationId,
+                sakId = command.sakId,
             ),
         )
             .mapLeft { KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(it) }

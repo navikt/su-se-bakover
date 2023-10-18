@@ -24,7 +24,7 @@ data class LagretDokumentHendelse(
     override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
     val relaterteHendelser: NonEmptyList<HendelseId>,
-    val dokument: Dokument.MedMetadata,
+    val dokumentUtenFil: DokumentMedMetadataUtenFil,
 ) : Sakshendelse {
 
     // Vi har ingen mulighet for å korrigere/annullere denne hendelsen atm.
@@ -46,7 +46,7 @@ data class LagretDokumentHendelse(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            dokument: Dokument.MedMetadata,
+            dokument: DokumentMedMetadataUtenFil,
         ): LagretDokumentHendelse {
             return LagretDokumentHendelse(
                 hendelseId = hendelseId,
@@ -55,7 +55,7 @@ data class LagretDokumentHendelse(
                 sakId = sakId,
                 versjon = versjon,
                 relaterteHendelser = relaterteHendelser.toNonEmptyList(),
-                dokument = dokument,
+                dokumentUtenFil = dokument,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "

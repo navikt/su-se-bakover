@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
@@ -93,7 +94,6 @@ class TilbakekrevingServices(
         oppgaveService = oppgaveService,
         oppgaveHendelseRepo = oppgaveHendelseRepo,
         brevService = brevService,
-        dokumentHendelseRepo = dokumentHendelseRepo,
         sessionFactory = sessionFactory,
         clock = clock,
     ),
@@ -101,6 +101,16 @@ class TilbakekrevingServices(
         tilgangstyring = tilgangstyringService,
         sakService = sakService,
         brevService = brevService,
+    ),
+    val genererDokumentForForhåndsvarselTilbakekrevingKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
+        sakService = sakService,
+        brevService = brevService,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+        dokumentHendelseRepo = dokumentHendelseRepo,
+        hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
     ),
     val opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
         sakService = sakService,

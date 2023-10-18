@@ -4,11 +4,12 @@ import dokument.domain.DokumentHendelseRepo
 import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.dokument.infrastructure.LagretDokumentHendelseDbJson.Companion.toDbJson
+import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import java.lang.IllegalStateException
 import java.util.UUID
 
 // mulig vi må skille på hva dokumenter er
@@ -16,12 +17,18 @@ val LagretDokument = Hendelsestype("LAGRET_DOKUMENT")
 
 class DokumentHendelsePostgresRepo(
     private val hendelseRepo: HendelseRepo,
+    private val hendelseFilRepo: HendelseFilPostgresRepo,
 ) : DokumentHendelseRepo {
-    override fun lagre(hendelse: LagretDokumentHendelse, sessionContext: SessionContext) {
+    override fun lagre(hendelse: LagretDokumentHendelse, hendelseFil: HendelseFil, sessionContext: SessionContext?) {
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
             type = LagretDokument,
-            data = hendelse.dokument.toDbJson(hendelse.relaterteHendelser),
+            data = hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser),
+            sessionContext = sessionContext,
+        )
+        hendelseFilRepo.lagre(
+            sakId = hendelse.sakId,
+            hendelseFil = hendelseFil,
             sessionContext = sessionContext,
         )
     }
@@ -32,9 +39,7 @@ class DokumentHendelsePostgresRepo(
                 sakId = sakId,
                 type = LagretDokument,
                 sessionContext = sessionContext,
-            ).map {
-                it.toLagretDokumentHendelse()
-            }
+            ).map { it.toLagretDokumentHendelse() }
     }
 }
 

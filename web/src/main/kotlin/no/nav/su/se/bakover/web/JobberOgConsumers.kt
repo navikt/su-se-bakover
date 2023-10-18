@@ -265,6 +265,7 @@ fun startJobberOgConsumers(
         Tilbakekrevingsjobber(
             knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
             opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
+            genererDokumenterForForhåndsvarselKonsument = tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
@@ -375,6 +376,7 @@ fun startJobberOgConsumers(
         Tilbakekrevingsjobber(
             knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
             opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
+            genererDokumenterForForhåndsvarselKonsument = tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,

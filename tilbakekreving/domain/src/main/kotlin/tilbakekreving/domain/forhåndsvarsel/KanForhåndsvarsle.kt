@@ -4,7 +4,7 @@
 package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
-import dokument.domain.Dokument
+import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -28,7 +28,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
      */
     fun nyLagretDokumentHendelse(
         command: SakshendelseCommand,
-        dokument: Dokument.MedMetadata,
+        dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
         nesteVersjon: Hendelsesversjon,
         relaterteHendelser: NonEmptyList<HendelseId>,
         clock: Clock,
@@ -40,7 +40,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
             meta = command.toDefaultHendelsesMetadata(),
             sakId = command.sakId,
             relaterteHendelser = relaterteHendelser,
-            dokument = dokument,
+            dokumentUtenFil = dokumentMedMetadataUtenFil,
         )
     }
 }

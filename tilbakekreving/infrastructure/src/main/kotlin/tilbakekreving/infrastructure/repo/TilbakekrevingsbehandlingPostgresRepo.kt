@@ -35,7 +35,7 @@ import java.time.Clock
 import java.util.UUID
 
 val OpprettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETT_TILBAKEKREVINGSBEHANDLING")
-private val ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype =
+val ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("FORHÅNDSVARSLER_TILBAKEKREVINGSBEHANDLING")
 private val VurderMånederTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("VURDER_MÅNEDER_TILBAKEKREVINGSBEHANDLING")
