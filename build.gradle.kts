@@ -1,5 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_19
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
@@ -180,7 +180,7 @@ subprojects {
 
     tasks.withType<KotlinJvmCompile> {
         compilerOptions {
-            jvmTarget.set(JVM_19)
+            jvmTarget.set(JvmTarget.JVM_20)
             freeCompilerArgs.add("-progressive")
             allWarningsAsErrors.set(true)
         }
@@ -188,7 +188,7 @@ subprojects {
 
     java {
         // Ensuring any java-files is also compiled with the preferred version.
-        toolchain.languageVersion.set(JavaLanguageVersion.of(19))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(20))
     }
 
     tasks.withType<Wrapper> {

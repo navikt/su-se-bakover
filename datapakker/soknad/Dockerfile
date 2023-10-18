@@ -1,4 +1,4 @@
-FROM ghcr.io/navikt/baseimages/temurin:20
+FROM ghcr.io/navikt/baseimages/temurin:21
 
 COPY init-scripts/* /init-scripts/
 COPY datapakker/soknad/build/libs/*.jar ./

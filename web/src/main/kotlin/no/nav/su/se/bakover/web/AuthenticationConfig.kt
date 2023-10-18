@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.net.URL
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 internal fun Application.configureAuthentication(
@@ -27,7 +27,9 @@ internal fun Application.configureAuthentication(
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
             JwkProviderStub
         } else {
-            JwkProviderBuilder(URL(azureAd.jwksUri))
+            JwkProviderBuilder(
+                URI(azureAd.jwksUri).toURL(),
+            )
                 .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
                 .rateLimited(
                     10,
@@ -42,7 +44,7 @@ internal fun Application.configureAuthentication(
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test || applicationConfig.frikort.useStubForSts) {
             JwkProviderStub
         } else {
-            JwkProviderBuilder(URL(stsJwkConfig.getString("jwks_uri")))
+            JwkProviderBuilder(URI(stsJwkConfig.getString("jwks_uri")).toURL())
                 .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
                 .rateLimited(
                     10,
