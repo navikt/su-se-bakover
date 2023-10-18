@@ -129,9 +129,13 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagPåSakHendelse
 import no.nav.su.se.bakover.test.kravgrunnlag.råttKravgrunnlagHendelse
 import no.nav.su.se.bakover.test.nyForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
+import no.nav.su.se.bakover.test.nyIverksattTilbakekrevingsbehandlingHendelse
+import no.nav.su.se.bakover.test.nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.nyTilbakekrevingsbehandlingTilAttesteringHendelse
+import no.nav.su.se.bakover.test.nyVurdertTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.person
@@ -1745,9 +1749,92 @@ class TestDataHelper(
         }
     }
 
+    fun persisterIverksattTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterTilbakekrevingsbehandlingTilAttesteringHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyIverksattTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it)
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
+
+    fun persisterTilbakekrevingsbehandlingTilAttesteringHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it)
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
+
+    fun persisterVedtaksbrevTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVurdertTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it)
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
+
+    fun persisterVurdertTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyVurdertTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it)
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
+
     fun persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
         return persisterOpprettetTilbakekrevingsbehandlingHendelse().let {
-            // TODO jah: Dokumenthendelse
             Tuple5(
                 first = it.first,
                 second = it.second,
@@ -1763,6 +1850,7 @@ class TestDataHelper(
                             versjon = it.eighth.versjon.inc(),
                         ).also {
                             tilbakekrevingHendelseRepo.lagre(it)
+                            // TODO jah: Utføres en asynk oppgave+dokumenthendelse etter dette.
                         },
                     ),
                     clock = fixedClock,

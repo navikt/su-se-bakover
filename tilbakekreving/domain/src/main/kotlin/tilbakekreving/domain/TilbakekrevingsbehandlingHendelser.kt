@@ -126,6 +126,15 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         )
     }
 
+    /**
+     * @throws IllegalArgumentException dersom et av init-kravene feiler.
+     */
+    fun leggTil(nyHendelse: TilbakekrevingsbehandlingHendelse): TilbakekrevingsbehandlingHendelser {
+        return this.copy(
+            sorterteHendelser = sorterteHendelser + nyHendelse,
+        )
+    }
+
     companion object {
 
         fun empty(sakId: UUID, clock: Clock): TilbakekrevingsbehandlingHendelser {
