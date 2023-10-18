@@ -8,53 +8,53 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 
-/**
- * Oppretter en tilbakekrevingsbehandling for en gitt sak.
- * Kjører også konsumenten som lytter på disse hendelsene for å opprette en oppgave.
- */
-fun opprettTilbakekrevingsbehandling(
+fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
     sakId: String,
+    tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
-    opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
+    brevtekst: String? = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
 ): String {
     return runBlocking {
-        val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/ny",
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/brevtekst",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-            correlationId = correlationId.toString(),
-        ) { setBody("""{"saksversjon":$saksversjon}""") }.apply {
-            withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
+        ) {
+            setBody(
+                """
+            {
+                "versjon": $saksversjon,
+                "brevtekst": ${brevtekst?.let { "\"$brevtekst\"" } ?: "null"}
+            }
+                """.trimIndent(),
+            )
+        }.apply {
+            withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(it, sakId)
+                verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(it, sakId, brevtekst)
             }
-            opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
-                correlationId = correlationId,
-            )
         }
     }
 }
 
-fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
+fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
+    brevtekst: String?,
 ) {
     val expected = """
 {
@@ -84,10 +84,10 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
       }
     ]
   },
-  "status":"OPPRETTET",
+  "status":"VEDTAKSBREV",
   "månedsvurderinger":[],
-  "fritekst":null,
-  "forhåndsvarselDokumenter": []
+  "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
+  "forhåndsvarselDokumenter": ["ignore-me"]
 }"""
     JSONAssert.assertEquals(
         expected,
@@ -96,6 +96,12 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
             JSONCompareMode.STRICT,
             Customization(
                 "id",
+            ) { _, _ -> true },
+            Customization(
+                "forhåndsvarselDokumenter",
+            ) { _, _ -> true },
+            Customization(
+                "månedsvurderinger",
             ) { _, _ -> true },
         ),
     )

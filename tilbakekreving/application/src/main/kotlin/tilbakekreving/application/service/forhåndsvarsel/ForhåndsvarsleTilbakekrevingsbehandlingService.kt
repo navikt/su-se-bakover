@@ -43,16 +43,20 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
         }
 
         val sak = sakService.hentSak(sakId).getOrElse {
-            throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak $sakId")
+            throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak. Command: $command")
+        }
+        if (sak.versjon != command.klientensSisteSaksversjon) {
+            log.info("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+            return KunneIkkeForhåndsvarsle.UlikVersjon.left()
         }
 
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(id)
-                ?: throw IllegalStateException("Fant ikke Tilbakekrevingsbehandling $id, Sak id $sakId, saksnummer ${sak.saksnummer}")
+                ?: throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling. Fant ikke Tilbakekrevingsbehandling $id. Command: $command")
             )
             .let {
                 it as? KanForhåndsvarsle
-                    ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. For sak $sakId")
+                    ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
             }
 
         val (forhåndsvarsletHendelse, forhåndsvarsletBehandling) = behandling.leggTilForhåndsvarsel(

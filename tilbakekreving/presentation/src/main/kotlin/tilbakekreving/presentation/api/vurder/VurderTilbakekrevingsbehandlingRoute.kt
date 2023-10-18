@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
@@ -90,10 +91,10 @@ private fun Body.toCommand(
     }
 }
 
-internal fun Route.månedsvurderingerTilbakekrevingsbehandlingRoute(
+internal fun Route.vurderTilbakekrevingsbehandlingRoute(
     månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
 ) {
-    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/manedsvurder") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/vurder") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<Body> { body ->
                 call.withSakId { sakId ->
@@ -131,4 +132,5 @@ internal fun Route.månedsvurderingerTilbakekrevingsbehandlingRoute(
 
 private fun KunneIkkeVurdereTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {
     is KunneIkkeVurdereTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeVurdereTilbakekrevingsbehandling.UlikVersjon -> Feilresponser.utdatertVersjon
 }

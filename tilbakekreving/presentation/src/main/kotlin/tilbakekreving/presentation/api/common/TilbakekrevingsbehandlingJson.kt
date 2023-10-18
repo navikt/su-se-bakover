@@ -34,8 +34,13 @@ data class TilbakekrevingsbehandlingJson(
             kravgrunnlag = this.kravgrunnlag.toJson(),
             status = when (this) {
                 is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
-                is UnderBehandling.Påbegynt -> TilbakekrevingsbehandlingStatus.VURDERT_UTEN_BREV
-                is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VURDERT_MED_BREV
+                is UnderBehandling.Påbegynt -> {
+                    when {
+                        this.erVurdert() -> TilbakekrevingsbehandlingStatus.VURDERT
+                        else -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
+                    }
+                }
+                is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")

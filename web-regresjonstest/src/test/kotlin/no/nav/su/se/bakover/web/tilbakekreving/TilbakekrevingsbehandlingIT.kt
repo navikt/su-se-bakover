@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
-import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.person.Fnr
@@ -18,10 +17,6 @@ import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 internal class TilbakekrevingsbehandlingIT {
 
@@ -35,100 +30,70 @@ internal class TilbakekrevingsbehandlingIT {
             val stønadSlutt = 31.januar(2021)
             val fnr = Fnr.generer().toString()
 
-            opprettInnvilgetSøknadsbehandling(
+            val søknadsbehandlingJson = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = stønadStart.toString(),
                 tilOgMed = stønadSlutt.toString(),
                 client = this.client,
                 appComponents = appComponents,
-            ).let { søknadsbehandlingJson ->
+            )
 
-                val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
+            val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
-                @Suppress("UNUSED_VARIABLE")
-                val revurderingId = opprettIverksattRevurdering(
-                    sakid = sakId,
-                    fraogmed = 1.januar(2021).toString(),
-                    tilogmed = 31.januar(2021).toString(),
-                    client = this.client,
-                    appComponents = appComponents,
-                    skalUtsetteTilbakekreving = true,
-                ).let {
-                    RevurderingJson.hentRevurderingId(it)
-                }
-                appComponents.emulerViMottarKravgrunnlag()
-                verifiserKravgrunnlagPåSak(sakId, client, true, 2)
-                opprett(
-                    // Denne vil få versjon 3 (vi bekrefter at siste versjonen er 2)
-                    sakId = sakId,
-                    // Må økes etter hvert som vi får flere hendelser.
-                    versjon = 2,
-                    client = this.client,
-                )
-                // Det vil også opprettes en oppgave asynkront, men de jobbene kjøres ikke automatisk i regresjonstestene.
-                verifiserKravgrunnlagPåSak(sakId, client, true, 3)
+            @Suppress("UNUSED_VARIABLE")
+            val revurderingId = opprettIverksattRevurdering(
+                sakid = sakId,
+                fraogmed = 1.januar(2021).toString(),
+                tilogmed = 31.januar(2021).toString(),
+                client = this.client,
+                appComponents = appComponents,
+                skalUtsetteTilbakekreving = true,
+            ).let {
+                RevurderingJson.hentRevurderingId(it)
             }
+            appComponents.emulerViMottarKravgrunnlag()
+            verifiserKravgrunnlagPåSak(sakId, client, true, 2)
+            val tilbakekrevingsbehandlingId = opprettTilbakekrevingsbehandling(
+                sakId = sakId,
+                // Må økes etter hvert som vi får flere hendelser.
+                saksversjon = 2,
+                client = this.client,
+                opprettOppgaveForTilbakekrevingshendelserKonsument = appComponents.tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
+            ).let {
+                hentTilbakekrevingsbehandlingId(it)
+            }
+            // Saksversjon 4 vil være en asynkron oppgave
+            forhåndsvisForhåndsvarselTilbakekreving(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 4,
+                client = this.client,
+            )
+            forhåndsvarsleTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 4,
+                client = this.client,
+            )
+            // Saksversjon 6 vil være en synkron oppgave (TODO: skal bli asynkront)
+            // Saksversjon 7 vil være et synkront dokument (TODO: skal bli asynkront)
+            vurderTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 7,
+                client = this.client,
+            )
+            oppdaterVedtaksbrevTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 8,
+                client = this.client,
+            )
+            verifiserKravgrunnlagPåSak(sakId, client, true, 9)
         }
     }
-
-    private fun opprett(
-        sakId: String,
-        versjon: Long = 1,
-        @Suppress("UNUSED_PARAMETER") nesteVersjon: Long = versjon + 1,
-        client: HttpClient,
-        expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
-    ) {
-        val actual = opprettTilbakekrevingsbehandling(
-            sakId = sakId,
-            saksversjon = versjon,
-            expectedHttpStatusCode = expectedHttpStatusCode,
-            client = client,
-        )
-        val expected = """
-{
-  "id":"ignore-me",
-  "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:43.456789Z",
-  "opprettetAv":"Z990Lokal",
-  "kravgrunnlag":{
-    "eksternKravgrunnlagsId":"123456",
-    "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.39.456789",
-    "status":"NY",
-    "grunnlagsperiode":[
-      {
-        "periode":{
-          "fraOgMed":"2021-01-01",
-          "tilOgMed":"2021-01-31"
-        },
-        "beløpSkattMnd":"6192",
-          "ytelse": {
-            "beløpTidligereUtbetaling":"20946",
-            "beløpNyUtbetaling":"8563",
-            "beløpSkalTilbakekreves":"12383",
-            "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50"
-          },
-      }
-    ]
-  },
-  "status":"OPPRETTET",
-  "månedsvurderinger":[],
-  "fritekst":null,
-  "forhåndsvarselDokumenter": []
-}"""
-        JSONAssert.assertEquals(
-            expected,
-            actual,
-            CustomComparator(
-                JSONCompareMode.STRICT,
-                Customization(
-                    "id",
-                ) { _, _ -> true },
-            ),
-        )
-    }
 }
+
 private fun verifiserKravgrunnlagPåSak(
     sakId: String,
     client: HttpClient,

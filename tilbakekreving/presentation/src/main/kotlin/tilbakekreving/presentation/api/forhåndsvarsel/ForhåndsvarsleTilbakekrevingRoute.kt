@@ -103,4 +103,6 @@ internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {
 
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
     }
+
+    KunneIkkeForhåndsvarsle.UlikVersjon -> Feilresponser.utdatertVersjon
 }

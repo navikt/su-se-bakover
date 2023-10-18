@@ -13,8 +13,8 @@ import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbake
 import tilbakekreving.presentation.api.iverksett.iverksettTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.vurder.brevTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.vurder.månedsvurderingerTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.vedtaksbrev.vedtaksbrevTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.vurder.vurderTilbakekrevingsbehandlingRoute
 
 internal const val TILBAKEKREVING_PATH = "saker/{sakId}/tilbakekreving"
 
@@ -28,8 +28,8 @@ fun Route.tilbakekrevingRoutes(
     iverksettTilbakekrevingService: IverksettTilbakekrevingService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
-    this.månedsvurderingerTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
-    this.brevTilbakekrevingsbehandlingRoute(brevTilbakekrevingsbehandlingService)
+    this.vurderTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
+    this.vedtaksbrevTilbakekrevingsbehandlingRoute(brevTilbakekrevingsbehandlingService)
     this.forhåndsvarsleTilbakekrevingRoute(forhåndsvarsleTilbakekrevingsbehandlingService)
     this.visForhåndsvarselTilbakekrevingsbrev(forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService)
     this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)

@@ -43,6 +43,8 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
 
         override fun erÅpen(): Boolean = true
 
+        fun erVurdert(): Boolean = månedsvurderinger != null
+
         /**
          * Siden vedtaksbrevet er avhengig av månedsperiodene krever vi at månedsvurderingene er utfylt først.
          * Kan vurdere å gjøre Påbegynt til sealed og dele den opp i med og uten brev.

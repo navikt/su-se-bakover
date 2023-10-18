@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
 import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -8,51 +9,42 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import org.json.JSONObject
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 
-/**
- * Oppretter en tilbakekrevingsbehandling for en gitt sak.
- * Kjører også konsumenten som lytter på disse hendelsene for å opprette en oppgave.
- */
-fun opprettTilbakekrevingsbehandling(
+fun forhåndsvarsleTilbakekrevingsbehandling(
     sakId: String,
+    tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
-    opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
+    fritekst: String = "Regresjonstest: Fritekst til forhåndsvarsel under tilbakekrevingsbehandling.",
 ): String {
     return runBlocking {
-        val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/ny",
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/forhandsvarsel",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-            correlationId = correlationId.toString(),
-        ) { setBody("""{"saksversjon":$saksversjon}""") }.apply {
-            withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
+        ) { setBody("""{"versjon":$saksversjon,"fritekst":"$fritekst"}""") }.apply {
+            withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(it, sakId)
+                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(it, sakId)
             }
-            opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
-                correlationId = correlationId,
-            )
         }
     }
 }
 
-fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
+fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
 ) {
@@ -74,20 +66,20 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"6192",
-          "ytelse": {
-            "beløpTidligereUtbetaling":"20946",
-            "beløpNyUtbetaling":"8563",
-            "beløpSkalTilbakekreves":"12383",
-            "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50"
-          },
+        "ytelse": {
+          "beløpTidligereUtbetaling":"20946",
+          "beløpNyUtbetaling":"8563",
+          "beløpSkalTilbakekreves":"12383",
+          "beløpSkalIkkeTilbakekreves":"0",
+          "skatteProsent":"50"
+        },
       }
     ]
   },
-  "status":"OPPRETTET",
+  "status":"FORHÅNDSVARSLET",
   "månedsvurderinger":[],
   "fritekst":null,
-  "forhåndsvarselDokumenter": []
+  "forhåndsvarselDokumenter": ["ignore-me"]
 }"""
     JSONAssert.assertEquals(
         expected,
@@ -97,6 +89,10 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
             Customization(
                 "id",
             ) { _, _ -> true },
+            Customization(
+                "forhåndsvarselDokumenter",
+            ) { _, _ -> true },
         ),
     )
+    JSONObject(actual).getJSONArray("forhåndsvarselDokumenter").shouldHaveSize(1)
 }

@@ -14,7 +14,7 @@ import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import java.time.Clock
 
-fun Sak.vurderTilbakekrevingsbehandling(
+fun Sak.oppdaterVedtaksbrev(
     command: OppdaterMånedsvurderingerCommand,
     clock: Clock,
 ): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
@@ -29,7 +29,7 @@ fun Sak.vurderTilbakekrevingsbehandling(
         ?: throw IllegalStateException("Tilbakekrevingsbehandling ${command.behandlingsId} enten fantes ikke eller var ikke i KanVurdere tilstanden. Sak id $id, saksnummer $saksnummer")
 }
 
-fun Sak.vurderTilbakekrevingsbehandling(
+fun Sak.oppdaterVedtaksbrev(
     command: OppdaterBrevtekstCommand,
     clock: Clock,
 ): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {

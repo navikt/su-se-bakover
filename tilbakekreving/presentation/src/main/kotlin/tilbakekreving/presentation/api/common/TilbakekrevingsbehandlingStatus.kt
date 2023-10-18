@@ -2,8 +2,11 @@ package tilbakekreving.presentation.api.common
 
 enum class TilbakekrevingsbehandlingStatus {
     OPPRETTET,
-    VURDERT_UTEN_BREV,
-    VURDERT_MED_BREV,
+    FORHÅNDSVARSLET,
+    VURDERT,
+    VEDTAKSBREV,
     TIL_ATTESTERING,
     IVERKSATT,
+    AVBRUTT,
+    UNDERKJENT,
 }

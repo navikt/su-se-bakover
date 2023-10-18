@@ -247,6 +247,7 @@ data object SharedRegressionTestData {
         uri: String,
         roller: List<Brukerrolle> = emptyList(),
         navIdent: String = "Z990Lokal",
+        correlationId: String = DEFAULT_CALL_ID,
         client: HttpClient,
         setup: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
@@ -256,7 +257,7 @@ data object SharedRegressionTestData {
                 val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
                 this.method = method
                 this.headers {
-                    append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                    append(HttpHeaders.XCorrelationId, correlationId)
                     append(HttpHeaders.Authorization, bearerToken)
                 }
                 setup()

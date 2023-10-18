@@ -10,4 +10,5 @@ sealed interface KunneIkkeSendeTilAttestering {
      * Saksbehandler må da oppdatere kravgrunnlaget.
      */
     data object KravgrunnlagetHarEndretSeg : KunneIkkeSendeTilAttestering
+    data object UlikVersjon : KunneIkkeSendeTilAttestering
 }

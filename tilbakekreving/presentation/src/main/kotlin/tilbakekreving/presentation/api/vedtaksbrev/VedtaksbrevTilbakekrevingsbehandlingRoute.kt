@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.vurder
+package tilbakekreving.presentation.api.vedtaksbrev
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
@@ -32,6 +33,7 @@ import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
 import java.util.UUID
 
+// TODO jah: Vi må ta stilling til om vi skal sende brev eller ikke.
 private data class BrevtekstBody(
     val versjon: Long,
     val brevtekst: String?,
@@ -64,7 +66,7 @@ private data class BrevtekstBody(
     }
 }
 
-internal fun Route.brevTilbakekrevingsbehandlingRoute(
+internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
     brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
 ) {
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/brevtekst") {
@@ -97,4 +99,5 @@ internal fun Route.brevTilbakekrevingsbehandlingRoute(
 
 internal fun KunneIkkeLagreBrevtekst.tilResultat(): Resultat = when (this) {
     is KunneIkkeLagreBrevtekst.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeLagreBrevtekst.UlikVersjon -> Feilresponser.utdatertVersjon
 }

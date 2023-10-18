@@ -10,4 +10,5 @@ sealed interface KunneIkkeIverksette {
      * Saksbehandler må da oppdatere kravgrunnlaget.
      */
     data object KravgrunnlagetHarEndretSeg : KunneIkkeIverksette
+    data object UlikVersjon : KunneIkkeIverksette
 }

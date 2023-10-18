@@ -6,6 +6,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
@@ -59,4 +60,5 @@ internal fun Route.iverksettTilbakekrevingsbehandlingRoute(
 private fun KunneIkkeIverksette.tilResultat(): Resultat = when (this) {
     is KunneIkkeIverksette.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeIverksette.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
+    KunneIkkeIverksette.UlikVersjon -> Feilresponser.utdatertVersjon
 }
