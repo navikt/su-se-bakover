@@ -276,6 +276,8 @@ tasks.named("build") {
 tasks.register("verifyUniqueJarNames") {
     doLast {
         val allJarNames = allprojects.mapNotNull { project ->
+            // :datapakker:soknad kjøres som egen pod og må hete app.jar (samme som application-modulen) pga. baseimages: https://github.com/navikt/baseimages/tree/master/java
+            if (project.path == ":datapakker:soknad") return@mapNotNull null
             project.tasks.findByName("jar")?.let {
                 (it as? org.gradle.jvm.tasks.Jar)?.archiveBaseName?.get()
             }
