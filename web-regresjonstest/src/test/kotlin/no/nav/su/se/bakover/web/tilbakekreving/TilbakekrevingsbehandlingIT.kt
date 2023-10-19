@@ -69,27 +69,56 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = 4,
                 client = this.client,
             )
-            forhåndsvarsleTilbakekrevingsbehandling(
+            val forhåndsvarselDokumenter = forhåndsvarsleTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = 4,
                 client = this.client,
-            )
+            ).let {
+                hentForhåndsvarselDokumenter(it)
+            }
             // Saksversjon 6 vil være en synkron oppgave (TODO: skal bli asynkront)
             // Saksversjon 7 vil være et synkront dokument (TODO: skal bli asynkront)
-            vurderTilbakekrevingsbehandling(
+            val vurderinger = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = 7,
                 client = this.client,
-            )
-            oppdaterVedtaksbrevTilbakekrevingsbehandling(
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+            ).let {
+                hentVurderinger(it)
+            }
+            val fritekst = oppdaterVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = 8,
                 client = this.client,
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+                verifiserVurderinger = vurderinger,
+            ).let {
+                hentFritekst(it)
+            }
+            sendTilbakekrevingsbehandlingTilAttestering(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 9,
+                client = this.client,
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+                verifiserVurderinger = vurderinger,
+                verifiserFritekst = fritekst,
             )
-            verifiserKravgrunnlagPåSak(sakId, client, true, 9)
+            // TODO jah: Her skal vi lukke+opprette ny oppgave.
+            iverksettTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 10,
+                client = this.client,
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+                verifiserVurderinger = vurderinger,
+                verifiserFritekst = fritekst,
+            )
+            // TODO jah: Her skal vi lukke oppgave + sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
+            verifiserKravgrunnlagPåSak(sakId, client, true, 11)
         }
     }
 }

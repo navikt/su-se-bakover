@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
 
 data class OpprettetTilbakekrevingsbehandling(
@@ -29,25 +29,29 @@ data class OpprettetTilbakekrevingsbehandling(
     override fun erÅpen() = true
 
     override fun leggTilForhåndsvarselDokumentId(
-        hendelseId: HendelseId,
         dokumentId: UUID,
+        hendelseId: HendelseId,
+        versjon: Hendelsesversjon,
     ) = UnderBehandling.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
+        versjon = versjon,
         månedsvurderinger = this.månedsvurderinger,
         forhåndsvarselDokumentIder = listOf(dokumentId),
     )
 
     override fun leggTilVurderinger(
+        månedsvurderinger: Vurderinger,
         hendelseId: HendelseId,
-        månedsvurderinger: Månedsvurderinger,
+        versjon: Hendelsesversjon,
     ) = UnderBehandling.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
         månedsvurderinger = månedsvurderinger,
         forhåndsvarselDokumentIder = listOf(),
+        versjon = versjon,
     )
 
-    override val månedsvurderinger: Månedsvurderinger? = null
+    override val månedsvurderinger: Vurderinger? = null
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
 }

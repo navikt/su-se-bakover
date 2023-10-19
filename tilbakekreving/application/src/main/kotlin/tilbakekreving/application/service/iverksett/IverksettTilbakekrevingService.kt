@@ -40,14 +40,19 @@ class IverksettTilbakekrevingService(
         }
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(id)
-                ?: throw IllegalStateException("Kunne ikke iverksette tilbakekrevingsbehandling $id, fant ikke tilbakekrevingsbehandling på sak ${command.sakId}")
+                ?: throw IllegalStateException("Kunne ikke iverksette tilbakekrevingsbehandling $id, fant ikke tilbakekrevingsbehandling på sak. Command: $command")
             ).let {
             it as? TilbakekrevingsbehandlingTilAttestering
-                ?: throw IllegalStateException("Kunne ikke iverksette tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering")
+                ?: throw IllegalStateException("Kunne ikke iverksette tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
+        }
+
+        if (command.utførtAv.navIdent == behandling.sendtTilAttesteringAv.navIdent) {
+            log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id, attestant er ikke den samme som den som er satt på behandlingen. Command: $command")
+            return KunneIkkeIverksette.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         if (sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId != behandling.kravgrunnlag.eksternKravgrunnlagId) {
-            log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id, kravgrunnlaget på behandlingen (eksternKravgrunnlagId ${behandling.kravgrunnlag.eksternKravgrunnlagId}) er ikke det samme som det som er på saken (eksternKravgrunnlagId ${sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId}). For sakId ${sak.id}")
+            log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id, kravgrunnlaget på behandlingen (eksternKravgrunnlagId ${behandling.kravgrunnlag.eksternKravgrunnlagId}) er ikke det samme som det som er på saken (eksternKravgrunnlagId ${sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId}). Command: $command")
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
         }
 

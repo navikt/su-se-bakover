@@ -34,7 +34,7 @@ internal fun mapToTilIverksattHendelse(
         versjon = versjon,
         meta = meta,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
-        utførtAv = NavIdentBruker.Saksbehandler(deserialized.utførtAv),
+        utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
         tidligereHendelseId = tidligereHendelseId,
     )
 }

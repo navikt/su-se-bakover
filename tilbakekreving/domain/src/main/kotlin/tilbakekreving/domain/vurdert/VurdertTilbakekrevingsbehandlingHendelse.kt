@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.vurdert.Månedsvurderinger
-import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
+import tilbakekreving.domain.vurdert.VurderCommand
+import tilbakekreving.domain.vurdert.Vurderinger
 import java.time.Clock
 import java.util.UUID
 
@@ -24,7 +24,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val vurderinger: Månedsvurderinger,
+    val vurderinger: Vurderinger,
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
@@ -35,8 +35,9 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is KanVurdere -> behandling.leggTilVurderinger(
-                hendelseId = this.hendelseId,
                 månedsvurderinger = this.vurderinger,
+                hendelseId = this.hendelseId,
+                versjon = this.versjon,
             )
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
@@ -47,7 +48,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
 }
 
 fun KanVurdere.leggTilVurdering(
-    command: OppdaterMånedsvurderingerCommand,
+    command: VurderCommand,
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
@@ -65,7 +66,7 @@ fun KanVurdere.leggTilVurdering(
         ),
         id = command.behandlingsId,
         utførtAv = command.utførtAv,
-        vurderinger = Månedsvurderinger(command.vurderinger.toNonEmptyList()),
+        vurderinger = Vurderinger(command.vurderinger.toNonEmptyList()),
     )
     return hendelse to hendelse.applyToState(this)
 }

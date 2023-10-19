@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
 
-data class OppdaterMånedsvurderingerCommand(
+data class VurderCommand(
     val vurderinger: List<Månedsvurdering>,
     val sakId: UUID,
     val behandlingsId: TilbakekrevingsbehandlingId,

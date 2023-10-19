@@ -12,7 +12,7 @@ import java.util.UUID
 data class IverksettTilbakekrevingsbehandlingCommand(
     val sakId: UUID,
     val tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
+    val utførtAv: NavIdentBruker.Attestant,
     val correlationId: CorrelationId,
     val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,

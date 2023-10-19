@@ -10,10 +10,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 fun vurderTilbakekrevingsbehandling(
     sakId: String,
@@ -22,7 +19,8 @@ fun vurderTilbakekrevingsbehandling(
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
-    måneder: String = """
+    verifiserForhåndsvarselDokumenter: String,
+    vurderinger: String = """
         [
             {
                 "måned": "2021-01",
@@ -42,7 +40,7 @@ fun vurderTilbakekrevingsbehandling(
                 """
             {
                 "versjon": $saksversjon,
-                "måneder": $måneder
+                "måneder": $vurderinger
             }
                 """.trimIndent(),
             )
@@ -55,7 +53,9 @@ fun vurderTilbakekrevingsbehandling(
                 verifiserVurdertTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
-                    måneder = måneder,
+                    måneder = vurderinger,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                 )
             }
         }
@@ -64,12 +64,14 @@ fun vurderTilbakekrevingsbehandling(
 
 fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     actual: String,
+    tilbakekrevingsbehandlingId: String,
+    forhåndsvarselDokumenter: String,
     sakId: String,
     måneder: String,
 ) {
     val expected = """
 {
-  "id":"ignore-me",
+  "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
   "opprettet":"2021-02-01T01:03:43.456789Z",
   "opprettetAv":"Z990Lokal",
@@ -98,19 +100,11 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "status":"VURDERT",
   "månedsvurderinger":$måneder,
   "fritekst":null,
-  "forhåndsvarselDokumenter": ["ignore-me"]
+  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
 }"""
     JSONAssert.assertEquals(
         expected,
         actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization(
-                "id",
-            ) { _, _ -> true },
-            Customization(
-                "forhåndsvarselDokumenter",
-            ) { _, _ -> true },
-        ),
+        true,
     )
 }

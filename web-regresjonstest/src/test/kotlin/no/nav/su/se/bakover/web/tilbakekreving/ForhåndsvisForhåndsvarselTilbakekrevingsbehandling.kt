@@ -43,7 +43,9 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserForhåndsvisForhåndsvarselTilbakekrevingsbehandlingRespons(it)
+                verifiserForhåndsvisForhåndsvarselTilbakekrevingsbehandlingRespons(
+                    actual = it,
+                )
             }
         }
     }

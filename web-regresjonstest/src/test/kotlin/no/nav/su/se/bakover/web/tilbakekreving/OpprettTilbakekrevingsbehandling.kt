@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import org.json.JSONObject
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -37,13 +38,13 @@ fun opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"saksversjon":$saksversjon}""") }.apply {
+        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
             withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(it, sakId)
+                verifiserOpprettetTilbakekrevingsbehandlingRespons(actual = it, sakId = sakId)
             }
             opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
                 correlationId = correlationId,
@@ -58,7 +59,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
 ) {
     val expected = """
 {
-  "id":"ignore-me",
+  "id":"ignoreres-siden-denne-opprettes-av-tjenesten",
   "sakId":"$sakId",
   "opprettet":"2021-02-01T01:03:43.456789Z",
   "opprettetAv":"Z990Lokal",
@@ -99,4 +100,5 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
             ) { _, _ -> true },
         ),
     )
+    JSONObject(actual).has("id") shouldBe true
 }

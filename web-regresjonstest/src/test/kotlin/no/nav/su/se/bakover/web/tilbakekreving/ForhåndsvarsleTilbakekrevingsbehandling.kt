@@ -38,7 +38,11 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(it, sakId)
+                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
+                    actual = it,
+                    sakId = sakId,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                )
             }
         }
     }
@@ -47,10 +51,11 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
 fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
+    tilbakekrevingsbehandlingId: String,
 ) {
     val expected = """
 {
-  "id":"ignore-me",
+  "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
   "opprettet":"2021-02-01T01:03:43.456789Z",
   "opprettetAv":"Z990Lokal",
@@ -79,16 +84,13 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "status":"FORHÅNDSVARSLET",
   "månedsvurderinger":[],
   "fritekst":null,
-  "forhåndsvarselDokumenter": ["ignore-me"]
+  "forhåndsvarselDokumenter": ["ignoreres-siden-denne-opprettes-av-tjenesten"]
 }"""
     JSONAssert.assertEquals(
         expected,
         actual,
         CustomComparator(
             JSONCompareMode.STRICT,
-            Customization(
-                "id",
-            ) { _, _ -> true },
             Customization(
                 "forhåndsvarselDokumenter",
             ) { _, _ -> true },

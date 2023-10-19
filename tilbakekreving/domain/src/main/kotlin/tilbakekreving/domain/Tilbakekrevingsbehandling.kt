@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
 
 /**
@@ -24,7 +24,7 @@ sealed interface Tilbakekrevingsbehandling {
     val opprettet: Tidspunkt
     val opprettetAv: NavIdentBruker.Saksbehandler
     val kravgrunnlag: Kravgrunnlag
-    val månedsvurderinger: Månedsvurderinger?
+    val månedsvurderinger: Vurderinger?
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 /**
  * Krever at månedene er sorterte, uten duplikater, men vi aksepterer hull.
  */
-data class Månedsvurderinger(
+data class Vurderinger(
     val vurderinger: Nel<Månedsvurdering>,
 ) : List<Månedsvurdering> by vurderinger {
     init {

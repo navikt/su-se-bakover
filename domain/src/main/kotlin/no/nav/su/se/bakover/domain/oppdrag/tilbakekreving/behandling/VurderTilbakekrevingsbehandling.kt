@@ -11,11 +11,11 @@ import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.leggTilBrevtekst
 import tilbakekreving.domain.leggTilVurdering
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
-import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
+import tilbakekreving.domain.vurdert.VurderCommand
 import java.time.Clock
 
 fun Sak.oppdaterVedtaksbrev(
-    command: OppdaterMånedsvurderingerCommand,
+    command: VurderCommand,
     clock: Clock,
 ): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
     return (this.hentTilbakekrevingsbehandling(command.behandlingsId) as? KanVurdere)?.let { behandling ->

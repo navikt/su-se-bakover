@@ -3,6 +3,7 @@
 
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -20,7 +21,7 @@ data class IverksattHendelse(
     override val meta: DefaultHendelseMetadata,
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
-    override val utførtAv: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Attestant,
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val entitetId: UUID = sakId
@@ -37,7 +38,7 @@ data class IverksattHendelse(
             versjon: Hendelsesversjon,
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
-            utførtAv: NavIdentBruker.Saksbehandler,
+            utførtAv: NavIdentBruker.Attestant,
         ) = IverksattHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -60,6 +61,15 @@ data class IverksattHendelse(
 
             is TilbakekrevingsbehandlingTilAttestering -> IverksattTilbakekrevingsbehandling(
                 forrigeSteg = behandling,
+                hendelseId = this.hendelseId,
+                versjon = this.versjon,
+                attesteringer = behandling.attesteringer.leggTilNyAttestering(
+                    attestering = Attestering.Iverksatt(
+                        attestant = this.utførtAv,
+                        opprettet = this.hendelsestidspunkt,
+                    ),
+                ),
+
             )
         }
     }
@@ -69,7 +79,7 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
     meta: DefaultHendelseMetadata,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-    utførtAv: NavIdentBruker.Saksbehandler,
+    utførtAv: NavIdentBruker.Attestant,
 ): IverksattHendelse {
     return IverksattHendelse.iverksett(
         sakId = this.sakId,

@@ -61,6 +61,9 @@ data class TilAttesteringHendelse(
 
             is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingTilAttestering(
                 forrigeSteg = behandling,
+                hendelseId = this.hendelseId,
+                versjon = this.versjon,
+                sendtTilAttesteringAv = this.utførtAv,
             )
         }
     }

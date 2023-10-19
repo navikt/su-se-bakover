@@ -26,14 +26,14 @@ import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.kravgrunnlagetHarEndretSeg
 
 private data class Body(
-    val saksversjon: Long,
+    val versjon: Long,
 )
 
 internal fun Route.iverksettTilbakekrevingsbehandlingRoute(
     service: IverksettTilbakekrevingService,
 ) {
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/iverksett") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        authorize(Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { id ->
                     call.withBody<Body> { body ->
@@ -41,10 +41,10 @@ internal fun Route.iverksettTilbakekrevingsbehandlingRoute(
                             command = IverksettTilbakekrevingsbehandlingCommand(
                                 sakId = sakId,
                                 tilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId(id),
-                                utførtAv = call.suUserContext.saksbehandler,
+                                utførtAv = call.suUserContext.attestant,
                                 correlationId = call.correlationId,
                                 brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                                klientensSisteSaksversjon = Hendelsesversjon(body.saksversjon),
+                                klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
                             ),
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -61,4 +61,5 @@ private fun KunneIkkeIverksette.tilResultat(): Resultat = when (this) {
     is KunneIkkeIverksette.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeIverksette.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
     KunneIkkeIverksette.UlikVersjon -> Feilresponser.utdatertVersjon
+    KunneIkkeIverksette.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 }

@@ -11,7 +11,7 @@ import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgan
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
+import tilbakekreving.domain.vurdert.VurderCommand
 import java.time.Clock
 
 class MånedsvurderingerTilbakekrevingsbehandlingService(
@@ -23,7 +23,7 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun vurder(
-        command: OppdaterMånedsvurderingerCommand,
+        command: VurderCommand,
     ): Either<KunneIkkeVurdereTilbakekrevingsbehandling, UnderBehandling> {
         val sakId = command.sakId
 

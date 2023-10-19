@@ -51,8 +51,9 @@ data class BrevTilbakekrevingsbehandlingHendelse(
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is UnderBehandling -> behandling.oppdaterVedtaksbrev(
-                hendelseId = this.hendelseId,
                 vedtaksbrevvalg = this.brevvalg,
+                hendelseId = this.hendelseId,
+                versjon = this.versjon,
             )
         }
     }

@@ -6,7 +6,8 @@ package tilbakekreving.domain
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import tilbakekreving.domain.vurdert.Månedsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
 
 /**
@@ -22,7 +23,7 @@ import java.util.UUID
 sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvarsle {
 
     val forrigeSteg: KanEndres
-    override val månedsvurderinger: Månedsvurderinger?
+    override val månedsvurderinger: Vurderinger?
     override fun erÅpen() = true
 
     /**
@@ -35,7 +36,8 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
     data class Påbegynt(
         override val forrigeSteg: KanEndres,
         override val hendelseId: HendelseId,
-        override val månedsvurderinger: Månedsvurderinger?,
+        override val versjon: Hendelsesversjon,
+        override val månedsvurderinger: Vurderinger?,
         override val forhåndsvarselDokumentIder: List<UUID>,
     ) : UnderBehandling, KanEndres by forrigeSteg {
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
@@ -50,8 +52,9 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
          * Kan vurdere å gjøre Påbegynt til sealed og dele den opp i med og uten brev.
          */
         override fun oppdaterVedtaksbrev(
-            hendelseId: HendelseId,
             vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
         ): Utfylt {
             return if (månedsvurderinger == null) {
                 throw IllegalArgumentException("Må gjøre månedsvurderingene før man tar stilling til vedtaksbrev")
@@ -63,26 +66,31 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
                     vedtaksbrevvalg = vedtaksbrevvalg,
                     attesteringer = forrigeSteg.attesteringer,
                     forhåndsvarselDokumentIder = forhåndsvarselDokumentIder,
+                    versjon = versjon,
                 )
             }
         }
 
         override fun leggTilForhåndsvarselDokumentId(
-            hendelseId: HendelseId,
             dokumentId: UUID,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
         ): Påbegynt {
             return this.copy(
-                hendelseId = hendelseId,
                 forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
+                hendelseId = hendelseId,
+                versjon = versjon,
             )
         }
 
         override fun leggTilVurderinger(
+            månedsvurderinger: Vurderinger,
             hendelseId: HendelseId,
-            månedsvurderinger: Månedsvurderinger,
+            versjon: Hendelsesversjon,
         ) = this.copy(
-            hendelseId = hendelseId,
             månedsvurderinger = månedsvurderinger,
+            hendelseId = hendelseId,
+            versjon = versjon,
         )
     }
 
@@ -97,31 +105,35 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
     data class Utfylt(
         override val forrigeSteg: KanEndres,
         override val hendelseId: HendelseId,
-        override val månedsvurderinger: Månedsvurderinger,
+        override val versjon: Hendelsesversjon,
+        override val månedsvurderinger: Vurderinger,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
         override val forhåndsvarselDokumentIder: List<UUID>,
     ) : UnderBehandling, KanEndres by forrigeSteg {
 
         override fun leggTilVurderinger(
+            månedsvurderinger: Vurderinger,
             hendelseId: HendelseId,
-            månedsvurderinger: Månedsvurderinger,
+            versjon: Hendelsesversjon,
         ) = this.copy(
             hendelseId = hendelseId,
             månedsvurderinger = månedsvurderinger,
         )
 
         override fun oppdaterVedtaksbrev(
-            hendelseId: HendelseId,
             vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
         ) = this.copy(
             hendelseId = hendelseId,
             vedtaksbrevvalg = vedtaksbrevvalg,
         )
 
         override fun leggTilForhåndsvarselDokumentId(
-            hendelseId: HendelseId,
             dokumentId: UUID,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
         ) = this.copy(
             hendelseId = hendelseId,
             forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),

@@ -28,9 +28,9 @@ import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevin
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdert.Månedsvurdering
-import tilbakekreving.domain.vurdert.Månedsvurderinger
-import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
+import tilbakekreving.domain.vurdert.VurderCommand
 import tilbakekreving.domain.vurdert.Vurdering
+import tilbakekreving.domain.vurdert.Vurderinger
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
@@ -54,7 +54,7 @@ private fun Body.toCommand(
     utførtAv: NavIdentBruker.Saksbehandler,
     correlationId: CorrelationId,
     brukerroller: List<Brukerrolle>,
-): Either<Resultat, OppdaterMånedsvurderingerCommand> {
+): Either<Resultat, VurderCommand> {
     return this.måneder.map { måned ->
         Månedsvurdering(
             måned = Måned.fra(YearMonth.parse(måned.måned)),
@@ -79,8 +79,8 @@ private fun Body.toCommand(
             ).left()
         }
 
-        OppdaterMånedsvurderingerCommand(
-            vurderinger = Månedsvurderinger(validatedMånedsvurderinger),
+        VurderCommand(
+            vurderinger = Vurderinger(validatedMånedsvurderinger),
             sakId = sakId,
             behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
             utførtAv = utførtAv,

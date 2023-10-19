@@ -16,8 +16,9 @@ import java.util.UUID
 sealed interface KanForhåndsvarsle : KanEndres {
 
     fun leggTilForhåndsvarselDokumentId(
-        hendelseId: HendelseId,
         dokumentId: UUID,
+        hendelseId: HendelseId,
+        versjon: Hendelsesversjon,
     ): UnderBehandling
 
     override fun erÅpen() = true

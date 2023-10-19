@@ -26,7 +26,7 @@ import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.kravgrunnlagetHarEndretSeg
 
 private data class Body(
-    val saksversjon: Long,
+    val versjon: Long,
 )
 
 internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
@@ -44,7 +44,7 @@ internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
                                 utførtAv = call.suUserContext.saksbehandler,
                                 correlationId = call.correlationId,
                                 brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                                klientensSisteSaksversjon = Hendelsesversjon(body.saksversjon),
+                                klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
                             ),
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },

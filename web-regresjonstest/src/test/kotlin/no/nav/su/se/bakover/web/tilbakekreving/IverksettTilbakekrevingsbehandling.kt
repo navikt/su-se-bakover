@@ -9,61 +9,55 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import org.skyscreamer.jsonassert.JSONAssert
 
-fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
+fun iverksettTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("AttestantLokal"),
     saksversjon: Long,
-    brevtekst: String? = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
+    verifiserFritekst: String,
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/brevtekst",
-            listOf(Brukerrolle.Saksbehandler),
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/iverksett",
+            listOf(Brukerrolle.Attestant),
             client = client,
-        ) {
-            setBody(
-                """
-            {
-                "versjon": $saksversjon,
-                "brevtekst": ${brevtekst?.let { "\"$brevtekst\"" } ?: "null"}
-            }
-                """.trimIndent(),
-            )
-        }.apply {
-            withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
+            navIdent = attestant.toString(),
+        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+            withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
+                verifiserIverksattTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
-                    brevtekst = brevtekst,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    vurderinger = verifiserVurderinger,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                    vurderinger = verifiserVurderinger,
+                    fritekst = verifiserFritekst,
                 )
             }
         }
     }
 }
 
-fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
+fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     actual: String,
-    sakId: String,
-    brevtekst: String?,
     tilbakekrevingsbehandlingId: String,
-    vurderinger: String,
     forhåndsvarselDokumenter: String,
+    sakId: String,
+    vurderinger: String,
+    fritekst: String,
 ) {
     val expected = """
 {
@@ -83,19 +77,19 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"6192",
-          "ytelse": {
-            "beløpTidligereUtbetaling":"20946",
-            "beløpNyUtbetaling":"8563",
-            "beløpSkalTilbakekreves":"12383",
-            "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50"
-          },
+        "ytelse": {
+          "beløpTidligereUtbetaling":"20946",
+          "beløpNyUtbetaling":"8563",
+          "beløpSkalTilbakekreves":"12383",
+          "beløpSkalIkkeTilbakekreves":"0",
+          "skatteProsent":"50"
+        },
       }
     ]
   },
-  "status":"VEDTAKSBREV",
+  "status":"IVERKSATT",
   "månedsvurderinger":$vurderinger,
-  "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
+  "fritekst":"$fritekst",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
 }"""
     JSONAssert.assertEquals(

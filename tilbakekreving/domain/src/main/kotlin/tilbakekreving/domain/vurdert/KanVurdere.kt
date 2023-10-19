@@ -4,13 +4,15 @@
 package tilbakekreving.domain
 
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import tilbakekreving.domain.vurdert.Månedsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.vurdert.Vurderinger
 
 sealed interface KanVurdere : KanEndres {
 
     fun leggTilVurderinger(
+        månedsvurderinger: Vurderinger,
         hendelseId: HendelseId,
-        månedsvurderinger: Månedsvurderinger,
+        versjon: Hendelsesversjon,
     ): UnderBehandling
 
     override fun erÅpen() = true

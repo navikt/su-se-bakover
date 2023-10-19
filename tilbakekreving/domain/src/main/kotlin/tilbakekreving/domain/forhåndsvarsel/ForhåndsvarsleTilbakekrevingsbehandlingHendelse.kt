@@ -46,8 +46,9 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is KanForhåndsvarsle -> behandling.leggTilForhåndsvarselDokumentId(
-                hendelseId = hendelseId,
                 dokumentId = dokumentId,
+                hendelseId = hendelseId,
+                versjon = versjon,
             )
         }
     }

@@ -12,62 +12,53 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import org.skyscreamer.jsonassert.JSONAssert
 
-fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
+fun sendTilbakekrevingsbehandlingTilAttestering(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
-    brevtekst: String? = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
+    verifiserFritekst: String,
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/brevtekst",
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/tilAttestering",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) {
-            setBody(
-                """
-            {
-                "versjon": $saksversjon,
-                "brevtekst": ${brevtekst?.let { "\"$brevtekst\"" } ?: "null"}
-            }
-                """.trimIndent(),
-            )
-        }.apply {
-            withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
+        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+            withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
+                verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
                     actual = it,
                     sakId = sakId,
-                    brevtekst = brevtekst,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    vurderinger = verifiserVurderinger,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                    vurderinger = verifiserVurderinger,
+                    fritekst = verifiserFritekst,
                 )
             }
         }
     }
 }
 
-fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
+fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
     actual: String,
-    sakId: String,
-    brevtekst: String?,
     tilbakekrevingsbehandlingId: String,
-    vurderinger: String,
     forhåndsvarselDokumenter: String,
+    sakId: String,
+    vurderinger: String,
+    fritekst: String,
 ) {
     val expected = """
 {
-  "id":$tilbakekrevingsbehandlingId,
+  "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
   "opprettet":"2021-02-01T01:03:43.456789Z",
   "opprettetAv":"Z990Lokal",
@@ -83,19 +74,19 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"6192",
-          "ytelse": {
-            "beløpTidligereUtbetaling":"20946",
-            "beløpNyUtbetaling":"8563",
-            "beløpSkalTilbakekreves":"12383",
-            "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50"
-          },
+        "ytelse": {
+          "beløpTidligereUtbetaling":"20946",
+          "beløpNyUtbetaling":"8563",
+          "beløpSkalTilbakekreves":"12383",
+          "beløpSkalIkkeTilbakekreves":"0",
+          "skatteProsent":"50"
+        },
       }
     ]
   },
-  "status":"VEDTAKSBREV",
+  "status":"TIL_ATTESTERING",
   "månedsvurderinger":$vurderinger,
-  "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
+  "fritekst":"$fritekst",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
 }"""
     JSONAssert.assertEquals(

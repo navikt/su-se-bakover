@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.Månedsvurdering
-import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.Vurdering
+import tilbakekreving.domain.vurdert.Vurderinger
 import tilbakekreving.infrastructure.repo.vurdering.MånedsvurderingerDbJson.Companion.toDomain
 import java.lang.IllegalArgumentException
 import java.time.YearMonth
@@ -74,11 +74,11 @@ private data class MånedsvurderingerDbJson(
     )
 
     companion object {
-        fun List<MånedsvurderingerDbJson>.toDomain(): Månedsvurderinger = Månedsvurderinger(this.map { it.toDomain() }.toNonEmptyList())
+        fun List<MånedsvurderingerDbJson>.toDomain(): Vurderinger = Vurderinger(this.map { it.toDomain() }.toNonEmptyList())
     }
 }
 
-private fun Månedsvurderinger.toJson(): Nel<MånedsvurderingerDbJson> = this.vurderinger.map {
+private fun Vurderinger.toJson(): Nel<MånedsvurderingerDbJson> = this.vurderinger.map {
     MånedsvurderingerDbJson(
         måned = it.måned.toString(),
         vurdering = when (it.vurdering) {

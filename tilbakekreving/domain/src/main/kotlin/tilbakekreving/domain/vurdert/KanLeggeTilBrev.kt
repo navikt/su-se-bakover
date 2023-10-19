@@ -5,15 +5,17 @@ package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import tilbakekreving.domain.vurdert.Månedsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.vurdert.Vurderinger
 
 sealed interface KanLeggeTilBrev : KanEndres {
-    override val månedsvurderinger: Månedsvurderinger?
+    override val månedsvurderinger: Vurderinger?
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
 
     fun oppdaterVedtaksbrev(
-        hendelseId: HendelseId,
         vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
+        hendelseId: HendelseId,
+        versjon: Hendelsesversjon,
     ): UnderBehandling.Utfylt
 
     override fun erÅpen() = true

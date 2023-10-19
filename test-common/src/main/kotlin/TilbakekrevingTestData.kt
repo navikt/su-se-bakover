@@ -21,8 +21,8 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Månedsvurdering
-import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.Vurdering
+import tilbakekreving.domain.vurdert.Vurderinger
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -163,7 +163,7 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
     meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
-    vurderinger: Månedsvurderinger = Månedsvurderinger(
+    vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
             Månedsvurdering(
                 måned = januar(2021),
@@ -195,7 +195,7 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagsId: String = "123456",
     dokumentId: UUID = UUID.randomUUID(),
-    vurderinger: Månedsvurderinger = Månedsvurderinger(
+    vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
             Månedsvurdering(
                 måned = januar(2021),
@@ -244,7 +244,7 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagsId: String = "123456",
     dokumentId: UUID = UUID.randomUUID(),
-    vurderinger: Månedsvurderinger = Månedsvurderinger(
+    vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
             Månedsvurdering(
                 måned = januar(2021),
@@ -293,7 +293,7 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagsId: String = "123456",
     dokumentId: UUID = UUID.randomUUID(),
-    vurderinger: Månedsvurderinger = Månedsvurderinger(
+    vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
             Månedsvurdering(
                 måned = januar(2021),
@@ -304,14 +304,15 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
-    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    utførtAv: NavIdentBruker.Attestant = attestant,
+    sendtTilAttesteringUtførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyTilbakekrevingsbehandlingTilAttesteringHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
         kravgrunnlagsId = kravgrunnlagsId,
         dokumentId = dokumentId,
         vurderinger = vurderinger,
-        utførtAv = utførtAv,
+        utførtAv = sendtTilAttesteringUtførtAv,
         brevvalg = brevvalg,
     ),
     hendelseId: HendelseId = HendelseId.generer(),
