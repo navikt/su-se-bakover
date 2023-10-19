@@ -20,21 +20,24 @@ import java.util.UUID
  *  1. Iverksett eller underkjenn
  *
  */
-sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvarsle {
+sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvarsle, UnderBehandlingEllerTilAttestering {
 
-    val forrigeSteg: KanEndres
     override val månedsvurderinger: Vurderinger?
     override fun erÅpen() = true
 
+    val erUnderkjent: Boolean
+
     /**
      * Kan kun gå fra [OpprettetTilbakekrevingsbehandling] til [Påbegynt], men ikke tilbake til [OpprettetTilbakekrevingsbehandling].
-     * Lovelige overganger er:
+     * Lovelige overganger til:
      *  * [AvbruttTilbakekrevingsbehandling]
      *  * [Påbegynt]
      *  * [Utfylt]
+     *
+     *  Forrige steg, kan bare være [OpprettetTilbakekrevingsbehandling] eller [Påbegynt]
      */
     data class Påbegynt(
-        override val forrigeSteg: KanEndres,
+        val forrigeSteg: KanEndres,
         override val hendelseId: HendelseId,
         override val versjon: Hendelsesversjon,
         override val månedsvurderinger: Vurderinger?,
@@ -43,7 +46,14 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
+        // Behandlingen må være utfylt før man kan attestere/underkjenne.
+        override val erUnderkjent = false
         override fun erÅpen(): Boolean = true
+
+        init {
+            // TODO jah: Kan vi type oss ut av dette?
+            require(forrigeSteg is OpprettetTilbakekrevingsbehandling || forrigeSteg is Påbegynt)
+        }
 
         fun erVurdert(): Boolean = månedsvurderinger != null
 
@@ -60,7 +70,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
                 throw IllegalArgumentException("Må gjøre månedsvurderingene før man tar stilling til vedtaksbrev")
             } else {
                 Utfylt(
-                    forrigeSteg = forrigeSteg,
+                    forrigeSteg = this,
                     månedsvurderinger = månedsvurderinger,
                     hendelseId = hendelseId,
                     vedtaksbrevvalg = vedtaksbrevvalg,
@@ -101,17 +111,33 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
      *   * [TilbakekrevingsbehandlingTilAttestering]
      *
      *   @param forhåndsvarselDokumentIder Vi støtter og legge til nye forhåndsvarslinger selvom tilstanden er [Utfylt]
+     *   @property erUnderkjent Dersom denne har vært til attestering, vil den implisitt være underkjent nå.
      */
     data class Utfylt(
-        override val forrigeSteg: KanEndres,
+        val forrigeSteg: UnderBehandlingEllerTilAttestering,
         override val hendelseId: HendelseId,
         override val versjon: Hendelsesversjon,
         override val månedsvurderinger: Vurderinger,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
         override val forhåndsvarselDokumentIder: List<UUID>,
-    ) : UnderBehandling, KanEndres by forrigeSteg {
+    ) : UnderBehandling, KanEndres, UnderBehandlingEllerTilAttestering by forrigeSteg, ErUtfylt {
 
+        constructor(
+            forrigeSteg: TilbakekrevingsbehandlingTilAttestering,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+        ) : this(
+            forrigeSteg = forrigeSteg,
+            hendelseId = hendelseId,
+            versjon = versjon,
+            månedsvurderinger = forrigeSteg.månedsvurderinger,
+            vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
+            attesteringer = forrigeSteg.attesteringer,
+            forhåndsvarselDokumentIder = forrigeSteg.forhåndsvarselDokumentIder,
+        )
+
+        override val erUnderkjent = attesteringer.isNotEmpty()
         override fun leggTilVurderinger(
             månedsvurderinger: Vurderinger,
             hendelseId: HendelseId,

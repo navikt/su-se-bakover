@@ -33,7 +33,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.infrastructure.repo.OpprettTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 
@@ -85,7 +85,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
 
         verify(konsumenterRepo).hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             HendelseskonsumentId("OpprettOppgaveForTilbakekrevingsbehandlingHendelser"),
-            OpprettTilbakekrevingsbehandlingHendelsestype,
+            OpprettetTilbakekrevingsbehandlingHendelsestype,
         )
         verify(sakService).hentSak(argShouldBe(sak.id))
         verify(hendelseRepo).hentSisteVersjonFraEntitetId(argShouldBe(sak.id), anyOrNull())

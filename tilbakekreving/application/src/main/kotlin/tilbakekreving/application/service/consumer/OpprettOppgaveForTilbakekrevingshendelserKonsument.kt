@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.infrastructure.repo.OpprettTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 
@@ -47,7 +47,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
     fun opprettOppgaver(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = OpprettTilbakekrevingsbehandlingHendelsestype,
+            hendelsestype = OpprettetTilbakekrevingsbehandlingHendelsestype,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSak(sakId, hendelsesIder, correlationId)
         }

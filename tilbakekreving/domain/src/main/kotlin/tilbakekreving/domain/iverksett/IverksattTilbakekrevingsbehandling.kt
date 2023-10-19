@@ -12,4 +12,4 @@ data class IverksattTilbakekrevingsbehandling(
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     override val attesteringer: Attesteringshistorikk,
-) : Tilbakekrevingsbehandling by forrigeSteg
+) : ErUtfylt by forrigeSteg

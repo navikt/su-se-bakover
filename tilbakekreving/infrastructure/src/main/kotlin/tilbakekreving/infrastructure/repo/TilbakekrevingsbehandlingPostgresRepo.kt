@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
@@ -17,6 +18,7 @@ import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
+import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingDbJson
@@ -34,18 +36,18 @@ import tilbakekreving.infrastructure.repo.vurdering.toJson
 import java.time.Clock
 import java.util.UUID
 
-val OpprettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETT_TILBAKEKREVINGSBEHANDLING")
-val ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype =
-    Hendelsestype("FORHÅNDSVARSLER_TILBAKEKREVINGSBEHANDLING")
-private val VurderMånederTilbakekrevingsbehandlingHendelsestype =
-    Hendelsestype("VURDER_MÅNEDER_TILBAKEKREVINGSBEHANDLING")
-private val OppdaterBrevTilbakekrevingsbehandlingHendelsestype =
-    Hendelsestype("OPPDATER_BREV_TILBAKEKREVINGSBEHANDLING")
-private val TilAttesteringTilbakekrevingsbehandlingHendelsestype =
-    Hendelsestype("TIL_ATTESTERING_TILBAKEKREVINGSBEHANDLING")
-private val UnderkjennTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENN_TILBAKEKREVINGSBEHANDLING")
-private val IverksettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSETT_TILBAKEKREVINGSBEHANDLING")
-private val AvbrytTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRYT_TILBAKEKREVINGSBEHANDLING")
+val OpprettetTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETTET_TILBAKEKREVINGSBEHANDLING")
+val ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING")
+private val VurdertTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("VURDERT_TILBAKEKREVINGSBEHANDLING")
+private val OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING")
+private val TilbakekrevingsbehandlingTilAttesteringHendelsestype =
+    Hendelsestype("TILBAKEKREVINGSBEHANDLING_TIL_ATTESTERING")
+private val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT_TILBAKEKREVINGSBEHANDLING")
+private val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
+private val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
 
 class TilbakekrevingsbehandlingPostgresRepo(
     private val sessionFactory: SessionFactory,
@@ -63,12 +65,14 @@ class TilbakekrevingsbehandlingPostgresRepo(
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
             type = when (hendelse) {
-                is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
-                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
-                is BrevTilbakekrevingsbehandlingHendelse -> OppdaterBrevTilbakekrevingsbehandlingHendelsestype
-                is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype
-                is TilAttesteringHendelse -> TilAttesteringTilbakekrevingsbehandlingHendelsestype
-                is IverksattHendelse -> IverksettTilbakekrevingsbehandlingHendelsestype
+                is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettetTilbakekrevingsbehandlingHendelsestype
+                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurdertTilbakekrevingsbehandlingHendelsestype
+                is BrevTilbakekrevingsbehandlingHendelse -> OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype
+                is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
+                is TilAttesteringHendelse -> TilbakekrevingsbehandlingTilAttesteringHendelsestype
+                is IverksattHendelse -> IverksattTilbakekrevingsbehandlingHendelsestype
+                is AvbruttHendelse -> AvbruttTilbakekrevingsbehandlingHendelsestype
+                is UnderkjentHendelse -> UnderkjentTilbakekrevingsbehandlingHendelsestype
             },
             data = hendelse.toJson(),
             sessionContext = sessionContext,
@@ -89,14 +93,15 @@ class TilbakekrevingsbehandlingPostgresRepo(
     ): TilbakekrevingsbehandlingHendelser {
         return sessionFactory.withSessionContext(sessionContext) { openSessionContext ->
             listOf(
-                OpprettTilbakekrevingsbehandlingHendelsestype,
-                ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype,
-                VurderMånederTilbakekrevingsbehandlingHendelsestype,
-                OppdaterBrevTilbakekrevingsbehandlingHendelsestype,
-                TilAttesteringTilbakekrevingsbehandlingHendelsestype,
-                UnderkjennTilbakekrevingsbehandlingHendelsestype,
-                IverksettTilbakekrevingsbehandlingHendelsestype,
-                AvbrytTilbakekrevingsbehandlingHendelsestype,
+                OpprettetTilbakekrevingsbehandlingHendelsestype,
+                ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+                VurdertTilbakekrevingsbehandlingHendelsestype,
+                OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
+                TilbakekrevingsbehandlingTilAttesteringHendelsestype,
+                UnderkjentTilbakekrevingsbehandlingHendelsestype,
+                IverksattTilbakekrevingsbehandlingHendelsestype,
+                AvbruttTilbakekrevingsbehandlingHendelsestype,
+                UnderkjentTilbakekrevingsbehandlingHendelsestype,
             ).flatMap {
                 (hendelseRepo as HendelsePostgresRepo)
                     .hentHendelserForSakIdOgType(
@@ -127,7 +132,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
 
 private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
     when (this.type) {
-        OpprettTilbakekrevingsbehandlingHendelsestype -> OpprettTilbakekrevingsbehandlingHendelseDbJson.toDomain(
+        OpprettetTilbakekrevingsbehandlingHendelsestype -> OpprettTilbakekrevingsbehandlingHendelseDbJson.toDomain(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -136,7 +141,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             meta = this.defaultHendelseMetadata(),
         )
 
-        ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
+        ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -146,7 +151,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             meta = this.defaultHendelseMetadata(),
         )
 
-        VurderMånederTilbakekrevingsbehandlingHendelsestype -> mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
+        VurdertTilbakekrevingsbehandlingHendelsestype -> mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -156,7 +161,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
-        OppdaterBrevTilbakekrevingsbehandlingHendelsestype -> mapToBrevTilbakekrevingsbehandlingHendelse(
+        OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype -> mapToBrevTilbakekrevingsbehandlingHendelse(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -166,7 +171,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
-        TilAttesteringTilbakekrevingsbehandlingHendelsestype -> mapToTilAttesteringHendelse(
+        TilbakekrevingsbehandlingTilAttesteringHendelsestype -> mapToTilAttesteringHendelse(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -176,7 +181,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
-        IverksettTilbakekrevingsbehandlingHendelsestype -> mapToTilIverksattHendelse(
+        IverksattTilbakekrevingsbehandlingHendelsestype -> mapToTilIverksattHendelse(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,
@@ -185,6 +190,8 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             meta = this.defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
+        AvbruttTilbakekrevingsbehandlingHendelsestype -> TODO()
+        UnderkjentTilbakekrevingsbehandlingHendelsestype -> TODO()
 
         else -> throw IllegalStateException("Ukjent tilbakekrevingsbehandlinghendelsestype")
     }
@@ -197,5 +204,7 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
         is BrevTilbakekrevingsbehandlingHendelse -> this.toJson()
         is TilAttesteringHendelse -> this.toJson()
         is IverksattHendelse -> this.toJson()
+        is AvbruttHendelse -> TODO()
+        is UnderkjentHendelse -> TODO()
     }
 }

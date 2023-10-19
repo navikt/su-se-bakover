@@ -28,7 +28,7 @@ import tilbakekreving.domain.KanForhåndsvarsle
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeGenerereDokumentForForhåndsvarsel
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.infrastructure.repo.ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 
@@ -49,7 +49,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     fun genererDokumenter(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = ForhåndsvarsleTilbakekrevingsbehandlingHendelsestype,
+            hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
         ).forEach { (sakId, hendelsesIder) -> prosesserSak(sakId, hendelsesIder, correlationId) }
     }
 
