@@ -5,7 +5,7 @@ import dokument.domain.Distribusjonstidspunkt
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt

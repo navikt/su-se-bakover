@@ -5,7 +5,7 @@ package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon

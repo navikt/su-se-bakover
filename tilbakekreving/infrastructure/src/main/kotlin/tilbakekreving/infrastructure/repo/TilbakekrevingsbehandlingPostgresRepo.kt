@@ -1,6 +1,6 @@
 package tilbakekreving.infrastructure.repo
 
-import dokument.domain.DokumentHendelseRepo
+import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseId

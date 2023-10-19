@@ -1,7 +1,7 @@
 package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
-import dokument.domain.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever

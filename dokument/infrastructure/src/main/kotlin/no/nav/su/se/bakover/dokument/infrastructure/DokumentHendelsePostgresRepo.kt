@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
-import dokument.domain.DokumentHendelseRepo
-import dokument.domain.LagretDokumentHendelse
+import dokument.domain.hendelser.DokumentHendelseRepo
+import dokument.domain.hendelser.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.dokument.infrastructure.LagretDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil

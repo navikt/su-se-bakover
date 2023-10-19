@@ -7,10 +7,10 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
-import dokument.domain.DokumentHendelseRepo
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
-import dokument.domain.LagretDokumentHendelse
 import dokument.domain.brev.BrevService
+import dokument.domain.hendelser.DokumentHendelseRepo
+import dokument.domain.hendelser.LagretDokumentHendelse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo

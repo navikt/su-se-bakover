@@ -1,4 +1,4 @@
-package dokument.domain
+package dokument.domain.hendelser
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil

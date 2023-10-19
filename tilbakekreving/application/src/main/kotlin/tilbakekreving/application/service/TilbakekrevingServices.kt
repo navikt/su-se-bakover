@@ -1,8 +1,8 @@
 package tilbakekreving.application.service
 
 import arrow.core.Either
-import dokument.domain.DokumentHendelseRepo
 import dokument.domain.brev.BrevService
+import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService

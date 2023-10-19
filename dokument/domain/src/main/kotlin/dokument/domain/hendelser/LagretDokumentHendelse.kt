@@ -1,6 +1,7 @@
-package dokument.domain
+package dokument.domain.hendelser
 
 import arrow.core.NonEmptyList
+import dokument.domain.DokumentMedMetadataUtenFil
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -10,12 +11,7 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Ved iverksettelse av behandlinger, sender vi som regel et brev (enkeltvedtak eller informasjon).
- * Denne hendelsen dekker også tilfeller der vi journalfører dokumenter (som ikke blir sendt som brev).
- * I noen tilfeller sendes det ikke brev (saksbehandler velger dette. I disse tilfellene har bruker blitt informert allerede eller saksbehandler lager et samlevedtak. Regulering er et eksempel der vi ved vanlig løp ikke sender brev.).
- * I noen tilfeller sendes brevet rett etter iverksettelsen (ingen nye utbetalingslinjer).
- * Dersom vi har sendt noe til oppdrag venter vi på kvittering. (I førsteomgang brukes bare denne hendelsen i dette tilfellet)
- * Dersom simuleringa viste feilutbetaling, går vi inn i et tilbakekrevingsløp, da venter på på kravgrunnlaget før vi sender brevet.
+ * Denne hendelsen er ment for bruk dersom du har behov for å kun lagre et dokument, uten at den skal bearbeides videre på noen måte.
  */
 data class LagretDokumentHendelse(
     override val hendelseId: HendelseId,
