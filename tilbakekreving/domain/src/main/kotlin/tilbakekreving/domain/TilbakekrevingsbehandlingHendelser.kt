@@ -1,7 +1,6 @@
 package tilbakekreving.domain
 
-import arrow.core.NonEmptyList
-import dokument.domain.hendelser.LagretDokumentHendelse
+import dokument.domain.hendelser.DokumentHendelse
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
@@ -21,7 +20,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
     private val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
     private val tilhørendeOgSorterteOppgaveHendelser: List<OppgaveHendelse>,
-    private val tilhørendeOgSorterteDokumentHendelser: List<LagretDokumentHendelse>,
+    private val tilhørendeOgSorterteDokumentHendelser: List<DokumentHendelse>,
     private val clock: Clock,
 ) : List<TilbakekrevingsbehandlingHendelse> by sorterteHendelser {
     init {
@@ -154,7 +153,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
             kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
             oppgaveHendelser: List<OppgaveHendelse>,
-            dokumentHendelser: List<LagretDokumentHendelse>,
+            dokumentHendelser: List<DokumentHendelse>,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
@@ -164,40 +163,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
                 tilhørendeOgSorterteDokumentHendelser = dokumentHendelser.sorted(),
             )
-        }
-
-        private fun List<TilbakekrevingsbehandlingHendelse>.lagHendelsesSerier(): List<List<TilbakekrevingsbehandlingHendelse>> {
-            val sortertOpprettetHendelser = this.filterIsInstance<OpprettetTilbakekrevingsbehandlingHendelse>().sorted()
-
-            return sortertOpprettetHendelser
-                .mapIndexed { index, currentEvent ->
-                    val nesteHendelsesVersjon = sortertOpprettetHendelser.getOrNull(index + 1)?.versjon
-                        ?: this.max().versjon
-
-                    this.filter { it.versjon in currentEvent.versjon..nesteHendelsesVersjon }
-                }
-        }
-
-        private fun NonEmptyList<TilbakekrevingsbehandlingHendelse>.hentSerieFor(tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId): List<TilbakekrevingsbehandlingHendelse> {
-            return this.lagHendelsesSerier().first { it.any { it.id == tilbakekrevingsbehandlingId } }
-        }
-
-        private fun TilbakekrevingsbehandlingHendelse.hentRelaterteDokumenter(
-            hendelser: NonEmptyList<TilbakekrevingsbehandlingHendelse>,
-            dokumenter: List<LagretDokumentHendelse>,
-        ): List<LagretDokumentHendelse> {
-            return hendelser.hentRelaterteDokumenter(this.id, dokumenter)
-        }
-
-        private fun NonEmptyList<TilbakekrevingsbehandlingHendelse>.hentRelaterteDokumenter(
-            tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId,
-            dokumenter: List<LagretDokumentHendelse>,
-        ): List<LagretDokumentHendelse> {
-            val seriensHendelsesIder = hentSerieFor(tilbakekrevingsbehandlingId).map { it.hendelseId }
-
-            return dokumenter.pickByCondition(seriensHendelsesIder) { dokumentHendelse, tilbakekrevingsbehandlingHendelseId ->
-                dokumentHendelse.relaterteHendelser.contains(tilbakekrevingsbehandlingHendelseId)
-            }
         }
     }
 }

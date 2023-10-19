@@ -5,7 +5,7 @@ package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.hendelser.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -22,18 +22,14 @@ sealed interface KanForhåndsvarsle : KanEndres {
 
     override fun erÅpen() = true
 
-    /**
-     *
-     * Denne lagrer nye dokumenter på det som er forhåndsvarsel. Dersom det skal være andre brev, må noe endres
-     */
-    fun nyLagretDokumentHendelse(
+    fun nyLagretDokumentHendelseForUtsendelse(
         command: SakshendelseCommand,
         dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
         nesteVersjon: Hendelsesversjon,
         relaterteHendelser: NonEmptyList<HendelseId>,
         clock: Clock,
-    ): LagretDokumentHendelse {
-        return LagretDokumentHendelse(
+    ): LagretDokumentForUtsendelseHendelse {
+        return LagretDokumentForUtsendelseHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,

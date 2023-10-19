@@ -11,9 +11,10 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Denne hendelsen er ment for bruk dersom du har behov for å kun lagre et dokument, uten at den skal bearbeides videre på noen måte.
+ * Denne hendelsen er ment for bruk dersom du har et dokument som kun behov for journalføring
+ * Eksempel på et slik dokument kan være [Skattedokument]
  */
-data class LagretDokumentHendelse(
+data class LagretDokumentForJournalføringHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
@@ -43,8 +44,8 @@ data class LagretDokumentHendelse(
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
             dokument: DokumentMedMetadataUtenFil,
-        ): LagretDokumentHendelse {
-            return LagretDokumentHendelse(
+        ): LagretDokumentForJournalføringHendelse {
+            return LagretDokumentForJournalføringHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,

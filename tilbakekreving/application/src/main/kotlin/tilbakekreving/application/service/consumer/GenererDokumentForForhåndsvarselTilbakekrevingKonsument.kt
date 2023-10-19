@@ -10,7 +10,7 @@ import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
-import dokument.domain.hendelser.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -97,7 +97,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeGenerereDokumentForForhåndsvarsel, Pair<LagretDokumentHendelse, HendelseFil>> {
+    ): Either<KunneIkkeGenerereDokumentForForhåndsvarsel, Pair<LagretDokumentForUtsendelseHendelse, HendelseFil>> {
         val command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
             sakId = sakInfo.sakId,
             fødselsnummer = sakInfo.fnr,
@@ -111,7 +111,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             .getOrElse { return KunneIkkeGenerereDokumentForForhåndsvarsel.FeilVedDokumentGenerering(it).left() }
             .leggTilMetadata(Dokument.Metadata(sakId = sakInfo.sakId, tilbakekrevingsbehandlingId = forhåndsvarsletHendelse.id.value))
 
-        val dokumentHendelse = behandling.nyLagretDokumentHendelse(
+        val dokumentHendelse = behandling.nyLagretDokumentHendelseForUtsendelse(
             command = command,
             dokumentMedMetadataUtenFil = dokument.tilDokumentUtenFil(clock),
             nesteVersjon = nesteVersjon,

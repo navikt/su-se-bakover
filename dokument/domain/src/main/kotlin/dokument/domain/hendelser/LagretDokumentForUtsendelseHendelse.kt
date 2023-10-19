@@ -11,9 +11,10 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Denne hendelsen er ment for bruk dersom du har behov for å kun lagre et dokument, uten at den skal bearbeides videre på noen måte.
+ * Denne hendelsen er ment for bruk dersom du har et dokument som har behov for å sendes ut.
+ * Eksempel på et slik dokument kan være Vedtaksbrev.
  */
-data class LagretDokumentHendelse(
+data class LagretDokumentForUtsendelseHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
@@ -43,8 +44,8 @@ data class LagretDokumentHendelse(
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
             dokument: DokumentMedMetadataUtenFil,
-        ): LagretDokumentHendelse {
-            return LagretDokumentHendelse(
+        ): LagretDokumentForUtsendelseHendelse {
+            return LagretDokumentForUtsendelseHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,
