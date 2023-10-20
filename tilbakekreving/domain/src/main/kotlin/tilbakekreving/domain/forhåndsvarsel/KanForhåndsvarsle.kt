@@ -5,7 +5,7 @@ package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -29,8 +29,8 @@ sealed interface KanForhåndsvarsle : KanEndres {
         nesteVersjon: Hendelsesversjon,
         relaterteHendelser: NonEmptyList<HendelseId>,
         clock: Clock,
-    ): LagretDokumentForUtsendelseHendelse {
-        return LagretDokumentForUtsendelseHendelse(
+    ): GenerertDokumentForUtsendelseHendelse {
+        return GenerertDokumentForUtsendelseHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,

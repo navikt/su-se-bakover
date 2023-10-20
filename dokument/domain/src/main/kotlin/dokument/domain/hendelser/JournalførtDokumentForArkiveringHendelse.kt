@@ -1,8 +1,8 @@
 package dokument.domain.hendelser
 
 import arrow.core.NonEmptyList
-import dokument.domain.DokumentMedMetadataUtenFil
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -11,22 +11,20 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Denne hendelsen er ment for bruk dersom du har behov for å kun lagre et dokument, uten at den skal bearbeides videre på noen måte.
+ * Denne klassen representerer et dokument er blitt journalført, og arkivert hos Joark, uten videre bearbeid.
  */
-data class LagretDokumentHendelse(
+data class JournalførtDokumentForArkiveringHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
     override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
     override val relaterteHendelser: NonEmptyList<HendelseId>,
-    override val dokumentUtenFil: DokumentMedMetadataUtenFil,
-) : DokumentHendelse {
-
-    // Vi har ingen mulighet for å korrigere/annullere denne hendelsen atm.
-    override val tidligereHendelseId: HendelseId? = null
-
+    override val journalpostId: JournalpostId,
+) : JournalførtDokumentHendelse {
     override val entitetId: UUID = sakId
+
+    override val tidligereHendelseId: HendelseId? = null
 
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId)
@@ -42,16 +40,16 @@ data class LagretDokumentHendelse(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            dokument: DokumentMedMetadataUtenFil,
-        ): LagretDokumentHendelse {
-            return LagretDokumentHendelse(
+            journalpostId: JournalpostId,
+        ): JournalførtDokumentForArkiveringHendelse {
+            return JournalførtDokumentForArkiveringHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,
                 sakId = sakId,
                 versjon = versjon,
                 relaterteHendelser = relaterteHendelser.toNonEmptyList(),
-                dokumentUtenFil = dokument,
+                journalpostId = journalpostId,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "

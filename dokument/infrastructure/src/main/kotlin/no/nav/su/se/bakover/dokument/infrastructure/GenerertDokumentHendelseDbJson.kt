@@ -4,9 +4,12 @@ import arrow.core.NonEmptyList
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.DokumentHendelse
-import dokument.domain.hendelser.LagretDokumentForJournalføringHendelse
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokumentHendelse
+import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.LagretDokument
+import dokument.domain.hendelser.LagretDokumentForJournalføring
+import dokument.domain.hendelser.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.serialize
@@ -18,7 +21,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.util.UUID
 
-internal data class DokumentHendelseDbJson(
+internal data class GenerertDokumentHendelseDbJson(
     val id: UUID,
     val opprettet: Tidspunkt,
     val distribusjonstype: DistribusjonstypeDbJson,
@@ -38,7 +41,7 @@ internal data class DokumentHendelseDbJson(
             versjon: Hendelsesversjon,
             meta: DefaultHendelseMetadata,
         ): DokumentHendelse {
-            val deserialized = deserialize<DokumentHendelseDbJson>(data)
+            val deserialized = deserialize<GenerertDokumentHendelseDbJson>(data)
             val dokumentUtenFil = DokumentMedMetadataUtenFil(
                 id = deserialized.id,
                 opprettet = deserialized.opprettet,
@@ -55,7 +58,7 @@ internal data class DokumentHendelseDbJson(
             )
 
             return when (type) {
-                LagretDokument -> toLagretDokumentHendelse(
+                LagretDokument -> toGenerertDokumentHendelseForArkiveringHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -66,7 +69,7 @@ internal data class DokumentHendelseDbJson(
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                 )
 
-                LagretDokumentForJournalføring -> toLagretDokumentForJournalføringHendelse(
+                LagretDokumentForJournalføring -> toGenerertDokumentForJournalføringHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -77,7 +80,7 @@ internal data class DokumentHendelseDbJson(
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                 )
 
-                LagretDokumentForUtsendelse -> toLagretDokumentForUtsendelseHendelse(
+                LagretDokumentForUtsendelse -> toGenerertDokumentForUtsendelseHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -92,7 +95,7 @@ internal data class DokumentHendelseDbJson(
             }
         }
 
-        private fun toLagretDokumentForJournalføringHendelse(
+        private fun toGenerertDokumentForJournalføringHendelse(
             hendelseId: HendelseId,
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
@@ -100,7 +103,7 @@ internal data class DokumentHendelseDbJson(
             meta: DefaultHendelseMetadata,
             relaterteHendelser: NonEmptyList<HendelseId>,
             dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
-        ): LagretDokumentForJournalføringHendelse = LagretDokumentForJournalføringHendelse.fraPersistert(
+        ): GenerertDokumentForJournalføringHendelse = GenerertDokumentForJournalføringHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
             hendelseMetadata = meta,
@@ -111,7 +114,7 @@ internal data class DokumentHendelseDbJson(
             dokument = dokumentMedMetadataUtenFil,
         )
 
-        private fun toLagretDokumentForUtsendelseHendelse(
+        private fun toGenerertDokumentForUtsendelseHendelse(
             hendelseId: HendelseId,
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
@@ -119,7 +122,7 @@ internal data class DokumentHendelseDbJson(
             meta: DefaultHendelseMetadata,
             relaterteHendelser: NonEmptyList<HendelseId>,
             dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
-        ): LagretDokumentForUtsendelseHendelse = LagretDokumentForUtsendelseHendelse.fraPersistert(
+        ): GenerertDokumentForUtsendelseHendelse = GenerertDokumentForUtsendelseHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
             hendelseMetadata = meta,
@@ -130,7 +133,7 @@ internal data class DokumentHendelseDbJson(
             dokument = dokumentMedMetadataUtenFil,
         )
 
-        private fun toLagretDokumentHendelse(
+        private fun toGenerertDokumentHendelseForArkiveringHendelse(
             hendelseId: HendelseId,
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
@@ -138,7 +141,7 @@ internal data class DokumentHendelseDbJson(
             meta: DefaultHendelseMetadata,
             relaterteHendelser: NonEmptyList<HendelseId>,
             dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
-        ): LagretDokumentHendelse = LagretDokumentHendelse.fraPersistert(
+        ): GenerertDokumentForArkiveringHendelse = GenerertDokumentForArkiveringHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
             hendelseMetadata = meta,
@@ -150,7 +153,7 @@ internal data class DokumentHendelseDbJson(
         )
 
         internal fun DokumentMedMetadataUtenFil.toDbJson(relaterteHendelser: NonEmptyList<HendelseId>): String =
-            DokumentHendelseDbJson(
+            GenerertDokumentHendelseDbJson(
                 id = this.id,
                 opprettet = this.opprettet,
                 distribusjonstype = this.distribusjonstype.toHendelseDbJson(),

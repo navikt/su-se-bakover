@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.test
 
+import dokument.domain.Distribusjonstidspunkt
+import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentMedMetadataUtenFil
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
@@ -85,3 +88,23 @@ fun dokumentUtenMetadataInformasjonViktig(
         generertDokumentJson = generertDokumentJson,
     )
 }
+
+fun dokumentUtenFil(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    tittel: String = "Dokument-tittel",
+    metadata: Dokument.Metadata = Dokument.Metadata(
+        sakId = UUID.randomUUID(),
+    ),
+    distribusjonstype: Distribusjonstype = Distribusjonstype.VEDTAK,
+    distribusjonstidspunkt: Distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID,
+    generertDokumentJson: String = "dokumentJson",
+): DokumentMedMetadataUtenFil = DokumentMedMetadataUtenFil(
+    id = id,
+    opprettet = opprettet,
+    tittel = tittel,
+    metadata = metadata,
+    distribusjonstype = distribusjonstype,
+    distribusjonstidspunkt = distribusjonstidspunkt,
+    generertDokumentJson = generertDokumentJson,
+)

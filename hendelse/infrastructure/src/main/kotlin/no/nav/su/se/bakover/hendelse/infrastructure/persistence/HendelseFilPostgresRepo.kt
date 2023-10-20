@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -32,10 +32,12 @@ class HendelseFilPostgresRepo(
         }
     }
 
-    fun hentFor(hendelseId: HendelseId, sessionContext: SessionContext): ByteArray? {
-        return sessionContext.withSession {
+    fun hentFor(hendelseId: HendelseId, sessionContext: SessionContext?): HendelseFil? {
+        return sessionContext.withOptionalSession(sessionFactory) {
             "SELECT * FROM hendelse_fil WHERE hendelseId=:hendelseId"
-                .hent(mapOf(":hendelseId" to hendelseId), it) { it.bytes("data") }
+                .hent(mapOf(":hendelseId" to hendelseId), it) {
+                    HendelseFil(hendelseId = hendelseId, fil = PdfA(content = it.bytes("data")))
+                }
         }
     }
 }

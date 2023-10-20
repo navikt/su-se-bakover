@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInstitusjonsoppholdKonsument
 import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.institusjonsopphold.presentation.Institusjonsopphold
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
+import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
@@ -68,6 +70,7 @@ fun startJobberOgConsumers(
     // TODO jah: Skal brukes når vi bytter over til ny jobb for å ferdigstille vedtak med utbetaling+kvittering
     @Suppress("UNUSED_PARAMETER") dbMetrics: DbMetrics,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    dokumentKomponenter: Dokumentkomponenter,
 ) {
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
@@ -256,6 +259,13 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
 
+        DokumentJobber(
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+            journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
+        ).schedule()
+
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
             globalJmsContext = jmsConfig.jmsContext,
@@ -380,6 +390,13 @@ fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
+        ).schedule()
+
+        DokumentJobber(
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+            journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
         ).schedule()
 
         SendTilbakekrevingsvedtakForRevurdering(

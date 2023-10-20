@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -115,3 +117,10 @@ fun nySak(
         }
     }
 }
+
+fun sakInfo(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    type: Sakstype = Sakstype.UFØRE,
+): SakInfo = SakInfo(sakId, saksnummer, fnr, type)

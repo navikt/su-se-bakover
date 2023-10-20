@@ -11,10 +11,10 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Denne hendelsen er ment for bruk dersom du har et dokument som kun behov for journalføring
- * Eksempel på et slik dokument kan være [Skattedokument]
+ * Denne hendelsen er ment for bruk dersom du har et dokument som har behov for å sendes ut.
+ * Eksempel på et slik dokument kan være Vedtaksbrev.
  */
-data class LagretDokumentForJournalføringHendelse(
+data class GenerertDokumentForUtsendelseHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
@@ -22,7 +22,7 @@ data class LagretDokumentForJournalføringHendelse(
     override val sakId: UUID,
     override val relaterteHendelser: NonEmptyList<HendelseId>,
     override val dokumentUtenFil: DokumentMedMetadataUtenFil,
-) : DokumentHendelse {
+) : GenerertDokumentHendelse {
 
     // Vi har ingen mulighet for å korrigere/annullere denne hendelsen atm.
     override val tidligereHendelseId: HendelseId? = null
@@ -44,8 +44,8 @@ data class LagretDokumentForJournalføringHendelse(
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
             dokument: DokumentMedMetadataUtenFil,
-        ): LagretDokumentForJournalføringHendelse {
-            return LagretDokumentForJournalføringHendelse(
+        ): GenerertDokumentForUtsendelseHendelse {
+            return GenerertDokumentForUtsendelseHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,

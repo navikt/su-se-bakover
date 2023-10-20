@@ -12,6 +12,9 @@ import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
+import no.nav.su.se.bakover.dokument.application.DokumentServices
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
@@ -116,6 +119,33 @@ fun Application.susebakover(
             repos = repos,
         )
     },
+    dokumentkomponenter: Dokumentkomponenter = run {
+        val dokumentRepos = DokumentRepos(
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+            hendelseRepo = databaseRepos.hendelseRepo,
+            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+        )
+        Dokumentkomponenter(
+            repos = DokumentRepos(
+                clock = clock,
+                sessionFactory = dokumentRepos.sessionFactory,
+                hendelseRepo = dokumentRepos.hendelseRepo,
+                hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
+                dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
+            ),
+            services = DokumentServices(
+                clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
+                personService = services.person,
+                hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
+                sakService = services.sak,
+                hendelseRepo = dokumentRepos.hendelseRepo,
+                dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
+                dokArkiv = clients.dokArkiv,
+            ),
+        )
+    },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(
         utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
@@ -149,5 +179,6 @@ fun Application.susebakover(
         consumers = consumers,
         dbMetrics = dbMetrics,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+        dokumentKomponenter = dokumentkomponenter,
     )
 }

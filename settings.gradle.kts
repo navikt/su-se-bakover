@@ -74,3 +74,5 @@ include("person:application")
 include("dokument:domain")
 include("dokument:application")
 include("dokument:infrastructure")
+include("dokument:presentation")
+findProject(":dokument:presentation")?.name = "presentation"
