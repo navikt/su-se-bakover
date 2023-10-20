@@ -113,7 +113,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
 
         val dokumentHendelse = behandling.nyLagretDokumentHendelseForUtsendelse(
             command = command,
-            dokumentMedMetadataUtenFil = dokument.tilDokumentUtenFil(clock),
+            dokumentMedMetadataUtenFil = dokument.tilDokumentUtenFil(),
             nesteVersjon = nesteVersjon,
             relaterteHendelser = nonEmptyListOf(forhåndsvarsletHendelse.hendelseId),
             clock = clock,

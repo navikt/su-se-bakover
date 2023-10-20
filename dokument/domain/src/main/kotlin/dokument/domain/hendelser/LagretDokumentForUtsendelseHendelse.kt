@@ -22,7 +22,7 @@ data class LagretDokumentForUtsendelseHendelse(
     override val sakId: UUID,
     override val relaterteHendelser: NonEmptyList<HendelseId>,
     override val dokumentUtenFil: DokumentMedMetadataUtenFil,
-) : DokumentHendelse {
+) : LagretDokumentHendelse {
 
     // Vi har ingen mulighet for å korrigere/annullere denne hendelsen atm.
     override val tidligereHendelseId: HendelseId? = null
