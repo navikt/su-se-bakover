@@ -21,7 +21,7 @@ import java.util.UUID
 /**
  * https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
  */
-interface Behandling {
+interface Stønadsbehandling {
     val id: UUID
     val opprettet: Tidspunkt
     val sakId: UUID
@@ -49,11 +49,11 @@ interface Behandling {
     fun skalSendeVedtaksbrev(): Boolean
 }
 
-interface BehandlingMedOppgave : Behandling {
+interface BehandlingMedOppgave : Stønadsbehandling {
     val oppgaveId: OppgaveId
 }
 
-interface BehandlingMedAttestering : Behandling {
+interface BehandlingMedAttestering : Stønadsbehandling {
     val attesteringer: Attesteringshistorikk
 
     fun hentAttestantSomIverksatte(): NavIdentBruker.Attestant? {

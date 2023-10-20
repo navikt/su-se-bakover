@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import økonomi.domain.simulering.Simulering
@@ -14,7 +14,7 @@ import økonomi.domain.simulering.Simulering
  */
 sealed interface Stønadsvedtak : Vedtak {
     val periode: Periode
-    val behandling: Behandling
+    val behandling: Stønadsbehandling
     val beregning: Beregning? get() = behandling.beregning
     val simulering: Simulering? get() = behandling.simulering
 

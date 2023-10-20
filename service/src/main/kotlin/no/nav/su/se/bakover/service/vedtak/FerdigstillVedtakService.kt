@@ -7,9 +7,9 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -34,7 +34,7 @@ interface FerdigstillVedtakService {
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes>
 
     fun lukkOppgaveMedBruker(
-        behandling: Behandling,
+        behandling: Stønadsbehandling,
     ): Either<KunneIkkeLukkeOppgave, Unit>
 }
 
@@ -87,7 +87,7 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
-    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling): Either<KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgave(it)
         }.map { /* Unit */ }
@@ -154,7 +154,7 @@ class FerdigstillVedtakServiceImpl(
      * @return null dersom behandlingen ikke har oppgave som skal lukkes.
      */
     private fun lukkOppgaveMedSystembruker(
-        behandling: Behandling,
+        behandling: Stønadsbehandling,
     ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgaveMedSystembruker(it)
@@ -165,7 +165,7 @@ class FerdigstillVedtakServiceImpl(
      * @return null dersom behandlingen ikke har oppgave som skal lukkes.
      */
     private fun lukkOppgaveIntern(
-        behandling: Behandling,
+        behandling: Stønadsbehandling,
         lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         val oppgaveId = if (behandling is BehandlingMedOppgave) {
@@ -183,7 +183,7 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
-    private fun incrementLukketOppgave(behandling: Behandling) {
+    private fun incrementLukketOppgave(behandling: Stønadsbehandling) {
         return when (behandling) {
             is IverksattSøknadsbehandling.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)

@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -206,7 +206,7 @@ private fun vedtakstype(vedtak: VedtakSomKanRevurderes) = when (vedtak) {
 }
 
 private fun stønadsklassifisering(
-    behandling: Behandling,
+    behandling: Stønadsbehandling,
     månedsberegning: Månedsberegning,
 ): StønadsklassifiseringDto {
     val bosituasjon = behandling.grunnlagsdata.bosituasjon.single {

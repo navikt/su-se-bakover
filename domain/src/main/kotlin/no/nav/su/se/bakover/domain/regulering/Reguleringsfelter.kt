@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.StøtterIkkeHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import økonomi.domain.simulering.Simulering
 
-interface Reguleringsfelter : Behandling {
+interface Reguleringsfelter : Stønadsbehandling {
     override val beregning: Beregning?
     override val simulering: Simulering?
     override val eksterneGrunnlag: EksterneGrunnlag

@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -697,7 +697,7 @@ open class AccessCheckProxy(
                     return services.ferdigstillVedtak.ferdigstillVedtak(vedtakId)
                 }
 
-                override fun lukkOppgaveMedBruker(behandling: Behandling) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -50,7 +50,7 @@ fun utbetaling(
 }
 
 fun nyUtbetalingForSimulering(
-    sakOgBehandling: Pair<Sak, Behandling>,
+    sakOgBehandling: Pair<Sak, Stønadsbehandling>,
     beregning: Beregning,
     clock: Clock,
 ): Utbetaling.UtbetalingForSimulering {
@@ -89,7 +89,7 @@ fun nyUtbetalingForSimulering(
 }
 
 fun nyUtbetalingSimulert(
-    sakOgBehandling: Pair<Sak, Behandling>,
+    sakOgBehandling: Pair<Sak, Stønadsbehandling>,
     beregning: Beregning,
     clock: Clock,
 ): Utbetaling.SimulertUtbetaling {
@@ -110,7 +110,7 @@ fun nyUtbetalingSimulert(
 }
 
 fun nyUtbetalingOversendUtenKvittering(
-    sakOgBehandling: Pair<Sak, Behandling>,
+    sakOgBehandling: Pair<Sak, Stønadsbehandling>,
     beregning: Beregning,
     clock: Clock,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {

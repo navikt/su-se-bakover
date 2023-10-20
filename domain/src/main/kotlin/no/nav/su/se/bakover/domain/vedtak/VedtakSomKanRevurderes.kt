@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -26,7 +26,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val saksbehandler: NavIdentBruker.Saksbehandler
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
-    override val behandling: Behandling
+    override val behandling: Stønadsbehandling
     override val beregning: Beregning?
     override val simulering: Simulering
     override val utbetalingId: UUID30?
