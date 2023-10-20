@@ -11,6 +11,8 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":domain"))
     implementation(project(":client"))
+
+    testImplementation(project(":test-common"))
 }
 
 tasks.named<Jar>("jar") {
