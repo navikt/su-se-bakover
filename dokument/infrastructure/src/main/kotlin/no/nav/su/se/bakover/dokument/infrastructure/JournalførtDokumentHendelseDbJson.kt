@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.dokument.infrastructure
 
 import arrow.core.NonEmptyList
 import dokument.domain.hendelser.DokumentHendelse
+import dokument.domain.hendelser.JournalførtDokumentForArkivering
 import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
+import dokument.domain.hendelser.JournalførtDokumentForUtsendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize

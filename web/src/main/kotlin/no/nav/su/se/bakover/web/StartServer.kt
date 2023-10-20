@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.application.DokumentServices
-import no.nav.su.se.bakover.dokument.application.Dokumentkomponenter
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics

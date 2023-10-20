@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:application"))
+    implementation(project(":dokument:infrastructure"))
 
     implementation(project(":oppgave:domain"))
 

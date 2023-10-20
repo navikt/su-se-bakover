@@ -10,7 +10,7 @@ import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -97,7 +97,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeGenerereDokumentForForhåndsvarsel, Pair<LagretDokumentForUtsendelseHendelse, HendelseFil>> {
+    ): Either<KunneIkkeGenerereDokumentForForhåndsvarsel, Pair<GenerertDokumentForUtsendelseHendelse, HendelseFil>> {
         val command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
             sakId = sakInfo.sakId,
             fødselsnummer = sakInfo.fnr,

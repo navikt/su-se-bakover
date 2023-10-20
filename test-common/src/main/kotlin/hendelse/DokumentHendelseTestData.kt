@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test.hendelse
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.hendelser.LagretDokumentForJournalføringHendelse
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -23,7 +23,7 @@ fun lagretDokumentForJournalføringHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
-): LagretDokumentForJournalføringHendelse = LagretDokumentForJournalføringHendelse(
+): GenerertDokumentForJournalføringHendelse = GenerertDokumentForJournalføringHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
@@ -41,7 +41,7 @@ fun lagretDokumentForUtsendelseHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
-): LagretDokumentForUtsendelseHendelse = LagretDokumentForUtsendelseHendelse(
+): GenerertDokumentForUtsendelseHendelse = GenerertDokumentForUtsendelseHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,

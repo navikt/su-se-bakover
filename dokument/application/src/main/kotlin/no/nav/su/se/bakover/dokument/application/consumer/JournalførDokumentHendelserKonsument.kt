@@ -5,19 +5,19 @@ import arrow.core.Tuple4
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import dokument.domain.hendelser.DokumentHendelseRepo
+import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokumentForArkiveringHendelse
-import dokument.domain.hendelser.LagretDokumentForJournalføringHendelse
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokumentHendelse
+import dokument.domain.hendelser.LagretDokumentForJournalføring
+import dokument.domain.hendelser.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.LagretDokumentForJournalføring
-import no.nav.su.se.bakover.dokument.infrastructure.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -78,7 +78,7 @@ class JournalførDokumentHendelserKonsument(
         correlationId: CorrelationId,
     ) {
         val sakInfo = sakService.hentSakInfo(sakId)
-            .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å journalføre lagret dokument for arkivering") }
+            .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å journalføre lagret dokument for arkivering. hendelsesIder $hendelsesIder") }
 
         hendelsesIder.map { relatertHendelsesId ->
             val (nesteVersjon, relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
@@ -134,7 +134,7 @@ class JournalførDokumentHendelserKonsument(
     private fun hentDataForJournalføringAvDokument(
         sakInfo: SakInfo,
         relatertHendelsesId: HendelseId,
-    ): Tuple4<Hendelsesversjon, LagretDokumentHendelse, HendelseFil, Person.Navn> {
+    ): Tuple4<Hendelsesversjon, GenerertDokumentHendelse, HendelseFil, Person.Navn> {
         val nesteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)?.inc()
             ?: throw IllegalStateException("Kunne ikke hente siste versjon for sak ${sakInfo.sakId} for å journalføre dokument")
 
@@ -150,7 +150,7 @@ class JournalførDokumentHendelserKonsument(
     private fun opprettJournalpostForArkivering(
         sakInfo: SakInfo,
         navn: Person.Navn,
-        relatertHendelse: LagretDokumentHendelse,
+        relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         correlationId: CorrelationId,
@@ -174,7 +174,7 @@ class JournalførDokumentHendelserKonsument(
     private fun opprettJournalpostForUtsendelse(
         sakInfo: SakInfo,
         navn: Person.Navn,
-        relatertHendelse: LagretDokumentHendelse,
+        relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         correlationId: CorrelationId,
@@ -198,7 +198,7 @@ class JournalførDokumentHendelserKonsument(
     private fun opprettJournalpost(
         sakInfo: SakInfo,
         navn: Person.Navn,
-        relatertHendelse: LagretDokumentHendelse,
+        relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
     ): JournalpostId = dokArkiv.opprettJournalpost(
         dokumentInnhold = JournalpostForSakCommand.Brev(
@@ -212,13 +212,13 @@ class JournalførDokumentHendelserKonsument(
         throw IllegalStateException("Feil ved journalføring av LagretDokumentHendelse ${relatertHendelse.hendelseId}")
     }
 
-    private fun hentLagretDokumentHendelseForJournalføring(hendelseId: HendelseId): Pair<LagretDokumentHendelse, HendelseFil> {
+    private fun hentLagretDokumentHendelseForJournalføring(hendelseId: HendelseId): Pair<GenerertDokumentHendelse, HendelseFil> {
         return dokumentHendelseRepo.hentHendelseOgFilFor(hendelseId).let {
-            val assertedHendelse = when (it.first is LagretDokumentHendelse) {
-                true -> when (it.first as LagretDokumentHendelse) {
-                    is LagretDokumentForArkiveringHendelse -> throw IllegalStateException("Dokument som er lagret for arkivering i SU skal ikke journalføres")
-                    is LagretDokumentForJournalføringHendelse -> it.first
-                    is LagretDokumentForUtsendelseHendelse -> it.first
+            val assertedHendelse = when (it.first is GenerertDokumentHendelse) {
+                true -> when (it.first as GenerertDokumentHendelse) {
+                    is GenerertDokumentForArkiveringHendelse -> throw IllegalStateException("Dokument som er lagret for arkivering i SU skal ikke journalføres")
+                    is GenerertDokumentForJournalføringHendelse -> it.first
+                    is GenerertDokumentForUtsendelseHendelse -> it.first
                 }
 
                 false -> throw IllegalStateException("")
@@ -227,7 +227,7 @@ class JournalførDokumentHendelserKonsument(
                 null -> throw IllegalStateException("Fil fantes ikke for å journalføre hendelse $hendelseId")
                 else -> it.second!!
             }
-            Pair(assertedHendelse as LagretDokumentHendelse, assertedFil)
+            Pair(assertedHendelse as GenerertDokumentHendelse, assertedFil)
         }
     }
 }

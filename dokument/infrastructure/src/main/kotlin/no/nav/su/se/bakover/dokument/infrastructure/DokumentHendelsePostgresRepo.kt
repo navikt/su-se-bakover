@@ -2,28 +2,26 @@ package no.nav.su.se.bakover.dokument.infrastructure
 
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
+import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.JournalførtDokumentForArkivering
 import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
+import dokument.domain.hendelser.JournalførtDokumentForUtsendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokumentForArkiveringHendelse
-import dokument.domain.hendelser.LagretDokumentForJournalføringHendelse
-import dokument.domain.hendelser.LagretDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.LagretDokument
+import dokument.domain.hendelser.LagretDokumentForJournalføring
+import dokument.domain.hendelser.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.dokument.infrastructure.GenerertDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
-import no.nav.su.se.bakover.dokument.infrastructure.LagretDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
-import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import java.util.UUID
-
-val LagretDokument = Hendelsestype("LAGRET_DOKUMENT")
-val LagretDokumentForJournalføring = Hendelsestype("LAGRET_DOKUMENT_FOR_JOURNALFØRING")
-val LagretDokumentForUtsendelse = Hendelsestype("LAGRET_DOKUMENT_FOR_UTSENDELSE")
-val JournalførtDokumentForArkivering = Hendelsestype("JOURNALTFØRT_DOKUMENT_FOR_ARKIVERING")
-val JournalførtDokumentForUtsendelse = Hendelsestype("JOURNALTFØRT_DOKUMENT_FOR_UTSENDELSE")
 
 class DokumentHendelsePostgresRepo(
     private val hendelseRepo: HendelseRepo,
@@ -41,18 +39,18 @@ class DokumentHendelsePostgresRepo(
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
             type = when (hendelse) {
-                is LagretDokumentForJournalføringHendelse -> LagretDokumentForJournalføring
-                is LagretDokumentForUtsendelseHendelse -> LagretDokumentForUtsendelse
-                is LagretDokumentForArkiveringHendelse -> LagretDokument
+                is GenerertDokumentForJournalføringHendelse -> LagretDokumentForJournalføring
+                is GenerertDokumentForUtsendelseHendelse -> LagretDokumentForUtsendelse
+                is GenerertDokumentForArkiveringHendelse -> LagretDokument
                 is JournalførtDokumentForArkiveringHendelse -> JournalførtDokumentForArkivering
                 is JournalførtDokumentForUtsendelseHendelse -> JournalførtDokumentForUtsendelse
             },
             data = when (hendelse) {
                 is JournalførtDokumentForArkiveringHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
                 is JournalførtDokumentForUtsendelseHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
-                is LagretDokumentForArkiveringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
-                is LagretDokumentForJournalføringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
-                is LagretDokumentForUtsendelseHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
+                is GenerertDokumentForArkiveringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
+                is GenerertDokumentForJournalføringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
+                is GenerertDokumentForUtsendelseHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
             },
             sessionContext = sessionContext,
         )
@@ -96,7 +94,7 @@ class DokumentHendelsePostgresRepo(
 
 private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
     return when (this.type) {
-        LagretDokument, LagretDokumentForJournalføring, LagretDokumentForUtsendelse -> LagretDokumentHendelseDbJson.toDomain(
+        LagretDokument, LagretDokumentForJournalføring, LagretDokumentForUtsendelse -> GenerertDokumentHendelseDbJson.toDomain(
             type = this.type,
             data = this.data,
             hendelseId = this.hendelseId,
