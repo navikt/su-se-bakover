@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -65,7 +64,7 @@ internal class PdfClientTest : WiremockBase {
     }
 
     @Test
-    fun `returns ClientError`() {
+    fun `returns KunneIkkeGenererePdf`() {
         wireMockServer.stubFor(
             wiremockBuilder
                 .willReturn(
@@ -74,10 +73,7 @@ internal class PdfClientTest : WiremockBase {
         )
         val client = PdfClient(wireMockServer.baseUrl())
 
-        client.genererPdf(søknadPdfInnhold) shouldBe ClientError(
-            403,
-            "Kall mot PdfClient feilet",
-        ).left()
+        client.genererPdf(søknadPdfInnhold) shouldBe KunneIkkeGenererePdf.left()
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))

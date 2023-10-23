@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -95,7 +95,7 @@ class HentSøknadPdfTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             pdfGenerator = mock {
-                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
+                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
             },
         ).also {
             it.service.hentSøknadPdf(søknadId) shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
