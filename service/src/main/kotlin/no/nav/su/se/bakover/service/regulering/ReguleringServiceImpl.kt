@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsyn
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -51,7 +51,7 @@ import java.util.UUID
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
-    private val sakRepo: SakRepo,
+    private val sakService: SakService,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
     private val sessionFactory: SessionFactory,
@@ -105,11 +105,12 @@ class ReguleringServiceImpl(
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
+        return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
 
             val sak = Either.catch {
-                sakRepo.hentSak(sakId = sakid) ?: return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
+                sakService.hentSak(sakId = sakid)
+                    .getOrElse { return@map KunneIkkeOppretteRegulering.FantIkkeSak.left() }
                     .also {
                         log.error(
                             "Regulering for saksnummer $saksnummer: Klarte ikke hente sak",
@@ -218,7 +219,8 @@ class ReguleringServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
 
-        val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        val sak = sakService.hentSak(sakId = regulering.sakId)
+            .getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         val fraOgMed = regulering.periode.fraOgMed
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
             fraOgMed = fraOgMed,
@@ -336,12 +338,15 @@ class ReguleringServiceImpl(
             observer.handle(
                 StatistikkEvent.Stønadsvedtak(
                     vedtak,
-                ) { sakRepo.hentSak(vedtak.sakId)!! },
+                ) { sakService.hentSak(vedtak.sakId).getOrNull()!! },
             )
         }
     }
 
-    override fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
+    override fun avslutt(
+        reguleringId: UUID,
+        avsluttetAv: NavIdentBruker,
+    ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
         return when (regulering) {

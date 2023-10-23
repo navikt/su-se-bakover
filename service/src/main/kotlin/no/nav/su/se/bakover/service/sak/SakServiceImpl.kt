@@ -232,6 +232,10 @@ class SakServiceImpl(
         }.right()
     }
 
+    override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> {
+        return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
+    }
+
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
         if (sak == null) {
             return BegrensetSakinfo(false, null)

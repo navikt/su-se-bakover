@@ -58,6 +58,8 @@ interface SakService {
     fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>
     fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
     fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
+
+    fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
 }
 
 data object FantIkkeSak

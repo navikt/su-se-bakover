@@ -380,6 +380,8 @@ open class AccessCheckProxy(
                     return services.sak.oppdaterFødselsnummer(command)
                 }
 
+                override fun hentSakIdSaksnummerOgFnrForAlleSaker() = kastKanKunKallesFraAnnenService()
+
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)
 

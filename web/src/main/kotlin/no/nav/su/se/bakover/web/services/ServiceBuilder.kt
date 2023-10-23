@@ -193,7 +193,7 @@ data object ServiceBuilder {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            sakRepo = databaseRepos.sak,
+            sakService = sakService,
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,

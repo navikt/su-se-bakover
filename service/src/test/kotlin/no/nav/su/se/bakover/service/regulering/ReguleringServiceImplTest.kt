@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -505,8 +505,8 @@ internal class ReguleringServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
 
         val reguleringMock = mock<ReguleringRepo> {}
-        val sakRepo = mock<SakRepo> {
-            on { hentSak(any<UUID>()) } doReturn sak
+        val sakService = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val utbetalingMock = mock<UtbetalingService> {}
         val vedtakMock = mock<VedtakService> {}
@@ -515,7 +515,7 @@ internal class ReguleringServiceImplTest {
 
         ReguleringServiceImpl(
             reguleringRepo = reguleringMock,
-            sakRepo = sakRepo,
+            sakService = sakService,
             utbetalingService = utbetalingMock,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
@@ -596,9 +596,9 @@ internal class ReguleringServiceImplTest {
                 on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
-                on { hentSak(any<UUID>()) } doReturn sakMedEndringer
+                on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()
             },
             utbetalingService = mock { service ->
                 doAnswer { invocation ->
