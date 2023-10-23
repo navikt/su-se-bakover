@@ -6,13 +6,13 @@ import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføring
 import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelse
 import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokumentForJournalføring
-import dokument.domain.hendelser.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -51,7 +51,7 @@ class JournalførDokumentHendelserKonsument(
     fun journalførDokumenter(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = LagretDokumentForJournalføring,
+            hendelsestype = GenerertDokumentForJournalføring,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSakForArkiveringAvJournalførtDokument(
                 sakId = sakId,
@@ -62,7 +62,7 @@ class JournalførDokumentHendelserKonsument(
 
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = LagretDokumentForUtsendelse,
+            hendelsestype = GenerertDokumentForUtsendelse,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSakForUtsendelseAvJournalførtDokument(
                 sakId = sakId,

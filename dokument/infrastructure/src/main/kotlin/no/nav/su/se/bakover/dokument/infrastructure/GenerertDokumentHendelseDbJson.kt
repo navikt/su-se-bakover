@@ -4,12 +4,12 @@ import arrow.core.NonEmptyList
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.DokumentHendelse
+import dokument.domain.hendelser.GenerertDokument
 import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
+import dokument.domain.hendelser.GenerertDokumentForJournalføring
 import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
+import dokument.domain.hendelser.GenerertDokumentForUtsendelse
 import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.LagretDokument
-import dokument.domain.hendelser.LagretDokumentForJournalføring
-import dokument.domain.hendelser.LagretDokumentForUtsendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.serialize
@@ -58,7 +58,7 @@ internal data class GenerertDokumentHendelseDbJson(
             )
 
             return when (type) {
-                LagretDokument -> toGenerertDokumentHendelseForArkiveringHendelse(
+                GenerertDokument -> toGenerertDokumentHendelseForArkiveringHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -69,7 +69,7 @@ internal data class GenerertDokumentHendelseDbJson(
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                 )
 
-                LagretDokumentForJournalføring -> toGenerertDokumentForJournalføringHendelse(
+                GenerertDokumentForJournalføring -> toGenerertDokumentForJournalføringHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -80,7 +80,7 @@ internal data class GenerertDokumentHendelseDbJson(
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                 )
 
-                LagretDokumentForUtsendelse -> toGenerertDokumentForUtsendelseHendelse(
+                GenerertDokumentForUtsendelse -> toGenerertDokumentForUtsendelseHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
