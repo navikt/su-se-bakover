@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -39,8 +40,8 @@ internal class OpprettKlageTest {
     @Test
     fun `fant ikke sak`() {
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn null
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         )
 
@@ -53,7 +54,7 @@ internal class OpprettKlageTest {
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
 
-        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe request.sakId })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe request.sakId })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -64,8 +65,8 @@ internal class OpprettKlageTest {
             on { handle(any()) }.then {}
         }
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -104,8 +105,8 @@ internal class OpprettKlageTest {
         val (sak, _) = opprettetKlage()
 
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val request = NyKlageRequest(
@@ -117,7 +118,7 @@ internal class OpprettKlageTest {
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
-        verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.sakServiceMock).hentSak(sakId)
         mocks.verifyNoMoreInteractions()
     }
 
@@ -129,8 +130,8 @@ internal class OpprettKlageTest {
         ).first
 
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -151,7 +152,7 @@ internal class OpprettKlageTest {
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
-        verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.sakServiceMock).hentSak(sakId)
         runBlocking {
             verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
@@ -173,8 +174,8 @@ internal class OpprettKlageTest {
         ).first
 
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -198,7 +199,7 @@ internal class OpprettKlageTest {
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
-        verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.sakServiceMock).hentSak(sakId)
         runBlocking {
             verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
@@ -241,8 +242,8 @@ internal class OpprettKlageTest {
             on { handle(any()) }.then {}
         }
         val mocks = KlageServiceMocks(
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -285,7 +286,7 @@ internal class OpprettKlageTest {
             verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected })
         }
 
-        verify(mocks.sakRepoMock).hentSak(sak.id)
+        verify(mocks.sakServiceMock).hentSak(sak.id)
         runBlocking {
             verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
         }

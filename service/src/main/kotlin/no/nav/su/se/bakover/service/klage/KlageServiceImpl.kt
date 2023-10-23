@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -57,7 +57,7 @@ import java.time.Clock
 import java.util.UUID
 
 class KlageServiceImpl(
-    private val sakRepo: SakRepo,
+    private val sakService: SakService,
     private val klageRepo: KlageRepo,
     private val vedtakService: VedtakService,
     private val brevService: BrevService,
@@ -80,7 +80,7 @@ class KlageServiceImpl(
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
         request.validate().getOrElse { return it.left() }
-        val sak = sakRepo.hentSak(request.sakId) ?: return KunneIkkeOppretteKlage.FantIkkeSak.left()
+        val sak = sakService.hentSak(request.sakId).getOrElse { return KunneIkkeOppretteKlage.FantIkkeSak.left() }
 
         if (!sak.kanOppretteKlage()) {
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()

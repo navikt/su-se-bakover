@@ -221,7 +221,7 @@ data object ServiceBuilder {
             addObserver(statistikkEventObserver)
         }
         val klageService = KlageServiceImpl(
-            sakRepo = databaseRepos.sak,
+            sakService = sakService,
             klageRepo = databaseRepos.klageRepo,
             vedtakService = vedtakService,
             brevService = brevService,

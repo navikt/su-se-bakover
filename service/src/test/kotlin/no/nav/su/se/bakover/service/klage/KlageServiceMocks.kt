@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -16,7 +16,7 @@ import person.domain.PersonService
 import java.time.Clock
 
 internal data class KlageServiceMocks(
-    val sakRepoMock: SakRepo = defaultMock(),
+    val sakServiceMock: SakService = defaultMock(),
     val klageRepoMock: KlageRepo = defaultMock(),
     val vedtakServiceMock: VedtakService = defaultMock(),
     val brevServiceMock: BrevService = defaultMock(),
@@ -29,7 +29,7 @@ internal data class KlageServiceMocks(
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
-        sakRepo = sakRepoMock,
+        sakService = sakServiceMock,
         klageRepo = klageRepoMock,
         vedtakService = vedtakServiceMock,
         brevService = brevServiceMock,
@@ -44,7 +44,7 @@ internal data class KlageServiceMocks(
     }
 
     private fun all() = listOf(
-        sakRepoMock,
+        sakServiceMock,
         klageRepoMock,
         vedtakServiceMock,
         brevServiceMock,
