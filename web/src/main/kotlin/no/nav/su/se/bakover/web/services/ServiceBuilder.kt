@@ -79,6 +79,7 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
             clients.journalpostClient,
+            personService = personService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val oppgaveService = OppgaveServiceImpl(

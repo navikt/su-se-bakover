@@ -125,6 +125,8 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
+import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -371,6 +373,11 @@ open class AccessCheckProxy(
                 override fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
                     assertHarTilgangTilSak(sakId)
                     return services.sak.hentAlleJournalposter(sakId)
+                }
+
+                override fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak> {
+                    assertHarTilgangTilSak(command.sakId)
+                    return services.sak.oppdaterFødselsnummer(command)
                 }
 
                 override fun opprettSak(sak: NySak) {

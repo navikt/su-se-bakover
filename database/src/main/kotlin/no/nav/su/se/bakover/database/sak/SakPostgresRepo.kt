@@ -4,16 +4,21 @@ import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -266,6 +271,40 @@ internal class SakPostgresRepo(
             session,
         ) {
             it.toSakInfo()
+        }
+    }
+
+    override fun oppdaterFødselsnummer(
+        sakId: UUID,
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        endretAv: NavIdentBruker,
+        endretTidspunkt: Tidspunkt,
+        sessionContext: SessionContext?,
+    ) {
+        val fnrHistorikk = """
+            {
+              "gammeltFnr": "$gammeltFnr",
+              "nyttFnr": "$nyttFnr",
+              "endretAv": "$endretAv",
+              "endretTidspunkt": "$endretTidspunkt"
+            }
+        """.trimIndent()
+        sessionContext.withOptionalSession(sessionFactory) {
+            "update sak set fnr = :nyttFnr, fnrHistorikk = :fnrHistorikk where id = :sakId and fnr = :gammeltFnr".oppdatering(
+                mapOf(
+                    "sakId" to sakId,
+                    "gammeltFnr" to gammeltFnr,
+                    "nyttFnr" to nyttFnr,
+                    "fnrHistorikk" to "to_jsonb($fnrHistorikk::jsonb)",
+                ),
+                it,
+            ).also {
+                require(it == 1) {
+                    sikkerLogg.error("Forventet at vi oppdaterte 1 rad ved oppdatering av fødselsnummer, men vi oppdaterte $it rader. For sakId $sakId, gammeltFnr=$gammeltFnr, nyttFnr=$nyttFnr")
+                    "Forventet at vi oppdaterte 1 rad ved oppdatering av fødselsnummer for sakId $sakId, men vi oppdaterte $it rader. Se sikkerlogg for fødselsnumrene."
+                }
+            }
         }
     }
 

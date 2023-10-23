@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
@@ -30,12 +32,15 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
+import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
@@ -45,6 +50,7 @@ class SakServiceImpl(
     private val dokumentRepo: DokumentRepo,
     private val brevService: BrevService,
     private val journalpostClient: JournalpostClient,
+    private val personService: PersonService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -197,6 +203,33 @@ class SakServiceImpl(
                 )
             },
         )
+    }
+
+    override fun oppdaterFødselsnummer(
+        command: OppdaterFødselsnummerPåSakCommand,
+    ): Either<KunneIkkeOppdatereFødselsnummer, Sak> {
+        val sakId = command.sakId
+        val sak = hentSak(sakId).getOrElse {
+            throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke sak med id $sakId")
+        }
+        val person = personService.hentPerson(sak.fnr).getOrElse {
+            throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke person med fnr ${sak.fnr} på sak $sakId")
+        }
+        if (sak.fnr == person.ident.fnr) {
+            return KunneIkkeOppdatereFødselsnummer.SakHarAlleredeSisteFødselsnummer.left()
+        }
+        sakRepo.oppdaterFødselsnummer(
+            sakId = sakId,
+            gammeltFnr = sak.fnr,
+            nyttFnr = person.ident.fnr,
+            endretAv = command.saksbehandler,
+            endretTidspunkt = Tidspunkt.now(clock),
+
+        )
+        // TODO jah: La Sak.kt ha en funksjon for å oppdatere og flytt logikken dit.
+        return hentSak(sakId).getOrElse {
+            throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke sak med id $sakId")
+        }.right()
     }
 
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {

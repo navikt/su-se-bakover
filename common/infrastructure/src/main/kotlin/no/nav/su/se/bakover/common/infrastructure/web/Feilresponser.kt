@@ -337,6 +337,10 @@ data object Feilresponser {
         message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
         code = "åpent_kravgrunnlag_må_håndteres_før_ny_søknadsbehandling",
     )
+    val sakHarAlleredeSisteFødselsnummer = BadRequest.errorJson(
+        message = "Saken har allerede siste fødselsnummer",
+        code = "sak_har_allerede_siste_fødselsnummer",
+    )
 
     val detHarKommetNyeOverlappendeVedtak = BadRequest.errorJson(
         message = "Det har kommet nye vedtak i denne revurderingsperioden etter at denne revurderingen ble opprettet eller oppdatert.",

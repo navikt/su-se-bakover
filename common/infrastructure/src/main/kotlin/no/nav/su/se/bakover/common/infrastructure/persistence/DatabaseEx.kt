@@ -29,23 +29,29 @@ private fun sjekkTypeForBeregning(params: Map<String, Any?>) {
     }
 }
 
+/**
+ * @return antall rader oppdatert
+ */
 fun String.oppdatering(
     params: Map<String, Any?>,
     session: Session,
-) {
+): Int {
     sjekkUgyldigParameternavn(params)
     sjekkAtOppdaterInneholderWhere(this)
     sjekkTypeForBeregning(params)
-    session.run(queryOf(statement = this, paramMap = params).asUpdate)
+    return session.run(queryOf(statement = this, paramMap = params).asUpdate)
 }
 
+/**
+ * @return antall rader oppdatert
+ */
 fun String.insert(
     params: Map<String, Any?>,
     session: Session,
-) {
+): Int {
     sjekkUgyldigParameternavn(params)
     sjekkTypeForBeregning(params)
-    session.run(queryOf(statement = this, paramMap = params).asUpdate)
+    return session.run(queryOf(statement = this, paramMap = params).asUpdate)
 }
 
 fun <T> String.hent(

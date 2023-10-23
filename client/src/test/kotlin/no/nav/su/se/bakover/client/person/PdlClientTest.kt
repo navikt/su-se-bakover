@@ -134,11 +134,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -178,11 +180,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -371,11 +375,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -499,11 +505,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -636,11 +644,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -728,11 +738,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -790,11 +802,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -853,11 +867,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }
@@ -917,11 +933,13 @@ internal class PdlClientTest : WiremockBase {
                   "identer": [
                     {
                       "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT"
+                      "gruppe": "FOLKEREGISTERIDENT",
+                      "historisk": false
                     },
                     {
                       "ident": "2751637578706",
-                      "gruppe": "AKTORID"
+                      "gruppe": "AKTORID",
+                      "historisk": false
                     }
                   ]
                 }

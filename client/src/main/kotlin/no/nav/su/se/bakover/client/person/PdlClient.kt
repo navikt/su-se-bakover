@@ -142,8 +142,8 @@ internal class PdlClient(
 
     private fun finnIdent(hentIdenter: HentIdenter) =
         PdlIdent(
-            fnr = hentIdenter.identer.first { it.gruppe == FOLKEREGISTERIDENT }.ident.let { Fnr(it) },
-            aktørId = hentIdenter.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) },
+            fnr = hentIdenter.identer.first { it.gruppe == FOLKEREGISTERIDENT && !it.historisk }.ident.let { Fnr(it) },
+            aktørId = hentIdenter.identer.first { it.gruppe == AKTORID && !it.historisk }.ident.let { AktørId(it) },
         )
 
     private inline fun <reified T> kallPDLMedSystembruker(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
@@ -313,6 +313,7 @@ internal data class HentIdenter(
 internal data class Id(
     val gruppe: String,
     val ident: String,
+    val historisk: Boolean,
 )
 
 internal data class Fødsel(

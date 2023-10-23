@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.sak
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
@@ -30,4 +32,12 @@ interface SakRepo {
     fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
     fun hentSakForVedtak(vedtakId: UUID): Sak?
+    fun oppdaterFødselsnummer(
+        sakId: UUID,
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        endretAv: NavIdentBruker,
+        endretTidspunkt: Tidspunkt,
+        sessionContext: SessionContext? = null,
+    )
 }

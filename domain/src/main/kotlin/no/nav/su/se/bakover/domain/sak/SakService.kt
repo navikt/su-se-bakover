@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
+import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
+import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import person.domain.KunneIkkeHenteNavnForNavIdent
@@ -55,6 +57,7 @@ interface SakService {
     fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata>
     fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>
     fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
+    fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
 }
 
 data object FantIkkeSak
