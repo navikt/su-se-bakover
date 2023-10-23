@@ -74,9 +74,9 @@ internal class PdlClient(
             return FantIkkePerson.left()
         }
 
-        val navn = person.navn.minByOrNull {
-            folkeregisteretAsMaster(it.metadata)
-        }!!
+        val navn = person.navn.single {
+            folkeregisteretAsMaster(it.metadata) && !it.metadata.historisk
+        }
 
         val alleAdresser = listOf(
             person.bostedsadresse,
@@ -304,6 +304,7 @@ internal data class Statsborgerskap(
 
 internal data class Metadata(
     val master: String,
+    val historisk: Boolean,
 )
 
 internal data class HentIdenter(

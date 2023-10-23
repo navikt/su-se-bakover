@@ -7,6 +7,7 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
             etternavn
             metadata {
                 master
+                historisk
             }
         },
         telefonnummer {

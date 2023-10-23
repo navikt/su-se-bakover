@@ -297,7 +297,8 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg"
+                        "master": "Freg",
+                        "historisk": false
                       }
                     }
                   ],
@@ -428,7 +429,8 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg"
+                        "master": "Freg",
+                        "historisk": false
                       }
                     }
                   ],
@@ -572,7 +574,8 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg"
+                        "master": "Freg",
+                        "historisk": false
                       }
                     }
                   ],
@@ -719,7 +722,8 @@ internal class PdlClientTest : WiremockBase {
                 "mellomnavn": null,
                 "etternavn": "KRONJUVEL",
                 "metadata": {
-                  "master": "Freg"
+                  "master": "Freg",
+                        "historisk": false
                  }
                 }],
                   "telefonnummer": [],
@@ -783,7 +787,8 @@ internal class PdlClientTest : WiremockBase {
                 "mellomnavn": null,
                 "etternavn": "KRONJUVEL",
                 "metadata": {
-                  "master": "Freg"
+                  "master": "Freg",
+                        "historisk": false
                  }
                 }],
                   "telefonnummer": [],
@@ -907,7 +912,8 @@ internal class PdlClientTest : WiremockBase {
                 "mellomnavn": null,
                 "etternavn": "KRONJUVEL",
                 "metadata": {
-                  "master": "Freg"
+                  "master": "Freg",
+                        "historisk": false
                  }
                 }],
                   "telefonnummer": [],
