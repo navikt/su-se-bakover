@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
@@ -18,10 +20,17 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
+import no.nav.su.se.bakover.test.simulering.simuleringUtbetalingRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.slf4j.Logger
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import økonomi.domain.simulering.Kontobeløp
@@ -66,12 +75,13 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            rawResponse = rawResponse,
-            oppdragResponse = responseMedFremtidigUtbetaling,
+        val request = simuleringUtbetalingRequest()
+        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
             clock = fixedClock,
-            saksnummer = saksnummer,
-        ).simulering shouldBe Simulering(
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
+        val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -105,7 +115,9 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
             rawResponse = rawResponse,
-        ).also {
+        )
+        actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
+        actualSimulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -160,12 +172,13 @@ internal class SimuleringResponseMapperTest {
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedFremtidigUtbetaling,
-            fixedClock,
-            saksnummer,
-        ).simulering shouldBe Simulering(
+        val request = simuleringUtbetalingRequest()
+        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
+        val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -200,7 +213,9 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
             rawResponse = simuleringXml,
-        ).also {
+        )
+        actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
+        actualSimulering.also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021) to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
@@ -251,12 +266,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedFeilutbetaling,
-            fixedClock,
-            saksnummer,
-        ).simulering shouldBe Simulering(
+        val request = simuleringUtbetalingRequest()
+        val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -373,7 +384,15 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
             rawResponse = simuleringXml,
-        ).also {
+        )
+        val actualSimulering = responseMedFeilutbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
+        actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
+
+        actualSimulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -495,12 +514,13 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedEtterbetaling,
-            fixedClock,
-            saksnummer,
-        ).simulering shouldBe Simulering(
+        val request = simuleringUtbetalingRequest()
+        val actualSimulering = responseMedEtterbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
+        val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -575,7 +595,9 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
             rawResponse = simuleringXml,
-        ).also {
+        )
+        actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
+        actualSimulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -691,12 +713,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedFremtidigUtbetaling,
-            fixedClock,
-            saksnummer,
-        ).simulering shouldBe Simulering(
+        val request = simuleringUtbetalingRequest()
+        val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -731,7 +749,14 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
             rawResponse = simuleringXml,
-        ).also {
+        )
+        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
+        actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
+        actualSimulering.also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
@@ -762,14 +787,29 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        shouldThrow<IllegalStateException> {
-            SimuleringResponseMapper(
-                simuleringXml,
-                responseMedFremtidigUtbetaling,
-                fixedClock,
-                saksnummer,
-            )
-        }.message.shouldBe("Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se sikkerlogg for flere detaljer og feilmelding.")
+        val request = simuleringUtbetalingRequest()
+        val logMock = mock<Logger>()
+        val sikkerLoggMock = mock<Logger>()
+        val soapRequest = SimuleringRequestBuilder(request).build()
+        responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = soapRequest,
+            log = logMock,
+            sikkerLogg = sikkerLoggMock,
+        ) shouldBe SimuleringFeilet.TekniskFeil.left()
+        verify(logMock).error(
+            // Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se sikkerlogg for flere detaljer og feilmelding.
+            argThat { it shouldBe "Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer. Se sikkerlogg for stacktrace og context." },
+        )
+        verify(sikkerLoggMock).error(
+            argThat {
+                it shouldContain "Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer."
+            },
+            argThat<Throwable> {
+                it shouldBe IllegalStateException("Simulering inneholder flere utbetalinger for samme sak $saksnummer.")
+            },
+        )
     }
 
     @Test
@@ -788,12 +828,12 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedFremtidigUtbetaling,
-            fixedClock,
-            saksnummer,
-        ).simulering.måneder.map { it.utbetaling!!.fagSystemId } shouldBe listOf(fagsystemId)
+        val request = simuleringUtbetalingRequest()
+        responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail().måneder.map { it.utbetaling!!.fagSystemId } shouldBe listOf(fagsystemId)
     }
 
     @Test
@@ -812,13 +852,12 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(
-            simuleringXml,
-            responseMedFremtidigUtbetaling,
-            fixedClock,
-            // Vi tar ikke vare på kodeFagomraade (da domenet vårt ikke forholder seg til andre fagområder)
-            saksnummer,
-        ).simulering.måneder.map { it.utbetaling!! }.size.shouldBe(1)
+        val request = simuleringUtbetalingRequest()
+        responseMedFremtidigUtbetaling.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail().måneder.map { it.utbetaling!! }.size.shouldBe(1)
     }
 
     @Test
@@ -829,12 +868,12 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        SimuleringResponseMapper(
-            rawResponse = rawResponse,
-            oppdragResponse = responseMedÅpenFeilkonto,
+        val request = simuleringUtbetalingRequest()
+        responseMedÅpenFeilkonto.toSimulering(
+            request = request,
             clock = fixedClock,
-            saksnummer = saksnummer,
-        ).simulering.also {
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
@@ -1042,12 +1081,12 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        SimuleringResponseMapper(
-            rawResponse = rawResponse,
-            oppdragResponse = responseMedÅpenFeilkonto,
+        val request = simuleringUtbetalingRequest()
+        responseMedÅpenFeilkonto.toSimulering(
+            request = request,
             clock = fixedClock,
-            saksnummer = saksnummer,
-        ).simulering.also {
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -1280,12 +1319,12 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        SimuleringResponseMapper(
-            rawResponse = rawResponse,
-            oppdragResponse = responseMedÅpenFeilkonto,
+        val request = simuleringUtbetalingRequest()
+        responseMedÅpenFeilkonto.toSimulering(
+            request = request,
             clock = fixedClock,
-            saksnummer = saksnummer,
-        ).simulering.also {
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
@@ -1504,9 +1543,16 @@ internal class SimuleringResponseMapperTest {
 
         response.simulering.belop shouldBe BigDecimal("2480.00")
 
-        val simulering = SimuleringResponseMapper(rawXml, response, fixedClock, Saksnummer(2021)).simulering
+        val request = simuleringUtbetalingRequest(
+            saksnummer = Saksnummer.parse("2021"),
+        )
+        val actualSimulering = response.toSimulering(
+            request = request,
+            clock = fixedClock,
+            soapRequest = SimuleringRequestBuilder(request).build(),
+        ).getOrFail()
 
-        simulering.hentTotalUtbetaling() shouldBe Månedsbeløp(listOf(MånedBeløp(mai(2023), Beløp(2480))))
+        actualSimulering.hentTotalUtbetaling() shouldBe Månedsbeløp(listOf(MånedBeløp(mai(2023), Beløp(2480))))
     }
 
     private val jsonMedReduksjonAvFeilkonto = """

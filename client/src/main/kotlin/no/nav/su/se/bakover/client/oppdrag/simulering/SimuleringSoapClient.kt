@@ -1,11 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
-import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -14,6 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
+import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import java.net.SocketException
@@ -34,26 +32,13 @@ internal class SimuleringSoapClient(
     ): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(request).build()
         return try {
-            simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
-                // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
-                val rawResponse: String = Either.catch {
-                    xmlMapper.writeValueAsString(it)
-                }.getOrElse {
-                    log.error("Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace.")
-                    sikkerLogg.error("Kunne ikke simulere SimulerBeregningResponse til xml.", it)
-                    "Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace."
-                }
-                SimuleringResponseMapper(
-                    rawResponse = rawResponse,
-                    oppdragResponse = it,
+            simulerFpService.simulerBeregning(simulerRequest)?.response.let { response: SimulerBeregningResponse? ->
+                response.toSimulering(
+                    request = request,
+                    soapRequest = simulerRequest,
                     clock = clock,
-                    saksnummer = request.utbetaling.saksnummer,
-                ).simulering.right()
-            } ?: SimuleringResponseMapper(
-                utbetaling = request.utbetaling,
-                simuleringsperiode = simulerRequest.request.simuleringsPeriode,
-                clock = clock,
-            ).simulering.right()
+                )
+            }
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.warn("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.warn(

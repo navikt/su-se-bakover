@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
@@ -383,19 +384,15 @@ fun simuleringNy(
         ),
     ),
 ): Simulering {
-    return Utbetalingsstrategi.NyUføreUtbetaling(
+    return utbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-        behandler = saksbehandler,
         beregning = beregning,
         clock = clock,
         uføregrunnlag = uføregrunnlag,
-        kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        // TODO("simulering_utbetaling_alder utled fra sak/behandling")
-        sakstype = Sakstype.UFØRE,
-    ).generate().let {
+    ).let {
         SimuleringStub(
             // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             clock = nåtidForSimuleringStub,
@@ -407,6 +404,40 @@ fun simuleringNy(
             ),
         )
     }.getOrFail()
+}
+
+fun utbetalingForSimulering(
+    beregning: Beregning = beregning(periode = år(2021)),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
+    clock: Clock = fixedClock,
+    sakstype: Sakstype = Sakstype.UFØRE,
+    behandler: NavIdentBruker = saksbehandler,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
+        Grunnlag.Uføregrunnlag(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            periode = beregning.periode,
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 0,
+        ),
+    ),
+): Utbetaling.UtbetalingForSimulering {
+    return Utbetalingsstrategi.NyUføreUtbetaling(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        behandler = behandler,
+        beregning = beregning,
+        clock = clock,
+        uføregrunnlag = uføregrunnlag,
+        kjøreplan = kjøreplan,
+        sakstype = sakstype,
+    ).generate()
 }
 
 fun simuleringOpphørt(
@@ -691,6 +722,24 @@ fun simulertDetaljTilbakeføring(
         klassekode = KlasseKode.SUUFORE,
         klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
+    )
+}
+
+/**
+ * @param saksnummer ignoreres dersom [utbetaling] sendes inn
+ * @param utbetaling Default
+ * @param simuleringsperiode Default 2021
+ */
+fun simuleringUtbetalingRequest(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    utbetaling: Utbetaling.UtbetalingForSimulering = utbetalingForSimulering(
+        saksnummer = saksnummer,
+    ),
+    simuleringsperiode: Periode = år(2021),
+): SimulerUtbetalingRequest {
+    return SimulerUtbetalingForPeriode(
+        utbetaling = utbetaling,
+        simuleringsperiode = simuleringsperiode,
     )
 }
 
