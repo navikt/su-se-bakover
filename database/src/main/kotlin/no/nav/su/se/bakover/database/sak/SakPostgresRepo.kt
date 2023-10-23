@@ -291,12 +291,12 @@ internal class SakPostgresRepo(
             }
         """.trimIndent()
         sessionContext.withOptionalSession(sessionFactory) {
-            "update sak set fnr = :nyttFnr, fnrHistorikk = :fnrHistorikk where id = :sakId and fnr = :gammeltFnr".oppdatering(
+            "update sak set fnr = :nyttFnr, fnrHistorikk = to_jsonb(:fnrHistorikk::jsonb) where id = :sakId and fnr = :gammeltFnr".oppdatering(
                 mapOf(
                     "sakId" to sakId,
                     "gammeltFnr" to gammeltFnr,
                     "nyttFnr" to nyttFnr,
-                    "fnrHistorikk" to "to_jsonb($fnrHistorikk::jsonb)",
+                    "fnrHistorikk" to fnrHistorikk,
                 ),
                 it,
             ).also {
