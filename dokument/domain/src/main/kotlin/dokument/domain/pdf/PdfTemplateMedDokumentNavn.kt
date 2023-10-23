@@ -11,6 +11,11 @@ sealed class PdfTemplateMedDokumentNavn(
     fun template() = pdfTemplate.name()
     fun tittel() = dokumentNavn
 
+    data object Søknad : PdfTemplateMedDokumentNavn(
+        pdfTemplate = PdfTemplate.Søknad,
+        dokumentNavn = "Søknad om supplerende stønad",
+    )
+
     data object InnvilgetVedtak : PdfTemplateMedDokumentNavn(
         pdfTemplate = PdfTemplate.InnvilgetVedtak,
         dokumentNavn = "Vedtaksbrev for søknad om supplerende stønad",

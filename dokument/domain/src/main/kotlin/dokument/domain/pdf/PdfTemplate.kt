@@ -8,6 +8,7 @@ sealed class PdfTemplate(
 ) {
     fun name() = templateName
 
+    data object Søknad : PdfTemplate("soknad")
     data object InnvilgetVedtak : PdfTemplate("vedtakInnvilgelse")
     data object AvslagsVedtak : PdfTemplate("vedtakAvslag")
     data object TrukketSøknad : PdfTemplate("søknadTrukket")

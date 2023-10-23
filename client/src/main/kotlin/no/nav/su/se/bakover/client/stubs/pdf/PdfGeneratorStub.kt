@@ -3,11 +3,9 @@ package no.nav.su.se.bakover.client.stubs.pdf
 import arrow.core.Either
 import arrow.core.right
 import dokument.domain.pdf.PdfInnhold
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 
 data object PdfGeneratorStub : PdfGenerator {
 
@@ -25,10 +23,6 @@ data object PdfGeneratorStub : PdfGenerator {
                 149
                 %EOF
         """.trimIndent()
-
-    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, PdfA> {
-        return PdfA(pdf.toByteArray()).right()
-    }
 
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         return PdfA(pdf.toByteArray()).right()

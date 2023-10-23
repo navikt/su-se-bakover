@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.søknad
 
+import dokument.domain.pdf.PdfInnhold
+import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
@@ -16,10 +18,14 @@ data class SøknadPdfInnhold private constructor(
     val søknadsId: UUID,
     val navn: Person.Navn,
     private val clock: Clock,
-    val dagensDatoOgTidspunkt: String = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+    val dagensDatoOgTidspunkt: String = LocalDateTime.now(clock)
+        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val søknadOpprettet: String,
     val søknadInnhold: SøknadInnhold,
-) {
+) : PdfInnhold() {
+
+    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Søknad
+
     companion object {
         fun create(
             saksnummer: Saksnummer,
@@ -32,7 +38,8 @@ data class SøknadPdfInnhold private constructor(
             saksnummer = saksnummer,
             søknadsId = søknadsId,
             navn = navn,
-            dagensDatoOgTidspunkt = LocalDateTime.now(clock.withZone(zoneIdOslo)).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+            dagensDatoOgTidspunkt = LocalDateTime.now(clock.withZone(zoneIdOslo))
+                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
             søknadOpprettet = søknadOpprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
             søknadInnhold = søknadInnhold,
             clock = clock,

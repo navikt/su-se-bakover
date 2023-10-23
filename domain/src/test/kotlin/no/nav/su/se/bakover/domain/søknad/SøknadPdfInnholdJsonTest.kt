@@ -64,6 +64,8 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
+                  "erAldersbrev": false,
+                  "sakstype": "UFØRE",
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
@@ -236,6 +238,8 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
+                  "erAldersbrev": false,
+                  "sakstype": "UFØRE",
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
@@ -413,6 +417,8 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
+                  "erAldersbrev": false,
+                  "sakstype": "UFØRE",
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
