@@ -1089,8 +1089,11 @@ data class SimuleringResponseData(
     }
 }
 
-val simuleringDobbelTilbakeføringMedTrekkXml: String = getXmlFileContent("simulering-dobbel-tilbakeføring-med-trekk.xml")
+val simuleringDobbelTilbakeføringMedTrekkXml: String by lazy { getXmlFileContent("simulering-dobbel-tilbakeføring-med-trekk.xml") }
 
+/**
+ * Dette er ikke
+ */
 private fun getXmlFileContent(@Suppress("SameParameterValue") filename: String): String {
     val path = Paths.get("").toAbsolutePath().parent.toFile()
     val xmlFile = File(path, "/test-common/src/main/kotlin/simulering/$filename")
