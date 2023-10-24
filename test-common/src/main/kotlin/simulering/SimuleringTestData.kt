@@ -57,6 +57,8 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
+import java.io.File
+import java.nio.file.Paths
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -732,8 +734,10 @@ fun simulertDetaljTilbakeføring(
  */
 fun simuleringUtbetalingRequest(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
     utbetaling: Utbetaling.UtbetalingForSimulering = utbetalingForSimulering(
         saksnummer = saksnummer,
+        clock = clock,
     ),
     simuleringsperiode: Periode = år(2021),
 ): SimulerUtbetalingRequest {
@@ -1083,4 +1087,12 @@ data class SimuleringResponseData(
             }
         }
     }
+}
+
+val simuleringDobbelTilbakeføringMedTrekkXml: String = getXmlFileContent("simulering-dobbel-tilbakeføring-med-trekk.xml")
+
+private fun getXmlFileContent(@Suppress("SameParameterValue") filename: String): String {
+    val path = Paths.get("").toAbsolutePath().parent.toFile()
+    val xmlFile = File(path, "/test-common/src/main/kotlin/simulering/$filename")
+    return xmlFile.readText()
 }
