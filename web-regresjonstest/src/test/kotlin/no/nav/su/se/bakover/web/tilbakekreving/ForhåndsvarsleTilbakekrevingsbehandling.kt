@@ -42,6 +42,7 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
                     actual = it,
                     sakId = sakId,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    expectedVersjon = saksversjon + 1,
                 )
             }
         }
@@ -52,6 +53,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     tilbakekrevingsbehandlingId: String,
+    expectedVersjon: Long,
 ) {
     val expected = """
 {
@@ -84,7 +86,9 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "status":"FORHÅNDSVARSLET",
   "månedsvurderinger":[],
   "fritekst":null,
-  "forhåndsvarselDokumenter": ["ignoreres-siden-denne-opprettes-av-tjenesten"]
+  "forhåndsvarselDokumenter": ["ignoreres-siden-denne-opprettes-av-tjenesten"],
+  "sendtTilAttesteringAv": null,
+  "versjon": $expectedVersjon
 }"""
     JSONAssert.assertEquals(
         expected,

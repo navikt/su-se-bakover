@@ -98,27 +98,47 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 hentFritekst(it)
             }
-            sendTilbakekrevingsbehandlingTilAttestering(
+            // hjelper med å teste [Utfylt] tilstanden
+            val vurderinger2 = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = 9,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-                verifiserVurderinger = vurderinger,
+                vurderinger = """
+                    [
+                        {
+                            "måned": "2021-01",
+                            "vurdering": "SkalIkkeTilbakekreve"
+                        }
+                    ]
+                """.trimIndent(),
+                tilstand = "VEDTAKSBREV",
+                expectedFritekst = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
+            ).let {
+                hentVurderinger(it)
+            }
+            sendTilbakekrevingsbehandlingTilAttestering(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = 10,
+                client = this.client,
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+                verifiserVurderinger = vurderinger2,
                 verifiserFritekst = fritekst,
             )
             // TODO jah: Her skal vi lukke+opprette ny oppgave.
             iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 10,
+                saksversjon = 11,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-                verifiserVurderinger = vurderinger,
+                verifiserVurderinger = vurderinger2,
                 verifiserFritekst = fritekst,
             )
             // TODO jah: Her skal vi lukke oppgave + sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, 11)
+            verifiserKravgrunnlagPåSak(sakId, client, true, 12)
         }
     }
 }

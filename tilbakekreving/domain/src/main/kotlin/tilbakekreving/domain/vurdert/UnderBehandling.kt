@@ -145,6 +145,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         ) = this.copy(
             hendelseId = hendelseId,
             månedsvurderinger = månedsvurderinger,
+            versjon = versjon,
         )
 
         override fun oppdaterVedtaksbrev(
@@ -154,6 +155,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         ) = this.copy(
             hendelseId = hendelseId,
             vedtaksbrevvalg = vedtaksbrevvalg,
+            versjon = versjon,
         )
 
         override fun leggTilForhåndsvarselDokumentId(
@@ -163,6 +165,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         ) = this.copy(
             hendelseId = hendelseId,
             forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
+            versjon = versjon,
         )
 
         override fun erÅpen() = true

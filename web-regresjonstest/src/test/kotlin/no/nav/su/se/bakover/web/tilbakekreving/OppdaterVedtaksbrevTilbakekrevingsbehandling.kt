@@ -51,6 +51,7 @@ fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     vurderinger = verifiserVurderinger,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                    expectedVersjon = saksversjon + 1,
                 )
             }
         }
@@ -64,6 +65,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
     tilbakekrevingsbehandlingId: String,
     vurderinger: String,
     forhåndsvarselDokumenter: String,
+    expectedVersjon: Long,
 ) {
     val expected = """
 {
@@ -96,7 +98,9 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
   "status":"VEDTAKSBREV",
   "månedsvurderinger":$vurderinger,
   "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
-  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
+  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
+  "sendtTilAttesteringAv": null,
+  "versjon": $expectedVersjon
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -20,6 +20,8 @@ data class TilbakekrevingsbehandlingJson(
     val månedsvurderinger: List<MånedsvurderingJson>,
     val fritekst: String?,
     val forhåndsvarselDokumenter: List<UUID>,
+    val versjon: Long,
+    val sendtTilAttesteringAv: String?,
 ) {
 
     companion object {
@@ -40,6 +42,7 @@ data class TilbakekrevingsbehandlingJson(
                         else -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
                     }
                 }
+
                 is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
@@ -53,6 +56,16 @@ data class TilbakekrevingsbehandlingJson(
             } ?: emptyList(),
             forhåndsvarselDokumenter = forhåndsvarselDokumentIder,
             fritekst = this.vedtaksbrevvalg?.fritekst,
+            versjon = this.versjon.value,
+            sendtTilAttesteringAv = when (this) {
+                is OpprettetTilbakekrevingsbehandling,
+                is UnderBehandling,
+                -> null
+
+                is TilbakekrevingsbehandlingTilAttestering -> this.sendtTilAttesteringAv.toString()
+                is IverksattTilbakekrevingsbehandling -> this.forrigeSteg.sendtTilAttesteringAv.toString()
+                else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend for sendTilAttesteringAv")
+            },
         )
     }
 }

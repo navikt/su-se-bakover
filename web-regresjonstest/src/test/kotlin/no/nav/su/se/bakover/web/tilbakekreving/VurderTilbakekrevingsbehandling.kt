@@ -20,6 +20,7 @@ fun vurderTilbakekrevingsbehandling(
     verifiserRespons: Boolean = true,
     saksversjon: Long,
     verifiserForhåndsvarselDokumenter: String,
+    tilstand: String = "VURDERT",
     vurderinger: String = """
         [
             {
@@ -28,6 +29,7 @@ fun vurderTilbakekrevingsbehandling(
             }
         ]
     """.trimIndent(),
+    expectedFritekst: String? = null,
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
@@ -54,8 +56,11 @@ fun vurderTilbakekrevingsbehandling(
                     actual = it,
                     sakId = sakId,
                     måneder = vurderinger,
+                    status = tilstand,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                    expectedVersjon = saksversjon + 1,
+                    expectedFritekst = expectedFritekst,
                 )
             }
         }
@@ -67,8 +72,12 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     tilbakekrevingsbehandlingId: String,
     forhåndsvarselDokumenter: String,
     sakId: String,
+    status: String,
     måneder: String,
+    expectedVersjon: Long,
+    expectedFritekst: String?,
 ) {
+    //language=json
     val expected = """
 {
   "id":"$tilbakekrevingsbehandlingId",
@@ -93,14 +102,16 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
             "beløpSkalTilbakekreves":"12383",
             "beløpSkalIkkeTilbakekreves":"0",
             "skatteProsent":"50"
-          },
+          }
       }
     ]
   },
-  "status":"VURDERT",
+  "status":"$status",
   "månedsvurderinger":$måneder,
-  "fritekst":null,
-  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
+  "fritekst": ${expectedFritekst?.let { "\"$it\"" }},
+  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
+  "sendtTilAttesteringAv": null,
+  "versjon": $expectedVersjon
 }"""
     JSONAssert.assertEquals(
         expected,

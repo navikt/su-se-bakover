@@ -44,7 +44,11 @@ fun opprettTilbakekrevingsbehandling(
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(actual = it, sakId = sakId)
+                verifiserOpprettetTilbakekrevingsbehandlingRespons(
+                    actual = it,
+                    sakId = sakId,
+                    expectedVersjon = saksversjon + 1,
+                )
             }
             opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
                 correlationId = correlationId,
@@ -56,6 +60,7 @@ fun opprettTilbakekrevingsbehandling(
 fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
+    expectedVersjon: Long,
 ) {
     val expected = """
 {
@@ -88,7 +93,9 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "status":"OPPRETTET",
   "månedsvurderinger":[],
   "fritekst":null,
-  "forhåndsvarselDokumenter": []
+  "forhåndsvarselDokumenter": [],
+  "sendtTilAttesteringAv": null,
+  "versjon": $expectedVersjon
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -45,6 +45,7 @@ fun iverksettTilbakekrevingsbehandling(
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     vurderinger = verifiserVurderinger,
                     fritekst = verifiserFritekst,
+                    expectedVersjon = saksversjon + 1,
                 )
             }
         }
@@ -58,6 +59,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     sakId: String,
     vurderinger: String,
     fritekst: String,
+    expectedVersjon: Long,
 ) {
     val expected = """
 {
@@ -90,7 +92,9 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "status":"IVERKSATT",
   "månedsvurderinger":$vurderinger,
   "fritekst":"$fritekst",
-  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter
+  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
+  "sendtTilAttesteringAv": "Z990Lokal",
+  "versjon": $expectedVersjon
 }"""
     JSONAssert.assertEquals(
         expected,
