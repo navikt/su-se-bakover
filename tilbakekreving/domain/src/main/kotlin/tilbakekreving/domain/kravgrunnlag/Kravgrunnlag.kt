@@ -91,8 +91,8 @@ data class Kravgrunnlag(
                 require(beløpSkalIkkeTilbakekreves == 0) {
                     "Forventer at kravgrunnlag.beløpSkalIkkeTilbakekreves == 0, men var $beløpSkalIkkeTilbakekreves"
                 }
-                require(skatteProsent > BigDecimal.ZERO) {
-                    "Forventer at kravgrunnlag.beløpSkalTilbakekreves > 0, men var $skatteProsent"
+                require(skatteProsent >= BigDecimal.ZERO) {
+                    "Forventer at kravgrunnlag.skatteProsent >= 0, men var $skatteProsent"
                 }
             }
         }
