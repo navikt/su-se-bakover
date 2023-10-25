@@ -111,7 +111,8 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "fritekst": ${expectedFritekst?.let { "\"$it\"" }},
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": []
 }"""
     JSONAssert.assertEquals(
         expected,

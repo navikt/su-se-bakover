@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -21,8 +23,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
@@ -60,6 +60,7 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
                 bestemtAv = "",
             )
         }
+
         is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_SEND",
@@ -68,6 +69,7 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
                 bestemtAv = bestemtAv.toString(),
             )
         }
+
         is BrevvalgRevurdering.Valgt.SendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "SEND",
@@ -531,6 +533,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
         )
+
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
             StansAvUtbetalingJson(
                 id = id.toString(),
@@ -553,6 +556,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
                 brevvalg = brevvalgRevurdering.toJson(),
             )
         }
+
         is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> StansAvUtbetalingJson(
             id = id.toString(),
             sakId = sakId.toString(),
@@ -602,6 +606,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
                 brevvalg = brevvalgRevurdering.toJson(),
             )
         }
+
         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> GjenopptakAvYtelseJson(
             id = id.toString(),
             sakId = sakId.toString(),
@@ -622,6 +627,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
         )
+
         is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> GjenopptakAvYtelseJson(
             id = id.toString(),
             sakId = sakId.toString(),

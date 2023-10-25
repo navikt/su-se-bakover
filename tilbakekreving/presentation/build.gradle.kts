@@ -5,6 +5,8 @@ dependencies {
 
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
+    implementation(project(":common:presentation"))
+
     implementation(project(":økonomi:domain"))
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":hendelse:domain"))

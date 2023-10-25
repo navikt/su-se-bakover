@@ -100,7 +100,8 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
   "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": []
 }"""
     JSONAssert.assertEquals(
         expected,

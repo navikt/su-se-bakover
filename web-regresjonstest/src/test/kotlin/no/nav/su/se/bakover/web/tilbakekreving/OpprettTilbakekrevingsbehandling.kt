@@ -95,7 +95,8 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "fritekst":null,
   "forhåndsvarselDokumenter": [],
   "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": [],
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -21,6 +21,7 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsv
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
+import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -124,6 +125,12 @@ class TilbakekrevingServices(
         clock = clock,
     ),
     val tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
+        tilgangstyring = tilgangstyringService,
+        sakService = sakService,
+        clock = clock,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+    ),
+    val underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
         tilgangstyring = tilgangstyringService,
         sakService = sakService,
         clock = clock,

@@ -88,7 +88,8 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "fritekst":null,
   "forhåndsvarselDokumenter": ["ignoreres-siden-denne-opprettes-av-tjenesten"],
   "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": []
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.klage
 
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -16,8 +18,6 @@ import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utled
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.UtfallJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.ÅrsakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson.Companion.toJson
 
 internal data class KlageJson(
     val id: String,

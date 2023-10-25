@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
+import common.presentation.attestering.UnderkjennelseJson
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -20,9 +23,6 @@ import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AldersvurderingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøkandsbehandlingStatusJson.Companion.status
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.UnderkjennelseJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter

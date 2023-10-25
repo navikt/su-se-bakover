@@ -22,6 +22,7 @@ data class UnderkjentHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Attestant,
+    val grunn: Attestering.Underkjent.Grunn,
     val begrunnelse: String,
 ) : TilbakekrevingsbehandlingHendelse {
 
@@ -40,6 +41,7 @@ data class UnderkjentHendelse(
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
             utførtAv: NavIdentBruker.Attestant,
+            grunn: Attestering.Underkjent.Grunn,
             begrunnelse: String,
         ) = UnderkjentHendelse(
             hendelseId = HendelseId.generer(),
@@ -50,6 +52,7 @@ data class UnderkjentHendelse(
             id = id,
             tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
+            grunn = grunn,
             begrunnelse = begrunnelse,
         )
     }
@@ -60,7 +63,7 @@ data class UnderkjentHendelse(
             is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Iverksatt. Støtter kun å fra TilAttestering Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Underkjenn. Støtter kun å fra TilAttestering. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is TilbakekrevingsbehandlingTilAttestering -> {
                 UnderBehandling.Utfylt(
@@ -68,15 +71,16 @@ data class UnderkjentHendelse(
                     hendelseId = this.hendelseId,
                     versjon = this.versjon,
                     attesteringer = behandling.attesteringer.leggTilNyAttestering(
-                        attestering = Attestering.Iverksatt(
+                        attestering = Attestering.Underkjent(
                             attestant = this.utførtAv,
                             opprettet = this.hendelsestidspunkt,
+                            grunn = grunn,
+                            kommentar = begrunnelse,
                         ),
                     ),
                     månedsvurderinger = behandling.månedsvurderinger,
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
-                    forhåndsvarselDokumentIder = listOf(),
-
+                    forhåndsvarselDokumentIder = behandling.forhåndsvarselDokumentIder,
                 )
             }
         }
@@ -88,8 +92,9 @@ fun TilbakekrevingsbehandlingTilAttestering.underkjenn(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Attestant,
-    begrunnelse: String,
-): UnderkjentHendelse {
+    grunn: Attestering.Underkjent.Grunn,
+    kommentar: String,
+): Pair<UnderkjentHendelse, UnderBehandling> {
     return UnderkjentHendelse.create(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,
@@ -98,6 +103,7 @@ fun TilbakekrevingsbehandlingTilAttestering.underkjenn(
         clock = clock,
         id = this.id,
         utførtAv = utførtAv,
-        begrunnelse = begrunnelse,
-    )
+        grunn = grunn,
+        begrunnelse = kommentar,
+    ).let { it to it.applyToState(this) }
 }

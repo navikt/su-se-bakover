@@ -91,7 +91,8 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
   "fritekst":"$fritekst",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": []
 }"""
     JSONAssert.assertEquals(
         expected,

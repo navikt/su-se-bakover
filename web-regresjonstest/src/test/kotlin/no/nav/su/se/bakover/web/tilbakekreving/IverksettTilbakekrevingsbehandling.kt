@@ -61,6 +61,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     fritekst: String,
     expectedVersjon: Long,
 ) {
+    //language=json
     val expected = """
 {
   "id":$tilbakekrevingsbehandlingId,
@@ -94,7 +95,14 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "fritekst":"$fritekst",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",
-  "versjon": $expectedVersjon
+  "versjon": $expectedVersjon,
+  "attesteringer": [
+    {
+      "attestant": "AttestantLokal",
+      "underkjennelse":null,
+       "opprettet": "2021-02-01T01:03:55.456789Z"
+    }
+  ]
 }"""
     JSONAssert.assertEquals(
         expected,

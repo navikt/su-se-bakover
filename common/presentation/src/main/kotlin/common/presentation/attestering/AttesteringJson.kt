@@ -1,18 +1,18 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.attester
+package common.presentation.attestering
 
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 
-internal data class AttesteringJson(
+data class AttesteringJson(
     val attestant: String,
     val underkjennelse: UnderkjennelseJson?,
     val opprettet: Tidspunkt,
 ) {
     companion object {
-        internal fun Attesteringshistorikk.toJson() = this.map { it.toJson() }
+        fun Attesteringshistorikk.toJson() = this.map { it.toJson() }
 
-        internal fun Attestering.toJson() =
+        fun Attestering.toJson() =
             when (this) {
                 is Attestering.Iverksatt -> AttesteringJson(
                     attestant = this.attestant.navIdent,
@@ -31,7 +31,7 @@ internal data class AttesteringJson(
     }
 }
 
-internal data class UnderkjennelseJson(
+data class UnderkjennelseJson(
     val grunn: String,
     val kommentar: String,
 )

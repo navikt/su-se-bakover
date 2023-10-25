@@ -29,6 +29,8 @@ import tilbakekreving.infrastructure.repo.opprettet.OpprettTilbakekrevingsbehand
 import tilbakekreving.infrastructure.repo.opprettet.toJson
 import tilbakekreving.infrastructure.repo.tilAttestering.mapToTilAttesteringHendelse
 import tilbakekreving.infrastructure.repo.tilAttestering.toJson
+import tilbakekreving.infrastructure.repo.underkjenn.mapToTilUnderkjentHendelse
+import tilbakekreving.infrastructure.repo.underkjenn.toJson
 import tilbakekreving.infrastructure.repo.vedtaksbrev.mapToBrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.infrastructure.repo.vedtaksbrev.toJson
 import tilbakekreving.infrastructure.repo.vurdering.mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse
@@ -98,7 +100,6 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 VurdertTilbakekrevingsbehandlingHendelsestype,
                 OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
                 TilbakekrevingsbehandlingTilAttesteringHendelsestype,
-                UnderkjentTilbakekrevingsbehandlingHendelsestype,
                 IverksattTilbakekrevingsbehandlingHendelsestype,
                 AvbruttTilbakekrevingsbehandlingHendelsestype,
                 UnderkjentTilbakekrevingsbehandlingHendelsestype,
@@ -190,8 +191,17 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             meta = this.defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
+
         AvbruttTilbakekrevingsbehandlingHendelsestype -> TODO()
-        UnderkjentTilbakekrevingsbehandlingHendelsestype -> TODO()
+        UnderkjentTilbakekrevingsbehandlingHendelsestype -> mapToTilUnderkjentHendelse(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = defaultHendelseMetadata(),
+            tidligereHendelseId = this.tidligereHendelseId!!,
+        )
 
         else -> throw IllegalStateException("Ukjent tilbakekrevingsbehandlinghendelsestype")
     }
@@ -205,6 +215,6 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
         is TilAttesteringHendelse -> this.toJson()
         is IverksattHendelse -> this.toJson()
         is AvbruttHendelse -> TODO()
-        is UnderkjentHendelse -> TODO()
+        is UnderkjentHendelse -> this.toJson()
     }
 }

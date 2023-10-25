@@ -6,6 +6,7 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsv
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
+import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
@@ -13,6 +14,7 @@ import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbake
 import tilbakekreving.presentation.api.iverksett.iverksettTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.underkjenn.underkjennTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vedtaksbrev.vedtaksbrevTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.vurderTilbakekrevingsbehandlingRoute
 
@@ -25,6 +27,7 @@ fun Route.tilbakekrevingRoutes(
     forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
     forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
     tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService,
+    underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService,
     iverksettTilbakekrevingService: IverksettTilbakekrevingService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
@@ -33,5 +36,6 @@ fun Route.tilbakekrevingRoutes(
     this.forhåndsvarsleTilbakekrevingRoute(forhåndsvarsleTilbakekrevingsbehandlingService)
     this.visForhåndsvarselTilbakekrevingsbrev(forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService)
     this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)
+    this.underkjennTilbakekrevingsbehandlingRoute(underkjennTilbakekrevingsbehandlingService)
     this.iverksettTilbakekrevingsbehandlingRoute(iverksettTilbakekrevingService)
 }

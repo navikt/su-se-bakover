@@ -1,5 +1,7 @@
 package tilbakekreving.presentation.api.common
 
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
@@ -22,6 +24,7 @@ data class TilbakekrevingsbehandlingJson(
     val forhåndsvarselDokumenter: List<UUID>,
     val versjon: Long,
     val sendtTilAttesteringAv: String?,
+    val attesteringer: List<AttesteringJson>,
 ) {
 
     companion object {
@@ -66,6 +69,7 @@ data class TilbakekrevingsbehandlingJson(
                 is IverksattTilbakekrevingsbehandling -> this.forrigeSteg.sendtTilAttesteringAv.toString()
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend for sendTilAttesteringAv")
             },
+            attesteringer = this.attesteringer.toJson(),
         )
     }
 }
