@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.common.domain
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 
 data class Attesteringshistorikk private constructor(
-    @JsonValue private val underlying: List<Attestering>,
+    private val underlying: List<Attestering>,
 ) : List<Attestering> by underlying {
 
     init {
@@ -26,7 +22,6 @@ data class Attesteringshistorikk private constructor(
         /**
          * For å gjenopprette en persistert [Attesteringshistorikk]
          */
-        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         fun create(
             attesteringer: List<Attestering>,
         ): Attesteringshistorikk {
@@ -57,15 +52,6 @@ data class Attesteringshistorikk private constructor(
     }
 }
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type",
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(value = Attestering.Iverksatt::class, name = "Iverksatt"),
-    JsonSubTypes.Type(value = Attestering.Underkjent::class, name = "Underkjent"),
-)
 sealed interface Attestering {
     val attestant: NavIdentBruker.Attestant
     val opprettet: Tidspunkt

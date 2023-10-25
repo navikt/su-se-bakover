@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.attestering.toDatabaseJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.fromAvkortingDbJson
 import no.nav.su.se.bakover.database.avkorting.toDbJson
@@ -406,7 +406,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "status" to søknadsbehandling.base.status.toString(),
                 "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
                 "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
-                "attestering" to søknadsbehandling.base.attesteringer.serialize(),
+                "attestering" to søknadsbehandling.base.attesteringer.toDatabaseJson(),
                 "avkorting" to søknadsbehandling.base.avkorting?.toDbJson(),
                 "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
                 "saksbehandler" to søknadsbehandling.base.saksbehandler,
@@ -534,7 +534,7 @@ internal class SøknadsbehandlingPostgresRepo(
             saksnummer = saksnummer,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
-        val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
+        val attesteringer = string("attestering").toAttesteringshistorikk()
         val søknadsbehandlingHistorikk =
             SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))

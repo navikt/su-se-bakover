@@ -2,14 +2,11 @@ package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
 import java.time.temporal.ChronoUnit
 
 internal class AttesteringshistorikkTest {
@@ -31,82 +28,6 @@ internal class AttesteringshistorikkTest {
             attestering1,
             attestering2,
         )
-    }
-
-    @Test
-    fun `serializerer riktig`() {
-        val opprettet = fixedTidspunkt
-        val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
-        val attestering2 = Attestering.Underkjent(
-            attestant = NavIdentBruker.Attestant("Attestant2"),
-            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
-            kommentar = "kommentar",
-        )
-
-        val actual = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2)).serialize()
-        val expected = """
-                [
-                  {
-                    "type" : "Iverksatt",
-                    "attestant": "Attestant1",
-                    "opprettet": "$opprettet"
-                  },
-                  {
-                    "type" : "Underkjent",
-                    "attestant": "Attestant2",
-                    "opprettet": "${ opprettet.plus(1, ChronoUnit.DAYS) }",
-                    "grunn" : "BEREGNINGEN_ER_FEIL",
-                    "kommentar": "kommentar"
-                  }
-                ]
-        """.trimIndent()
-
-        JSONAssert.assertEquals(expected, actual, true)
-    }
-
-    @Test
-    fun `serializerer tom liste riktig`() {
-        val actual = Attesteringshistorikk.create(listOf()).serialize()
-        val expected = """
-                []
-        """.trimIndent()
-
-        JSONAssert.assertEquals(expected, actual, true)
-    }
-
-    @Test
-    fun `deserializerer riktig`() {
-        val opprettet = fixedTidspunkt
-        val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
-        val attestering2 = Attestering.Underkjent(
-            attestant = NavIdentBruker.Attestant("Attestant2"),
-            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
-            kommentar = "kommentar",
-        )
-
-        val json = """
-                [
-                  {
-                    "type" : "Iverksatt",
-                    "attestant": "Attestant1",
-                    "opprettet": "$opprettet"
-                  },
-                  {
-                    "type" : "Underkjent",
-                    "attestant": "Attestant2",
-                    "opprettet": "${ opprettet.plus(1, ChronoUnit.DAYS) }",
-                    "grunn" : "BEREGNINGEN_ER_FEIL",
-                    "kommentar": "kommentar"
-                  }
-                ]
-        """.trimIndent()
-
-        val deserialized: List<Attestering> = json.deserializeList()
-        val expected = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2))
-
-        Attesteringshistorikk.create(deserialized) shouldBe expected
     }
 
     @Test
