@@ -4,7 +4,7 @@ import common.presentation.attestering.AttesteringJson
 import common.presentation.attestering.AttesteringJson.Companion.toJson
 import common.presentation.attestering.UnderkjennelseJson
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory

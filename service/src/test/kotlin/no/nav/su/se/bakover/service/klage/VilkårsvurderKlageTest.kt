@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.test
 
 import io.kotest.assertions.fail
-import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

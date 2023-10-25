@@ -5,9 +5,9 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.Attestering
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand

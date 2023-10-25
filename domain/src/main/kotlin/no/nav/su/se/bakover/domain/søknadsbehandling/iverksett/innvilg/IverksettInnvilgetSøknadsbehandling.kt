@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg

@@ -4,8 +4,8 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.domain.Attestering
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling

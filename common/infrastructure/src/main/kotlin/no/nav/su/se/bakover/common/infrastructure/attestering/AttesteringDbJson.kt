@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.common.infrastructure.attestering
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 
@@ -40,7 +40,14 @@ sealed interface AttesteringDbJson {
         override fun toDomain(): Attestering.Underkjent = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant(attestant),
             opprettet = opprettet,
-            grunn = Attestering.Underkjent.Grunn.valueOf(grunn),
+            grunn = when (grunn) {
+                "INNGANGSVILKÅRENE_ER_FEILVURDERT" -> Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT
+                "BEREGNINGEN_ER_FEIL" -> Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL
+                "DOKUMENTASJON_MANGLER" -> Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER
+                "VEDTAKSBREVET_ER_FEIL" -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
+                "ANDRE_FORHOLD" -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                else -> throw IllegalStateException("Ukjent grunn - Kunne ikke mappe $grunn til ${Attestering.Underkjent.Grunn::class.simpleName}")
+            },
             kommentar = kommentar,
         )
     }
@@ -59,7 +66,13 @@ sealed interface AttesteringDbJson {
         fun Attestering.Underkjent.toDbJson(): UnderkjentJson = UnderkjentJson(
             attestant = attestant.navIdent,
             opprettet = opprettet,
-            grunn = grunn.toString(),
+            grunn = when (grunn) {
+                Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> "INNGANGSVILKÅRENE_ER_FEILVURDERT"
+                Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL -> "BEREGNINGEN_ER_FEIL"
+                Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER -> "DOKUMENTASJON_MANGLER"
+                Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL -> "VEDTAKSBREVET_ER_FEIL"
+                Attestering.Underkjent.Grunn.ANDRE_FORHOLD -> "ANDRE_FORHOLD"
+            },
             kommentar = kommentar,
         )
     }

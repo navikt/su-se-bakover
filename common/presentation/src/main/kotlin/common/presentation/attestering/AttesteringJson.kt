@@ -1,7 +1,7 @@
 package common.presentation.attestering
 
-import no.nav.su.se.bakover.common.domain.Attestering
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 
 data class AttesteringJson(

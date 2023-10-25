@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import no.nav.su.se.bakover.common.domain.Attestering
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

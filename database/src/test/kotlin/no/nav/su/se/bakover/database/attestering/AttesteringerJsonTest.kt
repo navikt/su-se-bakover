@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.database.attestering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.Attestering
-import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.common.infrastructure.attestering.toDatabaseJson
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test

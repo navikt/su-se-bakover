@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.common.domain
+package no.nav.su.se.bakover.common.domain.attestering
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt

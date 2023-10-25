@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr

@@ -8,8 +8,8 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt

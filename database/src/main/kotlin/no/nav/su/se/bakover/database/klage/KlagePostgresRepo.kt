@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.common.infrastructure.attestering.toDatabaseJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.klage.AvsluttetKlageJson.Companion.toAvsluttetKlageJson
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype

@@ -4,8 +4,8 @@ import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.startOfMonth

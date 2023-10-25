@@ -9,9 +9,9 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import dokument.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

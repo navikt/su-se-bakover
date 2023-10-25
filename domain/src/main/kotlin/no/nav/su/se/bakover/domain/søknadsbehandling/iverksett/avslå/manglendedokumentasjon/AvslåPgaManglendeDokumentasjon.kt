@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
-import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned

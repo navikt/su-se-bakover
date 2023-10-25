@@ -1,7 +1,7 @@
 package tilbakekreving.infrastructure.repo.underkjenn
 
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
