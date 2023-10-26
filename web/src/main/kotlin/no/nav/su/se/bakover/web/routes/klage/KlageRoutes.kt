@@ -16,7 +16,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
@@ -358,11 +358,11 @@ internal fun Route.klageRoutes(
                 attestant = attestant,
                 grunn = Either.catch { Grunn.valueOf(grunn) }.map {
                     when (it) {
-                        Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                        Grunn.BEREGNINGEN_ER_FEIL -> Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL
-                        Grunn.DOKUMENTASJON_MANGLER -> Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER
-                        Grunn.VEDTAKSBREVET_ER_FEIL -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
-                        Grunn.ANDRE_FORHOLD -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                        Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> UnderkjennAttesteringsgrunnBehandling.INNGANGSVILKÅRENE_ER_FEILVURDERT
+                        Grunn.BEREGNINGEN_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL
+                        Grunn.DOKUMENTASJON_MANGLER -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
+                        Grunn.VEDTAKSBREVET_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
+                        Grunn.ANDRE_FORHOLD -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
                     }
                 }.getOrElse {
                     return BadRequest.errorJson(

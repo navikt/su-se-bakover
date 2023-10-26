@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
@@ -626,7 +627,7 @@ fun underkjentKlageTilVurdering(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+    attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
@@ -677,7 +678,7 @@ fun underkjentAvvistKlage(
     begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+    attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
 ): Pair<Sak, AvvistKlage> {
     require(sakId == sakMedVedtak.id) {

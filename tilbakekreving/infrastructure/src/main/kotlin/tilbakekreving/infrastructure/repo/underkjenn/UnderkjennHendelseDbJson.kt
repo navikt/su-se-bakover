@@ -1,7 +1,6 @@
 package tilbakekreving.infrastructure.repo.underkjenn
 
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -10,6 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
+import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 import java.util.UUID
 
 private data class UnderkjennHendelseDbJsonHendelseDbJson(
@@ -39,7 +39,7 @@ internal fun mapToTilUnderkjentHendelse(
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
         tidligereHendelseId = tidligereHendelseId,
-        grunn = Attestering.Underkjent.Grunn.valueOf(deserialized.grunn),
+        grunn = UnderkjennAttesteringsgrunnTilbakekreving.valueOf(deserialized.grunn),
         begrunnelse = deserialized.kommentar,
     )
 }

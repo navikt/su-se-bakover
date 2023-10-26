@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -34,7 +35,7 @@ internal class UnderkjennRevurderingTest {
 
         val attestering = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "pls math",
             opprettet = Tidspunkt.now(clock),
         )

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
@@ -55,7 +56,7 @@ internal class UnderkjennKlageTest {
         val request = UnderkjennKlageRequest(
             klageId = klageId,
             attestant = attestant,
-            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.FantIkkeKlage.left()
@@ -80,7 +81,7 @@ internal class UnderkjennKlageTest {
             UnderkjennKlageRequest(
                 klageId = klage.id,
                 attestant = attestant,
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
             ),
         ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
@@ -109,7 +110,7 @@ internal class UnderkjennKlageTest {
             UnderkjennKlageRequest(
                 klageId = klage.id,
                 attestant = attestant,
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
             ),
         ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
@@ -142,7 +143,7 @@ internal class UnderkjennKlageTest {
             UnderkjennKlageRequest(
                 klageId = klage.id,
                 attestant = attestant,
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
             ),
         ) shouldBe KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -244,7 +245,7 @@ internal class UnderkjennKlageTest {
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
-            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.UgyldigTilstand(
@@ -278,7 +279,7 @@ internal class UnderkjennKlageTest {
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
-            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
@@ -342,7 +343,7 @@ internal class UnderkjennKlageTest {
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
-            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {

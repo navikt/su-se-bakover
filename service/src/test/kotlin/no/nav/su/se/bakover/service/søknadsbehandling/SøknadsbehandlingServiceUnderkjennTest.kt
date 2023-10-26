@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -55,7 +56,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),
-        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+        grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
         kommentar = "begrunnelse",
         opprettet = fixedTidspunkt,
     )

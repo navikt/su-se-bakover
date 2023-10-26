@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -39,13 +40,13 @@ data class UnderkjennBody(
     val grunn: String,
     val kommentar: String,
 ) {
-    private fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
+    private fun valid() = enumContains<UnderkjennAttesteringsgrunnBehandling>(grunn) && kommentar.isNotBlank()
 
     internal fun toDomain(navIdent: String, clock: Clock): Either<Resultat, Attestering.Underkjent> {
         if (valid()) {
             return Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent),
-                grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
+                grunn = UnderkjennAttesteringsgrunnBehandling.valueOf(this.grunn),
                 kommentar = this.kommentar,
                 opprettet = Tidspunkt.now(clock),
             ).right()

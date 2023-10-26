@@ -7,6 +7,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttesteringAvslagBeregning
@@ -74,7 +75,7 @@ internal class UnderkjennTest {
         søknadsbehandling.tilUnderkjent(
             attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("sneaky"),
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
                 opprettet = fixedTidspunkt,
             ),
@@ -88,7 +89,7 @@ internal class UnderkjennTest {
         søknadsbehandling.tilUnderkjent(
             attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("sneaky"),
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
                 opprettet = fixedTidspunkt,
             ),
@@ -101,7 +102,7 @@ internal class UnderkjennTest {
         søknadsbehandling.tilUnderkjent(
             attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("sneaky"),
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
                 opprettet = fixedTidspunkt,
             ),

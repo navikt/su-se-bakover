@@ -11,56 +11,72 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import org.skyscreamer.jsonassert.JSONAssert
+import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 
-fun sendTilbakekrevingsbehandlingTilAttestering(
+fun underkjennTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
+    brevtekst: String?,
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
-    verifiserFritekst: String,
-    expectedAttesteringer: String = "[]",
+    kommentar: String = "Underkjent av underkjennTilbakekrevingsbehandling() - TilbakekrevingsbehandlingIT",
+    grunn: UnderkjennAttesteringsgrunnTilbakekreving = UnderkjennAttesteringsgrunnTilbakekreving.VURDERINGEN_ER_FEIL,
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/tilAttestering",
-            listOf(Brukerrolle.Saksbehandler),
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/underkjenn",
+            listOf(Brukerrolle.Attestant),
             client = client,
-        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
-            withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
+        ) {
+            setBody(
+                //language=json
+                """
+                {
+                    "versjon": $saksversjon,
+                    "kommentar": "$kommentar",
+                    "grunn": "$grunn"
+                }
+                """.trimIndent(),
+            )
+        }.apply {
+            withClue("Kunne ikke underkjenne tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
+                verifiserUnderkjentTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
+                    vurderinger = verifiserVurderinger,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    vurderinger = verifiserVurderinger,
-                    fritekst = verifiserFritekst,
                     expectedVersjon = saksversjon + 1,
-                    expectedAttesteringer = expectedAttesteringer,
+                    brevtekst = brevtekst,
+                    expectedGrunn = grunn.toString(),
+                    expectedKommentar = kommentar,
                 )
             }
         }
     }
 }
 
-fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
+fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
     actual: String,
-    tilbakekrevingsbehandlingId: String,
-    forhåndsvarselDokumenter: String,
     sakId: String,
+    brevtekst: String?,
+    tilbakekrevingsbehandlingId: String,
     vurderinger: String,
-    fritekst: String,
+    forhåndsvarselDokumenter: String,
     expectedVersjon: Long,
-    expectedAttesteringer: String,
+    expectedGrunn: String,
+    expectedKommentar: String,
 ) {
+    //language=json
     val expected = """
 {
   "id":"$tilbakekrevingsbehandlingId",
@@ -79,23 +95,32 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
           "tilOgMed":"2021-01-31"
         },
         "beløpSkattMnd":"6192",
-        "ytelse": {
-          "beløpTidligereUtbetaling":"20946",
-          "beløpNyUtbetaling":"8563",
-          "beløpSkalTilbakekreves":"12383",
-          "beløpSkalIkkeTilbakekreves":"0",
-          "skatteProsent":"50"
-        },
+          "ytelse": {
+            "beløpTidligereUtbetaling":"20946",
+            "beløpNyUtbetaling":"8563",
+            "beløpSkalTilbakekreves":"12383",
+            "beløpSkalIkkeTilbakekreves":"0",
+            "skatteProsent":"50"
+          }
       }
     ]
   },
-  "status":"TIL_ATTESTERING",
+  "status":"VEDTAKSBREV",
   "månedsvurderinger":$vurderinger,
-  "fritekst":"$fritekst",
+  "fritekst": "$brevtekst",
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
-  "sendtTilAttesteringAv": "Z990Lokal",
+  "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
-  "attesteringer": $expectedAttesteringer
+  "attesteringer": [
+    {
+      "attestant": "Z990Lokal",
+      "underkjennelse": {
+        "grunn": "$expectedGrunn",
+        "kommentar": "$expectedKommentar"
+      },
+    "opprettet": "2021-02-01T01:03:54.456789Z"
+    }
+  ]
 }"""
     JSONAssert.assertEquals(
         expected,

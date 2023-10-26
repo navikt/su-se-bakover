@@ -56,21 +56,15 @@ sealed interface Attestering {
     val attestant: NavIdentBruker.Attestant
     val opprettet: Tidspunkt
 
-    data class Iverksatt(override val attestant: NavIdentBruker.Attestant, override val opprettet: Tidspunkt) :
-        Attestering
+    data class Iverksatt(
+        override val attestant: NavIdentBruker.Attestant,
+        override val opprettet: Tidspunkt,
+    ) : Attestering
 
     data class Underkjent(
         override val attestant: NavIdentBruker.Attestant,
         override val opprettet: Tidspunkt,
-        val grunn: Grunn,
+        val grunn: UnderkjennAttesteringsgrunn,
         val kommentar: String,
-    ) : Attestering {
-        enum class Grunn {
-            INNGANGSVILKÅRENE_ER_FEILVURDERT,
-            BEREGNINGEN_ER_FEIL,
-            DOKUMENTASJON_MANGLER,
-            VEDTAKSBREVET_ER_FEIL,
-            ANDRE_FORHOLD,
-        }
-    }
+    ) : Attestering
 }

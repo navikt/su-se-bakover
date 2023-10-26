@@ -30,6 +30,7 @@ fun vurderTilbakekrevingsbehandling(
         ]
     """.trimIndent(),
     expectedFritekst: String? = null,
+    expectedAttesteringer: String = "[]",
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
@@ -61,6 +62,7 @@ fun vurderTilbakekrevingsbehandling(
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     expectedVersjon = saksversjon + 1,
                     expectedFritekst = expectedFritekst,
+                    expectedAttesteringer = expectedAttesteringer,
                 )
             }
         }
@@ -76,6 +78,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     måneder: String,
     expectedVersjon: Long,
     expectedFritekst: String?,
+    expectedAttesteringer: String,
 ) {
     //language=json
     val expected = """
@@ -112,7 +115,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
-  "attesteringer": []
+  "attesteringer": $expectedAttesteringer
 }"""
     JSONAssert.assertEquals(
         expected,

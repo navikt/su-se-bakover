@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.common.infrastructure.attestering.toAttesteringshistorikk
-import no.nav.su.se.bakover.common.infrastructure.attestering.toDatabaseJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -31,6 +29,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
+import no.nav.su.se.bakover.database.attestering.toDatabaseJson
 import no.nav.su.se.bakover.database.avkorting.AvkortingVedRevurderingDb
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb

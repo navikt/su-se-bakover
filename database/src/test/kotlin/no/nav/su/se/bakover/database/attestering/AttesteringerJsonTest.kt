@@ -4,8 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.attestering.toAttesteringshistorikk
-import no.nav.su.se.bakover.common.infrastructure.attestering.toDatabaseJson
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -20,7 +19,7 @@ internal class AttesteringerJsonTest {
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
             opprettet.plus(1, ChronoUnit.DAYS),
-            Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             "kommentar",
         )
         val actual = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2)).toDatabaseJson()
@@ -56,7 +55,7 @@ internal class AttesteringerJsonTest {
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
             opprettet.plus(1, ChronoUnit.DAYS),
-            Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             "kommentar",
         )
         val json = """

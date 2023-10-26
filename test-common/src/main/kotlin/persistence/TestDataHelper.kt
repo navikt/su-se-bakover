@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -1577,7 +1578,7 @@ class TestDataHelper(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = Tidspunkt.now(clock),
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
         ) { oppgaveId.right() }.getOrFail().also {
@@ -1593,7 +1594,7 @@ class TestDataHelper(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = Tidspunkt.now(clock),
-                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
         ) { oppgaveId.right() }.getOrFail().also {

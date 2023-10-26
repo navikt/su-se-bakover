@@ -5,6 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -128,7 +129,7 @@ internal class SøknadsbehandlingSkattTest {
                     Attestering.Underkjent(
                         NavIdentBruker.Attestant("attestanten"),
                         enUkeEtterFixedTidspunkt,
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                         "Skal underkjenne for å kunne hente ny skattegrunnlag",
                     ),
                 )

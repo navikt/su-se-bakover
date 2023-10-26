@@ -15,3 +15,6 @@ fun hentFritekst(json: String): String {
 fun hentVurderinger(json: String): String {
     return JSONObject(json).getJSONArray("månedsvurderinger").toString()
 }
+fun hentAttesteringer(json: String): String {
+    return JSONObject(json).getJSONArray("attesteringer").toString()
+}

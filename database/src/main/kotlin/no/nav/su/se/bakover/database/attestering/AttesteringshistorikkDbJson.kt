@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.common.infrastructure.attestering
+package no.nav.su.se.bakover.database.attestering
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.common.infrastructure.attestering.AttesteringDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.attestering.AttesteringDbJson.Companion.toDbJson
 
 fun Attesteringshistorikk.toDatabaseJson(): String = this.map { it.toDbJson() }.serialize()
 

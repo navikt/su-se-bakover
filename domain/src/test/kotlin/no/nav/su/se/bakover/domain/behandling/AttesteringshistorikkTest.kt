@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -16,7 +17,7 @@ internal class AttesteringshistorikkTest {
         val attestering1 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant1"),
             opprettet = fixedTidspunkt,
-            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "kommentar",
         )
         val attestering2 = Attestering.Iverksatt(
@@ -36,13 +37,13 @@ internal class AttesteringshistorikkTest {
         val attestering1 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet.plus(1, ChronoUnit.DAYS),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         val attestering2 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet.plus(2, ChronoUnit.DAYS),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         val attestering3 =
@@ -62,13 +63,13 @@ internal class AttesteringshistorikkTest {
         val attestering1 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet.plus(1, ChronoUnit.DAYS),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         val attestering2 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet,
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         shouldThrow<IllegalStateException> {
@@ -84,13 +85,13 @@ internal class AttesteringshistorikkTest {
         val attestering1 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet,
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         val attestering2 = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("Attestant2"),
             opprettet = opprettet,
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
         shouldThrow<IllegalStateException> {

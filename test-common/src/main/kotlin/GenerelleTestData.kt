@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import person.domain.Person
@@ -109,7 +110,7 @@ fun attesteringUnderkjent(
     clock: Clock = fixedClock,
 ) = Attestering.Underkjent(
     attestant = attestant,
-    grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
+    grunn = UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",
     opprettet = Tidspunkt.now(clock),
 )

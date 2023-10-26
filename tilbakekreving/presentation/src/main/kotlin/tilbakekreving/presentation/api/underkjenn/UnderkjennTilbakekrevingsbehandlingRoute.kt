@@ -10,9 +10,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
@@ -25,9 +25,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 import tilbakekreving.domain.underkjent.UnderkjennTilbakekrevingsbehandlingCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
+import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import java.util.UUID
 
 private data class Body(
@@ -50,7 +52,7 @@ private data class Body(
             brukerroller = brukerroller.toNonEmptyList(),
             klientensSisteSaksversjon = Hendelsesversjon(versjon),
             grunn = Either.catch {
-                Attestering.Underkjent.Grunn.valueOf(grunn)
+                UnderkjennAttesteringsgrunnTilbakekreving.valueOf(grunn)
             }.getOrElse {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Kunne ikke mappe grunn til Attesteringsgrunn - input var $grunn",
@@ -92,4 +94,7 @@ internal fun Route.underkjennTilbakekrevingsbehandlingRoute(
     }
 }
 
-private fun UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.tilResultat(): Resultat = TODO()
+private fun UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.tilResultat(): Resultat = when (this) {
+    is UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.IkkeTilgang -> ikkeTilgangTilSak
+    UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.UlikVersjon -> Feilresponser.utdatertVersjon
+}

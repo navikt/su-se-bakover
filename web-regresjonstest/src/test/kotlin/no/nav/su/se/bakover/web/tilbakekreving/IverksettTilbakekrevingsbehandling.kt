@@ -24,6 +24,7 @@ fun iverksettTilbakekrevingsbehandling(
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
     verifiserFritekst: String,
+    tidligereAttesteringer: String? = null,
 ): String {
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
@@ -46,6 +47,7 @@ fun iverksettTilbakekrevingsbehandling(
                     vurderinger = verifiserVurderinger,
                     fritekst = verifiserFritekst,
                     expectedVersjon = saksversjon + 1,
+                    tidligereAttesteringer = tidligereAttesteringer,
                 )
             }
         }
@@ -60,6 +62,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     vurderinger: String,
     fritekst: String,
     expectedVersjon: Long,
+    tidligereAttesteringer: String?,
 ) {
     //language=json
     val expected = """
@@ -86,7 +89,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
           "beløpSkalTilbakekreves":"12383",
           "beløpSkalIkkeTilbakekreves":"0",
           "skatteProsent":"50"
-        },
+        }
       }
     ]
   },
@@ -97,16 +100,26 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "sendtTilAttesteringAv": "Z990Lokal",
   "versjon": $expectedVersjon,
   "attesteringer": [
+    ${tidligereAttesteringer?.removeFirstAndLastCharacter()?.let { "$it," } ?: ""}
     {
       "attestant": "AttestantLokal",
       "underkjennelse":null,
-       "opprettet": "2021-02-01T01:03:55.456789Z"
+       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:03:57.456789Z\""}  
     }
-  ]
+  ] 
 }"""
     JSONAssert.assertEquals(
         expected,
         actual,
         true,
     )
+}
+
+fun String.removeFirstAndLastCharacter(): String {
+    return if (this.length >= 2) {
+        this.substring(1, this.length - 1)
+    } else {
+        // Handle the case where the input string has fewer than 2 characters (e.g., it's empty or has only one character).
+        ""
+    }
 }

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 import java.time.Clock
 import java.util.UUID
 
@@ -22,7 +23,7 @@ data class UnderkjentHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Attestant,
-    val grunn: Attestering.Underkjent.Grunn,
+    val grunn: UnderkjennAttesteringsgrunnTilbakekreving,
     val begrunnelse: String,
 ) : TilbakekrevingsbehandlingHendelse {
 
@@ -41,7 +42,7 @@ data class UnderkjentHendelse(
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
             utførtAv: NavIdentBruker.Attestant,
-            grunn: Attestering.Underkjent.Grunn,
+            grunn: UnderkjennAttesteringsgrunnTilbakekreving,
             begrunnelse: String,
         ) = UnderkjentHendelse(
             hendelseId = HendelseId.generer(),
@@ -92,7 +93,7 @@ fun TilbakekrevingsbehandlingTilAttestering.underkjenn(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Attestant,
-    grunn: Attestering.Underkjent.Grunn,
+    grunn: UnderkjennAttesteringsgrunnTilbakekreving,
     kommentar: String,
 ): Pair<UnderkjentHendelse, UnderBehandling> {
     return UnderkjentHendelse.create(
