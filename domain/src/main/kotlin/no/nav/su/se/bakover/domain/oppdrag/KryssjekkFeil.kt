@@ -1,16 +1,17 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 
 sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
     /**
-     * Oppstår i de tilfellene simuleringen i sin helghet gir tom respons (ingen utbetalinger)
+     * Oppstår i de tilfellene simuleringen i sin helhet gir tom respons (ingen utbetalinger)
      * og vi forventer en form for utbetaling.
      *
      * TODO jah: Her føler jeg implementasjonsspesifikk logikk i simuleringsresponsen har sneket seg inn i domenet vårt.
      */
     data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-        val måned: Måned,
+        val periode: Periode,
         val simulertType: String,
         val tidslinjeType: String,
     ) : KryssjekkFeil(prioritet = 2)

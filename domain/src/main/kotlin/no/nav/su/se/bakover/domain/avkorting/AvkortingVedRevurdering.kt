@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.avkorting
 
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -253,7 +253,7 @@ sealed class AvkortingVedRevurdering {
 
         interface HarProdusertNyttAvkortingsvarsel {
             fun avkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-            fun periode(): Periode
+            fun datoIntervall(): DatoIntervall
         }
 
         /**
@@ -274,8 +274,8 @@ sealed class AvkortingVedRevurdering {
                 return avkortingsvarsel
             }
 
-            override fun periode(): Periode {
-                return avkortingsvarsel.periode()
+            override fun datoIntervall(): DatoIntervall {
+                return avkortingsvarsel.simulering.datointervall()
             }
         }
 
@@ -293,8 +293,8 @@ sealed class AvkortingVedRevurdering {
                 return avkortingsvarsel
             }
 
-            override fun periode(): Periode {
-                return avkortingsvarsel.periode()
+            override fun datoIntervall(): DatoIntervall {
+                return avkortingsvarsel.simulering.datointervall()
             }
         }
 

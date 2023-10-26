@@ -118,7 +118,7 @@ internal class SimuleringResponseMapperTest {
         )
         actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
         actualSimulering.also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(april(2021), Beløp(20779)),
@@ -393,7 +393,7 @@ internal class SimuleringResponseMapperTest {
         actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
 
         actualSimulering.also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(mars(2021), Beløp(10000)),
@@ -598,7 +598,7 @@ internal class SimuleringResponseMapperTest {
         )
         actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
         actualSimulering.also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(9221)),
@@ -874,7 +874,7 @@ internal class SimuleringResponseMapperTest {
             clock = fixedClock,
             soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -1087,7 +1087,7 @@ internal class SimuleringResponseMapperTest {
             clock = fixedClock,
             soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(august(2022), Beløp(1858)),
@@ -1325,7 +1325,7 @@ internal class SimuleringResponseMapperTest {
             clock = fixedClock,
             soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
-            it.erAlleMånederUtenUtbetaling() shouldBe false
+            it.erAllePerioderUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(

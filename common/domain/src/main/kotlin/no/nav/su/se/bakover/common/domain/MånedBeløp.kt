@@ -46,10 +46,19 @@ data class MånedBeløp(
 
 fun List<MånedBeløp>.sorterPåPeriode(): List<MånedBeløp> = this.sortedBy { it.periode }
 
+/**
+ * Kan være 0 eller positiv; aldri negativ.
+ */
 @JvmInline
 value class Beløp private constructor(
     private val value: Int,
-) {
+) : Comparable<Int> {
+    init {
+        require(value >= 0) {
+            "Støtter ikke negative beløp. Bruk i sammenheng med Debet/Kredit."
+        }
+    }
+
     companion object {
         operator fun invoke(int: Int): Beløp {
             return Beløp(abs(int))
@@ -70,5 +79,9 @@ value class Beløp private constructor(
 
     fun tusenseparert(): String {
         return NumberFormat.getNumberInstance(norwegianLocale).format(value)
+    }
+
+    override fun compareTo(other: Int): Int {
+        return this.compareTo(other)
     }
 }

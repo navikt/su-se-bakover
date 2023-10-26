@@ -92,7 +92,7 @@ internal class BeregnRevurderingStrategyDecider(
         if (kanAnnullere) {
             check(
                 iverksattAvkortingsvarselIPeriode
-                    .map { it.periode() }
+                    .map { it.datoIntervall() }
                     .all { revurdering.periode.inneholder(it) },
             ) { "Må revurdere hele perioden for opprinngelig avkorting ved annullering." }
         }
@@ -126,11 +126,11 @@ internal class BeregnRevurderingStrategyDecider(
         if (kanAnnullere) {
             check(
                 iverksattAvkortingsvarselIPeriode
-                    .map { it.periode() }
+                    .map { it.datoIntervall() }
                     .all { revurdering.periode.inneholder(it) },
             ) { "Må revurdere hele perioden for opprinngelig avkorting ved annullering." }
             check(
-                (revurdering.vilkårsvurderingsResultat() as Vilkårsvurderingsresultat.Avslag).tidligsteDatoForAvslag <= iverksattAvkortingsvarselIPeriode.minOf { it.periode().fraOgMed },
+                (revurdering.vilkårsvurderingsResultat() as Vilkårsvurderingsresultat.Avslag).tidligsteDatoForAvslag <= iverksattAvkortingsvarselIPeriode.minOf { it.datoIntervall().fraOgMed },
             ) { "Dato for opphør må være tidligere enn eller lik fra og med dato for opprinnelig avkorting som annulleres" }
         }
 

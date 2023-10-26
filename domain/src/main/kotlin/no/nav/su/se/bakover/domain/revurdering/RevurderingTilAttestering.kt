@@ -290,7 +290,8 @@ private fun Revurdering.validerTilIverksettOvergang(
         }
 
         AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-            if (uteståendeAvkortingPåSak != null && this.periode.overlapper(uteståendeAvkortingPåSak.periode())) {
+            // TODO jah: Her er det mulig
+            if (uteståendeAvkortingPåSak != null && this.periode.overlapper(uteståendeAvkortingPåSak.periodeUnsafe())) {
                 log.error("Prøver å iverksette revurdering over periode som har utåestående avkorting. Må i så fall annuleres. For sak ${this.sakId} og revurdering ${this.id}")
                 return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
             }

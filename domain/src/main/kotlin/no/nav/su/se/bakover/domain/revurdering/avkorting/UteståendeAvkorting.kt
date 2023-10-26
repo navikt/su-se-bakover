@@ -47,13 +47,13 @@ internal fun kontrollerAtUteståendeAvkortingRevurderes(
     periode: Periode,
     uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
 ): Either<KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
-    if (periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periode())) {
+    if (periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periodeUnsafe())) {
         // Vi revurderer hele den utestående avkortingsvarselet. Det er greit.
         return uteståendeAvkorting.right()
     }
-    if (periode.overlapper(uteståendeAvkorting.avkortingsvarsel.periode())) {
+    if (periode.overlapper(uteståendeAvkorting.avkortingsvarsel.periodeUnsafe())) {
         // Vi revurderer over deler av et utestående avkortingsvarsel. Det er ikke greit.
-        return KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet(uteståendeAvkorting.avkortingsvarsel.periode())
+        return KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet(uteståendeAvkorting.avkortingsvarsel.periodeUnsafe())
             .left()
     }
     // Vi revurderer på utsiden av avkortingsvarselet. Det er greit.
@@ -118,9 +118,9 @@ fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(
         Unit.right()
     } else {
         pågåendeAvkorting.forEach { (vedtak, pågåendeAvkorting) ->
-            if (revurderingsperiode.overlapper(pågåendeAvkorting.avkortingsvarsel.periode())) {
+            if (revurderingsperiode.overlapper(pågåendeAvkorting.avkortingsvarsel.periodeUnsafe())) {
                 val periodeSomMåOverlappes = (
-                    pågåendeAvkorting.avkortingsvarsel.periode()
+                    pågåendeAvkorting.avkortingsvarsel.periodeUnsafe()
                         .måneder() + vedtak.behandling.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                         .periode()
                     ).distinct().måneder()

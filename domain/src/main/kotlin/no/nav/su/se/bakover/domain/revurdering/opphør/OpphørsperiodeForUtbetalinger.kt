@@ -81,8 +81,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
                 }
                 is Avkortingsvarsel.Utenlandsopphold -> {
                     // Denne kan være en måned etter revurderingsperiode. Det er ikke sikkert denne er innenfor samme stønadsperiode eller at det eksisterer en utbetalingslinje for denne måneden.
-                    val tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode = avkortingsvarsel.hentUtbetalteBeløp()
-                        .senesteDato()
+                    val tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode = avkortingsvarsel.simulering.senesteDato()
                         .plusMonths(1)
                         .startOfMonth()
 

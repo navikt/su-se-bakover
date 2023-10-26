@@ -101,33 +101,42 @@ private fun sjekkTidslinjeMotSimulering(
 ): Either<List<KryssjekkFeil>, Unit> {
     val feil = mutableListOf<KryssjekkFeil>()
 
-    if (simulering.erAlleMånederUtenUtbetaling()) {
-        simulering.periode().also { periode ->
-            periode.måneder().forEach {
-                val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(it.fraOgMed)!!
-                if (!(
-                        utbetaling is UtbetalingslinjePåTidslinje.Stans ||
-                            utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
-                            (utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0) ||
-                            (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0)
-                        )
-                ) {
-                    feil.add(
-                        KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                            måned = it,
-                            simulertType = "IngenUtbetaling",
-                            tidslinjeType = utbetaling::class.toString(),
-                        ),
-                    )
-                }
+
+    val simuleringsperiode = simulering.datointervall()
+// TODO jah: Vurder om vi kan slå sammen if-else til en felles sjekk
+    if (simulering.erAllePerioderUtenUtbetaling()) {
+        tidslinjeEksisterendeOgUnderArbeid.forEach { utbetaling ->
+            // I disse tilfellene ønsker vi ikke kryssjekke simuleringen mot tidslinja.
+            if (skalIkkeKryssjekkes(utbetaling)) return@forEach
+            if (simuleringsperiode.overlapper(utbetaling.periode)) {
+                // Her hadde vi forventet at simuleringen skulle inneholde data
+                feil.add(
+                    KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                        periode = utbetaling.periode,
+                        simulertType = "IngenUtbetaling",
+                        tidslinjeType = utbetaling::class.toString(),
+                    ),
+                )
             }
         }
     } else {
-        simulering.hentTotalUtbetaling().forEach { månedsbeløp ->
+        tidslinjeEksisterendeOgUnderArbeid.forEach { utbetaling ->
+            if (!simuleringsperiode.overlapper(utbetaling.periode)) {
+                return@forEach
+            }
+            if (!simuleringsperiode.inneholder(utbetaling.periode)) {
+                feil.add(
+                    KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                        periode = utbetaling.periode,
+                        simulertType = "IngenUtbetaling",
+                        tidslinjeType = utbetaling::class.toString(),
+                    ),
+                )
+            }
             kryssjekkBeløp(
                 måned = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),
-                beløpPåTidslinje = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
+                beløpPåTidslinje = utbetaling.beløp,
             ).getOrElse { feil.add(it) }
         }
     }
@@ -151,4 +160,11 @@ private fun kryssjekkBeløp(
     } else {
         Unit.right()
     }
+}
+
+private fun skalIkkeKryssjekkes(utbetaling: UtbetalingslinjePåTidslinje): Boolean {
+    return utbetaling is UtbetalingslinjePåTidslinje.Stans ||
+        utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
+        (utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0) ||
+        (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0)
 }

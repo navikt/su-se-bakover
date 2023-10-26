@@ -75,6 +75,13 @@ data class Måned private constructor(
             return factory.fra(fraOgMed, tilOgMed)
         }
 
+        /**
+         * Sjekker om to datoer er første og siste dag innenfor samme måned.
+         */
+        fun erMåned(fraOgMed: LocalDate, tilOgMed: LocalDate): Boolean {
+            return fraOgMed.erFørsteDagIMåned() && tilOgMed.erSisteDagIMåned() && fraOgMed.year == tilOgMed.year && fraOgMed.month == tilOgMed.month
+        }
+
         fun parse(value: String): Måned? {
             return Either.catch {
                 factory.fra(YearMonth.parse(value))

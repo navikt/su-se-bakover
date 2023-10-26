@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Eksempel fra preprod der september har blitt utbetalt og revurdert til samme beløp. Oktober har ikke blitt utbetalt, men vi får en dobbel tilbakeføring som utligner hverandre. -->
+<!-- nettoBeløp = 7996 = (0 + 1504 + 1504 + 1980 + 1504 + 1504) -->
+<!-- september er allerede utbetalt (utbetaling-tilbakeføring er 0 og skatt er ikke med). okt/nov/jan/feb er 4755 (utbetaling) - 2300 (trekk) - (951 skatt). Desember har bare 475 skatt.  -->
 <SimulerBeregningResponse>
     <simulering>
         <gjelderId>12345678901</gjelderId>

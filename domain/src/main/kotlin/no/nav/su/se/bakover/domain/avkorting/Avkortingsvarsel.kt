@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.domain.avkorting
 
-import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Annullert
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Avkortet
@@ -32,12 +31,9 @@ sealed interface Avkortingsvarsel {
         val revurderingId: UUID
         val opprettet: Tidspunkt
         val simulering: Simulering
-        fun periode(): Periode {
-            return simulering.periode()
-        }
 
-        fun hentUtbetalteBeløp(): Månedsbeløp {
-            return simulering.hentUtbetalteBeløp()
+        fun datoIntervall(): DatoIntervall {
+            return simulering.datointervall()
         }
 
         /**
@@ -78,7 +74,7 @@ sealed interface Avkortingsvarsel {
             }
 
             fun fullstendigAvkortetAv(beregning: Beregning): Boolean {
-                val beløpSkalAvkortes = simulering.hentUtbetalteBeløp().sum()
+                val beløpSkalAvkortes = simulering.bruttoTidligereUtbetalt
                 val fradragAvkorting = beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp }
@@ -114,15 +110,19 @@ fun Sak.oppdaterUteståendeAvkortingVedIverksettelse(behandletAvkorting: Avkorti
             is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
                 Avkortingsvarsel.Ingen
             }
+
             AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
                 uteståendeAvkorting
             }
+
             is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
                 uteståendeAvkorting
             }
+
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
                 behandletAvkorting.avkortingsvarsel
             }
+
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                 behandletAvkorting.avkortingsvarsel
             }

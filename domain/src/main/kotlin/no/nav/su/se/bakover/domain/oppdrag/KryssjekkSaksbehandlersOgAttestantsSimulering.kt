@@ -1,20 +1,20 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.UlikeSimuleringer
+import økonomi.domain.simulering.kryssjekk
 
 class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val saksbehandlersSimulering: Simulering,
     private val attestantsSimulering: Utbetaling.SimulertUtbetaling,
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    fun sjekk(): Either<KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet, Unit> {
+    fun sjekk(): Either<UlikeSimuleringer, Unit> {
         return kontroller().mapLeft {
             logErr(
                 saksbehandlersSimulering = saksbehandlersSimulering,
@@ -26,35 +26,15 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
         }
     }
 
-    private fun kontroller(): Either<KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet, Unit> {
-        if (saksbehandlersSimulering.gjelderId != attestantsSimulering.simulering.gjelderId) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId.left()
-        }
-        if (saksbehandlersSimulering.harFeilutbetalinger() != attestantsSimulering.simulering.harFeilutbetalinger()) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
-        }
-        if (saksbehandlersSimulering.hentFeilutbetalteBeløp() != attestantsSimulering.simulering.hentFeilutbetalteBeløp()) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
-        }
-
-        if (saksbehandlersSimulering.hentTotalUtbetaling()
-                .måneder() != attestantsSimulering.simulering.hentTotalUtbetaling().måneder()
-        ) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
-        }
-
-        if (saksbehandlersSimulering.hentTotalUtbetaling() != attestantsSimulering.simulering.hentTotalUtbetaling()) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
-        }
-
-        return Unit.right()
+    private fun kontroller(): Either<UlikeSimuleringer, Unit> {
+        return saksbehandlersSimulering.kryssjekk(attestantsSimulering.simulering)
     }
 }
 
 private fun logErr(
     saksbehandlersSimulering: Simulering,
     attestantsSimulering: Simulering,
-    feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet,
+    feil: UlikeSimuleringer,
     log: Logger,
 ) {
     log.error(

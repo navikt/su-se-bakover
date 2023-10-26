@@ -84,11 +84,11 @@ private fun getAvkortingsbeløp(
             -> null
 
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
 
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
         }
     }
@@ -101,11 +101,11 @@ private fun getAvkortingsbeløp(
             -> null
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
         }
     }
@@ -118,11 +118,11 @@ private fun getAvkortingsbeløp(
             -> null
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
         }
     }
@@ -135,11 +135,11 @@ private fun getAvkortingsbeløp(
             -> null
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
 
             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                revurdering.avkorting.avkortingsvarsel.simulering.bruttoTidligereUtbetalt
             }
         }
     }

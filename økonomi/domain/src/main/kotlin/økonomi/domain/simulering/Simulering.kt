@@ -1,237 +1,273 @@
 package økonomi.domain.simulering
 
-import arrow.core.NonEmptyList
-import com.fasterxml.jackson.annotation.JsonAlias
-import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import arrow.core.Nel
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.extensions.isEqualOrBefore
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import økonomi.domain.KlasseKode
-import økonomi.domain.KlasseType
 import java.time.LocalDate
 
 /**
- * @param rawResponse den rå responsen slik den kom fra oppdragssystemet.
- * @param nettoBeløp Nettobeløpet fra økonomisystemet (Inkluderer alle ytelsene/stønadene i INNT (inntektsytelser)). Brutto minus skatt. Dette feltet er i utgangspunktet ubrukelig for oss i SU.
+ * Et forsøk på å lage en enklere modell for simuleringer.
+ * Der modellen er nærmere det vi trenger i SU. Uten mellomsteg.
+ *
+ * Data vi har valgt å utelate:
+ *  - navnet (gjelderNavn i Oppdrag)
+ *
+ * @param fnr Fødselsnummeret på saken kan endre seg over tid, dette er fødselsnummeret vi mottok fra Oppdrag. I det vi mottar simuleringen, kan det være greit å verifisere at det stemmer med saken på det tidspunkten.
+ * @param datoBeregnet Datoen simuleringen ble beregnet. Vi mottar dette fra Oppdrag. Dette er informasjon saksbehandler/attestant trenger for å vurdere om simuleringen er utdatert og bør kjøres på nytt.
+ * @param nettoBeløp Totalbeløpet for hele simuleringsperioden som kommer til å bli utbetalt. Skal kunne regne dette ved å summere alle periodene i simuleringen. Totalutbetaling - skatt - trekk - tilbakeføringer (det som allerede er overført til UR).
+ *
+ * @property bruttoTotalUtbetaling Hvor mye en bruker egentlig skal ha eller skulle hatt utbetalt.
+ * @property bruttoTilUtbetaling Hvor mye penger vi skal utbetale til bruker.
+ * @property bruttoTidligereUtbetalt Hvor mye penger vi har utbetalt til bruker tidligere.
+ * @property bruttoFeilutbetaling Hvor mye penger vi har utbetalt til bruker tidligere som vi ikke skulle hatt utbetalt.
  */
 data class Simulering(
-    val gjelderId: Fnr,
-    val gjelderNavn: String,
+    val fnr: Fnr,
     val datoBeregnet: LocalDate,
-    val nettoBeløp: Int,
-    val måneder: List<SimulertMåned>,
-    val rawResponse: String,
+    val nettoBeløp: Beløp,
+    val perioder: Nel<Simuleringsperiode>,
 ) {
-    private val tolkning = TolketSimulering(this)
+    val bruttoTotalUtbetaling = perioder.sumOf { it.bruttoTotalUtbetaling }
+    val bruttoTilUtbetaling = perioder.sumOf { it.bruttoTilUtbetaling }
+    val bruttoTidligereUtbetalt = perioder.sumOf { it.bruttoTidligereUtbetalt }
+    val bruttoFeilutbetaling = perioder.sumOf { it.bruttoFeilutbetaling }
 
     init {
-        check(måneder.isNotEmpty()) { "En simulering må inneholde minst en måned" }
-        // TODO jah: Skulle gjerne sjekket at månedene var i rekkefølge, men SimuleringStub/avkortingstestene liker ikke dette.
-    }
-
-    fun harFeilutbetalinger(): Boolean {
-        return tolkning.harFeilutbetalinger()
-    }
-
-    fun harFeilutbetalinger(periode: Periode): Boolean {
-        return tolkning.harFeilutbetalinger(periode)
-    }
-
-    /**
-     * Beløp som tidligere har vært utbetalt for denne perioden.
-     */
-    fun hentUtbetalteBeløp(): Månedsbeløp {
-        return tolkning.hentUtbetalteBeløp()
-    }
-
-    fun hentUtbetalteBeløp(måned: Måned): MånedBeløp? {
-        return hentUtbetalteBeløp().singleOrNull { it.periode == måned }
-    }
-
-    /**
-     * Beløpet som vil gå til utbetaling ved iverksettelse av behandling.
-     */
-    fun hentTilUtbetaling(): Månedsbeløp {
-        return tolkning.hentTilUtbetaling()
-    }
-
-    /**
-     * Økning av feilkonto ved iverksettelse av behandling.
-     */
-    fun hentFeilutbetalteBeløp(): Månedsbeløp {
-        return tolkning.hentFeilutbetalteBeløp()
-    }
-
-    fun hentFeilutbetalteBeløp(måned: Måned): MånedBeløp? {
-        return hentFeilutbetalteBeløp().singleOrNull { it.periode == måned }
-    }
-
-    /**
-     * Beløpet som til slutt vil/burde være utbetalt.
-     * Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.
-     */
-    fun hentTotalUtbetaling(): Månedsbeløp {
-        return tolkning.hentTotalUtbetaling()
-    }
-
-    /**
-     * Beløpet som til slutt vil/burde være utbetalt.
-     * Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.
-     */
-    fun hentTotalUtbetaling(måned: Måned): MånedBeløp? {
-        return tolkning.hentTotalUtbetaling().singleOrNull { it.periode == måned }
-    }
-
-    fun erAlleMånederUtenUtbetaling(): Boolean {
-        return tolkning.erAlleMånederUtenUtbetaling()
-    }
-
-    /**
-     * Periode tilsvarende tidligste fraOgMed-seneste tilOgMed for simuleringen.
-     *
-     * Dersom simuleringen vi mottar fra OS ikke inneholder et resultat (ingen posteringer)
-     * settes perioden til å være lik perioden som ble brukt ved simulering, se bruk av [SimulerUtbetalingRequest.simuleringsperiode] i [SimuleringClient.simulerUtbetaling].
-     *
-     * Dersom simuleringen vi mottar fra OS inneholder et resultat, settes perioden fil tidligste fraOgMed-seneste tilOgMed for månedeen med data.
-     * Merk at det ikke er noen garanti for at alle månedene i denne perioden inneholder resultat. For å være garantert resultat, se [månederMedSimuleringsresultat]
-     *
-     *
-     */
-    fun periode(): Periode {
-        return tolkning.periode
-    }
-
-    /**
-     * Måneder hvor det foreligger et simuleringsresultat (postering mot en konto).
-     */
-    fun månederMedSimuleringsresultat(): List<Måned> {
-        return tolkning.månederMedSimuleringsresultat
-    }
-
-    /**
-     * Debet/kredit oppstilling av de ulike konti.
-     */
-    fun kontooppstilling(): Map<Periode, Kontooppstilling> {
-        return tolkning.kontooppstilling()
-    }
-
-    fun oppsummering(): SimuleringsOppsummering {
-        return SimuleringsOppsummering(
-            totalOppsummering = tolkning.totalOppsummering(),
-            periodeOppsummering = tolkning.periodeOppsummering(),
+        require(
+            perioder.all {
+                when (it) {
+                    is Simuleringsperiode.Feilutbetaling -> true
+                    is Simuleringsperiode.TilUtbetaling -> it.skalEtterbetales() == it.forfall.isEqualOrBefore(datoBeregnet)
+                    is Simuleringsperiode.Utbetalt -> true
+                    is Simuleringsperiode.IngenUtbetaling -> true
+                }
+            },
         )
-    }
-}
-
-data class SimuleringsOppsummering(
-    val totalOppsummering: PeriodeOppsummering,
-    val periodeOppsummering: List<PeriodeOppsummering>,
-)
-
-data class PeriodeOppsummering(
-    val periode: Periode,
-    val sumTilUtbetaling: Int,
-    val sumEtterbetaling: Int,
-    val sumFramtidigUtbetaling: Int,
-    val sumTotalUtbetaling: Int,
-    val sumTidligereUtbetalt: Int,
-    val sumFeilutbetaling: Int,
-    val sumReduksjonFeilkonto: Int,
-)
-
-data class SimulertMåned(
-    val måned: Måned,
-    val utbetaling: SimulertUtbetaling?,
-) {
-    /** Ikke alle måneder vi simulerer har simuleringsdata. Typisk hvis måneden aldri har vært utbetalt og/eller ikke skal utbetales. Typisk ved hull i stønadsperiode og/eller opphør. */
-    constructor(måned: Måned) : this(måned, null)
-
-    companion object {
-        fun create(periode: Periode): List<SimulertMåned> {
-            return periode.måneder().map { SimulertMåned(it) }
-        }
-
-        fun create(måneder: NonEmptyList<Måned>): List<SimulertMåned> {
-            require(måneder.erSammenhengendeSortertOgUtenDuplikater())
-            return måneder.map { SimulertMåned(it) }
-        }
+        // TODO jah: Her er det mulig å prøve å regne seg fram til nettoBeløp og sjekke at de er like. Vi vet vi må trekke fra skatt og trekk, men det kan være andre ting som påvirker ytelsen også.
     }
 
-    internal fun tolk(): TolketMåned {
-        return if (utbetaling == null) {
-            TolketMånedUtenUtbetalinger(måned = måned)
-        } else {
+    fun erAllePerioderMåneder(): Boolean {
+        return perioder.all { it.erMåned() }
+    }
+
+    /**
+     * De tomme periodene fra oppdrag
+     */
+    fun erAllePerioderUtenUtbetaling(): Boolean {
+        return perioder.all { it is Simuleringsperiode.IngenUtbetaling }
+    }
+
+    /**
+     * Det er ingen garanti for at simuleringen starter den 1. en måned, eller slutter den siste i en måned.
+     * Denne funksjonen bør ikke brukes på sikt, men er med i en overgangsfase.
+     *
+     * @throws IllegalArgumentException Dersom simuleringen ikke starter den 1. eller slutter den siste i en måned.
+     */
+//    fun periodeUnsafe(): no.nav.su.se.bakover.common.tid.periode.Periode {
+//        return no.nav.su.se.bakover.common.tid.periode.Periode.create(
+//            fraOgMed = tidligsteDato(),
+//            tilOgMed = senesteDato(),
+//        )
+//    }
+
+    fun datointervall(): DatoIntervall {
+        return DatoIntervall(tidligsteDato(), senesteDato())
+    }
+
+    fun tidligsteDato(): LocalDate = perioder.minOf { it.fraOgMed }
+    fun senesteDato(): LocalDate = perioder.maxOf { it.tilOgMed }
+
+    /**
+     * En simulering er delt inn i perioder, som ofte stemmer overens med fagsystemets måneder, i SU sitt tilfelle månedsperioder.
+     * Dessverre er ikke dette alltid tilfelle og vi kan få trekk og andre manuelle posteringer som ikke er første/siste dagen i måneden.
+     * Når dette skjer vil oppdrag re-periodisere ytelsen vår til å aligne med trekket.
+     *
+     * Perioder kan overlappe. Vi har observert at vi kan få en egen periode for skatt for en hel måned, mens ytelsen er delt opp i 2 deler for samme måned. Dette i forbindelse med trekk.
+     *
+     * Dersom en periode er tidligere utbetalt er ikke det en garanti for at bruker har pengene på konto, men pengene vil snart overføres til bank hvis utbetalingen ikke stoppes av nye utbetalingslinjer (automatisk eller manuelt).
+     *
+     * @property fraOgMed Datoen for første dag i perioden. Dette er ikke nødvendigvis første dag i måneden.
+     * @property tilOgMed Datoen for siste dag i perioden. Dette er ikke nødvendigvis siste dag i måneden.
+     * @property forfall Datoen for overføring til bank. Oppdrag overfører til UR minst 2 dager før dette. En revurdering vil ikke kunne stoppe noe som er overført til UR. Men dersom det ikke er forsent kan utbetalingen hentes tilbake fra UR manuelt.
+     * @property bruttoTilUtbetaling Dersom positiv; vi skal betale penger. Dersom 0: vi skal ikke betale noe. Dersom negativ; vi skal kreve penger tilbake.
+     * @property bruttoTidligereUtbetalt Må være 0 dersom vi ikke har utbetalt noe før eller positiv dersom vi har utbetalt penger tidligere.
+     * @property bruttoTotalUtbetaling Hvor mye en bruker egentlig skal ha eller skulle hatt utbetalt for en gitt periode
+     */
+    sealed interface Simuleringsperiode {
+        val datoIntervall: DatoIntervall
+        val fraOgMed: LocalDate get() = datoIntervall.fraOgMed
+        val tilOgMed: LocalDate get() = datoIntervall.tilOgMed
+        val forfall: LocalDate?
+        val bruttoTilUtbetaling: Int
+        val bruttoTidligereUtbetalt: Int
+        val bruttoTotalUtbetaling: Int
+        val bruttoFeilutbetaling: Int
+
+        /** Dersom perioden ikke er utbetalt, eller bare delvis utbetalt. Her har vi ikke trukket fra skatt eller trekk. */
+        fun bruttoSkalUtbetales(): Boolean
+
+        /** Dersom perioden er en hel måned. */
+        fun erMåned(): Boolean = Måned.erMåned(fraOgMed, tilOgMed)
+
+        fun datointervall(): DatoIntervall {
+            return DatoIntervall(fraOgMed, tilOgMed)
+        }
+
+//        /**
+//         *  Det er ingen garanti for at simuleringsperioden starter den 1. en måned, eller slutter den siste i en måned.
+//         *  Denne funksjonen bør ikke brukes på sikt, men er med i en overgangsfase.
+//         *
+//         * @throws IllegalArgumentException Dersom simuleringsperioden ikke starter den 1. eller slutter den siste i en måned.
+//         */
+//        fun månedUnsafe(): Måned = Måned.fra(fraOgMed, tilOgMed)
+
+        /**
+         * Dersom false er den allerede utbetalt, eller utbetales ved et senere forfall.
+         * Estimert utfra [datoBeregnet] og [forfall].
+         * Kan være unøyaktig dersom datoene er nær i tid.
+         * Dersom [datoBeregnet] er nært nok eller etter forfallet for en gitt periode, vil utbetalingen etterbetales (dvs. straksutbetales eller utbetales ved neste forfall basert på flagg).
+         * */
+        fun skalEtterbetales(): Boolean
+
+        /** Dersom skal utbetales er negaitv */
+        fun harFeilutbetaling(): Boolean
+
+        /** Dersom vi har utbetalt penger på et tidligere tidspunkt. */
+        fun harUtbetaltTidligere(): Boolean
+
+        /**
+         * Dersom vi skal utbetale penger til bruker.
+         * Vi kan ha utbetalt penger før og potensielt hatt en feilutbetaling før, dette vil da være en oppjustering av stønaden.
+         *
+         * @param skatt Dersom det er et utestående beløp til utbetaling, forventer vi egentlig at denne skal være utfylt.
+         * @param trekk Som avregning/tvungen forvaltning/annet?
+         */
+        data class TilUtbetaling(
+            override val datoIntervall: DatoIntervall,
+            override val forfall: LocalDate,
+            override val bruttoTilUtbetaling: Int,
+            override val bruttoTidligereUtbetalt: Int,
+            private val etterbetales: Boolean,
+            val skatt: Int?,
+            val trekk: Simuleringstrekk?,
+        ) : Simuleringsperiode {
+
+            override val bruttoTotalUtbetaling = bruttoTidligereUtbetalt + bruttoTilUtbetaling
+            override val bruttoFeilutbetaling = 0
+
+            init {
+                require(bruttoTilUtbetaling > 0) {
+                    "Simuleringsperiode: Kan kun utbetale positive beløp, men var $bruttoTilUtbetaling."
+                }
+                require(bruttoTidligereUtbetalt >= 0) {
+                    "Simuleringsperiode: tidligereUtbetalt må være 0 eller positiv, men var $bruttoTidligereUtbetalt."
+                }
+                require(bruttoTotalUtbetaling >= 0) {
+                    "Simuleringsperiode: Sanity check på at total utbetaling er større eller lik 0, men var $bruttoTotalUtbetaling."
+                }
+                if (skatt != null) {
+                    require(skatt >= 0) {
+                        "Simuleringsperiode: skatt må være 0 eller positiv, men var $skatt."
+                    }
+                }
+            }
+
+            override fun bruttoSkalUtbetales() = true
+            override fun skalEtterbetales() = etterbetales
+            override fun harFeilutbetaling() = false
+            override fun harUtbetaltTidligere() = bruttoTidligereUtbetalt > 0
+        }
+
+        /**
+         * Vi har ikke en 100% garanti for at pengene er på brukers konto enda, men jo lenger før forfallet er datoBeregnet, jo større sjanse er det for at bruker har/har hatt pengene på konto.
+         *
+         * Vi har utbetalt penger tidligere og skal ikke betale noe mer i denne utbetalingen.
+         * Dette ekskluderer ikke at det kan ha skjedd en feilutbetaling denne perioden ved en tidligere utbetaling.
+         * E.g. vi har utbetalt 10k, reduserer til 5k (da ville vi fått en feilutbetaling), og oppjustert til 10k igjen og havne i denne tilstanden.
+         *
+         * @param trekk TODO jah: Tror ikke trekket kommer med på simuleringsmåneder som ikke er til utbetaling, men tar den med i tilfelle.
+         */
+        data class Utbetalt(
+            override val datoIntervall: DatoIntervall,
+            override val forfall: LocalDate,
+            override val bruttoTidligereUtbetalt: Int,
+            val trekk: Simuleringstrekk?,
+        ) : Simuleringsperiode {
+            override val bruttoTilUtbetaling = 0
+            override val bruttoFeilutbetaling = 0
+            override val bruttoTotalUtbetaling = bruttoTidligereUtbetalt
+
+            init {
+                require(bruttoTidligereUtbetalt >= 0) {
+                    "Simuleringsperiode: tidligereUtbetalt må være 0 eller positiv, men var $bruttoTidligereUtbetalt."
+                }
+                require(bruttoTotalUtbetaling >= 0) {
+                    "Simuleringsperiode: Sanity check på at total utbetaling er større eller lik 0, men var $bruttoTotalUtbetaling."
+                }
+            }
+
+            override fun bruttoSkalUtbetales(): Boolean = false
+            override fun skalEtterbetales() = false
+            override fun harFeilutbetaling(): Boolean = false
+            override fun harUtbetaltTidligere() = bruttoTidligereUtbetalt > 0
+        }
+
+        /**
+         * I de tilfellene en periode aldri har vært utbetalt eller aldri skal utbetales.
+         * Oppdrag hopper over disse periodene, men vi genererer de for helhetens skyld.
+         */
+        data class IngenUtbetaling(
+            override val datoIntervall: DatoIntervall,
+        ) : Simuleringsperiode {
+            override val forfall = null
+            override val bruttoTilUtbetaling = 0
+            override val bruttoFeilutbetaling = 0
+            override val bruttoTotalUtbetaling = 0
+            override val bruttoTidligereUtbetalt=0
+
+            override fun bruttoSkalUtbetales(): Boolean = false
+            override fun skalEtterbetales() = false
+            override fun harFeilutbetaling(): Boolean = false
+            override fun harUtbetaltTidligere() = false
+        }
+
+        /**
+         * @param bruttoFeilutbetaling Må være positivt
+         */
+        data class Feilutbetaling(
+            override val datoIntervall: DatoIntervall,
+            override val forfall: LocalDate,
+            override val bruttoTidligereUtbetalt: Int,
+            override val bruttoFeilutbetaling: Int,
+        ) : Simuleringsperiode {
+
+            override val bruttoTilUtbetaling = 0
+            override val bruttoTotalUtbetaling = bruttoTidligereUtbetalt - bruttoFeilutbetaling
+
+            init {
+                require(bruttoTidligereUtbetalt >= 0) {
+                    "Simuleringsperiode: tidligereUtbetalt må være 0 eller positiv, men var $bruttoTidligereUtbetalt."
+                }
+                require(bruttoTotalUtbetaling >= 0) {
+                    "Simuleringsperiode: Sanity check på at total utbetaling er større eller lik 0, men var $bruttoTotalUtbetaling."
+                }
+                require(bruttoFeilutbetaling > 0) {
+                    "Simuleringsperiode: Feilutbetalingsbeløp må være positivt, men var $bruttoFeilutbetaling."
+                }
+            }
+
+            override fun bruttoSkalUtbetales() = bruttoTilUtbetaling > 0
+            override fun skalEtterbetales() = false
+            override fun harFeilutbetaling() = true
+
             /**
-             * I Teorien kan det være flere utbetalnger per periode, f.eks hvis bruker mottar andre ytelser.
-             * Vi bryr oss kun om SU og forventer derfor bare 1.
+             * Siden dette er en feilutbetaling, må vi implisitt ha utbetalt noe tidligere.
+             * jah: Litt usikker på om vi alltid vil kunne utrede selve beløpet i alle tilfeller her.
              */
-            TolketMånedMedUtbetalinger(måned = måned, utbetaling = utbetaling.tolk())
-        }
-    }
-}
-
-data class SimulertUtbetaling(
-    val fagSystemId: String,
-    val utbetalesTilId: Fnr,
-    val utbetalesTilNavn: String,
-    val forfall: LocalDate,
-    val feilkonto: Boolean,
-    val detaljer: List<SimulertDetaljer>,
-) {
-
-    internal fun tolk(): TolketUtbetaling {
-        return TolketUtbetaling(detaljer = detaljer.mapNotNull { it.tolk() }, forfall = forfall)
-    }
-
-    fun harFeilutbetalinger(): Boolean {
-        return feilkonto
-    }
-}
-
-data class SimulertDetaljer(
-    @JsonAlias("faktiskFraOgMed", "faktiskFom")
-    val faktiskFraOgMed: LocalDate,
-    @JsonAlias("faktiskTilOgMed", "faktiskTom")
-    val faktiskTilOgMed: LocalDate,
-    val konto: String,
-    val belop: Int,
-    val tilbakeforing: Boolean,
-    val sats: Int,
-    val typeSats: String,
-    val antallSats: Int,
-    val uforegrad: Int,
-    val klassekode: KlasseKode,
-    val klassekodeBeskrivelse: String,
-    val klasseType: KlasseType,
-) {
-    fun tolk(): TolketDetalj? {
-        return TolketDetalj.from(simulertDetaljer = this)
-    }
-}
-
-fun Sakstype.toYtelsekode(): KlasseKode {
-    return when (this) {
-        Sakstype.ALDER -> {
-            KlasseKode.SUALDER
-        }
-
-        Sakstype.UFØRE -> {
-            KlasseKode.SUUFORE
-        }
-    }
-}
-
-fun Sakstype.toFeilkode(): KlasseKode {
-    return when (this) {
-        Sakstype.ALDER -> {
-            KlasseKode.KL_KODE_FEIL
-        }
-
-        Sakstype.UFØRE -> {
-            KlasseKode.KL_KODE_FEIL_INNT
+            override fun harUtbetaltTidligere() = true
         }
     }
 }

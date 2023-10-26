@@ -27,7 +27,7 @@ sealed interface Opphørsvedtak : VedtakSomKanRevurderes, Revurderingsvedtak {
         behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
     fun harIdentifisertBehovForFremtidigAvkorting(periode: Periode): Boolean {
-        return (behandling.avkorting as? AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel)?.periode()
+        return (behandling.avkorting as? AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel)?.datoIntervall()
             ?.overlapper(periode) ?: false
     }
 

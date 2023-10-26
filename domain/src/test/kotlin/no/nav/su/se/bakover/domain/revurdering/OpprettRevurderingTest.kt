@@ -129,7 +129,7 @@ internal class OpprettRevurderingTest {
             .shouldBeType<Pair<Sak, VedtakInnvilgetSøknadsbehandling>>().also {
                 it.second.behandling.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Avkortet>()
                     .also {
-                        it.avkortingsvarsel.periode() shouldBe mai(2021)..september(2021)
+                        it.avkortingsvarsel.periodeUnsafe() shouldBe mai(2021)..september(2021)
                     }
             }
 
