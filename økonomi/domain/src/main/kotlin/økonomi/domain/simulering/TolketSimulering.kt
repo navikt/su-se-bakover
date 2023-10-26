@@ -298,7 +298,7 @@ sealed class TolketDetalj {
         fun from(
             simulertDetaljer: SimulertDetaljer,
             log: Logger = LoggerFactory.getLogger(this::class.java),
-        ) = when {
+        ): TolketDetalj? = when {
             simulertDetaljer.erFeilkonto() -> {
                 Feilkonto(
                     beløp = Kontobeløp(simulertDetaljer.belop),
