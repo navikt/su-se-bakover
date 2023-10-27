@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.underkjent.KunneIkkeUnderkjenne
 import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 import tilbakekreving.domain.underkjent.UnderkjennTilbakekrevingsbehandlingCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
@@ -94,7 +95,7 @@ internal fun Route.underkjennTilbakekrevingsbehandlingRoute(
     }
 }
 
-private fun UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.tilResultat(): Resultat = when (this) {
-    is UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.IkkeTilgang -> ikkeTilgangTilSak
-    UnderkjennTilbakekrevingsbehandlingService.KunneIkkeUnderkjenne.UlikVersjon -> Feilresponser.utdatertVersjon
+private fun KunneIkkeUnderkjenne.tilResultat(): Resultat = when (this) {
+    is KunneIkkeUnderkjenne.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeUnderkjenne.UlikVersjon -> Feilresponser.utdatertVersjon
 }

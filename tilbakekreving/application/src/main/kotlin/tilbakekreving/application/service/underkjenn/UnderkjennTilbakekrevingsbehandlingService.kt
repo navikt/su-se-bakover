@@ -7,11 +7,11 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
-import tilbakekreving.domain.IkkeTilgangTilSak
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.underkjenn
+import tilbakekreving.domain.underkjent.KunneIkkeUnderkjenne
 import tilbakekreving.domain.underkjent.UnderkjennTilbakekrevingsbehandlingCommand
 import java.time.Clock
 
@@ -22,11 +22,6 @@ class UnderkjennTilbakekrevingsbehandlingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    sealed interface KunneIkkeUnderkjenne {
-        data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeUnderkjenne
-        data object UlikVersjon : KunneIkkeUnderkjenne
-    }
 
     fun underkjenn(command: UnderkjennTilbakekrevingsbehandlingCommand): Either<KunneIkkeUnderkjenne, UnderBehandling> {
         tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
