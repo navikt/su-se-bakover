@@ -4,6 +4,7 @@ import common.presentation.attestering.AttesteringJson
 import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandling
@@ -49,6 +50,7 @@ data class TilbakekrevingsbehandlingJson(
                 is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
+                is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")
             },
             månedsvurderinger = this.månedsvurderinger?.vurderinger?.map {
@@ -62,11 +64,13 @@ data class TilbakekrevingsbehandlingJson(
             versjon = this.versjon.value,
             sendtTilAttesteringAv = when (this) {
                 is OpprettetTilbakekrevingsbehandling,
+                is AvbruttTilbakekrevingsbehandling,
                 is UnderBehandling,
                 -> null
 
                 is TilbakekrevingsbehandlingTilAttestering -> this.sendtTilAttesteringAv.toString()
                 is IverksattTilbakekrevingsbehandling -> this.forrigeSteg.sendtTilAttesteringAv.toString()
+
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend for sendTilAttesteringAv")
             },
             attesteringer = this.attesteringer.toJson(),

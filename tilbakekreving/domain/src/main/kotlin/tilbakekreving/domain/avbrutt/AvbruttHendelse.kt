@@ -3,7 +3,7 @@
 
 package tilbakekreving.domain
 
-import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -21,7 +21,8 @@ data class AvbruttHendelse(
     override val meta: DefaultHendelseMetadata,
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
-    override val utførtAv: NavIdentBruker.Attestant,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
+    val brevvalg: Brevvalg.SaksbehandlersValg,
     val begrunnelse: String,
 ) : TilbakekrevingsbehandlingHendelse {
 
@@ -39,7 +40,8 @@ data class AvbruttHendelse(
             versjon: Hendelsesversjon,
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
-            utførtAv: NavIdentBruker.Attestant,
+            utførtAv: NavIdentBruker.Saksbehandler,
+            brevvalg: Brevvalg.SaksbehandlersValg,
             begrunnelse: String,
         ) = AvbruttHendelse(
             hendelseId = HendelseId.generer(),
@@ -50,41 +52,36 @@ data class AvbruttHendelse(
             id = id,
             tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
+            brevvalg = brevvalg,
             begrunnelse = begrunnelse,
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): AvbruttTilbakekrevingsbehandling {
         return when (behandling) {
-            is OpprettetTilbakekrevingsbehandling,
-            is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
+            is TilbakekrevingsbehandlingTilAttestering,
             is IverksattTilbakekrevingsbehandling,
-            -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Iverksatt. Støtter kun å fra TilAttestering Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, TilAttestering, Iverksatt] -> Avbrutt. Støtter kun tilstander der behandlingen kan endres. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is TilbakekrevingsbehandlingTilAttestering -> IverksattTilbakekrevingsbehandling(
+            is KanEndres -> AvbruttTilbakekrevingsbehandling(
                 forrigeSteg = behandling,
-                hendelseId = this.hendelseId,
-                versjon = this.versjon,
-                attesteringer = behandling.attesteringer.leggTilNyAttestering(
-                    attestering = Attestering.Iverksatt(
-                        attestant = this.utførtAv,
-                        opprettet = this.hendelsestidspunkt,
-                    ),
-                ),
-
+                avsluttetTidspunkt = hendelsestidspunkt,
+                avsluttetAv = utførtAv,
+                begrunnelse = begrunnelse,
             )
         }
     }
 }
 
-fun TilbakekrevingsbehandlingTilAttestering.avbryt(
+fun KanEndres.avbryt(
     meta: DefaultHendelseMetadata,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-    utførtAv: NavIdentBruker.Attestant,
+    utførtAv: NavIdentBruker.Saksbehandler,
+    brevvalg: Brevvalg.SaksbehandlersValg,
     begrunnelse: String,
-): AvbruttHendelse {
+): Pair<AvbruttHendelse, AvbruttTilbakekrevingsbehandling> {
     return AvbruttHendelse.create(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,
@@ -93,6 +90,7 @@ fun TilbakekrevingsbehandlingTilAttestering.avbryt(
         clock = clock,
         id = this.id,
         utførtAv = utførtAv,
+        brevvalg = brevvalg,
         begrunnelse = begrunnelse,
-    )
+    ).let { it to it.applyToState(this) }
 }

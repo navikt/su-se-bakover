@@ -21,6 +21,8 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.infrastructure.repo.avbrutt.mapToTilAvbruttHendelse
+import tilbakekreving.infrastructure.repo.avbrutt.toJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingDbJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.toJson
 import tilbakekreving.infrastructure.repo.iverksatt.mapToTilIverksattHendelse
@@ -192,7 +194,16 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
-        AvbruttTilbakekrevingsbehandlingHendelsestype -> TODO()
+        AvbruttTilbakekrevingsbehandlingHendelsestype -> mapToTilAvbruttHendelse(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = defaultHendelseMetadata(),
+            tidligereHendelseId = this.tidligereHendelseId!!,
+        )
+
         UnderkjentTilbakekrevingsbehandlingHendelsestype -> mapToTilUnderkjentHendelse(
             data = this.data,
             hendelseId = this.hendelseId,
@@ -214,7 +225,7 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
         is BrevTilbakekrevingsbehandlingHendelse -> this.toJson()
         is TilAttesteringHendelse -> this.toJson()
         is IverksattHendelse -> this.toJson()
-        is AvbruttHendelse -> TODO()
+        is AvbruttHendelse -> this.toJson()
         is UnderkjentHendelse -> this.toJson()
     }
 }

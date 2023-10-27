@@ -1,0 +1,111 @@
+package tilbakekreving.presentation.api.avslutt
+
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import dokument.domain.brev.Brevvalg
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.avbrutt.AvbrytTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.avbrutt.KunneIkkeAvbryte
+import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
+import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
+import java.util.UUID
+
+private data class Body(
+    val versjon: Long,
+    val begrunnelse: String,
+    val skalSendeBrev: String,
+    val fritekst: String?,
+) {
+    fun toCommand(
+        sakId: UUID,
+        behandlingsId: UUID,
+        utførtAv: NavIdentBruker.Saksbehandler,
+        correlationId: CorrelationId,
+        brukerroller: List<Brukerrolle>,
+    ): Either<Resultat, AvbrytTilbakekrevingsbehandlingCommand> {
+        return AvbrytTilbakekrevingsbehandlingCommand(
+            sakId = sakId,
+            behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
+            utførtAv = utførtAv,
+            correlationId = correlationId,
+            brukerroller = brukerroller.toNonEmptyList(),
+            klientensSisteSaksversjon = Hendelsesversjon(versjon),
+            brevvalg = when (skalSendeBrev) {
+                "SKAL_SENDE_BREV_MED_FRITEKST" -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
+                    fritekst = if (fritekst.isNullOrBlank()) {
+                        return HttpStatusCode.BadRequest.errorJson(
+                            "Fritekst må suppleres dersom det skal sendes brev",
+                            "mangler_fritekst",
+                        ).left()
+                    } else {
+                        fritekst
+                    },
+                )
+
+                "SKAL_IKKE_SENDE_BREV" -> Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(begrunnelse)
+                else -> return HttpStatusCode.BadRequest.errorJson(
+                    "Ukjent brevvalg - Kan kun velge om brev skal sendes ut med fritekst, eller ikke.",
+                    "ukjent_brevvalg",
+                ).left()
+            },
+            begrunnelse = begrunnelse,
+        ).right()
+    }
+}
+
+internal fun Route.avbrytTilbakekrevingsbehandlingRoute(
+    service: AvbrytTilbakekrevingsbehandlingService,
+) {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/avbryt") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withSakId { sakId ->
+                call.withTilbakekrevingId { id ->
+                    call.withBody<Body> { body ->
+                        body.toCommand(
+                            sakId = sakId,
+                            behandlingsId = id,
+                            utførtAv = call.suUserContext.saksbehandler,
+                            correlationId = call.correlationId,
+                            brukerroller = call.suUserContext.roller,
+                        ).fold(
+                            { call.svar(it) },
+                            {
+                                service.avbryt(it).fold(
+                                    { call.svar(it.tilResultat()) },
+                                    { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun KunneIkkeAvbryte.tilResultat(): Resultat = when (this) {
+    is KunneIkkeAvbryte.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeAvbryte.UlikVersjon -> Feilresponser.utdatertVersjon
+}

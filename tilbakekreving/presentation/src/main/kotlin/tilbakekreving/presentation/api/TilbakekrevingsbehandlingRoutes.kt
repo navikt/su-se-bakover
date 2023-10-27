@@ -1,6 +1,7 @@
 package tilbakekreving.presentation.api
 
 import io.ktor.server.routing.Route
+import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
@@ -9,6 +10,7 @@ import tilbakekreving.application.service.tilAttestering.Tilbakekrevingsbehandli
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
+import tilbakekreving.presentation.api.avslutt.avbrytTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
 import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
 import tilbakekreving.presentation.api.iverksett.iverksettTilbakekrevingsbehandlingRoute
@@ -29,6 +31,7 @@ fun Route.tilbakekrevingRoutes(
     tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService,
     underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService,
     iverksettTilbakekrevingService: IverksettTilbakekrevingService,
+    avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
     this.vurderTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
@@ -38,4 +41,5 @@ fun Route.tilbakekrevingRoutes(
     this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)
     this.underkjennTilbakekrevingsbehandlingRoute(underkjennTilbakekrevingsbehandlingService)
     this.iverksettTilbakekrevingsbehandlingRoute(iverksettTilbakekrevingService)
+    this.avbrytTilbakekrevingsbehandlingRoute(avbrytTilbakekrevingsbehandlingService)
 }
