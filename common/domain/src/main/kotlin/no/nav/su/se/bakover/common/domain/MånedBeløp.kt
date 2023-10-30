@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common
 
 import no.nav.su.se.bakover.common.extensions.norwegianLocale
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import java.text.NumberFormat
 import java.time.LocalDate
 import kotlin.math.abs
@@ -9,6 +10,12 @@ import kotlin.math.abs
 data class Månedsbeløp(
     val månedbeløp: List<MånedBeløp>,
 ) : List<MånedBeløp> by månedbeløp {
+
+    /**
+     * @throws NoSuchElementException eller IllegalArgumentException dersom det ikke finnes en sammenhengende periode.
+     */
+    val periodeUnsafe get() = månedbeløp.map { it.periode }.minsteAntallSammenhengendePerioder().single()
+
     init {
         månedbeløp.map { it.periode }.let {
             require(

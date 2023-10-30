@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -150,9 +150,9 @@ sealed class BeregnetRevurdering : RevurderingKanBeregnes() {
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
-            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
             skalUtsetteTilbakekreving: Boolean,
-        ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Innvilget> {
+        ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
             return simuler(
                 beregning,
                 when (sakstype) {
@@ -234,9 +234,9 @@ sealed class BeregnetRevurdering : RevurderingKanBeregnes() {
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
-            simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
+            simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
             skalUtsetteTilbakekreving: Boolean,
-        ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Opphørt> {
+        ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, tilbakekrevingsbehandling) = simuler(periode, saksbehandler)
                 .getOrElse { return it.left() }
                 .let { simulering ->

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -75,7 +76,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkk
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -528,13 +528,12 @@ class RevurderingServiceImpl(
                                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                                     uføregrunnlag = uføregrunnlag,
                                 ).let {
-                                    sak.simulerUtbetaling(
+                                    simulerUtbetaling(
                                         utbetalingForSimulering = it,
-                                        periode = beregnetRevurdering.periode,
                                         simuler = utbetalingService::simulerUtbetaling,
-                                        kontrollerMotTidligereSimulering = null,
-                                    ).map { simulertUtbetaling ->
-                                        simulertUtbetaling.simulering
+                                    ).map { simuleringsresultat ->
+                                        // TODO simulering jah: Returner simuleringsresultatet til saksbehandler.
+                                        simuleringsresultat.simulertUtbetaling.simulering
                                     }
                                 }
                             },
@@ -547,7 +546,7 @@ class RevurderingServiceImpl(
                     }
 
                     is BeregnetRevurdering.Opphørt -> {
-                        // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
+                        // TODO simulering jah: er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
@@ -558,12 +557,11 @@ class RevurderingServiceImpl(
                                     behandler = behandler,
                                     clock = clock,
                                 ).let {
-                                    sak.simulerUtbetaling(
+                                    simulerUtbetaling(
                                         utbetalingForSimulering = it,
-                                        periode = opphørsperiode,
                                         simuler = utbetalingService::simulerUtbetaling,
-                                        kontrollerMotTidligereSimulering = beregnetRevurdering.simulering,
-                                    )
+                                        // TODO simulering jah: Returner simuleringsresultatet til saksbehandler.
+                                    ).map { it.simulertUtbetaling }
                                 }
                             },
                         ).mapLeft {

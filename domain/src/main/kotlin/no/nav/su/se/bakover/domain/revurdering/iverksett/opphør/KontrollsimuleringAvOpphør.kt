@@ -6,16 +6,16 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 
-internal fun Sak.kontrollsimuler(
+internal fun Sak.kontrollsimulerOpphør(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
-    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     periode: Periode,
     saksbehandlersSimulering: Simulering,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, Utbetaling.SimulertUtbetaling> {
@@ -24,11 +24,10 @@ internal fun Sak.kontrollsimuler(
         behandler = attestant,
         clock = clock,
     ).let {
-        simulerUtbetaling(
+        kontrollsimuler(
             utbetalingForSimulering = it,
-            periode = periode,
             simuler = simuler,
-            kontrollerMotTidligereSimulering = saksbehandlersSimulering,
+            saksbehandlersSimulering = saksbehandlersSimulering,
         )
     }.mapLeft {
         KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(it)

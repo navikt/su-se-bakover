@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -86,7 +85,6 @@ class StansYtelseServiceImpl(
 
                         val simulertUtbetaling = simulerStans(
                             sak = sak,
-                            kontrollerMotTidligereSimulering = null,
                             stansdato = request.fraOgMed,
                             behandler = request.saksbehandler,
                         ).getOrElse {
@@ -123,7 +121,6 @@ class StansYtelseServiceImpl(
 
                 val simulertUtbetaling = simulerStans(
                     sak = sak,
-                    kontrollerMotTidligereSimulering = null,
                     stansdato = request.fraOgMed,
                     behandler = request.saksbehandler,
                 ).getOrElse {
@@ -201,8 +198,7 @@ class StansYtelseServiceImpl(
                 ).also { response ->
                     response.sendUtbetalingCallback()
                         .getOrElse {
-                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it))
-                                .exception()
+                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                         }
                     response.sendStatistikkCallback()
                 }
@@ -260,25 +256,28 @@ class StansYtelseServiceImpl(
                         opprettet = Tidspunkt.now(clock),
                     ),
                 ).getOrElse {
-                    throw KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.exception()
+                    when (it) {
+                        StansAvYtelseRevurdering.KunneIkkeIverksetteStansAvYtelse.SimuleringIndikererFeilutbetaling -> {
+                            throw KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.exception()
+                        }
+                    }
                 }
 
-                val simulertUtbetaling = simulerStans(
+                val simulertUtbetaling = kontrollsimulerStans(
                     sak = sak,
-                    kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
                     stansdato = iverksattRevurdering.periode.fraOgMed,
                     behandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                    saksbehandlersSimulering = iverksattRevurdering.simulering,
                 ).getOrElse {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeSimulere(it))
-                        .exception()
+                    throw it.exception()
                 }
 
                 val stansUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = simulertUtbetaling,
                     transactionContext = transactionContext,
                 ).getOrElse {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it))
-                        .exception()
+                    // TODO jah: Klargjøringa kan ikke feile, rydd opp.
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                 }
 
                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
@@ -316,7 +315,6 @@ class StansYtelseServiceImpl(
 
     private fun simulerStans(
         sak: Sak,
-        kontrollerMotTidligereSimulering: Simulering?,
         stansdato: LocalDate,
         behandler: NavIdentBruker,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
@@ -327,16 +325,37 @@ class StansYtelseServiceImpl(
         ).mapLeft {
             SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it)
         }.flatMap { utbetaling ->
-            sak.simulerUtbetaling(
+            simulerUtbetaling(
                 utbetalingForSimulering = utbetaling,
-                periode = Periode.create(
-                    utbetaling.tidligsteDato(),
-                    utbetaling.senesteDato(),
-                ),
                 simuler = utbetalingService::simulerUtbetaling,
-                kontrollerMotTidligereSimulering = kontrollerMotTidligereSimulering,
             ).mapLeft {
                 SimulerStansFeilet.KunneIkkeSimulere(it)
+            }.map {
+                // TODO simulering jah: Returner simuleringsresultatet til saksbehandler.
+                it.simulertUtbetaling
+            }
+        }
+    }
+
+    private fun kontrollsimulerStans(
+        sak: Sak,
+        stansdato: LocalDate,
+        behandler: NavIdentBruker,
+        saksbehandlersSimulering: Simulering,
+    ): Either<KunneIkkeIverksetteStansYtelse, Utbetaling.SimulertUtbetaling> {
+        return sak.lagUtbetalingForStans(
+            stansdato = stansdato,
+            behandler = behandler,
+            clock = clock,
+        ).mapLeft {
+            KunneIkkeIverksetteStansYtelse.KunneIkkeGenerereUtbetaling(it)
+        }.map { utbetaling ->
+            kontrollsimuler(
+                utbetalingForSimulering = utbetaling,
+                simuler = utbetalingService::simulerUtbetaling,
+                saksbehandlersSimulering = saksbehandlersSimulering,
+            ).getOrElse {
+                return KunneIkkeIverksetteStansYtelse.KontrollsimuleringFeilet(it).left()
             }
         }
     }

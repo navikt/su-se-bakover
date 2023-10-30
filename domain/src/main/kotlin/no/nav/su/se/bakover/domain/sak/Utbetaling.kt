@@ -2,23 +2,15 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
-import arrow.core.left
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.time.LocalDate
 
@@ -54,6 +46,9 @@ fun Sak.lagUtbetalingForGjenopptak(
     ).generer()
 }
 
+/**
+ * @param opphørsperiode Vil være behandlingen sin periode. Mens utbetalingslinjene vil inkludere evt. rekonstruerte linjer etter opphørsperioden.
+ */
 fun Sak.lagUtbetalingForOpphør(
     opphørsperiode: Periode,
     behandler: NavIdentBruker,
@@ -148,41 +143,4 @@ fun Sak.lagNyUtbetalingUføre(
 
         else -> throw IllegalArgumentException("Ugyldig type:$type for uføreutbetaling")
     }
-}
-
-fun Sak.simulerUtbetaling(
-    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
-    periode: Periode,
-    simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-    kontrollerMotTidligereSimulering: Simulering?,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
-    return simuler(utbetalingForSimulering, periode)
-        .mapLeft {
-            SimulerUtbetalingFeilet.FeilVedSimulering(it)
-        }
-        .map { simulertUtbetaling ->
-            KryssjekkTidslinjerOgSimulering.sjekk(
-                underArbeidEndringsperiode = periode,
-                underArbeid = utbetalingForSimulering,
-                eksisterende = utbetalinger,
-                simuler = simuler,
-            ).getOrElse {
-                return SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(it).left()
-            }
-            if (kontrollerMotTidligereSimulering != null) {
-                KryssjekkSaksbehandlersOgAttestantsSimulering(
-                    saksbehandlersSimulering = kontrollerMotTidligereSimulering,
-                    attestantsSimulering = simulertUtbetaling,
-                ).sjekk().getOrElse {
-                    return SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(it).left()
-                }
-            }
-            simulertUtbetaling
-        }
-}
-
-sealed interface SimulerUtbetalingFeilet {
-    data class FeilVedSimulering(val feil: SimuleringFeilet) : SimulerUtbetalingFeilet
-    data class FeilVedKryssjekkAvTidslinjeOgSimulering(val feil: KryssjekkAvTidslinjeOgSimuleringFeilet) : SimulerUtbetalingFeilet
-    data class FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : SimulerUtbetalingFeilet
 }

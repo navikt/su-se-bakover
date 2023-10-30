@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeUtbetale
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ukjentFeil
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -177,17 +177,7 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> fantIkkeRevurdering
 
-        is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
-            when (val kunneIkkeUtbetale = this.feil) {
-                is UtbetalStansFeil.KunneIkkeSimulere -> {
-                    kunneIkkeUtbetale.feil.tilResultat()
-                }
-
-                is UtbetalStansFeil.KunneIkkeUtbetale -> {
-                    kunneIkkeUtbetale.feil.tilResultat()
-                }
-            }
-        }
+        is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> kunneIkkeUtbetale
 
         is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> {
             HttpStatusCode.BadRequest.errorJson(
@@ -206,6 +196,8 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
         is KunneIkkeIverksetteStansYtelse.UkjentFeil -> ukjentFeil
 
         KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> detHarKommetNyeOverlappendeVedtak
+        is KunneIkkeIverksetteStansYtelse.KontrollsimuleringFeilet -> underliggende.tilResultat()
+        is KunneIkkeIverksetteStansYtelse.KunneIkkeGenerereUtbetaling -> underliggende.tilResultat()
     }
 }
 

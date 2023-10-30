@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
-import no.nav.su.se.bakover.test.simulering.simuleringUtbetalingRequest
+import no.nav.su.se.bakover.test.simulering.utbetalingForSimulering
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -75,7 +75,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
             request = request,
             clock = fixedClock,
@@ -172,7 +172,7 @@ internal class SimuleringResponseMapperTest {
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
             request = request,
             clock = fixedClock,
@@ -266,7 +266,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -514,7 +514,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val actualSimulering = responseMedEtterbetaling.toSimulering(
             request = request,
             clock = fixedClock,
@@ -713,7 +713,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -787,7 +787,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         val logMock = mock<Logger>()
         val sikkerLoggMock = mock<Logger>()
         val soapRequest = SimuleringRequestBuilder(request).build()
@@ -828,7 +828,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         responseMedFremtidigUtbetaling.toSimulering(
             request = request,
             clock = fixedClock,
@@ -852,7 +852,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         responseMedFremtidigUtbetaling.toSimulering(
             request = request,
             clock = fixedClock,
@@ -868,7 +868,7 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         responseMedÅpenFeilkonto.toSimulering(
             request = request,
             clock = fixedClock,
@@ -1081,7 +1081,7 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         responseMedÅpenFeilkonto.toSimulering(
             request = request,
             clock = fixedClock,
@@ -1319,7 +1319,7 @@ internal class SimuleringResponseMapperTest {
             rawResponse,
         )
 
-        val request = simuleringUtbetalingRequest()
+        val request = utbetalingForSimulering()
         responseMedÅpenFeilkonto.toSimulering(
             request = request,
             clock = fixedClock,
@@ -1543,7 +1543,7 @@ internal class SimuleringResponseMapperTest {
 
         response.simulering.belop shouldBe BigDecimal("2480.00")
 
-        val request = simuleringUtbetalingRequest(
+        val request = utbetalingForSimulering(
             saksnummer = Saksnummer.parse("2021"),
         )
         val actualSimulering = response.toSimulering(

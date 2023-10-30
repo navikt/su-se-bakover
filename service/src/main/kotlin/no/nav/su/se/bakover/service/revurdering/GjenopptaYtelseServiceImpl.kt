@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -9,11 +8,12 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingOgSimulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerReakUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -58,7 +57,7 @@ class GjenopptaYtelseServiceImpl(
 
     override fun gjenopptaYtelse(
         request: GjenopptaYtelseRequest,
-    ): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+    ): Either<KunneIkkeSimulereGjenopptakAvYtelse, Pair<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse, ForskjellerMellomUtbetalingOgSimulering?>> {
         val sak = sakService.hentSak(request.sakId)
             .getOrElse { return KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeSak.left() }
 
@@ -68,7 +67,7 @@ class GjenopptaYtelseServiceImpl(
         if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakStansAvYtelse) {
             return KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans.left()
         } else {
-            val simulertRevurdering = when (request) {
+            val simulertRevurdering: Pair<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse, ForskjellerMellomUtbetalingOgSimulering?> = when (request) {
                 is GjenopptaYtelseRequest.Oppdater -> {
                     val update = sak.hentRevurdering(request.revurderingId)
                         .getOrElse { return KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeRevurdering.left() }
@@ -78,13 +77,10 @@ class GjenopptaYtelseServiceImpl(
                         fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
                     ).getOrElse { return it.left() }
 
-                    val simulertUtbetaling = simulerGjenopptak(
-                        sak = sak,
-                        gjenopptak = null,
-                        behandler = request.saksbehandler,
-                    ).getOrElse {
-                        return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
+                    val simuleringsresultat = sak.simulerGjenopptak(request.saksbehandler).getOrElse {
+                        return it.left()
                     }
+                    val simulertUtbetaling = simuleringsresultat.simulertUtbetaling
                     if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                         throw IllegalStateException("Simulering av gjenopptak av ytelse skal ikke ha feilutbetalinger")
                     }
@@ -103,7 +99,7 @@ class GjenopptaYtelseServiceImpl(
                                 simulering = simulertUtbetaling.simulering,
                                 revurderingsårsak = request.revurderingsårsak,
                                 sakinfo = sak.info(),
-                            )
+                            ) to simuleringsresultat.forskjeller
                         }
 
                         else -> return KunneIkkeSimulereGjenopptakAvYtelse.UgyldigTypeForOppdatering(update::class)
@@ -120,13 +116,10 @@ class GjenopptaYtelseServiceImpl(
                         fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
                     ).getOrElse { return it.left() }
 
-                    val simulertUtbetaling = simulerGjenopptak(
-                        sak = sak,
-                        gjenopptak = null,
-                        behandler = request.saksbehandler,
-                    ).getOrElse {
-                        return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
+                    val simuleringsresultat = sak.simulerGjenopptak(request.saksbehandler).getOrElse {
+                        return it.left()
                     }
+                    val simulertUtbetaling = simuleringsresultat.simulertUtbetaling
                     if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                         throw IllegalStateException("Simulering av gjenopptak av ytelse skal ikke ha feilutbetalinger")
                     }
@@ -143,40 +136,32 @@ class GjenopptaYtelseServiceImpl(
                         simulering = simulertUtbetaling.simulering,
                         revurderingsårsak = request.revurderingsårsak,
                         sakinfo = sak.info(),
-                    )
+                    ) to simuleringsresultat.forskjeller
                 }
             }
 
-            revurderingRepo.lagre(simulertRevurdering)
-            observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering))
+            revurderingRepo.lagre(simulertRevurdering.first)
+            observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first))
 
             return simulertRevurdering.right()
         }
     }
 
-    private fun simulerGjenopptak(
-        sak: Sak,
-        gjenopptak: GjenopptaYtelseRevurdering?,
-        behandler: NavIdentBruker,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-        return sak.lagUtbetalingForGjenopptak(
-            saksbehandler = behandler,
-            clock = clock,
-        ).mapLeft {
-            SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it)
-        }.flatMap { utbetaling ->
-            sak.simulerUtbetaling(
-                utbetalingForSimulering = utbetaling,
-                periode = Periode.create(
-                    utbetaling.tidligsteDato(),
-                    utbetaling.senesteDato(),
-                ),
-                simuler = utbetalingService::simulerUtbetaling,
-                kontrollerMotTidligereSimulering = gjenopptak?.simulering,
-            ).mapLeft {
-                SimulerGjenopptakFeil.KunneIkkeSimulere(it)
-            }
-        }
+    private fun Sak.simulerGjenopptak(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeSimulereGjenopptakAvYtelse, Simuleringsresultat> {
+        return simulerReakUtbetaling(
+            tidligereUtbetalinger = this.utbetalinger,
+            utbetalingForSimulering = this.lagUtbetalingForGjenopptak(
+                saksbehandler = saksbehandler,
+                clock = clock,
+            ).getOrElse {
+                return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeGenerereUtbetaling(it).left()
+            },
+            simuler = utbetalingService::simulerUtbetaling,
+        ).getOrElse {
+            return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
+        }.right()
     }
 
     override fun iverksettGjenopptakAvYtelse(
@@ -217,19 +202,22 @@ class GjenopptaYtelseServiceImpl(
                     .getOrElse { return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.SimuleringIndikererFeilutbetaling.left() }
 
                 Either.catch {
-                    val simulertUtbetaling = simulerGjenopptak(
-                        sak = sak,
-                        gjenopptak = iverksattRevurdering,
-                        behandler = revurdering.saksbehandler,
+                    val simulertUtbetaling = sak.lagUtbetalingForGjenopptak(
+                        // TODO jah: Det er vel mest riktig at man sender attestanten for kontrollsimuleringen? Men usikker på om det har noen betydning.
+                        saksbehandler = iverksattRevurdering.saksbehandler,
+                        clock = clock,
                     ).getOrElse {
-                        throw IverksettTransactionException(
-                            """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
-                            KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                                UtbetalGjenopptakFeil.KunneIkkeSimulere(
-                                    it,
-                                ),
-                            ),
-                        )
+                        return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling(it)
+                            .left()
+                    }.let {
+                        kontrollsimuler(
+                            utbetalingForSimulering = it,
+                            simuler = utbetalingService::simulerUtbetaling,
+                            saksbehandlersSimulering = iverksattRevurdering.simulering,
+                        ).getOrElse {
+                            return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(it)
+                                .left()
+                        }
                     }
 
                     sessionFactory.withTransactionContext { tx ->
@@ -239,9 +227,7 @@ class GjenopptaYtelseServiceImpl(
                         ).getOrElse {
                             throw IverksettTransactionException(
                                 """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
-                                KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                                    UtbetalGjenopptakFeil.KunneIkkeUtbetale(it),
-                                ),
+                                KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale,
                             )
                         }
 
@@ -263,9 +249,7 @@ class GjenopptaYtelseServiceImpl(
                         gjenopptak.sendUtbetaling().getOrElse {
                             throw IverksettTransactionException(
                                 """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
-                                KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                                    UtbetalGjenopptakFeil.KunneIkkeUtbetale(it),
-                                ),
+                                KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale,
                             )
                         }
 

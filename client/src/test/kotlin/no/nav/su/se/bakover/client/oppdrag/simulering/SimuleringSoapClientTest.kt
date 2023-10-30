@@ -4,17 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.common.tid.periode.oktober
-import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -64,12 +58,7 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = år(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        ).getOrFail().shouldBeType<Simulering>()
+        simuleringService.simulerUtbetaling(nyUtbetaling).getOrFail().shouldBeType<Simulering>()
     }
 
     @Test
@@ -87,20 +76,12 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2018),
-                    tilOgMed = 31.desember(2020),
-                ),
-                utbetaling = nyUtbetaling,
-            ),
-        ) shouldBe Simulering(
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe Simulering(
             gjelderId = nyUtbetaling.fnr,
             gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
-            måneder = SimulertMåned.create(januar(2018)..desember(2020)),
+            måneder = SimulertMåned.create(januar(2021)..desember(2021)),
             rawResponse = "Tom respons fra oppdrag.",
         ).right()
     }
@@ -125,12 +106,7 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = år(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        ) shouldBe SimuleringFeilet.FunksjonellFeil.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FunksjonellFeil.left()
     }
 
     @Test
@@ -148,12 +124,7 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = år(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        ) shouldBe SimuleringFeilet.UtenforÅpningstid.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.UtenforÅpningstid.left()
     }
 
     @Test
@@ -171,12 +142,7 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        val response = simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = år(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        )
+        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
 
         response shouldBe SimuleringFeilet.UtenforÅpningstid.left()
     }
@@ -196,12 +162,7 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = år(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        ) shouldBe SimuleringFeilet.TekniskFeil.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TekniskFeil.left()
     }
 
     @Test
@@ -220,17 +181,12 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = oktober(2020)..desember(2020),
-                utbetaling = nyUtbetaling,
-            ),
-        ) shouldBe Simulering(
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe Simulering(
             gjelderId = nyUtbetaling.fnr,
             gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
-            måneder = SimulertMåned.create(oktober(2020)..desember(2020)),
+            måneder = SimulertMåned.create(januar(2021)..desember(2021)),
             rawResponse = "Tom respons fra oppdrag.",
         ).right()
     }

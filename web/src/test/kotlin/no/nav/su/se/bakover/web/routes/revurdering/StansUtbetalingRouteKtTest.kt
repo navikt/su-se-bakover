@@ -11,15 +11,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -116,11 +113,7 @@ internal class StansUtbetalingRouteKtTest {
                     any(),
                     any(),
                 )
-            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalStansFeil.KunneIkkeUtbetale(
-                    UtbetalingFeilet.Protokollfeil,
-                ),
-            ).left()
+            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.left()
         }
         testApplication {
             application {
@@ -223,7 +216,9 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis simulering ikke går bra`() {
         val stansAvYtelseServiceMock = mock<StansYtelseService> {
-            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(SimulerStansFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.OppdragEksistererIkke))).left()
+            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+                SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
+            ).left()
         }
         testApplication {
             application {
@@ -250,7 +245,7 @@ internal class StansUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
+                bodyAsText() shouldContain """"code":"simulering_feilet""""
             }
         }
     }

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.oppdragskjema.Grad
@@ -16,16 +16,19 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.S
 
 /**
  * https://confluence.adeo.no/display/OKSY/Inputdata+fra+fagrutinen+til+Oppdragssystemet
+ *
+ * Konstruktøren er kun ment brukt direkte fra tester. TODO jah: Se på mulighet for ikke å trenge builder steget og heller bare returnere sluttproduktet.
+ *
  */
 internal class SimuleringRequestBuilder(
     private val simuleringsperiode: Periode,
     private val mappedRequest: UtbetalingRequest.OppdragRequest,
 ) {
     constructor(
-        request: SimulerUtbetalingRequest,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
     ) : this(
-        simuleringsperiode = request.simuleringsperiode,
-        mappedRequest = toUtbetalingRequest(request.utbetaling).oppdragRequest,
+        simuleringsperiode = utbetaling.periode,
+        mappedRequest = toUtbetalingRequest(utbetaling).oppdragRequest,
     )
 
     private val oppdragRequest = Oppdrag().apply {
@@ -64,7 +67,7 @@ internal class SimuleringRequestBuilder(
                  *      Simulering for alle berørte måneder returneres (opp til og med siste ikke utbetalte måned)
                  *
                  * Begge satt:
-                 *  For nye (ikke utetalt) perioder:
+                 *  For nye (ikke utbetalte) perioder:
                  *      Simulering for alle måneder i perioden returneres.
                  *  For eksisterende (utbetalt) perioder:
                  *      Simulering for alle måneder i perioden returneres. OBS: Berørte måneder kan ligge utenfor valgt periode!

@@ -11,16 +11,14 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -47,7 +45,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
     attestering: Attestering.Iverksatt,
     clock: Clock,
-    simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattInnvilgetSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
@@ -67,15 +65,14 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
         uføregrunnlag = hentUføregrunnlag(iverksattBehandling),
     ).let {
-        this.simulerUtbetaling(
+        kontrollsimuler(
             utbetalingForSimulering = it,
-            periode = iverksattBehandling.periode,
             simuler = simulerUtbetaling,
-            kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
+            saksbehandlersSimulering = iverksattBehandling.simulering,
         )
     }.getOrElse {
         log.error("Kunne ikke iverksette innvilget søknadsbehandling ${iverksattBehandling.id}. Underliggende feil:$it.")
-        return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it)).left()
+        return KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet(it).left()
     }
     val vedtak = VedtakSomKanRevurderes.from(
         søknadsbehandling = iverksattBehandling,

@@ -20,16 +20,14 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -48,7 +46,6 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.simulering.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -106,7 +103,6 @@ internal class GjenopptakAvYtelseServiceTest {
                 on {
                     simulerUtbetaling(
                         any(),
-                        any(),
                     )
                 } doReturn SimuleringFeilet.TekniskFeil.left()
             },
@@ -116,11 +112,11 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
-                SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
+                SimuleringFeilet.TekniskFeil,
             ).left()
 
             verify(it.sakService).hentSak(sak.id)
-            verify(it.utbetalingService).simulerUtbetaling(any(), any())
+            verify(it.utbetalingService).simulerUtbetaling(any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -137,12 +133,11 @@ internal class GjenopptakAvYtelseServiceTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
-                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
-                        tikkendeKlokke,
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        clock = tikkendeKlokke,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -154,8 +149,8 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeKlokke,
         )
 
-        val response =
-            serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)).getOrFail()
+        val response: GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse =
+            serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)).getOrFail().first
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe vedtak.periode
@@ -166,14 +161,13 @@ internal class GjenopptakAvYtelseServiceTest {
         )
 
         verify(serviceAndMocks.sakService).hentSak(sak.id)
-        verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-            utbetaling = argThat {
+        verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+            utbetalingForSimulering = argThat {
                 it.erReaktivering() shouldBe true
                 it.tidligsteDato() shouldBe vedtak.periode.fraOgMed
                 it.senesteDato() shouldBe vedtak.periode.tilOgMed
                 it.behandler shouldBe saksbehandler
             },
-            simuleringsperiode = argThat { it shouldBe vedtak.periode },
         )
         verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
         verify(serviceAndMocks.revurderingRepo).lagre(eq(response), anyOrNull())
@@ -204,12 +198,11 @@ internal class GjenopptakAvYtelseServiceTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
-                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
-                        clock,
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        clock = clock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
                 on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
             clock = clock,
@@ -219,16 +212,11 @@ internal class GjenopptakAvYtelseServiceTest {
                 attestant = attestant,
             )
 
-            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                UtbetalGjenopptakFeil.KunneIkkeUtbetale(
-                    UtbetalingFeilet.Protokollfeil,
-                ),
-            ).left()
+            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale.left()
 
             verify(serviceAndMocks.sakService).hentSakForRevurdering(revurderingGjenopptak.id)
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 any(),
-                argThat { it shouldBe periode },
             )
             verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(
                 utbetaling = any(),
@@ -269,7 +257,6 @@ internal class GjenopptakAvYtelseServiceTest {
 
         val simulertUtbetaling = simulerGjenopptak(
             sak = sak,
-            gjenopptak = revurdering,
             behandler = NavIdentBruker.Saksbehandler("jossi"),
             clock = tikkendeKlokke,
         ).getOrFail()
@@ -279,7 +266,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hent(any()) } doReturn revurdering
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn simulertUtbetaling.right()
+                on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -296,7 +283,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         begrunnelse = "ny begrunnelse",
                     ),
                 ),
-            ).getOrFail("skulle gått bra")
+            ).getOrFail().first
 
             response.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
             response.periode shouldBe periode
@@ -307,14 +294,13 @@ internal class GjenopptakAvYtelseServiceTest {
             )
 
             verify(serviceAndMocks.sakService).hentSak(sak.id)
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = argThat {
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+                utbetalingForSimulering = argThat {
                     it.erReaktivering() shouldBe true
                     it.tidligsteDato() shouldBe periode.fraOgMed
                     it.senesteDato() shouldBe periode.tilOgMed
                     it.behandler shouldBe NavIdentBruker.Saksbehandler("jossi")
                 },
-                simuleringsperiode = argThat { it shouldBe periode },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
@@ -333,7 +319,6 @@ internal class GjenopptakAvYtelseServiceTest {
 
         val simulertUtbetaling = simulerGjenopptak(
             sak = sak,
-            gjenopptak = simulertGjenopptak,
             behandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
             clock = clock,
         ).getOrFail()
@@ -344,7 +329,7 @@ internal class GjenopptakAvYtelseServiceTest {
             }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
             on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingKlargjortForOversendelse(
                 utbetaling = simulertUtbetaling.toOversendtUtbetaling(utbetalingsRequest),
                 callback = callback,
@@ -371,8 +356,7 @@ internal class GjenopptakAvYtelseServiceTest {
             ).getOrFail()
 
             verify(serviceAndMocks.sakService).hentSakForRevurdering(simulertGjenopptak.id)
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-                any(),
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 any(),
             )
             verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(

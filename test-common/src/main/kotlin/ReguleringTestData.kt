@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.test.simulering.simulering
+import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import java.time.Clock
 import java.util.UUID
 
@@ -68,25 +69,29 @@ fun iverksattAutomatiskRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
     clock: Clock = fixedClock,
     sakstype: Sakstype = Sakstype.UFØRE,
-): IverksattRegulering = opprettetRegulering(
-    id = id,
-    sakId = sakId,
-    reguleringsperiode = reguleringsperiode,
-    saksnummer = saksnummer,
-    opprettet = opprettet,
-    fnr = fnr,
-    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-    reguleringstype = reguleringstype,
-    saksbehandler = saksbehandler,
-    sakstype = sakstype,
-)
-    .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
-    .simuler(
-        simuler = { _, _ ->
-            simulering().right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
-        },
-    ).getOrFail()
-    .tilIverksatt()
+): IverksattRegulering {
+    return opprettetRegulering(
+        id = id,
+        sakId = sakId,
+        reguleringsperiode = reguleringsperiode,
+        saksnummer = saksnummer,
+        opprettet = opprettet,
+        fnr = fnr,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        reguleringstype = reguleringstype,
+        saksbehandler = saksbehandler,
+        sakstype = sakstype,
+    )
+        .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
+        .simuler(
+            simuler = { _, _ ->
+                // TODO jah: Denne simuleringen henger ikke sammen med resten av dataene. Bør lage en sak og gå via APIene der. Se SøknadsbehandlingTestData f.eks.
+                Simuleringsresultat.UtenForskjeller(simulertUtbetaling()).right()
+            },
+        ).getOrFail()
+        .first
+        .tilIverksatt()
+}
 
 fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,

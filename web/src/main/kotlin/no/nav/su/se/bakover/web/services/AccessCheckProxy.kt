@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -266,8 +267,7 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    simuleringsperiode: Periode,
+                    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -941,7 +941,9 @@ open class AccessCheckProxy(
                 }
             },
             gjenopptaYtelse = object : GjenopptaYtelseService {
-                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+                override fun gjenopptaYtelse(
+                    request: GjenopptaYtelseRequest,
+                ): Either<KunneIkkeSimulereGjenopptakAvYtelse, Pair<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse, ForskjellerMellomUtbetalingOgSimulering?>> {
                     assertHarTilgangTilSak(request.sakId)
                     return services.gjenopptaYtelse.gjenopptaYtelse(request)
                 }

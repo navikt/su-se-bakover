@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeBeregneOgSimulereRevurdering {
@@ -16,6 +16,6 @@ sealed interface KunneIkkeBeregneOgSimulereRevurdering {
 
     data object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering
 
-    data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) :
+    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) :
         KunneIkkeBeregneOgSimulereRevurdering
 }

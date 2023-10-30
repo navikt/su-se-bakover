@@ -6,15 +6,14 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
@@ -35,7 +34,6 @@ import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -281,29 +279,28 @@ class ReguleringServiceImpl(
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                         uføregrunnlag = uføregrunnlag,
                     ).let {
-                        sak.simulerUtbetaling(
+                        simulerUtbetaling(
                             utbetalingForSimulering = it,
-                            periode = regulering.periode,
                             simuler = utbetalingService::simulerUtbetaling,
-                            kontrollerMotTidligereSimulering = regulering.simulering,
                         )
-                    }.map { simulertUtbetaling ->
-                        simulertUtbetaling.simulering
                     }
                 }.mapLeft {
                     log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
                     KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
-                }.flatMap {
-                    if (it.simulering!!.harFeilutbetalinger()) {
+                }.flatMap { (simulertRegulering, simulertUtbetaling) ->
+                    if (simulertRegulering.simulering!!.harFeilutbetalinger()) {
                         log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
                         KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
                     } else {
-                        it.right()
+                        Pair(simulertRegulering, simulertUtbetaling).right()
                     }
                 }
             }
-            .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-            .flatMap { lagVedtakOgUtbetal(it, sak, isLiveRun) }
+            .map { (simulertRegulering, simulertUtbetaling) ->
+                simulertRegulering.tilIverksatt() to simulertUtbetaling
+            }.flatMap { (iverksattRegulering, simulertUtbetaling) ->
+                lagVedtakOgUtbetal(iverksattRegulering, simulertUtbetaling, isLiveRun)
+            }
             .onLeft {
                 if (isLiveRun) {
                     LiveRun.Opprettet(
@@ -366,38 +363,10 @@ class ReguleringServiceImpl(
 
     private fun lagVedtakOgUtbetal(
         regulering: IverksattRegulering,
-        sak: Sak,
+        simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, IverksattRegulering> {
         return Either.catch {
-            val utbetaling = sak.lagNyUtbetaling(
-                saksbehandler = regulering.saksbehandler,
-                beregning = regulering.beregning,
-                clock = clock,
-                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                uføregrunnlag = when (regulering.sakstype) {
-                    Sakstype.ALDER -> {
-                        null
-                    }
-
-                    Sakstype.UFØRE -> {
-                        regulering.vilkårsvurderinger.uføreVilkår()
-                            .getOrElse { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
-                            .grunnlag
-                            .toNonEmptyList()
-                    }
-                },
-            ).let {
-                sak.simulerUtbetaling(
-                    utbetalingForSimulering = it,
-                    periode = regulering.periode,
-                    simuler = utbetalingService::simulerUtbetaling,
-                    kontrollerMotTidligereSimulering = regulering.simulering,
-                )
-            }.getOrElse { feil ->
-                throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
-            }
-
             if (isLiveRun) {
                 LiveRun.Iverksatt(
                     sessionFactory = sessionFactory,
@@ -405,8 +374,7 @@ class ReguleringServiceImpl(
                     lagreVedtak = vedtakService::lagreITransaksjon,
                     klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                     notifyObservers = { vedtakInnvilgetRegulering -> notifyObservers(vedtakInnvilgetRegulering) },
-                )
-                    .kjørSideffekter(regulering, utbetaling, clock)
+                ).kjørSideffekter(regulering, simulertUtbetaling, clock)
             }
         }.mapLeft {
             log.error(
@@ -418,6 +386,4 @@ class ReguleringServiceImpl(
             regulering
         }
     }
-
-    private data class KunneIkkeSendeTilUtbetalingException(val feil: UtbetalingFeilet) : RuntimeException()
 }

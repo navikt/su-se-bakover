@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
@@ -526,9 +527,11 @@ class TestDataHelper(
                             regulering = beregnet,
                             behandler = beregnet.saksbehandler,
                             clock = clock,
-                        ).getOrFail().simulering.right()
+                        ).getOrFail().let {
+                            Simuleringsresultat.UtenForskjeller(it)
+                        }.right()
                     },
-                ).getOrFail().tilIverksatt().let { iverksattAttestering ->
+                ).getOrFail().first.tilIverksatt().let { iverksattAttestering ->
                     databaseRepos.reguleringRepo.lagre(iverksattAttestering)
                     sak.oppdaterRegulering(iverksattAttestering) to iverksattAttestering
                 }

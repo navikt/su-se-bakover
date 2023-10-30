@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -16,7 +15,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -63,11 +61,10 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
-                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -96,7 +93,7 @@ internal class RevurderingBeregnOgSimulerTest {
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
+                on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to revurdering,
                     beregning = revurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
@@ -145,12 +142,11 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak = sak,
-                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        simuleringsperiode = invocation.getArgument(1) as Periode,
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
                         clock = clock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -187,7 +183,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
+                on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to opprettetRevurdering,
                     beregning = opprettetRevurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
@@ -220,9 +216,8 @@ internal class RevurderingBeregnOgSimulerTest {
             *serviceAndMocks.all(),
         ) {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = argThat { it shouldBe actual.revurdering.periode },
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+                utbetalingForSimulering = any(),
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
@@ -279,7 +274,7 @@ internal class RevurderingBeregnOgSimulerTest {
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
+                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -292,15 +287,12 @@ internal class RevurderingBeregnOgSimulerTest {
             )
 
             response shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
-                SimulerUtbetalingFeilet.FeilVedSimulering(
-                    SimuleringFeilet.TekniskFeil,
-                ),
+                SimuleringFeilet.TekniskFeil,
             )
                 .left()
 
             verify(it.utbetalingService).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = argThat { it shouldBe beregnet.periode },
+                utbetalingForSimulering = any(),
             )
         }
     }
@@ -317,7 +309,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hent(any()) } doReturn underkjent
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
+                on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to underkjent,
                     beregning = underkjent.beregning,
                     clock = clock,
@@ -344,9 +336,8 @@ internal class RevurderingBeregnOgSimulerTest {
             *serviceAndMocks.all(),
         ) {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe underkjent.id })
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = argThat { it shouldBe underkjent.periode },
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+                utbetalingForSimulering = any(),
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
@@ -370,12 +361,11 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak = sak,
-                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        simuleringsperiode = invocation.getArgument(1) as Periode,
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
                         clock = clock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -394,14 +384,11 @@ internal class RevurderingBeregnOgSimulerTest {
             *serviceAndMocks.all(),
         ) {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(opprettet.id)
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 argThat {
                     it.tidligsteDato() shouldBe opprettet.periode.fraOgMed
                     it.senesteDato() shouldBe opprettet.periode.tilOgMed
                     it.behandler shouldBe NavIdentBruker.Saksbehandler("s1")
-                },
-                argThat {
-                    it shouldBe opprettet.periode
                 },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()

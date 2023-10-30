@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -25,8 +24,7 @@ interface UtbetalingService {
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        simuleringsperiode: Periode,
+        utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     /**

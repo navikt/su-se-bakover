@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
@@ -37,13 +36,13 @@ private val defaultLog = LoggerFactory.getLogger("SimuleringResponseMapper")
  * @param sikkerLogg For testing.
  */
 fun SimulerBeregningResponse?.toSimulering(
-    request: SimulerUtbetalingRequest,
+    request: Utbetaling.UtbetalingForSimulering,
     clock: Clock,
     soapRequest: SimulerBeregningRequest,
     log: Logger = defaultLog,
     sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
 ): Either<SimuleringFeilet.TekniskFeil, Simulering> {
-    val saksnummer = request.utbetaling.saksnummer
+    val saksnummer = request.saksnummer
     // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
     // Siden dette er javaklasser uten toString() så serialiserer vi de før vi lagrer/logger.
     val rawResponse: String? = this?.let {
@@ -52,8 +51,8 @@ fun SimulerBeregningResponse?.toSimulering(
     val rawRequest: String = serializeSoapMessage(log = log, sikkerLogg = sikkerLogg, message = soapRequest, request = request)
     return Either.catch {
         if (this == null) {
-            request.utbetaling.mapTomResponsFraOppdrag(
-                simuleringsperiode = request.simuleringsperiode,
+            request.mapTomResponsFraOppdrag(
+                simuleringsperiode = request.periode,
                 clock = clock,
             )
         } else {
@@ -88,7 +87,7 @@ private fun serializeSoapMessage(
     log: Logger,
     sikkerLogg: Logger,
     message: Any,
-    request: SimulerUtbetalingRequest,
+    request: Utbetaling.UtbetalingForSimulering,
 ): String {
     return Either.catch {
         xmlMapper.writeValueAsString(message)
@@ -111,7 +110,7 @@ private fun serializeSoapMessage(
 private fun BeregningsPeriode.toSimulertPeriode(
     saksnummer: Saksnummer,
     rawResponse: String,
-    request: SimulerUtbetalingRequest,
+    request: Utbetaling.UtbetalingForSimulering,
     rawRequest: String,
     log: Logger,
 ): SimulertMåned {

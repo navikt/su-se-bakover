@@ -53,7 +53,6 @@ internal class StansUtbetalingServiceTest {
             serviceAndMocks.service.klargjørUtbetaling(
                 utbetaling = simulerStans(
                     sak = sak,
-                    stans = simulertStans,
                     stansDato = simulertStans.periode.fraOgMed,
                     behandler = saksbehandler,
                     clock = tikkendeKlokke,
@@ -87,12 +86,11 @@ internal class StansUtbetalingServiceTest {
             clock = tikkendeKlokke,
         ).also {
             it.service.simulerUtbetaling(
-                utbetaling = sak.lagUtbetalingForStans(
+                utbetalingForSimulering = sak.lagUtbetalingForStans(
                     stansdato = 1.januar(2022),
                     behandler = saksbehandler,
                     clock = tikkendeKlokke,
                 ).getOrFail(),
-                simuleringsperiode = år(2022),
             ) shouldBe SimuleringFeilet.TekniskFeil.left()
 
             inOrder(
@@ -121,7 +119,6 @@ internal class StansUtbetalingServiceTest {
             serviceAndMocks.service.klargjørUtbetaling(
                 utbetaling = simulerStans(
                     sak = sak,
-                    stans = stans,
                     stansDato = stans.periode.fraOgMed,
                     behandler = stans.saksbehandler,
                     clock = tikkendeKlokke,

@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
 import dokument.domain.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeIverksetteRevurdering {
@@ -13,8 +11,9 @@ sealed interface KunneIkkeIverksetteRevurdering {
     ) : KunneIkkeIverksetteRevurdering
 
     sealed interface Saksfeil : KunneIkkeIverksetteRevurdering {
-        data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : Saksfeil
-        data class KontrollsimuleringFeilet(val feil: SimulerUtbetalingFeilet) : Saksfeil
+        data class KontrollsimuleringFeilet(
+            val underliggende: no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet,
+        ) : Saksfeil
         data object FantIkkeRevurdering : Saksfeil
 
         data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : Saksfeil

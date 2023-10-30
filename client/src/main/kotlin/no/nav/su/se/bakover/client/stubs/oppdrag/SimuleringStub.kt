@@ -6,8 +6,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.idag
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
@@ -31,13 +31,12 @@ class SimuleringStub(
     val utbetalingRepo: UtbetalingRepo,
 ) : SimuleringClient {
 
-    override fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering> {
-        return simulerUtbetalinger(request).right()
+    override fun simulerUtbetaling(utbetalingForSimulering: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Simulering> {
+        return simulerUtbetalinger(utbetalingForSimulering).right()
     }
 
-    private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
-        val utbetaling = request.utbetaling
-        val simuleringsperiode = request.simuleringsperiode
+    private fun simulerUtbetalinger(utbetaling: Utbetaling.UtbetalingForSimulering): Simulering {
+        val simuleringsperiode = utbetaling.periode
         val eksisterendeUtbetalinger =
             utbetalingRepo.hentOversendteUtbetalinger(
                 sakId = utbetaling.sakId,

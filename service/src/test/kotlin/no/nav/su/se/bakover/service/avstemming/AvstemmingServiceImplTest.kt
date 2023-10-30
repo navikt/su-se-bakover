@@ -47,7 +47,7 @@ internal class AvstemmingServiceImplTest {
         ).konsistensavstemming(
             løpendeFraOgMed = expectedLøpendeFraOgMed,
             fagområde = Fagområde.SUUFORE,
-        ).getOrFail("Skulle gått fint")
+        ).getOrFail()
 
         konsistensavstemming shouldBe Avstemming.Konsistensavstemming.Ny(
             id = konsistensavstemming.id,

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulering.simuleringDobbelTilbakeføringMedTrekkXml
-import no.nav.su.se.bakover.test.simulering.simuleringUtbetalingRequest
+import no.nav.su.se.bakover.test.simulering.utbetalingForSimulering
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import økonomi.domain.simulering.Kontobeløp
@@ -34,7 +34,7 @@ internal class SimuleringResponseMapperXmlTest {
         // Da skal oktober bli etterbetalt, mens ikke månedene etter.
         val clock = fixedClockAt(1.november(2023))
         val response = xmlMapper.readValue<SimulerBeregningResponse>(simuleringDobbelTilbakeføringMedTrekkXml)
-        val request = simuleringUtbetalingRequest(
+        val request = utbetalingForSimulering(
             saksnummer = Saksnummer(2021),
             clock = clock,
         )

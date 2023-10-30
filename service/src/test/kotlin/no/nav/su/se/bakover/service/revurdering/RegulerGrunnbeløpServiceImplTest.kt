@@ -145,11 +145,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak = sak,
-                        utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                         clock = clock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
         ).also {
             val actual = it.revurderingService.beregnOgSimuler(
@@ -162,7 +162,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 *it.all(),
             ) {
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)
-                verify(it.utbetalingService, times(2)).simulerUtbetaling(any(), any())
+                verify(it.utbetalingService).simulerUtbetaling(any())
                 verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)

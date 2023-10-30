@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
@@ -101,15 +102,33 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                             ),
                         ),
                     )
+                    // Det vil ikke være noe til utbetaling for januar, siden vi allerede har utbetalt.
+                    // Selvom revurderingsperioden kun er januar, vil vi få tilbake simuleringer for saken.
+                    // Vi forventer at de er uforandret.
                     vedtak.simulering.hentTilUtbetaling() shouldBe Månedsbeløp(
-                        emptyList(),
+                        (februar(2021)..desember(2021))
+                            .måneder()
+                            .map {
+                                MånedBeløp(
+                                    periode = it,
+                                    beløp = Beløp(20946),
+                                )
+                            },
                     )
                     vedtak.simulering.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(
                                 periode = januar(2021), beløp = Beløp(2638),
                             ),
-                        ),
+
+                        ) + (februar(2021)..desember(2021))
+                            .måneder()
+                            .map {
+                                MånedBeløp(
+                                    periode = it,
+                                    beløp = Beløp(20946),
+                                )
+                            },
                     )
                     vedtak.simulering.hentUtbetalteBeløp() shouldBe Månedsbeløp(
                         listOf(
@@ -154,7 +173,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 		<kodeHjemmel>SUL_13</kodeHjemmel>
 		<renterBeregnes>N</renterBeregnes>
 		<enhetAnsvarlig>8020</enhetAnsvarlig>
-		<kontrollfelt>2021-02-01-01.02.52.000000</kontrollfelt>
+		<kontrollfelt>2021-02-01-01.02.20.000000</kontrollfelt>
 		<saksbehId>K231B433</saksbehId>
 		<tilbakekrevingsperiode>
 			<periode>
@@ -264,7 +283,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 		<kodeHjemmel>SUL_13</kodeHjemmel>
 		<renterBeregnes>N</renterBeregnes>
 		<enhetAnsvarlig>8020</enhetAnsvarlig>
-		<kontrollfelt>2021-02-01-01.02.52.000000</kontrollfelt>
+		<kontrollfelt>2021-02-01-01.02.20.000000</kontrollfelt>
 		<saksbehId>K231B433</saksbehId>
 		<tilbakekrevingsperiode>
 			<periode>

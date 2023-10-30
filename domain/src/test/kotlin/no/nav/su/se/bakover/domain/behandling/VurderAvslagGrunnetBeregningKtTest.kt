@@ -52,7 +52,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
         beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
@@ -69,7 +69,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
         beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
         beregning.finnMerknaderForPeriode(desember(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
@@ -87,7 +87,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
         beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
         beregning.finnMerknaderForPeriode(august(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
@@ -105,7 +105,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
         beregning.finnMerknaderForPeriode(mars(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
@@ -135,7 +135,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
         beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
@@ -170,7 +170,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail("")
+            .getOrFail()
             .second shouldBe Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
         beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
     }

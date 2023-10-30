@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import økonomi.domain.simulering.Simulering
 
 interface SimuleringClient {
-    fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering>
+    fun simulerUtbetaling(utbetalingForSimulering: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Simulering>
 }
 sealed interface SimuleringFeilet {
     data object UtenforÅpningstid : SimuleringFeilet

@@ -283,7 +283,6 @@ fun simulertRevurdering(
                         simulerUtbetaling(
                             sak = sak,
                             revurdering = beregnet,
-                            simuleringsperiode = beregnet.periode,
                             clock = clock,
                             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         ).map {
@@ -508,11 +507,10 @@ fun iverksattRevurdering(
             revurderingId = tilAttestering.id,
             attestant = attestant,
             clock = clock,
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
                 simulerUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    simuleringsperiode = periode,
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = utbetalingForSimulering,
                     clock = clock,
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                 )
@@ -678,7 +676,6 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             saksbehandler = saksbehandler,
             simulering = simulerStans(
                 sak = sakOgVedtakSomKanRevurderes.first,
-                stans = null,
                 stansDato = periode.fraOgMed,
                 behandler = saksbehandler,
                 clock = clock,
@@ -781,7 +778,6 @@ fun simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             saksbehandler = saksbehandler,
             simulering = simulerGjenopptak(
                 sak = sak,
-                gjenopptak = null,
                 behandler = saksbehandler,
                 clock = clock,
                 utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,

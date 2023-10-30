@@ -8,11 +8,12 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 
-sealed class KunneIkkeFerdigstilleOgIverksette {
-    data object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette()
-    data object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette()
-    data object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette()
-    data object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette()
+sealed interface KunneIkkeFerdigstilleOgIverksette {
+    data object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette
+    data object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette
+    data object KontrollsimuleringFeielt : KunneIkkeFerdigstilleOgIverksette
+    data object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette
+    data object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette
 }
 
 sealed class KunneIkkeRegulereManuelt {
@@ -26,8 +27,8 @@ sealed class KunneIkkeRegulereManuelt {
     data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt()
 }
 
-sealed class BeregnOgSimulerFeilet {
-    data object KunneIkkeSimulere : BeregnOgSimulerFeilet()
+sealed interface BeregnOgSimulerFeilet {
+    data object KunneIkkeSimulere : BeregnOgSimulerFeilet
 }
 
 sealed interface KunneIkkeOppretteRegulering {
@@ -44,9 +45,9 @@ sealed interface KunneIkkeOppretteRegulering {
     data object UkjentFeil : KunneIkkeOppretteRegulering
 }
 
-sealed class KunneIkkeAvslutte {
-    data object FantIkkeRegulering : KunneIkkeAvslutte()
-    data object UgyldigTilstand : KunneIkkeAvslutte()
+sealed interface KunneIkkeAvslutte {
+    data object FantIkkeRegulering : KunneIkkeAvslutte
+    data object UgyldigTilstand : KunneIkkeAvslutte
 }
 
 interface ReguleringService {
