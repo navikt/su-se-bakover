@@ -419,8 +419,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         //language=JSON
                         """
                             {
-                              "id": $oppgaveId,
-                              "versjon": $versjon,
+                              "oppgavetype": "BEH_SAK",
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
@@ -520,8 +519,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         //language=JSON
                         """
                             {
-                              "id": $oppgaveId,
-                              "versjon": $versjon,
+                              "oppgavetype": "BEH_SAK",
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
@@ -621,8 +619,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         //language=JSON
                         """
                             {
-                              "id": $oppgaveId,
-                              "versjon": $versjon,
+                              "oppgavetype": "BEH_SAK",
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
@@ -921,8 +918,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expectedBody =
             """
             {
-            "id" : $oppgaveId,
-            "versjon" : $versjon,
+            "oppgavetype": "BEH_SAK",
             "beskrivelse" : "--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen",
             "status" : "AAPNET"
             }

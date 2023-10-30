@@ -156,19 +156,20 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserFritekst = fritekst,
                 expectedAttesteringer = underkjentAttestering,
             )
-            // TODO jah: Her skal vi lukke+opprette ny oppgave.
+            appComponents.oppdaterOppgave()
             iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 13,
+                saksversjon = 14,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            // TODO jah: Her skal vi lukke oppgave + sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, 14)
+            appComponents.lukkOppgave()
+            // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
+            verifiserKravgrunnlagPåSak(sakId, client, true, 16)
         }
     }
 }

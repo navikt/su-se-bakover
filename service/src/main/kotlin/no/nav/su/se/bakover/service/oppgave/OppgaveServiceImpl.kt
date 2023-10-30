@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.oppgave
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -30,6 +31,10 @@ class OppgaveServiceImpl(
 
     override fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
         return oppgaveClient.oppdaterOppgave(oppgaveId, beskrivelse)
+    }
+
+    override fun oppdaterOppgave(oppgaveId: OppgaveId, data: OppdaterOppgaveInfo): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+        return oppgaveClient.oppdaterOppgave(oppgaveId, data)
     }
 
     override fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {

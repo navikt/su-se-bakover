@@ -62,7 +62,9 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -438,7 +440,10 @@ open class AccessCheckProxy(
             },
             brev = object : BrevService {
 
-                override fun lagDokument(command: GenererDokumentCommand, id: UUID): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                override fun lagDokument(
+                    command: GenererDokumentCommand,
+                    id: UUID,
+                ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -498,7 +503,12 @@ open class AccessCheckProxy(
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     beskrivelse: String,
-                ) = kastKanKunKallesFraAnnenService()
+                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
+
+                override fun oppdaterOppgave(
+                    oppgaveId: OppgaveId,
+                    data: OppdaterOppgaveInfo,
+                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
 
                 override fun hentOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
@@ -1089,7 +1099,10 @@ open class AccessCheckProxy(
                     return services.reguleringService.startAutomatiskReguleringForInnsyn(command)
                 }
 
-                override fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
+                override fun avslutt(
+                    reguleringId: UUID,
+                    avsluttetAv: NavIdentBruker,
+                ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringService.avslutt(reguleringId, avsluttetAv)
                 }
 

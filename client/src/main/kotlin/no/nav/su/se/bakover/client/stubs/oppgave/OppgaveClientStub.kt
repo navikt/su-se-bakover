@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.stubs.oppgave
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -32,6 +33,12 @@ data object OppgaveClientStub : OppgaveClient {
         beskrivelse: String,
     ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: $beskrivelse") }
+
+    override fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
+    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
+        Unit.right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med data: $oppdatertOppgaveInfo") }
 
     override fun hentOppgave(
         oppgaveId: OppgaveId,

@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Tema
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -50,10 +50,17 @@ internal class OppgaveHttpClient(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    var client: HttpClient = HttpClient.newBuilder()
+    val client: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
+
+    private val oppdaterOppgaveHttpClient = OppdaterOppgaveHttpClient(
+        connectionConfig = connectionConfig,
+        clock = clock,
+        client = client,
+        hentOppgave = this::hentOppgave,
+    )
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token().value)
@@ -66,13 +73,13 @@ internal class OppgaveHttpClient(
     }
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
-        return lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().value)
+        return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().value)
     }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return onBehalfOfToken()
             .mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId) }
-            .flatMap { lukkOppgave(oppgaveId, it) }
+            .flatMap { oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, it) }
     }
 
     override fun oppdaterOppgave(
@@ -81,7 +88,20 @@ internal class OppgaveHttpClient(
     ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
         return onBehalfOfToken()
             .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
-            .flatMap { oppdaterOppgave(oppgaveId, it, beskrivelse) }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterBeskrivelse(oppgaveId, it, beskrivelse) }
+    }
+
+    override fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
+    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+        return onBehalfOfToken()
+            .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
+            .flatMap {
+                oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo).mapLeft {
+                    OppgaveFeil.KunneIkkeOppdatereOppgave
+                }.map { }
+            }
     }
 
     override fun hentOppgave(
@@ -233,19 +253,6 @@ internal class OppgaveHttpClient(
         }.flatten()
     }
 
-    private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
-        return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId)
-        }.flatMap {
-            if (it.erFerdigstilt()) {
-                log.info("Oppgave $oppgaveId er allerede lukket for sak ${it.saksreferanse}.")
-                Unit.right()
-            } else {
-                lukkOppgave(it, token).map { }
-            }
-        }
-    }
-
     private fun hentOppgave(
         oppgaveId: OppgaveId,
         token: String,
@@ -275,100 +282,6 @@ internal class OppgaveHttpClient(
         }.mapLeft { throwable ->
             log.error("Feil i kallet mot oppgave.", throwable)
             OppgaveFeil.KunneIkkeSøkeEtterOppgave
-        }.flatten()
-    }
-
-    private fun oppdaterOppgave(
-        oppgaveId: OppgaveId,
-        token: String,
-        beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
-        return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeOppdatereOppgave
-        }.flatMap {
-            if (it.erFerdigstilt()) {
-                log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
-                OppgaveFeil.KunneIkkeOppdatereOppgave.left()
-            } else {
-                oppdaterOppgave(it, token, beskrivelse).map { }.mapLeft {
-                    OppgaveFeil.KunneIkkeOppdatereOppgave
-                }
-            }
-        }
-    }
-
-    private fun lukkOppgave(
-        oppgave: OppgaveResponse,
-        token: String,
-    ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, OppdatertOppgaveResponse> {
-        return endreOppgave(oppgave, token, "FERDIGSTILT", "Lukket av Supplerende Stønad").mapLeft {
-            OppgaveFeil.KunneIkkeLukkeOppgave(oppgave.getOppgaveId())
-        }
-    }
-
-    private fun oppdaterOppgave(
-        oppgave: OppgaveResponse,
-        token: String,
-        beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
-        return endreOppgave(oppgave, token, oppgave.status, beskrivelse).mapLeft {
-            OppgaveFeil.KunneIkkeOppdatereOppgave
-        }
-    }
-
-    private fun endreOppgave(
-        oppgave: OppgaveResponse,
-        token: String,
-        status: String,
-        beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeEndreOppgave, OppdatertOppgaveResponse> {
-        val internalBeskrivelse =
-            "--- ${
-                Tidspunkt.now(clock).toOppgaveFormat()
-            } - $beskrivelse ---"
-
-        return Either.catch {
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/${oppgave.id}"))
-                .header("Authorization", "Bearer $token")
-                .header("Accept", "application/json")
-                .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
-                .header("Content-Type", "application/json")
-                .PATCH(
-                    HttpRequest.BodyPublishers.ofString(
-                        serialize(
-                            EndreOppgaveRequest(
-                                id = oppgave.id,
-                                versjon = oppgave.versjon,
-                                beskrivelse = oppgave.beskrivelse?.let {
-                                    internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
-                                }
-                                    ?: internalBeskrivelse,
-                                status = status,
-                            ),
-                        ),
-                    ),
-                )
-                .build()
-
-            client.send(request, HttpResponse.BodyHandlers.ofString()).let {
-                if (it.isSuccess()) {
-                    val loggmelding =
-                        "Endret oppgave ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
-                    log.info("$loggmelding. Response-json finnes i sikkerlogg.")
-                    sikkerLogg.info("$loggmelding. Response-json: $it")
-                    deserialize<OppdatertOppgaveResponse>(it.body()).right()
-                } else {
-                    log.error(
-                        "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
-                    OppgaveFeil.KunneIkkeEndreOppgave.left()
-                }
-            }
-        }.mapLeft { throwable ->
-            log.error("Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse}.", throwable)
-            OppgaveFeil.KunneIkkeEndreOppgave
         }.flatten()
     }
 

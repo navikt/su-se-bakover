@@ -16,6 +16,7 @@ import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
+import tilbakekreving.domain.TilbakekrevingbehandlingsSerie
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.UnderkjentHendelse
@@ -47,11 +48,11 @@ private val VurdertTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("VURDERT_TILBAKEKREVINGSBEHANDLING")
 private val OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING")
-private val TilbakekrevingsbehandlingTilAttesteringHendelsestype =
+val TilbakekrevingsbehandlingTilAttesteringHendelsestype =
     Hendelsestype("TILBAKEKREVINGSBEHANDLING_TIL_ATTESTERING")
 private val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT_TILBAKEKREVINGSBEHANDLING")
-private val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
-private val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
+val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
+val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
 
 class TilbakekrevingsbehandlingPostgresRepo(
     private val sessionFactory: SessionFactory,
@@ -129,6 +130,15 @@ class TilbakekrevingsbehandlingPostgresRepo(
                         }.sorted(),
                 )
             }
+        }
+    }
+
+    override fun hentBehandlingsSerieFor(
+        hendelse: TilbakekrevingsbehandlingHendelse,
+        sessionContext: SessionContext?,
+    ): TilbakekrevingbehandlingsSerie {
+        return sessionFactory.withSessionContext(sessionContext) {
+            hentForSak(sakId = hendelse.sakId, sessionContext = it).hentSerieFor(hendelse.id)
         }
     }
 }
