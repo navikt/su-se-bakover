@@ -507,7 +507,7 @@ open class AccessCheckProxy(
 
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
-                    data: OppdaterOppgaveInfo,
+                    oppdaterOppgaveInfo: OppdaterOppgaveInfo,
                 ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
 
                 override fun hentOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()

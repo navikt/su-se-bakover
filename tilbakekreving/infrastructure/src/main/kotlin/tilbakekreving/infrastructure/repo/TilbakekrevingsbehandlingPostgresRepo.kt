@@ -50,7 +50,7 @@ private val OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING")
 val TilbakekrevingsbehandlingTilAttesteringHendelsestype =
     Hendelsestype("TILBAKEKREVINGSBEHANDLING_TIL_ATTESTERING")
-private val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT_TILBAKEKREVINGSBEHANDLING")
+val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT_TILBAKEKREVINGSBEHANDLING")
 val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
 val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
 

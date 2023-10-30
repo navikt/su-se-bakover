@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingTilAttesteringHendelsestype
+import tilbakekreving.infrastructure.repo.UnderkjentTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
 
@@ -47,7 +48,29 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
             konsumentId = konsumentId,
             hendelsestype = TilbakekrevingsbehandlingTilAttesteringHendelsestype,
         ).forEach { (sakId, hendelsesIder) ->
-            prosesserSak(sakId, hendelsesIder, correlationId)
+            prosesserSak(
+                sakId,
+                hendelsesIder,
+                correlationId,
+                OppdaterOppgaveInfo(
+                    beskrivelse = "Behandlingen er sendt til attestering",
+                    oppgavetype = Oppgavetype.ATTESTERING,
+                ),
+            )
+        }
+        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+            konsumentId = konsumentId,
+            hendelsestype = UnderkjentTilbakekrevingsbehandlingHendelsestype,
+        ).forEach { (sakId, hendelsesIder) ->
+            prosesserSak(
+                sakId,
+                hendelsesIder,
+                correlationId,
+                OppdaterOppgaveInfo(
+                    beskrivelse = "Behandlingen er sendt tilbake for vurdering",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                ),
+            )
         }
     }
 
@@ -55,6 +78,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         sakId: UUID,
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
+        oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ) {
         log.info("starter oppdatering av oppgaver for tilbakekrevingsbehandling-hendelser på sak $sakId")
 
@@ -86,12 +110,13 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                         oppgaveHendelser.maxByOrNull { it.versjon }!!
                     }
 
-                    oppdaterOppgaveTilAttestering(
+                    oppdaterOppgave(
                         relaterteHendelse = relatertHendelse.hendelseId,
                         nesteVersjon = nesteVersjon,
                         sakInfo = sak.info(),
                         correlationId = correlationId,
                         tidligereOppgaveHendelse = sisteOppgaveHendelse,
+                        oppdaterOppgaveInfo = oppdaterOppgaveInfo,
                     ).map {
                         sessionFactory.withTransactionContext { context ->
                             oppgaveHendelseRepo.lagre(it, context)
@@ -105,19 +130,17 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         }
     }
 
-    private fun oppdaterOppgaveTilAttestering(
+    private fun oppdaterOppgave(
         relaterteHendelse: HendelseId,
         nesteVersjon: Hendelsesversjon,
         tidligereOppgaveHendelse: OppgaveHendelse,
         sakInfo: SakInfo,
         correlationId: CorrelationId,
+        oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHendelse> {
         return oppgaveService.oppdaterOppgave(
-            tidligereOppgaveHendelse.oppgaveId,
-            data = OppdaterOppgaveInfo(
-                beskrivelse = "Behandlingen er sendt til attestering",
-                oppgavetype = Oppgavetype.ATTESTERING,
-            ),
+            oppgaveId = tidligereOppgaveHendelse.oppgaveId,
+            oppdaterOppgaveInfo = oppdaterOppgaveInfo,
         )
             .mapLeft { KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave }
             .map {

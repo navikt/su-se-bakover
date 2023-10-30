@@ -114,11 +114,12 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserVurderinger = vurderinger,
                 verifiserFritekst = fritekst,
             )
+            appComponents.oppdaterOppgave()
 
             val underkjentAttestering = underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 10,
+                saksversjon = 11,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
@@ -126,10 +127,12 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 hentAttesteringer(it)
             }
+            appComponents.oppdaterOppgave()
+
             val vurderingerEtterUnderkjenning = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 11,
+                saksversjon = 13,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 vurderinger = """
@@ -149,7 +152,7 @@ internal class TilbakekrevingsbehandlingIT {
             sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 12,
+                saksversjon = 14,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
@@ -160,7 +163,7 @@ internal class TilbakekrevingsbehandlingIT {
             iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 14,
+                saksversjon = 16,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
@@ -169,7 +172,7 @@ internal class TilbakekrevingsbehandlingIT {
             )
             appComponents.lukkOppgave()
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, 16)
+            verifiserKravgrunnlagPåSak(sakId, client, true, 18)
         }
     }
 }

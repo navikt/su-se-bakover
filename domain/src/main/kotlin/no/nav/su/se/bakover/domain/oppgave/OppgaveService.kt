@@ -10,6 +10,6 @@ interface OppgaveService {
     fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit>
     fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit>
     fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit>
-    fun oppdaterOppgave(oppgaveId: OppgaveId, data: OppdaterOppgaveInfo): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit>
+    fun oppdaterOppgave(oppgaveId: OppgaveId, oppdaterOppgaveInfo: OppdaterOppgaveInfo): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit>
     fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>
 }

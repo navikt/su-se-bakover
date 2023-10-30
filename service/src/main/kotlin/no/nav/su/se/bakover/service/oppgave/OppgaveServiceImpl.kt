@@ -33,8 +33,8 @@ class OppgaveServiceImpl(
         return oppgaveClient.oppdaterOppgave(oppgaveId, beskrivelse)
     }
 
-    override fun oppdaterOppgave(oppgaveId: OppgaveId, data: OppdaterOppgaveInfo): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
-        return oppgaveClient.oppdaterOppgave(oppgaveId, data)
+    override fun oppdaterOppgave(oppgaveId: OppgaveId, oppdaterOppgaveInfo: OppdaterOppgaveInfo): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+        return oppgaveClient.oppdaterOppgave(oppgaveId, oppdaterOppgaveInfo)
     }
 
     override fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
