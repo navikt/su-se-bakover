@@ -137,12 +137,12 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
         oppdaterOppgaveInfo: OppdaterOppgaveInfo,
-    ): Either<KunneIkkeLukkeOppgave, OppgaveHendelse> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHendelse> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = tidligereOppgaveHendelse.oppgaveId,
             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
         )
-            .mapLeft { KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave }
+            .mapLeft { KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave }
             .map {
                 OppgaveHendelse.oppdatert(
                     hendelseId = HendelseId.generer(),
