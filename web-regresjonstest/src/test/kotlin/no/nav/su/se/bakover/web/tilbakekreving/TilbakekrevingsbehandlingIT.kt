@@ -88,6 +88,7 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 hentVurderinger(it)
             }
+
             val fritekst = oppdaterVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
@@ -98,6 +99,11 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 hentFritekst(it)
             }
+            forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+            )
 
             sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,

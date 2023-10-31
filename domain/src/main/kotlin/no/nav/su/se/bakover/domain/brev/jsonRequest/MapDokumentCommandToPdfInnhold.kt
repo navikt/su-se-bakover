@@ -25,6 +25,7 @@ import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(
@@ -167,6 +168,13 @@ fun fromBrevCommand(
             )
 
             is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand -> ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
+                command = command,
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                clock = clock,
+            )
+
+            is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> VedtaksbrevTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
