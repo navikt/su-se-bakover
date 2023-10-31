@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknad
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import org.slf4j.LoggerFactory
 
 data class IverksattInnvilgetSøknadsbehandlingResponse(
@@ -41,7 +41,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         // disse er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit>,
+        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeLukkeOppgave, Unit>,
         genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
     ) {
         val søknadsbehandling = vedtak.behandling

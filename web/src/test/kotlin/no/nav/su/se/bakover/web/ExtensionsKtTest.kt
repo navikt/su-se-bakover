@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
@@ -46,5 +47,11 @@ internal class ExtensionsKtTest {
         val list2 = listOf(3, 4, 5)
         val res = list.pickByCondition(list2) { first, second -> first >= second }
         res shouldBe listOf(3, 4)
+    }
+
+    @Test
+    fun `starter indeksering fra 1 `() {
+        val list = listOf(1, 1, 1)
+        list.mapOneIndexed { idx, _ -> idx } shouldBe listOf(1, 2, 3)
     }
 }

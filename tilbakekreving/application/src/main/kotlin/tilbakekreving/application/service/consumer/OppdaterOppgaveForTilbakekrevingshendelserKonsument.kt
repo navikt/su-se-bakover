@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -83,14 +84,11 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         log.info("starter oppdatering av oppgaver for tilbakekrevingsbehandling-hendelser på sak $sakId")
 
         val sak = sakService.hentSak(sakId)
-            .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å oppdatering oppgave for tilbakekrevingsbehandling") }
+            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å oppdatere oppgave for tilbakekrevingsbehandling") } }
 
-        hendelsesIder.map { relatertHendelsesId ->
-            val nesteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)?.inc()
-                ?: throw IllegalStateException("Kunne ikke hente siste versjon for sak ${sak.id} for å oppdatering oppgave")
-
+        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
             val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
-                ?: throw IllegalStateException("Feil ved henting av hendelse for å oppdatering oppgave. sak $sakId, hendelse $relatertHendelsesId")
+                ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å oppdatere oppgave. sak $sakId, hendelse $relatertHendelsesId") }
 
             val alleSakensOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
 
@@ -102,28 +100,33 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                     oppgaveHendelse.relaterteHendelser.contains(hendelseId)
                 }
 
-            return seriensOppgaveHendelser.whenever(
+            return@mapOneIndexed seriensOppgaveHendelser.whenever(
+                // logger som error, da det kan være greit å sjekke i dette de første par gagene hvis den skulle treffe
                 { Unit.also { log.info("Kunne ikke oppdatering oppgave for $relatertHendelsesId, for sak ${relatertHendelse.sakId} fordi at det ikke finnes noen oppgave hendelser") } },
                 { oppgaveHendelser ->
                     // verifiserer at det kun finnes 1 oppgaveId
-                    val sisteOppgaveHendelse = oppgaveHendelser.distinctBy { it.oppgaveId }.single().let {
-                        oppgaveHendelser.maxByOrNull { it.versjon }!!
-                    }
-
-                    oppdaterOppgave(
-                        relaterteHendelse = relatertHendelse.hendelseId,
-                        nesteVersjon = nesteVersjon,
-                        sakInfo = sak.info(),
-                        correlationId = correlationId,
-                        tidligereOppgaveHendelse = sisteOppgaveHendelse,
-                        oppdaterOppgaveInfo = oppdaterOppgaveInfo,
-                    ).map {
-                        sessionFactory.withTransactionContext { context ->
-                            oppgaveHendelseRepo.lagre(it, context)
-                            hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
+                    Either.catch {
+                        oppgaveHendelser.distinctBy { it.oppgaveId }.single().let {
+                            oppgaveHendelser.maxByOrNull { it.versjon }!!
                         }
                     }.mapLeft {
-                        log.error("Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}")
+                        log.error("Feil ved verifisering av at det fantes kun 1 oppgave Id for oppdatering av oppgave for sak ${sak.id} for hendelser $hendelsesIder")
+                    }.map {
+                        oppdaterOppgave(
+                            relaterteHendelse = relatertHendelse.hendelseId,
+                            nesteVersjon = sak.versjon.inc(idx),
+                            sakInfo = sak.info(),
+                            correlationId = correlationId,
+                            tidligereOppgaveHendelse = it,
+                            oppdaterOppgaveInfo = oppdaterOppgaveInfo,
+                        ).map {
+                            sessionFactory.withTransactionContext { context ->
+                                oppgaveHendelseRepo.lagre(it, context)
+                                hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
+                            }
+                        }.mapLeft {
+                            log.error("Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}", it)
+                        }
                     }
                 },
             )

@@ -8,6 +8,7 @@ import java.util.UUID
  */
 data class TilbakekrevingbehandlingsSerie(
     private val sakId: UUID,
+    private val behandlingsId: TilbakekrevingsbehandlingId,
     private val hendelser: List<TilbakekrevingsbehandlingHendelse>,
 ) {
     init {

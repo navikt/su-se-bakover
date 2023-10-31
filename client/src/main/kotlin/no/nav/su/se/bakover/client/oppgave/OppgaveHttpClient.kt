@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -72,36 +74,32 @@ internal class OppgaveHttpClient(
             .flatMap { opprettOppgave(config, it) }
     }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
         return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().value)
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
         return onBehalfOfToken()
-            .mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId) }
+            .mapLeft { KunneIkkeLukkeOppgave.FeilVedHentingAvToken(oppgaveId) }
             .flatMap { oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, it) }
     }
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return onBehalfOfToken()
-            .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
+            .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
             .flatMap { oppdaterOppgaveHttpClient.oppdaterBeskrivelse(oppgaveId, it, beskrivelse) }
     }
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return onBehalfOfToken()
-            .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
-            .flatMap {
-                oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo).mapLeft {
-                    OppgaveFeil.KunneIkkeOppdatereOppgave
-                }.map { }
-            }
+            .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo).map { } }
     }
 
     override fun hentOppgave(

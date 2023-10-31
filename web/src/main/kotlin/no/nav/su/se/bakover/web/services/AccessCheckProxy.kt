@@ -64,7 +64,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -188,6 +187,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -503,12 +503,12 @@ open class AccessCheckProxy(
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     beskrivelse: String,
-                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
+                ): Either<KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
 
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     oppdaterOppgaveInfo: OppdaterOppgaveInfo,
-                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
+                ): Either<KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
 
                 override fun hentOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },

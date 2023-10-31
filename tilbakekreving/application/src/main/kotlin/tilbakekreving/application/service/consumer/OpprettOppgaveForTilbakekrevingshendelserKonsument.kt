@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -63,16 +64,13 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         val sak = sakService.hentSak(sakId)
             .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å opprette oppgave for OpprettetTilbakekrevingshendelse") }
 
-        hendelsesIder.map { relatertHendelsesId ->
-            val nesteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)?.inc()
-                ?: throw IllegalStateException("Kunne ikke hente siste versjon for sak ${sak.id} for å opprette oppgave")
-
+        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
             val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
-                ?: throw IllegalStateException("Feil ved henting av hendelse for å opprette oppgave. sak $sakId, hendelse $relatertHendelsesId")
+                ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å opprette oppgave. sak $sakId, hendelse $relatertHendelsesId") }
 
             opprettOppgaveHendelse(
                 relaterteHendelse = relatertHendelse.hendelseId,
-                nesteVersjon = nesteVersjon,
+                nesteVersjon = sak.versjon.inc(idx),
                 sakInfo = sak.info(),
                 correlationId = correlationId,
                 tilordnetRessurs = relatertHendelse.meta.ident as NavIdentBruker.Saksbehandler,

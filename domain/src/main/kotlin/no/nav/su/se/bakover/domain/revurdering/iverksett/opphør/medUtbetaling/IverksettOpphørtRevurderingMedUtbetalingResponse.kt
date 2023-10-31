@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,22 +24,22 @@ data object OppgaveClientStub : OppgaveClient {
         OppgaveId("stubbedOppgaveId").right()
             .also { log.info("OppgaveClientStub oppretter oppgave med systembruker: $config") }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> =
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub lukker oppgave med oppgaveId: $oppgaveId") }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> =
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub lukker oppgave med systembruker og oppgaveId: $oppgaveId") }
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
+    ): Either<KunneIkkeOppdatereOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: $beskrivelse") }
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
+    ): Either<KunneIkkeOppdatereOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med data: $oppdatertOppgaveInfo") }
 
     override fun hentOppgave(

@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -44,13 +46,13 @@ internal class OppdaterOppgaveHttpClient(
         oppgaveId: OppgaveId,
         token: String,
         data: OppdaterOppgaveInfo,
-    ): Either<OppgaveFeil, OppdatertOppgaveResponse> {
+    ): Either<KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
         return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeOppdatereOppgave
+            KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
                 log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
-                OppgaveFeil.KunneIkkeOppdatereOppgave.left()
+                KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt.left()
             } else {
                 endreOppgave(it, token, data)
             }
@@ -61,33 +63,33 @@ internal class OppdaterOppgaveHttpClient(
         oppgaveId: OppgaveId,
         token: String,
         beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeOppdatereOppgave
+            KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
             oppdaterOppgave(
                 oppgaveId = oppgaveId,
                 token = token,
                 data = OppdaterOppgaveInfo(beskrivelse = beskrivelse),
-            ).map { }.mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
+            ).map { }
         }
     }
 
     fun lukkOppgave(
         oppgaveId: OppgaveId,
         token: String,
-    ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
+    ): Either<KunneIkkeLukkeOppgave, Unit> {
         return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId)
+            KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId)
         }.flatMap {
             oppdaterOppgave(
                 oppgaveId = oppgaveId,
                 token = token,
                 data = OppdaterOppgaveInfo(
-                    beskrivelse = "Lukket av Supplerende Stønad",
+                    beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
                     status = "FERDIGSTILT",
                 ),
-            ).map { }.mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId) }
+            ).map { }.mapLeft { KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave(oppgaveId, it) }
         }
     }
 
@@ -95,7 +97,7 @@ internal class OppdaterOppgaveHttpClient(
         oppgave: OppgaveResponse,
         token: String,
         data: OppdaterOppgaveInfo,
-    ): Either<OppgaveFeil.KunneIkkeEndreOppgave, OppdatertOppgaveResponse> {
+    ): Either<KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
         val internalBeskrivelse =
             "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
@@ -135,12 +137,18 @@ internal class OppdaterOppgaveHttpClient(
                         "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
-                    OppgaveFeil.KunneIkkeEndreOppgave.left()
+                    KunneIkkeOppdatereOppgave.FeilVedRequest.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse}.", throwable)
-            OppgaveFeil.KunneIkkeEndreOppgave
+            KunneIkkeOppdatereOppgave.FeilVedRequest
         }.flatten()
     }
 }
+
+private data class EndreOppgaveRequest(
+    val beskrivelse: String,
+    val oppgavetype: String,
+    val status: String,
+)

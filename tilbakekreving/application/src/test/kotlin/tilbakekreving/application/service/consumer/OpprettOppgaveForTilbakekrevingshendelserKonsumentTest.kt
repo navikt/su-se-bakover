@@ -56,9 +56,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         val sakService = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val hendelseRepo = mock<HendelseRepo> {
-            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(4)
-        }
         val tilbakekrevingsbehandlingRepo = mock<TilbakekrevingsbehandlingRepo> {
             on {
                 hentHendelse(any(), anyOrNull())
@@ -77,7 +74,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             sakService = sakService,
             oppgaveService = oppgaveService,
             personService = personService,
-            hendelseRepo = hendelseRepo,
             hendelsekonsumenterRepo = konsumenterRepo,
             tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
         )
@@ -88,7 +84,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             OpprettetTilbakekrevingsbehandlingHendelsestype,
         )
         verify(sakService).hentSak(argShouldBe(sak.id))
-        verify(hendelseRepo).hentSisteVersjonFraEntitetId(argShouldBe(sak.id), anyOrNull())
         verify(tilbakekrevingsbehandlingRepo).hentHendelse(argShouldBe(hendelseId), anyOrNull())
         verify(personService).hentAktørIdMedSystembruker(argShouldBe(sak.fnr))
         verify(oppgaveService).opprettOppgaveMedSystembruker(
@@ -107,7 +102,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                     hendelseId = it.hendelseId,
                     hendelsestidspunkt = it.hendelsestidspunkt,
                     oppgaveId = OppgaveId("123"),
-                    versjon = Hendelsesversjon(value = 5),
+                    versjon = Hendelsesversjon(value = 2),
                     sakId = sak.id,
                     relaterteHendelser = listOf(hendelseId),
                     meta = DefaultHendelseMetadata.fraCorrelationId(CorrelationId("Correlation-id")),

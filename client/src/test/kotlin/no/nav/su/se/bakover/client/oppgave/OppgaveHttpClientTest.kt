@@ -387,7 +387,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent(),
@@ -420,7 +420,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         """
                             {
                               "oppgavetype": "BEH_SAK",
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent(),
@@ -486,7 +486,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent(),
@@ -520,7 +520,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         """
                             {
                               "oppgavetype": "BEH_SAK",
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent(),
@@ -587,7 +587,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent(),
@@ -620,7 +620,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                         """
                             {
                               "oppgavetype": "BEH_SAK",
-                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent(),
