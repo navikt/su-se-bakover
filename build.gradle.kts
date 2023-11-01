@@ -82,7 +82,8 @@ subprojects {
         implementation("io.micrometer:micrometer-core:1.11.5")
         implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
         implementation("com.github.seratch:kotliquery:1.9.0")
-        implementation("org.flywaydb:flyway-core:9.22.3")
+        implementation("org.flywaydb:flyway-core:10.0.0")
+        implementation("org.flywaydb:flyway-database-postgresql:10.0.0")
         implementation("com.zaxxer:HikariCP:5.0.1")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
         implementation("org.postgresql:postgresql:42.6.0")
@@ -111,7 +112,8 @@ subprojects {
         testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
         // Embedded database brukes av modulene: web og database
         testImplementation(
-            // select version() i preprod 2022-08-30 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
+            // select version() i preprod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
+            // select version() i prod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
             // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.15.0"),
         )
