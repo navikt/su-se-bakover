@@ -16,13 +16,17 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -67,7 +71,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
         }
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("123").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val mockedServices = mockedServices(
@@ -105,7 +109,15 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                     versjon = Hendelsesversjon(value = 2),
                     sakId = sak.id,
                     relaterteHendelser = listOf(hendelseId),
-                    meta = DefaultHendelseMetadata.fraCorrelationId(CorrelationId("Correlation-id")),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = CorrelationId("Correlation-id"),
+                        ident = null,
+                        brukerroller = listOf(),
+                        requestBody = "requestbody",
+                        response = "response",
+                    ),
+                    beskrivelse = "beskrivelse",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 )
             },
             anyOrNull(),

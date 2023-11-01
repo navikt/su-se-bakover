@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsestype
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -155,7 +155,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         val oppgaveCommand = lagOppgaveConfig(sakInfo, clock).getOrElse {
             return
         }
-        val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(oppgaveCommand)
+        val oppgaveResponse = oppgaveService.opprettOppgaveMedSystembruker(oppgaveCommand)
             .getOrElse {
                 log.error(
                     "Fikk ikke opprettet oppgave for institusjonsopphold hendelser som mangler oppgave $hendelserSomManglerOppgaver for sak ${sakInfo.saksnummer}. Denne vil bli retried.",
@@ -168,10 +168,18 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
             hendelseId = HendelseId.generer(),
             sakId = sakInfo.sakId,
             versjon = nesteHendelsesversjon,
-            oppgaveId = oppgaveId,
+            oppgaveId = oppgaveResponse.oppgaveId,
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+            meta = OppgaveHendelseMetadata(
+                correlationId = correlationId,
+                ident = null,
+                brukerroller = listOf(),
+                requestBody = oppgaveResponse.requestBody,
+                response = oppgaveResponse.response,
+            ),
             relaterteHendelser = hendelserSomManglerOppgaver,
+            beskrivelse = oppgaveResponse.beskrivelse,
+            oppgavetype = oppgaveResponse.oppgavetype,
         )
         sessionFactory.withTransactionContext { tx ->
             oppgaveHendelseRepo.lagre(

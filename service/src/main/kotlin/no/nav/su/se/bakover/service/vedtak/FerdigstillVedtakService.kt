@@ -89,7 +89,7 @@ class FerdigstillVedtakServiceImpl(
 
     override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling): Either<KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgaveIntern(behandling) {
-            oppgaveService.lukkOppgave(it)
+            oppgaveService.lukkOppgave(it).map { }
         }.map { /* Unit */ }
     }
 
@@ -157,7 +157,9 @@ class FerdigstillVedtakServiceImpl(
         behandling: Stønadsbehandling,
     ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         return lukkOppgaveIntern(behandling) {
-            oppgaveService.lukkOppgaveMedSystembruker(it)
+            oppgaveService.lukkOppgaveMedSystembruker(it).map {
+                it.oppgaveId
+            }
         }
     }
 

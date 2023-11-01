@@ -3,7 +3,6 @@ package tilbakekreving.application.service.consumer
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -21,6 +19,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -130,7 +129,8 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         return oppgaveService.lukkOppgave(tidligereOppgaveHendelse.oppgaveId)
             .mapLeft {
                 when (it.erOppgaveFerdigstilt()) {
-                    true -> return OppgaveHendelse.lukket(
+                    /*
+                    return OppgaveHendelse.lukket(
                         hendelseId = HendelseId.generer(),
                         hendelsestidspunkt = Tidspunkt.now(clock),
                         oppgaveId = tidligereOppgaveHendelse.oppgaveId,
@@ -139,8 +139,12 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                         relaterteHendelser = listOf(relaterteHendelse),
                         meta = DefaultHendelseMetadata.fraCorrelationId(correlationId = correlationId),
                         tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
-                    ).right()
+                        beskrivelse = "",
+                        oppgavetype =,
 
+                    ).right()
+                     */
+                    true -> TODO()
                     false -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave
                 }
             }
@@ -152,8 +156,16 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                     versjon = nesteVersjon,
                     sakId = sakInfo.sakId,
                     relaterteHendelser = listOf(relaterteHendelse),
-                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId = correlationId),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = correlationId,
+                        ident = null,
+                        brukerroller = listOf(),
+                        requestBody = it.requestBody,
+                        response = it.response,
+                    ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                    beskrivelse = it.beskrivelse,
+                    oppgavetype = it.oppgavetype,
                 )
             }
     }

@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.domain.oppgave
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 
 /**
  * Velg ut de verdiene du har lyst til å oppdatere
@@ -17,12 +18,12 @@ data class OppdaterOppgaveInfo(
 )
 
 interface OppgaveClient {
-    fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId>
-    fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId>
-    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit>
-    fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit>
-    fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<KunneIkkeOppdatereOppgave, Unit>
-    fun oppdaterOppgave(oppgaveId: OppgaveId, oppdatertOppgaveInfo: OppdaterOppgaveInfo): Either<KunneIkkeOppdatereOppgave, Unit>
+    fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
+    fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
+    fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
+    fun oppdaterOppgave(oppgaveId: OppgaveId, oppdatertOppgaveInfo: OppdaterOppgaveInfo): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
     fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>
     fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>

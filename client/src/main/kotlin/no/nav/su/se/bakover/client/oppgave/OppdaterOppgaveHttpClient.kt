@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
@@ -20,6 +19,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -46,7 +47,7 @@ internal class OppdaterOppgaveHttpClient(
         oppgaveId: OppgaveId,
         token: String,
         data: OppdaterOppgaveInfo,
-    ): Either<KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
@@ -63,7 +64,7 @@ internal class OppdaterOppgaveHttpClient(
         oppgaveId: OppgaveId,
         token: String,
         beskrivelse: String,
-    ): Either<KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
@@ -71,14 +72,14 @@ internal class OppdaterOppgaveHttpClient(
                 oppgaveId = oppgaveId,
                 token = token,
                 data = OppdaterOppgaveInfo(beskrivelse = beskrivelse),
-            ).map { }
+            )
         }
     }
 
     fun lukkOppgave(
         oppgaveId: OppgaveId,
         token: String,
-    ): Either<KunneIkkeLukkeOppgave, Unit> {
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId)
         }.flatMap {
@@ -89,7 +90,7 @@ internal class OppdaterOppgaveHttpClient(
                     beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
                     status = "FERDIGSTILT",
                 ),
-            ).map { }.mapLeft { KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave(oppgaveId, it) }
+            ).mapLeft { KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave(oppgaveId, it) }
         }
     }
 
@@ -97,32 +98,30 @@ internal class OppdaterOppgaveHttpClient(
         oppgave: OppgaveResponse,
         token: String,
         data: OppdaterOppgaveInfo,
-    ): Either<KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         val internalBeskrivelse =
             "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
             } - ${data.beskrivelse} ---"
 
         return Either.catch {
+            val requestBody = serialize(
+                EndreOppgaveRequest(
+                    beskrivelse = oppgave.beskrivelse?.let {
+                        internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
+                    } ?: internalBeskrivelse,
+                    status = data.status ?: oppgave.status,
+                    oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
+                ),
+            )
+
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/${oppgave.id}"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
                 .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
-                .PATCH(
-                    HttpRequest.BodyPublishers.ofString(
-                        serialize(
-                            EndreOppgaveRequest(
-                                beskrivelse = oppgave.beskrivelse?.let {
-                                    internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
-                                } ?: internalBeskrivelse,
-                                status = data.status ?: oppgave.status,
-                                oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
-                            ),
-                        ),
-                    ),
-                )
+                .PATCH(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build()
 
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
@@ -131,7 +130,16 @@ internal class OppdaterOppgaveHttpClient(
                         "Endret oppgave ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                     log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                     sikkerLogg.info("$loggmelding. Response-json: $it")
-                    deserialize<OppdatertOppgaveResponse>(it.body()).right()
+
+                    OppgaveHttpKallResponse(
+                        oppgaveId = oppgave.getOppgaveId(),
+                        // bare beskrivelsen er påkrevd å fylles ut. Dersom oppgavetypen ikke skal oppdateres
+                        // benytter vi oss av hva som allerede er på oppgaven
+                        oppgavetype = data.oppgavetype ?: Oppgavetype.fromString(oppgave.oppgavetype),
+                        requestBody = requestBody,
+                        response = it.body(),
+                        beskrivelse = data.beskrivelse,
+                    ).right()
                 } else {
                     log.error(
                         "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",

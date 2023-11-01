@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -166,7 +167,7 @@ internal class AvsluttKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )

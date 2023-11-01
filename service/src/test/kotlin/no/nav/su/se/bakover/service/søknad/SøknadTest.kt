@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -63,7 +64,7 @@ class SøknadTest {
     )
     private val pdf = PdfA("pdf-data".toByteArray())
     private val journalpostId = JournalpostId("1")
-    private val oppgaveId = OppgaveId("2")
+    private val oppgaveId = OppgaveId("123")
     private val innsender = NavIdentBruker.Veileder("navIdent")
 
     @Test
@@ -370,7 +371,7 @@ class SøknadTest {
                 on { opprettJournalpost(any()) } doReturn journalpostId.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn oppgaveId.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             søknadRepo = mock(),
             søknadMetrics = mock(),

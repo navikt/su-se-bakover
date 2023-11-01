@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -66,7 +67,7 @@ internal class OpprettRevurderingServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
@@ -90,7 +91,7 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.periode shouldBe søknadsbehandling.periode
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
-                opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+                opprettetRevurdering.oppgaveId shouldBe OppgaveId("123")
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
                     begrunnelse = "Ny informasjon",
@@ -204,7 +205,7 @@ internal class OpprettRevurderingServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak3.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
@@ -257,7 +258,7 @@ internal class OpprettRevurderingServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()

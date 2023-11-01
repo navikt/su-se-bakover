@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.oppgave.domain
 
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
@@ -14,16 +13,19 @@ import java.util.UUID
 /**
  * TODO jah: Lag en Oppgavehendelser
  * @param relaterteHendelser Den eller de hendelsene som førte til opprettelsen av oppgaven. Kan f.eks. være en institusjonsoppdholdshendelse.
+ * @param oppgavetype Kan være null
  */
 data class OppgaveHendelse private constructor(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val versjon: Hendelsesversjon,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: DefaultHendelseMetadata,
+    override val meta: OppgaveHendelseMetadata,
     val oppgaveId: OppgaveId,
     val relaterteHendelser: List<HendelseId>,
     val status: Oppgavestatus,
+    val beskrivelse: String,
+    val oppgavetype: Oppgavetype,
     override val tidligereHendelseId: HendelseId?,
 ) : Sakshendelse {
 
@@ -50,7 +52,9 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: DefaultHendelseMetadata,
+            meta: OppgaveHendelseMetadata,
+            beskrivelse: String,
+            oppgavetype: Oppgavetype,
         ): OppgaveHendelse {
             return OppgaveHendelse(
                 hendelseId = hendelseId,
@@ -62,6 +66,8 @@ data class OppgaveHendelse private constructor(
                 meta = meta,
                 status = OPPRETTET,
                 tidligereHendelseId = null,
+                oppgavetype = oppgavetype,
+                beskrivelse = beskrivelse,
             )
         }
 
@@ -72,8 +78,10 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: DefaultHendelseMetadata,
+            meta: OppgaveHendelseMetadata,
             tidligereHendelseId: HendelseId,
+            beskrivelse: String,
+            oppgavetype: Oppgavetype,
         ): OppgaveHendelse {
             return OppgaveHendelse(
                 hendelseId = hendelseId,
@@ -85,6 +93,8 @@ data class OppgaveHendelse private constructor(
                 meta = meta,
                 status = OPPDATERT,
                 tidligereHendelseId = tidligereHendelseId,
+                beskrivelse = beskrivelse,
+                oppgavetype = oppgavetype,
             )
         }
 
@@ -95,8 +105,10 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: DefaultHendelseMetadata,
+            meta: OppgaveHendelseMetadata,
             tidligereHendelseId: HendelseId,
+            beskrivelse: String,
+            oppgavetype: Oppgavetype,
         ): OppgaveHendelse {
             return OppgaveHendelse(
                 hendelseId = hendelseId,
@@ -108,6 +120,8 @@ data class OppgaveHendelse private constructor(
                 meta = meta,
                 status = LUKKET,
                 tidligereHendelseId = tidligereHendelseId,
+                beskrivelse = beskrivelse,
+                oppgavetype = oppgavetype,
             )
         }
 
@@ -121,7 +135,9 @@ data class OppgaveHendelse private constructor(
             entitetId: UUID,
             tidligereHendelseId: HendelseId?,
             status: Oppgavestatus,
-            meta: DefaultHendelseMetadata,
+            meta: OppgaveHendelseMetadata,
+            beskrivelse: String,
+            oppgavetype: Oppgavetype,
         ): OppgaveHendelse {
             require(entitetId == sakId) { "Forventer at sakId $sakId og entitetId $entitetId er like." }
             return OppgaveHendelse(
@@ -134,6 +150,8 @@ data class OppgaveHendelse private constructor(
                 meta = meta,
                 status = status,
                 tidligereHendelseId = tidligereHendelseId,
+                beskrivelse = beskrivelse,
+                oppgavetype = oppgavetype,
             )
         }
     }

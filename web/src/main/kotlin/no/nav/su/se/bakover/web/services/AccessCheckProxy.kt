@@ -188,6 +188,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontro
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -503,12 +504,12 @@ open class AccessCheckProxy(
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     beskrivelse: String,
-                ): Either<KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
+                ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = kastKanKunKallesFraAnnenService()
 
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     oppdaterOppgaveInfo: OppdaterOppgaveInfo,
-                ): Either<KunneIkkeOppdatereOppgave, Unit> = kastKanKunKallesFraAnnenService()
+                ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = kastKanKunKallesFraAnnenService()
 
                 override fun hentOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },

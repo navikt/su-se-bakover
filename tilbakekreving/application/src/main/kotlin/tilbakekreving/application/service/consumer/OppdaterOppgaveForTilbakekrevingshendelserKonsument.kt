@@ -9,12 +9,10 @@ import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -22,7 +20,9 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingTilAttesteringHendelsestype
@@ -125,7 +125,10 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                                 hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
                             }
                         }.mapLeft {
-                            log.error("Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}", it)
+                            log.error(
+                                "Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}",
+                                it,
+                            )
                         }
                     }
                 },
@@ -154,8 +157,16 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                     versjon = nesteVersjon,
                     sakId = sakInfo.sakId,
                     relaterteHendelser = listOf(relaterteHendelse),
-                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId = correlationId),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = correlationId,
+                        ident = null,
+                        brukerroller = listOf(),
+                        requestBody = it.requestBody,
+                        response = it.response,
+                    ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                    beskrivelse = it.beskrivelse,
+                    oppgavetype = it.oppgavetype,
                 )
             }
     }

@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -50,7 +51,7 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
     private val fnr = Fnr.generer()
-    private val nyOppgaveId = OppgaveId("999")
+    private val nyOppgaveId = OppgaveId("123")
     private val aktørId = AktørId("12345")
 
     private val underkjentAttestering = Attestering.Underkjent(
@@ -248,7 +249,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -293,7 +294,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -385,8 +386,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()

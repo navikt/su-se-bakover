@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -59,7 +60,7 @@ internal class KlageinstanshendelseServiceImplTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
         }
         val oppgaveServiceMock: OppgaveService = mock {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
         val mappedKlageinstanshendelse = TolketKlageinstanshendelse(
             id = id,
@@ -93,7 +94,7 @@ internal class KlageinstanshendelseServiceImplTest {
             },
         )
         verify(klageinstanshendelseRepoMock).lagre(
-            mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
+            mappedKlageinstanshendelse.tilProsessert(OppgaveId("123")),
             TestSessionFactory.transactionContext,
         )
     }
@@ -113,7 +114,7 @@ internal class KlageinstanshendelseServiceImplTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
         }
         val oppgaveServiceMock: OppgaveService = mock {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
         val mappedKlageinstanshendelse = TolketKlageinstanshendelse(
             id = klageinstansId,
@@ -151,7 +152,7 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).lagre(
             argThat {
                 it as VurdertKlage.Bekreftet
-                it.oppgaveId shouldBe OppgaveId("212121")
+                it.oppgaveId shouldBe OppgaveId("123")
                 it.saksbehandler shouldBe klage.saksbehandler
                 it.klageinstanshendelser shouldBe Klageinstanshendelser.create(
                     listOf(
@@ -161,7 +162,7 @@ internal class KlageinstanshendelseServiceImplTest {
                             klageId = klage.id,
                             utfall = KlageinstansUtfall.RETUR,
                             journalpostIDer = listOf(JournalpostId("123456")),
-                            oppgaveId = OppgaveId("212121"),
+                            oppgaveId = OppgaveId("123"),
                         ),
                     ),
                 )
@@ -169,7 +170,7 @@ internal class KlageinstanshendelseServiceImplTest {
             argShouldBe(TestSessionFactory.transactionContext),
         )
         verify(klageinstanshendelseRepoMock).lagre(
-            mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
+            mappedKlageinstanshendelse.tilProsessert(OppgaveId("123")),
             TestSessionFactory.transactionContext,
         )
     }

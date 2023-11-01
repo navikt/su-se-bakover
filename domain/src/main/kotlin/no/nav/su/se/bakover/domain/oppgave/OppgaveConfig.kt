@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
-import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

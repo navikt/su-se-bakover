@@ -46,17 +46,3 @@ enum class Behandlingstema(val value: String) {
 
     override fun toString() = this.value
 }
-
-/**
- * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Oppgavetyper
- * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/oppgavetype.csv
- */
-enum class Oppgavetype(val value: String) {
-    BEHANDLE_SAK("BEH_SAK"),
-    ATTESTERING("ATT"),
-    FREMLEGGING("FREM"),
-    VURDER_KONSEKVENS_FOR_YTELSE("VUR_KONS_YTE"),
-    ;
-
-    override fun toString() = this.value
-}

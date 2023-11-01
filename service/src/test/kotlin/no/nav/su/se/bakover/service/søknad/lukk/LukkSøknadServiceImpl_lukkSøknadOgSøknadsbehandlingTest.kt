@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedJournalførtSøknadUtenOppgave
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
@@ -365,7 +366,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         },
         private val brevService: BrevService = mock(),
         private val oppgaveService: OppgaveService = mock {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),

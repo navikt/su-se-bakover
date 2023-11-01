@@ -3,17 +3,12 @@ package no.nav.su.se.bakover.client.oppgave
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
 internal data class OppgaveSøkResponse(
     val oppgaver: List<OppgaveSøkeResultat>,
-)
-
-internal data class OppdatertOppgaveResponse(
-    val id: Long,
-    val versjon: Int,
-    val status: String,
 )
 
 internal data class OppgaveResponse(
@@ -46,6 +41,8 @@ internal data class OppgaveResponse(
             status = toDomainStatus(),
         )
     }
+
+    fun oppgavetype(): Oppgavetype = Oppgavetype.fromString(oppgavetype)
 
     fun toDomainStatus(): Oppgave.Oppgavestatus {
         return when (status) {

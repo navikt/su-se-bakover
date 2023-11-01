@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -64,21 +65,21 @@ internal class OppgaveHttpClient(
         hentOppgave = this::hentOppgave,
     )
 
-    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token().value)
     }
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { OppgaveFeil.KunneIkkeOppretteOppgave }
             .flatMap { opprettOppgave(config, it) }
     }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().value)
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeLukkeOppgave.FeilVedHentingAvToken(oppgaveId) }
             .flatMap { oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, it) }
@@ -87,7 +88,7 @@ internal class OppgaveHttpClient(
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         beskrivelse: String,
-    ): Either<KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
             .flatMap { oppdaterOppgaveHttpClient.oppdaterBeskrivelse(oppgaveId, it, beskrivelse) }
@@ -96,10 +97,10 @@ internal class OppgaveHttpClient(
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
-    ): Either<KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
-            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo).map { } }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo) }
     }
 
     override fun hentOppgave(
@@ -141,7 +142,7 @@ internal class OppgaveHttpClient(
     private fun opprettOppgave(
         config: OppgaveConfig,
         token: String,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         val beskrivelse = when (config) {
             is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.Søknad ->
                 "--- ${
@@ -201,41 +202,46 @@ internal class OppgaveHttpClient(
         }
 
         return Either.catch {
+            val requestBody = serialize(
+                OppgaveRequest(
+                    journalpostId = config.journalpostId?.toString(),
+                    saksreferanse = config.saksreferanse,
+                    aktoerId = config.aktørId.toString(),
+                    tema = Tema.SUPPLERENDE_STØNAD.value,
+                    beskrivelse = beskrivelse,
+                    oppgavetype = config.oppgavetype.toString(),
+                    behandlingstema = config.behandlingstema?.toString(),
+                    behandlingstype = config.behandlingstype.toString(),
+                    aktivDato = config.aktivDato,
+                    fristFerdigstillelse = config.fristFerdigstillelse,
+                    prioritet = "NORM",
+                    tilordnetRessurs = config.tilordnetRessurs?.toString(),
+                ),
+            )
+
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
                 .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
-                .POST(
-                    HttpRequest.BodyPublishers.ofString(
-                        serialize(
-                            OppgaveRequest(
-                                journalpostId = config.journalpostId?.toString(),
-                                saksreferanse = config.saksreferanse,
-                                aktoerId = config.aktørId.toString(),
-                                tema = Tema.SUPPLERENDE_STØNAD.value,
-                                beskrivelse = beskrivelse,
-                                oppgavetype = config.oppgavetype.toString(),
-                                behandlingstema = config.behandlingstema?.toString(),
-                                behandlingstype = config.behandlingstype.toString(),
-                                aktivDato = config.aktivDato,
-                                fristFerdigstillelse = config.fristFerdigstillelse,
-                                prioritet = "NORM",
-                                tilordnetRessurs = config.tilordnetRessurs?.toString(),
-                            ),
-                        ),
-                    ),
-                ).build()
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build()
 
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 val body = it.body()
                 if (it.isSuccess()) {
-                    val oppgaveId = deserialize<OppgaveResponse>(body).getOppgaveId().right()
-                    log.info("Lagret oppgave med id $oppgaveId i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
+                    val oppgaveResponse = deserialize<OppgaveResponse>(body)
+                    log.info("Lagret oppgave med id $oppgaveResponse i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
                     sikkerLogg.info("Lagret oppgave i oppgave. status=${it.statusCode()} body=$body")
 
-                    oppgaveId
+                    OppgaveHttpKallResponse(
+                        oppgaveId = oppgaveResponse.getOppgaveId(),
+                        oppgavetype = oppgaveResponse.oppgavetype(),
+                        requestBody = requestBody,
+                        response = body,
+                        beskrivelse = beskrivelse,
+                    ).right()
                 } else {
                     log.error(
                         "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}, body=$body",

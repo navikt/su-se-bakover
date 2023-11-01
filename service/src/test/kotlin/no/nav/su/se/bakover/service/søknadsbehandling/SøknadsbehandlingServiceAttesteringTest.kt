@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
@@ -39,7 +40,7 @@ import person.domain.PersonService
 
 class SøknadsbehandlingServiceAttesteringTest {
 
-    private val nyOppgaveId = OppgaveId("999")
+    private val nyOppgaveId = OppgaveId("123")
     private val aktørId = AktørId("12345")
     private val simulertBehandling = simulertSøknadsbehandlingUføre(
         stønadsperiode = Stønadsperiode.create(år(2021)),
@@ -56,8 +57,8 @@ class SøknadsbehandlingServiceAttesteringTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val eventObserver: StatistikkEventObserver = mock()
@@ -227,7 +228,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
         }
 

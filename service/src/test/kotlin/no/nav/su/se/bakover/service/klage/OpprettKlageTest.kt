@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
@@ -78,7 +79,7 @@ internal class OpprettKlageTest {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )
@@ -255,7 +256,7 @@ internal class OpprettKlageTest {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )
@@ -275,7 +276,7 @@ internal class OpprettKlageTest {
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 journalpostId = JournalpostId(value = "1"),
-                oppgaveId = OppgaveId("nyOppgaveId"),
+                oppgaveId = OppgaveId("123"),
                 saksbehandler = NavIdentBruker.Saksbehandler(
                     navIdent = "2",
                 ),
