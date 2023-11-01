@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -401,7 +400,6 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             fnr = Fnr.generer(),
             utbetalinger = Utbetalinger(),
             type = Sakstype.UFØRE,
-            uteståendeAvkorting = Avkortingsvarsel.Ingen,
             versjon = Hendelsesversjon(1),
             uteståendeKravgrunnlag = null,
         )

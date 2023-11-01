@@ -1026,7 +1026,6 @@ fun beregnetSøknadsbehandling(
             clock = beregnetClock,
             satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
             nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail().let { beregnet ->
             sak.oppdaterSøknadsbehandling(beregnet) to beregnet
         }

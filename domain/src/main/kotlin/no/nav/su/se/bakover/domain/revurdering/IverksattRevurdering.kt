@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -34,7 +33,6 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val beregning: Beregning
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
-    abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
@@ -63,7 +61,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
@@ -89,7 +86,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,

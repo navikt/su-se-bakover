@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -59,9 +58,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-/**
- * @param uteståendeAvkorting er enten [Avkortingsvarsel.Ingen] eller [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]
- */
 data class Sak(
     val id: UUID = UUID.randomUUID(),
     val saksnummer: Saksnummer,
@@ -73,22 +69,14 @@ data class Sak(
     val utbetalinger: Utbetalinger,
     val vedtakListe: List<Vedtak> = emptyList(),
     val type: Sakstype,
-    val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
     val utenlandsopphold: RegistrerteUtenlandsopphold = RegistrerteUtenlandsopphold.empty(id),
     val versjon: Hendelsesversjon,
     val uteståendeKravgrunnlag: Kravgrunnlag?,
 ) {
-    init {
-        require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
-    }
-
     val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.søknadsbehandlinger
     val revurderinger: List<AbstraktRevurdering> = behandlinger.revurderinger
     val reguleringer: List<Regulering> = behandlinger.reguleringer
     val klager: List<Klage> = behandlinger.klager
-
-    val uteståendeAvkortingSkalAvkortes: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes? =
-        uteståendeAvkorting as? Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
     fun info(): SakInfo {
         return SakInfo(

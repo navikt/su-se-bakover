@@ -232,10 +232,6 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        if (gjeldendeVedtaksdata.pågåendeAvkortingEllerBehovForFremtidigAvkorting) {
-            return KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting.left()
-        }
-
         if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty()) {
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
         }

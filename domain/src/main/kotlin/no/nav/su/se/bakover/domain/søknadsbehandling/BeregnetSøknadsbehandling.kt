@@ -14,8 +14,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.IngenAvkorting
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -45,7 +43,6 @@ sealed interface BeregnetSøknadsbehandling :
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
 
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, BeregnetSøknadsbehandling>
@@ -64,7 +61,6 @@ sealed interface BeregnetSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : BeregnetSøknadsbehandling, KanSimuleres {
@@ -112,7 +108,6 @@ sealed interface BeregnetSøknadsbehandling :
                             handling = SøknadsbehandlingsHandling.Simulert,
                         ),
                     ),
-                    avkorting = avkorting,
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
                 )
@@ -174,9 +169,6 @@ sealed interface BeregnetSøknadsbehandling :
         }
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
-
-        /** Ingenting og avkorte ved avslag. */
-        override val avkorting: IngenAvkorting = IngenAvkorting
 
         private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
             when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {

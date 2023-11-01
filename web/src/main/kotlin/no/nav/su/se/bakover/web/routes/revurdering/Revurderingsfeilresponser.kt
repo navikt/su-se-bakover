@@ -7,16 +7,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePers
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
-import no.nav.su.se.bakover.web.routes.sak.tilResultat
 
 internal data object Revurderingsfeilresponser {
 
@@ -60,21 +57,6 @@ internal data object Revurderingsfeilresponser {
             "Utenlandsopphold som fører til opphør må revurderes",
             "utenlandsopphold_som_fører_til_opphør_må_revurderes",
         )
-
-        val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
-            "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
-            "eps_formue_med_flere_perioder_må_revurderes",
-        )
-
-        fun uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(periode: Periode) = InternalServerError.errorJson(
-            "Saken har en utestående avkorting som enten må avkortes i ny stønadsperiode eller revurderes i sin helhet. Vennligst inkluder ${periode.fraOgMed}-${periode.tilOgMed} i revurderingsperioden eller avkort i ny stønadsperiode.",
-            "utestående_avkorting_må_revurderes_eller_avkortes_i_ny_periode",
-        )
-
-        fun pågåendeAvkortingForPeriode(periode: Periode, vedtakId: String) = BadRequest.errorJson(
-            "Pågående avkorting for periode:$periode i vedtak:$vedtakId. Hele perioden for opprinnelig avkortingsvarsel og eventuelle fradrag for avkorting må inkluderes, eller behandlingen må deles opp.",
-            "pågende_avkorting_for_periode",
-        )
     }
 
     data object Brev {
@@ -83,10 +65,6 @@ internal data object Revurderingsfeilresponser {
             "navneoppslag_feilet",
         )
 
-        val fantIkkeGjeldendeUtbetaling = InternalServerError.errorJson(
-            "Kunne ikke hente gjeldende utbetaling",
-            "kunne_ikke_hente_gjeldende_utbetaling",
-        )
         val brevvalgIkkeTillatt = BadRequest.errorJson(
             "Brevvalg ikke tillatt",
             "brevvalg_ikke_tillatt",
@@ -175,20 +153,6 @@ internal data object Revurderingsfeilresponser {
 
         is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
             ugyldigPeriode(this.feil)
-        }
-    }
-
-    internal fun KanIkkeRevurderePgaAvkorting.tilResultat(): Resultat {
-        return when (this) {
-            is KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode -> {
-                OpprettelseOgOppdateringAvRevurdering.pågåendeAvkortingForPeriode(
-                    periode = periode,
-                    vedtakId = vedtakId.toString(),
-                )
-            }
-            is KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet -> {
-                OpprettelseOgOppdateringAvRevurdering.uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(periode)
-            }
         }
     }
 }

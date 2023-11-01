@@ -45,7 +45,6 @@ internal val beregnetInnvilget: BeregnetSøknadsbehandling.Innvilget
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = null,
         ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
 
 internal val beregnetAvslag: BeregnetSøknadsbehandling.Avslag
@@ -58,7 +57,6 @@ internal val beregnetAvslag: BeregnetSøknadsbehandling.Avslag
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = null,
         ).getOrFail() as BeregnetSøknadsbehandling.Avslag
 
 internal val simulert: SimulertSøknadsbehandling

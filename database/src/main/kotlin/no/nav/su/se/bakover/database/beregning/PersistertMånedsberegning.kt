@@ -70,7 +70,7 @@ internal data class PersistertMånedsberegning(
             },
             fradrag = fradrag.map { it.toFradragForMåned() },
             fribeløpForEps = fribeløpForEps,
-            merknader = Merknader.Beregningsmerknad(merknader.map { it.toDomain() }.toMutableList()),
+            merknader = Merknader.Beregningsmerknad(merknader.mapNotNull { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
         )

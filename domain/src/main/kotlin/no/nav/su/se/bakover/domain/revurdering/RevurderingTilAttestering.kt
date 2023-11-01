@@ -9,17 +9,13 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
-import no.nav.su.se.bakover.domain.revurdering.opphør.AvkortingsopphørUtenUtbetalingslinjer
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
-import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -27,18 +23,14 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
-
-private val log = LoggerFactory.getLogger("RevurderingTilAttestering.kt")
 
 sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val beregning: Beregning
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    abstract override val avkorting: AvkortingVedRevurdering.Håndtert
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
@@ -48,7 +40,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     abstract fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
         clock: Clock,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
@@ -67,7 +58,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
@@ -79,13 +69,10 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
             clock: Clock,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> = validerTilIverksettOvergang(
             attestant = attestant,
-            uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
             saksbehandler = saksbehandler,
-            avkorting = avkorting,
         ).map {
             IverksattRevurdering.Innvilget(
                 id = id,
@@ -107,7 +94,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                         Tidspunkt.now(clock),
                     ),
                 ),
-                avkorting = avkorting.iverksett(id),
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
@@ -132,7 +118,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
@@ -140,9 +125,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val erOpphørt = true
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
-
-        val opphørsperiodeForUtbetalinger: Either<AvkortingsopphørUtenUtbetalingslinjer, Periode> =
-            OpphørsperiodeForUtbetalinger(this).map { it.value }
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -157,23 +139,13 @@ sealed class RevurderingTilAttestering : Revurdering() {
             }
         }
 
-        /**
-         * Hvis alle månedene i en revurdering fører til avkorting, skal vi ikke sende utbetalingslinjer.
-         */
-        fun erAlleMånedeneAvkorting(): Boolean {
-            return opphørsperiodeForUtbetalinger is Either.Left<AvkortingsopphørUtenUtbetalingslinjer>
-        }
-
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
             clock: Clock,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
             return validerTilIverksettOvergang(
                 attestant = attestant,
-                uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
                 saksbehandler = saksbehandler,
-                avkorting = avkorting,
             ).map {
                 IverksattRevurdering.Opphørt(
                     id = id,
@@ -195,7 +167,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                             Tidspunkt.now(clock),
                         ),
                     ),
-                    avkorting = avkorting.iverksett(id),
                     tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
@@ -213,12 +184,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     sealed class KunneIkkeIverksetteRevurdering {
         data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-
-        /**
-         * Bør ikke oppstå ofte, siden saksbehandler ikke bør/kan påvirke avkortingen.
-         * Her bør saksbehandler oppdatere revurderingen for å hente ny vedtaksdata med blant annet avkortingsdata fra saken.
-         */
-        data object Avkortingsfeil : KunneIkkeIverksetteRevurdering()
     }
 
     fun underkjenn(
@@ -241,7 +206,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
@@ -262,7 +226,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
@@ -271,49 +234,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
     }
 }
 
-private fun Revurdering.validerTilIverksettOvergang(
+private fun validerTilIverksettOvergang(
     attestant: NavIdentBruker.Attestant,
-    uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
     saksbehandler: NavIdentBruker.Saksbehandler,
-    avkorting: AvkortingVedRevurdering.Håndtert,
 ): Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering, Unit> {
     if (saksbehandler.navIdent == attestant.navIdent) {
         return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-    }
-
-    when (avkorting) {
-        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-            if (avkorting.avkortingsvarsel != uteståendeAvkortingPåSak) {
-                log.error("Prøver annullere en avkorting som ikke er lik avkortingen på sak ${this.sakId} og revurdering ${this.id}")
-                return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
-            }
-        }
-
-        AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-            if (uteståendeAvkortingPåSak != null && this.periode.overlapper(uteståendeAvkortingPåSak.periode())) {
-                log.error("Prøver å iverksette revurdering over periode som har utåestående avkorting. Må i så fall annuleres. For sak ${this.sakId} og revurdering ${this.id}")
-                return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
-            }
-        }
-
-        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-            log.error("Prøver å iverksette revurdering hvor vi ikke kan håndtere avkorting.")
-            return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
-        }
-
-        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-            if (uteståendeAvkortingPåSak != null) {
-                log.error("Prøver å iverksette revurdering med avkortingsvarsel når det allerede finnes utestående avkorting for sak ${this.sakId} og revurdering ${this.id}")
-                return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
-            }
-        }
-
-        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-            if (avkorting.annullerUtestående != uteståendeAvkortingPåSak) {
-                log.error("Prøver annullere en avkorting som ikke er lik avkortingen på sak ${this.sakId} og revurdering ${this.id}")
-                return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil.left()
-            }
-        }
     }
     return Unit.right()
 }

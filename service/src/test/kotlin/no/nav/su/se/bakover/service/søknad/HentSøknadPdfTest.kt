@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -54,7 +53,6 @@ class HentSøknadPdfTest {
         søknader = listOf(søknad),
         utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
         uteståendeKravgrunnlag = null,
     )

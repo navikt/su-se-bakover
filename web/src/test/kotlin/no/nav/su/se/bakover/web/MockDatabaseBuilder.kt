@@ -4,7 +4,6 @@ import dokument.domain.DokumentRepo
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
@@ -43,7 +42,6 @@ data object MockDatabaseBuilder {
         sessionFactory: PostgresSessionFactory = mock(),
         klageRepo: KlageRepo = mock(),
         klageinstanshendelseRepo: KlageinstanshendelseRepo = mock(),
-        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         reguleringRepo: ReguleringRepo = mock(),
         tilbakekrevingRepo: TilbakekrevingRepo = mock(),
         hendelseRepo: HendelseRepo = mock(),
@@ -69,7 +67,6 @@ data object MockDatabaseBuilder {
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
             klageinstanshendelseRepo = klageinstanshendelseRepo,
-            avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,

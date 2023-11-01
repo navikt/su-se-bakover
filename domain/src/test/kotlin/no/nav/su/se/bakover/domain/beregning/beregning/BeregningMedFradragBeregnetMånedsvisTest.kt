@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import arrow.core.left
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
@@ -607,87 +608,24 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     }
 
     @Test
-    fun `merknader avkorting utenlandsopphold under 2 prosent`() {
-        BeregningFactory(clock = fixedClock).ny(
-            fradrag = listOf(
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
-                    periode = år(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
+    fun `kan ikke beregne med avkortingsfradrag`() {
+        shouldThrow<IllegalArgumentException> {
+            BeregningFactory(clock = fixedClock).ny(
+                fradrag = listOf(
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.AvkortingUtenlandsopphold,
+                        månedsbeløp = 200.0,
+                        periode = april(2021),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                    månedsbeløp = 20750.0,
-                    periode = januar(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = år(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
+                    ),
                 ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                    månedsbeløp = 20000.0,
-                    periode = februar(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = 900.0,
-                    periode = februar(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 20000.0,
-                    periode = april(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                    månedsbeløp = 900.0,
-                    periode = april(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = 200.0,
-                    periode = april(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-            beregningsperioder = listOf(
-                Beregningsperiode(
-                    periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
-                ),
-            ),
-        ).let {
-            val avkortingJanuar = it.getMånedsberegninger()[0] to listOf(
-                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
-            )
-            it.getMånedsberegninger()[0].getSumYtelse() shouldBe 196
-
-            val avkortingFebruar = it.getMånedsberegninger()[1] to listOf(
-                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
-            )
-            it.getMånedsberegninger()[1].getSumYtelse() shouldBe 46
-
-            val avkortingApril = it.getMånedsberegninger()[3] to listOf(
-                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
-            )
-            it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
-
-            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-
-            it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
-                avkortingJanuar,
-                avkortingFebruar,
-                avkortingApril,
             )
         }
     }
@@ -745,13 +683,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                    månedsbeløp = 200.0,
-                    periode = april(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
@@ -773,7 +704,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             val sosialstønadMars = it.getMånedsberegninger()[3] to listOf(
                 Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
             )
-            it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
+            it.getMånedsberegninger()[3].getSumYtelse() shouldBe 46
 
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
                 sosialstønadJanuar,

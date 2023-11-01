@@ -497,14 +497,6 @@ class RevurderingServiceImpl(
                         KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
                             KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }
-
-                        KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
-                            KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig
-                        }
-
-                        KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
-                            KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes
-                        }
                     }.left()
                 }
 
@@ -893,21 +885,16 @@ class RevurderingServiceImpl(
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
-            lagDokument = brevService::lagDokument,
-            satsFactory = satsFactory,
         ).flatMap {
             it.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                 lagreVedtak = vedtakRepo::lagreITransaksjon,
                 lagreRevurdering = revurderingRepo::lagre,
-                statistikkObservers = { observers },
                 annullerKontrollsamtale = { sakId, tx ->
                     annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
-                lagreDokument = brevService::lagreDokument,
-                lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-            ).mapLeft {
+            ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }
         }

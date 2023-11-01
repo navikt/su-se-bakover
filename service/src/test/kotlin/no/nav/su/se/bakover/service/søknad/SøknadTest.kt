@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -59,7 +58,6 @@ class SøknadTest {
         fnr = fnr,
         utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
         uteståendeKravgrunnlag = null,
     )

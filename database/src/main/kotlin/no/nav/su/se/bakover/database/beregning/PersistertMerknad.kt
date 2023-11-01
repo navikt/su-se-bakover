@@ -24,12 +24,14 @@ internal sealed class PersistertMerknad {
             value = Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats::class,
             name = "SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
+        /* Historisk verdi. Bevares for at deserialisering ikke skal feile. Forkastes. Skal ikke serialiseres. */
         JsonSubTypes.Type(
             value = Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats::class,
             name = "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
     )
     sealed class Beregning : PersistertMerknad() {
+        /** Historisk verdi. Bevares for at deserialisering ikke skal feile. Forkastes. Skal ikke serialiseres. */
         data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
         data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
         data object BeløpMellomNullOgToProsentAvHøySats : Beregning()
@@ -42,7 +44,7 @@ internal fun List<Merknad.Beregning>.toSnapshot(): List<PersistertMerknad.Beregn
 }
 
 internal fun List<PersistertMerknad.Beregning>.toDomain(): List<Merknad.Beregning> {
-    return map { it.toDomain() }
+    return mapNotNull { it.toDomain() }
 }
 
 internal fun Merknad.Beregning.toSnapshot(): PersistertMerknad.Beregning {
@@ -50,16 +52,17 @@ internal fun Merknad.Beregning.toSnapshot(): PersistertMerknad.Beregning {
         is Merknad.Beregning.Avslag.BeløpErNull -> toSnapshot()
         is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> toSnapshot()
         is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toSnapshot()
-        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toSnapshot()
     }
 }
 
-internal fun PersistertMerknad.Beregning.toDomain(): Merknad.Beregning {
+internal fun PersistertMerknad.Beregning.toDomain(): Merknad.Beregning? {
     return when (this) {
         is PersistertMerknad.Beregning.BeløpErNull -> toDomain()
         is PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toDomain()
         is PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toDomain()
-        is PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toDomain()
+        /** Disse merknadene er fjernet fra domenet. Er bevart her for deserialiseringens skyld.
+         * TODO jah: Sjekk om vi har noen av disse i produksjon, hvis ikke kan vi fjerne den helt. **/
+        is PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> null
     }
 }
 
@@ -79,11 +82,6 @@ internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvH
 }
 
 @Suppress("unused")
-internal fun Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
-    return PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
-}
-
-@Suppress("unused")
 internal fun PersistertMerknad.Beregning.BeløpErNull.toDomain(): Merknad.Beregning.Avslag.BeløpErNull {
     return Merknad.Beregning.Avslag.BeløpErNull
 }
@@ -96,9 +94,4 @@ internal fun PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.t
 @Suppress("unused")
 internal fun PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
-}
-
-@Suppress("unused")
-internal fun PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
-    return Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
 }

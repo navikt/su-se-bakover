@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
@@ -99,7 +98,4 @@ data class VedtakInnvilgetRevurdering private constructor(
             -> false
         }
     }
-
-    override fun harIdentifisertBehovForFremtidigAvkorting() =
-        behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 }

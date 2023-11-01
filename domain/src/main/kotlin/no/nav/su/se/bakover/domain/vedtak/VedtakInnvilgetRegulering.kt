@@ -80,8 +80,6 @@ data class VedtakInnvilgetRegulering private constructor(
 
     override val dokumenttilstand: Dokumenttilstand = behandling.dokumenttilstandForBrevvalg()
 
-    override fun harIdentifisertBehovForFremtidigAvkorting() = false
-
     override fun erInnvilget(): Boolean = true
     override fun erOpphør(): Boolean = false
     override fun erStans(): Boolean = false

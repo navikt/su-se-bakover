@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.left
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.april
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
-import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -211,43 +211,19 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     }
 
     @Test
-    fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting`() {
-        val januar = lagFradrag(5000.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021), Fradragstype.AvkortingUtenlandsopphold)
-        val desember = lagFradrag(5000.0, desember(2021))
-
-        val beregning =
+    fun `skal ikke kunne lage beregning som inneholder avkortingsfradrag`() {
+        // Vi må beholde avkortingsfradragene i lese-modellen vår pga historikk.
+        // Dersom vi fjerner de fra command-modellen, kan vi slette disse testene.
+        shouldThrow<IllegalArgumentException> {
             lagBeregningMedFradrag(
-                januar,
-                juni,
-                desember,
+                lagFradrag(
+                    beløp = 5000.0,
+                    periode = januar(2021),
+                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
+                ),
                 strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE),
             )
-        beregning.finnMånederMedMerknad()
-        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
-        beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
-    }
-
-    @Test
-    fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting pluss sosialstønad`() {
-        val januar = lagFradrag(5000.0, januar(2021))
-        val juniAvkorting = lagFradrag(10900.0, juni(2021), Fradragstype.AvkortingUtenlandsopphold)
-        val juniSosialstønad = lagFradrag(11000.0, juni(2021), Fradragstype.Sosialstønad)
-        val desember = lagFradrag(5000.0, desember(2021))
-
-        val beregning = lagBeregningMedFradrag(
-            januar,
-            juniAvkorting,
-            juniSosialstønad,
-            desember,
-            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE),
-        )
-
-        beregning.finnMånederMedMerknad()
-        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
-        beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+        }
     }
 
     @Test

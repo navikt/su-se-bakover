@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -51,7 +50,6 @@ internal class SakPostgresRepo(
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val klageRepo: KlageRepo,
     private val reguleringRepo: ReguleringRepo,
-    private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
@@ -372,7 +370,6 @@ internal class SakPostgresRepo(
                 utbetalinger = Utbetalinger(UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session)),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 type = Sakstype.from(string("type")),
-                uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
                 utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).currentState,
                 // Siden vi ikke har migrert SAK_OPPRETTET-hendelser, vil vi ikke alltid ha en hendelse knyttet til denne saken. Vi reserverer da den aller første hendelsesversjonen til SAK_OPPRETTET.
                 // Det betyr at etter hvert som vi migrerer sak/søknad osv. til hendelser vil versjonene kunne være out of order. En mulighet er da og bumpe alle versjoner tilsvarende med antall hendelser vi migrerer. Dette fungerer bare så lenge ingen andre tabeller/systemer har lagret hendelsesversjonene våre.

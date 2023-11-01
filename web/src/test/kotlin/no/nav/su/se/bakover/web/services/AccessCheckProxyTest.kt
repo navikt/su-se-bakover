@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -81,7 +80,6 @@ internal class AccessCheckProxyTest {
                                 fnr = fnr,
                                 utbetalinger = Utbetalinger(),
                                 type = Sakstype.UFØRE,
-                                uteståendeAvkorting = Avkortingsvarsel.Ingen,
                                 versjon = Hendelsesversjon(1),
                                 uteståendeKravgrunnlag = null,
                             ),
@@ -200,7 +198,6 @@ internal class AccessCheckProxyTest {
                             fnr = fnr,
                             utbetalinger = Utbetalinger(),
                             type = Sakstype.UFØRE,
-                            uteståendeAvkorting = Avkortingsvarsel.Ingen,
                             versjon = Hendelsesversjon(1),
                             uteståendeKravgrunnlag = null,
                         ),

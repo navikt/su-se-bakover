@@ -28,9 +28,6 @@ enum class FradragTilhører {
 fun List<Fradrag>.utenSosialstønad(): List<Fradrag> =
     filterNot { it.fradragstype == Fradragstype.Sosialstønad }
 
-fun List<Fradrag>.utenAvkorting(): List<Fradrag> =
-    filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-
 fun List<Fradrag>.sum(type: Fradragstype): Double {
     return filter { it.fradragstype == type }.sumOf { it.månedsbeløp }
 }

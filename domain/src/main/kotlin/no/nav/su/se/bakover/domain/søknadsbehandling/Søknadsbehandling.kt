@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
@@ -28,7 +27,6 @@ sealed interface Søknadsbehandling :
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
     override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     override val attesteringer: Attesteringshistorikk
-    val avkorting: AvkortingVedSøknadsbehandling
 
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 

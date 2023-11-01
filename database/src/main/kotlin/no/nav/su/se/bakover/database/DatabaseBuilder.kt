@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
 import no.nav.su.se.bakover.common.infrastructure.persistence.SessionCounter
-import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -164,7 +163,6 @@ data object DatabaseBuilder {
             queryParameterMappers = queryParameterMappers,
         )
 
-        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory, dbMetrics)
         val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             dbMetrics = dbMetrics,
             bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
@@ -217,7 +215,6 @@ data object DatabaseBuilder {
             sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             dbMetrics = dbMetrics,
-            avkortingsvarselRepo = avkortingsvarselRepo,
             eksterneGrunnlag = EksternGrunnlagPostgresRepo(skattRepo = SkattPostgresRepo),
             satsFactory = satsFactory,
         )
@@ -239,7 +236,6 @@ data object DatabaseBuilder {
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
-            avkortingsvarselRepo = avkortingsvarselRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             satsFactory = satsFactory,
         )
@@ -307,7 +303,6 @@ data object DatabaseBuilder {
                 vedtakPostgresRepo = vedtakRepo,
                 klageRepo = klageRepo,
                 reguleringRepo = reguleringRepo,
-                avkortingsvarselRepo = avkortingsvarselRepo,
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
                 tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
@@ -323,7 +318,6 @@ data object DatabaseBuilder {
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
             klageinstanshendelseRepo = klageinstanshendelseRepo,
-            avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.revurderingTilAttestering
-import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertMånedFeilutbetalingVedOpphør
 import org.junit.jupiter.api.Test
@@ -40,7 +39,6 @@ class IverksettRevurderingTest {
             revurderingId = revurdering.id,
             attestant = attestant,
             clock = clock,
-            satsFactory = satsFactoryTest.gjeldende(clock),
             simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, _: Periode ->
                 // Denne vil kjøres 2 ganger, en for april-mai og en for april-desember.
                 val aprilFraFørsteSimulering = simulering.måneder.first()
@@ -60,7 +58,6 @@ class IverksettRevurderingTest {
                     utbetalingForSimulering = utbetalingForSimulering,
                 ).right()
             },
-            lagDokument = { throw IllegalStateException("Bør feile før dokument lages") },
         ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(
             SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(
                 KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling,

@@ -170,9 +170,4 @@ internal fun StøtterIkkeOverlappendeStønadsperioder.tilResultat() = when (this
         message = "Kan ikke overlappe med tidligere utbetalte stønadsperioder eller ikke-opphørte stønadsperioder.",
         code = "overlappende_stønadsperiode",
     )
-
-    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> HttpStatusCode.BadRequest.errorJson(
-        message = "Kan ikke overlappe med stønadsmåned som har blitt opphørt og ført til avkortingsvarsel.",
-        code = "overlappende_stønadsperiode",
-    )
 }

@@ -41,7 +41,6 @@ internal class ServiceBuilderTest {
                 sessionFactory = mock<PostgresSessionFactory>(),
                 klageRepo = mock(),
                 klageinstanshendelseRepo = mock(),
-                avkortingsvarselRepo = mock(),
                 reguleringRepo = defaultMock(),
                 tilbakekrevingRepo = mock(),
                 sendPåminnelseNyStønadsperiodeJobRepo = mock(),

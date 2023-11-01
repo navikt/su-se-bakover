@@ -7,7 +7,6 @@ import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.brev.beregning.harAvkorting
 import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 
@@ -26,10 +25,6 @@ data class RevurderingAvInntektPdfInnhold(
     @Suppress("unused")
     @JsonInclude
     val harFradrag: Boolean = beregningsperioder.harFradrag()
-
-    @Suppress("unused")
-    @JsonInclude
-    val harAvkorting: Boolean = beregningsperioder.harAvkorting()
 
     companion object {
         fun fromBrevCommand(

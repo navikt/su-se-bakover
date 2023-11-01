@@ -24,9 +24,6 @@ import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.attestering.toDatabaseJson
-import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
-import no.nav.su.se.bakover.database.avkorting.fromAvkortingDbJson
-import no.nav.su.se.bakover.database.avkorting.toDbJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.IdReferanser
@@ -38,7 +35,6 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
@@ -75,7 +71,6 @@ internal data class BaseSøknadsbehandlingDb(
     val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     val eksterneGrunnlag: EksterneGrunnlag,
     val attesteringer: Attesteringshistorikk,
-    val avkorting: AvkortingVedSøknadsbehandling?,
     val sakstype: Sakstype,
     val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String,
@@ -100,7 +95,6 @@ internal class SøknadsbehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
-    private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
     private val eksterneGrunnlag: EksternGrunnlagPostgresRepo,
 ) : SøknadsbehandlingRepo {
@@ -135,7 +129,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert(),
                 eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = null,
                 sakstype = this.sakstype,
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = saksbehandler.navIdent,
@@ -310,7 +303,6 @@ internal class SøknadsbehandlingPostgresRepo(
             vilkårsvurderinger = this.vilkårsvurderinger,
             eksterneGrunnlag = this.eksterneGrunnlag,
             attesteringer = this.attesteringer,
-            avkorting = this.avkorting,
             sakstype = this.sakstype,
             status = this.status(),
             saksbehandler = this.saksbehandler.toString(),
@@ -352,7 +344,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         stønadsperiode,
                         oppgaveId,
                         attestering,
-                        avkorting,
                         fritekstTilBrev,
                         saksbehandler,
                         beregning,
@@ -371,7 +362,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         to_json(:stonadsperiode::json),
                         :oppgaveId,
                         to_json(:attestering::json),
-                        to_json(:avkorting::json),
                         :fritekstTilBrev,
                         :saksbehandler,
                         to_json(:beregning::json),
@@ -387,7 +377,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json),
                         saksbehandling = to_json(:saksbehandling::json),
-                        avkorting = to_json(:avkorting::json),
                         fritekstTilBrev = :fritekstTilBrev,
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
@@ -407,7 +396,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
                 "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
                 "attestering" to søknadsbehandling.base.attesteringer.toDatabaseJson(),
-                "avkorting" to søknadsbehandling.base.avkorting?.toDbJson(),
                 "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
                 "saksbehandler" to søknadsbehandling.base.saksbehandler,
                 "beregning" to søknadsbehandling.beregning,
@@ -459,13 +447,6 @@ internal class SøknadsbehandlingPostgresRepo(
             grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
             tx = tx,
         )
-
-        if (søknadsbehandling.base.avkorting is AvkortingVedSøknadsbehandling.Avkortet) {
-            avkortingsvarselRepo.lagre(
-                avkortingsvarsel = søknadsbehandling.base.avkorting.avkortingsvarsel,
-                tx = tx,
-            )
-        }
     }
 
     override fun hent(id: UUID): Søknadsbehandling? {
@@ -561,9 +542,6 @@ internal class SøknadsbehandlingPostgresRepo(
             sakstype = Sakstype.from(string("type")),
             eksterneGrunnlag = eksterneGrunnlag,
         )
-
-        val avkorting = { fromAvkortingDbJson(stringOrNull("avkorting")) ?: AvkortingVedSøknadsbehandling.IngenAvkorting }
-
         fun uavklart(): VilkårsvurdertSøknadsbehandling.Uavklart = VilkårsvurdertSøknadsbehandling.Uavklart(
             id = behandlingId,
             opprettet = opprettet,
@@ -623,7 +601,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -661,7 +638,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -682,7 +658,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
             )
 
@@ -739,7 +714,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
             )
 
@@ -797,7 +771,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                    avkorting = avkorting() as AvkortingVedSøknadsbehandling.Ferdig,
                     sakstype = sakstype,
                 )
             }

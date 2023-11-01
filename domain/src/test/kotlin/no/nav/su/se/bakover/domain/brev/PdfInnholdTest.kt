@@ -127,7 +127,6 @@ internal class PdfInnholdTest {
                 "attestantNavn": "Hopp",
                 "fritekst": "",
                 "erAldersbrev": false,
-                "harAvkorting": false,
                 "satsoversikt": {
                   "perioder": [
                     {
@@ -200,7 +199,6 @@ internal class PdfInnholdTest {
                 fraOgMed = "01.01.2020",
                 tilOgMed = "31.12.2020",
             ),
-            avkortingsBeløp = null,
             satsoversikt = Satsoversikt(
                 perioder = listOf(
                     Satsoversikt.Satsperiode(
@@ -256,8 +254,6 @@ internal class PdfInnholdTest {
                   "fraOgMed": "01.01.2020",
                   "tilOgMed": "31.12.2020"
                 },
-                "avkortingsBeløp": null,
-                "harAvkorting": false,
                 "satsoversikt": {
                   "perioder": [
                     {

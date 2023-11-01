@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
-import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprettet
@@ -51,7 +50,6 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
@@ -60,8 +58,6 @@ import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -195,85 +191,6 @@ internal class OppdaterStønadsperiodeTest {
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
             ).left()
-        }
-    }
-
-    @Test
-    fun `stønadsperioder skal ikke kunne overlappe med perioder som førte til avkorting`() {
-        val tikkendeKlokke = TikkendeKlokke()
-
-        val (sakMedSøknadVedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            clock = tikkendeKlokke,
-        )
-        val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val (sakMedRevurderingOgSøknadVedtak, _) = vedtakRevurdering(
-            clock = tikkendeKlokke,
-            revurderingsperiode = revurderingsperiode,
-            sakOgVedtakSomKanRevurderes = sakMedSøknadVedtak to søknadsbehandlingVedtak,
-            vilkårOverrides = listOf(
-                utenlandsoppholdAvslag(
-                    periode = revurderingsperiode,
-                ),
-            ),
-            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
-        )
-
-        val nyPeriode = år(2022)
-        val nyStønadsperiode = Stønadsperiode.create(nyPeriode)
-        val (_, nySøknadsbehandling) = nySøknadsbehandlingMedStønadsperiode(
-            clock = tikkendeKlokke,
-            stønadsperiode = nyStønadsperiode,
-            sakOgSøknad = sakMedRevurderingOgSøknadVedtak to nySøknadJournalførtMedOppgave(
-                sakId = sakMedRevurderingOgSøknadVedtak.id,
-                fnr = sakMedRevurderingOgSøknadVedtak.fnr,
-            ),
-        )
-
-        val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(
-            vilkår = tilstrekkeligDokumentert(periode = nyPeriode),
-            saksbehandler = saksbehandler,
-        ).getOrFail() as VilkårsvurdertSøknadsbehandling.Uavklart
-
-        sakMedRevurderingOgSøknadVedtak.nySøknadsbehandling(nySøknadsbehandling).let { sak ->
-            listOf(
-                1.mai(2021),
-                1.juni(2021),
-            ).map {
-                Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
-            }.forEach { stønadsperiode ->
-                sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
-                    stønadsperiode = stønadsperiode,
-                    clock = tikkendeKlokke,
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-                    saksbehandler = saksbehandler,
-                    hentPerson = { person().right() },
-                    saksbehandlersAvgjørelse = null,
-                ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
-                    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold,
-                ).left()
-            }
-
-            listOf(
-                1.juli(2021),
-                1.august(2021),
-                1.september(2021),
-                1.oktober(2021),
-                1.november(2021),
-                1.desember(2021),
-            ).map {
-                Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
-            }.forEach { stønadsperiode ->
-                sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
-                    stønadsperiode = stønadsperiode,
-                    clock = tikkendeKlokke,
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-                    saksbehandler = saksbehandler,
-                    hentPerson = { person().right() },
-                    saksbehandlersAvgjørelse = null,
-                ).getOrFail().second
-            }
         }
     }
 

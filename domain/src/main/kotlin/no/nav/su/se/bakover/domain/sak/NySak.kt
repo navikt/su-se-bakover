@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -31,7 +30,6 @@ data class NySak(
             utbetalinger = Utbetalinger(),
             vedtakListe = emptyList(),
             type = søknad.type,
-            uteståendeAvkorting = Avkortingsvarsel.Ingen,
             versjon = versjon,
             uteståendeKravgrunnlag = null,
         )

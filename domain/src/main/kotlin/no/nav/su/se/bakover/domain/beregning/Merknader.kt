@@ -22,7 +22,7 @@ sealed class Merknader {
         }
 
         private fun gyldigKombinasjon(): Boolean {
-            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent() && !harAvkortingFørerTilBeløpUnderToProsent()
+            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent()
         }
 
         private fun harBeløpErNull() =
@@ -33,9 +33,6 @@ sealed class Merknader {
 
         private fun harSosialstønadFørerTilBeløpUnderToProsent() =
             merknader.any { it is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats }
-
-        private fun harAvkortingFørerTilBeløpUnderToProsent() =
-            merknader.any { it is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats }
 
         override fun equals(other: Any?): Boolean {
             return other is Beregningsmerknad && merknader == other.merknader
@@ -65,11 +62,6 @@ sealed class Merknad {
              */
             data object BeløpErNull : Avslag()
         }
-
-        /**
-         * Beregnet beløp for en måned er lavere enn 2% av [Satskategori.Høy] som følge av avkorting.
-         */
-        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
 
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Satskategori.Høy] som følge av sosialstønad.

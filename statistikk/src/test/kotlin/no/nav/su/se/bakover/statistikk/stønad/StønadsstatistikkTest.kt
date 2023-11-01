@@ -177,7 +177,7 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:03:45.456789Z",
+            funksjonellTid = "2021-01-01T01:03:44.456789Z",
         )
     }
 

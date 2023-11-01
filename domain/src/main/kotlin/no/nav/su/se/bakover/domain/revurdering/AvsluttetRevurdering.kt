@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -50,24 +49,6 @@ data class AvsluttetRevurdering private constructor(
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
-
-    override val avkorting: AvkortingVedRevurdering = when (val avkorting = underliggendeRevurdering.avkorting) {
-        is AvkortingVedRevurdering.DelvisHåndtert -> {
-            avkorting.kanIkke()
-        }
-
-        is AvkortingVedRevurdering.Håndtert -> {
-            avkorting.kanIkke()
-        }
-
-        is AvkortingVedRevurdering.Iverksatt -> {
-            throw IllegalStateException("Kan ikke avslutte iverksatt")
-        }
-
-        is AvkortingVedRevurdering.Uhåndtert -> {
-            avkorting.kanIkke()
-        }
-    }
 
     override fun skalTilbakekreve() = false
 

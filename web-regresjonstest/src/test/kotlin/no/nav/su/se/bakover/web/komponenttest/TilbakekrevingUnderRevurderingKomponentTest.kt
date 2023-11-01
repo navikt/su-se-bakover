@@ -154,7 +154,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 		<kodeHjemmel>SUL_13</kodeHjemmel>
 		<renterBeregnes>N</renterBeregnes>
 		<enhetAnsvarlig>8020</enhetAnsvarlig>
-		<kontrollfelt>2021-02-01-01.02.53.000000</kontrollfelt>
+		<kontrollfelt>2021-02-01-01.02.52.000000</kontrollfelt>
 		<saksbehId>K231B433</saksbehId>
 		<tilbakekrevingsperiode>
 			<periode>
@@ -264,7 +264,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 		<kodeHjemmel>SUL_13</kodeHjemmel>
 		<renterBeregnes>N</renterBeregnes>
 		<enhetAnsvarlig>8020</enhetAnsvarlig>
-		<kontrollfelt>2021-02-01-01.02.53.000000</kontrollfelt>
+		<kontrollfelt>2021-02-01-01.02.52.000000</kontrollfelt>
 		<saksbehId>K231B433</saksbehId>
 		<tilbakekrevingsperiode>
 			<periode>
