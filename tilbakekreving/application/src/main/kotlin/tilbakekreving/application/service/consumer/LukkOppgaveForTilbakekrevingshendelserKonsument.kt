@@ -3,6 +3,8 @@ package tilbakekreving.application.service.consumer
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
@@ -18,6 +20,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -126,30 +129,31 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHendelse> {
-        return oppgaveService.lukkOppgave(tidligereOppgaveHendelse.oppgaveId)
-            .mapLeft {
-                when (it.erOppgaveFerdigstilt()) {
-                    /*
-                    return OppgaveHendelse.lukket(
-                        hendelseId = HendelseId.generer(),
-                        hendelsestidspunkt = Tidspunkt.now(clock),
-                        oppgaveId = tidligereOppgaveHendelse.oppgaveId,
-                        versjon = nesteVersjon,
-                        sakId = sakInfo.sakId,
-                        relaterteHendelser = listOf(relaterteHendelse),
-                        meta = DefaultHendelseMetadata.fraCorrelationId(correlationId = correlationId),
-                        tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
-                        beskrivelse = "",
-                        oppgavetype =,
-
-                    ).right()
-                     */
-                    true -> TODO()
-                    false -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave
+        return oppgaveService.lukkOppgave(tidligereOppgaveHendelse.oppgaveId).fold(
+            {
+                when (it) {
+                    is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
+                    is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvToken -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
+                    is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave -> when (
+                        val ko =
+                            it.originalFeil
+                    ) {
+                        is KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
+                        is KunneIkkeOppdatereOppgave.FeilVedHentingAvToken -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
+                        is KunneIkkeOppdatereOppgave.FeilVedRequest -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
+                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> toManueltLukketHendelse(
+                            tidligereOppgaveHendelse,
+                            nesteVersjon,
+                            sakInfo,
+                            relaterteHendelse,
+                            correlationId,
+                            ko,
+                        ).right()
+                    }
                 }
-            }
-            .map {
-                OppgaveHendelse.lukket(
+            },
+            {
+                OppgaveHendelse.Lukket.Maskinelt(
                     hendelseId = HendelseId.generer(),
                     hendelsestidspunkt = Tidspunkt.now(clock),
                     oppgaveId = tidligereOppgaveHendelse.oppgaveId,
@@ -160,13 +164,38 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
-                        requestBody = it.requestBody,
+                        request = it.requestBody,
                         response = it.response,
                     ),
-                    tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
                     beskrivelse = it.beskrivelse,
-                    oppgavetype = it.oppgavetype,
-                )
-            }
+                    tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                ).right()
+            },
+        )
     }
+
+    private fun toManueltLukketHendelse(
+        tidligereOppgaveHendelse: OppgaveHendelse,
+        nesteVersjon: Hendelsesversjon,
+        sakInfo: SakInfo,
+        relaterteHendelse: HendelseId,
+        correlationId: CorrelationId,
+        ko: KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt,
+    ) = OppgaveHendelse.Lukket.Manuelt(
+        hendelseId = HendelseId.generer(),
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        oppgaveId = tidligereOppgaveHendelse.oppgaveId,
+        versjon = nesteVersjon,
+        sakId = sakInfo.sakId,
+        relaterteHendelser = listOf(relaterteHendelse),
+        meta = OppgaveHendelseMetadata(
+            correlationId = correlationId,
+            ident = null,
+            brukerroller = listOf(),
+            request = null,
+            response = null,
+        ),
+        tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+        ferdigstiltAv = ko.ferdigstiltAv,
+    )
 }

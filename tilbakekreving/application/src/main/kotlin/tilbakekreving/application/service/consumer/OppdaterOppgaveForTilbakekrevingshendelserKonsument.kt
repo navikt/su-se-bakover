@@ -150,7 +150,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         )
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave }
             .map {
-                OppgaveHendelse.oppdatert(
+                OppgaveHendelse.Oppdatert(
                     hendelseId = HendelseId.generer(),
                     hendelsestidspunkt = Tidspunkt.now(clock),
                     oppgaveId = tidligereOppgaveHendelse.oppgaveId,
@@ -161,7 +161,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
-                        requestBody = it.requestBody,
+                        request = it.requestBody,
                         response = it.response,
                     ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,

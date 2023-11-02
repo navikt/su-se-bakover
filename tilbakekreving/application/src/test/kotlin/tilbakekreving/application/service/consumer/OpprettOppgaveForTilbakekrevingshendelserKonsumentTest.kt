@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySakUføre
@@ -102,7 +101,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         )
         verify(mockedServices.oppgaveHendelseRepo).lagre(
             argThat {
-                it shouldBe OppgaveHendelse.opprettet(
+                it shouldBe OppgaveHendelse.Opprettet(
                     hendelseId = it.hendelseId,
                     hendelsestidspunkt = it.hendelsestidspunkt,
                     oppgaveId = OppgaveId("123"),
@@ -113,7 +112,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                         correlationId = CorrelationId("Correlation-id"),
                         ident = null,
                         brukerroller = listOf(),
-                        requestBody = "requestbody",
+                        request = "requestbody",
                         response = "response",
                     ),
                     beskrivelse = "beskrivelse",

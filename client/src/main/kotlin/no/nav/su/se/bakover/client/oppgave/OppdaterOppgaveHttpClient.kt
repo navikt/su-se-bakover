@@ -10,11 +10,13 @@ import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -53,7 +55,10 @@ internal class OppdaterOppgaveHttpClient(
         }.flatMap {
             if (it.erFerdigstilt()) {
                 log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
-                KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt.left()
+                KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt(
+                    ferdigstiltTidspunkt = it.ferdigstiltTidspunkt!!.toTidspunkt(),
+                    ferdigstiltAv = NavIdentBruker.Saksbehandler(it.endretAv!!),
+                ).left()
             } else {
                 endreOppgave(it, token, data)
             }

@@ -164,7 +164,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
                 return
             }
 
-        val opprettetOppgaveHendelse = OppgaveHendelse.opprettet(
+        val opprettetOppgaveHendelse = OppgaveHendelse.Opprettet(
             hendelseId = HendelseId.generer(),
             sakId = sakInfo.sakId,
             versjon = nesteHendelsesversjon,
@@ -174,7 +174,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
                 correlationId = correlationId,
                 ident = null,
                 brukerroller = listOf(),
-                requestBody = oppgaveResponse.requestBody,
+                request = oppgaveResponse.requestBody,
                 response = oppgaveResponse.response,
             ),
             relaterteHendelser = hendelserSomManglerOppgaver,

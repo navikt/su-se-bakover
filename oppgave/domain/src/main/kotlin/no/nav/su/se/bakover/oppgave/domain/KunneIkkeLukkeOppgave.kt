@@ -12,17 +12,4 @@ sealed interface KunneIkkeLukkeOppgave {
     ) : KunneIkkeLukkeOppgave
 
     data class FeilVedHentingAvToken(override val oppgaveId: OppgaveId) : KunneIkkeLukkeOppgave
-
-    fun erOppgaveFerdigstilt(): Boolean {
-        return when (this) {
-            is FeilVedHentingAvOppgave -> false
-            is FeilVedHentingAvToken -> false
-            is FeilVedOppdateringAvOppgave -> when (this.originalFeil) {
-                KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave -> false
-                KunneIkkeOppdatereOppgave.FeilVedHentingAvToken -> false
-                KunneIkkeOppdatereOppgave.FeilVedRequest -> false
-                KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> true
-            }
-        }
-    }
 }

@@ -216,7 +216,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         )
         verify(oppgaveHendelseRepo).lagre(
             argThat {
-                it shouldBe OppgaveHendelse.opprettet(
+                it shouldBe OppgaveHendelse.Opprettet(
                     hendelseId = it.hendelseId,
                     sakId = sak.id,
                     versjon = Hendelsesversjon(value = 3),
@@ -226,7 +226,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
-                        requestBody = "requestbody",
+                        request = "requestbody",
                         response = "response",
                     ),
                     beskrivelse = "beskrivelse",

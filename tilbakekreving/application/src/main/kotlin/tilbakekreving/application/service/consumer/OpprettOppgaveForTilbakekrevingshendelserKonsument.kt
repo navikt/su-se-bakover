@@ -107,7 +107,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
             return KunneIkkeOppretteOppgave.FeilVedOpprettelseAvOppgave.left()
         }
 
-        return OppgaveHendelse.opprettet(
+        return OppgaveHendelse.Opprettet(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             oppgaveId = oppgaveResponse.oppgaveId,
@@ -118,7 +118,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 correlationId = correlationId,
                 ident = null,
                 brukerroller = listOf(),
-                requestBody = oppgaveResponse.requestBody,
+                request = oppgaveResponse.requestBody,
                 response = oppgaveResponse.response,
             ),
             beskrivelse = oppgaveResponse.beskrivelse,

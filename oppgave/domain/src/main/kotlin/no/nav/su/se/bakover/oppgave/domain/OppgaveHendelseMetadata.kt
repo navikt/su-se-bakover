@@ -9,6 +9,6 @@ data class OppgaveHendelseMetadata(
     override val correlationId: CorrelationId?,
     override val ident: NavIdentBruker?,
     override val brukerroller: List<Brukerrolle>,
-    val requestBody: String?,
+    val request: String?,
     val response: String?,
 ) : HendelseMetadata

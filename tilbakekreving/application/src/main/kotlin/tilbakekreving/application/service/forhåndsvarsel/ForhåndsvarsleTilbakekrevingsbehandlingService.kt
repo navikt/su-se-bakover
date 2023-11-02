@@ -78,7 +78,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     tilbakekrevingsbehandlingRepo.lagre(forhåndsvarsletHendelse, it)
                 }
             }.map {
-                val oppgaveHendelse = OppgaveHendelse.oppdatert(
+                val oppgaveHendelse = OppgaveHendelse.Oppdatert(
                     hendelsestidspunkt = Tidspunkt.now(clock),
                     oppgaveId = oppgaveId,
                     versjon = sak.versjon.inc(3),
@@ -88,7 +88,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                         correlationId = null,
                         ident = null,
                         brukerroller = listOf(),
-                        requestBody = it.requestBody,
+                        request = it.requestBody,
                         response = it.response,
                     ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,

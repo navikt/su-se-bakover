@@ -20,13 +20,13 @@ fun nyOppgaveHendelse(
         correlationId = correlationId(),
         ident = null,
         brukerroller = listOf(),
-        requestBody = "requestBody - OppgaveHendelseTestData.kt",
+        request = "requestBody - OppgaveHendelseTestData.kt",
         response = "response - OppgaveHendelseTestData.kt",
     ),
     oppgavetype: Oppgavetype = Oppgavetype.BEHANDLE_SAK,
     beskrivelse: String = "OppgaveHendelseTestData.kt",
 ): OppgaveHendelse {
-    return OppgaveHendelse.opprettet(
+    return OppgaveHendelse.Opprettet(
         hendelseId = hendelseId,
         sakId = sakId,
         versjon = nesteVersjon,
