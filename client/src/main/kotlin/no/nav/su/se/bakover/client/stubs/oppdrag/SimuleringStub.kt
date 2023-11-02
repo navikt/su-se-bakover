@@ -413,7 +413,7 @@ private fun createOrdinær(
     sakstype: Sakstype,
     uføregrad: Int,
 ): SimulertDetaljer {
-    // F.eks. ved ny stønadsperiode med avkorting vil vi sende måneder med 0. I teorien kunne vi skippet sende disse.
+    // Vi kan få 0-måneder f.eks. pga. sosialstønad.
     require(beløp >= 0) { "For SimuleringStub, opererer vi med større eller lik 0; det vi har sendt til oppdrag" }
     return SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,

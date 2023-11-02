@@ -3,12 +3,10 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -153,61 +151,41 @@ internal class GjeldendeVedtaksdataTest {
     }
 
     @Test
-    fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
-        val (sak, _) = vedtakRevurdering(
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
-            revurderingsperiode = år(2021),
-            vilkårOverrides = listOf(
-                utenlandsoppholdAvslag(
-                    periode = år(2021),
-                ),
-            ),
-            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
-        )
-
-        GjeldendeVedtaksdata(
-            periode = år(2021),
-            vedtakListe = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().toNonEmptyList(),
-            clock = fixedClock,
-        ).let {
-            it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
-            it.pågåendeAvkortingEllerBehovForFremtidigAvkorting shouldBe true
-        }
-    }
-
-    @Test
     fun `gjeldendeVedtakMånedsvis - mapper riktig med hull`() {
         val revurderingsperiode = januar(2021)..februar(2021)
+        // Dete vil trigge feilutbetaling for januar.
         val clock = TikkendeKlokke(1.februar(2021).fixedClock())
-        val (sak, revurderingsvedtak) = vedtakRevurdering(
+        val (sakMedRevurderingsvedtak, revurderingsvedtak) = vedtakRevurdering(
             clock = clock,
             revurderingsperiode = revurderingsperiode,
             stønadsperiode = Stønadsperiode.create(januar(2021)..april(2021)),
             vilkårOverrides = listOf(
+                // Merk at dette skal nå gi et vanlig opphør med tilbakekreving (siden vi har fjernet avkorting)
                 utenlandsoppholdAvslag(
                     periode = revurderingsperiode,
                 ),
             ),
+            skalUtsetteTilbakekreving = true,
         )
-        val søknadsbehandlingsvedtak1 =
-            sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling
-        val (oppdatertSak, _, nyttSøknadsbehandlingsvedtak) = iverksattSøknadsbehandling(
+        val førsteSøknadsbehandlingsvedtak =
+            sakMedRevurderingsvedtak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling
+        val (sakMedAndreSøknadsbehandlingsvedtak, _, andreSøknadsbehandlingsvedtak) = iverksattSøknadsbehandling(
             // Hopper over mai for å lage et hull
             stønadsperiode = Stønadsperiode.create(juni(2021)),
-            sakOgSøknad = sak to nySøknadJournalførtMedOppgave(sakId = sak.id, fnr = sak.fnr, clock = clock),
+            sakOgSøknad = sakMedRevurderingsvedtak to nySøknadJournalførtMedOppgave(sakId = sakMedRevurderingsvedtak.id, fnr = sakMedRevurderingsvedtak.fnr, clock = clock),
             clock = clock,
         )
         GjeldendeVedtaksdata(
             periode = år(2021),
-            vedtakListe = oppdatertSak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().toNonEmptyList(),
+            vedtakListe = sakMedAndreSøknadsbehandlingsvedtak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().toNonEmptyList(),
             clock = clock,
         ).let {
             it.gjeldendeVedtakMånedsvisMedPotensielleHull() shouldBe mapOf(
                 januar(2021) to revurderingsvedtak,
                 februar(2021) to revurderingsvedtak,
-                mars(2021) to søknadsbehandlingsvedtak1,
-                april(2021) to søknadsbehandlingsvedtak1,
-                juni(2021) to nyttSøknadsbehandlingsvedtak,
+                mars(2021) to førsteSøknadsbehandlingsvedtak,
+                april(2021) to førsteSøknadsbehandlingsvedtak,
+                juni(2021) to andreSøknadsbehandlingsvedtak,
             )
         }
     }

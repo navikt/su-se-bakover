@@ -15,8 +15,6 @@ import java.util.UUID
 
 /**
  * Et opphørsvedtak der vi har sendt linjer til oppdrag.
- * Kan være delvis avkortet.
- * Dersom perioden er avkortet i sin helhet, se [VedtakOpphørAvkorting].
  */
 data class VedtakOpphørMedUtbetaling private constructor(
     override val id: UUID,
@@ -26,7 +24,7 @@ data class VedtakOpphørMedUtbetaling private constructor(
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
     override val beregning: Beregning,
-    /** Perioden på simuleringen vil kun være de månedene vi skal lage utbetalingslinjer for. S*/
+    /** Perioden på simuleringen vil kun være de månedene vi skal lage utbetalingslinjer for. */
     override val simulering: Simulering,
     override val utbetalingId: UUID30,
     override val dokumenttilstand: Dokumenttilstand,

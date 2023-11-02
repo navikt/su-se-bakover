@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
@@ -89,7 +88,6 @@ internal class SakTest {
                 utbetalinger = Utbetalinger(),
                 vedtakListe = listOf(),
                 type = Sakstype.UFØRE,
-                uteståendeAvkorting = Avkortingsvarsel.Ingen,
                 versjon = Hendelsesversjon(1),
                 uteståendeKravgrunnlag = null,
             ).hentIkkeOpphørtePerioder() shouldBe emptyList()

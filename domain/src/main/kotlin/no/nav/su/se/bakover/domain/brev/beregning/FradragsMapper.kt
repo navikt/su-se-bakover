@@ -60,6 +60,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         is Fradragstype.Annet -> "Annet"
         Fradragstype.Arbeidsavklaringspenger -> "Arbeidsavklaringspenger"
         Fradragstype.Arbeidsinntekt -> "Arbeidsinntekt"
+        // jah: Selvom avkorting er historisk, har vi 4 innvilget søknadsbehandlinger med avkortingsfradrag vi må støtte.
         Fradragstype.AvkortingUtenlandsopphold -> "Avkorting på grunn av tidligere utenlandsopphold"
         Fradragstype.AvtalefestetPensjon -> "Avtalefestet pensjon (AFP)"
         Fradragstype.AvtalefestetPensjonPrivat -> "Avtalefestet pensjon privat (AFP)"

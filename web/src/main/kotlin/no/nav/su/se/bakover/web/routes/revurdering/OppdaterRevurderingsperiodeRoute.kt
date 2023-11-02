@@ -93,10 +93,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
             Feilresponser.ugyldigTilstand(this.fra, this.til)
         }
 
-        is KunneIkkeOppdatereRevurdering.Avkorting -> {
-            this.underliggende.tilResultat()
-        }
-
         is KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes -> {
             this.underliggende.tilResultat()
         }

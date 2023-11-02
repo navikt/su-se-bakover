@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -38,7 +37,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
@@ -58,7 +56,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        override val avkorting: AvkortingVedSøknadsbehandling.Ferdig,
         override val sakstype: Sakstype,
     ) : IverksattSøknadsbehandling, KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -76,10 +73,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     }
 
     sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
-
-        /** Ingenting og avkorte ved avslag. */
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
-
         data class MedBeregning(
             override val id: UUID,
             override val opprettet: Tidspunkt,

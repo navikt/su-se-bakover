@@ -57,8 +57,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -455,7 +455,7 @@ internal class VedtakPostgresRepo(
                         dokumenttilstand = dokumenttilstand,
                     )
                 } else {
-                    VedtakOpphørAvkorting.createFromPersistence(
+                    VedtakOpphørUtenUtbetaling.createFromPersistence(
                         id = id,
                         opprettet = opprettet,
                         behandling = behandling as IverksattRevurdering.Opphørt,

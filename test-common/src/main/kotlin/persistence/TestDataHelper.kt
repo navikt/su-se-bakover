@@ -206,7 +206,6 @@ class TestDataHelper(
         råttKravgrunnlagMapper = råttKravgrunnlagMapper,
     )
     val avstemmingRepo = databaseRepos.avstemming
-    val avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
     val dokumentRepo = databaseRepos.dokumentRepo
     val sakRepo = databaseRepos.sak
     val vedtakRepo = databaseRepos.vedtakRepo

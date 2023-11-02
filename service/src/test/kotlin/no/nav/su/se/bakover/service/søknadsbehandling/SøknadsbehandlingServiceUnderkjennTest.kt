@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
@@ -328,7 +327,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             aldersvurdering = innvilgetBehandlingTilAttestering.aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger = innvilgetBehandlingTilAttestering.grunnlagsdataOgVilkårsvurderinger,
-            avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )
@@ -420,7 +418,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             aldersvurdering = innvilgetBehandlingTilAttestering.aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger = innvilgetBehandlingTilAttestering.grunnlagsdataOgVilkårsvurderinger,
-            avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )

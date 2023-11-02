@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -41,17 +40,6 @@ data class LukketSøknadsbehandling private constructor(
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode get() = underliggendeSøknadsbehandling.periode
 
-    /**
-     * Avkorting er ikke relevant for en lukket søknadsbehandling.
-     */
-    override val avkorting: AvkortingVedSøknadsbehandling =
-        when (val avkorting = underliggendeSøknadsbehandling.avkorting) {
-            is AvkortingVedSøknadsbehandling.Avkortet -> throw IllegalStateException("AvkortingVedSøknadsbehandling.Vurdert.Ferdigvurdert.Avkortet skal ikke kunne eksistere i en LukketSøknadsbehandling for søknadsbehandlingsid ${this.id}.")
-            is AvkortingVedSøknadsbehandling.IkkeVurdert,
-            is AvkortingVedSøknadsbehandling.IngenAvkorting,
-            is AvkortingVedSøknadsbehandling.SkalAvkortes,
-            -> AvkortingVedSøknadsbehandling.IngenAvkorting
-        }
     override val sakstype: Sakstype = underliggendeSøknadsbehandling.sakstype
 
     /**

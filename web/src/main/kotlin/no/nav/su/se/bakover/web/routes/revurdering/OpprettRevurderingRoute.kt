@@ -81,6 +81,5 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.FantIkkeAktørId -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-        is KunneIkkeOppretteRevurdering.Avkorting -> this.underliggende.tilResultat()
     }
 }

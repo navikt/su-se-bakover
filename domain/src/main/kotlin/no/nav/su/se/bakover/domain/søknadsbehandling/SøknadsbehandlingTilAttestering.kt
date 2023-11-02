@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -38,7 +37,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
 
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val attesteringer: Attesteringshistorikk
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
@@ -59,7 +57,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
-        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     ) : SøknadsbehandlingTilAttestering, KanGenerereInnvilgelsesbrev {
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -99,7 +96,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                avkorting = avkorting,
                 sakstype = sakstype,
             ).right()
         }
@@ -122,10 +118,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
-                avkorting = when (avkorting) {
-                    is AvkortingVedSøknadsbehandling.IngenAvkorting -> avkorting
-                    is AvkortingVedSøknadsbehandling.SkalAvkortes -> avkorting.avkort(id)
-                },
                 sakstype = sakstype,
             )
         }
@@ -134,9 +126,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
     sealed interface Avslag : SøknadsbehandlingTilAttestering, ErAvslag, KanGenerereAvslagsbrev {
         override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
-
-        /** Ingenting og avkorte ved avslag. */
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {

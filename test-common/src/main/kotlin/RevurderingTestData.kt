@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Tuple4
-import arrow.core.right
-import dokument.domain.Dokument
 import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.fail
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -293,7 +291,11 @@ fun simulertRevurdering(
                         }
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(simulert, skalUtsetteTilbakekreving, skalTilbakekreve)
+                oppdaterTilbakekrevingsbehandling(
+                    revurdering = simulert,
+                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
+                    skalTilbakekreve = skalTilbakekreve,
+                )
             }
 
             is BeregnetRevurdering.Opphørt -> {
@@ -312,7 +314,11 @@ fun simulertRevurdering(
                         )
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(simulert, skalUtsetteTilbakekreving, skalTilbakekreve)
+                oppdaterTilbakekrevingsbehandling(
+                    revurdering = simulert,
+                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
+                    skalTilbakekreve = skalTilbakekreve,
+                )
             }
         }.leggTilBrevvalg(brevvalg)
 
@@ -418,8 +424,8 @@ fun revurderingUnderkjent(
 
 private fun oppdaterTilbakekrevingsbehandling(
     revurdering: SimulertRevurdering,
-    skalUtsetteTilbakekreving: Boolean = false,
-    skalTilbakekreve: Boolean = true,
+    skalUtsetteTilbakekreving: Boolean,
+    skalTilbakekreve: Boolean,
 ): SimulertRevurdering {
     return when (revurdering.simulering.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
         true -> {
@@ -511,21 +517,12 @@ fun iverksattRevurdering(
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                 )
             },
-            lagDokument = {
-                Dokument.UtenMetadata.Vedtak(
-                    opprettet = Tidspunkt.now(clock),
-                    tittel = "TODO: BrevRequesten bør lages i domenet",
-                    generertDokument = pdfATom(),
-                    generertDokumentJson = "{}",
-                ).right()
-            },
-            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let { response ->
             /**
              * TODO: se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
              */
             val oversendtUtbetaling =
-                response.utbetaling!!.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling!!)).let {
+                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling)).let {
                     if (kvittering != null) {
                         it.toKvittertUtbetaling(kvittering)
                     } else {
@@ -590,6 +587,7 @@ fun vedtakRevurdering(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    skalUtsetteTilbakekreving: Boolean = false,
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -604,6 +602,7 @@ fun vedtakRevurdering(
         attestant = attestant,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
     ).let {
         it.first to it.fourth
     }

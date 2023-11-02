@@ -23,7 +23,7 @@ sealed interface AbstraktRevurdering : Stønadsbehandling {
     /**
      * Tidspunktet referer til enten når revurderinger ble opprettet, eller dersom den senere har blitt oppdatert.
      * En oppdatering gjøres i en operasjon og kan endre perioden, årsaken, hva som revurderes, begrunnelsen.
-     * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag, vilkår og avkorting.
+     * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag og vilkår.
      */
     val oppdatert: Tidspunkt
 

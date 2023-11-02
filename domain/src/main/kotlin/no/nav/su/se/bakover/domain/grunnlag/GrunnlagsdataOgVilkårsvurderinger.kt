@@ -124,7 +124,8 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
         )
     }
 
-    fun fjernAvkortingsfradrag(): GrunnlagsdataOgVilkårsvurderinger
+    /* jah: Beholdes så lenge command-typene støtter fradragstypen avkorting. En mulighet er å splitte fradragstypene i command/query slik at vi ikke trenger bekymre oss for at ugyldige fradrag sniker seg inn i beregningen. */
+    fun harAvkortingsfradrag(): Boolean
     fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
     fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
 
@@ -155,8 +156,9 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             )
         }
 
-        override fun fjernAvkortingsfradrag(): Søknadsbehandling {
-            return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        /* jah: Beholdes så lenge command-typene støtter fradragstypen avkorting. En mulighet er å splitte fradragstypene i command/query slik at vi ikke trenger bekymre oss for at ugyldige fradrag sniker seg inn i beregningen. */
+        override fun harAvkortingsfradrag(): Boolean {
+            return grunnlagsdata.fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
         }
 
         override fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): Søknadsbehandling {
@@ -283,8 +285,9 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
         }
 
-        override fun fjernAvkortingsfradrag(): Revurdering {
-            return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        /* jah: Beholdes så lenge command-typene støtter fradragstypen avkorting. En mulighet er å splitte fradragstypene i command/query slik at vi ikke trenger bekymre oss for at ugyldige fradrag sniker seg inn i beregningen. */
+        override fun harAvkortingsfradrag(): Boolean {
+            return grunnlagsdata.fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
         }
 
         override fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): Revurdering {

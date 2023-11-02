@@ -123,7 +123,6 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
                 saksbehandler = saksbehandler,
             ).getOrFail().tilIverksatt(
                 attestant = attestant,
-                uteståendeAvkortingPåSak = null,
                 clock = clock,
             ).getOrFail()
 

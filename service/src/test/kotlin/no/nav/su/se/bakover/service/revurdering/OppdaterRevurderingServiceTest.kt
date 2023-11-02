@@ -1,34 +1,25 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
-import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.toPeriode
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
-import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -39,9 +30,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -51,12 +40,9 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
-import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
-import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -66,7 +52,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.util.UUID
 
 internal class OppdaterRevurderingServiceTest {
     @Test
@@ -343,110 +328,6 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
                 Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
-            ).left()
-        }
-    }
-
-    @Test
-    fun `får lov til å oppdatere revurdering dersom periode overlapper opphørsvedtak for utenlandsopphold som ikke førte til avkorting`() {
-        val clock = TikkendeKlokke()
-
-        val sakOgSøknadsvedtak = iverksattSøknadsbehandlingUføre(
-            clock = clock,
-            stønadsperiode = stønadsperiode2021,
-        )
-
-        val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))
-
-        val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
-            clock = clock,
-            revurderingsperiode = revurderingsperiode,
-            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak.first to sakOgSøknadsvedtak.third as VedtakSomKanRevurderes,
-            vilkårOverrides = listOf(
-                utenlandsoppholdAvslag(
-                    periode = revurderingsperiode,
-                    opprettet = Tidspunkt.now(clock),
-                ),
-            ),
-        )
-        val (sak3, opprettetRevurdering) = opprettetRevurdering(
-            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak,
-            clock = clock,
-        )
-
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak3
-            },
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn opprettetRevurdering
-            },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
-            clock = clock,
-        ).also {
-            it.revurderingService.oppdaterRevurdering(
-                command = OppdaterRevurderingCommand(
-                    revurderingId = opprettetRevurdering.id,
-                    periode = revurderingsperiode,
-                    årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
-                    begrunnelse = "lol",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
-                ),
-            ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
-        }
-    }
-
-    @Test
-    fun `får feilmelding dersom saken har utestående avkorting, men revurderingsperioden inneholder ikke perioden for avkortingen`() {
-        val clock = TikkendeKlokke(fixedClock)
-        val (sak1, opphørUtenlandsopphold) = vedtakRevurdering(
-            clock = clock,
-            stønadsperiode = stønadsperiode2021,
-            revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
-            vilkårOverrides = listOf(
-                utenlandsoppholdAvslag(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(clock),
-                    periode = Periode.create(1.juni(2021), 31.desember(2021)),
-                ),
-            ),
-            // Det vil si vi får avkorting for juni og juli.
-            utbetalingerKjørtTilOgMed = { 1.august(2021) },
-        )
-        // Dersom vi revurderer over juli, må vi og revurdere over juni, hvis ikke skal vi få en feilmelding.
-        val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
-
-        val (sak2, nyRevurdering) = opprettetRevurdering(
-            // Setter en periode vi er trygg på er lovlig.
-            revurderingsperiode = år(2021),
-            sakOgVedtakSomKanRevurderes = sak1 to opphørUtenlandsopphold,
-            clock = clock,
-        )
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak2
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            clock = clock,
-        ).let {
-            it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingCommand(
-                    revurderingId = nyRevurdering.id,
-                    periode = nyRevurderingsperiode,
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
-                ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.Avkorting(
-                KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet(
-                    juni(2021)..juli(2021),
-                ),
             ).left()
         }
     }

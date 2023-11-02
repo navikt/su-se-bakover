@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
@@ -44,7 +43,7 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
+sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevvalg {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
@@ -146,7 +145,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
@@ -157,7 +155,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             tilRevurdering = tilRevurdering,
-            avkorting = avkorting,
             saksbehandler = saksbehandler,
         )
     }
@@ -179,7 +176,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
@@ -228,7 +224,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
@@ -265,7 +260,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
@@ -337,7 +331,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,

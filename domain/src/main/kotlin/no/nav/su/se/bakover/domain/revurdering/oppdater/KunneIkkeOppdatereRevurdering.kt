@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering.oppdater
 
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeOppdatereRevurdering {
@@ -19,6 +18,4 @@ sealed interface KunneIkkeOppdatereRevurdering {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeOppdatereRevurdering
-
-    data class Avkorting(val underliggende: KanIkkeRevurderePgaAvkorting) : KunneIkkeOppdatereRevurdering
 }

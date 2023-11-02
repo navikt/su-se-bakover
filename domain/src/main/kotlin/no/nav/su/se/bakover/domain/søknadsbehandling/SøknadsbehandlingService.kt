@@ -154,7 +154,6 @@ interface SøknadsbehandlingService {
         }
 
         data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne
-        data object AvkortingErUfullstendig : KunneIkkeBeregne
     }
 
     data class SimulerRequest(

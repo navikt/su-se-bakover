@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.avkorting.hentOgKontrollerUteståendeAvkorting
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.sak.nyRevurdering
@@ -33,10 +32,6 @@ fun Sak.opprettRevurdering(
 
     informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
-
-    val uteståendeAvkortingPåSak = hentOgKontrollerUteståendeAvkorting(command.periode).getOrElse {
-        return KunneIkkeOppretteRevurdering.Avkorting(it).left()
-    }
 
     val revurderingsårsak = command.revurderingsårsak.getOrElse {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
@@ -66,7 +61,6 @@ fun Sak.opprettRevurdering(
                 grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = uteståendeAvkortingPåSak,
                 sakinfo = info(),
             )
         },

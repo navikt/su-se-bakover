@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingsfeil
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
@@ -81,6 +80,4 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
 
 private fun RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-
-    is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.Avkortingsfeil -> avkortingsfeil
 }

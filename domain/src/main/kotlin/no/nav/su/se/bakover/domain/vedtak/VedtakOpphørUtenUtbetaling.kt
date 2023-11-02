@@ -13,22 +13,22 @@ import java.time.Clock
 import java.util.UUID
 
 /**
+ * ADVARSEL: Kun for historiske revurderinger (rene avkortingsvedtak uten utbetaling). Skal ikke brukes i nye revurderinger.
+ *
  * Opphørsvedtak der vi ikke har sendt linjer til oppdrag.
  * Dette vil være tilfeller der hele perioden vi opphører allerede er utbetalt.
- * Gjelder foreløpig kun avkorting.
  */
-data class VedtakOpphørAvkorting(
+data class VedtakOpphørUtenUtbetaling(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val behandling: IverksattRevurdering.Opphørt,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
-    /** Et avkortingsvedtak per 2023-05-03 er utelukkende basert på utenlandsoppholdvilkåret og beregningen vil være basert på tidligere vedtaks fradrag
+    /**
      * TODO jah: Bør vi prøve fjerne den? Og bør da beregningen også fjernes fra tilhørende behandling?
      * */
     override val beregning: Beregning,
-    /** Vil inneholde originalsimuleringen for hele perioden, uten å trekke fra avkortingsmånedene. */
     override val simulering: Simulering,
     override val dokumenttilstand: Dokumenttilstand,
 ) : VedtakIngenEndringIYtelse, Opphørsvedtak, Revurderingsvedtak {
@@ -37,15 +37,6 @@ data class VedtakOpphørAvkorting(
 
     init {
         require(periode == behandling.periode)
-        require(behandling.avkorting.skalAvkortes()) {
-            "Kan ikke opprette opphørt vedtak (rent avkortingsvedtak) uten utbetalingId hvis vi ikke skal avkorte. Saksnummer $saksnummer"
-        }
-        require(behandling.avkorting.periode() == periode) {
-            "Avkortingsvarselsperiode ${behandling.avkorting.periode()} må være lik vedtaket sin $periode"
-        }
-        require(!behandling.skalTilbakekreve()) {
-            "Dette er et rent avkortingsvedtak som ikke skal føre til utbetalingslinjer. Det kan ikke kombineres med en tilbakekrevingsbehandling. Saksnummer $saksnummer. Revurderingid: ${behandling.id}"
-        }
     }
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
@@ -70,7 +61,7 @@ data class VedtakOpphørAvkorting(
         fun from(
             revurdering: IverksattRevurdering.Opphørt,
             clock: Clock,
-        ) = VedtakOpphørAvkorting(
+        ) = VedtakOpphørUtenUtbetaling(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
@@ -92,7 +83,7 @@ data class VedtakOpphørAvkorting(
             beregning: Beregning,
             simulering: Simulering,
             dokumenttilstand: Dokumenttilstand?,
-        ) = VedtakOpphørAvkorting(
+        ) = VedtakOpphørUtenUtbetaling(
             id = id,
             opprettet = opprettet,
             behandling = behandling,

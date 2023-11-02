@@ -78,7 +78,7 @@ internal class SøknadsbehandlingSkattTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
                 .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
-                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
+                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
                 .shouldBeRight()
@@ -95,7 +95,7 @@ internal class SøknadsbehandlingSkattTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
                 .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
-                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
+                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
                 .let { it as BeregnetSøknadsbehandling.Innvilget }
                 .simuler(
@@ -118,7 +118,7 @@ internal class SøknadsbehandlingSkattTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
                 .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
-                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
+                .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
                 .let { it as BeregnetSøknadsbehandling.Innvilget }
                 .simuler(saksbehandler, fixedClock) { _, _ -> simuleringNy().right() }

@@ -6,7 +6,6 @@ enum class ÅrsakTilManuellRegulering {
     ForventetInntektErStørreEnn0,
     DelvisOpphør,
     VedtakstidslinjeErIkkeSammenhengende,
-    PågåendeAvkortingEllerBehovForFremtidigAvkorting,
     AvventerKravgrunnlag,
     UtbetalingFeilet,
 }

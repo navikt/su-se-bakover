@@ -16,13 +16,11 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -31,13 +29,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
-import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
+import no.nav.su.se.bakover.domain.revurdering.beregning.Normal
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmBeregningGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
-import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
@@ -76,7 +73,6 @@ sealed class Revurdering :
     abstract val saksbehandler: Saksbehandler
     abstract val revurderingsårsak: Revurderingsårsak
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
-    abstract val avkorting: AvkortingVedRevurdering
     abstract val erOpphørt: Boolean
     abstract override val beregning: Beregning?
     abstract override val simulering: Simulering?
@@ -143,7 +139,6 @@ sealed class Revurdering :
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return KunneIkkeOppdatereRevurdering.UgyldigTilstand(
@@ -160,7 +155,6 @@ sealed class Revurdering :
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return OpprettetRevurdering(
@@ -176,7 +170,6 @@ sealed class Revurdering :
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
-            avkorting = avkorting,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
         ).right()
@@ -532,29 +525,12 @@ sealed class Revurdering :
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(vilkårsvurderinger),
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
+                vilkårsvurderinger,
+            ),
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
-            avkorting = avkorting.let {
-                when (it) {
-                    is AvkortingVedRevurdering.DelvisHåndtert -> {
-                        it.uhåndtert()
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert -> {
-                        it.uhåndtert()
-                    }
-
-                    is AvkortingVedRevurdering.Uhåndtert -> {
-                        it
-                    }
-
-                    is AvkortingVedRevurdering.Iverksatt -> {
-                        throw IllegalStateException("Kan ikke oppdatere vilkårsvurderinger for ferdigstilt håndtering av avkorting")
-                    }
-                }
-            },
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
         )
@@ -574,25 +550,6 @@ sealed class Revurdering :
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(grunnlagsdata),
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
-            avkorting = avkorting.let {
-                when (it) {
-                    is AvkortingVedRevurdering.DelvisHåndtert -> {
-                        it.uhåndtert()
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert -> {
-                        it.uhåndtert()
-                    }
-
-                    is AvkortingVedRevurdering.Uhåndtert -> {
-                        it
-                    }
-
-                    is AvkortingVedRevurdering.Iverksatt -> {
-                        throw IllegalStateException("Kan ikke oppdatere grunnlag for ferdigstilt håndtering av avkorting")
-                    }
-                }
-            },
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
         )
@@ -604,87 +561,62 @@ sealed class Revurdering :
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
         satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val (revurdering, beregning) = BeregnRevurderingStrategyDecider(
+        val (revurdering, beregning) = Normal(
             revurdering = this,
-            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-            clock = clock,
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
                 satsFactory = satsFactory,
             ),
-        ).decide().beregn().getOrElse { return it.left() }
+        ).beregn().getOrElse { return it.left() }
 
-        fun opphør(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
-            BeregnetRevurdering.Opphørt(
-                tilRevurdering = revurdering.tilRevurdering,
-                id = revurdering.id,
-                periode = revurdering.periode,
-                opprettet = revurdering.opprettet,
-                oppdatert = revurdering.oppdatert,
-                beregning = revurdertBeregning,
-                saksbehandler = revurdering.saksbehandler,
-                oppgaveId = revurdering.oppgaveId,
-                revurderingsårsak = revurdering.revurderingsårsak,
-                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-                informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
-                attesteringer = revurdering.attesteringer,
-                avkorting = revurdering.avkorting.håndter(),
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-
-        fun innvilget(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget =
-            BeregnetRevurdering.Innvilget(
-                id = revurdering.id,
-                periode = revurdering.periode,
-                opprettet = revurdering.opprettet,
-                oppdatert = revurdering.oppdatert,
-                tilRevurdering = revurdering.tilRevurdering,
-                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
-                saksbehandler = revurdering.saksbehandler,
-                beregning = revurdertBeregning,
-                oppgaveId = revurdering.oppgaveId,
-                revurderingsårsak = revurdering.revurderingsårsak,
-                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-                informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                attesteringer = revurdering.attesteringer,
-                avkorting = revurdering.avkorting.håndter(),
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-
-        fun kontrollerOpphørAvFremtidigAvkorting(): Either<KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes, Unit> {
-            val erOpphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
-                vilkårsvurderinger = vilkårsvurderinger,
-                beregning = beregning,
-                clock = clock,
-            ).resultat
-
-            return when (erOpphør) {
-                is OpphørVedRevurdering.Ja -> {
-                    /**
-                     * Kontrollerer at vi ikke opphører noe som inneholder planlagte avkortinger, da dette vil føre til at
-                     * beløpene aldri vil avkortes. //TODO må sannsynligvis støtte dette på et eller annet tidspunkt
-                     */
-                    if (beregning.getFradrag().any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) {
-                        KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
-                    } else {
-                        Unit.right()
-                    }
-                }
-
-                is OpphørVedRevurdering.Nei -> {
-                    Unit.right()
-                }
+        fun opphør(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt {
+            if (revurdering !is RevurderingKanBeregnes) {
+                throw IllegalStateException("Kan ikke beregne en revurdering i feil tilstand. Må være en av opprettet, beregnet, simulert eller underkjent; men var ${revurdering::class}")
             }
+            return BeregnetRevurdering.Opphørt(
+                tilRevurdering = revurdering.tilRevurdering,
+                id = revurdering.id,
+                periode = revurdering.periode,
+                opprettet = revurdering.opprettet,
+                oppdatert = revurdering.oppdatert,
+                beregning = revurdertBeregning,
+                saksbehandler = revurdering.saksbehandler,
+                oppgaveId = revurdering.oppgaveId,
+                revurderingsårsak = revurdering.revurderingsårsak,
+                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+                informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
+                attesteringer = revurdering.attesteringer,
+                sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
+            )
+        }
+
+        fun innvilget(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget {
+            if (revurdering !is RevurderingKanBeregnes) {
+                throw IllegalStateException("Kan ikke beregne en revurdering i feil tilstand. Må være en av opprettet, beregnet, simulert eller underkjent; men var ${revurdering::class}")
+            }
+            return BeregnetRevurdering.Innvilget(
+                id = revurdering.id,
+                periode = revurdering.periode,
+                opprettet = revurdering.opprettet,
+                oppdatert = revurdering.oppdatert,
+                tilRevurdering = revurdering.tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
+                saksbehandler = revurdering.saksbehandler,
+                beregning = revurdertBeregning,
+                oppgaveId = revurdering.oppgaveId,
+                revurderingsårsak = revurdering.revurderingsårsak,
+                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+                informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                attesteringer = revurdering.attesteringer,
+                sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
+            )
         }
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
         if (VurderOmVilkårGirOpphørVedRevurdering(revurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
-            kontrollerOpphørAvFremtidigAvkorting().getOrElse {
-                return it.left()
-            }
             return opphør(revurdering, beregning).right()
         }
 
@@ -695,9 +627,6 @@ sealed class Revurdering :
             ).resultat
         ) {
             is OpphørVedRevurdering.Ja -> {
-                kontrollerOpphørAvFremtidigAvkorting().getOrElse {
-                    return it.left()
-                }
                 opphør(revurdering, beregning)
             }
 

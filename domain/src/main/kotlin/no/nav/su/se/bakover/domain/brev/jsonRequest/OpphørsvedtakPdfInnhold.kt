@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.brev.beregning.harAvkorting
 import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -27,7 +26,6 @@ data class OpphørsvedtakPdfInnhold(
     val forventetInntektStørreEnn0: Boolean,
     val halvGrunnbeløp: Int?,
     val opphørsperiode: BrevPeriode,
-    val avkortingsBeløp: Int?,
     val satsoversikt: Satsoversikt,
 ) : PdfInnhold() {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Opphør.Opphørsvedtak
@@ -35,10 +33,6 @@ data class OpphørsvedtakPdfInnhold(
     @Suppress("unused")
     @JsonInclude
     val harFradrag: Boolean = beregningsperioder.harFradrag()
-
-    @Suppress("unused")
-    @JsonInclude
-    val harAvkorting: Boolean = beregningsperioder.harAvkorting()
 
     companion object {
         fun fromBrevCommand(
@@ -66,7 +60,6 @@ data class OpphørsvedtakPdfInnhold(
                 forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
                 halvGrunnbeløp = command.halvtGrunnbeløp,
                 opphørsperiode = command.opphørsperiode.tilBrevperiode(),
-                avkortingsBeløp = command.avkortingsBeløp,
                 satsoversikt = command.satsoversikt,
             )
         }

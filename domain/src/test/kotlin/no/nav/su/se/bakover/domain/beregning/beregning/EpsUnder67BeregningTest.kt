@@ -130,13 +130,12 @@ internal class EpsUnder67BeregningTest {
                     tilhører = FradragTilhører.EPS,
                 ),
             ),
-        ).also { (sak, vilkårsvurdert) ->
+        ).also { (_, vilkårsvurdert) ->
             (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,
-                uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
             ).getOrFail().also { beregnet ->
                 beregnet.beregning.getSumYtelse() shouldBe 90984
                 beregnet.beregning.getSumFradrag() shouldBe 108003.96

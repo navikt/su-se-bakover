@@ -72,7 +72,6 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
         is KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
         is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
-        KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig -> Feilresponser.avkortingErUfullstendig
         KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
         KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
             message = "Simulering fører til feilutbetaling.",

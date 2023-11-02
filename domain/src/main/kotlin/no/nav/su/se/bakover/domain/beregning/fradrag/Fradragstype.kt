@@ -48,6 +48,10 @@ sealed class Fradragstype {
          *  Not to be used for input-operations (i.e. from frontend).
          */
         ForventetInntekt,
+
+        /**
+         * ADVARSEL: Historisk fradragstype. Ikke bruk i nye beregninger.
+         */
         AvkortingUtenlandsopphold,
         BeregnetFradragEPS,
         UnderMinstenivå,
@@ -178,6 +182,9 @@ sealed class Fradragstype {
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
+    /**
+     * ADVARSEL: Historisk fradragstype. Ikke bruk i nye beregninger.
+     */
     data object AvkortingUtenlandsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.AvkortingUtenlandsopphold
         override val måJusteresManueltVedGEndring: Boolean = false

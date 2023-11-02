@@ -104,7 +104,6 @@ private fun toDto(
             )
 
             /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
-            // TODO jah: Vi bør ta en avklaring med stønadsstatistikk-teamet hva slags statistikk de forventer for opphørte måneder med avkortingsvarsel (vi sender ikke utbetalingslinjer for disse månedene).
             is Opphørsvedtak -> emptyList()
 
             is VedtakStansAvYtelse -> emptyList()

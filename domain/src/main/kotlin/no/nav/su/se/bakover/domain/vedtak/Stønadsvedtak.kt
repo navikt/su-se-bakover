@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import økonomi.domain.simulering.Simulering
 
 /**
@@ -34,28 +33,11 @@ sealed interface Stønadsvedtak : Vedtak {
      * Kun true dersom vi skal sende brev og brevet ikke er generert enda.
      */
     fun skalGenerereDokumentVedFerdigstillelse(): Boolean
-
-    /**
-     * Dersom grunnlaget inneholder fradrag av typen [Fradragstype.AvkortingUtenlandsopphold] vet vi at vedtaket
-     * aktivt avkorter ytelsen.
-     */
-    fun harPågåendeAvkorting(): Boolean {
-        return behandling.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-    }
-
-    /**
-     * Vedtaket fører med seg eg behov for avkorting av ytelsen i fremtiden.
-     * Avkortingen av aktuelle beløp er enda ikke påbegynt, men behovet er identifisert.
-     */
-    fun harIdentifisertBehovForFremtidigAvkorting(): Boolean
 }
 
 sealed interface KunneIkkeGenerereSkattedokument {
-    data object IngenÅrsgrunnlag : KunneIkkeGenerereSkattedokument
 
     data object FeilVedGenereringAvDokument : KunneIkkeGenerereSkattedokument
 
     data object SkattegrunnlagErIkkeHentetForÅGenereDokument : KunneIkkeGenerereSkattedokument
-
-    data object Feil : KunneIkkeGenerereSkattedokument
 }

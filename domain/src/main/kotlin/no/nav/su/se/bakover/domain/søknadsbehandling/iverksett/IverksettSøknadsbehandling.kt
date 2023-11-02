@@ -29,7 +29,6 @@ import java.time.Clock
  * - Tilstanden til søknadsbehandlingen må være [SøknadsbehandlingTilAttestering]
  * - Dersom dette er en manuell iverksetting (unntak: manglende dokumentasjon), kan ikke saksbehandler og attestant være den samme.
  * - Ved innvilgelse: Det kan ikke finnes åpne kravgrunnlag på saken.
- * - Ved innvilgelse: Dersom det finnes uhåndterte avkortingsvarsler på saken, må disse håndteres av denne behandlingen i sin helhet.
  * - Stønadsperioden kan ikke overlappe tidligere stønadsperioder, med noen unntak:
  *     - Opphørte måneder som ikke har ført til utbetaling kan "overskrives".
  *     - Opphørte måneder med feilutbetaling som har blitt 100% tilbakekrevet kan "overskrives".

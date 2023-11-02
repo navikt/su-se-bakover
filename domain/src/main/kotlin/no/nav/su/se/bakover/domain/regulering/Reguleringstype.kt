@@ -39,9 +39,5 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         problemer.add(ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende)
     }
 
-    if (this.pågåendeAvkortingEllerBehovForFremtidigAvkorting) {
-        problemer.add(ÅrsakTilManuellRegulering.PågåendeAvkortingEllerBehovForFremtidigAvkorting)
-    }
-
     return if (problemer.isNotEmpty()) Reguleringstype.MANUELL(problemer) else Reguleringstype.AUTOMATISK
 }

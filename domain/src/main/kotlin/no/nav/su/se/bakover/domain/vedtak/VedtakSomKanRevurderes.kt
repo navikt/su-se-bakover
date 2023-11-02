@@ -65,14 +65,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         )
 
         fun from(
-            revurdering: IverksattRevurdering.Opphørt,
-            clock: Clock,
-        ) = VedtakOpphørAvkorting.from(
-            revurdering = revurdering,
-            clock = clock,
-        )
-
-        fun from(
             revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
             utbetalingId: UUID30,
             clock: Clock,

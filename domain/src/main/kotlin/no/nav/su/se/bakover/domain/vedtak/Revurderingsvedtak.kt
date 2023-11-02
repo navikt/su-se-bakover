@@ -8,7 +8,6 @@ import økonomi.domain.simulering.Simulering
  * Grupperer de forskjellige revurderingsvedtakene, så man får et felles abstraksjonnivå.
  * Undertyper:
  * - [VedtakInnvilgetRevurdering]
- * - [VedtakOpphørAvkorting]
  * - [VedtakOpphørMedUtbetaling]
  *
  * Se [Opphørsvedtak] for tilsvarende for opphørsvedtak.

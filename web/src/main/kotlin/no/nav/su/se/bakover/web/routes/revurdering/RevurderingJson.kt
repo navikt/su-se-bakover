@@ -153,7 +153,6 @@ internal data class SimulertRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson()
@@ -174,7 +173,6 @@ internal data class TilAttesteringJson(
     val simulering: SimuleringJson?,
     val beregning: BeregningJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson()
@@ -195,7 +193,6 @@ internal data class IverksattRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson()
@@ -216,7 +213,6 @@ internal data class UnderkjentRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson()
@@ -321,10 +317,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            simuleringForAvkortingsvarsel = when (this) {
-                is SimulertRevurdering.Innvilget -> null
-                is SimulertRevurdering.Opphørt -> avkorting.toJson()
-            },
             tilbakekrevingsbehandling = tilbakekrevingsbehandling.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
         )
@@ -352,10 +344,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            simuleringForAvkortingsvarsel = when (this) {
-                is RevurderingTilAttestering.Innvilget -> null
-                is RevurderingTilAttestering.Opphørt -> avkorting.toJson()
-            },
             tilbakekrevingsbehandling = when (this) {
                 is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.toJson()
                 is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.toJson()
@@ -386,10 +374,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            simuleringForAvkortingsvarsel = when (this) {
-                is IverksattRevurdering.Innvilget -> null
-                is IverksattRevurdering.Opphørt -> avkorting.toJson()
-            },
             tilbakekrevingsbehandling = when (this) {
                 is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
                 is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
@@ -420,10 +404,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            simuleringForAvkortingsvarsel = when (this) {
-                is UnderkjentRevurdering.Innvilget -> null
-                is UnderkjentRevurdering.Opphørt -> avkorting.toJson()
-            },
             tilbakekrevingsbehandling = when (this) {
                 is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
                 is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()

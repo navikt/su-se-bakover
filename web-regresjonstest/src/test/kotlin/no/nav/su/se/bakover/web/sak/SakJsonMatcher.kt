@@ -43,7 +43,6 @@ fun assertSakJson(
         "vedtakPåTidslinje": $expectedVedtakPåTidslinje,
         "utenlandsopphold": $expectedUtenlandsopphold,
         "versjon": $expectedVersjon,
-        "uteståendeAvkorting": null,
         "tilbakekrevinger": $expectedTilbakekrevinger,
         "uteståendeKravgrunnlag": null
     }

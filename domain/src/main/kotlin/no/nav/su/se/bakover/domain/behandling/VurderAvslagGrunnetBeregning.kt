@@ -39,8 +39,5 @@ fun Merknad.Beregning.tilAvslagsgrunn(): AvslagGrunnetBeregning.Grunn {
         is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> {
             throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
         }
-        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> {
-            throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
-        }
     }
 }

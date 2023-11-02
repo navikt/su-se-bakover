@@ -167,13 +167,8 @@ class SøknadsbehandlingServiceImpl(
             begrunnelse = request.begrunnelse,
             clock = clock,
             satsFactory = satsFactory,
-            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).mapLeft { feil ->
             when (feil) {
-                no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
-                    KunneIkkeBeregne.AvkortingErUfullstendig
-                }
-
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                     KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
                 }
