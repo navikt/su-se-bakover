@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -28,11 +27,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttes
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -50,7 +51,7 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
     private val fnr = Fnr.generer()
-    private val nyOppgaveId = OppgaveId("999")
+    private val nyOppgaveId = OppgaveId("123")
     private val aktørId = AktørId("12345")
 
     private val underkjentAttestering = Attestering.Underkjent(
@@ -248,7 +249,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -293,8 +294,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val observerMock: StatistikkEventObserver = mock()
@@ -385,8 +386,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()

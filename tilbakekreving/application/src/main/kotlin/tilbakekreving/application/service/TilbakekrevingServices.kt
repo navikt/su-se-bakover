@@ -16,6 +16,8 @@ import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlin
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
+import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
@@ -154,5 +156,25 @@ class TilbakekrevingServices(
         sakService = sakService,
         clock = clock,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+    ),
+    val lukkOppgaveForTilbakekrevingshendelserKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
+        sakService = sakService,
+        oppgaveService = oppgaveService,
+        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+        oppgaveHendelseRepo = oppgaveHendelseRepo,
+        hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
+    ),
+    val oppdaterOppgaveForTilbakekrevingshendelserKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument = OppdaterOppgaveForTilbakekrevingshendelserKonsument(
+        sakService = sakService,
+        oppgaveService = oppgaveService,
+        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+        oppgaveHendelseRepo = oppgaveHendelseRepo,
+        hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
     ),
 )

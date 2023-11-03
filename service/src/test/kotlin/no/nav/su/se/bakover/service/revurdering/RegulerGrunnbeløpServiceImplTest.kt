@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.mai
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
@@ -194,8 +194,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak

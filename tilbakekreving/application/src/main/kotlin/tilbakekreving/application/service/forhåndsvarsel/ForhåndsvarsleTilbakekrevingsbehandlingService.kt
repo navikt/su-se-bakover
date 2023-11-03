@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
@@ -77,14 +78,22 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     tilbakekrevingsbehandlingRepo.lagre(forhåndsvarsletHendelse, it)
                 }
             }.map {
-                val oppgaveHendelse = OppgaveHendelse.oppdatert(
+                val oppgaveHendelse = OppgaveHendelse.Oppdatert(
                     hendelsestidspunkt = Tidspunkt.now(clock),
                     oppgaveId = oppgaveId,
                     versjon = sak.versjon.inc(3),
                     sakId = sak.id,
                     relaterteHendelser = listOf(forhåndsvarsletHendelse.hendelseId),
-                    meta = command.toDefaultHendelsesMetadata(),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = null,
+                        ident = null,
+                        brukerroller = listOf(),
+                        request = it.request,
+                        response = it.response,
+                    ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                    beskrivelse = it.beskrivelse,
+                    oppgavetype = it.oppgavetype,
                 )
 
                 sessionFactory.withTransactionContext {

@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -61,7 +62,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn opprettetRevurdering
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val revurderingService = createRevurderingService(
@@ -125,7 +126,7 @@ internal class AvsluttRevurderingTest {
             on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val revurderingService = createRevurderingService(

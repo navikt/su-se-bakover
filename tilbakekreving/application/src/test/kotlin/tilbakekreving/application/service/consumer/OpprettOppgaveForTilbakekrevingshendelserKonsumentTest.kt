@@ -16,13 +16,16 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -56,9 +59,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         val sakService = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val hendelseRepo = mock<HendelseRepo> {
-            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(4)
-        }
         val tilbakekrevingsbehandlingRepo = mock<TilbakekrevingsbehandlingRepo> {
             on {
                 hentHendelse(any(), anyOrNull())
@@ -70,14 +70,13 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
         }
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("123").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
         val mockedServices = mockedServices(
             sakService = sakService,
             oppgaveService = oppgaveService,
             personService = personService,
-            hendelseRepo = hendelseRepo,
             hendelsekonsumenterRepo = konsumenterRepo,
             tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
         )
@@ -88,7 +87,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             OpprettetTilbakekrevingsbehandlingHendelsestype,
         )
         verify(sakService).hentSak(argShouldBe(sak.id))
-        verify(hendelseRepo).hentSisteVersjonFraEntitetId(argShouldBe(sak.id), anyOrNull())
         verify(tilbakekrevingsbehandlingRepo).hentHendelse(argShouldBe(hendelseId), anyOrNull())
         verify(personService).hentAktørIdMedSystembruker(argShouldBe(sak.fnr))
         verify(oppgaveService).opprettOppgaveMedSystembruker(
@@ -103,14 +101,22 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         )
         verify(mockedServices.oppgaveHendelseRepo).lagre(
             argThat {
-                it shouldBe OppgaveHendelse.opprettet(
+                it shouldBe OppgaveHendelse.Opprettet(
                     hendelseId = it.hendelseId,
                     hendelsestidspunkt = it.hendelsestidspunkt,
                     oppgaveId = OppgaveId("123"),
-                    versjon = Hendelsesversjon(value = 5),
+                    versjon = Hendelsesversjon(value = 2),
                     sakId = sak.id,
                     relaterteHendelser = listOf(hendelseId),
-                    meta = DefaultHendelseMetadata.fraCorrelationId(CorrelationId("Correlation-id")),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = CorrelationId("Correlation-id"),
+                        ident = null,
+                        brukerroller = listOf(),
+                        request = "request",
+                        response = "response",
+                    ),
+                    beskrivelse = "beskrivelse",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 )
             },
             anyOrNull(),

@@ -108,7 +108,7 @@ class KlageServiceImpl(
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
         }
-        val oppgaveId = oppgaveService.opprettOppgave(
+        val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.Klage.Saksbehandler(
                 saksnummer = sak.saksnummer,
                 aktørId = aktørId,
@@ -123,7 +123,7 @@ class KlageServiceImpl(
         return request.toKlage(
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            oppgaveId = oppgaveId,
+            oppgaveId = oppgaveResponse.oppgaveId,
             clock = clock,
         ).also {
             klageRepo.lagre(it)
@@ -253,7 +253,9 @@ class KlageServiceImpl(
                         },
                         clock = clock,
                     ),
-                )
+                ).map {
+                    it.oppgaveId
+                }
             }.mapLeft {
                 KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave
             }
@@ -286,6 +288,8 @@ class KlageServiceImpl(
                 )
             }.mapLeft {
                 KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave
+            }.map {
+                it.oppgaveId
             }
         }.onRight {
             klageRepo.lagre(it)

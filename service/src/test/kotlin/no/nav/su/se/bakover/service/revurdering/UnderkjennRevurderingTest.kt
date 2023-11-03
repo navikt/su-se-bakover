@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -40,7 +41,7 @@ internal class UnderkjennRevurderingTest {
             opprettet = Tidspunkt.now(clock),
         )
 
-        val nyOppgaveId = OppgaveId("nyOppgaveId")
+        val nyOppgaveId = OppgaveId("123")
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -50,8 +51,8 @@ internal class UnderkjennRevurderingTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = mock(),
         ).also { mocks ->

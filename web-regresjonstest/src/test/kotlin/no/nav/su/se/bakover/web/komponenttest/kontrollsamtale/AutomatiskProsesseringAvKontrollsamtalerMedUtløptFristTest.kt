@@ -48,6 +48,8 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext.Companion.MAX_RETRIES
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleJobPostgresRepo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
@@ -459,17 +461,27 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 oppgaveClient = object : OppgaveClient by clients.oppgaveClient {
                     override fun opprettOppgaveMedSystembruker(
                         config: OppgaveConfig,
-                    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+                    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
                         val underTest =
                             mockData.kontrollsamtaler.first { config.saksreferanse == it.saksnummer.toString() }
                         return if (config !is OppgaveConfig.Kontrollsamtale) {
-                            OppgaveId(underTest.oppgaveId).right()
+                            OppgaveHttpKallResponse(
+                                oppgaveId = OppgaveId(underTest.oppgaveId),
+                                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                                request = "",
+                                response = "",
+                                beskrivelse = "",
+                            ).right()
                         } else {
                             if (underTest.erOppgavefeil(mockData.nåværendeKjøring)) {
                                 OppgaveFeil.KunneIkkeOppretteOppgave.left()
                             } else {
-                                OppgaveId(
-                                    underTest.oppgaveId,
+                                OppgaveHttpKallResponse(
+                                    oppgaveId = OppgaveId(underTest.oppgaveId),
+                                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                                    request = "",
+                                    response = "",
+                                    beskrivelse = "",
                                 ).right()
                             }
                         }

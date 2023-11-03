@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -274,7 +275,7 @@ internal class SendKlageTilAttesteringTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveIdTilAttestering").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         )
 
@@ -286,13 +287,13 @@ internal class SendKlageTilAttesteringTest {
             expectedKlage = if (klage is AvvistKlage) {
                 KlageTilAttestering.Avvist(
                     forrigeSteg = klage,
-                    oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                    oppgaveId = OppgaveId("123"),
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
                 )
             } else {
                 KlageTilAttestering.Vurdert(
                     forrigeSteg = klage as VurdertKlage.Bekreftet,
-                    oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                    oppgaveId = OppgaveId("123"),
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
                 )
             }

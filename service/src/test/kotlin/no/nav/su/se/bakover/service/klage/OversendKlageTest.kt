@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -439,7 +440,7 @@ internal class OversendKlageTest {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )

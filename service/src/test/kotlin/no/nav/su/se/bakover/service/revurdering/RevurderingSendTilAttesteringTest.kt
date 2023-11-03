@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.extensions.september
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -42,7 +41,7 @@ import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
@@ -80,8 +79,8 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -284,8 +283,8 @@ internal class RevurderingSendTilAttesteringTest {
             },
             // TODO må endre rekkefølge slik at disse ikke kalles
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -333,8 +332,8 @@ internal class RevurderingSendTilAttesteringTest {
             },
             // TODO må endre rekkefølge slik at disse ikke kalles
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak

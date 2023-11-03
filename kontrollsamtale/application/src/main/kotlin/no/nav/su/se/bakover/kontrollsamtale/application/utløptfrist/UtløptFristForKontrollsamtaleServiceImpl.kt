@@ -110,6 +110,8 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                         oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig)
                             .mapLeft {
                                 UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
+                            }.map {
+                                it.oppgaveId
                             }
                     },
                 )

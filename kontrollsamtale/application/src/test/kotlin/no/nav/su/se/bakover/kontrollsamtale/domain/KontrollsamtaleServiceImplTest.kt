@@ -6,7 +6,6 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
@@ -154,7 +154,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             kontrollsamtaleRepo = mock {
                 on { lagre(any(), any()) } doThrow RuntimeException("Fikk ikke lagret kontrollsamtale")
@@ -180,7 +180,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,

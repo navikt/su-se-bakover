@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedJournalførtSøknadUtenOppgave
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
@@ -340,7 +341,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 søknadId = søknad.id,
             ),
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
+                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
@@ -365,7 +366,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         },
         private val brevService: BrevService = mock(),
         private val oppgaveService: OppgaveService = mock {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),

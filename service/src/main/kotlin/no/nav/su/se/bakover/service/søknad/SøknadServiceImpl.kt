@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -225,7 +225,7 @@ class SøknadServiceImpl(
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
         return opprettOppgave(
             OppgaveConfig.Søknad(
@@ -239,8 +239,8 @@ class SøknadServiceImpl(
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
-        }.map { oppgaveId ->
-            return søknad.medOppgave(oppgaveId).also {
+        }.map { oppgaveResponse ->
+            return søknad.medOppgave(oppgaveResponse.oppgaveId).also {
                 søknadRepo.oppdaterOppgaveId(it)
                 søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
             }.right()

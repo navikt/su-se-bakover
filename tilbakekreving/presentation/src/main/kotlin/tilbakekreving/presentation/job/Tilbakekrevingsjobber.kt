@@ -8,6 +8,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
+import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
@@ -18,6 +20,8 @@ import kotlin.concurrent.fixedRateTimer
 class Tilbakekrevingsjobber(
     private val knyttKravgrunnlagTilSakOgUtbetalingKonsument: KnyttKravgrunnlagTilSakOgUtbetalingKonsument,
     private val opprettOppgaveKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
+    private val lukkOppgaveKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument,
+    private val oppdaterOppgaveKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument,
     private val genererDokumenterForForhåndsvarselKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument,
     private val initialDelay: Duration,
     private val intervall: Duration,
@@ -43,6 +47,8 @@ class Tilbakekrevingsjobber(
                         )
                         opprettOppgaveKonsument.opprettOppgaver(correlationId)
                         genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
+                        lukkOppgaveKonsument.lukkOppgaver(correlationId)
+                        oppdaterOppgaveKonsument.oppdaterOppgaver(correlationId)
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

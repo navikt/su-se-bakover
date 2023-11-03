@@ -241,7 +241,7 @@ class SøknadsbehandlingServiceImpl(
             val tilordnetRessurs: NavIdentBruker.Attestant? =
                 søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant
 
-            val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
+            val oppgaveResponse = oppgaveService.opprettOppgave(
                 OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadsbehandlingTilAttestering.søknad.id,
                     aktørId = aktørId,
@@ -253,7 +253,7 @@ class SøknadsbehandlingServiceImpl(
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
             }
             val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
-                søknadsbehandlingTilAttestering.nyOppgaveId(nyOppgaveId)
+                søknadsbehandlingTilAttestering.nyOppgaveId(oppgaveResponse.oppgaveId)
 
             søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
 
@@ -301,7 +301,7 @@ class SøknadsbehandlingServiceImpl(
             val journalpostId: JournalpostId = underkjent.søknad.journalpostId
             val eksisterendeOppgaveId = underkjent.oppgaveId
 
-            val nyOppgaveId = oppgaveService.opprettOppgave(
+            val oppgaveResponse = oppgaveService.opprettOppgave(
                 OppgaveConfig.Søknad(
                     journalpostId = journalpostId,
                     søknadId = underkjent.søknad.id,
@@ -317,12 +317,12 @@ class SøknadsbehandlingServiceImpl(
                 behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
             }
 
-            val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
+            val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(oppgaveResponse.oppgaveId)
 
             søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
             behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
-            log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
+            log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $oppgaveResponse")
 
             oppgaveService.lukkOppgave(eksisterendeOppgaveId).mapLeft {
                 log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")

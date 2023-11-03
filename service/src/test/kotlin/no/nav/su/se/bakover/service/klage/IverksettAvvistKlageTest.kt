@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -243,7 +244,7 @@ internal class IverksettAvvistKlageTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn Unit.right()
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakServiceMock = mock {
                 doNothing().whenever(it).lagre(any())

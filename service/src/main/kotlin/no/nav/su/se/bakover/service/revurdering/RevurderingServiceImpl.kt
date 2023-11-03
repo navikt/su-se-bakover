@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -101,6 +100,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -150,7 +150,7 @@ class RevurderingServiceImpl(
                 command = command,
                 clock = clock,
             ).map {
-                val oppgaveId = personService.hentAktørId(it.fnr).getOrElse {
+                val oppgaveResponse = personService.hentAktørId(it.fnr).getOrElse {
                     return KunneIkkeOppretteRevurdering.FantIkkeAktørId(it).left()
                 }.let { aktørId ->
                     oppgaveService.opprettOppgave(
@@ -159,7 +159,7 @@ class RevurderingServiceImpl(
                         return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
                     }
                 }
-                it.leggTilOppgaveId(oppgaveId)
+                it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
             }.map {
                 revurderingRepo.lagre(it.opprettetRevurdering)
                 observers.notify(it.statistikkHendelse)
@@ -657,12 +657,10 @@ class RevurderingServiceImpl(
         }
     }
 
-    private class KunneIkkeOppdatereOppgave : RuntimeException()
-
     private fun prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
         revurderingId: UUID,
         oppgaveId: OppgaveId,
-    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+    ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = oppgaveId,
             beskrivelse = "Forhåndsvarsel er sendt.",
@@ -670,7 +668,7 @@ class RevurderingServiceImpl(
             log.error("Kunne ikke oppdatere oppgave $oppgaveId for revurdering $revurderingId med informasjon om at forhåndsvarsel er sendt")
         }.onRight {
             log.info("Oppdatert oppgave $oppgaveId for revurdering $revurderingId  med informasjon om at forhåndsvarsel er sendt")
-        }
+        }.map { }
     }
 
     override fun lagBrevutkastForForhåndsvarsling(
@@ -730,7 +728,7 @@ class RevurderingServiceImpl(
 
         val tilordnetRessurs = revurdering.attesteringer.lastOrNull()?.attestant
 
-        val oppgaveId = oppgaveService.opprettOppgave(
+        val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterRevurdering(
                 saksnummer = revurdering.saksnummer,
                 aktørId = aktørId,
@@ -750,7 +748,7 @@ class RevurderingServiceImpl(
         // TODO endre rekkefølge slik at vi ikke lager/lukker oppgaver før vi har vært innom domenemodellen
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
-                oppgaveId,
+                oppgaveResponse.oppgaveId,
                 saksbehandler,
             ).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(it).left()
@@ -759,7 +757,7 @@ class RevurderingServiceImpl(
             }
 
             is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(
-                oppgaveId,
+                oppgaveResponse.oppgaveId,
                 saksbehandler,
             ).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(it).left()
@@ -768,7 +766,7 @@ class RevurderingServiceImpl(
             }
 
             is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
-                oppgaveId,
+                oppgaveResponse.oppgaveId,
                 saksbehandler,
             ).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
@@ -777,7 +775,7 @@ class RevurderingServiceImpl(
             }
 
             is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
-                oppgaveId,
+                oppgaveResponse.oppgaveId,
                 saksbehandler,
             ).let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
@@ -923,7 +921,7 @@ class RevurderingServiceImpl(
             return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
         }
 
-        val nyOppgaveId = oppgaveService.opprettOppgave(
+        val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = revurdering.saksnummer,
                 aktørId = aktørId,
@@ -935,7 +933,7 @@ class RevurderingServiceImpl(
             return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
         }
 
-        val underkjent = revurdering.underkjenn(attestering, nyOppgaveId)
+        val underkjent = revurdering.underkjenn(attestering, oppgaveResponse.oppgaveId)
 
         revurderingRepo.lagre(underkjent)
 
