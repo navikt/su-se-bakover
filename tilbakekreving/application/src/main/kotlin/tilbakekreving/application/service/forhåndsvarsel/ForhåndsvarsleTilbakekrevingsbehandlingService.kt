@@ -47,8 +47,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak. Command: $command")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeForhåndsvarsle.UlikVersjon.left()
+            log.info("Forhåndsvis forhåndsvarsel - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
 
         val behandling = (

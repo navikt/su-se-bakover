@@ -35,8 +35,7 @@ class IverksettTilbakekrevingService(
             throw IllegalStateException("Kunne ikke iverksette tilbakekrevingsbehandling $id, fant ikke sak ${command.sakId}")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeIverksette.UlikVersjon.left()
+            log.info("Iverksetting av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(id)

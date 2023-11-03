@@ -32,9 +32,9 @@ class UnderkjennTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke underkjenne ${command.behandlingsId.value}, fant ikke sak ${command.sakId}")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke underkjenne ${command.behandlingsId}. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeUnderkjenne.UlikVersjon.left()
+            log.info("Underkjenning av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
+
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(command.behandlingsId)
                 ?: throw IllegalStateException("Kunne ikke underkjenne tilbakekrevingsbehandling ${command.behandlingsId}, fant ikke tilbakekrevingsbehandling på sak. Command: $command")
