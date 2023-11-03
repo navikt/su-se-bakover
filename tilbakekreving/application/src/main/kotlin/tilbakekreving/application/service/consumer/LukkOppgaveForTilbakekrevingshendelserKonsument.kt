@@ -164,7 +164,7 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
-                        request = it.requestBody,
+                        request = it.request,
                         response = it.response,
                     ),
                     beskrivelse = it.beskrivelse,

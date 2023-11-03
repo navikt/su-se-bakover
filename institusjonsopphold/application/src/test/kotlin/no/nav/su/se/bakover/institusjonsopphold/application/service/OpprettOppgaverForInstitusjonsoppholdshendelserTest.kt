@@ -226,7 +226,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
-                        request = "requestbody",
+                        request = "request",
                         response = "response",
                     ),
                     beskrivelse = "beskrivelse",

@@ -141,7 +141,7 @@ internal class OppdaterOppgaveHttpClient(
                         // bare beskrivelsen er påkrevd å fylles ut. Dersom oppgavetypen ikke skal oppdateres
                         // benytter vi oss av hva som allerede er på oppgaven
                         oppgavetype = data.oppgavetype ?: Oppgavetype.fromString(oppgave.oppgavetype),
-                        requestBody = requestBody,
+                        request = requestBody,
                         response = it.body(),
                         beskrivelse = data.beskrivelse,
                     ).right()

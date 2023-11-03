@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 data class OppgaveHttpKallResponse(
     val oppgaveId: OppgaveId,
     val oppgavetype: Oppgavetype,
-    val requestBody: String,
+    val request: String,
     val response: String,
     val beskrivelse: String,
 )

@@ -9,13 +9,13 @@ val oppgaveId = OppgaveId("123")
 fun nyOppgaveHttpKallResponse(
     oppgaveId: OppgaveId = no.nav.su.se.bakover.test.oppgave.oppgaveId,
     oppgavetype: Oppgavetype = Oppgavetype.BEHANDLE_SAK,
-    requestBody: String = "requestbody",
+    request: String = "request",
     response: String = "response",
     beskrivelse: String = "beskrivelse",
 ): OppgaveHttpKallResponse = OppgaveHttpKallResponse(
     oppgaveId = oppgaveId,
     oppgavetype = oppgavetype,
-    requestBody = requestBody,
+    request = request,
     response = response,
     beskrivelse = beskrivelse,
 )

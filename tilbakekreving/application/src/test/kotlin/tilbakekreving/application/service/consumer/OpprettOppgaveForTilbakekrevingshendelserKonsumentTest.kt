@@ -112,7 +112,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                         correlationId = CorrelationId("Correlation-id"),
                         ident = null,
                         brukerroller = listOf(),
-                        request = "requestbody",
+                        request = "request",
                         response = "response",
                     ),
                     beskrivelse = "beskrivelse",

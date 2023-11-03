@@ -85,7 +85,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedSaksbehandlingRequest,
+            request = expectedSaksbehandlingRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
         )
@@ -94,7 +94,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         verify(oathMock).onBehalfOfToken(
             originalToken = argThat { it shouldBe "Bearer token" },
@@ -128,7 +128,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedSaksbehandlingRequest,
+            request = expectedSaksbehandlingRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
         )
@@ -148,7 +148,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         verify(tokenoppslagMock).token()
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -187,7 +187,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.ATTESTERING,
-            requestBody = expectedAttesteringRequest,
+            request = expectedAttesteringRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
         )
@@ -196,7 +196,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
     }
 
     @Test
@@ -266,7 +266,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedSaksbehandlingRequest,
+            request = expectedSaksbehandlingRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
         )
@@ -275,7 +275,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         verify(oathMock).onBehalfOfToken(
             originalToken = argThat { it shouldBe "Bearer token" },
@@ -315,7 +315,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedSaksbehandlingRequest,
+            request = expectedSaksbehandlingRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
         )
@@ -333,7 +333,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         verify(tokenoppslagMock).token()
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -383,7 +383,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.ATTESTERING,
-            requestBody = expectedAttesteringRequest,
+            request = expectedAttesteringRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
         )
@@ -392,7 +392,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
     }
 
     @Test
@@ -465,7 +465,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.ATTESTERING,
-            requestBody = expectedAttesteringRequest,
+            request = expectedAttesteringRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.",
         )
@@ -474,7 +474,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
     }
 
     @Test
@@ -518,7 +518,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.ATTESTERING,
-            requestBody = expectedAttesteringRequest,
+            request = expectedAttesteringRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
         )
@@ -527,7 +527,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
     }
 
     @Test
@@ -572,7 +572,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = oppgaveId,
             oppgavetype = Oppgavetype.ATTESTERING,
-            requestBody = expectedAttesteringRequest,
+            request = expectedAttesteringRequest,
             response = response,
             beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Medhold\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt.",
         )
@@ -581,7 +581,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
     }
 
     private fun createRequestBody(
@@ -592,7 +592,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
     ): String {
-        println("$beskrivelse, $oppgavetype")
         //language=json
         return """
                 {

@@ -118,7 +118,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 correlationId = correlationId,
                 ident = null,
                 brukerroller = listOf(),
-                request = oppgaveResponse.requestBody,
+                request = oppgaveResponse.request,
                 response = oppgaveResponse.response,
             ),
             beskrivelse = oppgaveResponse.beskrivelse,

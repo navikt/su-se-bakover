@@ -22,7 +22,7 @@ data object OppgaveClientStub : OppgaveClient {
     override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
-            requestBody = "stubbedRequestBody",
+            request = "stubbedRequestBody",
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -31,7 +31,7 @@ data object OppgaveClientStub : OppgaveClient {
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
-            requestBody = "stubbedRequestBody",
+            request = "stubbedRequestBody",
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -40,7 +40,7 @@ data object OppgaveClientStub : OppgaveClient {
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
-            requestBody = "stubbedRequest",
+            request = "stubbedRequest",
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -49,7 +49,7 @@ data object OppgaveClientStub : OppgaveClient {
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
-            requestBody = "stubbedRequest",
+            request = "stubbedRequest",
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -60,7 +60,7 @@ data object OppgaveClientStub : OppgaveClient {
         beskrivelse: String,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(
         oppgaveId = OppgaveId("stubbedOppgaveId"),
-        requestBody = "stubbedRequest",
+        request = "stubbedRequest",
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -71,7 +71,7 @@ data object OppgaveClientStub : OppgaveClient {
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(
         oppgaveId = OppgaveId("stubbedOppgaveId"),
-        requestBody = "stubbedRequest",
+        request = "stubbedRequest",
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,

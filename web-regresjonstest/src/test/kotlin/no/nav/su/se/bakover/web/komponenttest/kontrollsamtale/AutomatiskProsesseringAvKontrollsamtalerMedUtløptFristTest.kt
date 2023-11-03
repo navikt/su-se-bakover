@@ -468,7 +468,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                             OppgaveHttpKallResponse(
                                 oppgaveId = OppgaveId(underTest.oppgaveId),
                                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                                requestBody = "",
+                                request = "",
                                 response = "",
                                 beskrivelse = "",
                             ).right()
@@ -479,7 +479,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                                 OppgaveHttpKallResponse(
                                     oppgaveId = OppgaveId(underTest.oppgaveId),
                                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                                    requestBody = "",
+                                    request = "",
                                     response = "",
                                     beskrivelse = "",
                                 ).right()

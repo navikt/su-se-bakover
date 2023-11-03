@@ -238,7 +238,7 @@ internal class OppgaveHttpClient(
                     OppgaveHttpKallResponse(
                         oppgaveId = oppgaveResponse.getOppgaveId(),
                         oppgavetype = oppgaveResponse.oppgavetype(),
-                        requestBody = requestBody,
+                        request = requestBody,
                         response = body,
                         beskrivelse = beskrivelse,
                     ).right()

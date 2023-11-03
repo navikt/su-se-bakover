@@ -75,7 +75,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedBody,
+            request = expectedBody,
             response = patchResponse,
             beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
         )
@@ -84,7 +84,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
@@ -114,7 +114,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedBody,
+            request = expectedBody,
             response = patchResponse,
             beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
         )
@@ -123,7 +123,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
@@ -160,7 +160,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedBody,
+            request = expectedBody,
             response = patchResponse,
             beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
         )
@@ -169,7 +169,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
@@ -213,7 +213,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         val expected = nyOppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            requestBody = expectedBody,
+            request = expectedBody,
             response = patchResponse,
             beskrivelse = "en beskrivelse",
         )
@@ -222,7 +222,7 @@ internal class OppdaterHttpClientTest : WiremockBase {
         actual.oppgavetype shouldBe expected.oppgavetype
         actual.beskrivelse shouldBe expected.beskrivelse
         actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.requestBody, expected.requestBody, true)
+        JSONAssert.assertEquals(actual.request, expected.request, true)
 
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))

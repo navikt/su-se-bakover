@@ -88,7 +88,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                         correlationId = null,
                         ident = null,
                         brukerroller = listOf(),
-                        request = it.requestBody,
+                        request = it.request,
                         response = it.response,
                     ),
                     tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
