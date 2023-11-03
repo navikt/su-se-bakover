@@ -180,7 +180,7 @@ subprojects {
 
     tasks.withType<KotlinJvmCompile> {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_20)
+            jvmTarget.set(JvmTarget.JVM_21)
             freeCompilerArgs.add("-progressive")
             allWarningsAsErrors.set(true)
         }
@@ -188,7 +188,7 @@ subprojects {
 
     java {
         // Ensuring any java-files is also compiled with the preferred version.
-        toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 
     tasks.withType<Wrapper> {
