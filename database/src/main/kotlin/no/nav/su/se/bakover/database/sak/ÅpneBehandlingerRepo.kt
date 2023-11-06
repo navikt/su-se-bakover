@@ -3,27 +3,41 @@ package no.nav.su.se.bakover.database.sak
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
-import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
-import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
+import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 internal class ÅpneBehandlingerRepo(
     private val dbMetrics: DbMetrics,
+    private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val sessionFactory: SessionFactory,
 ) {
+    fun hentÅpneBehandlinger(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            åpneBehandlingerUtenTilbakekreving(sessionContext).plus(
+                tilbakekrevingsbehandlingRepo.hentÅpneBehandlingssamendrag(),
+            )
+        }
+    }
+
     /**
      * Henter åpne søknadsbehandlinger, åpne revurderinger, åpne klager, og nye søknader
      */
-    fun hentÅpneBehandlinger(session: Session): List<Behandlingssammendrag> {
+    private fun åpneBehandlingerUtenTilbakekreving(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentÅpneBehandlinger") {
-            //language=sql
-            """
+            sessionContext.withOptionalSession(sessionFactory) {
+                //language=postgresql
+                """
                 with sak as (
                 select id as sakId, saksnummer
                 from sak
@@ -75,8 +89,9 @@ internal class ÅpneBehandlingerRepo(
                  )
             select *
             from slåttSammen
-            """.hentListe(emptyMap(), session) {
-                it.toBehandlingsoversikt()
+            """.hentListe(emptyMap(), it) {
+                    it.toBehandlingsoversikt()
+                }
             }
         }
     }
@@ -99,7 +114,9 @@ internal class ÅpneBehandlingerRepo(
     ): Behandlingssammendrag.Behandlingsstatus {
         return when (behandlingsTypeDB) {
             BehandlingsTypeDB.SØKNAD -> Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD
-            BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status")).tilBehandlingsstatus()
+            BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
+                .tilBehandlingsstatus()
+
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
             BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status")).tilBehandlingsstatus()
         }

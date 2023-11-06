@@ -1,8 +1,15 @@
 package tilbakekreving.infrastructure.repo
 
+import arrow.core.Tuple5
 import dokument.domain.hendelser.DokumentHendelseRepo
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
@@ -19,6 +26,7 @@ import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingbehandlingsSerie
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -141,6 +149,65 @@ class TilbakekrevingsbehandlingPostgresRepo(
             hentForSak(sakId = hendelse.sakId, sessionContext = it).hentSerieFor(hendelse.id)
         }
     }
+
+    private fun hentBehandlingerForSammendrag(sessionContext: SessionContext?): List<Tuple5<Long, Hendelsestype, Saksnummer, TilbakekrevingsbehandlingId, Tidspunkt>> {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            """
+                select 
+                    versjon, 
+                    h.type, 
+                    s.saksnummer, 
+                    data ->> 'behandlingsId' as behandlingsId,
+                    hendelsestidspunkt
+                from hendelse h
+                join sak s on h.sakid = s.id
+                where data ->> 'behandlingsId' is not null;
+            """.trimIndent().hentListe(emptyMap(), it) {
+                Tuple5(
+                    it.long("versjon"),
+                    it.string("type").toTilbakekrevingHendelsestype(),
+                    Saksnummer(it.long("saksnummer")),
+                    TilbakekrevingsbehandlingId(UUID.fromString(it.string("behandlingsId"))),
+                    it.tidspunkt("hendelsestidspunkt"),
+                )
+            }
+        }
+    }
+
+    override fun hentÅpneBehandlingssamendrag(sessionContext: SessionContext?): List<Behandlingssammendrag> {
+        val hendelserGruppertPåBehandlingsId = hentBehandlingerForSammendrag(sessionContext).groupBy { it.fourth }
+
+        val gruppertKunÅpneHendelser = hendelserGruppertPåBehandlingsId.entries.mapNotNull { entry ->
+            val behandlingStartet =
+                entry.value.single { it.second == OpprettetTilbakekrevingsbehandlingHendelsestype }.fifth
+
+            // versjonen på hendelsen må være den siste hendelsen i serien for å vite at det ikke er hendelser etter som kan ha avsluttet serien
+            val currentState =
+                entry.value.singleOrNull { it.second.erÅpen() && it.first == entry.value.maxOf { it.first } }
+                    ?: return@mapNotNull null
+
+            Tuple5(currentState.first, currentState.second, currentState.third, currentState.fourth, behandlingStartet)
+        }
+
+        return gruppertKunÅpneHendelser.toBehandlingssammendrag()
+    }
+
+    override fun hentFerdigeBehandlingssamendrag(sessionContext: SessionContext?): List<Behandlingssammendrag> {
+        val hendelserGruppertPåBehandlingsId = hentBehandlingerForSammendrag(sessionContext).groupBy { it.fourth }
+
+        val gruppertKunÅpneHendelser = hendelserGruppertPåBehandlingsId.entries.mapNotNull { entry ->
+            val behandlingStartet =
+                entry.value.single { it.second == OpprettetTilbakekrevingsbehandlingHendelsestype }.fifth
+            // versjonen på hendelsen må være den siste hendelsen i serien for å vite at det ikke er hendelser etter som kan ha avsluttet serien
+            val currentState =
+                entry.value.singleOrNull { !it.second.erÅpen() && it.first == entry.value.maxOf { it.first } }
+                    ?: return@mapNotNull null
+
+            Tuple5(currentState.first, currentState.second, currentState.third, currentState.fourth, behandlingStartet)
+        }
+
+        return gruppertKunÅpneHendelser.toBehandlingssammendrag()
+    }
 }
 
 private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
@@ -239,3 +306,57 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
         is UnderkjentHendelse -> this.toJson()
     }
 }
+
+internal fun String.toTilbakekrevingHendelsestype(): Hendelsestype = when (this) {
+    "OPPRETTET_TILBAKEKREVINGSBEHANDLING" -> OpprettetTilbakekrevingsbehandlingHendelsestype
+    "FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING" -> ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
+    "VURDERT_TILBAKEKREVINGSBEHANDLING" -> VurdertTilbakekrevingsbehandlingHendelsestype
+    "OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING" -> OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype
+    "TILBAKEKREVINGSBEHANDLING_TIL_ATTESTERING" -> TilbakekrevingsbehandlingTilAttesteringHendelsestype
+    "UNDERKJENT_TILBAKEKREVINGSBEHANDLING" -> UnderkjentTilbakekrevingsbehandlingHendelsestype
+    "IVERKSATT_TILBAKEKREVINGSBEHANDLING" -> IverksattTilbakekrevingsbehandlingHendelsestype
+    "AVBRUTT_TILBAKEKREVINGSBEHANDLING" -> AvbruttTilbakekrevingsbehandlingHendelsestype
+    else -> throw IllegalStateException("Ukjent hendelsestype for tilbakekreving - fikk $this")
+}
+
+internal fun Hendelsestype.erÅpen(): Boolean = when (this) {
+    OpprettetTilbakekrevingsbehandlingHendelsestype,
+    ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+    VurdertTilbakekrevingsbehandlingHendelsestype,
+    OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
+    TilbakekrevingsbehandlingTilAttesteringHendelsestype,
+    UnderkjentTilbakekrevingsbehandlingHendelsestype,
+    -> true
+
+    IverksattTilbakekrevingsbehandlingHendelsestype,
+    AvbruttTilbakekrevingsbehandlingHendelsestype,
+    -> false
+
+    else -> throw IllegalStateException("Ukjent hendelsestype for tilbakekreving - fikk $this")
+}
+
+internal fun Hendelsestype.toBehandlingssamendragStatus(): Behandlingssammendrag.Behandlingsstatus = when (this) {
+    OpprettetTilbakekrevingsbehandlingHendelsestype,
+    ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+    VurdertTilbakekrevingsbehandlingHendelsestype,
+    OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
+    -> Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
+
+    TilbakekrevingsbehandlingTilAttesteringHendelsestype -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING
+    UnderkjentTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.UNDERKJENT
+    IverksattTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
+    AvbruttTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
+    else -> throw IllegalStateException("Ukjent hendelsestype for tilbakekreving - fikk $this")
+}
+
+fun List<Tuple5<Long, Hendelsestype, Saksnummer, TilbakekrevingsbehandlingId, Tidspunkt>>.toBehandlingssammendrag(): List<Behandlingssammendrag> =
+    this.map {
+        Behandlingssammendrag(
+            saksnummer = it.third,
+            behandlingsId = it.fourth.value,
+            periode = null,
+            behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
+            behandlingStartet = it.fifth,
+            status = it.second.toBehandlingssamendragStatus(),
+        )
+    }

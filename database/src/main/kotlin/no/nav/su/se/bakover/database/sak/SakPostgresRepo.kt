@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.sak
 import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -58,6 +58,8 @@ internal class SakPostgresRepo(
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
         dbMetrics = dbMetrics,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+        sessionFactory = sessionFactory,
     )
 
     private val ferdigeBehandlingerRepo = FerdigeBehandlingerRepo(
@@ -249,8 +251,8 @@ internal class SakPostgresRepo(
 
     override fun hentÅpneBehandlinger(): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentÅpneBehandlinger") {
-            sessionFactory.withSession { session ->
-                åpneBehandlingerRepo.hentÅpneBehandlinger(session)
+            sessionFactory.withSessionContext { tx ->
+                åpneBehandlingerRepo.hentÅpneBehandlinger(tx)
             }
         }
     }
