@@ -25,7 +25,7 @@ internal class ÅpneBehandlingerRepo(
     fun hentÅpneBehandlinger(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
         return sessionContext.withOptionalSession(sessionFactory) {
             åpneBehandlingerUtenTilbakekreving(sessionContext).plus(
-                tilbakekrevingsbehandlingRepo.hentÅpneBehandlingssamendrag(),
+                tilbakekrevingsbehandlingRepo.hentÅpneBehandlingssamendrag(sessionContext),
             )
         }
     }
