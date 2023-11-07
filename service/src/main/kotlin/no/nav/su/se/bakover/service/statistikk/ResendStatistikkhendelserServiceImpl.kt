@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import org.slf4j.LoggerFactory
@@ -86,10 +86,10 @@ class ResendStatistikkhendelserServiceImpl(
                     log.info("Resend statistikk: Sendte statistikk for Klagevedtak.Avvist $vedtakId.")
                 }
 
-                is VedtakOpphørAvkorting -> {
+                is VedtakOpphørUtenUtbetaling -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
                     statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
-                    log.info("Resend statistikk: Sendte statistikk for VedtakOpphørAvkorting $vedtakId.")
+                    log.error("Resend statistikk: Sendte statistikk for VedtakOpphørAvkorting $vedtakId. Dette skal ikke skje, siden vi ikke lager nye vedtak av denne typen, men vi øsnker ikke feile hvis det oppstår.")
                 }
 
                 is VedtakOpphørMedUtbetaling -> {

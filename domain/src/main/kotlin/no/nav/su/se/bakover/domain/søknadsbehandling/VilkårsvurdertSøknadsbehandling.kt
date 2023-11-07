@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
@@ -178,9 +177,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             ).right()
         }
 
-        /** Avkorting vurderes ikke før vi må; beregningsteget. */
-        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
-
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             // TODO jah: Enable denne når det ikke finnes proddata med ufullstendig i denne tilstanden:
@@ -213,9 +209,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         override val beregning = null
         override val simulering: Simulering? = null
-
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting =
-            AvkortingVedSøknadsbehandling.IngenAvkorting
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
             return this.copy(
@@ -322,7 +315,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
-        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
         override val periode: Periode
             get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException(id)
 

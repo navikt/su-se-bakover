@@ -436,7 +436,6 @@ internal class SøknadsbehandlingJsonTest {
                  }
               },
               "erLukket": false,
-              "simuleringForAvkortingsvarsel": null,
               "sakstype": "uføre",
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,
@@ -736,7 +735,6 @@ internal class SøknadsbehandlingJsonTest {
                 "institusjonsopphold": null
               },
               "erLukket": false,
-              "simuleringForAvkortingsvarsel": null,
               "sakstype": "uføre",
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,

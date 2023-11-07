@@ -24,7 +24,6 @@ fun assertSøknadsbehandlingJson(
     expectedStønadsperiode: String? = null,
     expectedGrunnlagsdataOgVilkårsvurderinger: String,
     expectedErLukket: Boolean = false,
-    expectedSimuleringForAvkortingsvarsel: String? = null,
     expectedSakstype: String = "uføre",
     expectedAldersvurdering: String? = null,
     expectedEksterneGrunnlag: String = eksterneGrunnlagResponse(),
@@ -44,7 +43,6 @@ fun assertSøknadsbehandlingJson(
         "stønadsperiode": $expectedStønadsperiode,
         "grunnlagsdataOgVilkårsvurderinger": $expectedGrunnlagsdataOgVilkårsvurderinger,
         "erLukket": $expectedErLukket,
-        "simuleringForAvkortingsvarsel": $expectedSimuleringForAvkortingsvarsel,
         "sakstype": $expectedSakstype,
         "aldersvurdering": $expectedAldersvurdering,
         "eksterneGrunnlag": $expectedEksterneGrunnlag

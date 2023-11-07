@@ -30,8 +30,8 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.10.0"
-    val kotestVersion = "5.7.2"
+    val junitJupiterVersion = "5.10.1"
+    val kotestVersion = "5.8.0"
     val jacksonVersion = "2.15.3"
     val kotlinVersion: String by this
     val confluentVersion = "7.3.1"
@@ -84,7 +84,7 @@ subprojects {
         implementation("com.github.seratch:kotliquery:1.9.0")
         implementation("org.flywaydb:flyway-core:10.0.0")
         implementation("org.flywaydb:flyway-database-postgresql:10.0.0")
-        implementation("com.zaxxer:HikariCP:5.0.1")
+        implementation("com.zaxxer:HikariCP:5.1.0")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
         implementation("org.postgresql:postgresql:42.6.0")
 
@@ -182,7 +182,7 @@ subprojects {
 
     tasks.withType<KotlinJvmCompile> {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_20)
+            jvmTarget.set(JvmTarget.JVM_21)
             freeCompilerArgs.add("-progressive")
             allWarningsAsErrors.set(true)
         }
@@ -190,7 +190,7 @@ subprojects {
 
     java {
         // Ensuring any java-files is also compiled with the preferred version.
-        toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 
     tasks.withType<Wrapper> {

@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -42,7 +40,6 @@ internal fun Sak.iverksettInnvilgetRevurdering(
 
     return revurdering.tilIverksatt(
         attestant = attestant,
-        uteståendeAvkortingPåSak = uteståendeAvkorting as? Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         clock = clock,
     ).mapLeft {
         KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil(it)
@@ -85,8 +82,6 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                             vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
                             // TODO jah: Her legger vi til en [SimulertUtbetaling] istedenfor en [OversendtUtbetaling] det kan i første omgang klusse til testdataene.
                             utbetalinger = utbetalinger + simulertUtbetaling,
-                        ).oppdaterUteståendeAvkortingVedIverksettelse(
-                            behandletAvkorting = vedtak.behandling.avkorting,
                         ),
                     vedtak = vedtak,
                     utbetaling = simulertUtbetaling,

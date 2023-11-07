@@ -40,8 +40,6 @@ sealed interface KunneIkkeBeregne {
 
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
         KunneIkkeBeregne
-
-    data object AvkortingErUfullstendig : KunneIkkeBeregne
 }
 
 sealed interface KunneIkkeLukkeSøknadsbehandling {

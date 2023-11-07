@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.utenAvkorting
 import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.time.Clock
 import java.util.UUID
@@ -22,6 +21,10 @@ class BeregningFactory(val clock: Clock) {
         begrunnelse: String? = null,
         beregningsperioder: List<Beregningsperiode>,
     ): BeregningMedFradragBeregnetMånedsvis {
+        if (fradrag.any { it.fradragstype is Fradragstype.AvkortingUtenlandsopphold }) {
+            throw IllegalArgumentException("Fradragstype.AvkortingUtenlandsopphold er ikke støttet i nye beregninger.")
+        }
+
         fun beregnMåned(
             måned: Måned,
             fradrag: List<Fradrag>,
@@ -47,33 +50,14 @@ class BeregningFactory(val clock: Clock) {
             ).getSumYtelse()
         }
 
-        fun sumYtelseUtenAvkorting(måned: Måned, strategy: BeregningStrategy): Int {
-            return beregnMåned(
-                måned = måned,
-                fradrag = fradrag.utenAvkorting(),
-                strategy = strategy,
-            ).getSumYtelse()
-        }
-
         fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
             val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
 
             // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
             if (getSumYtelse() >= toProsentAvHøy) return false
 
-            // Avkortinga vil lage et fradrag på resterende ytelse, så vi forsikre oss om at den ikke har skylda.
             // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
-            return sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy && sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøy
-        }
-
-        fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
-            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
-
-            // Hvis ytelsen er 2% eller mer av høy sats fører ikke avkortinga til at vi havner under 2%
-            if (getSumYtelse() >= toProsentAvHøy) return false
-
-            // hvis sum uten avkorting gjør at vi havner over 2% er det avkorting som har skylda
-            return sumYtelseUtenAvkorting(måned = måned, strategy = strategy) >= toProsentAvHøy
+            return sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøy
         }
 
         fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
@@ -104,10 +88,7 @@ class BeregningFactory(val clock: Clock) {
                             månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                             månedsberegning
                         }
-                        månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
-                            månedsberegning.leggTilMerknad(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
-                            månedsberegning
-                        }
+
                         månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
                             beregnMåned(
                                 måned = måned,
@@ -118,10 +99,12 @@ class BeregningFactory(val clock: Clock) {
                                 it
                             }
                         }
+
                         månedsberegning.getSumYtelse() == 0 -> {
                             månedsberegning.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
                             månedsberegning
                         }
+
                         else -> {
                             månedsberegning
                         }

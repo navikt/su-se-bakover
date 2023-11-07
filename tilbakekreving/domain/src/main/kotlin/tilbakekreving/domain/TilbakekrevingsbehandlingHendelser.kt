@@ -134,6 +134,13 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         )
     }
 
+    fun hentSerieFor(behandlingsid: TilbakekrevingsbehandlingId): TilbakekrevingbehandlingsSerie =
+        TilbakekrevingbehandlingsSerie(
+            sakId = sakId,
+            behandlingsId = behandlingsid,
+            hendelser = sorterteHendelser.filter { it.id == behandlingsid },
+        )
+
     companion object {
 
         fun empty(sakId: UUID, clock: Clock): TilbakekrevingsbehandlingHendelser {

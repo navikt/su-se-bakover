@@ -88,3 +88,7 @@ fun <T : List<Any>, R> T.whenever(isEmpty: () -> R, isNotEmpty: (T) -> R): R {
 fun <T, R> List<T>.pickByCondition(targetList: List<R>, condition: (T, R) -> Boolean): List<T> {
     return this.filter { mainElement -> targetList.any { condition(mainElement, it) } }
 }
+
+fun <T, R> List<T>.mapOneIndexed(transform: (int: Int, T) -> R): List<R> {
+    return this.mapIndexed { idx, el -> transform(idx + 1, el) }
+}

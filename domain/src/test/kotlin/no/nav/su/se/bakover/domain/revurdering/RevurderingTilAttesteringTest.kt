@@ -16,10 +16,7 @@ internal class RevurderingTilAttesteringTest {
                 revurdering.tilIverksatt(
                     attestant = NavIdentBruker.Attestant(revurdering.saksbehandler.navIdent),
                     clock = fixedClock,
-                    uteståendeAvkortingPåSak = null,
                 ) shouldBe RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
     }
-
-    // TODO flere tester på tiliverksatt avkorting (husk søknadsbehandling også)
 }

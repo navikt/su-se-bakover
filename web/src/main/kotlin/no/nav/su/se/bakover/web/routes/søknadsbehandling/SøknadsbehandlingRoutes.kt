@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -201,10 +200,6 @@ internal fun Route.søknadsbehandlingRoutes(
 
                                         is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                                             kunneIkkeBeregne.feil.tilResultat()
-                                        }
-
-                                        KunneIkkeBeregne.AvkortingErUfullstendig -> {
-                                            avkortingErUfullstendig
                                         }
                                     }
                                     return@authorize call.svar(resultat)

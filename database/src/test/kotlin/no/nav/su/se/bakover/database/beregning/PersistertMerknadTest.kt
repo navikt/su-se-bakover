@@ -51,19 +51,4 @@ internal class PersistertMerknadTest {
 
         merknad shouldBe merknad.toSnapshot().toDomain()
     }
-
-    @Test
-    fun `serialisering og av merknad for avkorting fører til under to prosent`() {
-        //language=json
-        val expected = """
-            {
-              "type": "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats"
-            }
-        """.trimIndent()
-
-        val merknad = Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
-        JSONAssert.assertEquals(expected, serialize(merknad.toSnapshot()), true)
-
-        merknad shouldBe merknad.toSnapshot().toDomain()
-    }
 }

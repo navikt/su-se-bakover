@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -46,7 +45,6 @@ data class SimulertSøknadsbehandling(
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
     override val attesteringer: Attesteringshistorikk,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-    override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanSimuleres, KanSendesTilAttestering, KanGenerereInnvilgelsesbrev, KanOppdatereFradragsgrunnlag {
@@ -106,7 +104,6 @@ data class SimulertSøknadsbehandling(
                         handling = SøknadsbehandlingsHandling.Simulert,
                     ),
                 ),
-                avkorting = avkorting,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -152,7 +149,6 @@ data class SimulertSøknadsbehandling(
                     handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                 ),
             ),
-            avkorting = avkorting,
             sakstype = sakstype,
         ).right()
     }

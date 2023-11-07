@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -59,13 +59,12 @@ class SøknadTest {
         fnr = fnr,
         utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
         uteståendeKravgrunnlag = null,
     )
     private val pdf = PdfA("pdf-data".toByteArray())
     private val journalpostId = JournalpostId("1")
-    private val oppgaveId = OppgaveId("2")
+    private val oppgaveId = OppgaveId("123")
     private val innsender = NavIdentBruker.Veileder("navIdent")
 
     @Test
@@ -372,7 +371,7 @@ class SøknadTest {
                 on { opprettJournalpost(any()) } doReturn journalpostId.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn oppgaveId.right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             søknadRepo = mock(),
             søknadMetrics = mock(),

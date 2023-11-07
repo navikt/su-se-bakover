@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -63,16 +64,13 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         val sak = sakService.hentSak(sakId)
             .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å opprette oppgave for OpprettetTilbakekrevingshendelse") }
 
-        hendelsesIder.map { relatertHendelsesId ->
-            val nesteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)?.inc()
-                ?: throw IllegalStateException("Kunne ikke hente siste versjon for sak ${sak.id} for å opprette oppgave")
-
+        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
             val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
-                ?: throw IllegalStateException("Feil ved henting av hendelse for å opprette oppgave. sak $sakId, hendelse $relatertHendelsesId")
+                ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å opprette oppgave. sak $sakId, hendelse $relatertHendelsesId") }
 
             opprettOppgaveHendelse(
                 relaterteHendelse = relatertHendelse.hendelseId,
-                nesteVersjon = nesteVersjon,
+                nesteVersjon = sak.versjon.inc(idx),
                 sakInfo = sak.info(),
                 correlationId = correlationId,
                 tilordnetRessurs = relatertHendelse.meta.ident as NavIdentBruker.Saksbehandler,
@@ -98,7 +96,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
             return KunneIkkeOppretteOppgave.FeilVedHentingAvPerson(it).left()
         }
 
-        val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(
+        val oppgaveResponse = oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Tilbakekrevingsbehandling(
                 saksnummer = sakInfo.saksnummer,
                 aktørId = aktørId,
@@ -109,14 +107,22 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
             return KunneIkkeOppretteOppgave.FeilVedOpprettelseAvOppgave.left()
         }
 
-        return OppgaveHendelse.opprettet(
+        return OppgaveHendelse.Opprettet(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
-            oppgaveId = oppgaveId,
+            oppgaveId = oppgaveResponse.oppgaveId,
             versjon = nesteVersjon,
             sakId = sakInfo.sakId,
             relaterteHendelser = listOf(relaterteHendelse),
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId = correlationId),
+            meta = OppgaveHendelseMetadata(
+                correlationId = correlationId,
+                ident = null,
+                brukerroller = listOf(),
+                request = oppgaveResponse.request,
+                response = oppgaveResponse.response,
+            ),
+            beskrivelse = oppgaveResponse.beskrivelse,
+            oppgavetype = oppgaveResponse.oppgavetype,
         ).right()
     }
 }

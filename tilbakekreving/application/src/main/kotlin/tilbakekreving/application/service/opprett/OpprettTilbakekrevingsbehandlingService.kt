@@ -38,8 +38,7 @@ class OpprettTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke opprette tilbakekreving. Fant ikke sak $sakId. Feil: $it")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke opprette tilbakekreving. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeOppretteTilbakekrevingsbehandling.UlikVersjon.left()
+            log.info("Opprettelse av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
         if (sak.behandlinger.tilbakekrevinger.harÅpen()) {
             log.info("Kunne ikke opprette tilbakekreving. Fant allerede en åpen tilbakekrevingsbehandling for sak $sakId")

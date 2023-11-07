@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.revurdering
 
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -36,7 +35,6 @@ internal data class RevurderingServiceMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
     val sakService: SakService = defaultMock(),
     val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = defaultMock(),
-    val avkortingsvarselRepo: AvkortingsvarselRepo = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val observer: StatistikkEventObserver = mock(),
     val clock: Clock = TikkendeKlokke(),
@@ -71,7 +69,6 @@ internal data class RevurderingServiceMocks(
         vedtakRepo,
         ferdigstillVedtakService,
         sakService,
-        avkortingsvarselRepo,
         annullerKontrollsamtaleService,
         tilbakekrevingService,
     ).toTypedArray()

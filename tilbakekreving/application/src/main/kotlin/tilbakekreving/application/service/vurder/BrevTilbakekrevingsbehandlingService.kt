@@ -34,8 +34,7 @@ class BrevTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke oppdatere vedtaksbrev for tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke oppdatere vedtaksbrev for tilbakekrevingsbehandling. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeLagreBrevtekst.UlikVersjon.left()
+            log.info("Vedtaksbrev for tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
 
         return sak.oppdaterVedtaksbrev(command, clock).let { pair ->

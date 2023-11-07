@@ -4,15 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -21,29 +17,20 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimul
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
-import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -301,7 +288,7 @@ internal class RevurderingBeregnOgSimulerTest {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = beregnet.id,
                 saksbehandler = saksbehandler,
-                skalUtsetteTilbakekreving = false,
+                skalUtsetteTilbakekreving = true,
             )
 
             response shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
@@ -343,9 +330,9 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-            underkjent.id,
-            saksbehandler,
-            skalUtsetteTilbakekreving = false,
+            revurderingId = underkjent.id,
+            saksbehandler = saksbehandler,
+            skalUtsetteTilbakekreving = true,
         ).getOrFail()
 
         actual.let {
@@ -421,91 +408,6 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
             verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
             serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `tar med gjeldende grunnlag for avkorting for revurderingsperioden ved beregning`() {
-        val expectedAvkorting = 2 * 20946
-
-        val tikkendeKlokke = TikkendeKlokke()
-
-        val stønadsperiode1 = stønadsperiode2021
-        val (sakEtterInnvilgelse1, _, innvilget1) = iverksattSøknadsbehandlingUføre(
-            clock = tikkendeKlokke,
-            stønadsperiode = stønadsperiode1,
-        )
-
-        innvilget1.harPågåendeAvkorting() shouldBe false
-        innvilget1.harIdentifisertBehovForFremtidigAvkorting() shouldBe false
-
-        val revurderingsperiode1 = Periode.create(1.mai(2021), 31.desember(2021))
-        val (sakEtterRevurdering1, revurdering1) = vedtakRevurdering(
-            clock = tikkendeKlokke,
-            revurderingsperiode = revurderingsperiode1,
-            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse1 to innvilget1 as VedtakSomKanRevurderes,
-            vilkårOverrides = listOf(
-                utenlandsoppholdAvslag(
-                    periode = revurderingsperiode1,
-                ),
-            ),
-            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
-        )
-
-        revurdering1.harPågåendeAvkorting() shouldBe false
-        revurdering1.harIdentifisertBehovForFremtidigAvkorting() shouldBe true
-
-        val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)))
-
-        val (sakEtterInnvilgelse2, _, innvilget2) = iverksattSøknadsbehandlingUføre(
-            clock = tikkendeKlokke,
-            stønadsperiode = stønadsperiode2,
-            sakOgSøknad = sakEtterRevurdering1 to nySøknadJournalførtMedOppgave(
-                clock = tikkendeKlokke,
-                sakId = sakEtterRevurdering1.id,
-                søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = Personopplysninger(sakEtterRevurdering1.fnr),
-                ),
-            ),
-        )
-
-        innvilget2.harPågåendeAvkorting() shouldBe true
-        innvilget2.harIdentifisertBehovForFremtidigAvkorting() shouldBe false
-
-        val revurderingsperiode2 = stønadsperiode2.periode
-        val (sakEtterRevurdering2, revurdering2) = opprettetRevurdering(
-            revurderingsperiode = revurderingsperiode2,
-            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse2 to innvilget2 as VedtakSomKanRevurderes,
-            clock = tikkendeKlokke,
-        )
-
-        val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock(),
-            utbetalingService = mock { service ->
-                doAnswer { invocation ->
-                    simulerUtbetaling(
-                        sak = sakEtterRevurdering2,
-                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        simuleringsperiode = invocation.getArgument(1) as Periode,
-                        clock = tikkendeKlokke,
-                    )
-                }.whenever(service).simulerUtbetaling(any(), any())
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sakEtterRevurdering2
-            },
-            clock = tikkendeKlokke,
-        )
-
-        val actual =
-            serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler, false)
-                .getOrFail().revurdering
-
-        (actual as SimulertRevurdering.Innvilget).let { simulert ->
-            simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
-            simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
         }
     }
 }

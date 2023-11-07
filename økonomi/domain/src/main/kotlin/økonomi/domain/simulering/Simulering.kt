@@ -29,7 +29,7 @@ data class Simulering(
 
     init {
         check(måneder.isNotEmpty()) { "En simulering må inneholde minst en måned" }
-        // TODO jah: Skulle gjerne sjekket at månedene var i rekkefølge, men SimuleringStub/avkortingstestene liker ikke dette.
+        // TODO jah: Skulle gjerne sjekket at månedene var i rekkefølge, men SimuleringStub liker ikke dette. Mulig dette kan endres nå som vi har fjernet avkorting.
     }
 
     fun harFeilutbetalinger(): Boolean {

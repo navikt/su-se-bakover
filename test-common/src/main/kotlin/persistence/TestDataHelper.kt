@@ -129,6 +129,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagPåSakHendelse
 import no.nav.su.se.bakover.test.kravgrunnlag.råttKravgrunnlagHendelse
+import no.nav.su.se.bakover.test.nyAvbruttTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nyIverksattTilbakekrevingsbehandlingHendelse
@@ -169,6 +170,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
+import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -206,7 +208,6 @@ class TestDataHelper(
         råttKravgrunnlagMapper = råttKravgrunnlagMapper,
     )
     val avstemmingRepo = databaseRepos.avstemming
-    val avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
     val dokumentRepo = databaseRepos.dokumentRepo
     val sakRepo = databaseRepos.sak
     val vedtakRepo = databaseRepos.vedtakRepo
@@ -226,7 +227,8 @@ class TestDataHelper(
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
     private val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
-    private val dokumentHendelseRepo = DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory))
+    private val dokumentHendelseRepo =
+        DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory))
     val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,
@@ -1889,6 +1891,30 @@ class TestDataHelper(
                     fifth = råttKravgrunnlagHendelse!!,
                     sixth = kravgrunnlagPåSakHendelse!!,
                     seventh = opprettetHendelse,
+                    eighth = oppgaveHendelse,
+                )
+            }
+        }
+    }
+
+    fun persisterAvbruttTilbakekrevingsbehandlingHendelse(
+        forrigeHendelse: Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> = persisterOpprettetTilbakekrevingsbehandlingHendelse(),
+    ): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, AvbruttHendelse, OppgaveHendelse> {
+        return forrigeHendelse.let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse, opprettetHendelse) ->
+            nyAvbruttTilbakekrevingsbehandlingHendelse(
+                forrigeHendelse = opprettetHendelse,
+                versjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)!!.inc(),
+            ).let { avbruttHendelse ->
+                tilbakekrevingHendelseRepo.lagre(avbruttHendelse)
+                val oppgaveHendelse = persisterOppgaveHendelseFraRelatertHendelse { avbruttHendelse }
+                Tuple8(
+                    first = sak,
+                    second = revurdering,
+                    third = utbetaling,
+                    fourth = vedtak,
+                    fifth = råttKravgrunnlagHendelse,
+                    sixth = kravgrunnlagPåSakHendelse,
+                    seventh = avbruttHendelse,
                     eighth = oppgaveHendelse,
                 )
             }

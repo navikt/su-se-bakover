@@ -35,8 +35,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
             throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, fant ikke sak ${command.sakId}")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke sende tilbakekrevingsbehandling $id til attestering. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeSendeTilAttestering.UlikVersjon.left()
+            log.info("Tilbakekreving til attestering - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(id)

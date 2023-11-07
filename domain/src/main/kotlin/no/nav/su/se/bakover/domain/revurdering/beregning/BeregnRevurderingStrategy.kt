@@ -1,91 +1,37 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import java.time.Clock
-import kotlin.math.roundToInt
+import no.nav.su.se.bakover.domain.revurdering.RevurderingKanBeregnes
 
 internal interface BeregnRevurderingStrategy {
-    fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>>
+    fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<Revurdering, Beregning>>
 }
 
 internal class Normal(
     private val revurdering: Revurdering,
     private val beregningStrategyFactory: BeregningStrategyFactory,
 ) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
-        return beregnUtenAvkorting(revurdering, beregningStrategyFactory).right()
-    }
-}
-
-internal class VidereførAvkorting(
-    private val revurdering: Revurdering,
-    private val avkortingsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    private val clock: Clock,
-    private val beregningStrategyFactory: BeregningStrategyFactory,
-) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
-        val (utenAvkorting, beregningUtenAvkorting) = beregnUtenAvkorting(revurdering, beregningStrategyFactory)
-
-        val fradragForAvkorting = Avkortingsplan(
-            feilutbetaltBeløp = avkortingsgrunnlag
-                .sumOf { it.periode.getAntallMåneder() * it.månedsbeløp }
-                .roundToInt(),
-            beregningUtenAvkorting = beregningUtenAvkorting,
-            clock = clock,
-        ).lagFradrag().getOrElse {
-            return KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
+    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<Revurdering, Beregning>> {
+        require(!revurdering.grunnlagsdataOgVilkårsvurderinger.harAvkortingsfradrag()) {
+            "Vi støtter ikke lenger å beregne med avkortingsfradrag. For sakId ${revurdering.saksnummer}"
+        }
+        if (revurdering !is RevurderingKanBeregnes) {
+            throw IllegalStateException("Kan ikke beregne en revurdering i feil tilstand. Må være en av opprettet, beregnet, simulert eller underkjent; men var ${revurdering::class}")
         }
 
-        return utenAvkorting.oppdaterFradrag(
-            fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-        ).getOrElse {
-            throw IllegalStateException(
-                Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(utenAvkorting::class).toString(),
-            )
-        }.let {
-            it to gjørBeregning(it, beregningStrategyFactory)
-        }.right()
-    }
-}
-
-internal class AnnullerAvkorting(
-    private val revurdering: Revurdering,
-    private val beregningStrategyFactory: BeregningStrategyFactory,
-) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
-        return beregnUtenAvkorting(revurdering, beregningStrategyFactory).right()
-    }
-}
-
-private fun beregnUtenAvkorting(
-    revurdering: Revurdering,
-    beregningStrategyFactory: BeregningStrategyFactory,
-): Pair<OpprettetRevurdering, Beregning> {
-    return revurdering.oppdaterFradrag(
-        fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-    ).getOrElse {
-        throw IllegalStateException(Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(revurdering::class).toString())
-    }.let {
-        it to gjørBeregning(it, beregningStrategyFactory)
+        return Pair(revurdering, gjørBeregning(revurdering, beregningStrategyFactory)).right()
     }
 }
 
 private fun gjørBeregning(
-    revurdering: OpprettetRevurdering,
+    revurdering: Revurdering,
     beregningStrategyFactory: BeregningStrategyFactory,
 ): Beregning {
-    /*   return BeregningStrategyFactory(clock).beregn(revurdering)*/
     return beregningStrategyFactory.beregn(
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = revurdering.grunnlagsdata,

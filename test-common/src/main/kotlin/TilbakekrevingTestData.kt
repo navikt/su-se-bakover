@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
@@ -328,4 +329,27 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
+)
+
+fun nyAvbruttTilbakekrevingsbehandlingHendelse(
+    hendelseId: HendelseId = HendelseId.generer(),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
+        fritekst = "fritekst",
+    ),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(),
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+): AvbruttHendelse = AvbruttHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = forrigeHendelse.id,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    utførtAv = utførtAv,
+    brevvalg = brevvalg,
+    begrunnelse = "Avbrutt av TilbakekrevingTestData.kt",
 )

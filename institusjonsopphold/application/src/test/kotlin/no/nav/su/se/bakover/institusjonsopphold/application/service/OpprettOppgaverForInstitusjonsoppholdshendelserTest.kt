@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -18,7 +17,9 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.correlationId
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nyOppgaveHendelse
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -174,7 +176,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn person.ident.aktørId.right()
         }
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
         val hendelseRepo = mock<HendelseRepo> {
             on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(2)
@@ -214,14 +216,22 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         )
         verify(oppgaveHendelseRepo).lagre(
             argThat {
-                it shouldBe OppgaveHendelse.opprettet(
+                it shouldBe OppgaveHendelse.Opprettet(
                     hendelseId = it.hendelseId,
                     sakId = sak.id,
                     versjon = Hendelsesversjon(value = 3),
                     hendelsestidspunkt = fixedTidspunkt,
-                    oppgaveId = OppgaveId("oppgaveId"),
-                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
-                    relaterteHendelser = listOf(hendelse.hendelseId),
+                    oppgaveId = OppgaveId("123"),
+                    meta = OppgaveHendelseMetadata(
+                        correlationId = correlationId,
+                        ident = null,
+                        brukerroller = listOf(),
+                        request = "request",
+                        response = "response",
+                    ),
+                    beskrivelse = "beskrivelse",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    relaterteHendelser = nonEmptyListOf(hendelse.hendelseId),
                 )
             },
             anyOrNull(),

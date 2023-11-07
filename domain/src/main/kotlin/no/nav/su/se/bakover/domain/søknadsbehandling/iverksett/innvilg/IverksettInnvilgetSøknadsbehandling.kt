@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -40,7 +38,6 @@ private val log = LoggerFactory.getLogger("IverksettInnvilgetSøknadsbehandling.
  *
  * Begrensninger:
  * - Det kan ikke finnes åpne kravgrunnlag på saken.
- * - Dersom det finnes uhåndterte avkortingsvarsler på saken, må disse håndteres av denne behandlingen i sin helhet.
  * - Kan ikke føre til feilutbetaling (verifiseres vha. simulering og kontrollsimulering)
  * - Stønadsperioden kan ikke overlappe tidligere stønadsperioder, med noen unntak:
  *     - Opphørte måneder som ikke har ført til utbetaling kan "overskrives".
@@ -56,9 +53,8 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
 
     either {
         validerKravgrunnlag().bind()
-        validerAvkorting(søknadsbehandling).bind()
         validerFeilutbetalinger(søknadsbehandling).bind()
-        validerGjeldendeVedtak(søknadsbehandling, clock).bind()
+        validerGjeldendeVedtak(søknadsbehandling).bind()
     }.onLeft {
         return it.left()
     }
@@ -90,8 +86,6 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     val oppdatertSak = this.oppdaterSøknadsbehandling(iverksattBehandling).copy(
         vedtakListe = this.vedtakListe + vedtak,
         utbetalinger = this.utbetalinger + simulertUtbetaling,
-        /* Ved iverksett innvilgelse: Dersom det finnes en utestående avkorting må denne avkortes i sin helhet. */
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
     return IverksattInnvilgetSøknadsbehandlingResponse(
         sak = oppdatertSak,
@@ -106,9 +100,8 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
 
 private fun Sak.validerGjeldendeVedtak(
     søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
-    clock: Clock,
 ): Either<KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode, Unit> {
-    return this.validerOverlappendeStønadsperioder(søknadsbehandling.periode, clock).mapLeft {
+    return this.validerOverlappendeStønadsperioder(søknadsbehandling.periode).mapLeft {
         KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode(it)
     }
 }
@@ -146,39 +139,5 @@ private fun Sak.validerKravgrunnlag(): Either<KunneIkkeIverksetteSøknadsbehandl
         KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
     } else {
         Unit.right()
-    }
-}
-
-private fun Sak.validerAvkorting(
-    søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
-): Either<KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig, Unit> {
-    val uteståendeAvkortingPåSak = if (uteståendeAvkorting is Avkortingsvarsel.Ingen) {
-        null
-    } else {
-        uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-    }
-    // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [SøknadsbehandlingTilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
-    return when (val a = søknadsbehandling.avkorting) {
-        is AvkortingVedSøknadsbehandling.SkalAvkortes -> {
-            val avkortingsvarselPåBehandling = a.avkortingsvarsel
-            if (uteståendeAvkortingPåSak == null) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} med utestående avkorting uten at det finnes noe å avkorte på saken for avkortingsvarsel ${avkortingsvarselPåBehandling.id}")
-            }
-            if (avkortingsvarselPåBehandling != uteståendeAvkortingPåSak) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} hvor søknadsbehandlingens avkorting ${avkortingsvarselPåBehandling.id} er forskjellig fra sakens avkorting ${uteståendeAvkortingPåSak.id}")
-            }
-            if (!avkortingsvarselPåBehandling.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
-                KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig.left()
-            } else {
-                Unit.right()
-            }
-        }
-
-        is AvkortingVedSøknadsbehandling.IngenAvkorting -> {
-            if (uteståendeAvkortingPåSak != null) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} uten å håndtere utestående avkorting for sak $id")
-            }
-            Unit.right()
-        }
     }
 }

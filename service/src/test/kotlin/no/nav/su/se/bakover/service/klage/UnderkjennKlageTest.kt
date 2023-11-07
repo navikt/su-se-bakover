@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -269,7 +270,7 @@ internal class UnderkjennKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         )
 
@@ -285,7 +286,7 @@ internal class UnderkjennKlageTest {
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
             expectedKlage = VurdertKlage.Bekreftet(
                 forrigeSteg = utfyltVurdertKlage(fnr = klage.fnr, id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
-                oppgaveId = OppgaveId("nyOppgaveId"),
+                oppgaveId = OppgaveId("123"),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
@@ -334,7 +335,7 @@ internal class UnderkjennKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         )
 

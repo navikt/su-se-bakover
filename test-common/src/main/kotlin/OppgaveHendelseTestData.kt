@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.util.UUID
 
 fun nyOppgaveHendelse(
@@ -15,9 +16,17 @@ fun nyOppgaveHendelse(
     oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
     nesteVersjon: Hendelsesversjon,
     relaterteHendelser: List<HendelseId> = listOf(HendelseId.generer()),
-    metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.fraCorrelationId(correlationId()),
+    metadata: OppgaveHendelseMetadata = OppgaveHendelseMetadata(
+        correlationId = correlationId(),
+        ident = null,
+        brukerroller = listOf(),
+        request = "requestBody - OppgaveHendelseTestData.kt",
+        response = "response - OppgaveHendelseTestData.kt",
+    ),
+    oppgavetype: Oppgavetype = Oppgavetype.BEHANDLE_SAK,
+    beskrivelse: String = "OppgaveHendelseTestData.kt",
 ): OppgaveHendelse {
-    return OppgaveHendelse.opprettet(
+    return OppgaveHendelse.Opprettet(
         hendelseId = hendelseId,
         sakId = sakId,
         versjon = nesteVersjon,
@@ -25,5 +34,7 @@ fun nyOppgaveHendelse(
         oppgaveId = oppgaveId,
         meta = metadata,
         relaterteHendelser = relaterteHendelser,
+        oppgavetype = oppgavetype,
+        beskrivelse = beskrivelse,
     )
 }

@@ -11,7 +11,6 @@ internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
         is Merknad.Beregning.Avslag.BeløpErNull -> toJson()
         is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> toJson()
         is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
-        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
     }
 }
 
@@ -21,9 +20,6 @@ internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toJs
 
 internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
-
-internal fun Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
-    MerknadJson.BeregningJson.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson
 
 internal sealed class MerknadJson {
 
@@ -45,15 +41,10 @@ internal sealed class MerknadJson {
             value = BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson::class,
             name = "SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
-        JsonSubTypes.Type(
-            value = BeregningJson.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson::class,
-            name = "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats",
-        ),
     )
-    sealed class BeregningJson {
-        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        data object BeløpMellomNullOgToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        data object BeløpErNullJson : MerknadJson.BeregningJson()
+    sealed interface BeregningJson {
+        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : BeregningJson
+        data object BeløpMellomNullOgToProsentAvHøySatsJson : BeregningJson
+        data object BeløpErNullJson : BeregningJson
     }
 }

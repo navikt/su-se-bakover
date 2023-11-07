@@ -4,14 +4,9 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -33,92 +28,44 @@ sealed interface KanBeregnes : Søknadsbehandling {
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
+        require(!grunnlagsdataOgVilkårsvurderinger.harAvkortingsfradrag()) {
+            "Vi støtter ikke lenger å beregne med avkortingsfradrag. For sakId ${this.sakId}"
+        }
         val beregningStrategyFactory = BeregningStrategyFactory(
             clock = clock,
             satsFactory = satsFactory,
         )
-        val utenAvkortingsfradrag: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling =
-            grunnlagsdataOgVilkårsvurderinger.fjernAvkortingsfradrag()
 
-        val beregningUtenAvkorting = beregningStrategyFactory.beregn(
-            grunnlagsdataOgVilkårsvurderinger = utenAvkortingsfradrag,
+        val beregning = beregningStrategyFactory.beregn(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             begrunnelse = begrunnelse,
             sakstype = this.sakstype,
         )
-        return when (uteståendeAvkortingPåSak) {
-            null -> Triple(beregningUtenAvkorting, AvkortingVedSøknadsbehandling.IngenAvkorting, utenAvkortingsfradrag)
-            else -> medAvkorting(
-                uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
-                beregningUtenAvkorting = beregningUtenAvkorting,
-                clock = clock,
-                utenAvkortingsfradrag = utenAvkortingsfradrag,
-                beregningStrategyFactory = beregningStrategyFactory,
-                begrunnelse = begrunnelse,
-            ).getOrElse { return it.left() }
-        }.let { (nyBeregning, avkorting, nyGrunnlagsdataOgVilkårsvurderinger) ->
-            val nySøknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                saksbehandlingsHendelse = Søknadsbehandlingshendelse(
-                    tidspunkt = Tidspunkt.now(clock),
-                    saksbehandler = nySaksbehandler,
-                    handling = SøknadsbehandlingsHandling.Beregnet,
-                ),
+        val nySøknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+            saksbehandlingsHendelse = Søknadsbehandlingshendelse(
+                tidspunkt = Tidspunkt.now(clock),
+                saksbehandler = nySaksbehandler,
+                handling = SøknadsbehandlingsHandling.Beregnet,
+            ),
+        )
+        return when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+            is AvslagGrunnetBeregning.Ja -> tilAvslåttBeregning(
+                saksbehandler = nySaksbehandler,
+                beregning = beregning,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
             )
-            when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(nyBeregning)) {
-                is AvslagGrunnetBeregning.Ja -> tilAvslåttBeregning(
+
+            AvslagGrunnetBeregning.Nei -> {
+                tilInnvilgetBeregning(
                     saksbehandler = nySaksbehandler,
-                    beregning = nyBeregning,
-                    grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
+                    beregning = beregning,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
                 )
-
-                AvslagGrunnetBeregning.Nei -> {
-                    tilInnvilgetBeregning(
-                        saksbehandler = nySaksbehandler,
-                        beregning = nyBeregning,
-                        grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
-                        søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
-                        avkorting = avkorting,
-                    )
-                }
-            }.right()
-        }
-    }
-
-    private fun medAvkorting(
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        beregningUtenAvkorting: Beregning,
-        clock: Clock,
-        utenAvkortingsfradrag: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        beregningStrategyFactory: BeregningStrategyFactory,
-        begrunnelse: String?,
-    ): Either<KunneIkkeBeregne, Triple<Beregning, AvkortingVedSøknadsbehandling.KlarTilIverksetting, GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling>> {
-        return Avkortingsplan(
-            feilutbetaltBeløp = uteståendeAvkortingPåSak.hentUtbetalteBeløp().sum(),
-            beregningUtenAvkorting = beregningUtenAvkorting,
-            clock = clock,
-        ).lagFradrag().getOrElse {
-            return when (it) {
-                Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
-                    KunneIkkeBeregne.AvkortingErUfullstendig.left()
-                }
             }
-        }.let {
-            val nyGrunnlagsdataOgVilkårsvurderinger =
-                utenAvkortingsfradrag.oppdaterFradragsgrunnlag(
-                    utenAvkortingsfradrag.grunnlagsdata.fradragsgrunnlag + it,
-                )
-            Triple(
-                beregningStrategyFactory.beregn(
-                    grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
-                    begrunnelse = begrunnelse,
-                    sakstype = this.sakstype,
-                ),
-                AvkortingVedSøknadsbehandling.SkalAvkortes(uteståendeAvkortingPåSak),
-                nyGrunnlagsdataOgVilkårsvurderinger,
-            ).right()
-        }
+        }.right()
     }
 
     private fun tilAvslåttBeregning(
@@ -151,7 +98,6 @@ sealed interface KanBeregnes : Søknadsbehandling {
         beregning: Beregning,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-        avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     ): BeregnetSøknadsbehandling.Innvilget {
         return BeregnetSøknadsbehandling.Innvilget(
             id = this.id,
@@ -167,7 +113,6 @@ sealed interface KanBeregnes : Søknadsbehandling {
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             attesteringer = this.attesteringer,
             søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            avkorting = avkorting,
             sakstype = this.sakstype,
             saksbehandler = saksbehandler,
         )

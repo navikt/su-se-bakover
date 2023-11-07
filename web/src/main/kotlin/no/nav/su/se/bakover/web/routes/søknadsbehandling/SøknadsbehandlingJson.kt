@@ -22,7 +22,6 @@ internal data class SøknadsbehandlingJson(
     val stønadsperiode: OppdaterStønadsperiodeRequest.Companion.StønadsperiodeJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val erLukket: Boolean,
-    val simuleringForAvkortingsvarsel: SimuleringJson?,
     val sakstype: String,
     val aldersvurdering: AldersvurderingJson?,
     val eksterneGrunnlag: EksterneGrunnlagJson,

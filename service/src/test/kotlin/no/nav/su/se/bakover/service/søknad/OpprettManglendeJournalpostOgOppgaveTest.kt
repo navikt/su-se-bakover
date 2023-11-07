@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -59,7 +59,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         søknader = emptyList(),
         utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
         uteståendeKravgrunnlag = null,
     )
@@ -272,7 +271,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
     @Test
     fun `happy case`() {
-        val oppgaveId = OppgaveId("1")
+        val oppgaveId = OppgaveId("123")
         val pdf = PdfA("pdf-data".toByteArray())
 
         SøknadServiceOgMocks(
@@ -287,7 +286,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentPersonMedSystembruker(fnr) } doReturn person.right()
             },
             oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn oppgaveId.right()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()

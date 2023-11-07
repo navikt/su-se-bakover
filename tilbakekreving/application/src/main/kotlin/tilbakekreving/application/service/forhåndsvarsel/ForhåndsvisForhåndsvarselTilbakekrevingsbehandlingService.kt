@@ -30,8 +30,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke vise varsel om tilbakekreving, fant ikke sak. Command: $command")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke vise varsel om tilbakekreving. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeForhåndsviseForhåndsvarsel.UlikVersjon.left()
+            log.info("Forhåndsvis forhåndsvarsel av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
 
         return brevService.lagDokument(

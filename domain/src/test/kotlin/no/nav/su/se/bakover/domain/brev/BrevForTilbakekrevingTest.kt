@@ -184,7 +184,6 @@ class BrevForTilbakekrevingTest {
                 clock = clock,
             ).second.tilIverksatt(
                 attestant = attestantSomIverksatte,
-                uteståendeAvkortingPåSak = null,
                 clock = clock,
             ).getOrFail().let { revurdering ->
                 revurdering.lagDokumentKommando(
@@ -339,7 +338,6 @@ class BrevForTilbakekrevingTest {
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomSendteTilAttestering"),
                 ).getOrFail().tilIverksatt(
                     attestant = attestantSomIverksatte,
-                    uteståendeAvkortingPåSak = null,
                     clock = clock,
                 ).getOrFail()
             }.let { (sak, revurdering) ->

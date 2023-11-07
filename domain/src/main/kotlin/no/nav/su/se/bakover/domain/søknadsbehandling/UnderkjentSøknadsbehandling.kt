@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -52,7 +51,6 @@ sealed interface UnderkjentSøknadsbehandling :
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
 
@@ -74,7 +72,6 @@ sealed interface UnderkjentSøknadsbehandling :
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
     ) : UnderkjentSøknadsbehandling,
         KanBeregnes,
@@ -150,7 +147,6 @@ sealed interface UnderkjentSøknadsbehandling :
                             handling = SøknadsbehandlingsHandling.Simulert,
                         ),
                     ),
-                    avkorting = avkorting,
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
                 )
@@ -195,15 +191,12 @@ sealed interface UnderkjentSøknadsbehandling :
                         handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                     ),
                 ),
-                avkorting = avkorting,
                 sakstype = sakstype,
             ).right()
         }
     }
 
     sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
-
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         data class MedBeregning(
             override val id: UUID,

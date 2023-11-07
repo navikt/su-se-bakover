@@ -66,10 +66,10 @@ class PersonhendelseService(
                             aktørId = aktørId,
                             clock = clock,
                         ),
-                    ).map { oppgaveId ->
+                    ).map { oppgaveResponse ->
                         log.info("Opprettet oppgave for personhendelse med id: ${personhendelse.id}")
                         personhendelseRepo.lagre(
-                            personhendelse.tilSendtTilOppgave(oppgaveId),
+                            personhendelse.tilSendtTilOppgave(oppgaveResponse.oppgaveId),
                         )
                     }
                         .mapLeft {

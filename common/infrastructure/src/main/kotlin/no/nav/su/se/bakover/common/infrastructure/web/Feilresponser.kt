@@ -235,21 +235,6 @@ data object Feilresponser {
         code = "simulering_fører_til_feilutbetaling",
     )
 
-    val avkortingErUfullstendig = InternalServerError.errorJson(
-        "Hele det utestående beløpet som skal avkortes pga. utenlandsopphold kunne ikke trekkes fra i valgt stønadsperiode. Det er ikke støtte for å overføre restbeløp til neste stønadsperiode",
-        "avkorting_er_ufullstendig",
-    )
-
-    val avkortingsfeil = InternalServerError.errorJson(
-        "Kunne ikke iverksette pga. avkorting. Dersom dette er en revurdering, prøv å oppdater revurderingen for å hente nye data fra saken.",
-        "avkortingsfeil",
-    )
-
-    val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
-        "Opphør av ytelse som skal avkortes støttes ikke.",
-        "opphør_av_ytelse_som_skal_avkortes",
-    )
-
     val lagringFeilet = InternalServerError.errorJson(
         "Kunne ikke lagre",
         "kunne_ikke_lagre",

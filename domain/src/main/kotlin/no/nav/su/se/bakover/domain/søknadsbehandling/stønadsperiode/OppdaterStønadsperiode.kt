@@ -24,7 +24,6 @@ import java.util.UUID
  *     - Stønadsperioden kan overlappe med opphørte måneder dersom de aldri har vært utbetalt.
  *     - Stønadsperioden kan overlappe med opphørte måneder som har blitt tilbakekrevet.
  *     - Stønadsperioden kan overlappe med opphørte måneder som ikke har blitt tilbakekrevet. Her må saksbehandler selv lage en økonomioppgave så det ikke blir dobbeltutbetaling.
- *     - Stønadsperioden kan ikke overlappe med opphørte måneder som har ført til avkortingsvarsel (via en revurdering).
  *  - Stønadsperioden kan ikke være lenger enn til og med måneden søker blir 67 år.
  *      - Begrensninger:
  *          - Ikke tatt høyde for SU-Alder
@@ -45,7 +44,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
         ) as KanOppdaterePeriodeBosituasjonVilkår
 
-    validerOverlappendeStønadsperioder(stønadsperiode.periode, clock).onLeft {
+    validerOverlappendeStønadsperioder(stønadsperiode.periode).onLeft {
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 

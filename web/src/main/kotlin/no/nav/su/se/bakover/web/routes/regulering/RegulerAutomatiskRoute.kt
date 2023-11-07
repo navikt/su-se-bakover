@@ -117,11 +117,6 @@ internal fun Route.reguler(
                                     "Avventer kravgrunnlag",
                                     "regulering_avventer_kravgrunnlag",
                                 )
-
-                                KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting -> HttpStatusCode.BadRequest.errorJson(
-                                    "Har pågående eller behov for avkorting",
-                                    "regulering_har_pågående_eller_behov_for_avkorting",
-                                )
                             }.let { feilResultat ->
                                 call.svar(feilResultat)
                             }

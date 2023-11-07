@@ -35,8 +35,7 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke vurdere tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Kunne ikke vurdere tilbakekrevingsbehandling. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
-            return KunneIkkeVurdereTilbakekrevingsbehandling.UlikVersjon.left()
+            log.info("Vurdering av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
         return sak.oppdaterVedtaksbrev(command, clock).let { pair ->
             pair.second.right().onRight {

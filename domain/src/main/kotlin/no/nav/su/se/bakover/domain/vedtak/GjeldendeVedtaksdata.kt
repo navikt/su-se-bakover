@@ -45,9 +45,6 @@ data class GjeldendeVedtaksdata(
 
     private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje ?: emptyList()
 
-    val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
-        vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
-
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
@@ -108,7 +105,7 @@ data class GjeldendeVedtaksdata(
             .filterIsInstance<VedtakStansAvYtelse>().isNotEmpty()
     }
 
-    fun helePeriodenErOpphør(): Boolean {
+    private fun helePeriodenErOpphør(): Boolean {
         return vedtakPåTidslinje.all { it.erOpphør() }
     }
 
@@ -143,13 +140,6 @@ data class GjeldendeVedtaksdata(
         return periode.måneder().map { gjeldendeVedtakForMåned(it) }.none { it == null } &&
             tidslinjeForVedtakErSammenhengende() &&
             periode == garantertSammenhengendePeriode()
-    }
-
-    /** Tar kun høyde for månedene i [periode]. */
-    fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return tidslinje?.map { it.originaltVedtak }
-            ?.filterIsInstance<Opphørsvedtak>()
-            ?.any { it.harIdentifisertBehovForFremtidigAvkorting(periode) } ?: false
     }
 
     fun vedtaksperioder(): List<Periode> {

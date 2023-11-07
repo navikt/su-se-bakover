@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
 import org.junit.jupiter.api.Test
@@ -135,7 +136,7 @@ internal class PersonhendelseServiceTest {
             on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
@@ -171,7 +172,7 @@ internal class PersonhendelseServiceTest {
 
         verify(personhendelseRepoMock).lagre(
             argThat<Personhendelse.TilknyttetSak.SendtTilOppgave> {
-                it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId"))
+                it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("123"))
             },
         )
         verifyNoMoreInteractions(

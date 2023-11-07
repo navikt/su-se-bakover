@@ -10,13 +10,12 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data class KunneIkkeGenerereVedtaksbrev(val underliggendeFeil: KunneIkkeLageDokument) :
         KunneIkkeIverksetteSøknadsbehandling
 
-    data object AvkortingErUfullstendig : KunneIkkeIverksetteSøknadsbehandling
     data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteSøknadsbehandling
     data object SimuleringFørerTilFeilutbetaling : KunneIkkeIverksetteSøknadsbehandling
 
     /**
      * En stønadsperiode kan ikke overlappe tidligere stønadsperioder som har utbetalte måneder eller måneder som kommer til å bli utbetalt.
-     * I.e. Kan kun overlappe opphørte måneder som ikke førte til feilutbetaling eller avkorting.
+     * I.e. Kan kun overlappe opphørte måneder som ikke førte til feilutbetaling
      * Mulig utvidelse på sikt kan f.eks. være: Utbetalte måneder som er tilbakekrevd i sin helhet, men det støttes ikke per tidspunkt.
      */
     data class OverlappendeStønadsperiode(

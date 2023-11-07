@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErUfullstendig
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.opphørAvYtelseSomSkalAvkortes
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -156,14 +154,6 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
 
         is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> {
             this.simuleringFeilet.tilResultat()
-        }
-
-        KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig -> {
-            avkortingErUfullstendig
-        }
-
-        KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
-            opphørAvYtelseSomSkalAvkortes
         }
     }
 }

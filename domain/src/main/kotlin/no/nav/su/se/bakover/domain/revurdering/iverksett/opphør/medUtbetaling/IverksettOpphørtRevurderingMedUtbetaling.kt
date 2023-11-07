@@ -6,8 +6,6 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -36,17 +34,15 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
 
     return revurdering.tilIverksatt(
         attestant = attestant,
-        uteståendeAvkortingPåSak = uteståendeAvkorting as? Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         clock = clock,
     ).mapLeft {
         KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil(it)
     }.flatMap { iverksattRevurdering ->
-        val opphørsperiode = revurdering.opphørsperiodeForUtbetalinger.getOrNull()!!
         kontrollsimuler(
             attestant = attestant,
             clock = clock,
             simuler = simuler,
-            periode = opphørsperiode,
+            periode = revurdering.periode,
             saksbehandlersSimulering = revurdering.simulering,
         ).map { simulertUtbetaling ->
             VedtakSomKanRevurderes.from(
@@ -60,8 +56,6 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
                             vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
                             // TODO jah: Her legger vi til en [SimulertUtbetaling] istedenfor en [OversendtUtbetaling] det kan i første omgang klusse til testdataene.
                             utbetalinger = utbetalinger.filterNot { it.id == simulertUtbetaling.id } + simulertUtbetaling,
-                        ).oppdaterUteståendeAvkortingVedIverksettelse(
-                            behandletAvkorting = vedtak.behandling.avkorting,
                         ),
                     vedtak = vedtak,
                     utbetaling = simulertUtbetaling,

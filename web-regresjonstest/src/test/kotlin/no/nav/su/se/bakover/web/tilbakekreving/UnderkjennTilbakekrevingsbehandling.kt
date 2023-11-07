@@ -81,12 +81,12 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
 {
   "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:43.456789Z",
+  "opprettet":"2021-02-01T01:03:42.456789Z",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.39.456789",
+    "kontrollfelt":"2021-02-01-02.03.38.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {

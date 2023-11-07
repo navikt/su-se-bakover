@@ -63,7 +63,6 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         override val fritekst: String,
         val opphørsgrunner: List<Opphørsgrunn>,
         val opphørsperiode: Periode,
-        val avkortingsBeløp: Int?,
         val satsoversikt: Satsoversikt,
         val halvtGrunnbeløp: Int,
     ) : IverksettRevurderingDokumentCommand

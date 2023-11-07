@@ -15,17 +15,18 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.ikkeSendBrev
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -178,7 +179,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val pdf = PdfA("brev".toByteArray())
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+                on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
@@ -233,7 +234,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+                on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
@@ -260,10 +261,10 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
+                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
             },
         ) {
-            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave(behandling.oppgaveId).left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(behandling.oppgaveId).left()
 
             inOrder(
                 *all(),
