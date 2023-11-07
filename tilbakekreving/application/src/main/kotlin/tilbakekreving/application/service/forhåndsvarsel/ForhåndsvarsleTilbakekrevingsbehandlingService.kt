@@ -70,6 +70,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             tilbakekrevingsbehandlingRepo.hentForSak(sakId = sakId).hentOppgaveIdForBehandling(behandling.id)
                 ?: throw IllegalStateException("Fant ikke oppgaveId som skal bli oppdatert for tilbakekreving ${behandling.id} for sak ${sak.id}")
 
+        // TODO - denne kan vi ta ut i konsumenten
         oppgaveService.oppdaterOppgave(oppgaveId = oppgaveId, beskrivelse = "Forhåndsvarsel er opprettet")
             .mapLeft {
                 log.error("Kunne ikke oppdatere oppgave $oppgaveId for tilbakekreving ${behandling.id} med informasjon om at forhåndsvarsel er opprettet")

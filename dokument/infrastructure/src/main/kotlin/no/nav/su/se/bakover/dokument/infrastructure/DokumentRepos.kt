@@ -15,5 +15,6 @@ class DokumentRepos(
     val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
+        sessionFactory,
     ),
 )

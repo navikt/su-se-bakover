@@ -21,6 +21,7 @@ import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrev
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
@@ -138,6 +139,9 @@ class TilbakekrevingServices(
         sakService = sakService,
         clock = clock,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+    ),
+    val visUtsendtForhåndsvarselbrevForTilbakekrevingService: VisUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
+        dokumentHendelseRepo = dokumentHendelseRepo,
     ),
     val underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
         tilgangstyring = tilgangstyringService,

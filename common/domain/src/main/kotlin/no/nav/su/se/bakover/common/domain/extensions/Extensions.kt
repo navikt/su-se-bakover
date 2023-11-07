@@ -92,3 +92,11 @@ fun <T, R> List<T>.pickByCondition(targetList: List<R>, condition: (T, R) -> Boo
 fun <T, R> List<T>.mapOneIndexed(transform: (int: Int, T) -> R): List<R> {
     return this.mapIndexed { idx, el -> transform(idx + 1, el) }
 }
+
+fun <A, B> Pair<A?, B?>.isFirstNull(): Boolean = this.first == null
+fun <A, B> Pair<A?, B?>.isSecondNull(): Boolean = this.second == null
+fun <A, B> Pair<A?, B?>.isEitherNull(): Boolean = isFirstNull() || isSecondNull()
+
+fun <A, B, C> Pair<A?, B?>.wheneverEitherIsNull(eitherIsNull: () -> C, eitherIsNotNull: (Pair<A, B>) -> C): C {
+    return if (this.isEitherNull()) eitherIsNull() else eitherIsNotNull(Pair(this.first!!, this.second!!))
+}

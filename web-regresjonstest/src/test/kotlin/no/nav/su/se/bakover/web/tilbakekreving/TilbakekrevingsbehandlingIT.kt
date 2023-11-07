@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -77,12 +78,14 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 hentForhåndsvarselDokumenter(it)
             }
+            appComponents.genererDokumenterForForhåndsvarsel()
+
             // Saksversjon 6 vil være en synkron oppgave (TODO: skal bli asynkront)
             // Saksversjon 7 vil være et synkront dokument (TODO: skal bli asynkront)
             val vurderinger = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 7,
+                saksversjon = 8,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
             ).let {
@@ -92,7 +95,7 @@ internal class TilbakekrevingsbehandlingIT {
             val fritekst = oppdaterVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 8,
+                saksversjon = 9,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
@@ -108,7 +111,7 @@ internal class TilbakekrevingsbehandlingIT {
             sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 9,
+                saksversjon = 10,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
@@ -116,10 +119,17 @@ internal class TilbakekrevingsbehandlingIT {
             )
             appComponents.oppdaterOppgave()
 
+            visUtsendtForhåndsvarselDokument(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                dokumentId = JSONArray(forhåndsvarselDokumenter).getString(0),
+                client = this.client,
+            )
+
             val underkjentAttestering = underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 11,
+                saksversjon = 12,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
@@ -132,7 +142,7 @@ internal class TilbakekrevingsbehandlingIT {
             val vurderingerEtterUnderkjenning = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 13,
+                saksversjon = 14,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 vurderinger = """
@@ -152,7 +162,7 @@ internal class TilbakekrevingsbehandlingIT {
             sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 14,
+                saksversjon = 15,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
@@ -163,7 +173,7 @@ internal class TilbakekrevingsbehandlingIT {
             iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 16,
+                saksversjon = 17,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
@@ -172,7 +182,7 @@ internal class TilbakekrevingsbehandlingIT {
             )
             appComponents.lukkOppgave()
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, 18)
+            verifiserKravgrunnlagPåSak(sakId, client, true, 19)
         }
     }
 }

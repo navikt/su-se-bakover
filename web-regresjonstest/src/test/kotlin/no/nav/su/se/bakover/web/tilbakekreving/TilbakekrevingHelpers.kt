@@ -14,3 +14,9 @@ internal fun AppComponents.lukkOppgave() {
         correlationId = CorrelationId.generate(),
     )
 }
+
+internal fun AppComponents.genererDokumenterForForhåndsvarsel() {
+    this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
+        correlationId = CorrelationId.generate(),
+    )
+}

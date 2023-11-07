@@ -12,7 +12,10 @@ import dokument.domain.hendelser.JournalførtDokumentForArkivering
 import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.GenerertDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -26,6 +29,7 @@ import java.util.UUID
 class DokumentHendelsePostgresRepo(
     private val hendelseRepo: HendelseRepo,
     private val hendelseFilRepo: HendelseFilPostgresRepo,
+    private val sessionFactory: SessionFactory,
 ) : DokumentHendelseRepo {
     override fun lagre(hendelse: DokumentHendelse, sessionContext: SessionContext?) {
         lagreHendelse(hendelse, null, sessionContext)
@@ -89,6 +93,23 @@ class DokumentHendelsePostgresRepo(
         sessionContext: SessionContext?,
     ): Pair<DokumentHendelse?, HendelseFil?> {
         return Pair(hentHendelse(hendelseId, sessionContext), hentFilFor(hendelseId, sessionContext))
+    }
+
+    override fun hentHendelseOgFilForDokument(
+        dokumentId: UUID,
+        sessionContext: SessionContext?,
+    ): Pair<DokumentHendelse?, HendelseFil?> {
+        val hendelseOgFil = sessionContext.withOptionalSession(sessionFactory) {
+            """
+                select hendelseid from hendelse where data ->> 'id' = :dokumentId
+            """.trimIndent().hent(
+                mapOf("dokumentId" to dokumentId.toString()),
+                it,
+            ) {
+                return@hent hentHendelseOgFilFor(HendelseId.fromString(it.string("hendelseid")), sessionContext)
+            }
+        }
+        return Pair(hendelseOgFil?.first, hendelseOgFil?.second)
     }
 }
 

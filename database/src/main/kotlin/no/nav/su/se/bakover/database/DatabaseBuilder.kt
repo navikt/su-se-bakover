@@ -282,6 +282,7 @@ data object DatabaseBuilder {
             dokumentHendelseRepo = DokumentHendelsePostgresRepo(
                 hendelseRepo = hendelseRepo,
                 hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
+                sessionFactory,
             ),
         )
 

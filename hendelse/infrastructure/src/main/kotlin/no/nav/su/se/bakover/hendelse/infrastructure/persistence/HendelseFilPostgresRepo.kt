@@ -35,7 +35,7 @@ class HendelseFilPostgresRepo(
     fun hentFor(hendelseId: HendelseId, sessionContext: SessionContext?): HendelseFil? {
         return sessionContext.withOptionalSession(sessionFactory) {
             "SELECT * FROM hendelse_fil WHERE hendelseId=:hendelseId"
-                .hent(mapOf(":hendelseId" to hendelseId), it) {
+                .hent(mapOf("hendelseId" to hendelseId.value), it) {
                     HendelseFil(hendelseId = hendelseId, fil = PdfA(content = it.bytes("data")))
                 }
         }

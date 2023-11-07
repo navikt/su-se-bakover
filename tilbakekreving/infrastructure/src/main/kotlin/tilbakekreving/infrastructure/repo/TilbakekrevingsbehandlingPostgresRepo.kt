@@ -150,30 +150,6 @@ class TilbakekrevingsbehandlingPostgresRepo(
         }
     }
 
-    private fun hentBehandlingerForSammendrag(sessionContext: SessionContext?): List<Tuple5<Long, Hendelsestype, Saksnummer, TilbakekrevingsbehandlingId, Tidspunkt>> {
-        return sessionContext.withOptionalSession(sessionFactory) {
-            """
-                select 
-                    versjon, 
-                    h.type, 
-                    s.saksnummer, 
-                    data ->> 'behandlingsId' as behandlingsId,
-                    hendelsestidspunkt
-                from hendelse h
-                join sak s on h.sakid = s.id
-                where data ->> 'behandlingsId' is not null;
-            """.trimIndent().hentListe(emptyMap(), it) {
-                Tuple5(
-                    it.long("versjon"),
-                    it.string("type").toTilbakekrevingHendelsestype(),
-                    Saksnummer(it.long("saksnummer")),
-                    TilbakekrevingsbehandlingId(UUID.fromString(it.string("behandlingsId"))),
-                    it.tidspunkt("hendelsestidspunkt"),
-                )
-            }
-        }
-    }
-
     override fun hentÅpneBehandlingssamendrag(sessionContext: SessionContext?): List<Behandlingssammendrag> {
         val hendelserGruppertPåBehandlingsId = hentBehandlingerForSammendrag(sessionContext).groupBy { it.fourth }
 
@@ -207,6 +183,30 @@ class TilbakekrevingsbehandlingPostgresRepo(
         }
 
         return gruppertKunÅpneHendelser.toBehandlingssammendrag()
+    }
+
+    private fun hentBehandlingerForSammendrag(sessionContext: SessionContext?): List<Tuple5<Long, Hendelsestype, Saksnummer, TilbakekrevingsbehandlingId, Tidspunkt>> {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            """
+                select 
+                    versjon, 
+                    h.type, 
+                    s.saksnummer, 
+                    data ->> 'behandlingsId' as behandlingsId,
+                    hendelsestidspunkt
+                from hendelse h
+                join sak s on h.sakid = s.id
+                where data ->> 'behandlingsId' is not null;
+            """.trimIndent().hentListe(emptyMap(), it) {
+                Tuple5(
+                    it.long("versjon"),
+                    it.string("type").toTilbakekrevingHendelsestype(),
+                    Saksnummer(it.long("saksnummer")),
+                    TilbakekrevingsbehandlingId(UUID.fromString(it.string("behandlingsId"))),
+                    it.tidspunkt("hendelsestidspunkt"),
+                )
+            }
+        }
     }
 }
 

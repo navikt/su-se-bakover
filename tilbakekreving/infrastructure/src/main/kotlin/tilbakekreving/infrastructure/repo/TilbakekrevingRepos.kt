@@ -26,6 +26,7 @@ class TilbakekrevingRepos(
     val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
+        sessionFactory,
     ),
     val kravgrunnlagRepo: KravgrunnlagRepo = KravgrunnlagPostgresRepo(
         hendelseRepo = hendelseRepo,
