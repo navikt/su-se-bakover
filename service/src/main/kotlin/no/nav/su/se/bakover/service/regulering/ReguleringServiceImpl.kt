@@ -106,17 +106,10 @@ class ReguleringServiceImpl(
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
 
-            val sak = Either.catch {
-                sakService.hentSak(sakId = sakid)
-                    .getOrElse { return@map KunneIkkeOppretteRegulering.FantIkkeSak.left() }
-                    .also {
-                        log.error(
-                            "Regulering for saksnummer $saksnummer: Klarte ikke hente sak",
-                            RuntimeException("Inkluderer stacktrace"),
-                        )
-                    }
+            val sak: Sak = Either.catch {
+                sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
             }.getOrElse {
-                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak", it)
+                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
 
