@@ -2,51 +2,30 @@ package no.nav.su.se.bakover.web.routes
 
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kryssjekkTidslinjeSimuleringFeilet
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeUtbetale
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvTidslinjeOgSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 
 internal fun UtbetalingFeilet.tilResultat(): Resultat {
     return when (this) {
-        is UtbetalingFeilet.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
-        UtbetalingFeilet.Protokollfeil -> HttpStatusCode.InternalServerError.errorJson(
-            "Kunne ikke utføre utbetaling",
-            "kunne_ikke_utbetale",
-        )
-
-        is UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> this.feil.tilResultat()
-        UtbetalingFeilet.FantIkkeSak -> HttpStatusCode.InternalServerError.errorJson(
-            "Fant ikke sak",
-            "kunne_ikke_finne_sak",
-        )
+        UtbetalingFeilet.Protokollfeil -> kunneIkkeUtbetale
     }
 }
 
-internal fun SimulerUtbetalingFeilet.tilResultat(): Resultat {
+internal fun KontrollsimuleringFeilet.tilResultat(): Resultat {
     return when (this) {
-        is SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering -> tilResultat()
-        is SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering -> tilResultat()
-        is SimulerUtbetalingFeilet.FeilVedSimulering -> tilResultat()
+        is KontrollsimuleringFeilet.Forskjeller -> this.underliggende.tilResultat()
+        is KontrollsimuleringFeilet.KunneIkkeSimulere -> this.underliggende.tilResultat()
     }
-}
-
-internal fun SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering.tilResultat(): Resultat {
-    return this.feil.tilResultat()
-}
-
-internal fun SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering.tilResultat(): Resultat {
-    return this.feil.tilResultat()
-}
-
-internal fun SimulerUtbetalingFeilet.FeilVedSimulering.tilResultat(): Resultat {
-    return this.feil.tilResultat()
 }
 
 internal fun KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.tilResultat(): Resultat {
@@ -130,13 +109,10 @@ internal fun KryssjekkAvTidslinjeOgSimuleringFeilet.tilResultat(): Resultat {
     return when (this) {
         is KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet -> {
             when (this.feil) {
-                is KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig -> {
-                    Feilresponser.kryssjekkTidslinjeSimuleringFeilet
-                }
-
-                is KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig -> {
-                    Feilresponser.kryssjekkTidslinjeSimuleringFeilet
-                }
+                // TODO jah: Kan kanskje returnere denne dataen?
+                is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UtbetalingslinjeVarIkke0 -> kryssjekkTidslinjeSimuleringFeilet
+                is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode -> kryssjekkTidslinjeSimuleringFeilet
+                is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp -> kryssjekkTidslinjeSimuleringFeilet
             }
         }
 

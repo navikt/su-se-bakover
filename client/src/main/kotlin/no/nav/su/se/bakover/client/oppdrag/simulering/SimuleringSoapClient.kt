@@ -5,7 +5,7 @@ import arrow.core.left
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
@@ -28,13 +28,13 @@ internal class SimuleringSoapClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun simulerUtbetaling(
-        request: SimulerUtbetalingRequest,
+        utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(request).build()
+        val simulerRequest = SimuleringRequestBuilder(utbetalingForSimulering).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response.let { response: SimulerBeregningResponse? ->
                 response.toSimulering(
-                    request = request,
+                    request = utbetalingForSimulering,
                     soapRequest = simulerRequest,
                     clock = clock,
                 )

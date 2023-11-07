@@ -22,13 +22,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEP
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigEpsOrNull
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -199,14 +199,13 @@ class SøknadsbehandlingServiceImpl(
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 uføregrunnlag = uføregrunnlag,
             ).let {
-                sak.simulerUtbetaling(
+                simulerUtbetaling(
                     utbetalingForSimulering = it,
-                    periode = beregning.periode,
                     simuler = utbetalingService::simulerUtbetaling,
-                    kontrollerMotTidligereSimulering = null,
                 )
             }.map { simulertUtbetaling ->
-                simulertUtbetaling.simulering
+                // TODO simulering jah: Returner simuleringsresultatet til saksbehandler.
+                simulertUtbetaling.simulertUtbetaling.simulering
             }
         }.onRight {
             søknadsbehandlingRepo.lagre(it)

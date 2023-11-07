@@ -11,6 +11,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
@@ -26,8 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
@@ -61,9 +60,10 @@ internal fun Route.gjenopptaUtbetaling(
                     service.gjenopptaYtelse(request).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
+                            // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                             call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
+                            call.audit(it.first.fnr, AuditLogEvent.Action.CREATE, it.first.id)
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.first.toJson(satsFactory))))
                         },
                     )
                 }
@@ -93,9 +93,10 @@ internal fun Route.gjenopptaUtbetaling(
                         service.gjenopptaYtelse(request).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
+                                // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                                 call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.first.toJson(satsFactory))))
                             },
                         )
                     }
@@ -148,7 +149,7 @@ private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
         }
 
         is KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere -> {
-            feil.tilResultat()
+            this.feil.tilResultat()
         }
 
         KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans -> {
@@ -173,6 +174,8 @@ private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
                 code = "finnes_åpen_gjenopptaksbehandling",
             )
         }
+
+        is KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeGenerereUtbetaling -> this.underliggende.tilResultat()
     }
 }
 
@@ -183,15 +186,7 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.tilResultat(): R
         }
 
         is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale -> {
-            when (val kunneIkkeUtbetale = this.feil) {
-                is UtbetalGjenopptakFeil.KunneIkkeSimulere -> {
-                    kunneIkkeUtbetale.feil.tilResultat()
-                }
-
-                is UtbetalGjenopptakFeil.KunneIkkeUtbetale -> {
-                    kunneIkkeUtbetale.feil.tilResultat()
-                }
-            }
+            Feilresponser.kunneIkkeUtbetale
         }
 
         is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.UgyldigTilstand -> {
@@ -211,18 +206,8 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.tilResultat(): R
         KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet -> lagringFeilet
 
         KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak -> detHarKommetNyeOverlappendeVedtak
-    }
-}
-
-private fun SimulerGjenopptakFeil.tilResultat(): Resultat {
-    return when (this) {
-        is SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling -> {
-            feil.tilResultat()
-        }
-
-        is SimulerGjenopptakFeil.KunneIkkeSimulere -> {
-            feil.tilResultat()
-        }
+        is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
+        is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling -> this.underliggende.tilResultat()
     }
 }
 

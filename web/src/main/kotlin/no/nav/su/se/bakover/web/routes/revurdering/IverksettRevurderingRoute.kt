@@ -61,12 +61,11 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is KunneIkkeIverksetteRevurdering.Saksfeil -> {
         when (this) {
             is KunneIkkeIverksetteRevurdering.Saksfeil.FantIkkeRevurdering -> fantIkkeRevurdering
-            is KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeUtbetale -> utbetalingFeilet.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
             is KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand -> ugyldigTilstand(fra, til)
             is KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil -> underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
-            is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.feil.tilResultat()
+            is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument -> this.feil.tilResultat()
         }
     }

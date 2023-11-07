@@ -12,7 +12,7 @@ data class IverksettStansAvYtelseTransactionException(
                 }
 
                 is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
-                    IverksettStansAvYtelseTransactionException(this.feil::class.java.toString(), this)
+                    IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
 
                 is KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
@@ -29,6 +29,13 @@ data class IverksettStansAvYtelseTransactionException(
 
                 is KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> {
                     IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
+                }
+
+                is KunneIkkeIverksetteStansYtelse.KontrollsimuleringFeilet -> {
+                    IverksettStansAvYtelseTransactionException(this.underliggende::class.java.toString(), this)
+                }
+                is KunneIkkeIverksetteStansYtelse.KunneIkkeGenerereUtbetaling -> {
+                    IverksettStansAvYtelseTransactionException(this.underliggende::class.java.toString(), this)
                 }
             }
         }

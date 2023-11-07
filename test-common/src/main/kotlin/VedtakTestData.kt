@@ -285,7 +285,6 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     ).let { (sak, revurdering) ->
         val utbetaling = simulerStans(
             sak = sak,
-            stans = revurdering,
             stansDato = revurdering.periode.fraOgMed,
             behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
@@ -338,7 +337,6 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
     ).let { (sak, revurdering) ->
         val utbetaling = simulerGjenopptak(
             sak = sak,
-            gjenopptak = revurdering,
             behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
         ).getOrFail().let {

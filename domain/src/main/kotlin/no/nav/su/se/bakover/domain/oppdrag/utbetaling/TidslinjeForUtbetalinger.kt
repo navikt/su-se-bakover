@@ -144,7 +144,7 @@ data class TidslinjeForUtbetalinger private constructor(
                         it.isNotEmpty() && it.map { it.periode }.minsteAntallSammenhengendePerioder()
                             .single() == nyPeriode,
                     ) {
-                        "Tidslinje med reaktivering $reaktivering mangler NYe linjer for reaktiveringsperiode. Fant: $it"
+                        "Tidslinje med reaktivering $reaktivering mangler nye linjer for reaktiveringsperiode. Fant: $it"
                     }
                 }
         }

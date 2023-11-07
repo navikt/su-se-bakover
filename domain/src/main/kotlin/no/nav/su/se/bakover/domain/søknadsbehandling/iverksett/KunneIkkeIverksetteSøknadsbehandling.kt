@@ -23,4 +23,6 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     ) : KunneIkkeIverksetteSøknadsbehandling
 
     data object InneholderUfullstendigeBosituasjoner : KunneIkkeIverksetteSøknadsbehandling
+
+    data class KontrollsimuleringFeilet(val underliggende: no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet) : KunneIkkeIverksetteSøknadsbehandling
 }

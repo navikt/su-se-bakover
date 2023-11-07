@@ -603,10 +603,10 @@ internal class ReguleringServiceImplTest {
             utbetalingService = mock { service ->
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak = sakMedEndringer,
-                        utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                        utbetalingerPåSak = sakMedEndringer.utbetalinger,
+                        utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                     )
-                }.whenever(service).simulerUtbetaling(any(), any())
+                }.whenever(service).simulerUtbetaling(any())
                 on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),

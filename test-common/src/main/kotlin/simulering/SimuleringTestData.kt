@@ -23,24 +23,19 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerReakUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
@@ -107,37 +102,29 @@ private data class UtbetalingRepoMock(
 }
 
 fun simulerNyUtbetaling(
-    sak: Sak,
-    utbetaling: Utbetaling.UtbetalingForSimulering,
-    beregningsperiode: Periode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
+    utbetalingerPåSak: Utbetalinger,
+    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
 ): Either<SimuleringFeilet, Simulering> {
     return simulerUtbetaling(
-        sak = sak,
-        utbetaling = utbetaling,
-        simuleringsperiode = beregningsperiode,
+        utbetalingerPåSak = utbetalingerPåSak,
+        utbetalingForSimulering = utbetalingForSimulering,
     ).map {
         it.simulering
     }
 }
 
 fun simulerUtbetaling(
-    sak: Sak,
-    utbetaling: Utbetaling.UtbetalingForSimulering,
-    simuleringsperiode: Periode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
+    utbetalingerPåSak: Utbetalinger,
+    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
     clock: Clock = nåtidForSimuleringStub,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return SimuleringStub(
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger),
-    ).simulerUtbetaling(
-        SimulerUtbetalingForPeriode(
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
-        ),
-    ).getOrFail().let {
-        utbetaling.toSimulertUtbetaling(it).right()
+        utbetalingRepo = UtbetalingRepoMock(utbetalingerPåSak),
+    ).simulerUtbetaling(utbetalingForSimulering).getOrFail().let {
+        utbetalingForSimulering.toSimulertUtbetaling(it).right()
     }
 }
 
@@ -147,18 +134,15 @@ fun simulerUtbetaling(
 fun simulerUtbetaling(
     sak: Sak,
     søknadsbehandling: Søknadsbehandling,
-    simuleringsperiode: Periode = søknadsbehandling.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
         beregning = søknadsbehandling.beregning
             ?: throw IllegalArgumentException("Kan ikke simulere, søknadsbehandling har ingen beregning"),
-        kontrollerMotSimulering = søknadsbehandling.simulering,
         uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
-        simuleringsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
         strict = strict,
@@ -171,19 +155,16 @@ fun simulerUtbetaling(
 fun simulerUtbetaling(
     sak: Sak,
     revurdering: Revurdering,
-    simuleringsperiode: Periode = revurdering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
         beregning = revurdering.beregning
             ?: throw IllegalArgumentException("Kan ikke simulere, revurdering har ingen beregning"),
-        kontrollerMotSimulering = revurdering.simulering,
         uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
-        simuleringsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
@@ -197,19 +178,16 @@ fun simulerUtbetaling(
 fun simulerUtbetaling(
     sak: Sak,
     regulering: Regulering,
-    simuleringsperiode: Periode = regulering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
         beregning = regulering.beregning
             ?: throw IllegalArgumentException("Kan ikke simulere, regulering har ingen beregning"),
-        kontrollerMotSimulering = regulering.simulering,
         uføregrunnlag = regulering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
-        simuleringsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
@@ -219,49 +197,47 @@ fun simulerUtbetaling(
 
 fun simulerGjenopptak(
     sak: Sak,
-    gjenopptak: GjenopptaYtelseRevurdering?,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForGjenopptak(
         saksbehandler = behandler,
         clock = clock,
-    ).getOrFail().let { utbetaling ->
-        val simuleringsperiode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato())
-        simuler(
-            sak = sak,
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
-            kontrollerMotSimulering = gjenopptak?.simulering,
-            clock = clock,
-            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-            strict = strict,
-        )
+    ).getOrFail().let { utbetalingForSimulering ->
+        simulerReakUtbetaling(
+            tidligereUtbetalinger = sak.utbetalinger,
+            utbetalingForSimulering = utbetalingForSimulering,
+            simuler = { utbetalingForSimuleringFraFunksjon: Utbetaling.UtbetalingForSimulering ->
+                simulerUtbetaling(
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = utbetalingForSimuleringFraFunksjon,
+                    clock = clock,
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                )
+            },
+        ).map {
+            it.simulertUtbetaling
+        }
     }
 }
 
 fun simulerStans(
     sak: Sak,
-    stans: StansAvYtelseRevurdering?,
     stansDato: LocalDate,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForStans(
         stansdato = stansDato,
         behandler = behandler,
         clock = clock,
     ).getOrFail().let { utbetaling ->
-        val simuleringsperiode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato())
         simuler(
-            sak = sak,
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
-            kontrollerMotSimulering = stans?.simulering,
+            utbetalingerPåSak = sak.utbetalinger,
+            utbetalingForSimulering = utbetaling,
             clock = clock,
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             strict = strict,
@@ -272,14 +248,12 @@ fun simulerStans(
 fun simulerNyUtbetaling(
     sak: Sak,
     beregning: Beregning,
-    kontrollerMotSimulering: Simulering?,
     uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>,
-    simuleringsperiode: Periode = beregning.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagNyUtbetaling(
         saksbehandler = behandler,
         beregning = beregning,
@@ -288,10 +262,8 @@ fun simulerNyUtbetaling(
         uføregrunnlag = uføregrunnlag,
     ).let { utbetaling ->
         simuler(
-            sak = sak,
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
-            kontrollerMotSimulering = kontrollerMotSimulering,
+            utbetalingerPåSak = sak.utbetalinger,
+            utbetalingForSimulering = utbetaling,
             clock = clock,
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             strict = strict,
@@ -310,57 +282,54 @@ fun simulerOpphør(
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForOpphør(
         opphørsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
     ).let { utbetaling ->
-        simuler(
-            sak = sak,
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
-            kontrollerMotSimulering = revurdering.simulering,
+        val simuler = simuler(
+            utbetalingerPåSak = sak.utbetalinger,
+            utbetalingForSimulering = utbetaling,
             clock = clock,
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             strict = strict,
         )
+        simuler
     }
 }
 
+/**
+ * TODO jah: Fjern mulighet for å slå av strict
+ * @strict hvis satt til true vil kryssjekk for tidslinjer og simuleringer gjennomføres.
+ */
 fun simuler(
-    sak: Sak,
-    utbetaling: Utbetaling.UtbetalingForSimulering,
-    simuleringsperiode: Periode,
-    kontrollerMotSimulering: Simulering?,
+    utbetalingerPåSak: Utbetalinger,
+    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
     clock: Clock,
     strict: Boolean,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return if (strict) {
-        sak.simulerUtbetaling(
-            utbetalingForSimulering = utbetaling,
-            periode = simuleringsperiode,
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+        simulerUtbetaling(
+            utbetalingForSimulering = utbetalingForSimulering,
+            simuler = { utbetalingForSimuleringFraFunksjon: Utbetaling.UtbetalingForSimulering ->
                 simulerUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    simuleringsperiode = periode,
+                    utbetalingerPåSak = utbetalingerPåSak,
+                    utbetalingForSimulering = utbetalingForSimuleringFraFunksjon,
                     clock = clock,
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                 )
             },
-            kontrollerMotTidligereSimulering = kontrollerMotSimulering,
-        )
+        ).map {
+            it.simulertUtbetaling
+        }
     } else {
         simulerUtbetaling(
-            sak = sak,
-            utbetaling = utbetaling,
-            simuleringsperiode = simuleringsperiode,
+            utbetalingerPåSak = utbetalingerPåSak,
+            utbetalingForSimulering = utbetalingForSimulering,
             clock = clock,
-        ).mapLeft {
-            SimulerUtbetalingFeilet.FeilVedSimulering(it)
-        }
+        )
     }
 }
 
@@ -399,12 +368,7 @@ fun simuleringNy(
             // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             clock = nåtidForSimuleringStub,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(
-            SimulerUtbetalingForPeriode(
-                utbetaling = it,
-                simuleringsperiode = beregning.periode,
-            ),
-        )
+        ).simulerUtbetaling(it)
     }.getOrFail()
 }
 
@@ -461,18 +425,11 @@ fun simuleringOpphørt(
         // TODO("simulering_utbetaling_alder utled fra sak/behandling")
         sakstype = Sakstype.UFØRE,
     ).generate().let {
-        val opphør = it.utbetalingslinjer.filterIsInstance<Utbetalingslinje.Endring.Opphør>().single()
-
         SimuleringStub(
             // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             clock = nåtidForSimuleringStub,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = it,
-                simuleringsperiode = opphør.periode,
-            ),
-        )
+        ).simulerUtbetaling(it)
     }.getOrFail()
 }
 
@@ -724,26 +681,6 @@ fun simulertDetaljTilbakeføring(
         klassekode = KlasseKode.SUUFORE,
         klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
-    )
-}
-
-/**
- * @param saksnummer ignoreres dersom [utbetaling] sendes inn
- * @param utbetaling Default
- * @param simuleringsperiode Default 2021
- */
-fun simuleringUtbetalingRequest(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    clock: Clock = fixedClock,
-    utbetaling: Utbetaling.UtbetalingForSimulering = utbetalingForSimulering(
-        saksnummer = saksnummer,
-        clock = clock,
-    ),
-    simuleringsperiode: Periode = år(2021),
-): SimulerUtbetalingRequest {
-    return SimulerUtbetalingForPeriode(
-        utbetaling = utbetaling,
-        simuleringsperiode = simuleringsperiode,
     )
 }
 

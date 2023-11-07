@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -24,10 +23,10 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
@@ -746,11 +745,10 @@ fun iverksattSøknadsbehandling(
                     generertDokumentJson = "{}",
                 ).right()
             },
-            simulerUtbetaling = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+            simulerUtbetaling = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
                 simulerUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    simuleringsperiode = periode,
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = utbetalingForSimulering,
                     clock = clock,
                 ).getOrFail().right()
             },
@@ -957,21 +955,18 @@ fun simulertSøknadsbehandling(
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 uføregrunnlag = uføregrunnlag,
             ).let {
-                sak.simulerUtbetaling(
+                simulerUtbetaling(
                     utbetalingForSimulering = it,
-                    periode = beregnet.periode,
-                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
                         simulerUtbetaling(
-                            sak = sak,
-                            utbetaling = utbetalingForSimulering,
-                            simuleringsperiode = periode,
+                            utbetalingerPåSak = sak.utbetalinger,
+                            utbetalingForSimulering = utbetalingForSimulering,
                             clock = clock,
                             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         )
                     },
-                    kontrollerMotTidligereSimulering = null,
-                ).map { simulertUtbetaling ->
-                    simulertUtbetaling.simulering
+                ).map { simuleringsresultat ->
+                    simuleringsresultat.simulertUtbetaling.simulering
                 }
             }
         }.getOrFail()
@@ -1026,6 +1021,7 @@ fun beregnetSøknadsbehandling(
             clock = beregnetClock,
             satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
             nySaksbehandler = saksbehandler,
+
         ).getOrFail().let { beregnet ->
             sak.oppdaterSøknadsbehandling(beregnet) to beregnet
         }

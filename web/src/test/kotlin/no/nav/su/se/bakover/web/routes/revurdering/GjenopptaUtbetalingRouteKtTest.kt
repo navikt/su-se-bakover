@@ -13,11 +13,8 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
@@ -47,7 +44,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
-                            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
+                            on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
                         },
                     ),
                 )
@@ -121,11 +118,9 @@ internal class GjenopptaUtbetalingRouteKtTest {
                                     any(),
                                     any(),
                                 )
-                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                                UtbetalGjenopptakFeil.KunneIkkeUtbetale(
-                                    UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
-                                    ),
+                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(
+                                KontrollsimuleringFeilet.Forskjeller(
+                                    KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
                                 ),
                             ).left()
                         },
@@ -158,13 +153,15 @@ internal class GjenopptaUtbetalingRouteKtTest {
                         gjenopptakAvYtelseService = mock {
                             doAnswer {
                                 val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
-                                simulertRevurdering.copy(
-                                    periode = Periode.create(
-                                        sisteVedtak.periode.fraOgMed,
-                                        simulertRevurdering.periode.tilOgMed,
-                                    ),
-                                    revurderingsårsak = args.revurderingsårsak,
-                                ).right()
+                                (
+                                    simulertRevurdering.copy(
+                                        periode = Periode.create(
+                                            sisteVedtak.periode.fraOgMed,
+                                            simulertRevurdering.periode.tilOgMed,
+                                        ),
+                                        revurderingsårsak = args.revurderingsårsak,
+                                    ) to null
+                                    ).right()
                             }.whenever(mock).gjenopptaYtelse(any())
                         },
                     ),
@@ -202,7 +199,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
-                            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
+                            on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
                         },
                     ),
                 )
@@ -236,11 +233,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
-                            on { gjenopptaYtelse(any()) } doReturn KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
-                                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(
-                                    Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
-                                ),
-                            ).left()
+                            on { gjenopptaYtelse(any()) } doReturn KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans.left()
                         },
                     ),
                 )
@@ -262,7 +255,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
+                bodyAsText() shouldContain """"code":"siste_vedtak_ikke_stans""""
             }
         }
     }

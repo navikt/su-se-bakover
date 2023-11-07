@@ -4,14 +4,14 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
@@ -20,7 +20,7 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
     revurdering: RevurderingTilAttestering.Opphørt,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
-    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettOpphørtRevurderingMedUtbetalingResponse> {
     require(this.revurderinger.contains(revurdering))
 
@@ -39,12 +39,16 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
         KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil(it)
     }.flatMap { iverksattRevurdering ->
         kontrollsimuler(
-            attestant = attestant,
-            clock = clock,
+            utbetalingForSimulering = this.lagUtbetalingForOpphør(
+                opphørsperiode = revurdering.periode,
+                behandler = attestant,
+                clock = clock,
+            ),
             simuler = simuler,
-            periode = revurdering.periode,
             saksbehandlersSimulering = revurdering.simulering,
-        ).map { simulertUtbetaling ->
+        ).mapLeft {
+            KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(it)
+        }.map { simulertUtbetaling ->
             VedtakSomKanRevurderes.from(
                 revurdering = iverksattRevurdering,
                 utbetalingId = simulertUtbetaling.id,

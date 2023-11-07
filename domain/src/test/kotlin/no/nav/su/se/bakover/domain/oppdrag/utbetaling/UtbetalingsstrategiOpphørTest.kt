@@ -35,8 +35,6 @@ import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknad
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 
 internal class UtbetalingsstrategiOpphørTest {
     @Test
@@ -72,28 +70,6 @@ internal class UtbetalingsstrategiOpphørTest {
             ).generate()
         }.also {
             it.message shouldBe "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje"
-        }
-    }
-
-    @Test
-    fun `kaster exception dersom man forsøker å opphøre fra en ugyldig dato`() {
-        val mock = mock<Periode> {
-            on { fraOgMed } doReturn 19.januar(2021)
-            on { tilOgMed } doReturn 31.januar(2021)
-        }
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Opphør(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                eksisterendeUtbetalinger = Utbetalinger(kvittertUtbetaling()),
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock,
-                periode = mock,
-                sakstype = Sakstype.UFØRE,
-            ).generate()
-        }.also {
-            it.message shouldBe "Ytelse kan kun opphøres fra første dag i måneden"
         }
     }
 

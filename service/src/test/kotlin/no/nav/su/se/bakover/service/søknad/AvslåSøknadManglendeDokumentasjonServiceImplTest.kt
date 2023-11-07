@@ -87,12 +87,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
+                        utbetalingerPåSak = sak.utbetalinger,
                         invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
                         fixedClock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
@@ -235,12 +234,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
+                        utbetalingerPåSak = sak.utbetalinger,
                         invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
                         fixedClock,
                     )
-                }.whenever(it).simulerUtbetaling(any(), any())
+                }.whenever(it).simulerUtbetaling(any())
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()

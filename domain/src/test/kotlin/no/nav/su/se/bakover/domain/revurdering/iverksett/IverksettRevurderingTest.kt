@@ -4,12 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.mai
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -39,7 +37,7 @@ class IverksettRevurderingTest {
             revurderingId = revurdering.id,
             attestant = attestant,
             clock = clock,
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, _: Periode ->
+            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
                 // Denne vil kjøres 2 ganger, en for april-mai og en for april-desember.
                 val aprilFraFørsteSimulering = simulering.måneder.first()
                 Utbetaling.SimulertUtbetaling(
@@ -59,7 +57,7 @@ class IverksettRevurderingTest {
                 ).right()
             },
         ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(
-            SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(
+            no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet.Forskjeller(
                 KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling,
             ),
         ).left()

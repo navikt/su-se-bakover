@@ -1,0 +1,247 @@
+<!-- Hentet fra preprod - saksnummer 10002225 - hentet/utført dato 2023-10-31 -->
+<!-- Søknadsbehandling hele 2023 innvilget 2023-08-22 kl. 13:44. Etterbetalt til og med juli. -->
+<!-- Stanset måneder 2023-09->2023-12 den 2023-08-22 14:02 (samme dag som innvilget søknadsbehandling; dvs. ingenting hadde blitt etterbetalt enda) -->
+<!-- Gjenopptok i preprod for måneder 2023-09->2023-12 utført den 2023-10-31 kl. 14:28   -->
+<!-- Beregning for stans-månedene er  24514/mnd * 4 = 98056-->
+<!-- Skatt utgjør 12257+12257+12257+6128 (halv skatt desember) = 42899 -->
+<!-- forventer netto beløp 98056-42899 = 55157 -->
+<SimulerBeregningResponse>
+    <simulering>
+        <gjelderId>17528003028</gjelderId>
+        <gjelderNavn>PLOMME SYMPATISK</gjelderNavn>
+        <datoBeregnet>2023-10-31</datoBeregnet>
+        <kodeFaggruppe>INNT</kodeFaggruppe>
+        <belop>55157.00</belop>
+        <beregningsPeriode>
+            <periodeFom>2023-09-01</periodeFom>
+            <periodeTom>2023-09-30</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>1</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>68370269</oppdragsId>
+                <fagsystemId>10002225</fagsystemId>
+                <utbetalesTilId>17528003028</utbetalesTilId>
+                <utbetalesTilNavn>PLOMME SYMPATISK</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-10-31</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-09-01</faktiskFom>
+                    <faktiskTom>2023-09-30</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-12257.00</belop>
+                    <trekkVedtakId>12802922</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>30.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-09-01</faktiskFom>
+                    <faktiskTom>2023-09-30</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>24514.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>2</linjeId>
+                    <sats>24514.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>10</uforeGrad>
+                    <delytelseId>91ad9203-f7a7-4d89-b244-e44beb</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+        <beregningsPeriode>
+            <periodeFom>2023-10-01</periodeFom>
+            <periodeTom>2023-10-31</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>2</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>68370269</oppdragsId>
+                <fagsystemId>10002225</fagsystemId>
+                <utbetalesTilId>17528003028</utbetalesTilId>
+                <utbetalesTilNavn>PLOMME SYMPATISK</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-10-31</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-10-01</faktiskFom>
+                    <faktiskTom>2023-10-31</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-12257.00</belop>
+                    <trekkVedtakId>12802922</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>31.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-10-01</faktiskFom>
+                    <faktiskTom>2023-10-31</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>24514.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>2</linjeId>
+                    <sats>24514.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>10</uforeGrad>
+                    <delytelseId>91ad9203-f7a7-4d89-b244-e44beb</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+        <beregningsPeriode>
+            <periodeFom>2023-11-01</periodeFom>
+            <periodeTom>2023-11-30</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>3</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>68370269</oppdragsId>
+                <fagsystemId>10002225</fagsystemId>
+                <utbetalesTilId>17528003028</utbetalesTilId>
+                <utbetalesTilNavn>PLOMME SYMPATISK</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-11-17</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-11-01</faktiskFom>
+                    <faktiskTom>2023-11-30</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-12257.00</belop>
+                    <trekkVedtakId>12802922</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>30.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-11-01</faktiskFom>
+                    <faktiskTom>2023-11-30</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>24514.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>2</linjeId>
+                    <sats>24514.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>10</uforeGrad>
+                    <delytelseId>91ad9203-f7a7-4d89-b244-e44beb</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+        <beregningsPeriode>
+            <periodeFom>2023-12-01</periodeFom>
+            <periodeTom>2023-12-31</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>4</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>68370269</oppdragsId>
+                <fagsystemId>10002225</fagsystemId>
+                <utbetalesTilId>17528003028</utbetalesTilId>
+                <utbetalesTilNavn>PLOMME SYMPATISK</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-12-11</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-12-01</faktiskFom>
+                    <faktiskTom>2023-12-31</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-6128.00</belop>
+                    <trekkVedtakId>12802922</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>31.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-12-01</faktiskFom>
+                    <faktiskTom>2023-12-31</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>24514.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>2</linjeId>
+                    <sats>24514.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>10</uforeGrad>
+                    <delytelseId>91ad9203-f7a7-4d89-b244-e44beb</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+    </simulering>
+    <infomelding>
+        <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+    </infomelding>
+</SimulerBeregningResponse>

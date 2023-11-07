@@ -69,12 +69,12 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
 {
   "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:42.456789Z",
+  "opprettet":"2021-02-01T01:03:32.456789Z",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.38.456789",
+    "kontrollfelt":"2021-02-01-02.03.28.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -104,7 +104,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     {
       "attestant": "AttestantLokal",
       "underkjennelse":null,
-       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:04:02.456789Z\""}  
+       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:03:52.456789Z\""}  
     }
   ] 
 }"""

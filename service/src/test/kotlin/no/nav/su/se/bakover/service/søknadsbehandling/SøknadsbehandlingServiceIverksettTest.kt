@@ -18,17 +18,16 @@ import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -132,7 +131,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
                 utbetalingService = mock {
-                    on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
+                    on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
                 },
             )
 
@@ -143,9 +142,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             )
 
-            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(
-                UtbetalingFeilet.KunneIkkeSimulere(
-                    SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil),
+            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet(
+                KontrollsimuleringFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.TekniskFeil,
                 ),
             ).left()
         }
@@ -160,12 +159,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 utbetalingService = mock {
                     doAnswer { invocation ->
                         simulerUtbetaling(
-                            sak,
+                            utbetalingerPåSak = sak.utbetalinger,
                             (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering).copy(fnr = Fnr.generer()),
-                            invocation.getArgument(1) as Periode,
                             TikkendeKlokke(fixedClock),
                         )
-                    }.whenever(it).simulerUtbetaling(any(), any())
+                    }.whenever(it).simulerUtbetaling(any())
                 },
             )
 
@@ -176,11 +174,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             )
 
-            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(
-                UtbetalingFeilet.KunneIkkeSimulere(
-                    SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(
-                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId,
-                    ),
+            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet(
+                KontrollsimuleringFeilet.Forskjeller(
+                    KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId,
                 ),
             ).left()
         }
@@ -271,7 +267,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().second shouldBe expectedAvslag
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() }, anyOrNull())
+            verify(serviceAndMocks.brevService).lagDokument(
+                argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() },
+                anyOrNull(),
+            )
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 argThat { it is VedtakAvslagBeregning },
@@ -417,8 +416,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             actualSøknadsbehandling.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(innvilgetTilAttestering.id)
-            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
-                any(),
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 any(),
             )
             verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(
@@ -560,12 +558,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     } doThrow RuntimeException("Mock: Kan ikke klargjøre utbetaling (som også persisterer)")
                     doAnswer { invocation ->
                         simulerUtbetaling(
-                            sak,
+                            utbetalingerPåSak = sak.utbetalinger,
                             invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                            invocation.getArgument(1) as Periode,
                             TikkendeKlokke(fixedClock),
                         )
-                    }.whenever(it).simulerUtbetaling(any(), any())
+                    }.whenever(it).simulerUtbetaling(any())
                 },
                 opprettPlanlagtKontrollsamtaleService = mock {},
                 vedtakRepo = mock {
@@ -595,12 +592,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doAnswer { invocation ->
                         val utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering
                         simulerUtbetaling(
-                            sak = sak,
-                            utbetaling = utbetaling,
-                            simuleringsperiode = invocation.getArgument(1) as Periode,
+                            utbetalingerPåSak = sak.utbetalinger,
+                            utbetalingForSimulering = utbetaling,
                             clock = fixedClock,
                         )
-                    }.whenever(it).simulerUtbetaling(any(), any())
+                    }.whenever(it).simulerUtbetaling(any())
                 },
                 vedtakRepo = mock {
                     doThrow(RuntimeException("Mock: utbetaler ikke dersom vi ikke kan lagre vedtaket")).whenever(it)
@@ -681,12 +677,11 @@ private data class ServiceAndMocks(
             doAnswer { invocation ->
                 val utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering
                 simulerUtbetaling(
-                    sak = sakOgSøknadsbehandling.first,
-                    utbetaling = utbetaling,
-                    simuleringsperiode = invocation.getArgument(1) as Periode,
+                    utbetalingerPåSak = sakOgSøknadsbehandling.first.utbetalinger,
+                    utbetalingForSimulering = utbetaling,
                     clock = clock,
                 )
-            }.whenever(it).simulerUtbetaling(any(), any())
+            }.whenever(it).simulerUtbetaling(any())
 
             doAnswer { invocation ->
                 val simulertUtbetaling = invocation.getArgument(0) as Utbetaling.SimulertUtbetaling
@@ -704,7 +699,6 @@ private data class ServiceAndMocks(
         } else {
             on {
                 simulerUtbetaling(
-                    any(),
                     any(),
                 )
             } doThrow IllegalArgumentException("Kan ikke simulere utbetaling når sakOgSøknadsbehandling er null.")

@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.between
-import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -346,7 +345,6 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteUtbetalingslinje = eksisterendeUtbetalinger.sisteUtbetalingslinje()?.also {
                 validate(periode.fraOgMed.isBefore(it.periode.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
-                validate(periode.fraOgMed.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
             val opprettet = Tidspunkt.now(clock)
@@ -436,10 +434,10 @@ sealed class Utbetalingsstrategi {
             }.right()
         }
 
-        sealed class Feil {
-            data object FantIngenUtbetalinger : Feil()
-            data object SisteUtbetalingErIkkeStans : Feil()
-            data object KanIkkeGjenopptaOpphørtePeriode : Feil()
+        sealed interface Feil {
+            data object FantIngenUtbetalinger : Feil
+            data object SisteUtbetalingErIkkeStans : Feil
+            data object KanIkkeGjenopptaOpphørtePeriode : Feil
         }
     }
 

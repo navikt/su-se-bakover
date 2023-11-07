@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
@@ -36,24 +35,21 @@ internal class SimuleringRequestBuilderValidationTest {
     fun `valider soap xml mot xsd skjema`() {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = Utbetaling.UtbetalingForSimulering(
-                    opprettet = fixedTidspunkt,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = Fnr("12345678910"),
-                    utbetalingslinjer = nonEmptyListOf(
-                        utbetalingslinjeNy(
-                            periode = januar(2020),
-                            beløp = 10,
-                            forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
-                        ),
+            Utbetaling.UtbetalingForSimulering(
+                opprettet = fixedTidspunkt,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678910"),
+                utbetalingslinjer = nonEmptyListOf(
+                    utbetalingslinjeNy(
+                        periode = januar(2020),
+                        beløp = 10,
+                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
                     ),
-                    behandler = NavIdentBruker.Saksbehandler("Z123"),
-                    avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-                    sakstype = Sakstype.UFØRE,
                 ),
-                simuleringsperiode = januar(2020),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
             ),
         ).build().request
 

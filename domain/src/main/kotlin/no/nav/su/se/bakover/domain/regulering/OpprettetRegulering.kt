@@ -17,7 +17,9 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -118,8 +120,8 @@ data class OpprettetRegulering(
     }
 
     fun simuler(
-        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
-    ): Either<KunneIkkeSimulereRegulering, OpprettetRegulering> {
+        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simuleringsresultat>,
+    ): Either<KunneIkkeSimulereRegulering, Pair<OpprettetRegulering, Utbetaling.SimulertUtbetaling>> {
         return simuler(
             beregning ?: return KunneIkkeSimulereRegulering.FantIngenBeregning.left(),
             when (sakstype) {
@@ -135,7 +137,12 @@ data class OpprettetRegulering(
                 }
             },
         ).mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet }
-            .map { copy(simulering = it) }
+            .map {
+                when (it) {
+                    is Simuleringsresultat.UtenForskjeller -> Pair(copy(simulering = it.simulertUtbetaling.simulering), it.simulertUtbetaling)
+                    is Simuleringsresultat.MedForskjeller -> return KunneIkkeSimulereRegulering.Forskjeller(it.forskjeller).left()
+                }
+            }
     }
 
     fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {

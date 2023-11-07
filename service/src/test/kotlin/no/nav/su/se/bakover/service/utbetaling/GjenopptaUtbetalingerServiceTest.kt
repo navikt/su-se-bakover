@@ -42,7 +42,6 @@ internal class GjenopptaUtbetalingerServiceTest {
 
         val simulertUtbetaling = simulerGjenopptak(
             sak = sak,
-            gjenopptak = null,
             clock = tikkendeKlokke,
         ).getOrFail()
 
@@ -72,13 +71,12 @@ internal class GjenopptaUtbetalingerServiceTest {
     fun `Utbetaling feilet`() {
         val tikkendeKlokke = TikkendeKlokke(nåtidForSimuleringStub)
 
-        val (sak, simulertGjenopptak) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
+        val (sak, _) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             clock = tikkendeKlokke,
         )
 
         val simulertUtbetaling = simulerGjenopptak(
             sak = sak,
-            gjenopptak = simulertGjenopptak,
             clock = tikkendeKlokke,
         ).getOrFail()
 

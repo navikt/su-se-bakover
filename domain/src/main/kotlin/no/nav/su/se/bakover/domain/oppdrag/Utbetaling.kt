@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.extensions.and
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -26,6 +26,8 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
     val behandler: NavIdentBruker
     val avstemmingsnøkkel: Avstemmingsnøkkel
     val sakstype: Sakstype
+
+    val periode get() = utbetalingslinjer.map { it.periode }.minAndMaxOf()
 
     override fun compareTo(other: Utbetaling): Int {
         return this.opprettet.instant.compareTo(other.opprettet.instant)
@@ -154,14 +156,8 @@ fun List<Utbetalingslinje>.kontrollerUtbetalingslinjer() {
     this.sjekkForrigeForNye()
 }
 
-sealed class UtbetalingFeilet {
-    data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
-        UtbetalingFeilet()
-
-    data object Protokollfeil : UtbetalingFeilet()
-
-    data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : UtbetalingFeilet()
-    data object FantIkkeSak : UtbetalingFeilet()
+sealed interface UtbetalingFeilet {
+    data object Protokollfeil : UtbetalingFeilet
 }
 
 data object IngenUtbetalinger

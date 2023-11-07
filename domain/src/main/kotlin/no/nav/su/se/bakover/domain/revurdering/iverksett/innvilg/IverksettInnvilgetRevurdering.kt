@@ -7,18 +7,16 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 
@@ -26,7 +24,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
     revurdering: RevurderingTilAttestering.Innvilget,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
-    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettInnvilgetRevurderingResponse> {
     require(this.revurderinger.contains(revurdering))
 
@@ -62,14 +60,13 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                 }
             },
         ).let {
-            simulerUtbetaling(
+            kontrollsimuler(
                 utbetalingForSimulering = it,
-                periode = iverksattRevurdering.periode,
                 simuler = simuler,
-                kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
+                saksbehandlersSimulering = iverksattRevurdering.simulering,
             )
         }.mapLeft { feil ->
-            KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil))
+            KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(feil)
         }.map { simulertUtbetaling ->
             VedtakSomKanRevurderes.from(
                 revurdering = iverksattRevurdering,

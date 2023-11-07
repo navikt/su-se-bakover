@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
@@ -37,7 +36,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
+                on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
                     beregning = beregnet.beregning,
                     clock = fixedClock,
@@ -57,9 +56,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             response.shouldBeType<SimulertSøknadsbehandling>()
 
             verify(it.sakService).hentSakForSøknadsbehandling(beregnet.id)
-            verify(it.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = argThat { it shouldBe beregnet.periode },
+            verify(it.utbetalingService).simulerUtbetaling(
+                utbetalingForSimulering = any(),
             )
             verify(it.søknadsbehandlingRepo).lagre(response)
         }
@@ -93,7 +91,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
+                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
         ).also {
             val response = it.søknadsbehandlingService.simuler(
@@ -101,14 +99,13 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             )
 
             response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere(
-                SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil),
+                SimuleringFeilet.TekniskFeil,
             ).left()
 
             verify(it.sakService).hentSakForSøknadsbehandling(argThat { it shouldBe beregnet.id })
 
             verify(it.utbetalingService).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = argThat { it shouldBe beregnet.periode },
+                utbetalingForSimulering = any(),
             )
             it.verifyNoMoreInteractions()
         }

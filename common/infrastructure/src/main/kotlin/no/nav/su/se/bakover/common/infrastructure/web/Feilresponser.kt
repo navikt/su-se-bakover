@@ -206,6 +206,11 @@ data object Feilresponser {
         "fant_ikke_gjeldende_utbetaling",
     )
 
+    val kunneIkkeUtbetale = InternalServerError.errorJson(
+        "Kunne ikke utføre utbetaling",
+        "kunne_ikke_utbetale",
+    )
+
     val attestantOgSaksbehandlerKanIkkeVæreSammePerson = Forbidden.errorJson(
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",

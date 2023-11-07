@@ -101,8 +101,8 @@ fun nyUtbetalingSimulert(
         ).let {
             it.toSimulertUtbetaling(
                 simulerNyUtbetaling(
-                    sak = sak,
-                    utbetaling = it,
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = it,
                 ).getOrFail(),
             )
         }

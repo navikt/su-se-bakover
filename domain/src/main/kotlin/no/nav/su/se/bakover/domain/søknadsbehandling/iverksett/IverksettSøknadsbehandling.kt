@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -36,7 +35,7 @@ import java.time.Clock
 fun Sak.iverksettSøknadsbehandling(
     command: IverksettSøknadsbehandlingCommand,
     genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
-    simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     clock: Clock,
     satsFactory: SatsFactory,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {

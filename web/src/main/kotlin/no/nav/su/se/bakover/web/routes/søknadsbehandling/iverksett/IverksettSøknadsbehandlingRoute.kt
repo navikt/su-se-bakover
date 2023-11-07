@@ -78,6 +78,7 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
             code = "simulering_fører_til_feilutbetaling",
         )
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
-        KunneIkkeIverksetteSøknadsbehandling.InneholderUfullstendigeBosituasjoner -> Feilresponser.inneholderUfullstendigeBosituasjoner
+        is KunneIkkeIverksetteSøknadsbehandling.InneholderUfullstendigeBosituasjoner -> Feilresponser.inneholderUfullstendigeBosituasjoner
+        is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
     }
 }
