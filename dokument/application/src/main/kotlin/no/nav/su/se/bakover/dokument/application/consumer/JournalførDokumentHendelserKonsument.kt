@@ -125,7 +125,7 @@ class JournalførDokumentHendelserKonsument(
             ).let { forUtsendelse ->
                 sessionFactory.withSessionContext {
                     dokumentHendelseRepo.lagre(forUtsendelse, it)
-                    hendelsekonsumenterRepo.lagre(forUtsendelse.hendelseId, konsumentId, it)
+                    hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId, it)
                 }
             }
         }
@@ -221,7 +221,7 @@ class JournalførDokumentHendelserKonsument(
                     is GenerertDokumentForUtsendelseHendelse -> it.first
                 }
 
-                false -> throw IllegalStateException("")
+                false -> throw IllegalStateException("Dokument hendelse $hendelseId var ikke av typen ${GenerertDokumentHendelse::class.simpleName}")
             }
             val assertedFil = when (it.second) {
                 null -> throw IllegalStateException("Fil fantes ikke for å journalføre hendelse $hendelseId")
