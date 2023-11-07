@@ -99,17 +99,19 @@ class DokumentHendelsePostgresRepo(
         dokumentId: UUID,
         sessionContext: SessionContext?,
     ): Pair<DokumentHendelse?, HendelseFil?> {
-        val hendelseOgFil = sessionContext.withOptionalSession(sessionFactory) {
-            """
+        return sessionFactory.withSessionContext(sessionContext) { tx ->
+            val hendelseOgFil = tx.withOptionalSession(sessionFactory) {
+                """
                 select hendelseid from hendelse where data ->> 'id' = :dokumentId
-            """.trimIndent().hent(
-                mapOf("dokumentId" to dokumentId.toString()),
-                it,
-            ) {
-                return@hent hentHendelseOgFilFor(HendelseId.fromString(it.string("hendelseid")), sessionContext)
+                """.trimIndent().hent(
+                    mapOf("dokumentId" to dokumentId.toString()),
+                    it,
+                ) {
+                    hentHendelseOgFilFor(HendelseId.fromString(it.string("hendelseid")), tx)
+                }
             }
+            Pair(hendelseOgFil?.first, hendelseOgFil?.second)
         }
-        return Pair(hendelseOgFil?.first, hendelseOgFil?.second)
     }
 }
 
