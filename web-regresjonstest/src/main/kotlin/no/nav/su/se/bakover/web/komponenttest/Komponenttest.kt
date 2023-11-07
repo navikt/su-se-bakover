@@ -23,7 +23,7 @@ import org.mockito.kotlin.mock
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -127,7 +127,7 @@ internal fun withKomptestApplication(
                 tilbakekrevingService = services.tilbakekrevingService,
                 sakService = services.sak,
                 tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
-                mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+                mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
                 oppgaveService = services.oppgave,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                 hendelseRepo = repos.hendelseRepo,

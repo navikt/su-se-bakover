@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
+import no.nav.su.se.bakover.test.getFileSourceContent
 import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
 import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.saksbehandler
@@ -211,3 +212,7 @@ fun sakMedUteståendeKravgrunnlag(
         )
     }
 }
+
+val kravgrunnlagEndringXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_endring.xml") }
+val kravgrunnlagOpphørXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_opphør.xml") }
+val kravgrunnlagStatusendringXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_statusendring.xml") }

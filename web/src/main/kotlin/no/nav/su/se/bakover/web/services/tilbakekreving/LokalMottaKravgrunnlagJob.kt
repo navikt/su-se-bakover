@@ -18,8 +18,8 @@ import tilbakekreving.application.service.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -114,7 +114,7 @@ fun lagKravgrunnlagXml(
     kravgrunnlag: Kravgrunnlag,
     fnr: String,
 ): String {
-    return TilbakekrevingsmeldingMapper.toXml(
+    return KravgrunnlagDtoMapper.toXml(
         KravgrunnlagRootDto(
             kravgrunnlagDto = KravgrunnlagDto(
                 kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,

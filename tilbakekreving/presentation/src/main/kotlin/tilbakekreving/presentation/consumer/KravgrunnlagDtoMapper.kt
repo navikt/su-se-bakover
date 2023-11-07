@@ -19,9 +19,9 @@ import java.time.Instant
 import java.time.LocalDate
 
 /**
- * Brukes for å mappe oppdrag sitt XML-format til en Kotlin-DTO og til domenemodellen vår.
+ * Brukes for å mappe oppdrag sitt XML-format via [KravgrunnlagDto] til domenemodellen vår.
  */
-data object TilbakekrevingsmeldingMapper {
+data object KravgrunnlagDtoMapper {
 
     private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
         registerModule(KotlinModule.Builder().build())

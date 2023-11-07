@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getFileSourceContent
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.saksbehandler
@@ -52,8 +53,6 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
-import java.io.File
-import java.nio.file.Paths
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -1026,13 +1025,4 @@ data class SimuleringResponseData(
     }
 }
 
-val simuleringDobbelTilbakeføringMedTrekkXml: String by lazy { getXmlFileContent("simulering-dobbel-tilbakeføring-med-trekk.xml") }
-
-/**
- * Dette er ikke
- */
-private fun getXmlFileContent(@Suppress("SameParameterValue") filename: String): String {
-    val path = Paths.get("").toAbsolutePath().parent.toFile()
-    val xmlFile = File(path, "/test-common/src/main/kotlin/simulering/$filename")
-    return xmlFile.readText()
-}
+val simuleringDobbelTilbakeføringMedTrekkXml: String by lazy { getFileSourceContent("simulering/simulering-dobbel-tilbakeføring-med-trekk.xml") }

@@ -181,7 +181,7 @@ import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
@@ -196,7 +196,7 @@ class TestDataHelper(
     val dbMetrics: DbMetrics = dbMetricsStub,
     val clock: Clock = TikkendeKlokke(),
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
-    råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag> = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+    råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag> = KravgrunnlagDtoMapper::toKravgrunnlag,
 ) {
     val sessionFactory: PostgresSessionFactory =
         PostgresSessionFactory(dataSource, dbMetrics, sessionCounterStub, listOf(DomainToQueryParameterMapper))

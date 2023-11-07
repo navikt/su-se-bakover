@@ -1,29 +1,26 @@
-package no.nav.su.se.bakover.web.services.tilbakekreving
+package tilbakekreving.presentation.consumer
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagEndringXml
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagOpphørXml
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.presentation.consumer.KravgrunnlagDto
-import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
-import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringDto
-import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-internal class TilbakekrevingsmeldingMapperTest {
+internal class KravgrunnlagDtoTest {
 
     @Test
     fun `mapper nyopprettet kravgrunnlag for opphør av ytelse`() {
-        val inputXml = javaClass.getResource("/tilbakekreving/kravgrunnlag_opphør.xml").readText()
+        val inputXml = kravgrunnlagOpphørXml
         val expected = KravgrunnlagRootDto(
             KravgrunnlagDto(
                 kravgrunnlagId = "298604",
@@ -76,8 +73,8 @@ internal class TilbakekrevingsmeldingMapperTest {
                 ),
             ),
         )
-        TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
-        TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
+        KravgrunnlagDtoMapper.toDto(inputXml).getOrFail() shouldBe expected
+        KravgrunnlagDtoMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2461),
             eksternKravgrunnlagId = "298604",
             eksternVedtakId = "436204",
@@ -110,7 +107,7 @@ internal class TilbakekrevingsmeldingMapperTest {
 
     @Test
     fun `mapper nyopprettet kravgrunnlag for endring av ytelse`() {
-        val inputXml = javaClass.getResource("/tilbakekreving/kravgrunnlag_endring.xml").readText()
+        val inputXml = kravgrunnlagEndringXml
         val expected = KravgrunnlagRootDto(
             KravgrunnlagDto(
                 kravgrunnlagId = "298606",
@@ -191,8 +188,8 @@ internal class TilbakekrevingsmeldingMapperTest {
             ),
         )
         val tidspunkt = fixedTidspunkt
-        TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
-        TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
+        KravgrunnlagDtoMapper.toDto(inputXml).getOrFail() shouldBe expected
+        KravgrunnlagDtoMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2463),
             eksternKravgrunnlagId = "298606",
             eksternVedtakId = "436206",
@@ -200,7 +197,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
-            eksternKontrollfelt = tidspunkt.toOppdragTimestamp(),
+            eksternKontrollfelt = "2021-01-01-02.02.03.456789",
             grunnlagsmåneder = listOf(
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
@@ -245,7 +242,6 @@ internal class TilbakekrevingsmeldingMapperTest {
 
     @Test
     fun `mapper melding om statusendring på åpent kravgrunnlag`() {
-        val inputXml = javaClass.getResource("/tilbakekreving/kravgrunnlag_statusendring.xml").readText()
         val expected = KravgrunnlagStatusendringRootDto(
             endringKravOgVedtakstatus = KravgrunnlagStatusendringDto(
                 vedtakId = "436206",
@@ -256,6 +252,6 @@ internal class TilbakekrevingsmeldingMapperTest {
                 idTypeGjelder = "PERSON",
             ),
         )
-        TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
+        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml).getOrFail() shouldBe expected
     }
 }

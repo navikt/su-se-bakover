@@ -57,7 +57,7 @@ import org.slf4j.MDC
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -101,7 +101,7 @@ data object SharedRegressionTestData {
             dbMetrics = dbMetricsStub,
             clock = clock,
             satsFactory = satsFactory,
-            råttKravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+            råttKravgrunnlagMapper = KravgrunnlagDtoMapper::toKravgrunnlag,
         )
     }
 
@@ -186,7 +186,7 @@ data object SharedRegressionTestData {
                             tilbakekrevingService = services.tilbakekrevingService,
                             sakService = services.sak,
                             tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
-                            mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+                            mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
                             oppgaveService = services.oppgave,
                             oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                             hendelseRepo = repos.hendelseRepo,

@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.web.services.Services
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -48,7 +48,7 @@ fun startServer() {
     ).start(true)
 }
 
-val mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag
+val mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
