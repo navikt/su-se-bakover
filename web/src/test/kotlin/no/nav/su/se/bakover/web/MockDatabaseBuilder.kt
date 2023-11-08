@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import dokument.domain.DokumentRepo
+import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
@@ -51,6 +52,7 @@ data object MockDatabaseBuilder {
         institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo = mock(),
         oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
         hendelsekonsumenterRepo: HendelsekonsumenterRepo = mock(),
+        dokumentHendelseRepo: DokumentHendelseRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -76,6 +78,7 @@ data object MockDatabaseBuilder {
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+            dokumentHendelseRepo = dokumentHendelseRepo,
         )
     }
 }

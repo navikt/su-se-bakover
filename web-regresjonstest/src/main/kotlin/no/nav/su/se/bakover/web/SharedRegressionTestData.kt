@@ -35,6 +35,10 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.dokument.application.DokumentServices
+import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
@@ -192,6 +196,38 @@ data object SharedRegressionTestData {
                             hendelseRepo = repos.hendelseRepo,
                             brevService = services.brev,
                             dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                        ),
+                    )
+                },
+                dokumentKomponenterBuilder = { databaseRepos, services, clients ->
+                    val repos = DokumentRepos(
+                        clock = clock,
+                        sessionFactory = databaseRepos.sessionFactory,
+                        hendelseRepo = databaseRepos.hendelseRepo,
+                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+                    )
+                    Dokumentkomponenter(
+                        repos = repos,
+                        services = DokumentServices(
+                            clock = clock,
+                            sessionFactory = repos.sessionFactory,
+                            personService = services.person,
+                            hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                            sakService = services.sak,
+                            hendelseRepo = repos.hendelseRepo,
+                            dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                            dokArkiv = clients.dokArkiv,
+                            journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
+                                sakService = services.sak,
+                                personService = services.person,
+                                dokArkiv = clients.dokArkiv,
+                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                                hendelseRepo = repos.hendelseRepo,
+                                sessionFactory = repos.sessionFactory,
+                                clock = clock,
+                            ),
                         ),
                     )
                 },

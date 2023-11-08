@@ -54,53 +54,66 @@ internal class TilbakekrevingsbehandlingIT {
             }
             appComponents.emulerViMottarKravgrunnlag()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
-            val tilbakekrevingsbehandlingId = opprettTilbakekrevingsbehandling(
+            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
                 saksversjon = 2,
                 client = this.client,
-                opprettOppgaveForTilbakekrevingshendelserKonsument = appComponents.tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
             ).let {
-                hentTilbakekrevingsbehandlingId(it)
+                hentTilbakekrevingsbehandlingId(it.first) to it.second
             }
-            // Saksversjon 4 vil være en asynkron oppgave
+            val versjonEtterOpprettelseAvOppgave = appComponents.opprettOppgave(saksversjonEtterOpprettelseAvBehandling)
+            appComponents.verifiserOpprettetOppgaveKonsument()
             forhåndsvisForhåndsvarselTilbakekreving(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 4,
+                saksversjon = versjonEtterOpprettelseAvOppgave,
                 client = this.client,
             )
-            val forhåndsvarselDokumenter = forhåndsvarsleTilbakekrevingsbehandling(
+            val (forhåndsvarselDokumenter, versjonEtterForhåndsvarsel) = forhåndsvarsleTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 4,
+                saksversjon = versjonEtterOpprettelseAvOppgave,
                 client = this.client,
             ).let {
-                hentForhåndsvarselDokumenter(it)
+                hentForhåndsvarselDokumenter(it.first) to it.second
             }
-            appComponents.genererDokumenterForForhåndsvarsel()
+            val versjonEtterOppdateringAvForhåndsvarselsOppgave =
+                appComponents.oppdaterOppgave(versjonEtterForhåndsvarsel)
+            appComponents.verifiserOppdatertOppgaveKonsument(1)
+            val versjonEtterGenereringAvForhåndsvarselsDokument =
+                appComponents.genererDokumenterForForhåndsvarsel(versjonEtterOppdateringAvForhåndsvarselsOppgave)
+            appComponents.verifiserDokumentHendelser(
+                sakId = sakId,
+                antallGenererteDokumenter = 1,
+                antallJournalførteDokumenter = 0,
+            )
+            appComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
+            val versjonEtterJournalføringAvForhåndsvarsel =
+                appComponents.journalførDokmenter(versjonEtterGenereringAvForhåndsvarselsDokument)
+            appComponents.verifiserJournalførDokumenterKonsument(1)
 
             // Saksversjon 6 vil være en synkron oppgave (TODO: skal bli asynkront)
             // Saksversjon 7 vil være et synkront dokument (TODO: skal bli asynkront)
-            val vurderinger = vurderTilbakekrevingsbehandling(
+            val (vurderinger, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 8,
+                saksversjon = versjonEtterJournalføringAvForhåndsvarsel,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
             ).let {
-                hentVurderinger(it)
+                hentVurderinger(it.first) to it.second
             }
 
-            val fritekst = oppdaterVedtaksbrevTilbakekrevingsbehandling(
+            val (fritekst, versjonEtterOppdateringAvVedtaksbrev) = oppdaterVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 9,
+                saksversjon = versjonEtterVurdering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
             ).let {
-                hentFritekst(it)
+                hentFritekst(it.first) to it.second
             }
             forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
@@ -108,16 +121,18 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
             )
 
-            sendTilbakekrevingsbehandlingTilAttestering(
+            val (_, versjonEtterFørsteSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 10,
+                saksversjon = versjonEtterOppdateringAvVedtaksbrev,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
                 verifiserFritekst = fritekst,
             )
-            appComponents.oppdaterOppgave()
+            val versjonEtterOppdateringAvOppgaveFørsteAttestering =
+                appComponents.oppdaterOppgave(versjonEtterFørsteSendingTilAttestering)
+            appComponents.verifiserOppdatertOppgaveKonsument(2)
 
             visUtsendtForhåndsvarselDokument(
                 sakId = sakId,
@@ -126,23 +141,24 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
             )
 
-            val underkjentAttestering = underkjennTilbakekrevingsbehandling(
+            val (underkjentAttestering, versjonEtterUnderkjenning) = underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 12,
+                saksversjon = versjonEtterOppdateringAvOppgaveFørsteAttestering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
                 brevtekst = fritekst,
             ).let {
-                hentAttesteringer(it)
+                hentAttesteringer(it.first) to it.second
             }
-            appComponents.oppdaterOppgave()
+            val versjonEtterOppdateringAvOppgaveUnderkjenning = appComponents.oppdaterOppgave(versjonEtterUnderkjenning)
+            appComponents.verifiserOppdatertOppgaveKonsument(3)
 
-            val vurderingerEtterUnderkjenning = vurderTilbakekrevingsbehandling(
+            val (vurderingerEtterUnderkjenning, versjonEtterVurderingEtterUnderkjenning) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 14,
+                saksversjon = versjonEtterOppdateringAvOppgaveUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 vurderinger = """
@@ -157,32 +173,59 @@ internal class TilbakekrevingsbehandlingIT {
                 expectedFritekst = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
                 expectedAttesteringer = underkjentAttestering,
             ).let {
-                hentVurderinger(it)
+                hentVurderinger(it.first) to it.second
             }
-            sendTilbakekrevingsbehandlingTilAttestering(
+            val (_, versjonEtterAndreSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 15,
+                saksversjon = versjonEtterVurderingEtterUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
                 verifiserFritekst = fritekst,
                 expectedAttesteringer = underkjentAttestering,
             )
-            appComponents.oppdaterOppgave()
-            iverksettTilbakekrevingsbehandling(
+            val versjonEtterOppdateringAvOppgaveAndreAttestering =
+                appComponents.oppdaterOppgave(versjonEtterAndreSendingTilAttestering)
+            appComponents.verifiserOppdatertOppgaveKonsument(4)
+            val (_, versjonEtterIverksetting) = iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = 17,
+                saksversjon = versjonEtterOppdateringAvOppgaveAndreAttestering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            appComponents.lukkOppgave()
+            val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterIverksetting)
+            appComponents.verifiserLukketOppgaveKonsument()
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, 19)
+            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
+
+            // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
+            appComponents.opprettOppgave(versjonEtterLukking)
+            appComponents.oppdaterOppgave(versjonEtterLukking)
+            appComponents.lukkOppgave(versjonEtterLukking)
+            appComponents.genererDokumenterForForhåndsvarsel(versjonEtterLukking)
+            appComponents.journalførDokmenter(versjonEtterLukking)
+
+            appComponents.verifiserOpprettetOppgaveKonsument()
+            appComponents.verifiserOppdatertOppgaveKonsument(4)
+            appComponents.verifiserLukketOppgaveKonsument()
+            appComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
+            appComponents.verifiserJournalførDokumenterKonsument(1)
+
+            appComponents.verifiserOppgaveHendelser(
+                sakId = sakId,
+                antallOppdaterteOppgaver = 4,
+                antallLukketOppgaver = 1,
+            )
+            appComponents.verifiserDokumentHendelser(
+                sakId = sakId,
+                antallGenererteDokumenter = 1,
+                antallJournalførteDokumenter = 1,
+            )
         }
     }
 }

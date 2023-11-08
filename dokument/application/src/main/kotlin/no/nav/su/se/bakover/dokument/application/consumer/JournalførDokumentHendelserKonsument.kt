@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.dokument.application.consumer
 
+import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.Tuple4
 import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
 import dokument.domain.hendelser.GenerertDokumentForJournalføring
@@ -15,6 +17,7 @@ import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
 import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -29,6 +32,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -77,26 +81,35 @@ class JournalførDokumentHendelserKonsument(
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
     ) {
-        val sakInfo = sakService.hentSakInfo(sakId)
-            .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å journalføre lagret dokument for arkivering. hendelsesIder $hendelsesIder") }
+        val sak = sakService.hentSak(sakId)
+            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å journalføre dokument for arkivering") } }
 
-        hendelsesIder.map { relatertHendelsesId ->
-            val (nesteVersjon, relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
-                sakInfo,
+        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
+            val dokumentHendelser = dokumentHendelseRepo.hentForSak(sak.id)
+
+            dokumentHendelser.any { it.relaterteHendelser.contains(relatertHendelsesId) }.ifTrue {
+                hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId)
+                return@mapOneIndexed
+            }
+
+            val (relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
+                sak.info(),
                 relatertHendelsesId,
-            )
+            ).getOrElse { return@mapOneIndexed }
 
             opprettJournalpostForArkivering(
-                sakInfo = sakInfo,
+                sakInfo = sak.info(),
                 navn = navn,
                 relatertHendelse = relatertHendelse,
                 relatertFil = relatertFil,
-                versjon = nesteVersjon,
+                versjon = sak.versjon.inc(idx),
                 correlationId = correlationId,
-            ).let { forArkivering ->
+            ).getOrElse {
+                return@mapOneIndexed
+            }.let { forArkivering ->
                 sessionFactory.withSessionContext {
                     dokumentHendelseRepo.lagre(forArkivering, it)
-                    hendelsekonsumenterRepo.lagre(forArkivering.hendelseId, konsumentId, it)
+                    hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId, it)
                 }
             }
         }
@@ -107,22 +120,30 @@ class JournalførDokumentHendelserKonsument(
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
     ) {
-        val sakInfo = sakService.hentSakInfo(sakId)
-            .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å journalføre lagret dokument for utsendelse") }
+        val sak = sakService.hentSak(sakId)
+            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å journalføre dokument for utsendelse") } }
 
-        hendelsesIder.map { relatertHendelsesId ->
-            val (nesteVersjon, relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
-                sakInfo,
+        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
+            val dokumentHendelser = dokumentHendelseRepo.hentForSak(sak.id)
+
+            dokumentHendelser.any { it.relaterteHendelser.contains(relatertHendelsesId) }.ifTrue {
+                hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId)
+                return@mapOneIndexed
+            }
+
+            val (relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
+                sak.info(),
                 relatertHendelsesId,
-            )
+            ).getOrElse { return@mapOneIndexed }
+
             opprettJournalpostForUtsendelse(
-                sakInfo = sakInfo,
+                sakInfo = sak.info(),
                 navn = navn,
                 relatertHendelse = relatertHendelse,
                 relatertFil = relatertFil,
-                versjon = nesteVersjon,
+                versjon = sak.versjon.inc(idx),
                 correlationId = correlationId,
-            ).let { forUtsendelse ->
+            ).getOrElse { return@mapOneIndexed }.let { forUtsendelse ->
                 sessionFactory.withSessionContext {
                     dokumentHendelseRepo.lagre(forUtsendelse, it)
                     hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId, it)
@@ -134,17 +155,16 @@ class JournalførDokumentHendelserKonsument(
     private fun hentDataForJournalføringAvDokument(
         sakInfo: SakInfo,
         relatertHendelsesId: HendelseId,
-    ): Tuple4<Hendelsesversjon, GenerertDokumentHendelse, HendelseFil, Person.Navn> {
-        val nesteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)?.inc()
-            ?: throw IllegalStateException("Kunne ikke hente siste versjon for sak ${sakInfo.sakId} for å journalføre dokument")
-
-        val (relatertHendelse, relatertFil) = hentLagretDokumentHendelseForJournalføring(relatertHendelsesId)
+    ): Either<Unit, Triple<GenerertDokumentHendelse, HendelseFil, Person.Navn>> {
+        val (relatertHendelse, relatertFil) = hentLagretDokumentHendelseForJournalføring(relatertHendelsesId).getOrElse { return Unit.left() }
 
         val person = personService.hentPersonMedSystembruker(sakInfo.fnr).getOrElse {
-            throw IllegalStateException("Feil ved henting av person for journalføring av dokument for hendelse ${relatertHendelse.hendelseId} for sak ${sakInfo.sakId}")
+            return Unit.left().also {
+                log.error("Feil ved henting av person for journalføring av dokument for hendelse ${relatertHendelse.hendelseId} for sak ${sakInfo.sakId}")
+            }
         }
 
-        return Tuple4(nesteVersjon, relatertHendelse, relatertFil, person.navn)
+        return Triple(relatertHendelse, relatertFil, person.navn).right()
     }
 
     private fun opprettJournalpostForArkivering(
@@ -154,12 +174,14 @@ class JournalførDokumentHendelserKonsument(
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         correlationId: CorrelationId,
-    ): JournalførtDokumentForArkiveringHendelse = opprettJournalpost(
+    ): Either<Unit, JournalførtDokumentForArkiveringHendelse> = opprettJournalpost(
         sakInfo = sakInfo,
         navn = navn,
         relatertHendelse = relatertHendelse,
         relatertFil = relatertFil,
-    ).let {
+    ).getOrElse {
+        return Unit.left()
+    }.let {
         JournalførtDokumentForArkiveringHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
@@ -168,7 +190,7 @@ class JournalførDokumentHendelserKonsument(
             sakId = sakInfo.sakId,
             relaterteHendelser = nonEmptyListOf(relatertHendelse.hendelseId),
             journalpostId = it,
-        )
+        ).right()
     }
 
     private fun opprettJournalpostForUtsendelse(
@@ -178,12 +200,14 @@ class JournalførDokumentHendelserKonsument(
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         correlationId: CorrelationId,
-    ): JournalførtDokumentForUtsendelseHendelse = opprettJournalpost(
+    ): Either<Unit, JournalførtDokumentForUtsendelseHendelse> = opprettJournalpost(
         sakInfo = sakInfo,
         navn = navn,
         relatertHendelse = relatertHendelse,
         relatertFil = relatertFil,
-    ).let {
+    ).getOrElse {
+        return Unit.left()
+    }.let {
         JournalførtDokumentForUtsendelseHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
@@ -192,7 +216,7 @@ class JournalførDokumentHendelserKonsument(
             sakId = sakInfo.sakId,
             relaterteHendelser = nonEmptyListOf(relatertHendelse.hendelseId),
             journalpostId = it,
-        )
+        ).right()
     }
 
     private fun opprettJournalpost(
@@ -200,7 +224,7 @@ class JournalførDokumentHendelserKonsument(
         navn: Person.Navn,
         relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
-    ): JournalpostId = dokArkiv.opprettJournalpost(
+    ): Either<Unit, JournalpostId> = dokArkiv.opprettJournalpost(
         dokumentInnhold = JournalpostForSakCommand.Brev(
             fnr = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
@@ -208,26 +232,32 @@ class JournalførDokumentHendelserKonsument(
             sakstype = sakInfo.type,
             navn = navn,
         ),
-    ).getOrElse {
-        throw IllegalStateException("Feil ved journalføring av LagretDokumentHendelse ${relatertHendelse.hendelseId}")
+    ).map {
+        it
+    }.mapLeft {
+        Unit.also { log.error("Feil ved journalføring av LagretDokumentHendelse ${relatertHendelse.hendelseId}", it) }
     }
 
-    private fun hentLagretDokumentHendelseForJournalføring(hendelseId: HendelseId): Pair<GenerertDokumentHendelse, HendelseFil> {
+    private fun hentLagretDokumentHendelseForJournalføring(hendelseId: HendelseId): Either<Unit, Pair<GenerertDokumentHendelse, HendelseFil>> {
         return dokumentHendelseRepo.hentHendelseOgFilFor(hendelseId).let {
             val assertedHendelse = when (it.first is GenerertDokumentHendelse) {
                 true -> when (it.first as GenerertDokumentHendelse) {
-                    is GenerertDokumentForArkiveringHendelse -> throw IllegalStateException("Dokument som er lagret for arkivering i SU skal ikke journalføres")
+                    is GenerertDokumentForArkiveringHendelse -> return Unit.left()
+                        .also { log.error("Dokument som er lagret for arkivering i SU skal ikke journalføres") }
+
                     is GenerertDokumentForJournalføringHendelse -> it.first
                     is GenerertDokumentForUtsendelseHendelse -> it.first
                 }
 
-                false -> throw IllegalStateException("Dokument hendelse $hendelseId var ikke av typen ${GenerertDokumentHendelse::class.simpleName}")
+                false -> return Unit.left().also {
+                    log.error("Dokument hendelse $hendelseId var ikke av typen ${GenerertDokumentHendelse::class.simpleName}")
+                }
             }
             val assertedFil = when (it.second) {
-                null -> throw IllegalStateException("Fil fantes ikke for å journalføre hendelse $hendelseId")
+                null -> return Unit.left().also { log.error("Fil fantes ikke for å journalføre hendelse $hendelseId") }
                 else -> it.second!!
             }
-            Pair(assertedHendelse as GenerertDokumentHendelse, assertedFil)
+            Pair(assertedHendelse as GenerertDokumentHendelse, assertedFil).right()
         }
     }
 }

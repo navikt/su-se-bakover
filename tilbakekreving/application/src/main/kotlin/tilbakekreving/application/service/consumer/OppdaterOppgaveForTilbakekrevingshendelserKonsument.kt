@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.infrastructure.repo.ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingTilAttesteringHendelsestype
 import tilbakekreving.infrastructure.repo.UnderkjentTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
@@ -45,6 +46,17 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun oppdaterOppgaver(correlationId: CorrelationId) {
+        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+            konsumentId = konsumentId,
+            hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+        ).forEach { (sakId, hendelsesIder) ->
+            prosesserSak(
+                sakId,
+                hendelsesIder,
+                correlationId,
+                OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er opprettet"),
+            )
+        }
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = TilbakekrevingsbehandlingTilAttesteringHendelsestype,
@@ -151,7 +163,6 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave }
             .map {
                 OppgaveHendelse.Oppdatert(
-                    hendelseId = HendelseId.generer(),
                     hendelsestidspunkt = Tidspunkt.now(clock),
                     oppgaveId = tidligereOppgaveHendelse.oppgaveId,
                     versjon = nesteVersjon,

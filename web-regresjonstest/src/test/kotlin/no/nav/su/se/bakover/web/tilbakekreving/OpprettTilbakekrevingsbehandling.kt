@@ -16,7 +16,6 @@ import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 
 /**
  * Oppretter en tilbakekrevingsbehandling for en gitt sak.
@@ -26,10 +25,9 @@ fun opprettTilbakekrevingsbehandling(
     sakId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
-    opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
-): String {
+): Pair<String, Long> {
     return runBlocking {
         val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
@@ -50,10 +48,7 @@ fun opprettTilbakekrevingsbehandling(
                     expectedVersjon = saksversjon + 1,
                 )
             }
-            opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
-                correlationId = correlationId,
-            )
-        }
+        } to saksversjon + 1
     }
 }
 

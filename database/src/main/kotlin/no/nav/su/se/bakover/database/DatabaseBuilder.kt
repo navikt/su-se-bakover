@@ -330,6 +330,11 @@ data object DatabaseBuilder {
             institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(dbMetrics, hendelseRepo),
             oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(dbMetrics, hendelseRepo),
             hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory),
+            dokumentHendelseRepo = DokumentHendelsePostgresRepo(
+                hendelseRepo = hendelseRepo,
+                hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
+                sessionFactory = sessionFactory,
+            ),
         )
     }
 }

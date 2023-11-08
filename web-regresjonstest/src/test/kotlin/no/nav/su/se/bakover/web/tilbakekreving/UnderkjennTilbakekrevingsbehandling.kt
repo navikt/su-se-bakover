@@ -25,7 +25,8 @@ fun underkjennTilbakekrevingsbehandling(
     verifiserVurderinger: String,
     kommentar: String = "Underkjent av underkjennTilbakekrevingsbehandling() - TilbakekrevingsbehandlingIT",
     grunn: UnderkjennAttesteringsgrunnTilbakekreving = UnderkjennAttesteringsgrunnTilbakekreving.VURDERINGEN_ER_FEIL,
-): String {
+): Pair<String, Long> {
+    val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -55,13 +56,13 @@ fun underkjennTilbakekrevingsbehandling(
                     vurderinger = verifiserVurderinger,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                     brevtekst = brevtekst,
                     expectedGrunn = grunn.toString(),
                     expectedKommentar = kommentar,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 
@@ -118,7 +119,7 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
         "grunn": "$expectedGrunn",
         "kommentar": "$expectedKommentar"
       },
-    "opprettet": "2021-02-01T01:03:51.456789Z"
+    "opprettet": "2021-02-01T01:03:52.456789Z"
     }
   ]
 }"""

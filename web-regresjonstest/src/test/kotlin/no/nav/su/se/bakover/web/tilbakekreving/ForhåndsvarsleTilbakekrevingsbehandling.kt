@@ -25,7 +25,8 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
     verifiserRespons: Boolean = true,
     saksversjon: Long,
     fritekst: String = "Regresjonstest: Fritekst til forhåndsvarsel under tilbakekrevingsbehandling.",
-): String {
+): Pair<String, Long> {
+    val expectedVersjon = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -42,10 +43,10 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
                     actual = it,
                     sakId = sakId,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 

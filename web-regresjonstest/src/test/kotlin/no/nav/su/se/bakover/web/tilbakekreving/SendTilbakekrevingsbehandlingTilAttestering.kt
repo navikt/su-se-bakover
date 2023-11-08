@@ -23,7 +23,8 @@ fun sendTilbakekrevingsbehandlingTilAttestering(
     verifiserVurderinger: String,
     verifiserFritekst: String,
     expectedAttesteringer: String = "[]",
-): String {
+): Pair<String, Long> {
+    val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -43,11 +44,11 @@ fun sendTilbakekrevingsbehandlingTilAttestering(
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     vurderinger = verifiserVurderinger,
                     fritekst = verifiserFritekst,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                     expectedAttesteringer = expectedAttesteringer,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 

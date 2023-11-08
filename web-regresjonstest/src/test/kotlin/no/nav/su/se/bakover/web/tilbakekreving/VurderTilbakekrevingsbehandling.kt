@@ -31,7 +31,8 @@ fun vurderTilbakekrevingsbehandling(
     """.trimIndent(),
     expectedFritekst: String? = null,
     expectedAttesteringer: String = "[]",
-): String {
+): Pair<String, Long> {
+    val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -60,12 +61,12 @@ fun vurderTilbakekrevingsbehandling(
                     status = tilstand,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                     expectedFritekst = expectedFritekst,
                     expectedAttesteringer = expectedAttesteringer,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 

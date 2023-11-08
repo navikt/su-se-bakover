@@ -67,12 +67,18 @@ class DokumentHendelsePostgresRepo(
         }
     }
 
-    override fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<DokumentHendelse> {
+    override fun hentForSak(sakId: UUID, sessionContext: SessionContext?): List<DokumentHendelse> {
         return (hendelseRepo as HendelsePostgresRepo).let { repo ->
-            listOf(GenerertDokument, GenerertDokumentForJournalføring, GenerertDokumentForUtsendelse).flatMap {
+            listOf(
+                GenerertDokument,
+                GenerertDokumentForJournalføring,
+                GenerertDokumentForUtsendelse,
+                JournalførtDokumentForArkivering,
+                JournalførtDokumentForUtsendelse,
+            ).flatMap {
                 repo.hentHendelserForSakIdOgType(
                     sakId = sakId,
-                    type = GenerertDokument,
+                    type = it,
                     sessionContext = sessionContext,
                 ).map { it.toDokumentHendelse() }
             }

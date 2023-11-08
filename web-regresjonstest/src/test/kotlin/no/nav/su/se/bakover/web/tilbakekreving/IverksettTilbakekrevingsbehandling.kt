@@ -25,7 +25,8 @@ fun iverksettTilbakekrevingsbehandling(
     verifiserVurderinger: String,
     verifiserFritekst: String,
     tidligereAttesteringer: String? = null,
-): String {
+): Pair<String, Long> {
+    val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -46,11 +47,11 @@ fun iverksettTilbakekrevingsbehandling(
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     vurderinger = verifiserVurderinger,
                     fritekst = verifiserFritekst,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                     tidligereAttesteringer = tidligereAttesteringer,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 
@@ -104,7 +105,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     {
       "attestant": "AttestantLokal",
       "underkjennelse":null,
-       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:03:56.456789Z\""}  
+       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:03:57.456789Z\""}  
     }
   ] 
 }"""

@@ -5,6 +5,10 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.dokument.application.DokumentServices
+import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
+import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
@@ -36,6 +40,7 @@ class AppComponents private constructor(
     val clients: Clients,
     val services: Services,
     val tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    val dokumentHendelseKomponenter: Dokumentkomponenter,
     val accessCheckProxy: AccessCheckProxy,
     val consumers: Consumers,
 ) {
@@ -48,6 +53,7 @@ class AppComponents private constructor(
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
             serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
             tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter,
+            dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
             val clients = clientBuilder(databaseRepos, clock)
@@ -64,6 +70,7 @@ class AppComponents private constructor(
                 ),
             )
             val tilbakekrevingskomponenter = tilbakekrevingskomponenterBuilder(databaseRepos, services)
+            val dokumenterKomponenter = dokumentKomponenterBuilder(databaseRepos, services, clients)
             return AppComponents(
                 clock = clock,
                 applicationConfig = applicationConfig,
@@ -73,6 +80,7 @@ class AppComponents private constructor(
                 accessCheckProxy = accessCheckProxy,
                 consumers = consumers,
                 tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+                dokumentHendelseKomponenter = dokumenterKomponenter,
             )
         }
     }
@@ -136,6 +144,39 @@ internal fun withKomptestApplication(
             ),
         )
     },
+    dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->
+        val repos = DokumentRepos(
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+            hendelseRepo = databaseRepos.hendelseRepo,
+            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+            dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+        )
+        Dokumentkomponenter(
+            repos = repos,
+            services = DokumentServices(
+                clock = clock,
+                sessionFactory = repos.sessionFactory,
+                personService = services.person,
+                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                sakService = services.sak,
+                hendelseRepo = repos.hendelseRepo,
+                dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                dokArkiv = clients.dokArkiv,
+                journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
+                    sakService = services.sak,
+                    personService = services.person,
+                    dokArkiv = clients.dokArkiv,
+                    dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                    hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                    hendelseRepo = repos.hendelseRepo,
+                    sessionFactory = repos.sessionFactory,
+                    clock = clock,
+                ),
+            ),
+
+        )
+    },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
@@ -148,6 +189,7 @@ internal fun withKomptestApplication(
                 serviceBuilder = serviceBuilder,
                 applicationConfig = applicationConfig,
                 tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
+                dokumentKomponenterBuilder = dokumentKomponenterBuilder,
             ),
             test = test,
         )

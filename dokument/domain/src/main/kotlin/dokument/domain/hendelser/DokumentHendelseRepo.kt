@@ -15,7 +15,7 @@ val JournalførtDokumentForUtsendelse = Hendelsestype("JOURNALTFØRT_DOKUMENT_FO
 interface DokumentHendelseRepo {
     fun lagre(hendelse: DokumentHendelse, hendelseFil: HendelseFil, sessionContext: SessionContext? = null)
     fun lagre(hendelse: DokumentHendelse, sessionContext: SessionContext? = null)
-    fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<DokumentHendelse>
+    fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): List<DokumentHendelse>
     fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?
     fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>

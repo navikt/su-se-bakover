@@ -6,11 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
@@ -59,48 +56,14 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
             }
 
-        val (forhåndsvarsletHendelse, forhåndsvarsletBehandling) = behandling.leggTilForhåndsvarsel(
+        behandling.leggTilForhåndsvarsel(
             command = command,
             tidligereHendelsesId = behandling.hendelseId,
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
-        )
-
-        val (tidligereOppgaveHendelse, oppgaveId) =
-            tilbakekrevingsbehandlingRepo.hentForSak(sakId = sakId).hentOppgaveIdForBehandling(behandling.id)
-                ?: throw IllegalStateException("Fant ikke oppgaveId som skal bli oppdatert for tilbakekreving ${behandling.id} for sak ${sak.id}")
-
-        // TODO - denne kan vi ta ut i konsumenten
-        oppgaveService.oppdaterOppgave(oppgaveId = oppgaveId, beskrivelse = "Forhåndsvarsel er opprettet")
-            .mapLeft {
-                log.error("Kunne ikke oppdatere oppgave $oppgaveId for tilbakekreving ${behandling.id} med informasjon om at forhåndsvarsel er opprettet")
-                sessionFactory.withTransactionContext {
-                    tilbakekrevingsbehandlingRepo.lagre(forhåndsvarsletHendelse, it)
-                }
-            }.map {
-                val oppgaveHendelse = OppgaveHendelse.Oppdatert(
-                    hendelsestidspunkt = Tidspunkt.now(clock),
-                    oppgaveId = oppgaveId,
-                    versjon = sak.versjon.inc(3),
-                    sakId = sak.id,
-                    relaterteHendelser = listOf(forhåndsvarsletHendelse.hendelseId),
-                    meta = OppgaveHendelseMetadata(
-                        correlationId = null,
-                        ident = null,
-                        brukerroller = listOf(),
-                        request = it.request,
-                        response = it.response,
-                    ),
-                    tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
-                    beskrivelse = it.beskrivelse,
-                    oppgavetype = it.oppgavetype,
-                )
-
-                sessionFactory.withTransactionContext {
-                    tilbakekrevingsbehandlingRepo.lagre(forhåndsvarsletHendelse, it)
-                    oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
-                }
-            }
-        return forhåndsvarsletBehandling.right()
+        ).let {
+            tilbakekrevingsbehandlingRepo.lagre(it.first)
+            return it.second.right()
+        }
     }
 }

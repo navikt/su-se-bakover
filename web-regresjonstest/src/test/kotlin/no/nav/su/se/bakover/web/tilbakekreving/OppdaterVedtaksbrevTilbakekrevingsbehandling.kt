@@ -22,7 +22,8 @@ fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
     brevtekst: String? = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
-): String {
+): Pair<String, Long> {
+    val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -51,10 +52,10 @@ fun oppdaterVedtaksbrevTilbakekrevingsbehandling(
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     vurderinger = verifiserVurderinger,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = expectedVersjon,
                 )
             }
-        }
+        } to expectedVersjon
     }
 }
 
