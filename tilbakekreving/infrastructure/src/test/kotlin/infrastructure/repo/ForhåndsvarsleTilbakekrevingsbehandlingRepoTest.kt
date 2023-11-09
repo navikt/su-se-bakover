@@ -24,7 +24,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingRepoTest {
             val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak.id).also {
                 it.size shouldBe 1
-                it.first().kravgrunnlag shouldBe sak.uteståendeKravgrunnlag
+                it.detaljerSortert.first().kravgrunnlag shouldBe sak.uteståendeKravgrunnlag
             }
             actual shouldBe hendelser
         }

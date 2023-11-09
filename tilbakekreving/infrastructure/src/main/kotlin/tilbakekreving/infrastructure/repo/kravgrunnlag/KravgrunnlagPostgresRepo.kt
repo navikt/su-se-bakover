@@ -71,7 +71,7 @@ class KravgrunnlagPostgresRepo(
         (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
             hendelse = hendelse,
             type = KnyttetKravgrunnlagTilSakHendelsestype,
-            data = hendelse.toJson(),
+            data = hendelse.toDbJson(),
             sessionContext = sessionContext,
         )
     }

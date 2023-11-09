@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder
 import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder.Companion.netto
 import tilbakekreving.domain.kravgrunnlag.total
@@ -109,16 +110,16 @@ enum class KravgrunnlagStatusJson {
     ;
 
     companion object {
-        fun Kravgrunnlag.KravgrunnlagStatus.toJson(): KravgrunnlagStatusJson = when (this) {
-            Kravgrunnlag.KravgrunnlagStatus.Annulert -> ANNU
-            Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> ANOM
-            Kravgrunnlag.KravgrunnlagStatus.Avsluttet -> AVSL
-            Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet -> BEHA
-            Kravgrunnlag.KravgrunnlagStatus.Endret -> ENDR
-            Kravgrunnlag.KravgrunnlagStatus.Feil -> FEIL
-            Kravgrunnlag.KravgrunnlagStatus.Manuell -> MANU
-            Kravgrunnlag.KravgrunnlagStatus.Nytt -> NY
-            Kravgrunnlag.KravgrunnlagStatus.Sperret -> SPER
+        fun Kravgrunnlagstatus.toJson(): KravgrunnlagStatusJson = when (this) {
+            Kravgrunnlagstatus.Annulert -> ANNU
+            Kravgrunnlagstatus.AnnulertVedOmg -> ANOM
+            Kravgrunnlagstatus.Avsluttet -> AVSL
+            Kravgrunnlagstatus.Ferdigbehandlet -> BEHA
+            Kravgrunnlagstatus.Endret -> ENDR
+            Kravgrunnlagstatus.Feil -> FEIL
+            Kravgrunnlagstatus.Manuell -> MANU
+            Kravgrunnlagstatus.Nytt -> NY
+            Kravgrunnlagstatus.Sperret -> SPER
         }
     }
 }

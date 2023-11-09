@@ -30,18 +30,7 @@ internal data class KravgrunnlagDbJson(
             eksternKravgrunnlagId = this.eksternKravgrunnlagId,
             eksternVedtakId = this.eksternVedtakId,
             eksternKontrollfelt = this.eksternKontrollfelt,
-            status = when (this.status) {
-                "Annulert" -> Kravgrunnlag.KravgrunnlagStatus.Annulert
-                "AnnulertVedOmg" -> Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg
-                "Avsluttet" -> Kravgrunnlag.KravgrunnlagStatus.Avsluttet
-                "Ferdigbehandlet" -> Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet
-                "Endret" -> Kravgrunnlag.KravgrunnlagStatus.Endret
-                "Feil" -> Kravgrunnlag.KravgrunnlagStatus.Feil
-                "Manuell" -> Kravgrunnlag.KravgrunnlagStatus.Manuell
-                "Nytt" -> Kravgrunnlag.KravgrunnlagStatus.Nytt
-                "Sperret" -> Kravgrunnlag.KravgrunnlagStatus.Sperret
-                else -> throw IllegalStateException("Ukjent persistert kravgrunnlagsstatus på KravgrunnlagPåSakHendelse: ${this.status}")
-            },
+            status = this.status.toKravgrunnlagStatus(),
             behandler = this.behandler,
             utbetalingId = UUID30.fromString(this.utbetalingId),
             grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDomain() },
@@ -56,17 +45,7 @@ internal data class KravgrunnlagDbJson(
                 eksternKravgrunnlagId = this.eksternKravgrunnlagId,
                 eksternVedtakId = this.eksternVedtakId,
                 eksternKontrollfelt = this.eksternKontrollfelt,
-                status = when (this.status) {
-                    Kravgrunnlag.KravgrunnlagStatus.Annulert -> "Annullert"
-                    Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> "AnnulertVedOmg"
-                    Kravgrunnlag.KravgrunnlagStatus.Avsluttet -> "Avsluttet"
-                    Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet -> "Ferdigbehandlet"
-                    Kravgrunnlag.KravgrunnlagStatus.Endret -> "Endret"
-                    Kravgrunnlag.KravgrunnlagStatus.Feil -> "Feil"
-                    Kravgrunnlag.KravgrunnlagStatus.Manuell -> "Manuell"
-                    Kravgrunnlag.KravgrunnlagStatus.Nytt -> "Nytt"
-                    Kravgrunnlag.KravgrunnlagStatus.Sperret -> "Sperret"
-                },
+                status = this.status.toDbString(),
                 behandler = this.behandler,
                 utbetalingId = this.utbetalingId.value,
                 saksnummer = this.saksnummer.toString(),

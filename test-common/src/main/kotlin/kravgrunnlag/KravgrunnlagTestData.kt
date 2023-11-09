@@ -29,7 +29,8 @@ import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import java.math.BigDecimal
@@ -76,7 +77,7 @@ fun kravgrunnlag(
     kravgrunnlagId: String = "123-456",
     vedtakId: String = "789-101",
     eksternTidspunkt: Tidspunkt = fixedTidspunkt,
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Manuell,
+    status: Kravgrunnlagstatus = Kravgrunnlagstatus.Manuell,
     behandler: String = saksbehandler.toString(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     grunnlagsperioder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
@@ -110,7 +111,7 @@ fun kravgrunnlagPåSakHendelse(
     eksternKravgrunnlagId: String = UUID.randomUUID().toString(),
     eksternVedtakId: String = UUID.randomUUID().toString(),
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+    status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     behandler: String = attestant.navIdent,
     utbetalingId: UUID30 = UUID30.randomUUID(),
     grunnlagsmåneder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
@@ -129,8 +130,8 @@ fun kravgrunnlagPåSakHendelse(
         eksternTidspunkt = eksternTidspunkt,
     ),
     revurderingId: UUID? = null,
-): KravgrunnlagPåSakHendelse {
-    return KravgrunnlagPåSakHendelse(
+): KravgrunnlagDetaljerPåSakHendelse {
+    return KravgrunnlagDetaljerPåSakHendelse(
         hendelseId = hendelseId,
         versjon = versjon,
         sakId = sakId,
@@ -215,4 +216,3 @@ fun sakMedUteståendeKravgrunnlag(
 
 val kravgrunnlagEndringXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_endring.xml") }
 val kravgrunnlagOpphørXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_opphør.xml") }
-val kravgrunnlagStatusendringXml: String by lazy { getFileSourceContent("kravgrunnlag/kravgrunnlag_statusendring.xml") }

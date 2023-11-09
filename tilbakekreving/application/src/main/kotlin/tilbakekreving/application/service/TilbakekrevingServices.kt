@@ -1,6 +1,5 @@
 package tilbakekreving.application.service
 
-import arrow.core.Either
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -29,10 +28,9 @@ import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbe
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import java.time.Clock
 
 /**
@@ -52,7 +50,7 @@ class TilbakekrevingServices(
     private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+    private val mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
     private val hendelseRepo: HendelseRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val brevService: BrevService,

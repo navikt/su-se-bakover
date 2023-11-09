@@ -190,7 +190,7 @@ data object SharedRegressionTestData {
                             tilbakekrevingService = services.tilbakekrevingService,
                             sakService = services.sak,
                             tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
-                            mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
+                            mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlagPåSakHendelse,
                             oppgaveService = services.oppgave,
                             oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                             hendelseRepo = repos.hendelseRepo,

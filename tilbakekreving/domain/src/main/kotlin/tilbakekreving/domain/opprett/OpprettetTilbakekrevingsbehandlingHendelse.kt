@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
 import java.time.Clock
 import java.util.UUID
 
@@ -52,7 +52,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             meta: DefaultHendelseMetadata,
             versjon: Hendelsesversjon,
             clock: Clock,
-            kravgrunnlagsId: String,
+            eksternKravgrunnlagId: String,
         ) = OpprettetTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -61,14 +61,14 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             versjon = versjon,
             meta = meta,
             id = TilbakekrevingsbehandlingId.generer(),
-            kravgrunnlagsId = kravgrunnlagsId,
+            kravgrunnlagsId = eksternKravgrunnlagId,
         )
     }
     override fun applyToState(behandling: Tilbakekrevingsbehandling): Tilbakekrevingsbehandling {
         throw IllegalArgumentException("En tilbakekrevingsbehandling kan kun starte med en Opprettet hendelse ${this.hendelseId}, for sak ${this.sakId} ")
     }
 
-    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse): OpprettetTilbakekrevingsbehandling {
         return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag)
     }
 

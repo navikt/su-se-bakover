@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagOpphørXml
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -79,7 +80,7 @@ internal class KravgrunnlagDtoTest {
             eksternKravgrunnlagId = "298604",
             eksternVedtakId = "436204",
             eksternKontrollfelt = "2021-01-01-02.02.03.456789",
-            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+            status = Kravgrunnlagstatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             eksternTidspunkt = fixedTidspunkt,
@@ -194,7 +195,7 @@ internal class KravgrunnlagDtoTest {
             eksternKravgrunnlagId = "298606",
             eksternVedtakId = "436206",
             eksternTidspunkt = tidspunkt,
-            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+            status = Kravgrunnlagstatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             eksternKontrollfelt = "2021-01-01-02.02.03.456789",
@@ -252,6 +253,6 @@ internal class KravgrunnlagDtoTest {
                 idTypeGjelder = "PERSON",
             ),
         )
-        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml).getOrFail() shouldBe expected
+        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml()).getOrFail() shouldBe expected
     }
 }

@@ -21,6 +21,7 @@ import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Vurdering
 import tilbakekreving.domain.vurdert.Vurderinger
@@ -43,7 +44,7 @@ fun genererKravgrunnlagFraSimulering(
     eksternVedtakId: String = "654321",
     behandler: String = "K231B433",
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+    status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     skatteprosent: BigDecimal = BigDecimal("50"),
 ): Kravgrunnlag {
     return Kravgrunnlag(

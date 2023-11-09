@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import java.time.Clock
 import java.util.UUID
@@ -98,7 +97,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 // Dette gjelder kun første hendelsen og er et spesialtilfelle.
                 is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
                     hendelseId to hendelse.toDomain(
-                        kravgrunnlagPåSakHendelse = this.kravgrunnlagPåSak.first { it.kravgrunnlag.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
+                        kravgrunnlagPåSakHendelse = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagsId)!!,
                     ),
                 )
 
@@ -162,7 +161,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             sakId: UUID,
             clock: Clock,
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
-            kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
+            kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
             oppgaveHendelser: List<OppgaveHendelse>,
             dokumentHendelser: List<DokumentHendelse>,
         ): TilbakekrevingsbehandlingHendelser {
@@ -170,7 +169,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sakId = sakId,
                 clock = clock,
                 sorterteHendelser = hendelser.sorted(),
-                kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(kravgrunnlagPåSak),
+                kravgrunnlagPåSak = kravgrunnlagPåSak,
                 tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
                 tilhørendeOgSorterteDokumentHendelser = dokumentHendelser.sorted(),
             )

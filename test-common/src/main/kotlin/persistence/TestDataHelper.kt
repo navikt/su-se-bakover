@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test.persistence
 
-import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.Tuple4
 import arrow.core.Tuple5
@@ -174,13 +173,12 @@ import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
@@ -196,7 +194,7 @@ class TestDataHelper(
     val dbMetrics: DbMetrics = dbMetricsStub,
     val clock: Clock = TikkendeKlokke(),
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
-    råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag> = KravgrunnlagDtoMapper::toKravgrunnlag,
+    råttKravgrunnlagMapper: MapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
 ) {
     val sessionFactory: PostgresSessionFactory =
         PostgresSessionFactory(dataSource, dbMetrics, sessionCounterStub, listOf(DomainToQueryParameterMapper))
@@ -623,7 +621,7 @@ class TestDataHelper(
                 skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
             )
         },
-    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagPåSakHendelse?> {
+    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
@@ -774,7 +772,7 @@ class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagPåSakHendelse?> {
+    ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
         return persisterIverksattRevurdering(
             sakOgVedtak = sakOgVedtak,
             skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
@@ -1875,7 +1873,7 @@ class TestDataHelper(
      * Må passe på og sette klokka fram i tid, hvis ikke vil ikke søknadsbehandlingene bli utbetalt.
      *
      */
-    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
+    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
         return persisterRevurderingIverksattOpphørt(
             skalUtsetteTilbakekreving = true,
         ).let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) ->
@@ -1901,8 +1899,8 @@ class TestDataHelper(
     }
 
     fun persisterAvbruttTilbakekrevingsbehandlingHendelse(
-        forrigeHendelse: Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> = persisterOpprettetTilbakekrevingsbehandlingHendelse(),
-    ): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagPåSakHendelse, AvbruttHendelse, OppgaveHendelse> {
+        forrigeHendelse: Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> = persisterOpprettetTilbakekrevingsbehandlingHendelse(),
+    ): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, AvbruttHendelse, OppgaveHendelse> {
         return forrigeHendelse.let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse, opprettetHendelse) ->
             nyAvbruttTilbakekrevingsbehandlingHendelse(
                 forrigeHendelse = opprettetHendelse,

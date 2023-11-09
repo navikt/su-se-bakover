@@ -27,6 +27,8 @@ fun opprettTilbakekrevingsbehandling(
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
+    expectedOpprettet: String = "2021-02-01T01:03:32.456789Z",
+    expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
 ): Pair<String, Long> {
     return runBlocking {
         val correlationId = CorrelationId.generate()
@@ -46,6 +48,8 @@ fun opprettTilbakekrevingsbehandling(
                     actual = it,
                     sakId = sakId,
                     expectedVersjon = saksversjon + 1,
+                    expectedOpprettet = expectedOpprettet,
+                    expectedKontrollfelt = expectedKontrollfelt,
                 )
             }
         } to saksversjon + 1
@@ -56,17 +60,19 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     expectedVersjon: Long,
+    expectedOpprettet: String = "2021-02-01T01:03:32.456789Z",
+    expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
 ) {
     val expected = """
 {
   "id":"ignoreres-siden-denne-opprettes-av-tjenesten",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:32.456789Z",
+  "opprettet":"$expectedOpprettet",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.28.456789",
+    "kontrollfelt":"$expectedKontrollfelt",
     "status":"NY",
     "grunnlagsperiode":[
       {

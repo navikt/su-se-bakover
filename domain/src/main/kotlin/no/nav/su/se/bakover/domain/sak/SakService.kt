@@ -24,8 +24,8 @@ interface SakService {
     fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak>
     fun hentSak(sakId: UUID, sessionContext: SessionContext): Either<FantIkkeSak, Sak>
     fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak>
-    fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>>
     fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak>
+    fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>>
 
     fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak>
     fun hentGjeldendeVedtaksdata(

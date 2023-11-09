@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
@@ -46,7 +47,7 @@ internal class LokalMottaKravgrunnlagJob(
             period = intervall.toMillis(),
         ) {
             Either.catch {
-                lagreRåttKravgrunnlagForUtbetalingerSomMangler(
+                lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
                     sessionFactory = sessionFactory,
                     service = service,
                     clock = clock,
@@ -63,7 +64,7 @@ internal class LokalMottaKravgrunnlagJob(
  *
  * @param overstyrUtbetalingId er ment for å trigge mismatch mellom kravgrunnlag og utbetaling. Dersom det er flere som mangler kravgrunnlag, må man sende for alle.
  */
-fun lagreRåttKravgrunnlagForUtbetalingerSomMangler(
+fun lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
     sessionFactory: SessionFactory,
     service: RåttKravgrunnlagService,
     clock: Clock,
@@ -77,7 +78,7 @@ fun lagreRåttKravgrunnlagForUtbetalingerSomMangler(
                 }
             }
         }.mapIndexed { index, (saksnummer, utbetalingId, simulering) ->
-            lagKravgrunnlagXml(
+            lagKravgrunnlagDetaljerXml(
                 saksnummer = saksnummer,
                 simulering = simulering,
                 utbetalingId = overstyrUtbetalingId?.get(index) ?: utbetalingId,
@@ -92,7 +93,7 @@ fun lagreRåttKravgrunnlagForUtbetalingerSomMangler(
     }
 }
 
-fun lagKravgrunnlagXml(
+fun lagKravgrunnlagDetaljerXml(
     saksnummer: Saksnummer,
     simulering: Simulering,
     utbetalingId: UUID30,
@@ -104,13 +105,13 @@ fun lagKravgrunnlagXml(
         utbetalingId = utbetalingId,
         clock = clock,
     )
-    return lagKravgrunnlagXml(
+    return lagKravgrunnlagDetaljerXml(
         kravgrunnlag = kravgrunnlag,
         fnr = simulering.gjelderId.toString(),
     )
 }
 
-fun lagKravgrunnlagXml(
+fun lagKravgrunnlagDetaljerXml(
     kravgrunnlag: Kravgrunnlag,
     fnr: String,
 ): String {
@@ -185,7 +186,7 @@ fun genererKravgrunnlagFraSimulering(
     eksternVedtakId: String = "654321",
     behandler: String = "K231B433",
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
+    status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     skatteprosent: BigDecimal = BigDecimal("50"),
 ): Kravgrunnlag {
     return Kravgrunnlag(
@@ -228,16 +229,16 @@ fun genererKravgrunnlagFraSimulering(
     )
 }
 
-private fun Kravgrunnlag.KravgrunnlagStatus.toDtoStatus(): String = when (this) {
-    Kravgrunnlag.KravgrunnlagStatus.Annulert -> "ANNU"
-    Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> "ANOM"
-    Kravgrunnlag.KravgrunnlagStatus.Avsluttet -> "AVSL"
-    Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet -> "BEGA"
-    Kravgrunnlag.KravgrunnlagStatus.Endret -> "ENDR"
-    Kravgrunnlag.KravgrunnlagStatus.Feil -> "FEIL"
-    Kravgrunnlag.KravgrunnlagStatus.Manuell -> "MANU"
-    Kravgrunnlag.KravgrunnlagStatus.Nytt -> "NY"
-    Kravgrunnlag.KravgrunnlagStatus.Sperret -> "SPER"
+private fun Kravgrunnlagstatus.toDtoStatus(): String = when (this) {
+    Kravgrunnlagstatus.Annulert -> "ANNU"
+    Kravgrunnlagstatus.AnnulertVedOmg -> "ANOM"
+    Kravgrunnlagstatus.Avsluttet -> "AVSL"
+    Kravgrunnlagstatus.Ferdigbehandlet -> "BEGA"
+    Kravgrunnlagstatus.Endret -> "ENDR"
+    Kravgrunnlagstatus.Feil -> "FEIL"
+    Kravgrunnlagstatus.Manuell -> "MANU"
+    Kravgrunnlagstatus.Nytt -> "NY"
+    Kravgrunnlagstatus.Sperret -> "SPER"
 }
 
 private data class KravgrunnlagData(

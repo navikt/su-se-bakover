@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.infrastructure.repo.kravgrunnlag.mapDbJsonToKravgrunnlag
 import tilbakekreving.infrastructure.repo.kravgrunnlag.mapKravgrunnlagToDbJson
 import java.util.UUID
@@ -40,7 +41,7 @@ import java.util.UUID
  */
 internal class TilbakekrevingUnderRevurderingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-    private val råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+    private val råttKravgrunnlagMapper: MapRåttKravgrunnlag,
 ) : TilbakekrevingRepo {
 
     private val log = LoggerFactory.getLogger(this::class.java)
