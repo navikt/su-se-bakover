@@ -80,10 +80,19 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
             "beløpNyUtbetaling":"8563",
             "beløpSkalTilbakekreves":"12383",
             "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50"
+            "skatteProsent":"50",
+            "nettoBeløp": "12383"
           },
       }
-    ]
+    ],
+    "totalBeløpGrunnlagsperioder":{
+        "betaltSkattForYtelsesgruppen":"6192",
+        "beløpTidligereUtbetaling":"20946",
+        "beløpNyUtbetaling":"8563",
+        "beløpSkalTilbakekreves":"12383",
+        "beløpSkalIkkeTilbakekreves":"0",
+        "nettoBeløp": "12383"
+    } 
   },
   "status":"OPPRETTET",
   "månedsvurderinger":[],

@@ -3,7 +3,9 @@ package tilbakekreving.domain.kravgrunnlag
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.test.kravgrunnlag.grunnlagsmåned
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -59,5 +61,21 @@ internal class KravgrunnlagTest {
                 ),
             )
         }.message shouldBe "Forventer at kravgrunnlag.skatteProsent >= 0, men var -0.0001"
+    }
+
+    @Test
+    fun `får total beløp for grunnlagsmåneder`() {
+        listOf(
+            grunnlagsmåned(),
+            grunnlagsmåned(),
+            grunnlagsmåned(),
+        ).total() shouldBe SummertGrunnlagsmåneder(
+            betaltSkattForYtelsesgruppen = BigDecimal("3000.00"),
+            beløpTidligereUtbetaling = 6000,
+            beløpNyUtbetaling = 3000,
+            beløpSkalTilbakekreves = 3000,
+            beløpSkalIkkeTilbakekreves = 0,
+            nettoBeløp = Beløp(1500),
+        )
     }
 }

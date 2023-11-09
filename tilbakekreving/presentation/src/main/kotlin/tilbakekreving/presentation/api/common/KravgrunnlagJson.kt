@@ -4,9 +4,13 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder
+import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder.Companion.netto
+import tilbakekreving.domain.kravgrunnlag.total
 import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
+import tilbakekreving.presentation.api.common.SummertGrunnlagsmånederJson.Companion.toJson
 
 /**
  * Kontrakten mot su-se-framover
@@ -17,6 +21,7 @@ data class KravgrunnlagJson(
     val kontrollfelt: String,
     val status: KravgrunnlagStatusJson,
     val grunnlagsperiode: List<GrunnlagsperiodeJson>,
+    val summertGrunnlagsmåneder: SummertGrunnlagsmånederJson,
 ) {
 
     companion object {
@@ -26,6 +31,7 @@ data class KravgrunnlagJson(
             kontrollfelt = this.eksternKontrollfelt,
             status = this.status.toJson(),
             grunnlagsperiode = this.grunnlagsmåneder.toJson(),
+            summertGrunnlagsmåneder = this.grunnlagsmåneder.total().toJson(),
         )
 
         fun Kravgrunnlag.toStringifiedJson(): String = serialize(this.toJson())
@@ -55,6 +61,7 @@ data class GrunnlagsbeløpYtelseJson(
     val beløpSkalTilbakekreves: String,
     val beløpSkalIkkeTilbakekreves: String,
     val skatteProsent: String,
+    val nettoBeløp: String,
 ) {
     companion object {
         fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
@@ -63,6 +70,27 @@ data class GrunnlagsbeløpYtelseJson(
             beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
             beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
             skatteProsent = this.skatteProsent.toString(),
+            nettoBeløp = this.netto().sum().toString(),
+        )
+    }
+}
+
+data class SummertGrunnlagsmånederJson(
+    val betaltSkattForYtelsesgruppen: String,
+    val beløpTidligereUtbetaling: String,
+    val beløpNyUtbetaling: String,
+    val beløpSkalTilbakekreves: String,
+    val beløpSkalIkkeTilbakekreves: String,
+    val nettoBeløp: String,
+) {
+    companion object {
+        fun SummertGrunnlagsmåneder.toJson(): SummertGrunnlagsmånederJson = SummertGrunnlagsmånederJson(
+            betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen.toString(),
+            beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
+            beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
+            beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
+            beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
+            nettoBeløp = this.nettoBeløp.sum().toString(),
         )
     }
 }
