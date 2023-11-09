@@ -134,6 +134,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         )
     }
 
+    fun hentDokumenterForHendelseId(hendelseId: HendelseId): List<DokumentHendelse> {
+        return tilhørendeOgSorterteDokumentHendelser.filter { it.relaterteHendelser.contains(hendelseId) }
+    }
+
     fun hentSerieFor(behandlingsid: TilbakekrevingsbehandlingId): TilbakekrevingbehandlingsSerie =
         TilbakekrevingbehandlingsSerie(
             sakId = sakId,

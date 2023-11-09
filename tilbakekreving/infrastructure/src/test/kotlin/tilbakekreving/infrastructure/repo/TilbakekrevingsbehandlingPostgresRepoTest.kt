@@ -20,7 +20,7 @@ class TilbakekrevingsbehandlingPostgresRepoTest {
             val opprettet = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
             testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
-            testDataHelper.tilbakekrevingHendelseRepo.hentÅpneBehandlingssamendrag().let {
+            testDataHelper.tilbakekrevingHendelseRepo.hentÅpneBehandlingssammendrag().let {
                 it.size shouldBe 1
                 it.first().status shouldBe Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
                 it.first().behandlingstype shouldBe Behandlingssammendrag.Behandlingstype.TILBAKEKREVING

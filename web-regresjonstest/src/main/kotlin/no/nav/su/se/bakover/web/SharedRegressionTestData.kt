@@ -215,7 +215,6 @@ data object SharedRegressionTestData {
                             personService = services.person,
                             hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
                             sakService = services.sak,
-                            hendelseRepo = repos.hendelseRepo,
                             dokumentHendelseRepo = repos.dokumentHendelseRepo,
                             dokArkiv = clients.dokArkiv,
                             journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
@@ -224,7 +223,6 @@ data object SharedRegressionTestData {
                                 dokArkiv = clients.dokArkiv,
                                 dokumentHendelseRepo = repos.dokumentHendelseRepo,
                                 hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
-                                hendelseRepo = repos.hendelseRepo,
                                 sessionFactory = repos.sessionFactory,
                                 clock = clock,
                             ),

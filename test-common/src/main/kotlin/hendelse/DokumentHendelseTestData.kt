@@ -3,8 +3,7 @@ package no.nav.su.se.bakover.test.hendelse
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
-import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -23,7 +22,8 @@ fun lagretDokumentForJournalføringHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
-): GenerertDokumentForJournalføringHendelse = GenerertDokumentForJournalføringHendelse(
+    skalSendeBrev: Boolean = true,
+): GenerertDokumentHendelse = GenerertDokumentHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
@@ -31,6 +31,7 @@ fun lagretDokumentForJournalføringHendelse(
     sakId = sakId,
     relaterteHendelser = relaterteHendelser,
     dokumentUtenFil = dokumentUtenFil,
+    skalSendeBrev = skalSendeBrev,
 )
 
 fun lagretDokumentForUtsendelseHendelse(
@@ -41,7 +42,8 @@ fun lagretDokumentForUtsendelseHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
-): GenerertDokumentForUtsendelseHendelse = GenerertDokumentForUtsendelseHendelse(
+    skalSendeBrev: Boolean = true,
+): GenerertDokumentHendelse = GenerertDokumentHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
@@ -49,6 +51,7 @@ fun lagretDokumentForUtsendelseHendelse(
     sakId = sakId,
     relaterteHendelser = relaterteHendelser,
     dokumentUtenFil = dokumentUtenFil,
+    skalSendeBrev = skalSendeBrev,
 )
 
 fun hendelseFil(

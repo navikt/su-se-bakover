@@ -140,7 +140,6 @@ fun Application.susebakover(
                 personService = services.person,
                 hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
                 sakService = services.sak,
-                hendelseRepo = dokumentRepos.hendelseRepo,
                 dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
                 dokArkiv = clients.dokArkiv,
             ),
