@@ -14,8 +14,10 @@ import java.time.Clock
 import java.util.UUID
 
 /**
- * Vi genererer dokumentId på forhånd også vil neste bruke denne videre.
+ * Vi genererer dokumentId på forhånd også vil konsumentene bruke denne videre under genereringen.
  * Merk at frontend ikke vil kunne hente dokumentet før den asynkrone konsumentet har kjørt.
+ *
+ * @see tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument den asynkrone genereringen.
  */
 data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
@@ -36,7 +38,7 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     }
 
     /**
-     * Et forhåndsvarsel muterer ikke tilstanden til behandlingen for øyeblikket. Brevene hentes separat.
+     * Et forhåndsvarsel endrer ikke tilstanden til behandlingen for øyeblikket. Brevene hentes separat.
      */
     override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {

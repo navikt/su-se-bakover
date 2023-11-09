@@ -8,7 +8,7 @@ import java.util.UUID
  * TODO - vi burde på mest mulig holde [Dokument.MedMetadata] og denne 1-1, uten at denne bryr seg om PDF'en
  *
  * Hensikten med denne klassen er å ha et Dokument objekt, som kan lett flyte gjennom systemet, uten å måtte dra en stor blob (byteArrayet) - Per dags dato, brukes den for hendelser
- * Paramsene i denne klassen skal være en copi av det originale dokumentet, men der PDF'en er strippet ut.
+ * Paramsene i denne klassen skal være en kopi av det originale dokumentet, men der PDFen er strippet ut.
  */
 data class DokumentMedMetadataUtenFil(
     val id: UUID,

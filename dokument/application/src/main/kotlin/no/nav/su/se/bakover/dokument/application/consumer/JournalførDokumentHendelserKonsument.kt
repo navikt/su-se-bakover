@@ -7,27 +7,22 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.hendelser.DokumentHendelseRepo
-import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
-import dokument.domain.hendelser.GenerertDokumentForJournalføring
-import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
-import dokument.domain.hendelser.GenerertDokumentForUtsendelse
-import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokument
 import dokument.domain.hendelser.GenerertDokumentHendelse
-import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
-import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -45,7 +40,6 @@ class JournalførDokumentHendelserKonsument(
     private val dokArkiv: DokArkiv,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    private val hendelseRepo: HendelseRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : Hendelseskonsument {
@@ -55,20 +49,9 @@ class JournalførDokumentHendelserKonsument(
     fun journalførDokumenter(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = GenerertDokumentForJournalføring,
+            hendelsestype = GenerertDokument,
         ).forEach { (sakId, hendelsesIder) ->
-            prosesserSakForArkiveringAvJournalførtDokument(
-                sakId = sakId,
-                hendelsesIder = hendelsesIder,
-                correlationId = correlationId,
-            )
-        }
-
-        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = GenerertDokumentForUtsendelse,
-        ).forEach { (sakId, hendelsesIder) ->
-            prosesserSakForUtsendelseAvJournalførtDokument(
+            journalførDokumenterForSak(
                 sakId = sakId,
                 hendelsesIder = hendelsesIder,
                 correlationId = correlationId,
@@ -76,146 +59,102 @@ class JournalførDokumentHendelserKonsument(
         }
     }
 
-    private fun prosesserSakForArkiveringAvJournalførtDokument(
+    private fun journalførDokumenterForSak(
         sakId: UUID,
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
     ) {
         val sak = sakService.hentSak(sakId)
-            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å journalføre dokument for arkivering") } }
-
-        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
-            val dokumentHendelser = dokumentHendelseRepo.hentForSak(sak.id)
-
-            dokumentHendelser.any { it.relaterteHendelser.contains(relatertHendelsesId) }.ifTrue {
-                hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId)
-                return@mapOneIndexed
-            }
-
-            val (relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
-                sak.info(),
-                relatertHendelsesId,
-            ).getOrElse { return@mapOneIndexed }
-
-            opprettJournalpostForArkivering(
-                sakInfo = sak.info(),
-                navn = navn,
-                relatertHendelse = relatertHendelse,
-                relatertFil = relatertFil,
-                versjon = sak.versjon.inc(idx),
-                correlationId = correlationId,
-            ).getOrElse {
-                return@mapOneIndexed
-            }.let { forArkivering ->
-                sessionFactory.withSessionContext {
-                    dokumentHendelseRepo.lagre(forArkivering, it)
-                    hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId, it)
+            .getOrElse {
+                return Unit.also {
+                    log.error("Feil under journalføring: Kunne ikke hente sak $sakId for hendelser $hendelsesIder")
                 }
             }
+        hendelsesIder.mapOneIndexed { index, hendelseId ->
+            journalførDokumentForSak(sak, hendelseId, correlationId, sak.versjon.inc(index))
         }
     }
 
-    private fun prosesserSakForUtsendelseAvJournalførtDokument(
-        sakId: UUID,
-        hendelsesIder: Nel<HendelseId>,
+    private fun journalførDokumentForSak(
+        sak: Sak,
+        hendelseId: HendelseId,
         correlationId: CorrelationId,
+        nesteVersjon: Hendelsesversjon,
     ) {
-        val sak = sakService.hentSak(sakId)
-            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å journalføre dokument for utsendelse") } }
+        val sakId = sak.id
+        val dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId)
 
-        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
-            val dokumentHendelser = dokumentHendelseRepo.hentForSak(sak.id)
+        dokumentHendelser.any { it.relaterteHendelser.contains(hendelseId) }.ifTrue {
+            hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
+            return
+        }
 
-            dokumentHendelser.any { it.relaterteHendelser.contains(relatertHendelsesId) }.ifTrue {
-                hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId)
-                return@mapOneIndexed
-            }
+        val (generertDokumentHendelse, relatertFil, navn) = hentDataForJournalføring(
+            sak.info(),
+            hendelseId,
+        ).getOrElse { return }
 
-            val (relatertHendelse, relatertFil, navn) = hentDataForJournalføringAvDokument(
-                sak.info(),
-                relatertHendelsesId,
-            ).getOrElse { return@mapOneIndexed }
-
-            opprettJournalpostForUtsendelse(
-                sakInfo = sak.info(),
-                navn = navn,
-                relatertHendelse = relatertHendelse,
-                relatertFil = relatertFil,
-                versjon = sak.versjon.inc(idx),
-                correlationId = correlationId,
-            ).getOrElse { return@mapOneIndexed }.let { forUtsendelse ->
-                sessionFactory.withSessionContext {
-                    dokumentHendelseRepo.lagre(forUtsendelse, it)
-                    hendelsekonsumenterRepo.lagre(relatertHendelsesId, konsumentId, it)
-                }
+        journalførDokument(
+            sakInfo = sak.info(),
+            navn = navn,
+            generertDokumentHendelse = generertDokumentHendelse,
+            relatertFil = relatertFil,
+            versjon = nesteVersjon,
+            correlationId = correlationId,
+            skalSendeBrev = generertDokumentHendelse.skalSendeBrev,
+        ).getOrElse {
+            return
+        }.let { journalførtDokumentHendelse ->
+            sessionFactory.withSessionContext {
+                dokumentHendelseRepo.lagre(journalførtDokumentHendelse, it)
+                hendelsekonsumenterRepo.lagre(hendelseId, konsumentId, it)
             }
         }
     }
 
-    private fun hentDataForJournalføringAvDokument(
+    private fun hentDataForJournalføring(
         sakInfo: SakInfo,
         relatertHendelsesId: HendelseId,
     ): Either<Unit, Triple<GenerertDokumentHendelse, HendelseFil, Person.Navn>> {
-        val (relatertHendelse, relatertFil) = hentLagretDokumentHendelseForJournalføring(relatertHendelsesId).getOrElse { return Unit.left() }
+        val (relatertHendelse, relatertFil) = hentLagretDokumentHendelseForJournalføring(
+            hendelseId = relatertHendelsesId,
+            sakId = sakInfo.sakId,
+        ).getOrElse { return Unit.left() }
 
         val person = personService.hentPersonMedSystembruker(sakInfo.fnr).getOrElse {
             return Unit.left().also {
-                log.error("Feil ved henting av person for journalføring av dokument for hendelse ${relatertHendelse.hendelseId} for sak ${sakInfo.sakId}")
+                log.error("Feil under journalføring: Feil ved henting av person for hendelse ${relatertHendelse.hendelseId} og sak ${sakInfo.sakId}")
             }
         }
 
         return Triple(relatertHendelse, relatertFil, person.navn).right()
     }
 
-    private fun opprettJournalpostForArkivering(
+    private fun journalførDokument(
         sakInfo: SakInfo,
         navn: Person.Navn,
-        relatertHendelse: GenerertDokumentHendelse,
+        generertDokumentHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         correlationId: CorrelationId,
-    ): Either<Unit, JournalførtDokumentForArkiveringHendelse> = opprettJournalpost(
+        skalSendeBrev: Boolean,
+    ): Either<Unit, JournalførtDokumentHendelse> = opprettJournalpost(
         sakInfo = sakInfo,
         navn = navn,
-        relatertHendelse = relatertHendelse,
+        relatertHendelse = generertDokumentHendelse,
         relatertFil = relatertFil,
     ).getOrElse {
         return Unit.left()
     }.let {
-        JournalførtDokumentForArkiveringHendelse(
+        JournalførtDokumentHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = versjon,
             meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             sakId = sakInfo.sakId,
-            relaterteHendelser = nonEmptyListOf(relatertHendelse.hendelseId),
+            relaterteHendelser = nonEmptyListOf(generertDokumentHendelse.hendelseId),
             journalpostId = it,
-        ).right()
-    }
-
-    private fun opprettJournalpostForUtsendelse(
-        sakInfo: SakInfo,
-        navn: Person.Navn,
-        relatertHendelse: GenerertDokumentHendelse,
-        relatertFil: HendelseFil,
-        versjon: Hendelsesversjon,
-        correlationId: CorrelationId,
-    ): Either<Unit, JournalførtDokumentForUtsendelseHendelse> = opprettJournalpost(
-        sakInfo = sakInfo,
-        navn = navn,
-        relatertHendelse = relatertHendelse,
-        relatertFil = relatertFil,
-    ).getOrElse {
-        return Unit.left()
-    }.let {
-        JournalførtDokumentForUtsendelseHendelse(
-            hendelseId = HendelseId.generer(),
-            hendelsestidspunkt = Tidspunkt.now(clock),
-            versjon = versjon,
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
-            sakId = sakInfo.sakId,
-            relaterteHendelser = nonEmptyListOf(relatertHendelse.hendelseId),
-            journalpostId = it,
+            skalSendeBrev = skalSendeBrev,
         ).right()
     }
 
@@ -232,32 +171,34 @@ class JournalførDokumentHendelserKonsument(
             sakstype = sakInfo.type,
             navn = navn,
         ),
-    ).map {
-        it
-    }.mapLeft {
-        Unit.also { log.error("Feil ved journalføring av LagretDokumentHendelse ${relatertHendelse.hendelseId}", it) }
+    ).mapLeft {
+        Unit.also {
+            log.error("Feil under journalføring: Kunne ikke opprette journalpost for hendelse ${relatertHendelse.hendelseId} og sak ${sakInfo.sakId}. Underliggende feil: $it")
+        }
     }
 
-    private fun hentLagretDokumentHendelseForJournalføring(hendelseId: HendelseId): Either<Unit, Pair<GenerertDokumentHendelse, HendelseFil>> {
+    private fun hentLagretDokumentHendelseForJournalføring(
+        hendelseId: HendelseId,
+        sakId: UUID,
+    ): Either<Unit, Pair<GenerertDokumentHendelse, HendelseFil>> {
         return dokumentHendelseRepo.hentHendelseOgFilFor(hendelseId).let {
-            val assertedHendelse = when (it.first is GenerertDokumentHendelse) {
-                true -> when (it.first as GenerertDokumentHendelse) {
-                    is GenerertDokumentForArkiveringHendelse -> return Unit.left()
-                        .also { log.error("Dokument som er lagret for arkivering i SU skal ikke journalføres") }
-
-                    is GenerertDokumentForJournalføringHendelse -> it.first
-                    is GenerertDokumentForUtsendelseHendelse -> it.first
+            val assertedHendelse: GenerertDokumentHendelse = when (val d = it.first) {
+                is GenerertDokumentHendelse -> d
+                is JournalførtDokumentHendelse -> return Unit.left().also {
+                    log.error("Feil under journalføring: GenerertDokumentHendelse $hendelseId var ikke av typen JournalførtDokumentHendelse. Sak $sakId")
                 }
 
-                false -> return Unit.left().also {
-                    log.error("Dokument hendelse $hendelseId var ikke av typen ${GenerertDokumentHendelse::class.simpleName}")
+                null -> return Unit.left().also {
+                    log.error("Feil under journalføring: Fant ikke dokument med hendelse $hendelseId for sak $sakId")
                 }
             }
-            val assertedFil = when (it.second) {
-                null -> return Unit.left().also { log.error("Fil fantes ikke for å journalføre hendelse $hendelseId") }
-                else -> it.second!!
+            val assertedFil = when (val f = it.second) {
+                null -> return Unit.left()
+                    .also { log.error("Feil under journalføring: Fant ikke tilhørende fil for GenerertDokumentHendelse $hendelseId og sak sak $sakId") }
+
+                else -> f
             }
-            Pair(assertedHendelse as GenerertDokumentHendelse, assertedFil).right()
+            Pair(assertedHendelse, assertedFil).right()
         }
     }
 }

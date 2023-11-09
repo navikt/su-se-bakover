@@ -5,7 +5,7 @@ package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
-import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -23,14 +23,14 @@ sealed interface KanForhåndsvarsle : KanEndres {
 
     override fun erÅpen() = true
 
-    fun nyLagretDokumentHendelseForUtsendelse(
+    fun lagDokumenthendelseForForhåndsvarsel(
         command: SakshendelseCommand,
         dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
         nesteVersjon: Hendelsesversjon,
         relaterteHendelser: NonEmptyList<HendelseId>,
         clock: Clock,
-    ): GenerertDokumentForUtsendelseHendelse {
-        return GenerertDokumentForUtsendelseHendelse(
+    ): GenerertDokumentHendelse {
+        return GenerertDokumentHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,
@@ -38,6 +38,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
             sakId = command.sakId,
             relaterteHendelser = relaterteHendelser,
             dokumentUtenFil = dokumentMedMetadataUtenFil,
+            skalSendeBrev = true,
         )
     }
 }

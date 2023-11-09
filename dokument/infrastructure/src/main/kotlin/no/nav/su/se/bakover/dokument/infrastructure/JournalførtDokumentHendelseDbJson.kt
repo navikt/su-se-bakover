@@ -2,10 +2,7 @@ package no.nav.su.se.bakover.dokument.infrastructure
 
 import arrow.core.NonEmptyList
 import dokument.domain.hendelser.DokumentHendelse
-import dokument.domain.hendelser.JournalførtDokumentForArkivering
-import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
-import dokument.domain.hendelser.JournalførtDokumentForUtsendelse
-import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.JournalførtDokument
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -21,6 +18,7 @@ import java.util.UUID
 internal data class JournalførtDokumentHendelseDbJson(
     val relaterteHendelser: List<String>,
     val journalpostId: String,
+    val skalSendeBrev: Boolean,
 ) {
     companion object {
         fun toDomain(
@@ -35,7 +33,7 @@ internal data class JournalførtDokumentHendelseDbJson(
             val deserialized = deserialize<JournalførtDokumentHendelseDbJson>(data)
 
             return when (type) {
-                JournalførtDokumentForArkivering -> toJournalførtDokumentForArkiveringHendelse(
+                JournalførtDokument -> toJournalførtDokumentHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
@@ -44,24 +42,14 @@ internal data class JournalførtDokumentHendelseDbJson(
                     relaterteHendelser = deserialized.relaterteHendelser.map { HendelseId.fromString(it) }
                         .toNonEmptyList(),
                     journalpostId = JournalpostId(deserialized.journalpostId),
-                )
-
-                JournalførtDokumentForUtsendelse -> toJournalførtDokumentForUtsendelseHendelse(
-                    hendelseId = hendelseId,
-                    sakId = sakId,
-                    hendelsestidspunkt = hendelsestidspunkt,
-                    versjon = versjon,
-                    meta = meta,
-                    relaterteHendelser = deserialized.relaterteHendelser.map { HendelseId.fromString(it) }
-                        .toNonEmptyList(),
-                    journalpostId = JournalpostId(deserialized.journalpostId),
+                    skalSendeBrev = deserialized.skalSendeBrev,
                 )
 
                 else -> throw IllegalStateException("Ugyldig type for journalført dokument hendelse. type var $type")
             }
         }
 
-        private fun toJournalførtDokumentForArkiveringHendelse(
+        private fun toJournalførtDokumentHendelse(
             hendelseId: HendelseId,
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
@@ -69,7 +57,8 @@ internal data class JournalførtDokumentHendelseDbJson(
             meta: DefaultHendelseMetadata,
             relaterteHendelser: NonEmptyList<HendelseId>,
             journalpostId: JournalpostId,
-        ): JournalførtDokumentForArkiveringHendelse = JournalførtDokumentForArkiveringHendelse.fraPersistert(
+            skalSendeBrev: Boolean,
+        ): JournalførtDokumentHendelse = JournalførtDokumentHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
             hendelseMetadata = meta,
@@ -78,31 +67,14 @@ internal data class JournalførtDokumentHendelseDbJson(
             sakId = sakId,
             relaterteHendelser = relaterteHendelser,
             journalpostId = journalpostId,
-        )
-
-        private fun toJournalførtDokumentForUtsendelseHendelse(
-            hendelseId: HendelseId,
-            sakId: UUID,
-            hendelsestidspunkt: Tidspunkt,
-            versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
-            relaterteHendelser: NonEmptyList<HendelseId>,
-            journalpostId: JournalpostId,
-        ): JournalførtDokumentForUtsendelseHendelse = JournalførtDokumentForUtsendelseHendelse.fraPersistert(
-            hendelseId = hendelseId,
-            hendelsestidspunkt = hendelsestidspunkt,
-            hendelseMetadata = meta,
-            entitetId = sakId,
-            versjon = versjon,
-            sakId = sakId,
-            relaterteHendelser = relaterteHendelser,
-            journalpostId = journalpostId,
+            skalSendeBrev = skalSendeBrev,
         )
 
         internal fun JournalførtDokumentHendelse.dataDbJson(relaterteHendelser: NonEmptyList<HendelseId>): String =
             JournalførtDokumentHendelseDbJson(
                 relaterteHendelser = relaterteHendelser.map { it.toString() },
                 journalpostId = journalpostId.toString(),
+                skalSendeBrev = skalSendeBrev,
             ).let { serialize(it) }
     }
 }

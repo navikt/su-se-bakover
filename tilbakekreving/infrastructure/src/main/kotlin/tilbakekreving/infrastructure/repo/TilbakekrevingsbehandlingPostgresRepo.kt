@@ -150,7 +150,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
         }
     }
 
-    override fun hentÅpneBehandlingssamendrag(sessionContext: SessionContext?): List<Behandlingssammendrag> {
+    override fun hentÅpneBehandlingssammendrag(sessionContext: SessionContext?): List<Behandlingssammendrag> {
         val hendelserGruppertPåBehandlingsId = hentBehandlingerForSammendrag(sessionContext).groupBy { it.fourth }
 
         val gruppertKunÅpneHendelser = hendelserGruppertPåBehandlingsId.entries.mapNotNull { entry ->

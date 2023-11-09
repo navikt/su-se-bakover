@@ -3,15 +3,9 @@ package no.nav.su.se.bakover.dokument.infrastructure
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokument
-import dokument.domain.hendelser.GenerertDokumentForArkiveringHendelse
-import dokument.domain.hendelser.GenerertDokumentForJournalføring
-import dokument.domain.hendelser.GenerertDokumentForJournalføringHendelse
-import dokument.domain.hendelser.GenerertDokumentForUtsendelse
-import dokument.domain.hendelser.GenerertDokumentForUtsendelseHendelse
-import dokument.domain.hendelser.JournalførtDokumentForArkivering
-import dokument.domain.hendelser.JournalførtDokumentForArkiveringHendelse
-import dokument.domain.hendelser.JournalførtDokumentForUtsendelse
-import dokument.domain.hendelser.JournalførtDokumentForUtsendelseHendelse
+import dokument.domain.hendelser.GenerertDokumentHendelse
+import dokument.domain.hendelser.JournalførtDokument
+import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -43,18 +37,12 @@ class DokumentHendelsePostgresRepo(
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
             type = when (hendelse) {
-                is GenerertDokumentForJournalføringHendelse -> GenerertDokumentForJournalføring
-                is GenerertDokumentForUtsendelseHendelse -> GenerertDokumentForUtsendelse
-                is GenerertDokumentForArkiveringHendelse -> GenerertDokument
-                is JournalførtDokumentForArkiveringHendelse -> JournalførtDokumentForArkivering
-                is JournalførtDokumentForUtsendelseHendelse -> JournalførtDokumentForUtsendelse
+                is GenerertDokumentHendelse -> GenerertDokument
+                is JournalførtDokumentHendelse -> JournalførtDokument
             },
             data = when (hendelse) {
-                is JournalførtDokumentForArkiveringHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
-                is JournalførtDokumentForUtsendelseHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
-                is GenerertDokumentForArkiveringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
-                is GenerertDokumentForJournalføringHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
-                is GenerertDokumentForUtsendelseHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser)
+                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
+                is GenerertDokumentHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser, hendelse.skalSendeBrev)
             },
             sessionContext = sessionContext,
         )
@@ -71,10 +59,7 @@ class DokumentHendelsePostgresRepo(
         return (hendelseRepo as HendelsePostgresRepo).let { repo ->
             listOf(
                 GenerertDokument,
-                GenerertDokumentForJournalføring,
-                GenerertDokumentForUtsendelse,
-                JournalførtDokumentForArkivering,
-                JournalførtDokumentForUtsendelse,
+                JournalførtDokument,
             ).flatMap {
                 repo.hentHendelserForSakIdOgType(
                     sakId = sakId,
@@ -123,7 +108,7 @@ class DokumentHendelsePostgresRepo(
 
 private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
     return when (this.type) {
-        GenerertDokument, GenerertDokumentForJournalføring, GenerertDokumentForUtsendelse -> GenerertDokumentHendelseDbJson.toDomain(
+        GenerertDokument -> GenerertDokumentHendelseDbJson.toDomain(
             type = this.type,
             data = this.data,
             hendelseId = this.hendelseId,
@@ -133,7 +118,7 @@ private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
             meta = this.defaultHendelseMetadata(),
         )
 
-        JournalførtDokumentForArkivering, JournalførtDokumentForUtsendelse -> JournalførtDokumentHendelseDbJson.toDomain(
+        JournalførtDokument -> JournalførtDokumentHendelseDbJson.toDomain(
             type = type,
             data = data,
             hendelseId = hendelseId,

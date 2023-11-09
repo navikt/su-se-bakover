@@ -118,7 +118,6 @@ class TilbakekrevingServices(
         brevService = brevService,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
         dokumentHendelseRepo = dokumentHendelseRepo,
-        hendelseRepo = hendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         sessionFactory = sessionFactory,
         clock = clock,
