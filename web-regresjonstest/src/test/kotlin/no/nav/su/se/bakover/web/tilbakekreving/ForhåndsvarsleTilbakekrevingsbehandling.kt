@@ -84,7 +84,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
           },
       }
     ],
-    "totalBeløpGrunnlagsperioder":{
+    "summertGrunnlagsmåneder":{
         "betaltSkattForYtelsesgruppen":"6192",
         "beløpTidligereUtbetaling":"20946",
         "beløpNyUtbetaling":"8563",
@@ -96,7 +96,12 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "status":"FORHÅNDSVARSLET",
   "månedsvurderinger":[],
   "fritekst":null,
-  "forhåndsvarselDokumenter": ["ignoreres-siden-denne-opprettes-av-tjenesten"],
+  "forhåndsvarselsInfo": [
+      {
+        "id": "ignoreres-siden-denne-opprettes-av-tjenesten",
+        "hendelsestidspunkt": "2021-02-01T01:03:38.456789Z"
+      }
+   ],
   "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
   "attesteringer": []
@@ -107,9 +112,9 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
         CustomComparator(
             JSONCompareMode.STRICT,
             Customization(
-                "forhåndsvarselDokumenter",
+                "forhåndsvarselsInfo",
             ) { _, _ -> true },
         ),
     )
-    JSONObject(actual).getJSONArray("forhåndsvarselDokumenter").shouldHaveSize(1)
+    JSONObject(actual).getJSONArray("forhåndsvarselsInfo").shouldHaveSize(1)
 }

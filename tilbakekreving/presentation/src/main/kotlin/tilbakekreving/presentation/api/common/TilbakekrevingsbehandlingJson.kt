@@ -10,8 +10,8 @@ import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
+import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagJson.Companion.toJson
-import java.util.UUID
 
 data class TilbakekrevingsbehandlingJson(
     val id: String,
@@ -22,7 +22,7 @@ data class TilbakekrevingsbehandlingJson(
     val status: TilbakekrevingsbehandlingStatus,
     val månedsvurderinger: List<MånedsvurderingJson>,
     val fritekst: String?,
-    val forhåndsvarselDokumenter: List<UUID>,
+    val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfoJson>,
     val versjon: Long,
     val sendtTilAttesteringAv: String?,
     val attesteringer: List<AttesteringJson>,
@@ -59,7 +59,7 @@ data class TilbakekrevingsbehandlingJson(
                     it.vurdering.toString(),
                 )
             } ?: emptyList(),
-            forhåndsvarselDokumenter = forhåndsvarselDokumentIder,
+            forhåndsvarselsInfo = forhåndsvarselsInfo.toJson(),
             fritekst = this.vedtaksbrevvalg?.fritekst,
             versjon = this.versjon.value,
             sendtTilAttesteringAv = when (this) {

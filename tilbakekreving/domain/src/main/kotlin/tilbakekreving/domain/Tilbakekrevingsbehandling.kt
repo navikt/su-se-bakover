@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
@@ -29,7 +30,7 @@ sealed interface Tilbakekrevingsbehandling {
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon
     val hendelseId: HendelseId
-    val forhåndsvarselDokumentIder: List<UUID>
+    val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>
 
     fun erÅpen(): Boolean
 }

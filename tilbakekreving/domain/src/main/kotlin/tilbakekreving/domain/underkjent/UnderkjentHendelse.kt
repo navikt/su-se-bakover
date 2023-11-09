@@ -81,7 +81,7 @@ data class UnderkjentHendelse(
                     ),
                     månedsvurderinger = behandling.månedsvurderinger,
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
-                    forhåndsvarselDokumentIder = behandling.forhåndsvarselDokumentIder,
+                    forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                 )
             }
         }

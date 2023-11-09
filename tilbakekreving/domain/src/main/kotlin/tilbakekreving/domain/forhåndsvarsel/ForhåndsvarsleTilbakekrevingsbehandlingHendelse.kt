@@ -51,6 +51,7 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
                 dokumentId = dokumentId,
                 hendelseId = hendelseId,
                 versjon = versjon,
+                hendelsesTidspunkt = hendelsestidspunkt,
             )
         }
     }

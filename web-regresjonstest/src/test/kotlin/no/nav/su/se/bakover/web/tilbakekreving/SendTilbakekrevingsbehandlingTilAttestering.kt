@@ -90,7 +90,7 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
           },
       }
     ],
-    "totalBeløpGrunnlagsperioder":{
+    "summertGrunnlagsmåneder":{
         "betaltSkattForYtelsesgruppen":"6192",
         "beløpTidligereUtbetaling":"20946",
         "beløpNyUtbetaling":"8563",
@@ -102,7 +102,7 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
   "status":"TIL_ATTESTERING",
   "månedsvurderinger":$vurderinger,
   "fritekst":"$fritekst",
-  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
+  "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",
   "versjon": $expectedVersjon,
   "attesteringer": $expectedAttesteringer

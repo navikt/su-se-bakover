@@ -137,7 +137,7 @@ internal class TilbakekrevingsbehandlingIT {
             visUtsendtForhåndsvarselDokument(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                dokumentId = JSONArray(forhåndsvarselDokumenter).getString(0),
+                dokumentId = JSONArray(forhåndsvarselDokumenter).getJSONObject(0).getString("id"),
                 client = this.client,
             )
 

@@ -19,6 +19,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
         dokumentId: UUID,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
+        hendelsesTidspunkt: Tidspunkt,
     ): UnderBehandling
 
     override fun erÅpen() = true

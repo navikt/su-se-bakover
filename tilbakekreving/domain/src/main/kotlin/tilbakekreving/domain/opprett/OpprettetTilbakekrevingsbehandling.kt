@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
@@ -24,7 +25,7 @@ data class OpprettetTilbakekrevingsbehandling(
 ) : KanForhåndsvarsle, KanVurdere {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
-    override val forhåndsvarselDokumentIder: List<UUID> = emptyList()
+    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
 
     override fun erÅpen() = true
 
@@ -32,12 +33,13 @@ data class OpprettetTilbakekrevingsbehandling(
         dokumentId: UUID,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
+        hendelsesTidspunkt: Tidspunkt,
     ) = UnderBehandling.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
         versjon = versjon,
         månedsvurderinger = this.månedsvurderinger,
-        forhåndsvarselDokumentIder = listOf(dokumentId),
+        forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
     )
 
     override fun leggTilVurderinger(
@@ -48,7 +50,7 @@ data class OpprettetTilbakekrevingsbehandling(
         forrigeSteg = this,
         hendelseId = hendelseId,
         månedsvurderinger = månedsvurderinger,
-        forhåndsvarselDokumentIder = listOf(),
+        forhåndsvarselsInfo = listOf(),
         versjon = versjon,
     )
 

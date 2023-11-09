@@ -5,8 +5,10 @@ package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
 
@@ -41,7 +43,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         override val hendelseId: HendelseId,
         override val versjon: Hendelsesversjon,
         override val månedsvurderinger: Vurderinger?,
-        override val forhåndsvarselDokumentIder: List<UUID>,
+        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
     ) : UnderBehandling, KanEndres by forrigeSteg {
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -75,7 +77,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
                     hendelseId = hendelseId,
                     vedtaksbrevvalg = vedtaksbrevvalg,
                     attesteringer = forrigeSteg.attesteringer,
-                    forhåndsvarselDokumentIder = forhåndsvarselDokumentIder,
+                    forhåndsvarselsInfo = forhåndsvarselsInfo,
                     versjon = versjon,
                 )
             }
@@ -85,9 +87,12 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
             dokumentId: UUID,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
+            hendelsesTidspunkt: Tidspunkt,
         ): Påbegynt {
             return this.copy(
-                forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
+                forhåndsvarselsInfo = this.forhåndsvarselsInfo.plus(
+                    ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt),
+                ),
                 hendelseId = hendelseId,
                 versjon = versjon,
             )
@@ -110,7 +115,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
      *   *  [AvbruttTilbakekrevingsbehandling]
      *   * [TilbakekrevingsbehandlingTilAttestering]
      *
-     *   @param forhåndsvarselDokumentIder Vi støtter og legge til nye forhåndsvarslinger selvom tilstanden er [Utfylt]
+     *   @param forhåndsvarselsInfo Vi støtter og legge til nye forhåndsvarslinger selvom tilstanden er [Utfylt]
      *   @property erUnderkjent Dersom denne har vært til attestering, vil den implisitt være underkjent nå.
      */
     data class Utfylt(
@@ -120,7 +125,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         override val månedsvurderinger: Vurderinger,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
-        override val forhåndsvarselDokumentIder: List<UUID>,
+        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
     ) : UnderBehandling, KanEndres, UnderBehandlingEllerTilAttestering by forrigeSteg, ErUtfylt {
 
         constructor(
@@ -134,7 +139,7 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
             månedsvurderinger = forrigeSteg.månedsvurderinger,
             vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
             attesteringer = forrigeSteg.attesteringer,
-            forhåndsvarselDokumentIder = forrigeSteg.forhåndsvarselDokumentIder,
+            forhåndsvarselsInfo = forrigeSteg.forhåndsvarselsInfo,
         )
 
         override val erUnderkjent = attesteringer.isNotEmpty()
@@ -162,9 +167,12 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
             dokumentId: UUID,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
+            hendelsesTidspunkt: Tidspunkt,
         ) = this.copy(
             hendelseId = hendelseId,
-            forhåndsvarselDokumentIder = this.forhåndsvarselDokumentIder.plus(dokumentId),
+            forhåndsvarselsInfo = this.forhåndsvarselsInfo.plus(
+                ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt),
+            ),
             versjon = versjon,
         )
 

@@ -96,7 +96,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
           },
       }
     ],
-    "totalBeløpGrunnlagsperioder":{
+    "summertGrunnlagsmåneder":{
         "betaltSkattForYtelsesgruppen":"6192",
         "beløpTidligereUtbetaling":"20946",
         "beløpNyUtbetaling":"8563",
@@ -108,7 +108,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
   "status":"VEDTAKSBREV",
   "månedsvurderinger":$vurderinger,
   "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
-  "forhåndsvarselDokumenter": $forhåndsvarselDokumenter,
+  "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
   "attesteringer": []

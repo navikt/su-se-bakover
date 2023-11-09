@@ -7,7 +7,7 @@ fun hentTilbakekrevingsbehandlingId(json: String): String {
 }
 
 fun hentForhåndsvarselDokumenter(json: String): String {
-    return JSONObject(json).getJSONArray("forhåndsvarselDokumenter").toString()
+    return JSONObject(json).getJSONArray("forhåndsvarselsInfo").toString()
 }
 fun hentFritekst(json: String): String {
     return JSONObject(json).getString("fritekst")
