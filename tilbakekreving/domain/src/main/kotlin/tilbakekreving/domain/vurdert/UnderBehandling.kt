@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Vurderinger
 import java.util.UUID
 
@@ -22,7 +23,12 @@ import java.util.UUID
  *  1. Iverksett eller underkjenn
  *
  */
-sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvarsle, UnderBehandlingEllerTilAttestering {
+sealed interface UnderBehandling :
+    KanOppdatereKravgrunnlag,
+    KanLeggeTilBrev,
+    KanVurdere,
+    KanForhåndsvarsle,
+    UnderBehandlingEllerTilAttestering {
 
     override val månedsvurderinger: Vurderinger?
     override fun erÅpen() = true
@@ -44,8 +50,9 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         override val versjon: Hendelsesversjon,
         override val månedsvurderinger: Vurderinger?,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
+        override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null,
+        override val kravgrunnlag: Kravgrunnlag,
     ) : UnderBehandling, KanEndres by forrigeSteg {
-        override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
         // Behandlingen må være utfylt før man kan attestere/underkjenne.
@@ -95,6 +102,19 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
                 ),
                 hendelseId = hendelseId,
                 versjon = versjon,
+            )
+        }
+
+        override fun oppdaterKravgrunnlag(
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+            nyttKravgrunnlag: Kravgrunnlag,
+        ): KanOppdatereKravgrunnlag {
+            return this.copy(
+                hendelseId = hendelseId,
+                versjon = versjon,
+                månedsvurderinger = null,
+                kravgrunnlag = nyttKravgrunnlag,
             )
         }
 
@@ -177,5 +197,20 @@ sealed interface UnderBehandling : KanLeggeTilBrev, KanVurdere, KanForhåndsvars
         )
 
         override fun erÅpen() = true
+        override fun oppdaterKravgrunnlag(
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+            nyttKravgrunnlag: Kravgrunnlag,
+        ): KanOppdatereKravgrunnlag {
+            return Påbegynt(
+                hendelseId = hendelseId,
+                versjon = versjon,
+                månedsvurderinger = null,
+                kravgrunnlag = nyttKravgrunnlag,
+                forrigeSteg = this,
+                vedtaksbrevvalg = this.vedtaksbrevvalg,
+                forhåndsvarselsInfo = this.forhåndsvarselsInfo,
+            )
+        }
     }
 }
