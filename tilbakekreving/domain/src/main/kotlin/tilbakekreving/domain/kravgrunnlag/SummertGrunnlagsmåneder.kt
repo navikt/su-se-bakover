@@ -18,31 +18,36 @@ data class SummertGrunnlagsmåneder(
     val nettoBeløp: Beløp,
 ) {
     companion object {
-        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.netto(): Beløp {
-            val bruttobeløp = BigDecimal(beløpSkalTilbakekreves)
-            val skatteBeløp = skatteProsent / BigDecimal(100) * bruttobeløp
-            val nettoBeløp = bruttobeløp - skatteBeløp
-            val min = bruttobeløp.min(nettoBeløp)
-            return Beløp(min.setScale(0, RoundingMode.DOWN).intValueExact())
+        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.netto(betaltSkattForYtelsesgruppen: BigDecimal): Beløp {
+            val nettoBeløp = BigDecimal(beløpSkalTilbakekreves)
+                .multiply(skatteProsent)
+                .divide(BigDecimal("100"))
+                .setScale(0, RoundingMode.DOWN)
+                .min(betaltSkattForYtelsesgruppen)
+
+            return Beløp(nettoBeløp.intValueExact())
         }
     }
 }
 
 fun List<Kravgrunnlag.Grunnlagsmåned>.total(): SummertGrunnlagsmåneder {
-    val betaltSkattForYtelsesgruppen =
-        this.map { it.betaltSkattForYtelsesgruppen }.reduce { acc, bigDecimal -> acc + bigDecimal }
-    val beløpTidligereUtbetaling = this.map { it.ytelse.beløpTidligereUtbetaling }.reduce { acc, i -> acc + i }
-    val beløpNyUtbetaling = this.map { it.ytelse.beløpNyUtbetaling }.reduce { acc, i -> acc + i }
-    val beløpSkalTilbakekreves = this.map { it.ytelse.beløpSkalTilbakekreves }.reduce { acc, i -> acc + i }
-    val beløpSkalIkkeTilbakekreves = this.map { it.ytelse.beløpSkalIkkeTilbakekreves }.reduce { acc, i -> acc + i }
-    val nettoBeløp = this.map { it.ytelse.netto() }.reduce { acc, i -> acc + i }
-
-    return SummertGrunnlagsmåneder(
-        betaltSkattForYtelsesgruppen,
-        beløpTidligereUtbetaling,
-        beløpNyUtbetaling,
-        beløpSkalTilbakekreves,
-        beløpSkalIkkeTilbakekreves,
-        nettoBeløp,
-    )
+    return this.map {
+        SummertGrunnlagsmåneder(
+            betaltSkattForYtelsesgruppen = it.betaltSkattForYtelsesgruppen,
+            beløpTidligereUtbetaling = it.ytelse.beløpTidligereUtbetaling,
+            beløpNyUtbetaling = it.ytelse.beløpNyUtbetaling,
+            beløpSkalTilbakekreves = it.ytelse.beløpSkalTilbakekreves,
+            beløpSkalIkkeTilbakekreves = it.ytelse.beløpSkalIkkeTilbakekreves,
+            nettoBeløp = it.ytelse.netto(it.betaltSkattForYtelsesgruppen),
+        )
+    }.reduce { acc, summert ->
+        SummertGrunnlagsmåneder(
+            betaltSkattForYtelsesgruppen = acc.betaltSkattForYtelsesgruppen + summert.betaltSkattForYtelsesgruppen,
+            beløpTidligereUtbetaling = acc.beløpTidligereUtbetaling + summert.beløpTidligereUtbetaling,
+            beløpNyUtbetaling = acc.beløpNyUtbetaling + summert.beløpNyUtbetaling,
+            beløpSkalTilbakekreves = acc.beløpSkalTilbakekreves + summert.beløpSkalTilbakekreves,
+            beløpSkalIkkeTilbakekreves = acc.beløpSkalIkkeTilbakekreves + summert.beløpSkalIkkeTilbakekreves,
+            nettoBeløp = acc.nettoBeløp + summert.nettoBeløp,
+        )
+    }
 }

@@ -92,7 +92,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
             "beløpSkalTilbakekreves":"12383",
             "beløpSkalIkkeTilbakekreves":"0",
             "skatteProsent":"50",
-            "nettoBeløp": "12383"
+            "nettoBeløp": "6191"
           },
       }
     ],
@@ -102,7 +102,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
         "beløpNyUtbetaling":"8563",
         "beløpSkalTilbakekreves":"12383",
         "beløpSkalIkkeTilbakekreves":"0",
-        "nettoBeløp": "12383"
+        "nettoBeløp": "6191"
     } 
   },
   "status":"VEDTAKSBREV",

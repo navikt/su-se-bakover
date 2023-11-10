@@ -11,6 +11,7 @@ import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companio
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
 import tilbakekreving.presentation.api.common.SummertGrunnlagsmånederJson.Companion.toJson
+import java.math.BigDecimal
 
 /**
  * Kontrakten mot su-se-framover
@@ -49,7 +50,7 @@ data class GrunnlagsperiodeJson(
             GrunnlagsperiodeJson(
                 periode = it.måned.toJson(),
                 beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
-                ytelse = it.ytelse.toJson(),
+                ytelse = it.ytelse.toJson(it.betaltSkattForYtelsesgruppen),
             )
         }
     }
@@ -64,13 +65,13 @@ data class GrunnlagsbeløpYtelseJson(
     val nettoBeløp: String,
 ) {
     companion object {
-        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
+        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(betaltSkattForYtelsesgruppen: BigDecimal): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
             beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
             beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
             beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
             beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
             skatteProsent = this.skatteProsent.toString(),
-            nettoBeløp = this.netto().sum().toString(),
+            nettoBeløp = this.netto(betaltSkattForYtelsesgruppen).sum().toString(),
         )
     }
 }

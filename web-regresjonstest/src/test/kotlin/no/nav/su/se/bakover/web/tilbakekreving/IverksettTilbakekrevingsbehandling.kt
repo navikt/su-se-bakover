@@ -90,7 +90,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
           "beløpSkalTilbakekreves":"12383",
           "beløpSkalIkkeTilbakekreves":"0",
           "skatteProsent":"50",
-          "nettoBeløp": "12383"
+          "nettoBeløp": "6191"
           }
       }
     ],
@@ -100,7 +100,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
         "beløpNyUtbetaling":"8563",
         "beløpSkalTilbakekreves":"12383",
         "beløpSkalIkkeTilbakekreves":"0",
-        "nettoBeløp": "12383"
+        "nettoBeløp": "6191"
     } 
   },
   "status":"IVERKSATT",
