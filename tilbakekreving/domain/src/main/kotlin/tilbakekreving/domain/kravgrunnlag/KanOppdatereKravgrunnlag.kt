@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
+import java.lang.IllegalStateException
 import java.time.Clock
 
 sealed interface KanOppdatereKravgrunnlag : KanEndres {
@@ -25,6 +26,10 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
         nyttKravgrunnlag: Kravgrunnlag,
         clock: Clock,
     ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, UnderBehandling.Påbegynt> {
+        if (this.kravgrunnlag.eksternKravgrunnlagId == nyttKravgrunnlag.eksternKravgrunnlagId) {
+            throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-id'en er lik")
+        }
+
         val hendelse = OppdatertKravgrunnlagPåTilbakekrevingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = command.sakId,

@@ -47,7 +47,6 @@ class OppdaterKravgrunnlagService(
                     log.error("Fant ikke utestående kravgrunnlag for å oppdatere kravgrunnlag på tilbakekrevingsbehandling ${command.behandlingId} for sak ${command.sakId}")
                 }
 
-        // TODO - et sted må vi sjekke at behandlingen og kravgrunnlaget på sak ikke er den samme
         return behandling.oppdaterKravgrunnlag(
             command = command,
             nesteVersjon = sak.versjon.inc(),

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Vurderinger
+import java.lang.IllegalStateException
 import java.util.UUID
 
 data class OpprettetTilbakekrevingsbehandling(
@@ -63,13 +64,19 @@ data class OpprettetTilbakekrevingsbehandling(
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
-    ): UnderBehandling.Påbegynt = UnderBehandling.Påbegynt(
-        forrigeSteg = this,
-        hendelseId = hendelseId,
-        versjon = versjon,
-        månedsvurderinger = this.månedsvurderinger,
-        forhåndsvarselsInfo = this.forhåndsvarselsInfo,
-        vedtaksbrevvalg = this.vedtaksbrevvalg,
-        kravgrunnlag = nyttKravgrunnlag,
-    )
+    ): UnderBehandling.Påbegynt {
+        if (this.kravgrunnlag.eksternKravgrunnlagId == nyttKravgrunnlag.eksternKravgrunnlagId) {
+            throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-id'en er lik")
+        }
+
+        return UnderBehandling.Påbegynt(
+            forrigeSteg = this,
+            hendelseId = hendelseId,
+            versjon = versjon,
+            månedsvurderinger = this.månedsvurderinger,
+            forhåndsvarselsInfo = this.forhåndsvarselsInfo,
+            vedtaksbrevvalg = this.vedtaksbrevvalg,
+            kravgrunnlag = nyttKravgrunnlag,
+        )
+    }
 }
