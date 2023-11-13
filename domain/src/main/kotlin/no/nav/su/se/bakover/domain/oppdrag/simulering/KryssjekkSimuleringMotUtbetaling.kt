@@ -8,7 +8,6 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import org.slf4j.Logger
@@ -22,49 +21,12 @@ import økonomi.domain.simulering.Simulering
  *
  * @param simulertUtbetaling Utbetalingen som har blitt simulert
  *
- * @throws IllegalArgumentException Dersom utbetalingslinjene innholder REAK. I de tilfellene har vi ikke nok data i utbetalingen til å sammenligne med simuleringen. Se [kryssjekkSimuleringMotReakUtbetaling]
  */
 fun kryssjekkSimuleringMotUtbetaling(
-    simulertUtbetaling: Utbetaling.SimulertUtbetaling,
-    log: Logger = LoggerFactory.getLogger("KryssjekkSimuleringMotUtbetaling.kt"),
-): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
-    require(simulertUtbetaling.utbetalingslinjer.all { it !is Utbetalingslinje.Endring.Reaktivering }) {
-        "Støtter ikke REAK-utbetalinger. Bruk kryssjekkSimuleringMotReakUtbetaling i stedet."
-    }
-    val saksnummer = simulertUtbetaling.saksnummer
-    if (simulertUtbetaling.periode != simulertUtbetaling.simulering.periode()) {
-        log.info(
-            "Simuleringens periode er ulik utbetalingsperioden under kryssjekk av simulering og utbetaling. Ved 0-utbetalinger langt fram i tid, kan Oppdrag i noen tilfeller hoppe over og simulere de.  Saksnummer: $saksnummer, Utbetalingsperode: ${simulertUtbetaling.periode}, Simuleringsperiode: ${simulertUtbetaling.periode}",
-            RuntimeException("Genererer en stacktrace for enklere debugging."),
-        )
-    }
-    sjekkUtbetalingMotSimulering(
-        simulering = simulertUtbetaling.simulering,
-        utbetalingslinjePåTidslinjer = simulertUtbetaling.tidslinje(),
-    ).getOrElse {
-        log.error(
-            "Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se sikkerlogg for mer kontekst. Feil: $it",
-            RuntimeException("Genererer en stacktrace for enklere debugging."),
-        )
-        sikkerLogg.error("Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se vanlig logg for stacktrace. Feil: $it, Utbetaling med simulering: $simulertUtbetaling")
-        return it.left()
-    }
-    return Unit.right()
-}
-
-/**
- * Se [kryssjekkSimuleringMotUtbetaling].
- * Dette er en spesialversjon for reaktivering.
- * Siden vi ikke har nok data i utbetalingen til å sammenligne med simuleringen.
- */
-fun kryssjekkSimuleringMotReakUtbetaling(
     tidligereUtbetalinger: Utbetalinger,
     simulertUtbetaling: Utbetaling.SimulertUtbetaling,
     log: Logger = LoggerFactory.getLogger("KryssjekkSimuleringMotUtbetaling.kt"),
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
-    require(simulertUtbetaling.utbetalingslinjer.all { it is Utbetalingslinje.Endring.Reaktivering }) {
-        "Støtter kun REAK-utbetalinger. Bruk kryssjekkSimuleringMotUtbetaling i stedet."
-    }
     val saksnummer = simulertUtbetaling.saksnummer
     if (simulertUtbetaling.periode != simulertUtbetaling.simulering.periode()) {
         log.info(

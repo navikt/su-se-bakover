@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerReakUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
@@ -204,7 +203,7 @@ fun simulerGjenopptak(
         saksbehandler = behandler,
         clock = clock,
     ).getOrFail().let { utbetalingForSimulering ->
-        simulerReakUtbetaling(
+        simulerUtbetaling(
             tidligereUtbetalinger = sak.utbetalinger,
             utbetalingForSimulering = utbetalingForSimulering,
             simuler = { utbetalingForSimuleringFraFunksjon: Utbetaling.UtbetalingForSimulering ->
@@ -311,6 +310,7 @@ fun simuler(
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return if (strict) {
         simulerUtbetaling(
+            tidligereUtbetalinger = utbetalingerPåSak,
             utbetalingForSimulering = utbetalingForSimulering,
             simuler = { utbetalingForSimuleringFraFunksjon: Utbetaling.UtbetalingForSimulering ->
                 simulerUtbetaling(

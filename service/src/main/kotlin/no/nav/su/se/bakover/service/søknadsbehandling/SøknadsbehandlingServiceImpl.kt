@@ -200,6 +200,7 @@ class SøknadsbehandlingServiceImpl(
                 uføregrunnlag = uføregrunnlag,
             ).let {
                 simulerUtbetaling(
+                    tidligereUtbetalinger = sak.utbetalinger,
                     utbetalingForSimulering = it,
                     simuler = utbetalingService::simulerUtbetaling,
                 )

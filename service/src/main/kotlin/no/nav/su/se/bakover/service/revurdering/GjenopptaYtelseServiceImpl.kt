@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
-import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerReakUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -150,7 +149,7 @@ class GjenopptaYtelseServiceImpl(
     private fun Sak.simulerGjenopptak(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSimulereGjenopptakAvYtelse, Simuleringsresultat> {
-        return simulerReakUtbetaling(
+        return simulerUtbetaling(
             tidligereUtbetalinger = this.utbetalinger,
             utbetalingForSimulering = this.lagUtbetalingForGjenopptak(
                 saksbehandler = saksbehandler,

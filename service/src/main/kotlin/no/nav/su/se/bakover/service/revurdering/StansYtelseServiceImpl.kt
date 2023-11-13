@@ -326,6 +326,7 @@ class StansYtelseServiceImpl(
             SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it)
         }.flatMap { utbetaling ->
             simulerUtbetaling(
+                tidligereUtbetalinger = sak.utbetalinger,
                 utbetalingForSimulering = utbetaling,
                 simuler = utbetalingService::simulerUtbetaling,
             ).mapLeft {

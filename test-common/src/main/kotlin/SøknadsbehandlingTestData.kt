@@ -956,6 +956,7 @@ fun simulertSøknadsbehandling(
                 uføregrunnlag = uføregrunnlag,
             ).let {
                 simulerUtbetaling(
+                    tidligereUtbetalinger = sak.utbetalinger,
                     utbetalingForSimulering = it,
                     simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
                         simulerUtbetaling(

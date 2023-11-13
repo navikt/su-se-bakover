@@ -103,7 +103,6 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -125,7 +124,6 @@ class RevurderingServiceImpl(
     private val sakService: SakService,
     private val tilbakekrevingService: TilbakekrevingService,
     private val satsFactory: SatsFactory,
-    private val ferdigstillVedtakService: FerdigstillVedtakService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -529,6 +527,7 @@ class RevurderingServiceImpl(
                                     uføregrunnlag = uføregrunnlag,
                                 ).let {
                                     simulerUtbetaling(
+                                        tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,
                                         simuler = utbetalingService::simulerUtbetaling,
                                     ).map { simuleringsresultat ->
@@ -558,6 +557,7 @@ class RevurderingServiceImpl(
                                     clock = clock,
                                 ).let {
                                     simulerUtbetaling(
+                                        tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,
                                         simuler = utbetalingService::simulerUtbetaling,
                                         // TODO simulering jah: Returner simuleringsresultatet til saksbehandler.
