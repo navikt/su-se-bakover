@@ -33,7 +33,8 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlag
+import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
+import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagstatusendring
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
@@ -44,7 +45,7 @@ import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.TilbakekrevingsbehandlingJson
 import no.nav.su.se.bakover.web.services.tilbakekreving.genererKravgrunnlagFraSimulering
-import no.nav.su.se.bakover.web.services.tilbakekreving.lagKravgrunnlagXml
+import no.nav.su.se.bakover.web.services.tilbakekreving.lagKravgrunnlagDetaljerXml
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -151,10 +152,117 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
-            appComponents.emulerViMottarKravgrunnlag()
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
+
+            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakInnvilgetRevurdering>().behandling.also {
+                    it.simulering.harFeilutbetalinger() shouldBe true
+                }.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
+                .also { tilbakekrevingsvedtak ->
+                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.originalRequest()
+                    val expected = """
+<TilbakekrevingsvedtakRequest>
+	<tilbakekrevingsvedtak>
+		<kodeAksjon>8</kodeAksjon>
+		<vedtakId>654321</vedtakId>
+		<datoVedtakFagsystem/>
+		<kodeHjemmel>SUL_13</kodeHjemmel>
+		<renterBeregnes>N</renterBeregnes>
+		<enhetAnsvarlig>8020</enhetAnsvarlig>
+		<kontrollfelt>2021-02-01-01.02.20.000000</kontrollfelt>
+		<saksbehId>K231B433</saksbehId>
+		<tilbakekrevingsperiode>
+			<periode>
+				<fom>2021-01-01</fom>
+				<tom>2021-01-31</tom>
+			</periode>
+			<renterBeregnes>N</renterBeregnes>
+			<belopRenter>0</belopRenter>
+			<tilbakekrevingsbelop>
+				<kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse>
+				<belopOpprUtbet>0</belopOpprUtbet>
+				<belopNy>18308</belopNy>
+				<belopTilbakekreves>0</belopTilbakekreves>
+				<belopUinnkrevd>0</belopUinnkrevd>
+				<belopSkatt/>
+				<kodeResultat/>
+				<kodeAarsak/>
+				<kodeSkyld/>
+			</tilbakekrevingsbelop>
+			<tilbakekrevingsbelop>
+				<kodeKlasse>SUUFORE</kodeKlasse>
+				<belopOpprUtbet>20946</belopOpprUtbet>
+				<belopNy>2638</belopNy>
+				<belopTilbakekreves>18308</belopTilbakekreves>
+				<belopUinnkrevd>0</belopUinnkrevd>
+				<belopSkatt>9154</belopSkatt>
+				<kodeResultat>FULL_TILBAKEKREV</kodeResultat>
+				<kodeAarsak>ANNET</kodeAarsak>
+				<kodeSkyld>BRUKER</kodeSkyld>
+			</tilbakekrevingsbelop>
+		</tilbakekrevingsperiode>
+	</tilbakekrevingsvedtak>
+</TilbakekrevingsvedtakRequest>
+                    """.trimIndent()
+                    MatcherAssert.assertThat(
+                        actualXml,
+                        CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher).ignoreWhitespace(),
+                    )
+                }
+            @Suppress("UNCHECKED_CAST")
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
+                .also { dokumenter ->
+                    dokumenter.single().also { brev ->
+                        (
+                            JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
+                                .map { it } as List<JSONObject>
+                            )
+                            .map { it.getString("beløp") }
+                            .all { it == "13 579" } // 18308 - 4729 = 13579
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                    }
+                }
+        }
+    }
+
+    @Test
+    fun `ignorerer statusoppdatering`() {
+        // Søknadsbehandling gir 20946 per måned for hele 2021.
+        // Utbetaler januar, siden klokka starter på 1.februar.
+        // Revurderer januar (nytt månedsbeløp 2638 siden vi har et fradrag på 18308)
+        // Får feilutbetaling på 18308 og forventer et tilsvarende kravgrunnlag.
+        val fraOgMedRevurdering = 1.januar(2021)
+        val tilOgMedRevurdering = 31.januar(2021)
+        withKomptestApplication(
+            clock = TikkendeKlokke(1.februar(2021).fixedClock()),
+        ) { appComponents ->
+            val (sakid, revurderingId) = vedtakMedTilbakekrevingUnderRevurdering(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+                appComponents = appComponents,
+                fraOgMedRevurdering = fraOgMedRevurdering.toString(),
+                tilOgMedRevurdering = tilOgMedRevurdering.toString(),
+            )
+
+            val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakInnvilgetRevurdering
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
+            val eksternVedtakId = appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(UUID.fromString(sakid)).let {
+                it.size shouldBe 1
+                it[0].eksternVedtakId
+            }
+            appComponents.emulerViMottarKravgrunnlagstatusendring(
+                saksnummer = vedtak.behandling.saksnummer.toString(),
+                fnr = vedtak.behandling.fnr.toString(),
+                eksternVedtakId = eksternVedtakId,
+            )
+            appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(UUID.fromString(sakid)).let {
+                it.size shouldBe 2
+            }
 
             appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
 
@@ -263,7 +371,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
-            appComponents.emulerViMottarKravgrunnlag()
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
@@ -359,7 +467,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 appComponents.databaseRepos.sak.hentSak(UUID.fromString(sakId))!!.vedtakListe.filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
                     .single().utbetalingId
 
-            appComponents.emulerViMottarKravgrunnlag(
+            appComponents.emulerViMottarKravgrunnlagDetaljer(
                 overstyrUtbetalingId = listOf(null, utbetalingIdForSøknadsbehandling),
             )
             appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
@@ -411,7 +519,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             }
             appComponents.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
                 råttKravgrunnlag = RåttKravgrunnlag(
-                    lagKravgrunnlagXml(
+                    lagKravgrunnlagDetaljerXml(
                         kravgrunnlag,
                         sak.fnr.toString(),
                     ),
@@ -473,7 +581,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             }
             appComponents.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
                 råttKravgrunnlag = RåttKravgrunnlag(
-                    lagKravgrunnlagXml(
+                    lagKravgrunnlagDetaljerXml(
                         kravgrunnlag,
                         sak.fnr.toString(),
                     ),
@@ -528,7 +636,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 .shouldBeType<VedtakInnvilgetRevurdering>().also {
                     it.behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
                 }
-            appComponents.emulerViMottarKravgrunnlag()
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().also {
@@ -573,7 +681,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 .shouldBeType<VedtakInnvilgetRevurdering>().also {
                     it.behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
                 }
-            appComponents.emulerViMottarKravgrunnlag()
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.sendTilbakekrevingsvedtakTilØkonomi()
 

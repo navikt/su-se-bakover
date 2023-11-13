@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
 import java.util.UUID
 
-fun KravgrunnlagPåSakHendelse.toJson(): String {
-    return KravgrunnlagPåSakDbJson(
+fun KravgrunnlagDetaljerPåSakHendelse.toJson(): String {
+    return KravgrunnlagDetaljerPåSakDbJson(
         kravgrunnlag = kravgrunnlag.toDbJson(),
         revurderingId = revurderingId?.toString(),
     ).let {
@@ -19,10 +19,10 @@ fun KravgrunnlagPåSakHendelse.toJson(): String {
     }
 }
 
-fun PersistertHendelse.toKravgrunnlagPåSakHendelse(): KravgrunnlagPåSakHendelse {
+fun PersistertHendelse.toKravgrunnlagDetaljerPåSakHendelse(): KravgrunnlagDetaljerPåSakHendelse {
     return Either.catch {
-        deserialize<KravgrunnlagPåSakDbJson>(this.data).let { json ->
-            KravgrunnlagPåSakHendelse.fraPersistert(
+        deserialize<KravgrunnlagDetaljerPåSakDbJson>(this.data).let { json ->
+            KravgrunnlagDetaljerPåSakHendelse.fraPersistert(
                 hendelseId = this.hendelseId,
                 hendelsestidspunkt = this.hendelsestidspunkt,
                 hendelseMetadata = this.defaultHendelseMetadata(),
@@ -41,9 +41,9 @@ fun PersistertHendelse.toKravgrunnlagPåSakHendelse(): KravgrunnlagPåSakHendels
 }
 
 /**
- * @see [tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse]
+ * @see [tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse]
  */
-private data class KravgrunnlagPåSakDbJson(
+private data class KravgrunnlagDetaljerPåSakDbJson(
     val kravgrunnlag: KravgrunnlagDbJson,
     val revurderingId: String?,
 )

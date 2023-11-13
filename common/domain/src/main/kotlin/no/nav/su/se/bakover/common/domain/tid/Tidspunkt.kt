@@ -47,6 +47,7 @@ constructor(
         val EPOCH: Tidspunkt get() = Instant.EPOCH.toTidspunkt()
         val MIN: Tidspunkt get() = Instant.MIN.toTidspunkt()
         fun now(clock: Clock = Clock.systemUTC()) = Tidspunkt(Instant.now(clock))
+        fun parse(text: String) = Tidspunkt(Instant.parse(text))
     }
 
     /**

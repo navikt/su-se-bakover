@@ -4,13 +4,46 @@ data class KravgrunnlagPåSakHendelser(
     val hendelser: List<KravgrunnlagPåSakHendelse>,
 ) : List<KravgrunnlagPåSakHendelse> by hendelser {
 
+    val detaljerSortert = hendelser
+        .filterIsInstance<KravgrunnlagDetaljerPåSakHendelse>()
+        .filter {
+            // Dersom revurderingId != null har den blitt behandlet i revurderingen og skal ikke behandles på nytt.
+            it.revurderingId == null
+        }.sortedBy { it.eksternTidspunkt.instant }
+
+    val statusendringerSortert = hendelser
+        .filterIsInstance<KravgrunnlagStatusendringPåSakHendelse>()
+        .sortedBy { it.eksternTidspunkt.instant }
+
     fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
-        return hendelser
-            .filter {
-                // Dersom revurderingId != null har den blitt behandlet i revurderingen og skal ikke behandles på nytt.
-                it.revurderingId == null
-            }
+        return detaljerSortert
             .map { it.kravgrunnlag }
             .maxByOrNull { it.eksternTidspunkt.instant }
+            ?.let { kravgrunnlag ->
+                hentSisteStatusEtterTidspunkt(kravgrunnlag)?.let {
+                    kravgrunnlag.copy(status = it)
+                } ?: kravgrunnlag
+            }
+    }
+
+    fun hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(eksternKravgrunnlagId: String): KravgrunnlagDetaljerPåSakHendelse? {
+        return detaljerSortert
+            .singleOrNull { it.kravgrunnlag.eksternKravgrunnlagId == eksternKravgrunnlagId }
+            ?.let { hendelse ->
+                hentSisteStatusEtterTidspunkt(hendelse.kravgrunnlag)?.let {
+                    hendelse.copy(
+                        kravgrunnlag = hendelse.kravgrunnlag.copy(
+                            status = it,
+                        ),
+                    )
+                } ?: hendelse
+            }
+    }
+
+    private fun hentSisteStatusEtterTidspunkt(kravgrunnlag: Kravgrunnlag): Kravgrunnlagstatus? {
+        return statusendringerSortert
+            .filter { it.eksternVedtakId == kravgrunnlag.eksternVedtakId }
+            .lastOrNull { it.eksternTidspunkt > kravgrunnlag.eksternTidspunkt }
+            ?.status
     }
 }

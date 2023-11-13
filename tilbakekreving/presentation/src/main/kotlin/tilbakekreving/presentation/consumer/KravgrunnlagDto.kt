@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import java.time.format.DateTimeFormatter
 
 /**
@@ -271,3 +272,18 @@ data class KravgrunnlagDto(
 val kontrollfeltFormatter: DateTimeFormatter = DateTimeFormatter
     .ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
     .withZone(zoneIdOslo)
+
+internal fun String.toKravgrunnlagstatus(): Kravgrunnlagstatus {
+    return when (this) {
+        "ANNU" -> Kravgrunnlagstatus.Annulert
+        "ANOM" -> Kravgrunnlagstatus.AnnulertVedOmg
+        "AVSL" -> Kravgrunnlagstatus.Avsluttet
+        "BEHA" -> Kravgrunnlagstatus.Ferdigbehandlet
+        "ENDR" -> Kravgrunnlagstatus.Endret
+        "FEIL" -> Kravgrunnlagstatus.Feil
+        "MANU" -> Kravgrunnlagstatus.Manuell
+        "NY" -> Kravgrunnlagstatus.Nytt
+        "SPER" -> Kravgrunnlagstatus.Sperret
+        else -> throw IllegalArgumentException("Ukjent kravgrunnlagstatus fra oppdrag: $this. Forventet en av: ANNU/ANOM/AVSL/BEHA/ENDR/FEIL/MANU/NY/SPER")
+    }
+}

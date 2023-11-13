@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
-import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.person.Fnr
@@ -9,14 +7,12 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlag
+import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
-import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 internal class TilbakekrevingsbehandlingIT {
@@ -52,7 +48,7 @@ internal class TilbakekrevingsbehandlingIT {
             ).let {
                 RevurderingJson.hentRevurderingId(it)
             }
-            appComponents.emulerViMottarKravgrunnlag()
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = opprettTilbakekrevingsbehandling(
                 sakId = sakId,
@@ -93,8 +89,6 @@ internal class TilbakekrevingsbehandlingIT {
                 appComponents.journalførDokmenter(versjonEtterGenereringAvForhåndsvarselsDokument)
             appComponents.verifiserJournalførDokumenterKonsument(1)
 
-            // Saksversjon 6 vil være en synkron oppgave (TODO: skal bli asynkront)
-            // Saksversjon 7 vil være et synkront dokument (TODO: skal bli asynkront)
             val (vurderinger, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
@@ -227,18 +221,5 @@ internal class TilbakekrevingsbehandlingIT {
                 antallJournalførteDokumenter = 1,
             )
         }
-    }
-}
-
-private fun verifiserKravgrunnlagPåSak(
-    sakId: String,
-    client: HttpClient,
-    forventerKravgrunnlag: Boolean,
-    versjon: Int,
-) {
-    hentSak(sakId, client = client).also { sakJson ->
-        // Kravgrunnlaget vil være utestående så lenge vi ikke har iverksatt tilbakekrevingsbehandlingen.
-        JSONObject(sakJson).isNull("uteståendeKravgrunnlag") shouldBe !forventerKravgrunnlag
-        JSONObject(sakJson).getInt("versjon") shouldBe versjon
     }
 }

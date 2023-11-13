@@ -23,7 +23,8 @@ fun opprettTilbakekrevingsbehandling(
         ),
         versjon = forrigeVersjon.inc(),
         clock = clock,
-        kravgrunnlagsId = kravgrunnlag.eksternKravgrunnlagId,
+        // TODO jah: Denne bør byttes med en intern id, men da må vi migrere eksisterende kravgrunnlag knyttet til sak i produksjon.
+        eksternKravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
     ).let {
         it to it.toDomain(kravgrunnlag)
     }

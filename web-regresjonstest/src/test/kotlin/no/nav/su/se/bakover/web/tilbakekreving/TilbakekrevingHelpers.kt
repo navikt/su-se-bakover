@@ -3,11 +3,14 @@ package no.nav.su.se.bakover.web.tilbakekreving
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsekonsumenterPostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 import java.util.UUID
 
 internal fun AppComponents.opprettOppgave(saksversjon: Long): Long {
@@ -129,5 +132,18 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
                 it.string("hendelseId")
             }.single()
         }
+    }
+}
+
+internal fun verifiserKravgrunnlagPåSak(
+    sakId: String,
+    client: HttpClient,
+    forventerKravgrunnlag: Boolean,
+    versjon: Int,
+) {
+    hentSak(sakId, client = client).also { sakJson ->
+        // Kravgrunnlaget vil være utestående så lenge vi ikke har iverksatt tilbakekrevingsbehandlingen.
+        JSONObject(sakJson).isNull("uteståendeKravgrunnlag") shouldBe !forventerKravgrunnlag
+        JSONObject(sakJson).getInt("versjon") shouldBe versjon
     }
 }

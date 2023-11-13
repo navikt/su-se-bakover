@@ -49,6 +49,7 @@ fun startServer() {
 }
 
 val mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag
+val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagPåSakHendelse
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -110,7 +111,7 @@ fun Application.susebakover(
                 sakService = services.sak,
                 tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
                 oppgaveService = services.oppgave,
-                mapRåttKravgrunnlag = mapRåttKravgrunnlag,
+                mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                 hendelseRepo = repos.hendelseRepo,
                 brevService = services.brev,

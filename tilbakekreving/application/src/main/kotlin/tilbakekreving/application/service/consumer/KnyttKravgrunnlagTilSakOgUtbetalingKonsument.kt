@@ -2,19 +2,13 @@ package tilbakekreving.application.service.consumer
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
-import arrow.core.toNonEmptyListOrNone
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
@@ -22,20 +16,18 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import java.time.Clock
-import java.util.UUID
 
 class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private val kravgrunnlagRepo: KravgrunnlagRepo,
     private val tilbakekrevingService: TilbakekrevingService,
     private val sakService: SakService,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+    private val mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
 ) : Hendelseskonsument {
@@ -59,77 +51,34 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                         log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
                         return@forEach
                     }
-                val kravgrunnlagPåHendelsen = mapRåttKravgrunnlag(råttKravgrunnlagHendelse.råttKravgrunnlag).getOrElse {
-                    log.error("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for hendelseId $hendelseId. Denne vil prøves på nytt.", it)
-                    return@forEach
-                }
-                val saksnummer = kravgrunnlagPåHendelsen.saksnummer
-                val sak = sakService.hentSak(saksnummer).getOrElse {
-                    log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke sak med saksnummer $saksnummer, hendelse $hendelseId. Denne vil prøves på nytt.")
-                    return@forEach
-                }
-                if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sak.id).any {
-                        it.kravgrunnlag.eksternKravgrunnlagId == kravgrunnlagPåHendelsen.eksternKravgrunnlagId
-                    }
-                ) {
-                    log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId ${kravgrunnlagPåHendelsen.eksternKravgrunnlagId} på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
-                    hendelsekonsumenterRepo.lagre(
-                        hendelseId = råttKravgrunnlagHendelse.hendelseId,
-                        konsumentId = konsumentId,
-                    )
-                    return@forEach
-                }
-                val utbetaling =
-                    sak.utbetalinger.filter { it.id == kravgrunnlagPåHendelsen.utbetalingId }.toNonEmptyListOrNone()
-                        .getOrElse {
-                            log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke utbetaling med id ${kravgrunnlagPåHendelsen.utbetalingId} på sak $saksnummer og hendelse $hendelseId. Kanskje den ikke er opprettet enda? Prøver igjen ved neste kjøring.")
-                            return@forEach
-                        }.single()
-                when (utbetaling) {
-                    is Utbetaling.SimulertUtbetaling,
-                    is Utbetaling.UtbetalingForSimulering,
-                    is Utbetaling.OversendtUtbetaling.UtenKvittering,
-                    -> {
-                        log.error("Kunne ikke prosessere kravgrunnlag: Utbetalingen skal ikke være i tilstanden ${utbetaling::class.simpleName} for utbetalingId ${utbetaling.id} og hendelse $hendelseId")
+                val (sak, kravgrunnlagPåSakHendelse) =
+                    mapRåttKravgrunnlag(
+                        råttKravgrunnlagHendelse,
+                        correlationId,
+                        { saksnummer ->
+                            sakService.hentSak(saksnummer).mapLeft {
+                                IllegalStateException("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
+                            }
+                        },
+                        clock,
+                    ).getOrElse {
+                        log.error(
+                            "Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for hendelseId $hendelseId. Denne vil prøves på nytt.",
+                            it,
+                        )
                         return@forEach
                     }
+                when (kravgrunnlagPåSakHendelse) {
+                    is KravgrunnlagDetaljerPåSakHendelse -> prosesserDetaljer(
+                        sak = sak,
+                        hendelseId = hendelseId,
+                        kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                    )
 
-                    is Utbetaling.OversendtUtbetaling.MedKvittering -> {
-                        val revurdering =
-                            finnRevurderingKnyttetTilKravgrunnlag(
-                                sak,
-                                kravgrunnlagPåHendelsen,
-                            ).getOrElse { return@forEach }
-                        val nyHendelse =
-                            nyHendelse(
-                                sak,
-                                correlationId,
-                                råttKravgrunnlagHendelse,
-                                kravgrunnlagPåHendelsen,
-                                revurdering?.id,
-                            )
-                        val mottatt = revurdering?.let {
-                            (revurdering.tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
-                                kravgrunnlag = kravgrunnlagPåHendelsen,
-                                kravgrunnlagMottatt = Tidspunkt.now(clock),
-                                hentRevurdering = { revurdering },
-                            )
-                        }
-
-                        sessionFactory.withTransactionContext { tx ->
-                            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(nyHendelse, tx)
-                            hendelsekonsumenterRepo.lagre(
-                                hendelseId = råttKravgrunnlagHendelse.hendelseId,
-                                konsumentId = konsumentId,
-                                context = tx,
-                            )
-                            if (mottatt != null) {
-                                // I en overgangsfase erstatter denne det den gamle kravgrunnlagkonsumeren gjorde. Disse plukkes opp av jobben [no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering]
-                                tilbakekrevingService.lagre(mottatt)
-                                log.info("Oppdaterte revurderingen sin tilbakekrevingsbehandling ${mottatt.avgjort.id} til mottatt kravgrunnlag for revurdering ${mottatt.avgjort.revurderingId}")
-                            }
-                        }
-                    }
+                    is KravgrunnlagStatusendringPåSakHendelse -> prosesserStatus(
+                        hendelseId = hendelseId,
+                        kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                    )
                 }
             }
         }.onLeft {
@@ -137,60 +86,63 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         }
     }
 
-    private object Tilstandsfeil
-
-    private fun nyHendelse(
-        sak: Sak,
-        correlationId: CorrelationId,
-        råttKravgrunnlagHendelse: RåttKravgrunnlagHendelse,
-        kravgrunnlag: Kravgrunnlag,
-        revurderingId: UUID?,
-    ): KravgrunnlagPåSakHendelse {
-        return KravgrunnlagPåSakHendelse(
-            hendelseId = HendelseId.generer(),
-            versjon = sak.versjon.inc(),
-            sakId = sak.id,
-            hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
-            tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
-            kravgrunnlag = kravgrunnlag,
-            revurderingId = revurderingId,
-        )
+    private fun prosesserStatus(
+        hendelseId: HendelseId,
+        kravgrunnlagPåSakHendelse: KravgrunnlagStatusendringPåSakHendelse,
+    ) {
+        // Statusendringene har ikke noen unik indikator i seg selv, annet enn JMS-meldingen sin id. Siden vi ikke får til noen god dedup. så vi aksepterer alle statusendringer.
+        sessionFactory.withTransactionContext { tx ->
+            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(kravgrunnlagPåSakHendelse, tx)
+            hendelsekonsumenterRepo.lagre(
+                hendelseId = hendelseId,
+                konsumentId = konsumentId,
+                context = tx,
+            )
+        }
     }
 
-    private fun finnRevurderingKnyttetTilKravgrunnlag(
+    private fun prosesserDetaljer(
         sak: Sak,
-        kravgrunnlag: Kravgrunnlag,
-    ): Either<Tilstandsfeil, IverksattRevurdering?> {
-        val avventerKravgrunnlag = sak.revurderinger
-            .filterIsInstance<IverksattRevurdering>()
-            .filter { it.tilbakekrevingsbehandling is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag }
+        hendelseId: HendelseId,
+        kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
+    ) {
+        val kravgrunnlag = kravgrunnlagPåSakHendelse.kravgrunnlag
+        val eksternKravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId
+        val sakId = sak.id
+        val saksnummer = sak.saksnummer
 
-        return when (avventerKravgrunnlag.size) {
-            0 -> null.right()
-            1 -> {
-                val revurdering = avventerKravgrunnlag.single()
-                val matcherUtbetalingId = sak.vedtakListe
-                    .filterIsInstance<Revurderingsvedtak>()
-                    .any { it.behandling.id == revurdering.id && it.utbetalingId == kravgrunnlag.utbetalingId }
-
-                if (matcherUtbetalingId) {
-                    revurdering.right()
-                } else {
-                    log.error(
-                        "Mottok et kravgrunnlag med utbetalingId ${kravgrunnlag.utbetalingId} som ikke matcher revurderingId ${revurdering.id}(avventer kravgrunnlag) på sak ${sak.id}. Denne kommer sannsynligvis til å feile igjen.",
-                        RuntimeException("Trigger stacktrace"),
-                    )
-                    Tilstandsfeil.left()
-                }
+        if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId).detaljerSortert.any {
+                it.kravgrunnlag.eksternKravgrunnlagId == eksternKravgrunnlagId
             }
+        ) {
+            log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId $eksternKravgrunnlagId på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
+            hendelsekonsumenterRepo.lagre(
+                hendelseId = hendelseId,
+                konsumentId = konsumentId,
+            )
+            return
+        }
+        sessionFactory.withTransactionContext { tx ->
+            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(kravgrunnlagPåSakHendelse, tx)
+            hendelsekonsumenterRepo.lagre(
+                hendelseId = hendelseId,
+                konsumentId = konsumentId,
+                context = tx,
+            )
+            val revurderingId = kravgrunnlagPåSakHendelse.revurderingId
+            if (revurderingId != null) {
+                val revurdering = sak.hentRevurdering(revurderingId).getOrNull() as IverksattRevurdering
 
-            else -> {
-                log.error(
-                    "Fant flere revurderinger med tilbakekrevingsbehandling av typen Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag på sak ${sak.id}. Denne kommer sannsynligvis til å feile igjen.",
-                    RuntimeException("Trigger stacktrace"),
-                )
-                Tilstandsfeil.left()
+                (revurdering.tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
+                    kravgrunnlag = kravgrunnlag,
+                    kravgrunnlagMottatt = Tidspunkt.now(clock),
+                    hentRevurdering = { revurdering },
+                )?.also { mottattKravgrunnlagForRevurdering ->
+                    // I en overgangsfase erstatter denne det den gamle kravgrunnlagkonsumeren gjorde. Disse plukkes opp av jobben [no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering]
+                    tilbakekrevingService.lagre(mottattKravgrunnlagForRevurdering)
+                    log.info("Oppdaterte revurderingen sin tilbakekreving ${mottattKravgrunnlagForRevurdering.avgjort.id} til mottatt kravgrunnlag for revurdering ${mottattKravgrunnlagForRevurdering.avgjort.revurderingId}")
+                }
+                    ?: log.error("Knyttet kravgrunnlag til sak for revurdering $revurderingId, sak $sakId. Forventet: avventet kravgrunnlag, men typen var: ${revurdering.tilbakekrevingsbehandling::class}")
             }
         }
     }

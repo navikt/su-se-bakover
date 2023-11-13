@@ -17,13 +17,13 @@ data class Kravgrunnlag(
     /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
     val eksternVedtakId: String,
 
-    /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system*/
+    /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system, men brukes for å utlede eksternTidspunkt. Kan være på formatet: 2023-09-19-10.01.03.842916.*/
     val eksternKontrollfelt: String,
 
     /** Formatert [eksternKontrollfelt], kan brukes til å sortere hendelsene på en sak. */
     val eksternTidspunkt: Tidspunkt,
 
-    val status: KravgrunnlagStatus,
+    val status: Kravgrunnlagstatus,
 
     /**
      * Saksbehandleren/Attestanten knyttet til vedtaket/utbetalinga.
@@ -31,7 +31,9 @@ data class Kravgrunnlag(
      * Oppdrag har ikke skillet mellom saksbehandler/attestant (men bruker ofte ordet saksbehandler).
      */
     val behandler: String,
+    /**  Mappes fra referansefeltet i kravgrunnlaget. En referanse til utbetalingId (vår) som førte til opprettelse/endring av dette kravgrunnlaget. Usikker på om denne kan være null dersom det var en manuell endring som førte til opprettelse av kravgrunnlaget. */
     val utbetalingId: UUID30,
+    /** En eller flere måneder kravgrunnlaget knyttes mot. Antar at det finnes minst ett element i lista. */
     val grunnlagsmåneder: List<Grunnlagsmåned>,
 ) {
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
@@ -114,19 +116,5 @@ data class Kravgrunnlag(
             val beløpSkalTilbakekreves: Int,
             val beløpSkalIkkeTilbakekreves: Int,
         )
-    }
-
-    enum class KravgrunnlagStatus {
-        Annulert,
-
-        /** Kommentar jah: Gjetter på omg står for omgjøring. */
-        AnnulertVedOmg,
-        Avsluttet,
-        Ferdigbehandlet,
-        Endret,
-        Feil,
-        Manuell,
-        Nytt,
-        Sperret,
     }
 }

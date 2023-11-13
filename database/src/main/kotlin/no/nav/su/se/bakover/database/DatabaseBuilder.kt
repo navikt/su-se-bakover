@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database
 
-import arrow.core.Either
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -62,10 +61,9 @@ import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHend
 import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import java.time.Clock
 import javax.sql.DataSource
 
@@ -76,7 +74,7 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper>,
-        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+        råttKravgrunnlagMapper: MapRåttKravgrunnlag,
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
@@ -112,7 +110,7 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
-        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+        råttKravgrunnlagMapper: MapRåttKravgrunnlag,
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
         return buildInternal(
@@ -153,7 +151,7 @@ data object DatabaseBuilder {
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
         queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
-        råttKravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+        råttKravgrunnlagMapper: MapRåttKravgrunnlag,
     ): DatabaseRepos {
         val sessionCounter = SessionCounter()
         val sessionFactory = PostgresSessionFactory(
