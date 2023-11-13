@@ -1,7 +1,7 @@
 package tilbakekreving.domain.kravgrunnlag
 
 data class KravgrunnlagPåSakHendelser(
-    val hendelser: List<KravgrunnlagPåSakHendelse>,
+    private val hendelser: List<KravgrunnlagPåSakHendelse>,
 ) : List<KravgrunnlagPåSakHendelse> by hendelser {
 
     val detaljerSortert = hendelser
@@ -15,6 +15,9 @@ data class KravgrunnlagPåSakHendelser(
         .filterIsInstance<KravgrunnlagStatusendringPåSakHendelse>()
         .sortedBy { it.eksternTidspunkt.instant }
 
+    /**
+     * TODO - må ta stilling til om den er svart på
+     */
     fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
         return detaljerSortert
             .map { it.kravgrunnlag }

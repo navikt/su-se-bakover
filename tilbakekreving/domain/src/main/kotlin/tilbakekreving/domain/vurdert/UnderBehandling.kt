@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Vurderinger
-import java.lang.IllegalStateException
 import java.util.UUID
 
 /**
@@ -106,22 +105,6 @@ sealed interface UnderBehandling :
             )
         }
 
-        override fun oppdaterKravgrunnlag(
-            hendelseId: HendelseId,
-            versjon: Hendelsesversjon,
-            nyttKravgrunnlag: Kravgrunnlag,
-        ): Påbegynt {
-            if (this.kravgrunnlag.eksternKravgrunnlagId == nyttKravgrunnlag.eksternKravgrunnlagId) {
-                throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-id'en er lik")
-            }
-            return this.copy(
-                hendelseId = hendelseId,
-                versjon = versjon,
-                månedsvurderinger = null,
-                kravgrunnlag = nyttKravgrunnlag,
-            )
-        }
-
         override fun leggTilVurderinger(
             månedsvurderinger: Vurderinger,
             hendelseId: HendelseId,
@@ -201,24 +184,5 @@ sealed interface UnderBehandling :
         )
 
         override fun erÅpen() = true
-        override fun oppdaterKravgrunnlag(
-            hendelseId: HendelseId,
-            versjon: Hendelsesversjon,
-            nyttKravgrunnlag: Kravgrunnlag,
-        ): Påbegynt {
-            if (this.kravgrunnlag.eksternKravgrunnlagId == nyttKravgrunnlag.eksternKravgrunnlagId) {
-                throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-id'en er lik")
-            }
-
-            return Påbegynt(
-                hendelseId = hendelseId,
-                versjon = versjon,
-                månedsvurderinger = null,
-                kravgrunnlag = nyttKravgrunnlag,
-                forrigeSteg = this,
-                vedtaksbrevvalg = this.vedtaksbrevvalg,
-                forhåndsvarselsInfo = this.forhåndsvarselsInfo,
-            )
-        }
     }
 }

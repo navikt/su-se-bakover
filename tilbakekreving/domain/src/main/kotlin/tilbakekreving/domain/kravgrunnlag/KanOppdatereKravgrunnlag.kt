@@ -16,12 +16,6 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
     override val erKravgrunnlagUtdatert: Boolean
 
     fun oppdaterKravgrunnlag(
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-        nyttKravgrunnlag: Kravgrunnlag,
-    ): UnderBehandling.Påbegynt
-
-    fun oppdaterKravgrunnlag(
         command: OppdaterKravgrunnlagCommand,
         nesteVersjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
