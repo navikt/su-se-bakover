@@ -51,6 +51,7 @@ class OpprettTilbakekrevingsbehandlingService(
                 forrigeVersjon = sak.versjon,
                 clock = clock,
                 kravgrunnlag = k,
+                erKravgrunnlagUtdatert = false,
             ).let { (hendelse, behandling) ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse)
                 behandling.right()

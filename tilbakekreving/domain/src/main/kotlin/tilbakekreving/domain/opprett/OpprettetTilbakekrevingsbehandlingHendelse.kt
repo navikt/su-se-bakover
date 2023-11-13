@@ -68,11 +68,11 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         throw IllegalArgumentException("En tilbakekrevingsbehandling kan kun starte med en Opprettet hendelse ${this.hendelseId}, for sak ${this.sakId} ")
     }
 
-    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse): OpprettetTilbakekrevingsbehandling {
-        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag)
+    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
+        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
     }
 
-    fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
         require(kravgrunnlag.eksternKravgrunnlagId == this.kravgrunnlagsId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
@@ -82,6 +82,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             kravgrunnlag = kravgrunnlag,
             versjon = versjon,
             hendelseId = hendelseId,
+            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
         )
     }
 }

@@ -95,11 +95,16 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             val hendelseId = hendelse.hendelseId
             when (hendelse) {
                 // Dette gjelder kun første hendelsen og er et spesialtilfelle.
-                is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
-                    hendelseId to hendelse.toDomain(
-                        kravgrunnlagPåSakHendelse = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagsId)!!,
-                    ),
-                )
+                is OpprettetTilbakekrevingsbehandlingHendelse -> {
+                    val kravgrunnlagsDetalje = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagsId)!!
+
+                    acc.plus(
+                        hendelseId to hendelse.toDomain(
+                            kravgrunnlagPåSakHendelse = kravgrunnlagsDetalje,
+                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentUteståendeKravgrunnlag() != kravgrunnlagsDetalje.kravgrunnlag,
+                        ),
+                    )
+                }
 
                 else -> acc.plus(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId!!]!!),

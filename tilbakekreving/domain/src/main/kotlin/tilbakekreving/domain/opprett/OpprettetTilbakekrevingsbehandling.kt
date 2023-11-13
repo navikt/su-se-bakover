@@ -23,6 +23,7 @@ data class OpprettetTilbakekrevingsbehandling(
     override val kravgrunnlag: Kravgrunnlag,
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
+    override val erKravgrunnlagUtdatert: Boolean,
 ) : KanForhåndsvarsle, KanVurdere, KanOppdatereKravgrunnlag {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()

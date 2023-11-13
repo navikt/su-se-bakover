@@ -13,6 +13,7 @@ import java.time.Clock
 
 sealed interface KanOppdatereKravgrunnlag : KanEndres {
     override val kravgrunnlag: Kravgrunnlag
+    override val erKravgrunnlagUtdatert: Boolean
 
     fun oppdaterKravgrunnlag(
         hendelseId: HendelseId,

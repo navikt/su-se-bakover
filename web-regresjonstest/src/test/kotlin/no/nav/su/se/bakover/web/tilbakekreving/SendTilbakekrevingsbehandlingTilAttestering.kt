@@ -105,7 +105,8 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",
   "versjon": $expectedVersjon,
-  "attesteringer": $expectedAttesteringer
+  "attesteringer": $expectedAttesteringer,
+  "erKravgrunnlagUtdatert": false
 }"""
     JSONAssert.assertEquals(
         expected,
