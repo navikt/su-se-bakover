@@ -109,14 +109,12 @@ sealed interface UnderBehandling :
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
             nyttKravgrunnlag: Kravgrunnlag,
-        ): KanOppdatereKravgrunnlag {
-            return this.copy(
-                hendelseId = hendelseId,
-                versjon = versjon,
-                månedsvurderinger = null,
-                kravgrunnlag = nyttKravgrunnlag,
-            )
-        }
+        ): Påbegynt = this.copy(
+            hendelseId = hendelseId,
+            versjon = versjon,
+            månedsvurderinger = null,
+            kravgrunnlag = nyttKravgrunnlag,
+        )
 
         override fun leggTilVurderinger(
             månedsvurderinger: Vurderinger,
@@ -201,16 +199,14 @@ sealed interface UnderBehandling :
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
             nyttKravgrunnlag: Kravgrunnlag,
-        ): KanOppdatereKravgrunnlag {
-            return Påbegynt(
-                hendelseId = hendelseId,
-                versjon = versjon,
-                månedsvurderinger = null,
-                kravgrunnlag = nyttKravgrunnlag,
-                forrigeSteg = this,
-                vedtaksbrevvalg = this.vedtaksbrevvalg,
-                forhåndsvarselsInfo = this.forhåndsvarselsInfo,
-            )
-        }
+        ): Påbegynt = Påbegynt(
+            hendelseId = hendelseId,
+            versjon = versjon,
+            månedsvurderinger = null,
+            kravgrunnlag = nyttKravgrunnlag,
+            forrigeSteg = this,
+            vedtaksbrevvalg = this.vedtaksbrevvalg,
+            forhåndsvarselsInfo = this.forhåndsvarselsInfo,
+        )
     }
 }

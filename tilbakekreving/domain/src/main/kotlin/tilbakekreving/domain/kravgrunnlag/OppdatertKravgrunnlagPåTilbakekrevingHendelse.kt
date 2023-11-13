@@ -29,7 +29,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): KanOppdatereKravgrunnlag {
+    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Påbegynt {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,

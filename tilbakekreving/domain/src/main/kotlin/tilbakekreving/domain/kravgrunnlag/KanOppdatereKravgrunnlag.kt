@@ -11,18 +11,20 @@ import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
 import java.time.Clock
 
 sealed interface KanOppdatereKravgrunnlag : KanEndres {
+    override val kravgrunnlag: Kravgrunnlag
+
     fun oppdaterKravgrunnlag(
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
-    ): KanOppdatereKravgrunnlag
+    ): UnderBehandling.Påbegynt
 
     fun oppdaterKravgrunnlag(
         command: OppdaterKravgrunnlagCommand,
         nesteVersjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
         clock: Clock,
-    ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, KanOppdatereKravgrunnlag> {
+    ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, UnderBehandling.Påbegynt> {
         val hendelse = OppdatertKravgrunnlagPåTilbakekrevingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = command.sakId,

@@ -63,7 +63,13 @@ data class OpprettetTilbakekrevingsbehandling(
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
-    ): KanOppdatereKravgrunnlag {
-        return this.copy(kravgrunnlag = nyttKravgrunnlag, versjon = versjon, hendelseId = hendelseId)
-    }
+    ): UnderBehandling.Påbegynt = UnderBehandling.Påbegynt(
+        forrigeSteg = this,
+        hendelseId = hendelseId,
+        versjon = versjon,
+        månedsvurderinger = this.månedsvurderinger,
+        forhåndsvarselsInfo = this.forhåndsvarselsInfo,
+        vedtaksbrevvalg = this.vedtaksbrevvalg,
+        kravgrunnlag = nyttKravgrunnlag,
+    )
 }
