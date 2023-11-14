@@ -634,6 +634,8 @@ class TestDataHelper(
                     kravgrunnlag = it,
                     sakId = sak.id,
                     tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
+                    // Siden vi genererer en ny hendelseId på kravgrunnlaget som ligger på saken, må vi bruke den her.
+                    hendelseId = it.hendelseId,
                 )
                 kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
                     kravgrunnlagPåSakHendelse,
@@ -1765,6 +1767,7 @@ class TestDataHelper(
                     nyIverksattTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it)
                         // Ingen asynke hendelser trigger av denne hendelsen.
@@ -1786,6 +1789,7 @@ class TestDataHelper(
                     nyTilbakekrevingsbehandlingTilAttesteringHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it)
                         // Ingen asynke hendelser trigger av denne hendelsen.
@@ -1807,6 +1811,7 @@ class TestDataHelper(
                     nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it)
                         // Ingen asynke hendelser trigger av denne hendelsen.
@@ -1828,6 +1833,7 @@ class TestDataHelper(
                     nyVurdertTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it)
                         // Ingen asynke hendelser trigger av denne hendelsen.
@@ -1853,6 +1859,7 @@ class TestDataHelper(
                             forrigeHendelse = it.seventh,
                             // Oppgaven blir lagret etter.
                             versjon = it.eighth.versjon.inc(),
+                            kravgrunnlagPåSakHendelseId = it.sixth.kravgrunnlag.hendelseId,
                         ).also {
                             tilbakekrevingHendelseRepo.lagre(it)
                             // TODO jah: Utføres en asynk oppgave+dokumenthendelse etter dette.
@@ -1879,7 +1886,7 @@ class TestDataHelper(
         ).let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) ->
             nyOpprettetTilbakekrevingsbehandlingHendelse(
                 sakId = sak.id,
-                kravgrunnlagsId = sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId ?: "fake kravgrunnlagsId",
+                kravgrunnlagPåSakHendelseId = sak.uteståendeKravgrunnlag!!.hendelseId,
                 versjon = sak.versjon.inc(),
             ).let { opprettetHendelse ->
                 tilbakekrevingHendelseRepo.lagre(opprettetHendelse)
@@ -1905,6 +1912,7 @@ class TestDataHelper(
             nyAvbruttTilbakekrevingsbehandlingHendelse(
                 forrigeHendelse = opprettetHendelse,
                 versjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)!!.inc(),
+                kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelse.hendelseId,
             ).let { avbruttHendelse ->
                 tilbakekrevingHendelseRepo.lagre(avbruttHendelse)
                 val oppgaveHendelse = persisterOppgaveHendelseFraRelatertHendelse { avbruttHendelse }

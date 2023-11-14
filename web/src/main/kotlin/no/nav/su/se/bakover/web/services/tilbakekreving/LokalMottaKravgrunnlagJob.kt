@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.simulering.deserializeSimulering
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.RåttKravgrunnlagService
@@ -99,11 +100,14 @@ fun lagKravgrunnlagDetaljerXml(
     utbetalingId: UUID30,
     clock: Clock,
 ): String {
+    // TODO jah: Litt rart at vi går via Kravgrunnlag for å emulere oppdrag sin xml
     val kravgrunnlag = genererKravgrunnlagFraSimulering(
         saksnummer = saksnummer,
         simulering = simulering,
         utbetalingId = utbetalingId,
         clock = clock,
+        // Denne brukes ikke siden vi mapper til XML.
+        kravgrunnlagPåSakHendelseId = HendelseId.generer(),
     )
     return lagKravgrunnlagDetaljerXml(
         kravgrunnlag = kravgrunnlag,
@@ -188,8 +192,10 @@ fun genererKravgrunnlagFraSimulering(
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
     status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     skatteprosent: BigDecimal = BigDecimal("50"),
+    kravgrunnlagPåSakHendelseId: HendelseId,
 ): Kravgrunnlag {
     return Kravgrunnlag(
+        hendelseId = kravgrunnlagPåSakHendelseId,
         saksnummer = saksnummer,
         eksternKravgrunnlagId = eksternKravgrunnlagId,
         eksternVedtakId = eksternVedtakId,

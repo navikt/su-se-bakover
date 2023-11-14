@@ -90,7 +90,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                     // Denne blir generert av domenet.
                     id = it.id,
                     opprettetAv = opprettetAv,
-                    kravgrunnlagsId = kravgrunnlag.eksternKravgrunnlagId,
+                    kravgrunnlagPåSakHendelseId = kravgrunnlag.hendelseId,
                 )
             },
             anyOrNull(),

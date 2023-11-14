@@ -28,7 +28,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val meta: DefaultHendelseMetadata,
     override val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
-    val kravgrunnlagsId: String,
+    val kravgrunnlagPåSakHendelseId: HendelseId,
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val utførtAv: NavIdentBruker.Saksbehandler = opprettetAv
@@ -52,7 +52,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             meta: DefaultHendelseMetadata,
             versjon: Hendelsesversjon,
             clock: Clock,
-            eksternKravgrunnlagId: String,
+            kravgrunnlagPåSakHendelseId: HendelseId,
         ) = OpprettetTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -61,19 +61,19 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             versjon = versjon,
             meta = meta,
             id = TilbakekrevingsbehandlingId.generer(),
-            kravgrunnlagsId = eksternKravgrunnlagId,
+            kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         )
     }
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): Tilbakekrevingsbehandling {
-        throw IllegalArgumentException("En tilbakekrevingsbehandling kan kun starte med en Opprettet hendelse ${this.hendelseId}, for sak ${this.sakId} ")
-    }
 
-    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(
+        kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
+        erKravgrunnlagUtdatert: Boolean,
+    ): OpprettetTilbakekrevingsbehandling {
         return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
     }
 
     fun toDomain(kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
-        require(kravgrunnlag.eksternKravgrunnlagId == this.kravgrunnlagsId)
+        require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
             sakId = sakId,

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -133,6 +134,8 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
                     // Vi har ikke laget et vedtak her.
                     utbetalingId = UUID30.randomUUID(),
                     clock = clock,
+                    // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
+                    kravgrunnlagPåSakHendelseId = HendelseId.generer(),
                 ),
                 kravgrunnlagMottatt = fixedTidspunkt,
                 hentRevurdering = { iverksatt },

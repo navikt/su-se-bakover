@@ -58,7 +58,7 @@ data class UnderkjentHendelse(
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling,

@@ -21,7 +21,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val oppdatertKravgrunnlag: Kravgrunnlag,
+    val kravgrunnlagPåSakHendelseId: HendelseId,
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
@@ -29,7 +29,10 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Påbegynt {
+    fun applyToState(
+        behandling: Tilbakekrevingsbehandling,
+        kravgrunnlag: Kravgrunnlag,
+    ): UnderBehandling.Påbegynt {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
@@ -43,7 +46,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
                 månedsvurderinger = behandling.månedsvurderinger,
                 forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                 vedtaksbrevvalg = behandling.vedtaksbrevvalg,
-                kravgrunnlag = oppdatertKravgrunnlag,
+                kravgrunnlag = kravgrunnlag,
             )
         }
     }

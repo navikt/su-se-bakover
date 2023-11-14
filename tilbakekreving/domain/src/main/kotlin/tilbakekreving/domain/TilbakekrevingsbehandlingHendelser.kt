@@ -96,19 +96,50 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             when (hendelse) {
                 // Dette gjelder kun første hendelsen og er et spesialtilfelle.
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
-                    val kravgrunnlagsDetalje = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagsId)!!
+                    val kravgrunnlagsDetaljer = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!
 
                     acc.plus(
                         hendelseId to hendelse.toDomain(
-                            kravgrunnlagPåSakHendelse = kravgrunnlagsDetalje,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentUteståendeKravgrunnlag() != kravgrunnlagsDetalje.kravgrunnlag,
+                            kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
+                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentUteståendeKravgrunnlag() != kravgrunnlagsDetaljer.kravgrunnlag,
                         ),
                     )
                 }
 
-                else -> acc.plus(
-                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId!!]!!),
-                ).minus(hendelse.tidligereHendelseId!!)
+                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is BrevTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is TilAttesteringHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is IverksattHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is AvbruttHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is UnderkjentHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
+                is OppdatertKravgrunnlagPåTilbakekrevingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(
+                        acc[hendelse.tidligereHendelseId]!!,
+                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!.kravgrunnlag,
+                    ),
+                ).minus(hendelse.tidligereHendelseId)
             }
         }.values.toList().sortedBy { it.versjon }.let {
             Tilbakekrevingsbehandlinger(this.sakId, it)

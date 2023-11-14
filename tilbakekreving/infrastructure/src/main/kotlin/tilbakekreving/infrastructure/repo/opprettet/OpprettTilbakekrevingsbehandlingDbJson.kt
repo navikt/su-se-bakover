@@ -14,7 +14,7 @@ import java.util.UUID
 internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(
     val behandlingsId: UUID,
     val opprettetAv: String,
-    val eksternKravgrunnlagsId: String,
+    val kravgrunnlagPåSakHendelseId: String,
 ) {
     companion object {
         fun toDomain(
@@ -35,7 +35,7 @@ internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(
                 meta = meta,
                 id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
                 opprettetAv = NavIdentBruker.Saksbehandler(deserialized.opprettetAv),
-                kravgrunnlagsId = deserialized.eksternKravgrunnlagsId,
+                kravgrunnlagPåSakHendelseId = HendelseId.fromString(deserialized.kravgrunnlagPåSakHendelseId),
             )
         }
     }
@@ -45,8 +45,7 @@ internal fun OpprettetTilbakekrevingsbehandlingHendelse.toJson(): String {
     return OpprettTilbakekrevingsbehandlingHendelseDbJson(
         behandlingsId = this.id.value,
         opprettetAv = this.opprettetAv.navIdent,
-        // TODO - på sikt skal vi bruke en intern kravgrunnlags-id
-        eksternKravgrunnlagsId = this.kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = this.kravgrunnlagPåSakHendelseId.toString(),
     ).let {
         serialize(it)
     }

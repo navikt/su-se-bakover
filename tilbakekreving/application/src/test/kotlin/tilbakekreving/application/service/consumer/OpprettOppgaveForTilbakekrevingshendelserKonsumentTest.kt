@@ -63,7 +63,9 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             on {
                 hentHendelse(any(), anyOrNull())
             } doReturn nyOpprettetTilbakekrevingsbehandlingHendelse(
-                hendelseId = hendelseId, meta = meta,
+                hendelseId = hendelseId,
+                meta = meta,
+                kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             )
         }
         val personService = mock<PersonService> {

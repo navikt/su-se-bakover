@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
 import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsmånedDb
@@ -24,6 +25,7 @@ internal data class KravgrunnlagDbJson(
     val saksnummer: String,
     val grunnlagsmåneder: List<GrunnlagsmånedDb>,
     val eksternTidspunkt: Tidspunkt,
+    val hendelseId: String,
 ) {
     fun toDomain(): Kravgrunnlag {
         return Kravgrunnlag(
@@ -36,6 +38,7 @@ internal data class KravgrunnlagDbJson(
             grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDomain() },
             saksnummer = Saksnummer.parse(this.saksnummer),
             eksternTidspunkt = eksternTidspunkt,
+            hendelseId = HendelseId.fromString(hendelseId),
         )
     }
 
@@ -51,10 +54,15 @@ internal data class KravgrunnlagDbJson(
                 saksnummer = this.saksnummer.toString(),
                 grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDbJson() },
                 eksternTidspunkt = eksternTidspunkt,
+                hendelseId = this.hendelseId.toString(),
             )
         }
     }
 }
+
+/**
+ * [Deprecated] - denne brukes av den gamle kravgrunnlag under revurdering rutinen og kan slettes sammen med den.
+ */
 fun mapDbJsonToKravgrunnlag(value: String): Either<Throwable, Kravgrunnlag> {
     return Either.catch {
         deserialize<KravgrunnlagDbJson>(value).toDomain()

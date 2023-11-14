@@ -1,5 +1,7 @@
 package tilbakekreving.domain.kravgrunnlag
 
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
+
 data class KravgrunnlagPåSakHendelser(
     private val hendelser: List<KravgrunnlagPåSakHendelse>,
 ) : List<KravgrunnlagPåSakHendelse> by hendelser {
@@ -29,9 +31,11 @@ data class KravgrunnlagPåSakHendelser(
             }
     }
 
-    fun hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(eksternKravgrunnlagId: String): KravgrunnlagDetaljerPåSakHendelse? {
+    fun hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(
+        kravgrunnlagPåSakHendelseId: HendelseId,
+    ): KravgrunnlagDetaljerPåSakHendelse? {
         return detaljerSortert
-            .singleOrNull { it.kravgrunnlag.eksternKravgrunnlagId == eksternKravgrunnlagId }
+            .singleOrNull { it.hendelseId == kravgrunnlagPåSakHendelseId }
             ?.let { hendelse ->
                 hentSisteStatusEtterTidspunkt(hendelse.kravgrunnlag)?.let {
                     hendelse.copy(

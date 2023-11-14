@@ -51,6 +51,9 @@ data class KravgrunnlagDetaljerPåSakHendelse(
             kravgrunnlag: Kravgrunnlag,
             revurderingId: UUID?,
         ): KravgrunnlagDetaljerPåSakHendelse {
+            require(kravgrunnlag.hendelseId == hendelseId) {
+                "Den persisterte hendelseId $hendelseId var ulik den på kravgrunnlaget ${kravgrunnlag.hendelseId}."
+            }
             return KravgrunnlagDetaljerPåSakHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,

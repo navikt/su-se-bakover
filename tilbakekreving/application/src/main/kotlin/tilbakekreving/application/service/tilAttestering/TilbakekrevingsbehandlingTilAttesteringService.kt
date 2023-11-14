@@ -45,7 +45,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
                 ?: throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, behandlingen er ikke i tilstanden utfylt")
         }
 
-        if (sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId != behandling.kravgrunnlag.eksternKravgrunnlagId) {
+        if (sak.uteståendeKravgrunnlag != behandling.kravgrunnlag) {
             log.info("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, kravgrunnlaget på behandlingen (eksternKravgrunnlagId ${behandling.kravgrunnlag.eksternKravgrunnlagId}) er ikke det samme som det som er på saken (eksternKravgrunnlagId ${sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId}). For sakId ${sak.id}")
             return KunneIkkeSendeTilAttestering.KravgrunnlagetHarEndretSeg.left()
         }

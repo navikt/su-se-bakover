@@ -42,7 +42,7 @@ data class BrevTilbakekrevingsbehandlingHendelse(
         }
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,

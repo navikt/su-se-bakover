@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure.repo.kravgrunnlag
+package tilbakekreving.infrastructure.repo.oppdatertKravgrunnlag
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -9,13 +9,12 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
 import java.util.UUID
 
 private data class OppdatertKravgrunnlagHendelseDbJson(
     val behandlingsId: UUID,
     val utførtAv: String,
-    val kravgrunnlag: KravgrunnlagDbJson,
+    val kravgrunnlagPåSakHendelseId: String,
 )
 
 fun mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(
@@ -38,7 +37,7 @@ fun mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(
         tidligereHendelseId = tidligereHendelsesId,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),
-        oppdatertKravgrunnlag = deserialized.kravgrunnlag.toDomain(),
+        kravgrunnlagPåSakHendelseId = HendelseId.fromString(deserialized.kravgrunnlagPåSakHendelseId),
     )
 }
 
@@ -46,5 +45,5 @@ fun OppdatertKravgrunnlagPåTilbakekrevingHendelse.toJson(): String =
     OppdatertKravgrunnlagHendelseDbJson(
         behandlingsId = this.id.value,
         utførtAv = this.utførtAv.navIdent,
-        kravgrunnlag = this.oppdatertKravgrunnlag.toDbJson(),
+        kravgrunnlagPåSakHendelseId = this.kravgrunnlagPåSakHendelseId.toString(),
     ).let { serialize(it) }

@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.kravgrunnlag.grunnlagsmåned
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import org.junit.jupiter.api.Test
@@ -33,6 +34,7 @@ internal class KravgrunnlagTest {
                     ),
                 ),
             ),
+            kravgrunnlagPåSakHendelseId = HendelseId.generer(),
         )
     }
 
@@ -59,6 +61,7 @@ internal class KravgrunnlagTest {
                         ),
                     ),
                 ),
+                kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             )
         }.message shouldBe "Forventer at kravgrunnlag.skatteProsent >= 0, men var -0.0001"
     }

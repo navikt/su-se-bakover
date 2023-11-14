@@ -7,14 +7,18 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.math.BigDecimal
 
 data class Kravgrunnlag(
+    /** Se [tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse]*/
+    val hendelseId: HendelseId,
+
     val saksnummer: Saksnummer,
-    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
+    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. Vi har observert at denne er lik for NY og ENDR, selv når vi fikk nye måneder i detaljene. Kanskje den endrer seg dersom kravgrunnlaget endrer seg vesentlig, f. eks. dersom eksisterende måneder endrer seg? */
     val eksternKravgrunnlagId: String,
 
-    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
+    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. Kan virke som den holder seg lik helt til kravgrunnlaget er avsluttet. */
     val eksternVedtakId: String,
 
     /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system, men brukes for å utlede eksternTidspunkt. Kan være på formatet: 2023-09-19-10.01.03.842916.*/
