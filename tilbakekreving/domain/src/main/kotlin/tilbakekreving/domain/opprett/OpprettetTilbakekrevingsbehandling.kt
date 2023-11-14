@@ -22,7 +22,8 @@ data class OpprettetTilbakekrevingsbehandling(
     override val kravgrunnlag: Kravgrunnlag,
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
-) : KanForhåndsvarsle, KanVurdere {
+    override val erKravgrunnlagUtdatert: Boolean,
+) : KanForhåndsvarsle, KanVurdere, KanOppdatereKravgrunnlag {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
     override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
@@ -40,6 +41,7 @@ data class OpprettetTilbakekrevingsbehandling(
         versjon = versjon,
         månedsvurderinger = this.månedsvurderinger,
         forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
+        kravgrunnlag = kravgrunnlag,
     )
 
     override fun leggTilVurderinger(
@@ -52,6 +54,7 @@ data class OpprettetTilbakekrevingsbehandling(
         månedsvurderinger = månedsvurderinger,
         forhåndsvarselsInfo = listOf(),
         versjon = versjon,
+        kravgrunnlag = kravgrunnlag,
     )
 
     override val månedsvurderinger: Vurderinger? = null

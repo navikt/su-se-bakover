@@ -25,6 +25,7 @@ sealed interface Tilbakekrevingsbehandling {
     val opprettet: Tidspunkt
     val opprettetAv: NavIdentBruker.Saksbehandler
     val kravgrunnlag: Kravgrunnlag
+    val erKravgrunnlagUtdatert: Boolean
     val månedsvurderinger: Vurderinger?
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
     val attesteringer: Attesteringshistorikk

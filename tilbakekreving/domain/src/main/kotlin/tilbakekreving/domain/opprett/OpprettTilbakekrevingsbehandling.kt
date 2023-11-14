@@ -12,6 +12,7 @@ fun opprettTilbakekrevingsbehandling(
     forrigeVersjon: Hendelsesversjon,
     clock: Clock,
     kravgrunnlag: Kravgrunnlag,
+    erKravgrunnlagUtdatert: Boolean,
 ): Pair<OpprettetTilbakekrevingsbehandlingHendelse, OpprettetTilbakekrevingsbehandling> {
     return OpprettetTilbakekrevingsbehandlingHendelse.opprett(
         sakId = command.sakId,
@@ -26,6 +27,6 @@ fun opprettTilbakekrevingsbehandling(
         // TODO jah: Denne bør byttes med en intern id, men da må vi migrere eksisterende kravgrunnlag knyttet til sak i produksjon.
         eksternKravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
     ).let {
-        it to it.toDomain(kravgrunnlag)
+        it to it.toDomain(kravgrunnlag, erKravgrunnlagUtdatert)
     }
 }

@@ -26,6 +26,7 @@ data class TilbakekrevingsbehandlingJson(
     val versjon: Long,
     val sendtTilAttesteringAv: String?,
     val attesteringer: List<AttesteringJson>,
+    val erKravgrunnlagUtdatert: Boolean,
 ) {
 
     companion object {
@@ -74,6 +75,7 @@ data class TilbakekrevingsbehandlingJson(
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend for sendTilAttesteringAv")
             },
             attesteringer = this.attesteringer.toJson(),
+            erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
         )
     }
 }
