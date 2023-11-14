@@ -46,8 +46,10 @@ fun genererKravgrunnlagFraSimulering(
     eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
     status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     skatteprosent: BigDecimal = BigDecimal("50"),
+    kravgrunnlagPåSakHendelseId: HendelseId,
 ): Kravgrunnlag {
     return Kravgrunnlag(
+        hendelseId = kravgrunnlagPåSakHendelseId,
         saksnummer = saksnummer,
         eksternKravgrunnlagId = eksternKravgrunnlagId,
         eksternVedtakId = eksternVedtakId,
@@ -94,7 +96,7 @@ fun nyOpprettetTilbakekrevingsbehandlingHendelse(
     meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     opprettetAv: NavIdentBruker.Saksbehandler = saksbehandler,
-    kravgrunnlagsId: String = "123",
+    kravgrunnlagPåSakHendelseId: HendelseId,
 ): OpprettetTilbakekrevingsbehandlingHendelse = OpprettetTilbakekrevingsbehandlingHendelse(
     hendelseId = hendelseId,
     sakId = sakId,
@@ -103,23 +105,23 @@ fun nyOpprettetTilbakekrevingsbehandlingHendelse(
     meta = meta,
     id = behandlingId,
     opprettetAv = opprettetAv,
-    kravgrunnlagsId = kravgrunnlagsId,
+    kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
 )
 
 /**
  * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
-    kravgrunnlagsId: String = "123",
+    kravgrunnlagPåSakHendelseId: HendelseId,
     utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
-        kravgrunnlagsId = kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         opprettetAv = utførtAv,
     ),
     hendelseId: HendelseId = HendelseId.generer(),
@@ -144,20 +146,20 @@ fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
 /**
  * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyVurdertTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
-    kravgrunnlagsId: String = "123456",
+    kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
     utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
-        kravgrunnlagsId = kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
         utførtAv = utførtAv,
     ),
@@ -188,14 +190,14 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
 /**
  * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
-    kravgrunnlagsId: String = "123456",
+    kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
     vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
@@ -209,7 +211,7 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
-        kravgrunnlagsId = kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
         vurderinger = vurderinger,
         utførtAv = utførtAv,
@@ -236,7 +238,7 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
 /**
  * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
  * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
@@ -244,7 +246,7 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
 fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
-    kravgrunnlagsId: String = "123456",
+    kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
     vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
@@ -261,7 +263,7 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
-        kravgrunnlagsId = kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
         vurderinger = vurderinger,
         utførtAv = utførtAv,
@@ -285,7 +287,7 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
 /**
  * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param kravgrunnlagsId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
  * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
@@ -293,7 +295,7 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
 fun nyIverksattTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
-    kravgrunnlagsId: String = "123456",
+    kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
     vurderinger: Vurderinger = Vurderinger(
         vurderinger = nonEmptyListOf(
@@ -311,7 +313,7 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyTilbakekrevingsbehandlingTilAttesteringHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
-        kravgrunnlagsId = kravgrunnlagsId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
         vurderinger = vurderinger,
         utførtAv = sendtTilAttesteringUtførtAv,
@@ -340,7 +342,10 @@ fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
-    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(),
+    kravgrunnlagPåSakHendelseId: HendelseId,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+    ),
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
 ): AvbruttHendelse = AvbruttHendelse(
     hendelseId = hendelseId,

@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerStans
@@ -462,6 +463,8 @@ private fun oppdaterTilbakekrevingsbehandling(
 /**
  * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
  * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
+ *
+ * @param kravgrunnlagPåSakHendelseId må sendes med dersom denne revurderingen persisteres.
  */
 fun iverksattRevurdering(
     clock: Clock = tikkendeFixedClock(),
@@ -485,6 +488,7 @@ fun iverksattRevurdering(
     skalUtsetteTilbakekreving: Boolean = false,
     skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
+    kravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -545,6 +549,7 @@ fun iverksattRevurdering(
                             simulering = response.vedtak.behandling.simulering!!,
                             utbetalingId = response.vedtak.utbetalingId!!,
                             clock = clock,
+                            kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
                         )
                     } else {
                         null

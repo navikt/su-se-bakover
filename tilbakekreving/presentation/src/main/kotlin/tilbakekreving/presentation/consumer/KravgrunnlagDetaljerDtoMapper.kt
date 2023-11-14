@@ -28,9 +28,11 @@ internal fun KravgrunnlagRootDto.toHendelse(
     meta: DefaultHendelseMetadata,
     tidligereHendelseId: HendelseId,
 ): Either<Throwable, Pair<Sak, KravgrunnlagDetaljerPåSakHendelse>> {
-    val kravgrunnlag = this.toDomain().getOrElse {
+    val hendelseId = HendelseId.generer()
+    val kravgrunnlag = this.toDomain(hendelseId).getOrElse {
         return it.left()
     }
+
     return Either.catch {
         this.kravgrunnlagDto.let {
             val saksnummer = Saksnummer.parse(it.fagsystemId)
@@ -45,7 +47,7 @@ internal fun KravgrunnlagRootDto.toHendelse(
                 return it.left()
             }
             sak to KravgrunnlagDetaljerPåSakHendelse(
-                hendelseId = HendelseId.generer(),
+                hendelseId = hendelseId,
                 versjon = sak.versjon.inc(),
                 sakId = sak.id,
                 hendelsestidspunkt = hendelsesTidspunkt,
@@ -58,7 +60,9 @@ internal fun KravgrunnlagRootDto.toHendelse(
     }
 }
 
-internal fun KravgrunnlagRootDto.toDomain(): Either<Throwable, Kravgrunnlag> {
+internal fun KravgrunnlagRootDto.toDomain(
+    hendelseId: HendelseId,
+): Either<Throwable, Kravgrunnlag> {
     return Either.catch {
         this.kravgrunnlagDto.let { kravgrunnlagDto ->
             Kravgrunnlag(
@@ -117,6 +121,7 @@ internal fun KravgrunnlagRootDto.toDomain(): Either<Throwable, Kravgrunnlag> {
                         Instant::from,
                     ),
                 ),
+                hendelseId = hendelseId,
             )
         }
     }

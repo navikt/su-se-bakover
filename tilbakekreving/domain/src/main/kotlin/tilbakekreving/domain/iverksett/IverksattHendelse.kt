@@ -51,7 +51,7 @@ data class IverksattHendelse(
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling,

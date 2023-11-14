@@ -50,7 +50,7 @@ class IverksettTilbakekrevingService(
             return KunneIkkeIverksette.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
-        if (sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId != behandling.kravgrunnlag.eksternKravgrunnlagId) {
+        if (sak.uteståendeKravgrunnlag != behandling.kravgrunnlag) {
             log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id, kravgrunnlaget på behandlingen (eksternKravgrunnlagId ${behandling.kravgrunnlag.eksternKravgrunnlagId}) er ikke det samme som det som er på saken (eksternKravgrunnlagId ${sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId}). Command: $command")
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
         }

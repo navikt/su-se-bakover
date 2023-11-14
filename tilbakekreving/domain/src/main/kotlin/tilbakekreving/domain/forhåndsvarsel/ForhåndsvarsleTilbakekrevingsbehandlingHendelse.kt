@@ -40,7 +40,7 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
     /**
      * Et forhåndsvarsel endrer ikke tilstanden til behandlingen for øyeblikket. Brevene hentes separat.
      */
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,

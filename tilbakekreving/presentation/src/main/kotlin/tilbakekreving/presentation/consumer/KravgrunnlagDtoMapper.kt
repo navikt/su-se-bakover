@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -51,12 +52,16 @@ data object KravgrunnlagDtoMapper {
         }
     }
 
+    /**
+     * TODO jah: Denne skal slettes etter vi fjerner den gamle tilbakekreving under revurderinger-rutinen.
+     */
     fun toKravgrunnlag(råttKravgrunnlag: RåttKravgrunnlag): Either<Throwable, Kravgrunnlag> {
         return toDto(råttKravgrunnlag.melding)
             .mapLeft { it }
             .flatMap { tilbakekrevingsmeldingDto ->
                 when (tilbakekrevingsmeldingDto) {
-                    is KravgrunnlagRootDto -> tilbakekrevingsmeldingDto.toDomain()
+                    // Gamle tilbakekrevingsrutinen: Vi hadde ikke hendelser her og bruker heller ikke den i disse tilfellene.
+                    is KravgrunnlagRootDto -> tilbakekrevingsmeldingDto.toDomain(HendelseId.generer())
 
                     is KravgrunnlagStatusendringRootDto -> {
                         throw IllegalArgumentException("RåttKravgrunnlag innholder melding av type:${KravgrunnlagStatusendringRootDto::class}")

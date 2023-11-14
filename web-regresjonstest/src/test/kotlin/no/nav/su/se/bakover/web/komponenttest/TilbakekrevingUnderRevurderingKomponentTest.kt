@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsve
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
@@ -506,6 +507,8 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 utbetalingId = sak.vedtakListe.filterIsInstance<VedtakInnvilgetRevurdering>()
                     .single().utbetalingId,
                 clock = clock,
+                // TODO jah: Her bruker vi kravgrunnlaget kun for å generere XML, bør lage en renere funksjon som returnerer String/XML direkte.
+                kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             ).let {
                 it.copy(
                     grunnlagsmåneder = it.grunnlagsmåneder.map {
@@ -570,6 +573,8 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 utbetalingId = sak.vedtakListe.filterIsInstance<VedtakInnvilgetRevurdering>()
                     .single().utbetalingId,
                 clock = clock,
+                // TODO jah: Her bruker vi kravgrunnlaget kun for å generere XML, bør lage en renere funksjon som returnerer String/XML direkte.
+                kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             ).let {
                 it.copy(
                     grunnlagsmåneder = it.grunnlagsmåneder.map {

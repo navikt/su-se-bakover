@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.UUID
 
-internal class TilbakekrevingsbehandlingTest {
+internal class TilbakekrevingUnderRevurderingTest {
     @Test
     fun `tilbakekrevingsvedtak for full tilbakekreving`() {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
@@ -33,6 +34,8 @@ internal class TilbakekrevingsbehandlingTest {
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
+            // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
+            kravgrunnlagPåSakHendelseId = HendelseId.generer(),
         )
 
         MottattKravgrunnlag(
@@ -106,6 +109,8 @@ internal class TilbakekrevingsbehandlingTest {
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
+            // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
+            kravgrunnlagPåSakHendelseId = HendelseId.generer(),
         )
 
         MottattKravgrunnlag(
@@ -140,6 +145,8 @@ internal class TilbakekrevingsbehandlingTest {
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
+            // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
+            kravgrunnlagPåSakHendelseId = HendelseId.generer(),
         )
 
         MottattKravgrunnlag(
@@ -175,6 +182,8 @@ internal class TilbakekrevingsbehandlingTest {
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
+            // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
+            kravgrunnlagPåSakHendelseId = HendelseId.generer(),
         )
 
         MottattKravgrunnlag(

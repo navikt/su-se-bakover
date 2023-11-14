@@ -107,21 +107,8 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
     ) {
         val kravgrunnlag = kravgrunnlagPåSakHendelse.kravgrunnlag
-        val eksternKravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId
         val sakId = sak.id
-        val saksnummer = sak.saksnummer
 
-        if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId).detaljerSortert.any {
-                it.kravgrunnlag.eksternKravgrunnlagId == eksternKravgrunnlagId
-            }
-        ) {
-            log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId $eksternKravgrunnlagId på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
-            hendelsekonsumenterRepo.lagre(
-                hendelseId = hendelseId,
-                konsumentId = konsumentId,
-            )
-            return
-        }
         sessionFactory.withTransactionContext { tx ->
             kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(kravgrunnlagPåSakHendelse, tx)
             hendelsekonsumenterRepo.lagre(

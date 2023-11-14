@@ -32,7 +32,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is KanVurdere -> behandling.leggTilVurderinger(
                 månedsvurderinger = this.vurderinger,

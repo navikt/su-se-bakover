@@ -207,7 +207,7 @@ data class KravgrunnlagDto(
      * F.eks. 01F49912SX9SRRVGT0J5R4WYFR
      *
      * En referanse til utbetalingId (vår) som førte til opprettelse/endring av dette kravgrunnlaget
-     * @see [no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.utbetalingId]
+     * @see [no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.delytelseId]
      */
     @field:JsonProperty(value = "referanse")
     val utbetalingId: String,

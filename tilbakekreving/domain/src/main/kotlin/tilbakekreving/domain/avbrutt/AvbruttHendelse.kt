@@ -57,7 +57,7 @@ data class AvbruttHendelse(
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): AvbruttTilbakekrevingsbehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): AvbruttTilbakekrevingsbehandling {
         return when (behandling) {
             is AvbruttTilbakekrevingsbehandling,
             is TilbakekrevingsbehandlingTilAttestering,

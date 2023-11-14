@@ -83,6 +83,7 @@ fun kravgrunnlag(
     grunnlagsperioder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
         grunnlagsmåned(),
     ),
+    kravgrunnlagPåSakHendelseId: HendelseId,
 ): Kravgrunnlag {
     return Kravgrunnlag(
         saksnummer = saksnummer,
@@ -94,6 +95,7 @@ fun kravgrunnlag(
         utbetalingId = utbetalingId,
         grunnlagsmåneder = grunnlagsperioder,
         eksternTidspunkt = eksternTidspunkt,
+        hendelseId = kravgrunnlagPåSakHendelseId,
     )
 }
 
@@ -128,6 +130,7 @@ fun kravgrunnlagPåSakHendelse(
         grunnlagsmåneder = grunnlagsmåneder,
         saksnummer = saksnummer,
         eksternTidspunkt = eksternTidspunkt,
+        hendelseId = hendelseId,
     ),
     revurderingId: UUID? = null,
 ): KravgrunnlagDetaljerPåSakHendelse {
@@ -209,6 +212,8 @@ fun sakMedUteståendeKravgrunnlag(
                 simulering = vedtak.simulering,
                 utbetalingId = vedtak.utbetalingId!!,
                 clock = clock,
+                // TODO jah: Her bør vi knytte den til en ekte hendelse på saken og bare ninja-injecte den i tilstanden.
+                kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             ),
         )
     }

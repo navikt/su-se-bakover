@@ -50,7 +50,7 @@ data class TilAttesteringHendelse(
         )
     }
 
-    override fun applyToState(behandling: Tilbakekrevingsbehandling): TilbakekrevingsbehandlingTilAttestering {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): TilbakekrevingsbehandlingTilAttestering {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling.Påbegynt,

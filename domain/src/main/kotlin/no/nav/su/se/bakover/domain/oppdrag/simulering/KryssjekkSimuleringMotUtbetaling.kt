@@ -30,7 +30,7 @@ fun kryssjekkSimuleringMotUtbetaling(
     val saksnummer = simulertUtbetaling.saksnummer
     if (simulertUtbetaling.periode != simulertUtbetaling.simulering.periode()) {
         log.info(
-            "Simuleringens periode er ulik utbetalingsperioden under kryssjekk av simulering og utbetaling. Ved 0-utbetalinger langt fram i tid, kan Oppdrag i noen tilfeller hoppe over og simulere de.  Saksnummer: $saksnummer, Utbetalingsperode: ${simulertUtbetaling.periode}, Simuleringsperiode: ${simulertUtbetaling.periode}",
+            "Simuleringens periode er ulik utbetalingsperioden under kryssjekk av simulering og utbetaling. Ved 0-utbetalinger langt fram i tid, kan Oppdrag i noen tilfeller hoppe over og simulere de.  Saksnummer: $saksnummer, Utbetalingsperode: ${simulertUtbetaling.periode}, Simuleringsperiode: ${simulertUtbetaling.simulering.periode()}",
             RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
     }
