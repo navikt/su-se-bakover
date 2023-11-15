@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagEndringXml
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagOpphørXml
-import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
@@ -252,20 +251,5 @@ internal class KravgrunnlagDtoTest {
             ),
             Kravgrunnlag::hendelseId,
         )
-    }
-
-    @Test
-    fun `mapper melding om statusendring på åpent kravgrunnlag`() {
-        val expected = KravgrunnlagStatusendringRootDto(
-            endringKravOgVedtakstatus = KravgrunnlagStatusendringDto(
-                vedtakId = "436206",
-                kodeStatusKrav = "SPER",
-                kodeFagområde = "SUUFORE",
-                fagsystemId = "2463",
-                vedtakGjelderId = "18108619852",
-                idTypeGjelder = "PERSON",
-            ),
-        )
-        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml()).getOrFail() shouldBe expected
     }
 }

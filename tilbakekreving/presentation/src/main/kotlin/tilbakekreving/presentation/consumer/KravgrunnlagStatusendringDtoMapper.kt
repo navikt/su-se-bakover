@@ -42,7 +42,7 @@ internal fun KravgrunnlagStatusendringRootDto.toHendelse(
                 eksternVedtakId = it.vedtakId,
                 status = it.kodeStatusKrav.toKravgrunnlagstatus(),
                 eksternTidspunkt = råttKravgrunnlagHendelse.meta.jmsTimestamp?.let {
-                    Tidspunkt(Instant.ofEpochSecond(it))
+                    Tidspunkt(Instant.ofEpochMilli(it))
                 } ?: hendelsestidspunkt.also {
                     log.error("Kunne ikke finne jmsTimestamp for kravgrunnlag, bruker hendelsestidspunkt istedet. Dersom hendelsene har kommet inn i feil rekkefølge, vil dette kunne påvirke sorteringen. RåttKravgrunnlagHendelse $tidligereHendelseId og sak ${sak.id}")
                 },

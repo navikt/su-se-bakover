@@ -42,19 +42,22 @@ fun defaultHendelseMetadata(
     brukerroller = brukerroller,
 )
 
+/**
+ * Defaultverdiene er hentet fra en typisk melding fra oppdrag i preprod.
+ */
 fun jmsHendelseMetadata(
-    jmsCorrelationId: String = "jmsCorrelationId",
-    jmsDeliveryMode: Int = 1,
-    jmsDeliveryTime: Long = 1,
-    jmsDestination: String = "jmsDestination",
-    jmsExpiration: Long = 1,
-    jmsMessageId: String = "jmsMessageId",
-    jmsPriority: Int = 1,
+    jmsCorrelationId: String = "ID:f14040404040404040404040404040404040404040404040",
+    jmsDeliveryMode: Int = 2,
+    jmsDeliveryTime: Long = 0,
+    jmsDestination: String? = null,
+    jmsExpiration: Long = 0,
+    jmsMessageId: String = "ID:c3e2d840d4d9d8f14040404040404040de331e9eada5b601",
+    jmsPriority: Int = 0,
     jmsRedelivered: Boolean = false,
-    jmsReplyTo: String = "jmsReplyTo",
-    jmsTimestamp: Long = 1,
-    jmsType: String = "jmsType",
-    correlationId: CorrelationId = CorrelationId("correlationId"),
+    jmsReplyTo: String? = null,
+    jmsTimestamp: Long = 1699989414620,
+    jmsType: String? = null,
+    correlationId: CorrelationId = CorrelationId.generate(),
 ): JMSHendelseMetadata = JMSHendelseMetadata(
     jmsCorrelationId = jmsCorrelationId,
     jmsDeliveryMode = jmsDeliveryMode,

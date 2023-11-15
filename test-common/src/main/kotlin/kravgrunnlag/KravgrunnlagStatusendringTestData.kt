@@ -1,5 +1,55 @@
 package no.nav.su.se.bakover.test.kravgrunnlag
 
+import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import java.time.Clock
+
+fun kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(
+    eksternVedtakId: String = "436206",
+    saksnummer: String = "2463",
+    fnr: String = "18108619852",
+    status: String = "SPER",
+    hendelseId: HendelseId = HendelseId.generer(),
+    clock: Clock = fixedClock,
+    hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
+    correlationId: CorrelationId = CorrelationId.generate(),
+    metadata: JMSHendelseMetadata = jmsHendelseMetadata(correlationId = correlationId),
+): RåttKravgrunnlagHendelse {
+    return RåttKravgrunnlagHendelse(
+        hendelseId = hendelseId,
+        hendelsestidspunkt = hendelsestidspunkt,
+        meta = metadata,
+        råttKravgrunnlag = kravgrunnlagStatusendringSomRåttKravgrunnlag(
+            vedtakId = eksternVedtakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            status = status,
+        ),
+    )
+}
+
+fun kravgrunnlagStatusendringSomRåttKravgrunnlag(
+    vedtakId: String = "436206",
+    saksnummer: String = "2463",
+    fnr: String = "18108619852",
+    status: String = "SPER",
+): RåttKravgrunnlag {
+    return RåttKravgrunnlag(
+        kravgrunnlagStatusendringXml(
+            vedtakId = vedtakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            status = status,
+        ),
+    )
+}
+
 fun kravgrunnlagStatusendringXml(
     vedtakId: String = "436206",
     saksnummer: String = "2463",
