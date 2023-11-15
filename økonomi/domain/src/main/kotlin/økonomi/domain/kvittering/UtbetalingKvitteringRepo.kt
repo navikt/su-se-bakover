@@ -15,8 +15,8 @@ interface UtbetalingKvitteringRepo {
 //        sessionContext: SessionContext,
 //    )
 
-    fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): List<HendelseId>
+    fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): Set<HendelseId>
     fun hentRåKvittering(id: HendelseId): RåKvitteringHendelse?
-    fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): List<HendelseId>
+    fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): Set<HendelseId>
     fun hentKvittering(hendelseId: HendelseId): KvitteringPåSakHendelse?
 }

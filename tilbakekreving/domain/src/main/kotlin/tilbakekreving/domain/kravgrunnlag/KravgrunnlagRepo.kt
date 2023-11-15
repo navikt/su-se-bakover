@@ -15,7 +15,7 @@ interface KravgrunnlagRepo {
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext? = null,
         limit: Int = 10,
-    ): List<HendelseId>
+    ): Set<HendelseId>
 
     fun hentRåttKravgrunnlagHendelseForHendelseId(
         hendelseId: HendelseId,
@@ -36,5 +36,5 @@ interface KravgrunnlagRepo {
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext? = null,
         limit: Int = 10,
-    ): List<HendelseId>
+    ): Set<HendelseId>
 }

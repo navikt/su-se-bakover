@@ -72,7 +72,10 @@ class HendelsekonsumenterPostgresRepo(
                 AND h.type = :type
             LIMIT :limit
             """.trimIndent()
-                .hentListe(mapOf("type" to hendelsestype.value, "konsumentId" to konsumentId.value, "limit" to limit), it) {
+                .hentListe(
+                    mapOf("type" to hendelsestype.value, "konsumentId" to konsumentId.value, "limit" to limit),
+                    it,
+                ) {
                     it.uuid("sakId") to HendelseId.fromUUID(it.uuid("hendelseId"))
                 }.let {
                     it.groupBy { it.first }
@@ -88,10 +91,11 @@ class HendelsekonsumenterPostgresRepo(
         hendelsestype: Hendelsestype,
         sx: SessionContext?,
         limit: Int,
-    ): List<HendelseId> {
+    ): Set<HendelseId> {
         return (sx ?: sessionFactory.newSessionContext()).withSession {
             """
-            SELECT DISTINCT
+            SELECT
+                h.hendelsesnummer,
                 h.hendelseId
             FROM
                 hendelse h
@@ -100,11 +104,15 @@ class HendelsekonsumenterPostgresRepo(
             WHERE
                 hk.hendelseId IS NULL
                 AND h.type = :type
+            ORDER BY h.hendelsesnummer
             LIMIT :limit
             """.trimIndent()
-                .hentListe(mapOf("type" to hendelsestype.value, "konsumentId" to konsumentId.value, "limit" to limit), it) {
+                .hentListe(
+                    mapOf("type" to hendelsestype.value, "konsumentId" to konsumentId.value, "limit" to limit),
+                    it,
+                ) {
                     HendelseId.fromUUID(it.uuid("hendelseId"))
-                }
+                }.toSet()
         }
     }
 }

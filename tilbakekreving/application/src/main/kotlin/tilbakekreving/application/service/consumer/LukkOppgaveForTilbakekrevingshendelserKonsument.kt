@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -36,7 +35,6 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
     private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingHendelseRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val hendelseRepo: HendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -94,11 +92,11 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                         oppgaveHendelser.distinctBy { it.oppgaveId }.single().let {
                             oppgaveHendelser.maxByOrNull { it.versjon }!!
                         }
-                    }.mapLeft {
+                    }.mapLeft { throwable ->
                         Unit.also {
                             log.error(
                                 "Feil ved verifisering av at det fantes kun 1 oppgave Id for lukking av oppgave for sak ${sak.id} for hendelser $hendelsesIder",
-                                it,
+                                throwable,
                             )
                         }
                     }.map {

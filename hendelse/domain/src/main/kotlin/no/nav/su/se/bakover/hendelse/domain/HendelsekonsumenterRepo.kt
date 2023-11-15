@@ -28,11 +28,13 @@ interface HendelsekonsumenterRepo {
 
     /**
      * Brukes for de hendelsene som ikke har sakId
+     *
+     * @return et sett med unike hendelseIder
      */
     fun hentHendelseIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,
         sx: SessionContext? = null,
         limit: Int = 10,
-    ): List<HendelseId>
+    ): Set<HendelseId>
 }

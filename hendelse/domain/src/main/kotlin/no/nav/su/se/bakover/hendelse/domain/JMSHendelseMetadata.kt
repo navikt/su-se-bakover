@@ -18,6 +18,7 @@ data class JMSHendelseMetadata(
     val jmsPriority: Int?,
     val jmsRedelivered: Boolean?,
     val jmsReplyTo: String?,
+    /** Denne kommer som UTC og er presis ned til ett millisekund. */
     val jmsTimestamp: Long?,
     val jmsType: String?,
     override val correlationId: CorrelationId,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
 import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.JournalførtDokument
 import dokument.domain.hendelser.JournalførtDokumentHendelse
@@ -70,7 +71,7 @@ internal data class JournalførtDokumentHendelseDbJson(
             skalSendeBrev = skalSendeBrev,
         )
 
-        internal fun JournalførtDokumentHendelse.dataDbJson(relaterteHendelser: NonEmptyList<HendelseId>): String =
+        internal fun JournalførtDokumentHendelse.dataDbJson(relaterteHendelser: NonEmptySet<HendelseId>): String =
             JournalførtDokumentHendelseDbJson(
                 relaterteHendelser = relaterteHendelser.map { it.toString() },
                 journalpostId = journalpostId.toString(),

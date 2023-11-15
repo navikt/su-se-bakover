@@ -34,5 +34,5 @@ data class TilbakekrevingbehandlingsSerie(
         }
     }
 
-    fun hendelsesIder(): List<HendelseId> = hendelser.map { it.hendelseId }
+    fun hendelsesIder(): Set<HendelseId> = hendelser.map { it.hendelseId }.toSet()
 }

@@ -164,7 +164,6 @@ class TilbakekrevingServices(
         oppgaveService = oppgaveService,
         tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
         oppgaveHendelseRepo = oppgaveHendelseRepo,
-        hendelseRepo = hendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         sessionFactory = sessionFactory,
         clock = clock,

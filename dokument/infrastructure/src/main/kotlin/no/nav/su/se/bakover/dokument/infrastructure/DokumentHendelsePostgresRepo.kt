@@ -41,7 +41,7 @@ class DokumentHendelsePostgresRepo(
                 is JournalførtDokumentHendelse -> JournalførtDokument
             },
             data = when (hendelse) {
-                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser)
+                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser.toNonEmptySet())
                 is GenerertDokumentHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser, hendelse.skalSendeBrev)
             },
             sessionContext = sessionContext,

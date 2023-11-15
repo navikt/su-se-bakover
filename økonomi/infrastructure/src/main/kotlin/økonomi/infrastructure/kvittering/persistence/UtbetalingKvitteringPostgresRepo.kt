@@ -36,14 +36,14 @@ class UtbetalingKvitteringPostgresRepo(
         }
     }
 
-    override fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): List<HendelseId> {
+    override fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): Set<HendelseId> {
         return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = UtbetalingKvitteringHendelsestype,
         )
     }
 
-    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): List<HendelseId> {
+    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): Set<HendelseId> {
         return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = UtbetalingKvitteringPåSakHendelsestype,

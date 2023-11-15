@@ -36,7 +36,7 @@ class KravgrunnlagPostgresRepoTest {
             testDataHelper.hendelsekonsumenterRepo.lagre(hendelseId = hendelse1.hendelseId, konsumentId = konsumentId)
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
-            ) shouldBe emptyList()
+            ) shouldBe emptySet()
             kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse2)
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
@@ -68,7 +68,7 @@ class KravgrunnlagPostgresRepoTest {
             ) shouldBe emptyList()
             kravgrunnlagRepo.hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
                 konsumentId = konsumentId,
-            ) shouldBe emptyList()
+            ) shouldBe emptySet()
 
             kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(hendelse1)
 
@@ -84,7 +84,7 @@ class KravgrunnlagPostgresRepoTest {
 
             kravgrunnlagRepo.hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
                 konsumentId = konsumentId,
-            ) shouldBe emptyList()
+            ) shouldBe emptySet()
             kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,
             ) shouldBe listOf(hendelse1)

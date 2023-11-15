@@ -45,7 +45,7 @@ class KravgrunnlagPostgresRepo(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext?,
         limit: Int,
-    ): List<HendelseId> {
+    ): Set<HendelseId> {
         return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = MottattKravgrunnlagHendelsestype,
@@ -84,7 +84,7 @@ class KravgrunnlagPostgresRepo(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext?,
         limit: Int,
-    ): List<HendelseId> {
+    ): Set<HendelseId> {
         return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = KnyttetKravgrunnlagTilSakHendelsestype,
