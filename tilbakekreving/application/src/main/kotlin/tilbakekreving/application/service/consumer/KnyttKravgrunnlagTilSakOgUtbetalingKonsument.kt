@@ -1,7 +1,13 @@
 package tilbakekreving.application.service.consumer
 
 import arrow.core.Either
+import arrow.core.Nel
+import arrow.core.flatMap
+import arrow.core.flattenOrAccumulate
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -41,48 +47,70 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
      */
     fun knyttKravgrunnlagTilSakOgUtbetaling(
         correlationId: CorrelationId,
-    ): Either<Throwable, Unit> {
+    ): Either<Nel<Throwable>, Unit> {
         return Either.catch {
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
-            ).forEach { hendelseId ->
-                val råttKravgrunnlagHendelse =
-                    kravgrunnlagRepo.hentRåttKravgrunnlagHendelseForHendelseId(hendelseId) ?: run {
-                        log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
-                        return@forEach
-                    }
-                val (sak, kravgrunnlagPåSakHendelse) =
-                    mapRåttKravgrunnlag(
-                        råttKravgrunnlagHendelse,
-                        correlationId,
-                        { saksnummer ->
-                            sakService.hentSak(saksnummer).mapLeft {
-                                IllegalStateException("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
-                            }
-                        },
-                        clock,
-                    ).getOrElse {
-                        log.error(
-                            "Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for hendelseId $hendelseId. Denne vil prøves på nytt.",
-                            it,
-                        )
-                        return@forEach
-                    }
-                when (kravgrunnlagPåSakHendelse) {
-                    is KravgrunnlagDetaljerPåSakHendelse -> prosesserDetaljer(
-                        sak = sak,
-                        hendelseId = hendelseId,
-                        kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
-                    )
+            ).map { hendelseId ->
+                prosesserEnHendelse(hendelseId, correlationId)
+            }
+        }.mapLeft {
+            log.error("Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception ved hentUprosesserteRåttKravgrunnlagHendelser for konsument $konsumentId", it)
+            nonEmptyListOf(it)
+        }.flatMap {
+            it.flattenOrAccumulate().map { }
+        }
+    }
 
-                    is KravgrunnlagStatusendringPåSakHendelse -> prosesserStatus(
-                        hendelseId = hendelseId,
-                        kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
-                    )
+    private fun prosesserEnHendelse(
+        hendelseId: HendelseId,
+        correlationId: CorrelationId,
+    ): Either<Throwable, Unit> {
+        return Either.catch {
+            val råttKravgrunnlagHendelse =
+                kravgrunnlagRepo.hentRåttKravgrunnlagHendelseForHendelseId(hendelseId) ?: run {
+                    log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
+                    return IllegalStateException("Kunne ikke prosessere kravgrunnlag. Se logger.").left()
                 }
+            val (sak, kravgrunnlagPåSakHendelse) =
+                mapRåttKravgrunnlag(
+                    råttKravgrunnlagHendelse,
+                    correlationId,
+                    { saksnummer ->
+                        sakService.hentSak(saksnummer).mapLeft {
+                            IllegalStateException("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
+                        }
+                    },
+                    clock,
+                ).getOrElse {
+                    log.error(
+                        "Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for hendelseId $hendelseId. Denne vil prøves på nytt.",
+                        it,
+                    )
+                    return IllegalStateException("Kunne ikke prosessere kravgrunnlag. Se logger.").left()
+                }
+            if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sak.id).any { it.tidligereHendelseId == hendelseId }) {
+                log.info("Vi har allerede knyttet det rå kravgrunnlaget til en sak. Denne vil ikke prøves på nytt. Hendelse $hendelseId, sak ${sak.id}")
+                hendelsekonsumenterRepo.lagre(
+                    hendelseId = hendelseId,
+                    konsumentId = konsumentId,
+                )
+                return Unit.right()
+            }
+            when (kravgrunnlagPåSakHendelse) {
+                is KravgrunnlagDetaljerPåSakHendelse -> prosesserDetaljer(
+                    sak = sak,
+                    hendelseId = hendelseId,
+                    kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                )
+
+                is KravgrunnlagStatusendringPåSakHendelse -> prosesserStatus(
+                    hendelseId = hendelseId,
+                    kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                )
             }
         }.onLeft {
-            log.error("Feil under kjøring av hendelseskonsument $konsumentId", it)
+            log.error("Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception for hendelsen $hendelseId", it)
         }
     }
 

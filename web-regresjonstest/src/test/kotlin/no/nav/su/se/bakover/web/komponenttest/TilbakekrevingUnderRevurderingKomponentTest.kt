@@ -534,8 +534,9 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 correlationId = CorrelationId.generate(),
             ).let {
                 it.shouldBeLeft()
-                it.value.message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=99))])"
-                it.value.shouldBeTypeOf<IllegalStateException>()
+                it.value.size shouldBe 1
+                it.value[0].message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=99))])"
+                it.value[0].shouldBeTypeOf<IllegalStateException>()
             }
 
             appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
@@ -598,8 +599,9 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 correlationId = CorrelationId.generate(),
             ).let {
                 it.shouldBeLeft()
-                it.value.message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-12, beløp=Beløp(value=18308))])"
-                it.value.shouldBeTypeOf<IllegalStateException>()
+                it.value.size shouldBe 1
+                it.value[0].message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-12, beløp=Beløp(value=18308))])"
+                it.value[0].shouldBeTypeOf<IllegalStateException>()
             }
 
             appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
