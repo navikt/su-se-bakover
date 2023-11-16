@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.tilbakekreving
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,7 +25,10 @@ interface TilbakekrevingService {
     /**
      * Lagrer et nytt kravgrunnlag vi har mottatt fra Oppdrag.
      */
-    fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag)
+    fun lagre(
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        sessionContext: SessionContext? = null,
+    )
 
     /**
      * Sender utestående tilbakekrevings-avgjørelser til Oppdrag, så fremt vi har tilstrekkelig data.
@@ -48,7 +52,10 @@ class TilbakekrevingServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
+    override fun lagre(
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        sessionContext: SessionContext?,
+    ) {
         return tilbakekrevingRepo.lagre(tilbakekrevingsbehandling)
     }
 

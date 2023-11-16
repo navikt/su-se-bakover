@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -46,8 +48,11 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
-        sessionFactory.withSession { session ->
+    override fun lagre(
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        sessionContext: SessionContext?,
+    ) {
+        sessionContext.withOptionalSession(sessionFactory) { session ->
             lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
     }

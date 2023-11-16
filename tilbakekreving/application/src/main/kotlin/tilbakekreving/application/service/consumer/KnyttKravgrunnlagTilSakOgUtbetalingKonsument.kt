@@ -55,7 +55,10 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 prosesserEnHendelse(hendelseId, correlationId)
             }
         }.mapLeft {
-            log.error("Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception ved hentUprosesserteRåttKravgrunnlagHendelser for konsument $konsumentId", it)
+            log.error(
+                "Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception ved hentUprosesserteRåttKravgrunnlagHendelser for konsument $konsumentId",
+                it,
+            )
             nonEmptyListOf(it)
         }.flatMap {
             it.flattenOrAccumulate().map { }
@@ -154,7 +157,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     hentRevurdering = { revurdering },
                 )?.also { mottattKravgrunnlagForRevurdering ->
                     // I en overgangsfase erstatter denne det den gamle kravgrunnlagkonsumeren gjorde. Disse plukkes opp av jobben [no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering]
-                    tilbakekrevingService.lagre(mottattKravgrunnlagForRevurdering)
+                    tilbakekrevingService.lagre(mottattKravgrunnlagForRevurdering, tx)
                     log.info("Oppdaterte revurderingen sin tilbakekreving ${mottattKravgrunnlagForRevurdering.avgjort.id} til mottatt kravgrunnlag for revurdering ${mottattKravgrunnlagForRevurdering.avgjort.revurderingId}")
                 }
                     ?: log.error("Knyttet kravgrunnlag til sak for revurdering $revurderingId, sak $sakId. Forventet: avventet kravgrunnlag, men typen var: ${revurdering.tilbakekrevingsbehandling::class}")

@@ -1134,6 +1134,7 @@ open class AccessCheckProxy(
             tilbakekrevingService = object : TilbakekrevingService {
                 override fun lagre(
                     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+                    sessionContext: SessionContext?,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun sendUteståendeTilbakekrevingsvedtak() = kastKanKunKallesFraAnnenService()
