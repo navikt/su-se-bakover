@@ -12,4 +12,7 @@ data class AvbruttTilbakekrevingsbehandling(
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker,
     val begrunnelse: String,
-) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt
+) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt {
+
+    override fun erÅpen(): Boolean = false
+}

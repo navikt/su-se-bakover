@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.avbrutt.ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
@@ -158,6 +159,11 @@ class TilbakekrevingServices(
         sakService = sakService,
         clock = clock,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+    ),
+    val forhåndsvisAvbruttTilbakekrevingsbehandlingBrevService: ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService = ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService(
+        tilgangstyring = tilgangstyringService,
+        sakService = sakService,
+        brevService = brevService,
     ),
     val lukkOppgaveForTilbakekrevingshendelserKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
         sakService = sakService,

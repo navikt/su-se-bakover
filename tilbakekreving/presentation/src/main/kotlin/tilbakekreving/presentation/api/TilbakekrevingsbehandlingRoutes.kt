@@ -2,6 +2,7 @@ package tilbakekreving.presentation.api
 
 import io.ktor.server.routing.Route
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.avbrutt.ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
@@ -14,6 +15,7 @@ import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingSe
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.presentation.api.avslutt.avbrytTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.avslutt.forhåndsvisAvbrytTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
 import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
 import tilbakekreving.presentation.api.forhåndsvarsel.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute
@@ -39,6 +41,7 @@ fun Route.tilbakekrevingRoutes(
     underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService,
     iverksettTilbakekrevingService: IverksettTilbakekrevingService,
     avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService,
+    forhåndsvisAvbruttTilbakekrevingsbehandlingBrevService: ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService,
     oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
@@ -52,5 +55,6 @@ fun Route.tilbakekrevingRoutes(
     this.underkjennTilbakekrevingsbehandlingRoute(underkjennTilbakekrevingsbehandlingService)
     this.iverksettTilbakekrevingsbehandlingRoute(iverksettTilbakekrevingService)
     this.avbrytTilbakekrevingsbehandlingRoute(avbrytTilbakekrevingsbehandlingService)
+    this.forhåndsvisAvbrytTilbakekrevingsbehandlingRoute(forhåndsvisAvbruttTilbakekrevingsbehandlingBrevService)
     this.oppdaterKravgrunnlagRoute(oppdaterKravgrunnlagService)
 }

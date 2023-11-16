@@ -63,6 +63,11 @@ sealed class PdfTemplateMedDokumentNavn(
         dokumentNavn = "Varsel om mulig tilbakekreving",
     )
 
+    data object AvbruttTilbakekrevingsbehandling : PdfTemplateMedDokumentNavn(
+        pdfTemplate = PdfTemplate.AvbruttTilbakekrevingsbehandling,
+        dokumentNavn = "Ikke grunnlag for tilbakekreving",
+    )
+
     data object VedtaksbrevTilbakekrevingsbehandling : PdfTemplateMedDokumentNavn(
         pdfTemplate = PdfTemplate.VedtaksbrevTilbakekrevingsbehandling,
         dokumentNavn = "Tilbakekreving av Supplerende stønad",
