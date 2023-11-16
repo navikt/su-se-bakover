@@ -120,6 +120,9 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         }
     }
 
+    /**
+     * Asynkron - oppretter oppgaver med systembruker.
+     */
     private fun opprettNyLukkOppgaveHendelse(
         relaterteHendelse: HendelseId,
         nesteVersjon: Hendelsesversjon,
@@ -127,7 +130,7 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHendelse> {
-        return oppgaveService.lukkOppgave(tidligereOppgaveHendelse.oppgaveId).fold(
+        return oppgaveService.lukkOppgaveMedSystembruker(tidligereOppgaveHendelse.oppgaveId).fold(
             {
                 when (it) {
                     is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
