@@ -131,7 +131,8 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
     "opprettet": "2021-02-01T01:03:52.456789Z"
     }
   ],
-  "erKravgrunnlagUtdatert": false
+  "erKravgrunnlagUtdatert": false,
+  "avsluttetTidspunkt": null
 }"""
     JSONAssert.assertEquals(
         expected,

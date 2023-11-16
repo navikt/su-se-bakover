@@ -27,6 +27,7 @@ data class TilbakekrevingsbehandlingJson(
     val sendtTilAttesteringAv: String?,
     val attesteringer: List<AttesteringJson>,
     val erKravgrunnlagUtdatert: Boolean,
+    val avsluttetTidspunkt: Tidspunkt?,
 ) {
 
     companion object {
@@ -76,6 +77,7 @@ data class TilbakekrevingsbehandlingJson(
             },
             attesteringer = this.attesteringer.toJson(),
             erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
+            avsluttetTidspunkt = (this as? AvbruttTilbakekrevingsbehandling)?.avsluttetTidspunkt,
         )
     }
 }

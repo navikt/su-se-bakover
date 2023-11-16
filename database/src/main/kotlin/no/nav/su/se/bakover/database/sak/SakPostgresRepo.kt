@@ -64,6 +64,8 @@ internal class SakPostgresRepo(
 
     private val ferdigeBehandlingerRepo = FerdigeBehandlingerRepo(
         dbMetrics = dbMetrics,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+        sessionFactory = sessionFactory,
     )
 
     override fun hentSak(sakId: UUID): Sak? {
@@ -259,8 +261,8 @@ internal class SakPostgresRepo(
 
     override fun hentFerdigeBehandlinger(): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
-            sessionFactory.withSession { session ->
-                ferdigeBehandlingerRepo.hentFerdigeBehandlinger(session)
+            sessionFactory.withSessionContext { tx ->
+                ferdigeBehandlingerRepo.hentFerdigeBehandlinger(tx)
             }
         }
     }

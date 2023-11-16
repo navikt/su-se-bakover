@@ -5,26 +5,43 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
-import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
+import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 internal class FerdigeBehandlingerRepo(
     private val dbMetrics: DbMetrics,
+    private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val sessionFactory: SessionFactory,
 ) {
 
     /**
      * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
      */
-    fun hentFerdigeBehandlinger(session: Session): List<Behandlingssammendrag> {
+    fun hentFerdigeBehandlinger(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            hentFerdigeBehandlingerUtenTilbakekreving(sessionContext).plus(
+                tilbakekrevingsbehandlingRepo.hentFerdigeBehandlingssamendrag(sessionContext),
+            )
+        }
+    }
+
+    /**
+     * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
+     */
+    private fun hentFerdigeBehandlingerUtenTilbakekreving(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
-            //language=sql
-            """
+            sessionContext.withOptionalSession(sessionFactory) { session ->
+                //language=sql
+                """
             with sak as (
                 select id as sakId, saksnummer
                 from sak
@@ -78,8 +95,9 @@ internal class FerdigeBehandlingerRepo(
                  )
             select *
             from slåttSammen
-            """.trimIndent().hentListe(emptyMap(), session) {
-                it.toBehandlingsoversikt()
+                """.trimIndent().hentListe(emptyMap(), session) {
+                    it.toBehandlingsoversikt()
+                }
             }
         }
     }

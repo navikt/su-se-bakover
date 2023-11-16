@@ -117,7 +117,8 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
        "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:03:57.456789Z\""}  
     }
   ],
-  "erKravgrunnlagUtdatert": false
+  "erKravgrunnlagUtdatert": false,
+  "avsluttetTidspunkt": null
 }"""
     JSONAssert.assertEquals(
         expected,

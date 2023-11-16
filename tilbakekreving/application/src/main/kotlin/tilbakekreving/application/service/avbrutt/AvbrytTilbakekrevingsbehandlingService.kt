@@ -36,10 +36,10 @@ class AvbrytTilbakekrevingsbehandlingService(
         }
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(command.behandlingsId)
-                ?: throw IllegalStateException("Kunne ikke underkjenne tilbakekrevingsbehandling ${command.behandlingsId}, fant ikke tilbakekrevingsbehandling på sak. Command: $command")
+                ?: throw IllegalStateException("Kunne ikke avbryte tilbakekrevingsbehandling ${command.behandlingsId}, fant ikke tilbakekrevingsbehandling på sak. Command: $command")
             ).let {
             it as? KanEndres
-                ?: throw IllegalStateException("Kunne ikke underkjenne tilbakekrevingsbehandling ${command.behandlingsId}, behandlingen er ikke i tilstanden til attestering. Command: $command")
+                ?: throw IllegalStateException("Kunne ikke avbryte tilbakekrevingsbehandling ${command.behandlingsId}, behandlingen er ikke i tilstanden KanEndres. Command: $command")
         }
 
         return behandling.avbryt(

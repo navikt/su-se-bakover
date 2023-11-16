@@ -126,7 +126,8 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
   "attesteringer": $expectedAttesteringer,
-  "erKravgrunnlagUtdatert": false
+  "erKravgrunnlagUtdatert": false,
+  "avsluttetTidspunkt": null
 }"""
     JSONAssert.assertEquals(
         expected,
