@@ -80,7 +80,7 @@ subprojects {
         implementation("org.apache.avro:avro:1.11.3")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
         implementation("io.micrometer:micrometer-core:1.12.0")
-        implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.12.0")
         implementation("com.github.seratch:kotliquery:1.9.0")
         implementation("org.flywaydb:flyway-core:10.0.1")
         implementation("org.flywaydb:flyway-database-postgresql:10.0.1")
