@@ -210,6 +210,8 @@ class SøknadServiceImpl(
                 datoDokument = Tidspunkt.now(clock),
                 fnr = person.ident.fnr,
                 navn = person.navn,
+                // jah: Når vi journalfører søknader, så går vi utenom dokument-typen. Bruker da søknadsIDen istedenfor.
+                internDokumentId = søknad.id,
             ),
         ).getOrElse {
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")

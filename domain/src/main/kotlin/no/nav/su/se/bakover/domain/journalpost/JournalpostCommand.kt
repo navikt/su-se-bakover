@@ -8,10 +8,15 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import person.domain.Person
+import java.util.UUID
 
+/**
+ * @property internDokumentId SU-app sin ID. Brukes for dedup og sporing gjennom verdikjeden.
+ */
 sealed interface JournalpostCommand {
     val sakstype: Sakstype
     val fnr: Fnr
+    val internDokumentId: UUID
 }
 
 sealed interface JournalpostUtenforSakCommand : JournalpostCommand {
@@ -30,6 +35,7 @@ sealed interface JournalpostForSakCommand : JournalpostCommand {
         val datoDokument: Tidspunkt,
         override val fnr: Fnr,
         val navn: Person.Navn,
+        override val internDokumentId: UUID,
     ) : JournalpostForSakCommand
 
     data class Brev(
@@ -38,5 +44,7 @@ sealed interface JournalpostForSakCommand : JournalpostCommand {
         val dokument: Dokument.MedMetadata,
         override val sakstype: Sakstype,
         val navn: Person.Navn,
-    ) : JournalpostForSakCommand
+    ) : JournalpostForSakCommand {
+        override val internDokumentId = dokument.id
+    }
 }

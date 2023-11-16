@@ -327,6 +327,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
+                            internDokumentId = nySøknad.id,
                         )
                     },
                 )

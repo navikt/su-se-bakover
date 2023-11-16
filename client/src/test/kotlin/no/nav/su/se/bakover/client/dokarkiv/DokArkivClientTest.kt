@@ -65,8 +65,11 @@ internal class DokArkivClientTest : WiremockBase {
         wireMockServer.baseUrl(),
         TokenOppslagStub,
     )
+    private val internDokumentId = UUID.fromString("1a5dad39-db6a-4199-abe3-4acd9b8c0356")
 
-    private val forventetSøknadsRequest =
+    private fun forventetSøknadsRequest(
+        eksternReferanseId: String = "1a5dad39-db6a-4199-abe3-4acd9b8c0356",
+    ) =
         """
                     {
                       "tittel": "Søknad om supplerende stønad for uføre flyktninger",
@@ -110,11 +113,14 @@ internal class DokArkivClientTest : WiremockBase {
                           ]
                         }
                       ],
-                        "datoDokument": "2021-01-01T01:02:03.456789Z"
+                        "datoDokument": "2021-01-01T01:02:03.456789Z",
+                        "eksternReferanseId": "$eksternReferanseId"
                     }
         """.trimIndent()
 
-    private val forventetVedtaksRequest =
+    private fun forventetVedtaksRequest(
+        eksternReferanseId: String = "1a5dad39-db6a-4199-abe3-4acd9b8c0356",
+    ) =
         """
                     {
                       "tittel": "Vedtaksbrev for søknad om supplerende stønad",
@@ -157,7 +163,8 @@ internal class DokArkivClientTest : WiremockBase {
                           ]
                         }
                       ],
-                      "datoDokument": "2021-01-01T01:02:03.456789Z"
+                      "datoDokument": "2021-01-01T01:02:03.456789Z",
+                      "eksternReferanseId": "$eksternReferanseId"
                     }
         """.trimIndent()
 
@@ -165,7 +172,7 @@ internal class DokArkivClientTest : WiremockBase {
     fun `should send pdf to journal`() {
         wireMockServer.stubFor(
             wiremockBuilder
-                .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest))
+                .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest()))
                 .willReturn(
                     WireMock.okJson(
                         """
@@ -183,6 +190,7 @@ internal class DokArkivClientTest : WiremockBase {
                     ),
                 ),
         )
+
         client.opprettJournalpost(
             JournalpostForSakCommand.Søknadspost(
                 saksnummer = Saksnummer(2021),
@@ -192,6 +200,7 @@ internal class DokArkivClientTest : WiremockBase {
                 datoDokument = fixedTidspunkt,
                 fnr = person.ident.fnr,
                 navn = person.navn,
+                internDokumentId = internDokumentId,
             ),
         ).shouldBe(
             JournalpostId("1").right(),
@@ -202,7 +211,7 @@ internal class DokArkivClientTest : WiremockBase {
     fun `should fail when return status is not 2xx`() {
         wireMockServer.stubFor(
             wiremockBuilder
-                .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest))
+                .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest()))
                 .willReturn(WireMock.forbidden()),
         )
 
@@ -215,6 +224,7 @@ internal class DokArkivClientTest : WiremockBase {
                 datoDokument = fixedTidspunkt,
                 fnr = person.ident.fnr,
                 navn = person.navn,
+                internDokumentId = internDokumentId,
             ),
         ) shouldBe
             ClientError(403, "Feil ved journalføring").left()
@@ -224,7 +234,7 @@ internal class DokArkivClientTest : WiremockBase {
     fun `should send vedtaks pdf to journal`() {
         wireMockServer.stubFor(
             wiremockBuilder
-                .withRequestBody(WireMock.equalToJson(forventetVedtaksRequest))
+                .withRequestBody(WireMock.equalToJson(forventetVedtaksRequest(vedtaksDokument.id.toString())))
                 .willReturn(
                     WireMock.okJson(
                         """

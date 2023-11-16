@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import org.jetbrains.annotations.TestOnly
-import java.lang.IllegalArgumentException
 
 /**
  * kan brukes som mal for 'Notat' poster i Joark.
@@ -22,6 +21,8 @@ data class JournalpostSkattForSak(
     override val fnr: Fnr,
     val dokument: Skattedokument,
 ) : JournalpostForSakCommand {
+
+    override val internDokumentId = dokument.id
 
     companion object {
         fun Skattedokument.lagJournalpost(sakInfo: SakInfo): JournalpostSkattForSak = JournalpostSkattForSak(
@@ -42,6 +43,8 @@ data class JournalpostSkattUtenforSak private constructor(
     override val fagsystemId: String,
     val dokument: Dokument.UtenMetadata,
 ) : JournalpostUtenforSakCommand {
+
+    override val internDokumentId = dokument.id
 
     companion object {
         @TestOnly

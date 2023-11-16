@@ -25,6 +25,7 @@ internal data class JournalpostRequest(
     val sak: Fagsak,
     val dokumenter: List<JournalpostDokument>,
     val datoDokument: Tidspunkt?,
+    val eksternReferanseId: String,
 )
 
 private fun søkersNavn(navn: Person.Navn): String =
@@ -53,6 +54,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 originalJson = dokument.dokumentJson,
             ),
             datoDokument = dokument.skattedataHentet,
+            eksternReferanseId = internDokumentId.toString(),
         )
 
         is JournalpostForSakCommand.Brev -> JournalpostRequest(
@@ -70,6 +72,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 originalJson = dokument.generertDokumentJson,
             ),
             datoDokument = dokument.opprettet,
+            eksternReferanseId = internDokumentId.toString(),
         )
 
         is JournalpostForSakCommand.Søknadspost -> JournalpostRequest(
@@ -93,6 +96,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 originalJson = serialize(søknadInnhold),
             ),
             datoDokument = datoDokument,
+            eksternReferanseId = internDokumentId.toString(),
         )
 
         is JournalpostSkattUtenforSak -> JournalpostRequest(
@@ -110,6 +114,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 originalJson = dokument.generertDokumentJson,
             ),
             datoDokument = dokument.opprettet,
+            eksternReferanseId = internDokumentId.toString(),
         )
     }.let {
         serialize(it)

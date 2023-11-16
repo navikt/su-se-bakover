@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
@@ -85,14 +84,19 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
             },
             søknadMetrics = mock(),
         ).also {
-            val actual = it.service.nySøknad(søknadInnhold, innsender)
+            val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 
             inOrder(
                 it.personService,
@@ -124,29 +128,21 @@ class SøknadTest {
                             saksnummer = sak.saksnummer,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
-                            søknadOpprettet = actual.getOrFail().second.opprettet,
+                            søknadOpprettet = actualNySøknad.opprettet,
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
                     },
                 )
             }
-            actual.getOrFail().apply {
-                first shouldBe sak.saksnummer
-                second.shouldBeEqualToIgnoringFields(
-                    Søknad.Ny(
-                        // ignored
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        // ignored
-                        sakId = UUID.randomUUID(),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = innsender,
-                    ),
-                    Søknad.Ny::id,
-                    Søknad.Ny::sakId,
-                )
-            }
+            actualSaksnummer shouldBe sak.saksnummer
+            actualNySøknad shouldBe Søknad.Ny(
+                id = actualNySøknad.id,
+                opprettet = fixedTidspunkt,
+                sakId = actualNySøknad.sakId,
+                søknadInnhold = søknadInnhold,
+                innsendtAv = innsender,
+            )
         }
     }
 
@@ -157,7 +153,12 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -168,7 +169,7 @@ class SøknadTest {
             },
             søknadRepo = mock(),
         ).also {
-            val actual = it.service.nySøknad(søknadInnhold, innsender)
+            val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 
             inOrder(
                 it.personService,
@@ -196,7 +197,7 @@ class SøknadTest {
                             saksnummer = sak.saksnummer,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
-                            søknadOpprettet = actual.getOrFail().second.opprettet,
+                            søknadOpprettet = actualNySøknad.opprettet,
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
@@ -212,26 +213,19 @@ class SøknadTest {
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
+                            internDokumentId = actualNySøknad.id,
                         )
                     },
                 )
             }
-            actual.getOrFail().apply {
-                first shouldBe sak.saksnummer
-                second.shouldBeEqualToIgnoringFields(
-                    Søknad.Ny(
-                        // ignored
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        // ignored
-                        sakId = UUID.randomUUID(),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = innsender,
-                    ),
-                    Søknad.Ny::id,
-                    Søknad.Ny::sakId,
-                )
-            }
+            actualSaksnummer shouldBe sak.saksnummer
+            actualNySøknad shouldBe Søknad.Ny(
+                id = actualNySøknad.id,
+                opprettet = fixedTidspunkt,
+                sakId = actualNySøknad.sakId,
+                søknadInnhold = søknadInnhold,
+                innsendtAv = innsender,
+            )
         }
     }
 
@@ -242,7 +236,12 @@ class SøknadTest {
 
         SøknadServiceOgMocks(
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -260,7 +259,7 @@ class SøknadTest {
             søknadMetrics = mock(),
         ).also {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sak.fnr))
-            val actual = it.service.nySøknad(søknadInnhold, innsender)
+            val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
@@ -282,7 +281,7 @@ class SøknadTest {
                             saksnummer = sak.saksnummer,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
-                            søknadOpprettet = actual.getOrFail().second.opprettet,
+                            søknadOpprettet = actualNySøknad.opprettet,
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
@@ -298,60 +297,44 @@ class SøknadTest {
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
+                            internDokumentId = actualNySøknad.id,
                         )
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(
                     argThat {
-                        it.shouldBeEqualToIgnoringFields(
-                            Søknad.Journalført.UtenOppgave(
-                                // ignored
-                                id = UUID.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                sakId = sak.id,
-                                søknadInnhold = søknadInnhold,
-                                innsendtAv = innsender,
-                                journalpostId = journalpostId,
-                            ),
-                            Søknad.Journalført.UtenOppgave::id,
+                        it shouldBe Søknad.Journalført.UtenOppgave(
+                            id = actualNySøknad.id,
+                            opprettet = fixedTidspunkt,
+                            sakId = sak.id,
+                            søknadInnhold = søknadInnhold,
+                            innsendtAv = innsender,
+                            journalpostId = journalpostId,
                         )
                     },
                 )
                 verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
-                        it.shouldBeEqualToIgnoringFields(
-                            OppgaveConfig.Søknad(
-                                sakstype = Sakstype.UFØRE,
-                                journalpostId = journalpostId,
-                                // ignored
-                                søknadId = UUID.randomUUID(),
-                                aktørId = person.ident.aktørId,
-                                tilordnetRessurs = null,
-                                clock = fixedClock,
-                            ),
-                            OppgaveConfig.Søknad::søknadId,
-                            OppgaveConfig.Søknad::saksreferanse,
+                        it shouldBe OppgaveConfig.Søknad(
+                            sakstype = Sakstype.UFØRE,
+                            journalpostId = journalpostId,
+                            søknadId = actualNySøknad.id,
+                            aktørId = person.ident.aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
                         )
                     },
                 )
             }
-            actual.getOrFail().apply {
-                first shouldBe sak.saksnummer
-                second.shouldBeEqualToIgnoringFields(
-                    Søknad.Ny(
-                        // ignored
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        // ignored
-                        sakId = UUID.randomUUID(),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = innsender,
-                    ),
-                    Søknad.Ny::id,
-                    Søknad.Ny::sakId,
-                )
-            }
+            actualSaksnummer shouldBe sak.saksnummer
+            actualNySøknad shouldBe Søknad.Ny(
+                id = actualNySøknad.id,
+                opprettet = fixedTidspunkt,
+                sakId = actualNySøknad.sakId,
+                søknadInnhold = søknadInnhold,
+                innsendtAv = innsender,
+            )
         }
     }
 
@@ -362,7 +345,12 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -376,7 +364,7 @@ class SøknadTest {
             søknadRepo = mock(),
             søknadMetrics = mock(),
         ).also {
-            val actual = it.service.nySøknad(søknadInnhold, innsender)
+            val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 
             inOrder(
                 it.personService,
@@ -405,7 +393,7 @@ class SøknadTest {
                             saksnummer = sak.saksnummer,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
-                            søknadOpprettet = actual.getOrFail().second.opprettet,
+                            søknadOpprettet = actualNySøknad.opprettet,
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
@@ -421,56 +409,44 @@ class SøknadTest {
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
+                            internDokumentId = actualNySøknad.id,
                         )
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(
                     argThat {
-                        it.shouldBeEqualToIgnoringFields(
-                            Søknad.Journalført.UtenOppgave(
-                                // ignored
-                                id = UUID.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                sakId = sakId,
-                                søknadInnhold = søknadInnhold,
-                                innsendtAv = innsender,
-                                journalpostId = journalpostId,
-                            ),
-                            Søknad.Journalført.MedOppgave::id,
+                        it shouldBe Søknad.Journalført.UtenOppgave(
+                            id = actualNySøknad.id,
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            søknadInnhold = søknadInnhold,
+                            innsendtAv = innsender,
+                            journalpostId = journalpostId,
                         )
                     },
                 )
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
-                        it.shouldBeEqualToIgnoringFields(
-                            OppgaveConfig.Søknad(
-                                sakstype = Sakstype.UFØRE,
-                                journalpostId = journalpostId,
-                                // ignored
-                                søknadId = UUID.randomUUID(),
-                                aktørId = person.ident.aktørId,
-                                tilordnetRessurs = null,
-                                clock = fixedClock,
-                            ),
-                            OppgaveConfig.Søknad::søknadId,
-                            OppgaveConfig.Søknad::saksreferanse,
+                        it shouldBe OppgaveConfig.Søknad(
+                            sakstype = Sakstype.UFØRE,
+                            journalpostId = journalpostId,
+                            søknadId = actualNySøknad.id,
+                            aktørId = person.ident.aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
                         )
                     },
                 )
                 verify(it.søknadRepo).oppdaterOppgaveId(
                     argThat {
-                        it.shouldBeEqualToIgnoringFields(
-                            Søknad.Journalført.MedOppgave.IkkeLukket(
-                                // ignored
-                                id = UUID.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                sakId = sakId,
-                                søknadInnhold = søknadInnhold,
-                                innsendtAv = innsender,
-                                journalpostId = journalpostId,
-                                oppgaveId = oppgaveId,
-                            ),
-                            Søknad.Journalført.MedOppgave::id,
+                        it shouldBe Søknad.Journalført.MedOppgave.IkkeLukket(
+                            id = actualNySøknad.id,
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            søknadInnhold = søknadInnhold,
+                            innsendtAv = innsender,
+                            journalpostId = journalpostId,
+                            oppgaveId = oppgaveId,
                         )
                     },
                 )
@@ -484,22 +460,14 @@ class SøknadTest {
                 it.oppgaveService,
             )
 
-            actual.getOrFail().apply {
-                first shouldBe sak.saksnummer
-                second.shouldBeEqualToIgnoringFields(
-                    Søknad.Ny(
-                        // ignored
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        // ignored
-                        sakId = UUID.randomUUID(),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = innsender,
-                    ),
-                    Søknad.Ny::id,
-                    Søknad.Ny::sakId,
-                )
-            }
+            actualSaksnummer shouldBe sak.saksnummer
+            actualNySøknad shouldBe Søknad.Ny(
+                id = actualNySøknad.id,
+                opprettet = fixedTidspunkt,
+                sakId = actualNySøknad.sakId,
+                søknadInnhold = søknadInnhold,
+                innsendtAv = innsender,
+            )
         }
     }
 }
