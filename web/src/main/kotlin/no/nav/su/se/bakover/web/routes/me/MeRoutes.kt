@@ -18,6 +18,7 @@ data class UserData(
     val navn: String,
     val navIdent: String,
     val roller: List<Brukerrolle>,
+    val isProd: Boolean,
 )
 
 internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapper: AzureGroupMapper) {
@@ -34,6 +35,7 @@ internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapp
                         navn = call.suUserContext.navn,
                         navIdent = call.suUserContext.navIdent,
                         roller = roller,
+                        isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod,
                     ),
                 ),
             ),
