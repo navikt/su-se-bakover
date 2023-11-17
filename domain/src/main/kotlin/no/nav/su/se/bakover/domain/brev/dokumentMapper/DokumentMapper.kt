@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
+import tilbakekreving.domain.avbrutt.AvbruttTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
@@ -55,6 +56,7 @@ fun PdfA.tilDokument(
         is KlageDokumentCommand.Oppretthold,
         is AvsluttRevurderingDokumentCommand,
         is TrukketSøknadDokumentCommand,
+        is AvbruttTilbakekrevingsbehandlingDokumentCommand,
         -> informasjonAnnet(
             id = id,
             clock = clock,
