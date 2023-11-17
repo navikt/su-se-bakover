@@ -5,15 +5,16 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import dokument.domain.journalføring.søknad.JournalførSøknadClient
+import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -42,7 +43,7 @@ class SøknadServiceImpl(
     private val sakService: SakService,
     private val sakFactory: SakFactory,
     private val pdfGenerator: PdfGenerator,
-    private val dokArkiv: DokArkiv,
+    private val journalførSøknadClient: JournalførSøknadClient,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics,
@@ -201,9 +202,9 @@ class SøknadServiceImpl(
         }
         log.info("Ny søknad: Generert PDF ok.")
 
-        val journalpostId = dokArkiv.opprettJournalpost(
-            JournalpostForSakCommand.Søknadspost(
-                søknadInnhold = søknad.søknadInnhold,
+        val journalpostId = journalførSøknadClient.journalførSøknad(
+            JournalførSøknadCommand(
+                søknadInnholdJson = serialize(søknad.søknadInnhold),
                 pdf = pdf,
                 saksnummer = sakInfo.saksnummer,
                 sakstype = sakInfo.type,

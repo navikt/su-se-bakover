@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
-import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
-import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
+import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
+import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
+import no.nav.su.se.bakover.client.journalpost.QueryJournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
@@ -29,6 +29,10 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.dokument.infrastructure.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.createJournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.createJournalførSøknadHttpClient
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import java.time.Clock
 
@@ -78,7 +82,7 @@ data class ProdClientsBuilder(
             kabalConfig = applicationConfig.clientsConfig.kabalConfig,
             exchange = oAuth,
         )
-        val journalpostClient = JournalpostHttpClient(
+        val journalpostClient = QueryJournalpostHttpClient(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = oAuth,
             sts = tokenOppslag,
@@ -90,7 +94,22 @@ data class ProdClientsBuilder(
             personOppslag = personOppslag,
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
-            dokArkiv = DokArkivClient(clientsConfig.dokarkivUrl, tokenOppslag),
+            journalførClients = run {
+                val client = JournalførHttpClient(
+                    baseUrl = clientsConfig.dokarkivUrl,
+                    tokenOppslag = tokenOppslag,
+                )
+                JournalførClients(
+                    skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakHttpClient(
+                        client,
+                    ),
+                    skattedokumentPåSak = JournalførSkattedokumentPåSakHttpClient(
+                        client,
+                    ),
+                    brev = createJournalførBrevHttpClient(client),
+                    søknad = createJournalførSøknadHttpClient(client),
+                )
+            },
             oppgaveClient = OppgaveHttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
@@ -132,7 +151,7 @@ data class ProdClientsBuilder(
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,
-            journalpostClient = journalpostClient,
+            queryJournalpostClient = journalpostClient,
             tilbakekrevingClient = TilbakekrevingSoapClient(
                 tilbakekrevingPortType = TilbakekrevingSoapClientConfig(
                     tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,

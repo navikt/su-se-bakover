@@ -50,7 +50,7 @@ class SøknadsbehandlingSkattTest {
             argThat { it shouldBe Year.of(2020).toRange() },
         )
 
-        verify(søknadsbehandlingRepoMock, times(1)).lagre(
+        verify(søknadsbehandlingRepoMock).lagre(
             søknadsbehandling = argThat {
                 it shouldBe søknadsbehandling.copy(
                     grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.copy(

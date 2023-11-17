@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -26,7 +26,7 @@ import java.util.UUID
 
 class UtløptFristForKontrollsamtaleServiceImpl(
     private val sakService: SakService,
-    private val journalpostClient: JournalpostClient,
+    private val queryJournalpostClient: QueryJournalpostClient,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val stansAvYtelseService: StansYtelseService,
     private val sessionFactory: SessionFactory,
@@ -56,7 +56,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                         throw IllegalStateException("fant ikke sak for kontrollsamtale ${kontrollsamtale.id}, sakId ${kontrollsamtale.sakId}")
                     },
                     hentKontrollnotatMottatt = { saksnummer: Saksnummer, periode: DatoIntervall ->
-                        journalpostClient.kontrollnotatMotatt(saksnummer, periode)
+                        queryJournalpostClient.kontrollnotatMotatt(saksnummer, periode)
                             .mapLeft {
                                 UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
                             }

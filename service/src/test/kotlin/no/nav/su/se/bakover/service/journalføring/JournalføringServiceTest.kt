@@ -5,15 +5,18 @@ import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
+import dokument.domain.distribuering.DokDistFordeling
+import dokument.domain.journalføring.brev.JournalførBrevClient
+import dokument.domain.journalføring.brev.JournalførBrevCommand
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
+import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentPåSakClient
+import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClient
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
@@ -65,8 +68,12 @@ class JournalføringServiceTest {
         val dokumentSkattRepo = mock<DokumentSkattRepo> {
             on { this.hentDokumenterForJournalføring() } doReturn listOf(skattDokument)
         }
-        val dokarkiv = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn JournalpostId("1").right()
+        val journalførBrevClient = mock<JournalførBrevClient> {
+            on { journalførBrev(any()) } doReturn JournalpostId("1").right()
+        }
+
+        val journalførSkattedokumentPåSakClient = mock<JournalførSkattedokumentPåSakClient> {
+            on { journalførSkattedokument(any()) } doReturn JournalpostId("1").right()
         }
 
         val serviceAndMocks = ServiceOgMocks(
@@ -74,28 +81,39 @@ class JournalføringServiceTest {
             personService = personService,
             dokumentRepo = dokumentRepo,
             dokumentSkattRepo = dokumentSkattRepo,
-            dokArkiv = dokarkiv,
+            journalførBrevClient = journalførBrevClient,
+            journalførSkattedokumentPåSakClient = journalførSkattedokumentPåSakClient,
         )
         serviceAndMocks.journalføringService.journalfør()
-        verify(dokumentRepo, times(1)).hentDokumenterForJournalføring()
-        verify(dokumentSkattRepo, times(1)).hentDokumenterForJournalføring()
+        verify(dokumentRepo).hentDokumenterForJournalføring()
+        verify(dokumentSkattRepo).hentDokumenterForJournalføring()
         verify(sakService, times(2)).hentSakInfo(argThat { it shouldBe sakinfo.sakId })
-        verify(personService, times(1)).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-        verify(dokumentRepo, times(1)).oppdaterDokumentdistribusjon(
+        verify(personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+        verify(dokumentRepo).oppdaterDokumentdistribusjon(
             argThat {
                 it shouldBe dokumentDis.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("1")),
                 )
             },
         )
-        verify(dokumentSkattRepo, times(1)).lagre(
+        verify(dokumentSkattRepo).lagre(
             argThat { it shouldBe Skattedokument.Journalført(skattDokument, JournalpostId("1")) },
         )
-        verifyNoMoreInteractions(sakService, personService, dokumentRepo, dokumentSkattRepo)
+        verify(journalførBrevClient).journalførBrev(
+            argThat {
+                it shouldBe JournalførBrevCommand(
+                    fnr = fnr,
+                    saksnummer = sakinfo.saksnummer,
+                    dokument = dokumentDis.dokument,
+                    sakstype = sakinfo.type,
+                    navn = person.navn,
+                )
+            },
+        )
     }
 
     private data class ServiceOgMocks(
-        val dokArkiv: DokArkiv = mock(),
+        val journalførBrevClient: JournalførBrevClient = mock(),
         val dokDistFordeling: DokDistFordeling = mock(),
         val dokumentRepo: DokumentRepo = mock(),
         val dokumentSkattRepo: DokumentSkattRepo = mock(),
@@ -103,20 +121,37 @@ class JournalføringServiceTest {
         val personService: PersonService = mock(),
         val clock: Clock = mock(),
         val sakInfo: SakInfo = sakinfo,
+        val journalførSkattedokumentPåSakClient: JournalførSkattedokumentPåSakClient = mock(),
+        val journalførSkattedokumentUtenforSakClient: JournalførSkattedokumentUtenforSakClient = mock(),
     ) {
         val journalføringService = JournalføringService(
             journalførDokumentService = JournalførDokumentService(
-                dokArkiv = dokArkiv,
+                journalførBrevClient = journalførBrevClient,
                 dokumentRepo = dokumentRepo,
                 sakService = sakService,
                 personService = personService,
             ),
             journalførSkattDokumentService = JournalførSkattDokumentService(
-                dokArkiv = dokArkiv,
+                journalførSkattedokumentPåSakClient = journalførSkattedokumentPåSakClient,
+                journalførSkattedokumentUtenforSakClient = journalførSkattedokumentUtenforSakClient,
                 sakService = sakService,
                 dokumentSkattRepo = dokumentSkattRepo,
             ),
         )
+
+        fun verifyNoMoreInteractions() {
+            verifyNoMoreInteractions(
+                journalførBrevClient,
+                dokDistFordeling,
+                dokumentRepo,
+                dokumentSkattRepo,
+                sakService,
+                personService,
+                sakInfo,
+                journalførSkattedokumentPåSakClient,
+                journalførSkattedokumentUtenforSakClient,
+            )
+        }
     }
 }
 

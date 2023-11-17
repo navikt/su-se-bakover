@@ -4,8 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.extensions.desember
@@ -13,17 +11,16 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
-import org.junit.jupiter.api.BeforeEach
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.slf4j.MDC
 import person.domain.KunneIkkeHentePerson
 import person.domain.SivilstandTyper
 import java.time.LocalDate
 
-internal class PdlClientTest : WiremockBase {
+internal class PdlClientTest {
 
     private val tokenOppslag = AzureClientStub
 
@@ -59,9 +56,10 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent aktørid inneholder errors`() {
-        //language=JSON
-        val errorResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val errorResponseJson =
+                """
           {
               "errors": [
                 {
@@ -86,48 +84,52 @@ internal class PdlClientTest : WiremockBase {
               },
               "extensions": {"etAllerAnnetMap":  "her får vi noe warnings i et eller annent format som vi logger"}
             }
-            """.trimIndent()
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.ok(errorResponseJson)),
-        )
+                """.trimIndent()
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.ok(errorResponseJson)),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.aktørId(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.aktørId(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        }
     }
 
     @Test
     fun `hent aktørid ukjent feil`() {
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.serverError()),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.serverError()),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.aktørId(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.aktørId(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        }
     }
 
     @Test
     fun `hent aktørid OK`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentIdenter": {
@@ -147,33 +149,35 @@ internal class PdlClientTest : WiremockBase {
               },
               "extensions": null
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.aktørId(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe AktørId("2751637578706").right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.aktørId(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
     fun `hent aktørid OK med kun on behalf of token`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentIdenter": {
@@ -192,33 +196,35 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.aktørId(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe AktørId("2751637578706").right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.aktørId(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
     fun `hent person inneholder kjent feil`() {
-        //language=JSON
-        val errorResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val errorResponseJson =
+                """
           {
               "errors": [
                 {
@@ -242,52 +248,56 @@ internal class PdlClientTest : WiremockBase {
                 "hentPerson": null
               }
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(errorResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.person(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(errorResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.person(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     @Test
     fun `hent person ukjent feil`() {
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.serverError()),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.serverError()),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.person(
-            Fnr("12345678912"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.person(
+                Fnr("12345678912"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        }
     }
 
     @Test
     fun `hent person OK og fjerner duplikate adresser`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -388,38 +398,40 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.person(
+                Fnr("07028820547"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe expectedPdlDataTemplate.copy(
+                fødsel = PdlData.Fødsel(
+                    foedselsdato = LocalDate.of(2021, 12, 21),
+                    foedselsaar = 2021,
+                ),
+            ).right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.person(
-            Fnr("07028820547"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe expectedPdlDataTemplate.copy(
-            fødsel = PdlData.Fødsel(
-                foedselsdato = LocalDate.of(2021, 12, 21),
-                foedselsaar = 2021,
-            ),
-        ).right()
     }
 
     @Test
     fun `hent person OK og viser alle ulike adresser, the sequel`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -519,52 +531,54 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.person(
+                Fnr("07028820547"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe expectedPdlDataTemplate.copy(
+                adresse = listOf(
+                    PdlData.Adresse(
+                        adresselinje = "SANDTAKVEIEN 42",
+                        postnummer = "9190",
+                        bruksenhet = null,
+                        kommunenummer = "5427",
+                        adressetype = "Bostedsadresse",
+                        adresseformat = "Vegadresse",
+                    ),
+                    PdlData.Adresse(
+                        adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
+                        postnummer = "9190",
+                        bruksenhet = null,
+                        kommunenummer = null,
+                        adressetype = "Kontaktadresse",
+                        adresseformat = "PostadresseIFrittFormat",
+                    ),
+                ),
+            ).right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.person(
-            Fnr("07028820547"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe expectedPdlDataTemplate.copy(
-            adresse = listOf(
-                PdlData.Adresse(
-                    adresselinje = "SANDTAKVEIEN 42",
-                    postnummer = "9190",
-                    bruksenhet = null,
-                    kommunenummer = "5427",
-                    adressetype = "Bostedsadresse",
-                    adresseformat = "Vegadresse",
-                ),
-                PdlData.Adresse(
-                    adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
-                    postnummer = "9190",
-                    bruksenhet = null,
-                    kommunenummer = null,
-                    adressetype = "Kontaktadresse",
-                    adresseformat = "PostadresseIFrittFormat",
-                ),
-            ),
-        ).right()
     }
 
     @Test
     fun `hent person OK og viser alle ulike adresser`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -659,61 +673,63 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.person(
+                Fnr("07028820547"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe expectedPdlDataTemplate.copy(
+                adresse = listOf(
+                    PdlData.Adresse(
+                        adresselinje = "SANDTAKVEIEN 42",
+                        postnummer = "9190",
+                        bruksenhet = null,
+                        kommunenummer = "5427",
+                        adressetype = "Bostedsadresse",
+                        adresseformat = "Vegadresse",
+                    ),
+                    PdlData.Adresse(
+                        adresselinje = "Storgården",
+                        postnummer = "9190",
+                        bruksenhet = "H0606",
+                        kommunenummer = "5427",
+                        adressetype = "Oppholdsadresse",
+                        adresseformat = "Matrikkeladresse",
+                    ),
+                    PdlData.Adresse(
+                        adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
+                        postnummer = "9190",
+                        bruksenhet = null,
+                        kommunenummer = null,
+                        adressetype = "Kontaktadresse",
+                        adresseformat = "PostadresseIFrittFormat",
+                    ),
+                ),
+                dødsdato = null,
+            ).right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.person(
-            Fnr("07028820547"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe expectedPdlDataTemplate.copy(
-            adresse = listOf(
-                PdlData.Adresse(
-                    adresselinje = "SANDTAKVEIEN 42",
-                    postnummer = "9190",
-                    bruksenhet = null,
-                    kommunenummer = "5427",
-                    adressetype = "Bostedsadresse",
-                    adresseformat = "Vegadresse",
-                ),
-                PdlData.Adresse(
-                    adresselinje = "Storgården",
-                    postnummer = "9190",
-                    bruksenhet = "H0606",
-                    kommunenummer = "5427",
-                    adressetype = "Oppholdsadresse",
-                    adresseformat = "Matrikkeladresse",
-                ),
-                PdlData.Adresse(
-                    adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
-                    postnummer = "9190",
-                    bruksenhet = null,
-                    kommunenummer = null,
-                    adressetype = "Kontaktadresse",
-                    adresseformat = "PostadresseIFrittFormat",
-                ),
-            ),
-            dødsdato = null,
-        ).right()
     }
 
     @Test
     fun `hent person OK, men med tomme verdier`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -754,31 +770,33 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
+                """.trimIndent()
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
-            adresse = emptyList(),
-            sivilstand = null,
-            dødsdato = null,
-            statsborgerskap = null,
-        ).right()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
+                adresse = emptyList(),
+                sivilstand = null,
+                dødsdato = null,
+                statsborgerskap = null,
+            ).right()
+        }
     }
 
     @Test
     fun `hent person OK med on behalf of token`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -819,39 +837,41 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
+                """.trimIndent()
 
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.person(
+                Fnr("07028820547"),
+                JwtToken.BrukerToken("ignored because of mock"),
+            ) shouldBe expectedPdlDataTemplate.copy(
+                adresse = emptyList(),
+                sivilstand = null,
+                dødsdato = null,
+                statsborgerskap = null,
+            ).right()
         }
-
-        wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = azureAdMock,
-            ),
-        )
-        client.person(
-            Fnr("07028820547"),
-            JwtToken.BrukerToken("ignored because of mock"),
-        ) shouldBe expectedPdlDataTemplate.copy(
-            adresse = emptyList(),
-            sivilstand = null,
-            dødsdato = null,
-            statsborgerskap = null,
-        ).right()
     }
 
     @Test
     fun `hent person OK for systembruker`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -884,26 +904,28 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
+                """.trimIndent()
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+        }
     }
 
     @Test
     fun `henter første dødsdato som ikke er null`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "hentPerson": {
@@ -951,23 +973,24 @@ internal class PdlClientTest : WiremockBase {
                 }
               }
             }
-            """.trimIndent()
-        wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
+                """.trimIndent()
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
 
-        val client = PdlClient(
-            PdlClientConfig(
-                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
-            ),
-        )
-        client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
-            adresse = emptyList(),
-            sivilstand = null,
-            statsborgerskap = null,
-        ).right()
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
+                adresse = emptyList(),
+                sivilstand = null,
+                statsborgerskap = null,
+            ).right()
+        }
     }
 
     private fun wiremockBuilderSystembruker(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
@@ -981,9 +1004,4 @@ internal class PdlClientTest : WiremockBase {
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Tema", WireMock.equalTo("SUP"))
-
-    @BeforeEach
-    fun beforeEach() {
-        MDC.put("Authorization", "Bearer abc")
-    }
 }

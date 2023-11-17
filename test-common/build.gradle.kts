@@ -28,4 +28,8 @@ dependencies {
     compileOnly("org.mockito.kotlin:mockito-kotlin:5.1.0")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
     compileOnly("io.zonky.test:embedded-postgres:2.0.4")
+    compileOnly(rootProject.libs.jupiter.api)
+    implementation(rootProject.libs.wiremock) {
+        exclude(group = "junit")
+    }
 }

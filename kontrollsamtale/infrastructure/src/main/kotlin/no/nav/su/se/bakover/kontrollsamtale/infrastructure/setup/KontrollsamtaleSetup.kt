@@ -4,7 +4,7 @@ import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -38,7 +38,7 @@ interface KontrollsamtaleSetup {
             clock: Clock,
             serviceUser: String,
             jobContextPostgresRepo: JobContextPostgresRepo,
-            journalpostClient: JournalpostClient,
+            queryJournalpostClient: QueryJournalpostClient,
             stansAvYtelseService: StansYtelseService,
         ): KontrollsamtaleSetup {
             val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(
@@ -68,7 +68,7 @@ interface KontrollsamtaleSetup {
                 )
                 override val utløptFristForKontrollsamtaleService = UtløptFristForKontrollsamtaleServiceImpl(
                     sakService = sakService,
-                    journalpostClient = journalpostClient,
+                    queryJournalpostClient = queryJournalpostClient,
                     kontrollsamtaleService = kontrollsamtaleService,
                     stansAvYtelseService = stansAvYtelseService,
                     sessionFactory = sessionFactory,

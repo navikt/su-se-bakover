@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
-import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub
+import no.nav.su.se.bakover.client.JournalførClients
+import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
+import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
+import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
-import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
@@ -19,8 +21,11 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalpostIdGeneratorForFakes
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -30,13 +35,18 @@ data class TestClientsBuilder(
     val clock: Clock,
     val databaseRepos: DatabaseRepos,
 ) : ClientsBuilder {
-
+    private val journalpostIdGenerator = JournalpostIdGeneratorForFakes()
     private val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
         tokenOppslag = TokenOppslagStub,
         pdfGenerator = PdfGeneratorStub,
-        dokArkiv = DokArkivStub,
+        journalførClients = JournalførClients(
+            skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakFakeClient(journalpostIdGenerator),
+            skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(journalpostIdGenerator),
+            brev = JournalførBrevFakeClient(journalpostIdGenerator),
+            søknad = JournalførSøknadFakeClient(journalpostIdGenerator),
+        ),
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
         simuleringClient = SimuleringStub(
@@ -52,7 +62,7 @@ data class TestClientsBuilder(
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,
-        journalpostClient = JournalpostClientStub,
+        queryJournalpostClient = QueryJournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
         skatteOppslag = SkatteClientStub(),
     )

@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.client.azure
 
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.net.URLEncoder
@@ -23,47 +22,54 @@ private const val JWKS_PATH = "/keys"
 private const val WELLKNOWN_URL = "/.well-known"
 private const val ISSUER = "azure"
 
-internal class AzureClientTest : WiremockBase {
-
-    private lateinit var oauth: AzureAd
+internal class AzureClientTest {
 
     @Test
     fun `exchange to on-behalf-of token`() {
-        wireMockServer.stubFor(
-            WireMock.post(
-                WireMock.urlPathEqualTo(
-                    TOKEN_ENDPOINT_PATH,
-                ),
+        startedWireMockServerWithCorrelationId {
+            stubGetJwk()
+            stubFor(
+                WireMock.post(
+                    WireMock.urlPathEqualTo(
+                        TOKEN_ENDPOINT_PATH,
+                    ),
+                )
+                    .withHeader("Content-Type", WireMock.equalTo("application/x-www-form-urlencoded"))
+                    .withRequestBody(WireMock.containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
+                    .withRequestBody(WireMock.containing("client_id=$CLIENT_ID"))
+                    .withRequestBody(WireMock.containing("client_secret=$CLIENT_SECRET"))
+                    .withRequestBody(WireMock.containing("assertion=$TOKEN_TO_EXCHANGE"))
+                    .withRequestBody(WireMock.containing("scope=$SCOPE${urlEncode("/.default")}"))
+                    .withRequestBody(WireMock.containing("requested_token_use=$REQUESTED_TOKEN_USE"))
+                    .willReturn(WireMock.okJson(okAzureResponse)),
             )
-                .withHeader("Content-Type", WireMock.equalTo("application/x-www-form-urlencoded"))
-                .withRequestBody(WireMock.containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
-                .withRequestBody(WireMock.containing("client_id=$CLIENT_ID"))
-                .withRequestBody(WireMock.containing("client_secret=$CLIENT_SECRET"))
-                .withRequestBody(WireMock.containing("assertion=$TOKEN_TO_EXCHANGE"))
-                .withRequestBody(WireMock.containing("scope=$SCOPE${urlEncode("/.default")}"))
-                .withRequestBody(WireMock.containing("requested_token_use=$REQUESTED_TOKEN_USE"))
-                .willReturn(WireMock.okJson(okAzureResponse)),
-        )
 
-        val exchangedToken: String = oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "personClientId")
-        assertEquals(EXCHANGED_TOKEN, exchangedToken)
+            val exchangedToken: String = oauth(baseUrl()).onBehalfOfToken(TOKEN_TO_EXCHANGE, "personClientId")
+            assertEquals(EXCHANGED_TOKEN, exchangedToken)
+        }
     }
 
     @Test
     fun `get issuer`() {
-        assertEquals(ISSUER, oauth.issuer)
+        startedWireMockServerWithCorrelationId {
+            stubGetJwk()
+            assertEquals(ISSUER, oauth(baseUrl()).issuer)
+        }
     }
 
     @Test
     fun `exchange token error response`() {
-        wireMockServer.stubFor(
-            WireMock.post(
-                WireMock.urlPathEqualTo(
-                    TOKEN_ENDPOINT_PATH,
-                ),
-            ).willReturn(WireMock.okJson(errorAzureResponse)),
-        )
-        assertThrows<RuntimeException> { oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "someAppId") }
+        startedWireMockServerWithCorrelationId {
+            stubGetJwk()
+            stubFor(
+                WireMock.post(
+                    WireMock.urlPathEqualTo(
+                        TOKEN_ENDPOINT_PATH,
+                    ),
+                ).willReturn(WireMock.okJson(errorAzureResponse)),
+            )
+            assertThrows<RuntimeException> { oauth(baseUrl()).onBehalfOfToken(TOKEN_TO_EXCHANGE, "someAppId") }
+        }
     }
 
     private fun urlEncode(string: String): String {
@@ -95,26 +101,24 @@ internal class AzureClientTest : WiremockBase {
         }
         """.trimIndent()
 
-    @BeforeEach
-    fun setup() {
-        wireMockServer.stubFor(
-            WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(
-                WireMock.okJson(
-                    """
-            {
-                "jwks_uri": "${wireMockServer.baseUrl()}$JWKS_PATH",
-                "token_endpoint": "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH",
-                "issuer": "$ISSUER"
-            }
-                    """.trimIndent(),
-                ),
+    private fun WireMockServer.stubGetJwk() = stubFor(
+        WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(
+            WireMock.okJson(
+                """
+                    {
+                        "jwks_uri": "${baseUrl()}$JWKS_PATH",
+                        "token_endpoint": "${baseUrl()}$TOKEN_ENDPOINT_PATH",
+                        "issuer": "$ISSUER"
+                    }
+                """.trimIndent(),
             ),
+        ),
+    )
+
+    private fun oauth(baseUrl: String): AzureAd =
+        AzureClient(
+            thisClientId = CLIENT_ID,
+            thisClientSecret = CLIENT_SECRET,
+            wellknownUrl = "${baseUrl}$WELLKNOWN_URL",
         )
-        oauth =
-            AzureClient(
-                thisClientId = CLIENT_ID,
-                thisClientSecret = CLIENT_SECRET,
-                wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL",
-            )
-    }
 }

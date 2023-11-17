@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -319,16 +319,16 @@ internal class SakServiceImplTest {
         val sakRepo: SakRepo = mock {
             on { hentSakInfo(any<UUID>()) } doReturn SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)
         }
-        val journalpostClient = mock<JournalpostClient> {
+        val queryJournalpostClient = mock<QueryJournalpostClient> {
             on { hentJournalposterFor(any(), any()) } doReturn listOf(
                 Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
             ).right()
         }
-        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), journalpostClient, mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock())
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
-        verify(journalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer }, eq(50))
+        verify(queryJournalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer }, eq(50))
     }
 
     @Test

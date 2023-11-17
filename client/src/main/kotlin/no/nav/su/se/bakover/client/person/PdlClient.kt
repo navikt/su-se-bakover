@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserializeParameterizedType
+import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Tema
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson

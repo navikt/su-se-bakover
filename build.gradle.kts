@@ -10,17 +10,6 @@ plugins {
 version = "0.0.1"
 val ktorVersion: String by project
 
-//dependencyResolutionManagement {
-//    versionCatalogs {
-//        create("libs") {
-//            from(files("gradle/libs.versions.toml"))
-//        }
-//    }
-//}
-
-
-
-
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
@@ -30,7 +19,6 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.10.1"
     val kotestVersion = "5.8.0"
     val jacksonVersion = "2.16.0"
     val kotlinVersion: String by this
@@ -100,10 +88,10 @@ subprojects {
         implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
         implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
 
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testRuntimeOnly(rootProject.libs.jupiter.engine)
 
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+        testImplementation(rootProject.libs.jupiter.api)
+        testImplementation(rootProject.libs.jupiter.params)
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
         testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
@@ -142,32 +130,32 @@ subprojects {
             }
             implementation("org.apache.commons:commons-compress") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/10 https://github.com/advisories/GHSA-cgwf-w82q-5jrr")
-                version{
+                version {
                     require("1.24.0")
                 }
             }
             implementation("org.bouncycastle:bcprov-jdk15on") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9")
-                version{
+                version {
                     // TODO jah: Regarding PR 8: This version is still affected, but no fix yet.
                     require("1.70")
                 }
             }
             implementation("com.squareup.okio:okio") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/6 https://github.com/advisories/GHSA-w33c-445m-f8w7")
-                version{
+                version {
                     require("3.5.0")
                 }
             }
             implementation("io.netty:netty-handler") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/3 https://github.com/advisories/GHSA-6mjq-h674-j845")
-                version{
+                version {
                     require("4.1.98.Final")
                 }
             }
             implementation("com.google.guava:guava") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/2 https://github.com/advisories/GHSA-7g45-4rm6-3mm3 https://github.com/navikt/su-se-bakover/security/dependabot/7 https://github.com/advisories/GHSA-5mg8-w23w-74h3")
-                version{
+                version {
                     require("32.1.2-jre")
                 }
             }
@@ -222,24 +210,14 @@ subprojects {
     }
 }
 
-configure(listOf(project(":client"))) {
-// :client er vanskelig å parallellisere så lenge den bruker Wiremock på en statisk måte. Samtidig gir det ikke så mye mening siden testene er raske og ikke? feiler på timing issues.
-    tasks.test {
-        sharedTestSetup()
-    }
-}
-
 subprojects {
-    // Exclude the 'client' subproject
-    if (name != "client") {
-        tasks.test.configure {
-            sharedTestSetup()
-            maxParallelForks = (Runtime.getRuntime().availableProcessors() * 0.4).toInt().takeIf { it > 0 } ?: 1
-            // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
-            systemProperties["junit.jupiter.execution.parallel.enabled"] = true
-            systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-            systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
-        }
+    tasks.test.configure {
+        sharedTestSetup()
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() * 0.4).toInt().takeIf { it > 0 } ?: 1
+        // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
+        systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+        systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+        systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
 }
 

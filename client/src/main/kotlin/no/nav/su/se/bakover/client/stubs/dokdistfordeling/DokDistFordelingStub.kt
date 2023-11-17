@@ -5,8 +5,8 @@ import arrow.core.right
 import dokument.domain.Distribusjonstidspunkt
 import dokument.domain.Distribusjonstype
 import dokument.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
+import dokument.domain.distribuering.DokDistFordeling
+import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.journal.JournalpostId
 
 data object DokDistFordelingStub : DokDistFordeling {

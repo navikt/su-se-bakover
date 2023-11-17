@@ -75,7 +75,7 @@ internal class OpprettKlageTest {
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
-            journalpostClient = mock {
+            queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
@@ -137,7 +137,7 @@ internal class OpprettKlageTest {
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            journalpostClient = mock {
+            queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             personServiceMock = mock {
@@ -155,7 +155,7 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakServiceMock).hentSak(sakId)
         runBlocking {
-            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
@@ -184,7 +184,7 @@ internal class OpprettKlageTest {
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
-            journalpostClient = mock {
+            queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
@@ -202,7 +202,7 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakServiceMock).hentSak(sakId)
         runBlocking {
-            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(mocks.oppgaveService).opprettOppgave(
@@ -252,7 +252,7 @@ internal class OpprettKlageTest {
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
-            journalpostClient = mock {
+            queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
@@ -289,7 +289,7 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakServiceMock).hentSak(sak.id)
         runBlocking {
-            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
+            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
         }
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(

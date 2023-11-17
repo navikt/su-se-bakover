@@ -5,31 +5,35 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 
-class KontaktOgReservasjonsregisterClientTest : WiremockBase {
+class KontaktOgReservasjonsregisterClientTest {
+
     private val fødselsnummer = "10109900100"
 
-    private val client = KontaktOgReservasjonsregisterClient(
+    private fun client(baseUrl: String) = KontaktOgReservasjonsregisterClient(
+
         config = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "appId",
-            url = WiremockBase.wireMockServer.baseUrl(),
+            url = baseUrl,
         ),
         azure = AzureClientStub,
     )
+
     private val fnr: Fnr = Fnr(fødselsnummer)
 
     @Test
     fun `parser respons`() {
-        WiremockBase.wireMockServer.stubFor(
-            wiremockBuilder
-                .willReturn(
-                    WireMock.okJson(
-                        """
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder
+                    .willReturn(
+                        WireMock.okJson(
+                            """
                         {
                           "personident": "$fødselsnummer",
                           "aktiv": true,
@@ -39,45 +43,50 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
                           "mobiltelefonnummer": "11111111",
                           "spraak": "nb"
                         }
-                        """.trimIndent(),
+                            """.trimIndent(),
+                        ),
                     ),
-                ),
-        )
-        client.hentKontaktinformasjon(fnr) shouldBe Kontaktinformasjon(
-            epostadresse = "noreply@nav.no",
-            mobiltelefonnummer = "11111111",
-            reservert = false,
-            kanVarsles = false,
-            språk = "nb",
-        ).right()
+            )
+            client(baseUrl()).hentKontaktinformasjon(fnr) shouldBe Kontaktinformasjon(
+                epostadresse = "noreply@nav.no",
+                mobiltelefonnummer = "11111111",
+                reservert = false,
+                kanVarsles = false,
+                språk = "nb",
+            ).right()
+        }
     }
 
     @Test
     fun `ingen informasjon registrert`() {
-        WiremockBase.wireMockServer.stubFor(
-            wiremockBuilder
-                .willReturn(
-                    WireMock.okJson(
-                        """
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder
+                    .willReturn(
+                        WireMock.okJson(
+                            """
                         {
                           "personident": "$fødselsnummer",
                           "aktiv": false                        
                         }
-                        """.trimIndent(),
+                            """.trimIndent(),
+                        ),
                     ),
-                ),
-        )
-        client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert.left()
+            )
+            client(baseUrl()).hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert.left()
+        }
     }
 
     @Test
     fun `svarer med feil dersom respons fra krr indikerer feil`() {
-        WiremockBase.wireMockServer.stubFor(wiremockBuilder.willReturn(WireMock.notFound()))
-        client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+        startedWireMockServerWithCorrelationId {
+            stubFor(wiremockBuilder.willReturn(WireMock.notFound()))
+            client(baseUrl()).hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+        }
     }
 
     private val wiremockBuilder: MappingBuilder = WireMock.get(WireMock.urlPathEqualTo(PERSON_PATH))
-        .withHeader("Authorization", WireMock.equalTo("Bearer etFintSystemtoken"))
+        .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Call-Id", WireMock.equalTo("correlationId"))
         .withHeader("Nav-Personident", WireMock.equalTo("10109900100"))

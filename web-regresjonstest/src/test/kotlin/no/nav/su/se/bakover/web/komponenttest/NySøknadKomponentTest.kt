@@ -30,7 +30,7 @@ internal class NySøknadKomponentTest {
                     it.type shouldBe Sakstype.UFØRE
                     it.innsendtAv shouldBe NavIdentBruker.Veileder("Z990Lokal")
                     it.oppgaveId shouldBe OppgaveId("stubbedOppgaveId")
-                    it.journalpostId shouldBe JournalpostId("1")
+                    it.journalpostId shouldBe JournalpostId("0")
                 }
             }
         }

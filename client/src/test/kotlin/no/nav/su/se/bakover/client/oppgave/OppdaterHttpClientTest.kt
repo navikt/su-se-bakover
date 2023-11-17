@@ -8,27 +8,24 @@ import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.AccessToken
-import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.auth.AccessToken
+import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
-import org.junit.jupiter.api.BeforeEach
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import org.slf4j.MDC
 import java.util.UUID
 
-internal class OppdaterHttpClientTest : WiremockBase {
+internal class OppdaterHttpClientTest {
 
     private val søknadId = UUID.randomUUID()
     private val oppgaveId = 12345L
@@ -53,179 +50,188 @@ internal class OppdaterHttpClientTest : WiremockBase {
 
     @Test
     fun `lukker en oppgave med en oppgaveId`() {
-        val patchResponse = createJsonPatchResponse()
+        startedWireMockServerWithCorrelationId {
+            val patchResponse = createJsonPatchResponse()
 
-        wireMockServer.stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
-        wireMockServer.stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
+            stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
+            stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
-        val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-        val client = OppgaveHttpClient(
-            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                clientId = "oppgaveClientId",
-                url = wireMockServer.baseUrl(),
-            ),
-            exchange = oathMock,
-            tokenoppslagForSystembruker = mock(),
-            clock = fixedClock,
-        )
-        val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
+            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val client = OppgaveHttpClient(
+                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                    clientId = "oppgaveClientId",
+                    url = baseUrl(),
+                ),
+                exchange = oathMock,
+                tokenoppslagForSystembruker = mock(),
+                clock = fixedClock,
+            )
+            val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
 
-        val expectedBody = createJsonPatchRequestedBody()
+            val expectedBody = createJsonPatchRequestedBody()
 
-        val expected = nyOppgaveHttpKallResponse(
-            oppgaveId = OppgaveId(oppgaveId.toString()),
-            oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            request = expectedBody,
-            response = patchResponse,
-            beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
-        )
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = OppgaveId(oppgaveId.toString()),
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                request = expectedBody,
+                response = patchResponse,
+                beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+            )
 
-        actual.oppgaveId shouldBe expected.oppgaveId
-        actual.oppgavetype shouldBe expected.oppgavetype
-        actual.beskrivelse shouldBe expected.beskrivelse
-        actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.request, expected.request, true)
+            actual.oppgaveId shouldBe expected.oppgaveId
+            actual.oppgavetype shouldBe expected.oppgavetype
+            actual.beskrivelse shouldBe expected.beskrivelse
+            actual.response shouldBe expected.response
+            JSONAssert.assertEquals(actual.request, expected.request, true)
 
-        WireMock.configureFor(wireMockServer.port())
-        WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+            WireMock.configureFor(port())
+            WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+        }
     }
 
     @Test
     fun `lukker en oppgave med en oppgaveId for en systembruker`() {
-        val patchResponse = createJsonPatchResponse()
-        wireMockServer.stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
-        wireMockServer.stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
+        startedWireMockServerWithCorrelationId {
+            val patchResponse = createJsonPatchResponse()
+            stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
+            stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
-        val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
+            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
 
-        val client = OppgaveHttpClient(
-            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                clientId = "oppgaveClientId",
-                url = wireMockServer.baseUrl(),
-            ),
-            exchange = mock(),
-            tokenoppslagForSystembruker = tokenoppslagMock,
-            clock = fixedClock,
-        )
-        val actual = client.lukkOppgaveMedSystembruker(OppgaveId(oppgaveId.toString())).getOrFail()
+            val client = OppgaveHttpClient(
+                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                    clientId = "oppgaveClientId",
+                    url = baseUrl(),
+                ),
+                exchange = mock(),
+                tokenoppslagForSystembruker = tokenoppslagMock,
+                clock = fixedClock,
+            )
+            val actual = client.lukkOppgaveMedSystembruker(OppgaveId(oppgaveId.toString())).getOrFail()
 
-        val expectedBody = createJsonPatchRequestedBody()
+            val expectedBody = createJsonPatchRequestedBody()
 
-        val expected = nyOppgaveHttpKallResponse(
-            oppgaveId = OppgaveId(oppgaveId.toString()),
-            oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            request = expectedBody,
-            response = patchResponse,
-            beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
-        )
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = OppgaveId(oppgaveId.toString()),
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                request = expectedBody,
+                response = patchResponse,
+                beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+            )
 
-        actual.oppgaveId shouldBe expected.oppgaveId
-        actual.oppgavetype shouldBe expected.oppgavetype
-        actual.beskrivelse shouldBe expected.beskrivelse
-        actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.request, expected.request, true)
+            actual.oppgaveId shouldBe expected.oppgaveId
+            actual.oppgavetype shouldBe expected.oppgavetype
+            actual.beskrivelse shouldBe expected.beskrivelse
+            actual.response shouldBe expected.response
+            JSONAssert.assertEquals(actual.request, expected.request, true)
 
-        WireMock.configureFor(wireMockServer.port())
-        WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+            WireMock.configureFor(port())
+            WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+        }
     }
 
     @Test
     fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
-        val patchResponse =
-            createJsonPatchResponse("--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
-        wireMockServer.stubFor(
-            get.willReturn(
-                aResponse().withBody(createJsonGetResponse("--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\\nforrige melding"))
-                    .withStatus(200),
-            ),
-        )
+        startedWireMockServerWithCorrelationId {
+            val patchResponse =
+                createJsonPatchResponse("--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
+            stubFor(
+                get.willReturn(
+                    aResponse().withBody(createJsonGetResponse("--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\\nforrige melding"))
+                        .withStatus(200),
+                ),
+            )
 
-        wireMockServer.stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
+            stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
-        val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-        val client = OppgaveHttpClient(
-            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                clientId = "oppgaveClientId",
-                url = wireMockServer.baseUrl(),
-            ),
-            exchange = oathMock,
-            tokenoppslagForSystembruker = mock(),
-            clock = fixedClock,
-        )
-        val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
+            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val client = OppgaveHttpClient(
+                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                    clientId = "oppgaveClientId",
+                    url = baseUrl(),
+                ),
+                exchange = oathMock,
+                tokenoppslagForSystembruker = mock(),
+                clock = fixedClock,
+            )
+            val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
 
-        val expectedBody =
-            createJsonPatchRequestedBody("""--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding""")
+            val expectedBody =
+                createJsonPatchRequestedBody("""--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding""")
 
-        val expected = nyOppgaveHttpKallResponse(
-            oppgaveId = OppgaveId(oppgaveId.toString()),
-            oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            request = expectedBody,
-            response = patchResponse,
-            beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
-        )
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = OppgaveId(oppgaveId.toString()),
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                request = expectedBody,
+                response = patchResponse,
+                beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+            )
 
-        actual.oppgaveId shouldBe expected.oppgaveId
-        actual.oppgavetype shouldBe expected.oppgavetype
-        actual.beskrivelse shouldBe expected.beskrivelse
-        actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.request, expected.request, true)
+            actual.oppgaveId shouldBe expected.oppgaveId
+            actual.oppgavetype shouldBe expected.oppgavetype
+            actual.beskrivelse shouldBe expected.beskrivelse
+            actual.response shouldBe expected.response
+            JSONAssert.assertEquals(actual.request, expected.request, true)
 
-        WireMock.configureFor(wireMockServer.port())
-        WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+            WireMock.configureFor(port())
+            WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+        }
     }
 
     @Test
     fun `oppdaterer eksisterende oppgave med ny beskrivelse`() {
-        val patchResponse = createJsonPatchResponse("--- 01.01.2021 02:02 - en beskrivelse ---", "AAPNET")
+        startedWireMockServerWithCorrelationId {
+            val patchResponse = createJsonPatchResponse("--- 01.01.2021 02:02 - en beskrivelse ---", "AAPNET")
 
-        wireMockServer.stubFor(
-            get
-                .willReturn(
-                    aResponse()
-                        .withBody(createJsonGetResponse("Dette er den orginale beskrivelsen"))
-                        .withStatus(200),
+            stubFor(
+                get
+                    .willReturn(
+                        aResponse()
+                            .withBody(createJsonGetResponse("Dette er den orginale beskrivelsen"))
+                            .withStatus(200),
+                    ),
+            )
+
+            stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
+
+            val oauthMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+
+            val client = OppgaveHttpClient(
+                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                    clientId = "oppgaveClientId",
+                    url = baseUrl(),
                 ),
-        )
+                exchange = oauthMock,
+                tokenoppslagForSystembruker = mock(),
+                clock = fixedClock,
+            )
 
-        wireMockServer.stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
+            val actual =
+                client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse")
+                    .getOrFail()
 
-        val oauthMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val expectedBody = createJsonPatchRequestedBody(
+                """--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen""",
+                "AAPNET",
+            )
 
-        val client = OppgaveHttpClient(
-            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                clientId = "oppgaveClientId",
-                url = wireMockServer.baseUrl(),
-            ),
-            exchange = oauthMock,
-            tokenoppslagForSystembruker = mock(),
-            clock = fixedClock,
-        )
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = OppgaveId(oppgaveId.toString()),
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                request = expectedBody,
+                response = patchResponse,
+                beskrivelse = "en beskrivelse",
+            )
 
-        val actual = client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse")
-            .getOrFail()
+            actual.oppgaveId shouldBe expected.oppgaveId
+            actual.oppgavetype shouldBe expected.oppgavetype
+            actual.beskrivelse shouldBe expected.beskrivelse
+            actual.response shouldBe expected.response
+            JSONAssert.assertEquals(actual.request, expected.request, true)
 
-        val expectedBody = createJsonPatchRequestedBody(
-            """--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen""",
-            "AAPNET",
-        )
-
-        val expected = nyOppgaveHttpKallResponse(
-            oppgaveId = OppgaveId(oppgaveId.toString()),
-            oppgavetype = Oppgavetype.BEHANDLE_SAK,
-            request = expectedBody,
-            response = patchResponse,
-            beskrivelse = "en beskrivelse",
-        )
-
-        actual.oppgaveId shouldBe expected.oppgaveId
-        actual.oppgavetype shouldBe expected.oppgavetype
-        actual.beskrivelse shouldBe expected.beskrivelse
-        actual.response shouldBe expected.response
-        JSONAssert.assertEquals(actual.request, expected.request, true)
-
-        WireMock.configureFor(wireMockServer.port())
-        WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+            WireMock.configureFor(port())
+            WireMock.verify(1, patchRequested.withRequestBody(equalToJson(expectedBody)))
+        }
     }
 
     private fun createJsonPatchRequestedBody(
@@ -284,10 +290,5 @@ internal class OppdaterHttpClientTest : WiremockBase {
                   "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                 }
         """.trimIndent()
-    }
-
-    @BeforeEach
-    fun beforeEach() {
-        MDC.put("Authorization", "Bearer token")
     }
 }

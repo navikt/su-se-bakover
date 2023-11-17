@@ -16,6 +16,10 @@ data class FrioppslagSkattRequest(
     val fagsystemId: String,
 )
 
+/**
+ * Knyttet til [FrioppslagSkattRequest] - disse knyttes ikke til en sakId.
+ * @param fagsystemId vil være [Saksnummer] for uføre og String for alder (infotrygd sin id)
+ */
 data class GenererSkattPdfRequest(
     val skattegrunnlagSøkers: Skattegrunnlag,
     val skattegrunnlagEps: Skattegrunnlag?,

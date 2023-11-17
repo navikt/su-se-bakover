@@ -7,10 +7,10 @@ import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.KunneIkkeJournalføreDokument
+import dokument.domain.journalføring.brev.JournalførBrevClient
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
@@ -85,8 +85,8 @@ class JournalførDokumentServiceTest {
         }
         val personServiceMock =
             mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn person.right() }
-        val dokarkivMock =
-            mock<DokArkiv> { on { opprettJournalpost(any()) } doReturn ClientError(500, "kek").left() }
+        val journalførBrevClientMock =
+            mock<JournalførBrevClient> { on { journalførBrev(any()) } doReturn ClientError(500, "kek").left() }
         val sakService = mock<SakService> {
             on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
@@ -94,7 +94,7 @@ class JournalførDokumentServiceTest {
         ServiceOgMocks(
             sakService = sakService,
             personService = personServiceMock,
-            dokArkiv = dokarkivMock,
+            journalførBrevClientMock = journalførBrevClientMock,
             dokumentRepo = dokumentRepo,
         ).let {
             it.journalførDokumentService.journalfør().let {
@@ -110,7 +110,7 @@ class JournalførDokumentServiceTest {
             verify(dokumentRepo).hentDokumenterForJournalføring()
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            verify(dokarkivMock).opprettJournalpost(any())
+            verify(journalførBrevClientMock).journalførBrev(any())
             it.verifyNoMoreInteraction()
         }
     }
@@ -145,7 +145,7 @@ class JournalførDokumentServiceTest {
     }
 
     private data class ServiceOgMocks(
-        val dokArkiv: DokArkiv = mock(),
+        val journalførBrevClientMock: JournalførBrevClient = mock(),
         val dokumentRepo: DokumentRepo = mock(),
         val dokumentSkattRepo: DokumentSkattRepo = mock(),
         val sakService: SakService = mock(),
@@ -153,13 +153,13 @@ class JournalførDokumentServiceTest {
     ) {
         val journalførDokumentService = JournalførDokumentService(
             dokumentRepo = dokumentRepo,
-            dokArkiv = dokArkiv,
+            journalførBrevClient = journalførBrevClientMock,
             sakService = sakService,
             personService = personService,
         )
 
         fun verifyNoMoreInteraction() {
-            verifyNoMoreInteractions(dokArkiv, dokumentRepo, sakService, personService)
+            verifyNoMoreInteractions(journalførBrevClientMock, dokumentRepo, sakService, personService)
         }
     }
 

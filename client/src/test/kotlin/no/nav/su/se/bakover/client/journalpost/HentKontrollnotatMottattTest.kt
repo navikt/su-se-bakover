@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.journalpost
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.september
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -28,91 +28,97 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class HentKontrollnotatMottattTest : WiremockBase {
+internal class HentKontrollnotatMottattTest {
 
     @Test
     fun `svarer korrekt dersom sak har mottatt kontrollnotat i periode`() {
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(happyJson())),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(happyJson())),
+            )
 
-        val metrics = mock<JournalpostClientMetrics> {
-            doNothing().whenever(it).inkrementerBenyttetSkjema(any())
-        }
-        setupClient(
-            metrics = metrics,
-        ).also {
-            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
-                kontrollnotat = KontrollnotatMottattJournalpost(
-                    tema = JournalpostTema.SUP,
-                    journalstatus = JournalpostStatus.JOURNALFOERT,
-                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-                    saksnummer = Saksnummer(10002027),
-                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
-                    datoOpprettet = 9.september(2022),
-                    journalpostId = JournalpostId(value = "453812131"),
-                ),
-            ).right()
-            verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
+            val metrics = mock<JournalpostClientMetrics> {
+                doNothing().whenever(it).inkrementerBenyttetSkjema(any())
+            }
+            setupClient(
+                baseUrl = baseUrl(),
+                metrics = metrics,
+            ).also {
+                it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                    kontrollnotat = KontrollnotatMottattJournalpost(
+                        tema = JournalpostTema.SUP,
+                        journalstatus = JournalpostStatus.JOURNALFOERT,
+                        journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                        saksnummer = Saksnummer(10002027),
+                        tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                        datoOpprettet = 9.september(2022),
+                        journalpostId = JournalpostId(value = "453812131"),
+                    ),
+                ).right()
+                verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
 
-            it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
+                it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
 
-            it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
-                kontrollnotat = KontrollnotatMottattJournalpost(
-                    tema = JournalpostTema.SUP,
-                    journalstatus = JournalpostStatus.JOURNALFOERT,
-                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-                    saksnummer = Saksnummer(10002027),
-                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
-                    datoOpprettet = 9.september(2022),
-                    journalpostId = JournalpostId(value = "453812131"),
-                ),
-            ).right()
+                it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                    kontrollnotat = KontrollnotatMottattJournalpost(
+                        tema = JournalpostTema.SUP,
+                        journalstatus = JournalpostStatus.JOURNALFOERT,
+                        journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                        saksnummer = Saksnummer(10002027),
+                        tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                        datoOpprettet = 9.september(2022),
+                        journalpostId = JournalpostId(value = "453812131"),
+                    ),
+                ).right()
 
-            verify(
-                metrics,
-                times(2),
-            ).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
+                verify(
+                    metrics,
+                    times(2),
+                ).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
 
-            it.kontrollnotatMotatt(Saksnummer(10002027), februar(2022)) shouldBe ErKontrollNotatMottatt.Ja(
-                kontrollnotat = KontrollnotatMottattJournalpost(
-                    tema = JournalpostTema.SUP,
-                    journalstatus = JournalpostStatus.JOURNALFOERT,
-                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-                    saksnummer = Saksnummer(10002027),
-                    tittel = "Dokumentasjon av oppfølgingssamtale",
-                    datoOpprettet = 19.februar(2022),
-                    journalpostId = JournalpostId(value = "453812131"),
-                ),
-            ).right()
+                it.kontrollnotatMotatt(Saksnummer(10002027), februar(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                    kontrollnotat = KontrollnotatMottattJournalpost(
+                        tema = JournalpostTema.SUP,
+                        journalstatus = JournalpostStatus.JOURNALFOERT,
+                        journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                        saksnummer = Saksnummer(10002027),
+                        tittel = "Dokumentasjon av oppfølgingssamtale",
+                        datoOpprettet = 19.februar(2022),
+                        journalpostId = JournalpostId(value = "453812131"),
+                    ),
+                ).right()
 
-            verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE)
+                verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE)
+            }
         }
     }
 
     @Test
     fun `produsert request er riktig`() {
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(happyJson())),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(happyJson())),
+            )
 
-        val expected = """
+            val expected = """
             {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":"2022-09-01","tema":"SUP","journalposttyper":["I"],"journalstatuser":["JOURNALFOERT"],"foerste":100}}
-        """.trimIndent()
+            """.trimIndent()
 
-        setupClient().also {
-            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022))
+            setupClient(baseUrl = baseUrl()).also {
+                it.kontrollnotatMotatt(Saksnummer(10002027), september(2022))
 
-            String(WiremockBase.wireMockServer.serveEvents.requests.first().request.body) shouldBe expected
+                String(serveEvents.requests.first().request.body) shouldBe expected
+            }
         }
     }
 
     @Test
     fun `tryner med nullpointer dersom ikke alle felter returneres`() {
-        //language=JSON
-        val manglerFelterJson = """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val manglerFelterJson = """
             {
             "data": {
                 "dokumentoversiktFagsak": {
@@ -129,23 +135,25 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 }
             }
         }
-        """.trimIndent()
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(manglerFelterJson)),
-        )
+            """.trimIndent()
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(manglerFelterJson)),
+            )
 
-        assertThrows<NullPointerException> {
-            setupClient().also {
-                it.kontrollnotatMotatt(Saksnummer(10002027), september(2022))
+            assertThrows<NullPointerException> {
+                setupClient(baseUrl()).also {
+                    it.kontrollnotatMotatt(Saksnummer(10002027), september(2022))
+                }
             }
         }
     }
 
     @Test
     fun `ingen journalposter funnet gir false`() {
-        //language=JSON
-        val manglerFelterJson = """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val manglerFelterJson = """
             {
             "data": {
                 "dokumentoversiktFagsak": {
@@ -153,21 +161,26 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 }
             }
         }
-        """.trimIndent()
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(manglerFelterJson)),
-        )
+            """.trimIndent()
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(manglerFelterJson)),
+            )
 
-        setupClient().also {
-            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
+            setupClient(baseUrl()).also {
+                it.kontrollnotatMotatt(
+                    Saksnummer(10002027),
+                    september(2022),
+                ) shouldBe ErKontrollNotatMottatt.Nei.right()
+            }
         }
     }
 
     @Test
     fun `håndterer ukjente feil fra graphql`() {
-        //language=JSON
-        val manglerFelterJson = """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val manglerFelterJson = """
         {
             "errors": [
                 {
@@ -184,36 +197,40 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 }
             ]
         }
-        """.trimIndent()
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(manglerFelterJson)),
-        )
+            """.trimIndent()
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(manglerFelterJson)),
+            )
 
-        setupClient().also { client ->
-            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
-                it.feil.shouldBeType<JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
+            setupClient(baseUrl()).also { client ->
+                client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
+                    it.feil.shouldBeType<QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
+                }
             }
         }
     }
 
     @Test
     fun `håndterer vanlige http feil`() {
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.unauthorized()),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.unauthorized()),
+            )
 
-        setupClient().also { client ->
-            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
-                it.feil.shouldBeType<JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
+            setupClient(baseUrl()).also { client ->
+                client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
+                    it.feil.shouldBeType<QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
+                }
             }
         }
     }
 
     @Test
     fun `velger nyeste journalpost dersom det eksisterer flere for periode`() {
-        val flereKontrollnotat = """
+        startedWireMockServerWithCorrelationId {
+            val flereKontrollnotat = """
             {
             "data": {
                 "dokumentoversiktFagsak": {
@@ -244,25 +261,26 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 }
             }
         }
-        """.trimIndent()
+            """.trimIndent()
 
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.ok(flereKontrollnotat)),
-        )
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.ok(flereKontrollnotat)),
+            )
 
-        setupClient().also { client ->
-            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
-                kontrollnotat = KontrollnotatMottattJournalpost(
-                    tema = JournalpostTema.SUP,
-                    journalstatus = JournalpostStatus.JOURNALFOERT,
-                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-                    saksnummer = Saksnummer(10002027),
-                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
-                    datoOpprettet = 28.september(2022),
-                    journalpostId = JournalpostId(value = "453899999"),
-                ),
-            ).right()
+            setupClient(baseUrl()).also { client ->
+                client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                    kontrollnotat = KontrollnotatMottattJournalpost(
+                        tema = JournalpostTema.SUP,
+                        journalstatus = JournalpostStatus.JOURNALFOERT,
+                        journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                        saksnummer = Saksnummer(10002027),
+                        tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                        datoOpprettet = 28.september(2022),
+                        journalpostId = JournalpostId(value = "453899999"),
+                    ),
+                ).right()
+            }
         }
     }
 

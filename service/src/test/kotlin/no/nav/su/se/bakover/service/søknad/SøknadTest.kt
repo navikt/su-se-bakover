@@ -2,19 +2,20 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -164,8 +165,8 @@ class SøknadTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             søknadMetrics = mock(),
-            dokArkiv = mock {
-                on { opprettJournalpost(any()) } doReturn ClientError(1, "").left()
+            journalførSøknadClient = mock {
+                on { journalførSøknad(any()) } doReturn ClientError(1, "").left()
             },
             søknadRepo = mock(),
         ).also {
@@ -176,7 +177,7 @@ class SøknadTest {
                 it.sakService,
                 it.søknadRepo,
                 it.pdfGenerator,
-                it.dokArkiv,
+                it.journalførSøknadClient,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -203,11 +204,11 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.dokArkiv).opprettJournalpost(
+                verify(it.journalførSøknadClient).journalførSøknad(
                     argThat {
-                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                        it shouldBe JournalførSøknadCommand(
                             saksnummer = Saksnummer(2021),
-                            søknadInnhold = søknadInnhold,
+                            søknadInnholdJson = serialize(søknadInnhold),
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
@@ -246,8 +247,8 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
-            dokArkiv = mock {
-                on { opprettJournalpost(any()) } doReturn journalpostId.right()
+            journalførSøknadClient = mock {
+                on { journalførSøknad(any()) } doReturn journalpostId.right()
             },
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -287,11 +288,11 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.dokArkiv).opprettJournalpost(
+                verify(it.journalførSøknadClient).journalførSøknad(
                     argThat {
-                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                        it shouldBe JournalførSøknadCommand(
                             saksnummer = sak.saksnummer,
-                            søknadInnhold = søknadInnhold,
+                            søknadInnholdJson = serialize(søknadInnhold),
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
@@ -355,8 +356,8 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
-            dokArkiv = mock {
-                on { opprettJournalpost(any()) } doReturn journalpostId.right()
+            journalførSøknadClient = mock {
+                on { journalførSøknad(any()) } doReturn journalpostId.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -371,7 +372,7 @@ class SøknadTest {
                 it.sakService,
                 it.søknadRepo,
                 it.pdfGenerator,
-                it.dokArkiv,
+                it.journalførSøknadClient,
                 it.oppgaveService,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
@@ -399,11 +400,11 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.dokArkiv).opprettJournalpost(
+                verify(it.journalførSøknadClient).journalførSøknad(
                     argThat {
-                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                        it shouldBe JournalførSøknadCommand(
                             saksnummer = Saksnummer(2021),
-                            søknadInnhold = søknadInnhold,
+                            søknadInnholdJson = serialize(søknadInnhold),
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
@@ -456,7 +457,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.sakService,
                 it.pdfGenerator,
-                it.dokArkiv,
+                it.journalførSøknadClient,
                 it.oppgaveService,
             )
 

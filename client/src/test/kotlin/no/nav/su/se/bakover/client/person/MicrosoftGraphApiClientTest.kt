@@ -3,22 +3,23 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
-class MicrosoftGraphApiClientTest : WiremockBase {
+class MicrosoftGraphApiClientTest {
 
     @Test
     fun hentNavnForNavIdent() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "value":[
                 {
@@ -33,21 +34,22 @@ class MicrosoftGraphApiClientTest : WiremockBase {
                 }
               ]
             }
-            """.trimIndent()
-        val azureAdMock = mock<AzureAd> {
-            on { getSystemToken(any()) } doReturn tokenOppslag.token().value
+                """.trimIndent()
+            val azureAdMock = mock<AzureAd> {
+                on { getSystemToken(any()) } doReturn tokenOppslag.token().value
+            }
+
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = MicrosoftGraphApiClient(
+                exchange = azureAdMock,
+                baseUrl = baseUrl(),
+            )
+            client.hentNavnForNavIdent(NavIdentBruker.Saksbehandler("saksbehandler")) shouldBe "displayName".right()
         }
-
-        WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-
-        val client = MicrosoftGraphApiClient(
-            exchange = azureAdMock,
-            baseUrl = WiremockBase.wireMockServer.baseUrl(),
-        )
-        client.hentNavnForNavIdent(NavIdentBruker.Saksbehandler("saksbehandler")) shouldBe "displayName".right()
     }
 
     private val tokenOppslag = TokenOppslagStub

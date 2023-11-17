@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -65,7 +65,7 @@ class KlageServiceImpl(
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
-    private val journalpostClient: JournalpostClient,
+    private val queryJournalpostClient: QueryJournalpostClient,
     val clock: Clock,
 ) : KlageService {
 
@@ -86,7 +86,7 @@ class KlageServiceImpl(
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
         runBlocking {
-            journalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
+            queryJournalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
         }.fold(
             {
                 return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
