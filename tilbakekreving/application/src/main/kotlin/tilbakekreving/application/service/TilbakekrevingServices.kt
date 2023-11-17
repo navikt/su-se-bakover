@@ -14,6 +14,7 @@ import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.avbrutt.ForhåndsvisAvbruttTilbakekrevingsbehandlingBrevService
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.consumer.GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
@@ -164,6 +165,15 @@ class TilbakekrevingServices(
         tilgangstyring = tilgangstyringService,
         sakService = sakService,
         brevService = brevService,
+    ),
+    val avbruttTilbakekrevingsbehandlingKonsument: GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument = GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument(
+        sakService = sakService,
+        brevService = brevService,
+        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+        dokumentHendelseRepo = dokumentHendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
     ),
     val lukkOppgaveForTilbakekrevingshendelserKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
         sakService = sakService,

@@ -96,7 +96,8 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             when (hendelse) {
                 // Dette gjelder kun første hendelsen og er et spesialtilfelle.
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
-                    val kravgrunnlagsDetaljer = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!
+                    val kravgrunnlagsDetaljer =
+                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!
 
                     acc.plus(
                         hendelseId to hendelse.toDomain(
@@ -156,7 +157,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
         return oppgaveHendelserForBehandling.whenever(
             isEmpty = { null },
-            isNotEmpty = { it.max() to it.max().oppgaveId },
+            isNotEmpty = { it.max() to it.distinctBy { it.oppgaveId }.single().oppgaveId },
         )
     }
 

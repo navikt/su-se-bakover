@@ -11,6 +11,7 @@ import java.util.UUID
 /**
  * TODO jah: Lag en Oppgavehendelser
  * @param relaterteHendelser Den eller de hendelsene som førte til opprettelsen av oppgaven. Kan f.eks. være en institusjonsoppdholdshendelse.
+ *
  */
 sealed interface OppgaveHendelse : Sakshendelse {
     override val hendelseId: HendelseId
@@ -23,6 +24,10 @@ sealed interface OppgaveHendelse : Sakshendelse {
     val relaterteHendelser: List<HendelseId>
     val oppgaveId: OppgaveId
 
+    /**
+     * @param beskrivelse - beskrivelsen som blir returnert fra [OppgaveHttpKallResponse]
+     * * @param oppgavetype - oppgavetype som blir returnert fra [OppgaveHttpKallResponse]
+     */
     data class Opprettet(
         override val hendelseId: HendelseId = HendelseId.generer(),
         override val hendelsestidspunkt: Tidspunkt,
@@ -37,6 +42,10 @@ sealed interface OppgaveHendelse : Sakshendelse {
         override val tidligereHendelseId: HendelseId? = null
     }
 
+    /**
+     * @param beskrivelse - beskrivelsen som blir returnert fra [OppgaveHttpKallResponse]
+     * @param oppgavetype - oppgavetype som blir returnert fra [OppgaveHttpKallResponse]
+     */
     data class Oppdatert(
         override val hendelseId: HendelseId = HendelseId.generer(),
         override val hendelsestidspunkt: Tidspunkt,
@@ -53,6 +62,9 @@ sealed interface OppgaveHendelse : Sakshendelse {
     sealed interface Lukket : OppgaveHendelse {
         val ferdigstiltTidspunkt: Tidspunkt get() = hendelsestidspunkt
 
+        /**
+         * @param beskrivelse - beskrivelsen som blir returnert fra [OppgaveHttpKallResponse]
+         */
         data class Maskinelt(
             override val hendelseId: HendelseId = HendelseId.generer(),
             override val hendelsestidspunkt: Tidspunkt,
