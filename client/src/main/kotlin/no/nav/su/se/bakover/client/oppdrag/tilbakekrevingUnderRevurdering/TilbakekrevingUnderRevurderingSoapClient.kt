@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -8,14 +8,17 @@ import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakResponse
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 
-class TilbakekrevingSoapClient(
+/**
+ * TODO jah: Alle filene i denne mappen slettes sammen med tilbakekreving under revurdering.
+ */
+class TilbakekrevingUnderRevurderingSoapClient(
     private val tilbakekrevingPortType: TilbakekrevingPortType,
     private val clock: Clock,
 ) : TilbakekrevingClient {
@@ -25,7 +28,7 @@ class TilbakekrevingSoapClient(
     /**
      * Sender informasjon til oppdrag hvordan vi vil avgjøre om vi vil kreve tilbake eller ikke.
      */
-    override fun sendTilbakekrevingsvedtak(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse> {
+    override fun sendTilbakekrevingsvedtakForRevurdering(tilbakekrevingsvedtak: TilbakekrevingsvedtakUnderRevurdering): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse> {
         return Either.catch {
             val request = mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak)
             val response = tilbakekrevingPortType.tilbakekrevingsvedtak(request)
@@ -39,9 +42,9 @@ class TilbakekrevingSoapClient(
                         "SOAP kall mot tilbakekrevingskomponenten OK. Response-mmel: ${response.mmel}, Response-dto: ${response.tilbakekrevingsvedtak}",
                     )
                     RåTilbakekrevingsvedtakForsendelse(
-                        requestXml = TilbakekrevingSoapClientMapper.toXml(request),
+                        requestXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(request),
                         tidspunkt = Tidspunkt.now(clock),
-                        responseXml = TilbakekrevingSoapClientMapper.toXml(response),
+                        responseXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(response),
                     )
                 }
         }.mapLeft {
@@ -65,7 +68,7 @@ class TilbakekrevingSoapClient(
                     Alvorlighetsgrad.SQL_FEIL,
                     -> {
                         log.error("SOAP kall mot tilbakekreving feilet, status:$alvorlighetsgrad. Se sikkerlogg for detaljer.")
-                        sikkerLogg.error(TilbakekrevingSoapClientMapper.toXml(response))
+                        sikkerLogg.error(TilbakekrevingUnderRevurderingSoapClientMapper.toXml(response))
                         TilbakekrevingsvedtakForsendelseFeil.left()
                     }
                 }

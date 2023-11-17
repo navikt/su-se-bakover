@@ -103,22 +103,24 @@ data class Kravgrunnlag(
         }
 
         /**
-         * Den delen av feilutbetalinga som er betalt til bruker.
+         * Den delen av feilutbetalinga som er betalt til skatteetaten.
+         * Vi runder opp til nærmeste hele krone, dette for at bruker og ikke nav skal få fordelen.
+         * Kommentar jah: Usikker på hva som skjer dersom f.eks. både SU og Uføre krever tilbake penger fra samme periode og totalt sender en større sum enn det som er betalt til skatteetaten.
          */
-        val nettoFeilutbetaling: Int by lazy {
+        val skattFeilutbetaling: Int by lazy {
             BigDecimal(bruttoFeilutbetaling)
                 .multiply(skatteProsent)
                 .divide(BigDecimal("100"))
-                .setScale(0, java.math.RoundingMode.DOWN)
+                .setScale(0, java.math.RoundingMode.UP)
                 .intValueExact()
                 .coerceAtMost(betaltSkattForYtelsesgruppen)
         }
 
         /**
-         * Den delen av feilutbetalinga som er betalt til skatteetaten.
+         * Den delen av feilutbetalinga som er betalt til bruker.
          */
-        val skattFeilutbetaling by lazy {
-            (bruttoFeilutbetaling - nettoFeilutbetaling)
+        val nettoFeilutbetaling by lazy {
+            (bruttoFeilutbetaling - skattFeilutbetaling)
         }
     }
 }

@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -157,7 +157,7 @@ private fun finnRevurderingKnyttetTilKravgrunnlag(
 ): Either<Throwable, IverksattRevurdering?> {
     val avventerKravgrunnlag = sak.revurderinger
         .filterIsInstance<IverksattRevurdering>()
-        .filter { it.tilbakekrevingsbehandling is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag }
+        .filter { it.tilbakekrevingsbehandling is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag }
 
     return when (avventerKravgrunnlag.size) {
         0 -> null.right()

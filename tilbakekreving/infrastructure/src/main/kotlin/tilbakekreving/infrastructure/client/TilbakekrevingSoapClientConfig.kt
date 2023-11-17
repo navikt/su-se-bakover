@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package tilbakekreving.infrastructure.client
 
+import common.infrastructure.cxf.wrapInStsClient
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
-import no.nav.su.se.bakover.client.oppdrag.sts.wrapInStsClient
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.slf4j.LoggerFactory

@@ -15,9 +15,9 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering

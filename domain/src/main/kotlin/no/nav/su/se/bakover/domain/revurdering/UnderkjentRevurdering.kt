@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDok
 import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -49,7 +49,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
-    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
+    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun erÅpen() = true
 
@@ -57,7 +57,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
 
     override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
-    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): UnderkjentRevurdering
+    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): UnderkjentRevurdering
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -151,13 +151,13 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override val simulering: Simulering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Innvilget {
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Innvilget {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 
@@ -241,13 +241,13 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = true
 
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Opphørt {
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Opphørt {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 

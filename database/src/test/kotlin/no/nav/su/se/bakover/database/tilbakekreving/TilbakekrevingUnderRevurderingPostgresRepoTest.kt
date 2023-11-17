@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.TikkendeKlokke

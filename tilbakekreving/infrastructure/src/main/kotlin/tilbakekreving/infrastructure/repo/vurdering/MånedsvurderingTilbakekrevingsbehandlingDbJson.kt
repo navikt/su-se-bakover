@@ -76,6 +76,7 @@ private data class PeriodevurderingMedKravDbJson(
     val bruttoSkalIkkeTilbakekreve: Int,
     val bruttoSkalTilbakekreve: Int,
     val nettoSkalTilbakekreve: Int,
+    val skattSomGårTilReduksjon: Int,
     val skatteProsent: String,
 ) {
     fun toDomain(): PeriodevurderingMedKrav {
@@ -101,6 +102,7 @@ private data class PeriodevurderingMedKravDbJson(
                 bruttoSkalTilbakekreve = this.bruttoSkalTilbakekreve,
                 nettoSkalTilbakekreve = this.nettoSkalTilbakekreve,
                 skatteProsent = skatteProsent,
+                skattSomGårTilReduksjon = this.skattSomGårTilReduksjon,
             )
 
             else -> throw IllegalArgumentException("Ukjent vurderingstype")
@@ -123,5 +125,6 @@ private fun VurderingerMedKrav.toJson(): Nel<PeriodevurderingMedKravDbJson> = th
         bruttoSkalTilbakekreve = it.bruttoSkalTilbakekreve,
         nettoSkalTilbakekreve = it.nettoSkalTilbakekreve,
         skatteProsent = it.skatteProsent.toString(),
+        skattSomGårTilReduksjon = it.skattSomGårTilReduksjon,
     )
 }

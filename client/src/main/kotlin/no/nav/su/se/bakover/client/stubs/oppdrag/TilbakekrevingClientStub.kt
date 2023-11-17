@@ -3,32 +3,32 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 import arrow.core.Either
 import arrow.core.right
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakResponse
-import no.nav.su.se.bakover.client.oppdrag.tilbakekreving.TilbakekrevingSoapClientMapper
-import no.nav.su.se.bakover.client.oppdrag.tilbakekreving.mapToTilbakekrevingsvedtakRequest
+import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientMapper
+import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.mapToTilbakekrevingsvedtakRequest
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 
 data class TilbakekrevingClientStub(
     val clock: Clock,
 ) : TilbakekrevingClient {
-    override fun sendTilbakekrevingsvedtak(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse> {
+    override fun sendTilbakekrevingsvedtakForRevurdering(tilbakekrevingsvedtak: TilbakekrevingsvedtakUnderRevurdering): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse> {
         return mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak).let { request ->
-            TilbakekrevingSoapClientMapper.toXml(request)
+            TilbakekrevingUnderRevurderingSoapClientMapper.toXml(request)
 
             RåTilbakekrevingsvedtakForsendelse(
-                requestXml = TilbakekrevingSoapClientMapper.toXml(request),
+                requestXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(request),
                 tidspunkt = Tidspunkt.now(clock),
-                responseXml = TilbakekrevingSoapClientMapper.toXml(response()),
+                responseXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(response()),
             )
         }.right()
     }
 
     private fun response(): TilbakekrevingsvedtakResponse {
-        return TilbakekrevingSoapClientMapper.fromXml(dummyOkXml)
+        return TilbakekrevingUnderRevurderingSoapClientMapper.fromXml(dummyOkXml)
     }
 
     private val dummyOkXml = """

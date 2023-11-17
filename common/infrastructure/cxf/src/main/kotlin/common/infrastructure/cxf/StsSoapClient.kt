@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.oppdrag.sts
+package common.infrastructure.cxf
 
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.cxf.Bus
@@ -17,10 +17,10 @@ import org.apache.cxf.ws.security.SecurityConstants
 import org.apache.cxf.ws.security.trust.STSClient
 import org.apache.neethi.Policy
 
-internal const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:untPolicy.xml"
-internal const val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
+const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:untPolicy.xml"
+const val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
 
-internal inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
+inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
     stsSoapUrl: String,
     serviceUser: ApplicationConfig.ServiceUserConfig,
     disableCNCheck: Boolean,
@@ -52,7 +52,7 @@ internal inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
     }
 }
 
-internal fun Bus.resolvePolicy(policyUri: String): Policy {
+fun Bus.resolvePolicy(policyUri: String): Policy {
     val registry = getExtension(PolicyEngine::class.java).registry
     val resolved = registry.lookup(policyUri)
 
@@ -62,7 +62,7 @@ internal fun Bus.resolvePolicy(policyUri: String): Policy {
     return resolved ?: referenceResolver.resolveReference(policyUri)
 }
 
-internal fun Client.setClientEndpointPolicy(policy: Policy) {
+fun Client.setClientEndpointPolicy(policy: Policy) {
     val policyEngine: PolicyEngine = bus.getExtension(PolicyEngine::class.java)
     val message = SoapMessage(Soap12.getInstance())
     val endpointPolicy = policyEngine.getClientEndpointPolicy(endpoint.endpointInfo, null, message)

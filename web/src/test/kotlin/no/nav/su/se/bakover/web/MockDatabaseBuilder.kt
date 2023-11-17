@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -44,7 +44,7 @@ data object MockDatabaseBuilder {
         klageRepo: KlageRepo = mock(),
         klageinstanshendelseRepo: KlageinstanshendelseRepo = mock(),
         reguleringRepo: ReguleringRepo = mock(),
-        tilbakekrevingRepo: TilbakekrevingRepo = mock(),
+        tilbakekrevingRepo: TilbakekrevingUnderRevurderingRepo = mock(),
         hendelseRepo: HendelseRepo = mock(),
         utenlandsoppholdRepo: UtenlandsoppholdRepo = mock(),
         sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo = mock(),

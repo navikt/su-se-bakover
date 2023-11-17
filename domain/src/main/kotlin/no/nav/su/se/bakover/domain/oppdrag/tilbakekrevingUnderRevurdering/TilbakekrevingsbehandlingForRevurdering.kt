@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering
 
 import arrow.core.Either
 import arrow.core.left
@@ -27,9 +27,9 @@ data class Tilbakekrev(
     override val sakId: UUID,
     override val revurderingId: UUID,
     override val periode: Periode,
-) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
+    TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
+    override fun fullførBehandling(): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -40,9 +40,9 @@ data class IkkeTilbakekrev(
     override val sakId: UUID,
     override val revurderingId: UUID,
     override val periode: Periode,
-) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
+    TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
+    override fun fullførBehandling(): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -53,9 +53,9 @@ data class IkkeAvgjort(
     override val sakId: UUID,
     override val revurderingId: UUID,
     override val periode: Periode,
-) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort,
-    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    fun tilbakekrev(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.IkkeAvgjort,
+    TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
+    fun tilbakekrev(): TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort {
         return Tilbakekrev(
             id = id,
             opprettet = opprettet,
@@ -65,7 +65,7 @@ data class IkkeAvgjort(
         )
     }
 
-    fun ikkeTilbakekrev(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+    fun ikkeTilbakekrev(): TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort {
         return IkkeTilbakekrev(
             id = id,
             opprettet = opprettet,
@@ -77,13 +77,13 @@ data class IkkeAvgjort(
 }
 
 data class AvventerKravgrunnlag(
-    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-) : Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+    override val avgjort: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
+) : TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
     override fun mottattKravgrunnlag(
         kravgrunnlag: Kravgrunnlag,
         kravgrunnlagMottatt: Tidspunkt,
         hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
-    ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
+    ): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
         unsafeKontrollerKravgrunnlagMotRevurdering(
             kravgrunnlag = kravgrunnlag,
             hentRevurdering = hentRevurdering,
@@ -124,12 +124,12 @@ data class AvventerKravgrunnlag(
 }
 
 data class MottattKravgrunnlag(
-    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    override val avgjort: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: Kravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
-) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
+) : TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
 
-    override fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak {
+    override fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): TilbakekrevingsvedtakUnderRevurdering {
         /**
          * Forskjellig resultat basert på valgene som er gjort i løpet av denne behandlingen, pt kun 1 valg.
          */
@@ -144,21 +144,21 @@ data class MottattKravgrunnlag(
         }
     }
 
-    private fun fullTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.FullTilbakekreving {
-        return Tilbakekrevingsvedtak.FullTilbakekreving(
+    private fun fullTilbakekreving(kravgrunnlag: Kravgrunnlag): TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving {
+        return TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving(
             vedtakId = kravgrunnlag.eksternVedtakId,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler,
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
-                Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.unsafeTilMåned(),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     ytelse = mapDelkomponentForYtelse(
                         grunnlagsperiode = grunnlagsperiode,
                         betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
-                        resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
+                        resultat = TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                     ),
                     feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode),
                 )
@@ -166,22 +166,22 @@ data class MottattKravgrunnlag(
         )
     }
 
-    private fun ingenTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.IngenTilbakekreving {
-        return Tilbakekrevingsvedtak.IngenTilbakekreving(
+    private fun ingenTilbakekreving(kravgrunnlag: Kravgrunnlag): TilbakekrevingsvedtakUnderRevurdering.IngenTilbakekreving {
+        return TilbakekrevingsvedtakUnderRevurdering.IngenTilbakekreving(
             vedtakId = kravgrunnlag.eksternVedtakId,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
             behandler = kravgrunnlag.behandler,
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
-                Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.unsafeTilMåned(),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     ytelse = mapDelkomponentForYtelse(
                         grunnlagsperiode = grunnlagsperiode,
                         betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
-                        resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
+                        resultat = TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
                     ),
                     feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode),
                 )
@@ -192,40 +192,47 @@ data class MottattKravgrunnlag(
     private fun mapDelkomponentForYtelse(
         grunnlagsperiode: Kravgrunnlag.Grunnlagsperiode,
         betaltSkattForYtelsesgruppen: Int,
-        resultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat,
-    ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse {
-        return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
+        resultat: TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat,
+    ): TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse {
+        return TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
             beløpTidligereUtbetaling = BigDecimal(grunnlagsperiode.bruttoTidligereUtbetalt),
             beløpNyUtbetaling = BigDecimal(grunnlagsperiode.bruttoNyUtbetaling),
             beløpSomSkalTilbakekreves = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(
+                    grunnlagsperiode.bruttoFeilutbetaling,
+                )
+
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
             },
             beløpSomIkkeTilbakekreves = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal.ZERO
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal.ZERO
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(
+                    grunnlagsperiode.bruttoFeilutbetaling,
+                )
             },
             beløpSkatt = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(
+                    grunnlagsperiode.bruttoFeilutbetaling,
+                )
                     .multiply(grunnlagsperiode.skatteProsent)
                     .divide(BigDecimal("100"))
                     .min(BigDecimal(betaltSkattForYtelsesgruppen))
                     .setScale(0, RoundingMode.DOWN)
 
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
             },
             tilbakekrevingsresultat = resultat,
             skyld = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.BRUKER
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.Skyld.BRUKER
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.Skyld.IKKE_FORDELT
             },
         )
     }
 
     private fun mapDelkomponentForFeilutbetaling(
         grunnlagsperiode: Kravgrunnlag.Grunnlagsperiode,
-    ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
-        return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
+    ): TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
+        return TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
             beløpTidligereUtbetaling = BigDecimal.ZERO,
             beløpNyUtbetaling = grunnlagsperiode.bruttoFeilutbetaling.toBigDecimal(),
             beløpSomSkalTilbakekreves = BigDecimal.ZERO,
@@ -235,7 +242,7 @@ data class MottattKravgrunnlag(
 
     override fun sendtTilbakekrevingsvedtak(
         tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
-    ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak {
+    ): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak {
         return SendtTilbakekrevingsvedtak(
             avgjort = avgjort,
             kravgrunnlag = kravgrunnlag,
@@ -246,30 +253,30 @@ data class MottattKravgrunnlag(
 }
 
 data class SendtTilbakekrevingsvedtak(
-    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    override val avgjort: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: Kravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
     override val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
-) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak
+) : TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak
 
 data object IkkeBehovForTilbakekrevingUnderBehandling :
-    Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving {
-    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
+    TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving {
+    override fun fullførBehandling(): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
         return IkkeBehovForTilbakekrevingFerdigbehandlet
     }
 }
 
 data object IkkeBehovForTilbakekrevingFerdigbehandlet :
-    Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
+    TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
 
-sealed interface Tilbakekrevingsbehandling {
+sealed interface TilbakekrevingsbehandlingUnderRevurdering {
 
     /**
      * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
      */
     fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
 
-    sealed interface UnderBehandling : Tilbakekrevingsbehandling {
+    sealed interface UnderBehandling : TilbakekrevingsbehandlingUnderRevurdering {
 
         override fun skalTilbakekreve(): Either<Unit, VurderTilbakekreving.Avgjort>
 
@@ -313,7 +320,7 @@ sealed interface Tilbakekrevingsbehandling {
         }
     }
 
-    sealed interface Ferdigbehandlet : Tilbakekrevingsbehandling {
+    sealed interface Ferdigbehandlet : TilbakekrevingsbehandlingUnderRevurdering {
 
         override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
         fun avventerKravgrunnlag(): Boolean {
@@ -359,7 +366,7 @@ sealed interface Tilbakekrevingsbehandling {
             }
 
             sealed interface MottattKravgrunnlag : MedKravgrunnlag {
-                fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak
+                fun lagTilbakekrevingsvedtak(kravgrunnlag: Kravgrunnlag): TilbakekrevingsvedtakUnderRevurdering
 
                 fun sendtTilbakekrevingsvedtak(
                     tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,

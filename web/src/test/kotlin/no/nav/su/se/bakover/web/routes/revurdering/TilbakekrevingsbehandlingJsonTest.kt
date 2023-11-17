@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId

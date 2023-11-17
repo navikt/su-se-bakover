@@ -6,8 +6,8 @@ import arrow.core.left
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.hentTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.ErUtfylt

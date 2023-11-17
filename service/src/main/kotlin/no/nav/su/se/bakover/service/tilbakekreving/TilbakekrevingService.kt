@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
@@ -26,7 +26,7 @@ interface TilbakekrevingService {
      * Lagrer et nytt kravgrunnlag vi har mottatt fra Oppdrag.
      */
     fun lagre(
-        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
         sessionContext: SessionContext? = null,
     )
 
@@ -35,13 +35,13 @@ interface TilbakekrevingService {
      */
     fun sendUteståendeTilbakekrevingsvedtak()
 
-    fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
-    fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag?
-    fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
+    fun hentAvventerKravgrunnlag(sakId: UUID): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
+    fun hentAvventerKravgrunnlag(utbetalingId: UUID30): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag?
+    fun hentAvventerKravgrunnlag(): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
 }
 
 class TilbakekrevingServiceImpl(
-    private val tilbakekrevingRepo: TilbakekrevingRepo,
+    private val tilbakekrevingRepo: TilbakekrevingUnderRevurderingRepo,
     private val tilbakekrevingClient: TilbakekrevingClient,
     private val vedtakService: VedtakService,
     private val brevService: BrevService,
@@ -53,7 +53,7 @@ class TilbakekrevingServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(
-        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
         sessionContext: SessionContext?,
     ) {
         return tilbakekrevingRepo.lagre(tilbakekrevingsbehandling)
@@ -130,7 +130,7 @@ class TilbakekrevingServiceImpl(
                         )
                     }
 
-                    tilbakekrevingClient.sendTilbakekrevingsvedtak(tilbakekrevingsvedtak)
+                    tilbakekrevingClient.sendTilbakekrevingsvedtakForRevurdering(tilbakekrevingsvedtak)
                         .fold(
                             {
                                 throw RuntimeException("Feil ved oversendelse av tilbakekrevingsvedtak for tilbakekrevingsbehandling:${tilbakekrevingsbehandling.avgjort.id}, revurdering: ${tilbakekrevingsbehandling.avgjort.revurderingId}, feil:$it")
@@ -155,15 +155,15 @@ class TilbakekrevingServiceImpl(
             }
     }
 
-    override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(sakId: UUID): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return tilbakekrevingRepo.hentAvventerKravgrunnlag(sakId)
     }
 
-    override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
+    override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
         return tilbakekrevingRepo.hentAvventerKravgrunnlag(utbetalingId)
     }
 
-    override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return tilbakekrevingRepo.hentAvventerKravgrunnlag()
     }
 }

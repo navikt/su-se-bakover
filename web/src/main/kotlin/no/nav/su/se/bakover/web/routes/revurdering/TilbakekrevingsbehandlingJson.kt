@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.MottattKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 
 data class TilbakekrevingsbehandlingJson(
     val avgjørelse: TilbakekrevingsAvgjørelseJson,
@@ -18,12 +18,12 @@ data class TilbakekrevingsbehandlingJson(
     }
 }
 
-fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
+fun TilbakekrevingsbehandlingUnderRevurdering.toJson(): TilbakekrevingsbehandlingJson? {
     return when (this) {
         is AvventerKravgrunnlag -> {
             toJson()
         }
-        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
+        is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
             toJson()
         }
         is MottattKravgrunnlag -> {
@@ -38,7 +38,7 @@ fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
         is IkkeAvgjort -> {
             toJson()
         }
-        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+        is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving -> {
             toJson()
         }
         is SendtTilbakekrevingsvedtak -> {
@@ -47,12 +47,12 @@ fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
     }
 }
 
-fun Tilbakekrevingsbehandling.Ferdigbehandlet.toJson(): TilbakekrevingsbehandlingJson? {
+fun TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.toJson(): TilbakekrevingsbehandlingJson? {
     return when (this) {
         is AvventerKravgrunnlag -> {
             this.avgjort.toJson()
         }
-        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
+        is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
             null
         }
         is MottattKravgrunnlag -> {
@@ -64,7 +64,7 @@ fun Tilbakekrevingsbehandling.Ferdigbehandlet.toJson(): Tilbakekrevingsbehandlin
     }
 }
 
-fun Tilbakekrevingsbehandling.UnderBehandling.toJson(): TilbakekrevingsbehandlingJson? {
+fun TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.toJson(): TilbakekrevingsbehandlingJson? {
     return when (this) {
         is Tilbakekrev -> {
             toJson()
@@ -75,13 +75,13 @@ fun Tilbakekrevingsbehandling.UnderBehandling.toJson(): Tilbakekrevingsbehandlin
         is IkkeAvgjort -> {
             toJson()
         }
-        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+        is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving -> {
             null
         }
     }
 }
 
-fun Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort.toJson(): TilbakekrevingsbehandlingJson {
+fun TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort.toJson(): TilbakekrevingsbehandlingJson {
     return when (this) {
         is Tilbakekrev -> {
             TilbakekrevingsbehandlingJson(
@@ -96,7 +96,7 @@ fun Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort.toJso
     }
 }
 
-fun Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort.toJson(): TilbakekrevingsbehandlingJson {
+fun TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.IkkeAvgjort.toJson(): TilbakekrevingsbehandlingJson {
     return when (this) {
         is IkkeAvgjort -> {
             TilbakekrevingsbehandlingJson(

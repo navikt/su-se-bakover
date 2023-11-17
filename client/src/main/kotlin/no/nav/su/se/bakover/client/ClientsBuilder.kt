@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentPåSakClient

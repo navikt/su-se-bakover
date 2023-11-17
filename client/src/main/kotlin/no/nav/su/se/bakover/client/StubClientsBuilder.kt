@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.Journalf
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.slf4j.LoggerFactory

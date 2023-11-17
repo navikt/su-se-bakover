@@ -1,14 +1,18 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakRequest
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.TilbakekrevingsbelopDto
 import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.TilbakekrevingsperiodeDto
 import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.TilbakekrevingsvedtakDto
 import no.nav.tilbakekreving.typer.v1.PeriodeDto
+import tilbakekreving.infrastructure.client.dto.TilbakekrevingsÅrsak
 import java.math.BigInteger
 import javax.xml.datatype.DatatypeFactory
 
+/**
+ * TODO jah: Alle filene i denne mappen slettes sammen med tilbakekreving under revurdering.
+ */
 internal enum class AksjonsKode(val nummer: String) {
     FATT_VEDTAK("8"),
 }
@@ -31,13 +35,13 @@ internal enum class Tilbakekrevingsresultat {
     ;
 
     companion object {
-        fun fra(tilbakekrevingsresultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat): Tilbakekrevingsresultat {
+        fun fra(tilbakekrevingsresultat: TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat): Tilbakekrevingsresultat {
             return when (tilbakekrevingsresultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> {
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> {
                     FULL_TILBAKEKREV
                 }
 
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> {
+                TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> {
                     INGEN_TILBAKEKREV
                 }
             }
@@ -45,33 +49,21 @@ internal enum class Tilbakekrevingsresultat {
     }
 }
 
-internal enum class TilbakekrevingsÅrsak {
-    ANNET,
-}
+fun TilbakekrevingsvedtakUnderRevurdering.Skyld.toDto(): TilbakekrevingsvedtakUnderRevurdering.Skyld {
+    return when (this) {
+        TilbakekrevingsvedtakUnderRevurdering.Skyld.BRUKER -> {
+            TilbakekrevingsvedtakUnderRevurdering.Skyld.BRUKER
+        }
 
-enum class Skyld {
-    BRUKER,
-    IKKE_FORDELT,
-    ;
-
-    companion object {
-        fun fra(skyld: Tilbakekrevingsvedtak.Skyld): Skyld {
-            return when (skyld) {
-                Tilbakekrevingsvedtak.Skyld.BRUKER -> {
-                    BRUKER
-                }
-
-                Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT -> {
-                    IKKE_FORDELT
-                }
-            }
+        TilbakekrevingsvedtakUnderRevurdering.Skyld.IKKE_FORDELT -> {
+            TilbakekrevingsvedtakUnderRevurdering.Skyld.IKKE_FORDELT
         }
     }
 }
 
 // Se: https://confluence.adeo.no/display/OKSY/Detaljer+om+de+enkelte+ID-koder
 // Kan låne litt herfra: https://github.com/navikt/permittering-refusjon-tilbakekreving/blob/4fdaddaf255d5753ac00fee56c5a9918065fdc8f/src/main/kotlin/no/nav/permittering/refusjon/tilbakekreving/behandling/vedtak/TilbakekrevingVedtakHurtigspor.kt
-fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): TilbakekrevingsvedtakRequest {
+fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: TilbakekrevingsvedtakUnderRevurdering): TilbakekrevingsvedtakRequest {
     return TilbakekrevingsvedtakRequest().apply {
         this.tilbakekrevingsvedtak = TilbakekrevingsvedtakDto().apply {
             // 1 - 441 - Kode-aksjon - X(01) - Krav - Aksjonskode:
@@ -100,7 +92,7 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
             this.kontrollfelt = tilbakekrevingsvedtak.kontrollFelt
 
             // 8 - 441 - Saksbeh-id - X(08) - Krav - Saksbehandler
-            this.saksbehId = tilbakekrevingsvedtak.behandler.toString()
+            this.saksbehId = tilbakekrevingsvedtak.behandler
 
             // Liste over 442 - Tilbakekrevingsperiode
             this.tilbakekrevingsperiode.addAll(mapTilbakekrevingsperioder(tilbakekrevingsvedtak.tilbakekrevingsperioder))
@@ -109,7 +101,7 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
 }
 
 val datatypeFactory: DatatypeFactory = DatatypeFactory.newInstance()
-private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode>): List<TilbakekrevingsperiodeDto> {
+private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode>): List<TilbakekrevingsperiodeDto> {
     return tilbakekrevingsperioder.map {
         TilbakekrevingsperiodeDto().apply {
             periode = PeriodeDto().apply {
@@ -138,13 +130,13 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
     }
 }
 
-private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp): TilbakekrevingsbelopDto {
+private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp): TilbakekrevingsbelopDto {
     tilbakekrevingsbeløp.let {
         TilbakekrevingsbelopDto().apply {
             // 1 - 443 - Kode-klasse - X(20) - Krav - Klassifisering av stønad, skatt, trekk etc. Det må minimum sendes med klassekoder for feilutbetaling og de ytelsesklassekoder som er feilutbetalt.
             this.kodeKlasse = when (it) {
-                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> "KL_KODE_FEIL_INNT"
-                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> "SUUFORE"
+                is TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> "KL_KODE_FEIL_INNT"
+                is TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> "SUUFORE"
             }
 
             // 3 - 443 - Belop-oppr-utbet - 9(8)V99 - Krav - Opprinnelig beregnet beløp, dvs. utbetalingen som førte til feilutbetaling. Dersom saksbehandler deler opp i perioder annerledes enn det som er levert på kravgrunnlaget, må beløp-oppr og beløp-ny beregnes på de nye perioder, med beløp fordelt pr. virkedag.
@@ -162,13 +154,13 @@ private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: Tilbakekrevingsvedta
             // 11 - 443 - Belop-skatt - 9(8)V99 - Valgfritt - Skattebeløp, som skal redusere beløp til innkreving.
 
             return when (it) {
-                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> this
-                is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> {
+                is TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling -> this
+                is TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> {
                     this.belopSkatt = it.beløpSkatt
 
                     this.kodeResultat = Tilbakekrevingsresultat.fra(it.tilbakekrevingsresultat).toString()
                     this.kodeAarsak = TilbakekrevingsÅrsak.ANNET.toString()
-                    this.kodeSkyld = Skyld.fra(it.skyld).toString()
+                    this.kodeSkyld = it.skyld.toDto().toString()
 
                     this
                 }

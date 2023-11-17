@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -17,8 +17,9 @@ import javax.xml.datatype.XMLGregorianCalendar
 
 /**
  * Er kun ment brukt for tester/stubs/lokale jobber/serialisere request/response til databasen.
+ * TODO jah: Alle filene i denne mappen slettes sammen med tilbakekreving under revurdering.
  */
-internal data object TilbakekrevingSoapClientMapper {
+internal data object TilbakekrevingUnderRevurderingSoapClientMapper {
 
     private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
         registerModule(KotlinModule.Builder().build())

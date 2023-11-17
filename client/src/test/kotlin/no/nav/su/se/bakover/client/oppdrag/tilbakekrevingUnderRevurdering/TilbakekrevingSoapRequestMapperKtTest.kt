@@ -1,8 +1,8 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.oktober
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -13,10 +13,10 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
 
     @Test
     fun `mapper full tilbakekreving`() {
-        val tilbakekrevingsvedtak =
-            tilbakekrevingstestData(Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING)
+        val tilbakekrevingsvedtakUnderRevurdering =
+            tilbakekrevingstestData(TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING)
 
-        mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak).let {
+        mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtakUnderRevurdering).let {
             it.tilbakekrevingsvedtak.let { vedtakDto ->
                 vedtakDto.kodeAksjon shouldBe "8"
                 vedtakDto.vedtakId shouldBe BigInteger("436204")
@@ -67,10 +67,10 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
 
     @Test
     fun `mapper ingen tilbakekreving`() {
-        val tilbakekrevingsvedtak =
-            tilbakekrevingstestData(Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING)
+        val tilbakekrevingsvedtakUnderRevurdering =
+            tilbakekrevingstestData(TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING)
 
-        mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak).let {
+        mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtakUnderRevurdering).let {
             it.tilbakekrevingsvedtak.let { vedtakDto ->
                 vedtakDto.kodeAksjon shouldBe "8"
                 vedtakDto.vedtakId shouldBe BigInteger("436204")
@@ -118,9 +118,9 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
     }
 }
 
-private fun tilbakekrevingstestData(type: Tilbakekrevingsvedtak.Tilbakekrevingsresultat): Tilbakekrevingsvedtak =
+private fun tilbakekrevingstestData(type: TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat): TilbakekrevingsvedtakUnderRevurdering =
     when (type) {
-        Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> Tilbakekrevingsvedtak.FullTilbakekreving(
+        TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving(
             vedtakId = "436204",
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
@@ -128,7 +128,7 @@ private fun tilbakekrevingstestData(type: Tilbakekrevingsvedtak.Tilbakekrevingsr
             tilbakekrevingsperioder = tilbakekrevingsperiodetestData(type),
         )
 
-        Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> Tilbakekrevingsvedtak.IngenTilbakekreving(
+        TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.IngenTilbakekreving(
             vedtakId = "436204",
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
@@ -137,31 +137,31 @@ private fun tilbakekrevingstestData(type: Tilbakekrevingsvedtak.Tilbakekrevingsr
         )
     }
 
-private fun tilbakekrevingsperiodetestData(type: Tilbakekrevingsvedtak.Tilbakekrevingsresultat): List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode> =
+private fun tilbakekrevingsperiodetestData(type: TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat): List<TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode> =
     listOf(
-        Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
+        TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode(
             periode = oktober(2021),
             renterBeregnes = false,
             beløpRenter = BigDecimal.ZERO,
-            ytelse = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
+            ytelse = TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
                 beløpTidligereUtbetaling = BigDecimal(9989),
                 beløpNyUtbetaling = BigDecimal("0.00"),
                 beløpSomSkalTilbakekreves = when (type) {
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(9989)
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal("0.00")
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(9989)
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal("0.00")
                 },
                 beløpSomIkkeTilbakekreves = when (type) {
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal("0.00")
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(9989)
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal("0.00")
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(9989)
                 },
                 beløpSkatt = BigDecimal("4395.00"),
                 tilbakekrevingsresultat = type,
                 skyld = when (type) {
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.BRUKER
-                    Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.Skyld.BRUKER
+                    TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> TilbakekrevingsvedtakUnderRevurdering.Skyld.IKKE_FORDELT
                 },
             ),
-            feilutbetaling = Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
+            feilutbetaling = TilbakekrevingsvedtakUnderRevurdering.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
                 beløpTidligereUtbetaling = BigDecimal("0.00"),
                 beløpNyUtbetaling = BigDecimal("9989.00"),
                 beløpSomSkalTilbakekreves = BigDecimal("0.00"),

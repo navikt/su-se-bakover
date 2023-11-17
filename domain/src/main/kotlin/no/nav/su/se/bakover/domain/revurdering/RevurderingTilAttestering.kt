@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -32,7 +32,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
-    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
+    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -58,7 +58,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering() {
@@ -118,7 +118,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering() {
