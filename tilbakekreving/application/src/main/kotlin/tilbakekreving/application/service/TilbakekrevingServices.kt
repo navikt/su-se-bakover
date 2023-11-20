@@ -166,7 +166,7 @@ class TilbakekrevingServices(
         sakService = sakService,
         brevService = brevService,
     ),
-    val avbruttTilbakekrevingsbehandlingKonsument: GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument = GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument(
+    val genererDokumentForAvbruttTilbakekrevingsbehandlingKonsument: GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument = GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument(
         sakService = sakService,
         brevService = brevService,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -21,13 +22,14 @@ import tilbakekreving.domain.kravgrunnlag.KunneIkkeOppdatereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
+import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 
 private data class Body(val versjon: Long)
 
 internal fun Route.oppdaterKravgrunnlagRoute(
     oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
 ) {
-    post("$TILBAKEKREVING_PATH/oppdaterKravgrunnlag") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/oppdaterKravgrunnlag") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
@@ -52,6 +54,10 @@ internal fun Route.oppdaterKravgrunnlagRoute(
     }
 }
 
-internal fun KunneIkkeOppdatereKravgrunnlag.tilResultat(): Resultat {
-    TODO()
+internal fun KunneIkkeOppdatereKravgrunnlag.tilResultat(): Resultat = when (this) {
+    KunneIkkeOppdatereKravgrunnlag.FantIkkeUteståendeKravgrunnlag -> HttpStatusCode.InternalServerError.errorJson(
+        "Fant ikke utestående kravgrunnlag på sak",
+        "fant_ikke_utestående_kravgrunnlag_på_sak",
+    )
+    is KunneIkkeOppdatereKravgrunnlag.IkkeTilgang -> ikkeTilgangTilSak
 }

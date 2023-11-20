@@ -13,6 +13,15 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import java.util.UUID
 
+internal fun AppComponents.runAllConsumers(saksversjon: Long): Long {
+    val opprett = this.opprettOppgave(saksversjon)
+    val oppdater = this.oppdaterOppgave(opprett)
+    val lukk = this.lukkOppgave(oppdater)
+    val forhåndsvarsel = this.genererDokumenterForForhåndsvarsel(lukk)
+    val avbryt = this.genererDokumenterForAvbryt(forhåndsvarsel)
+    return this.journalførDokmenter(avbryt)
+}
+
 internal fun AppComponents.opprettOppgave(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
         correlationId = CorrelationId.generate(),
@@ -36,6 +45,13 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
 
 internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
+        correlationId = CorrelationId.generate(),
+    )
+    return saksversjon + 1
+}
+
+internal fun AppComponents.genererDokumenterForAvbryt(saksversjon: Long): Long {
+    this.tilbakekrevingskomponenter.services.genererDokumentForAvbruttTilbakekrevingsbehandlingKonsument.genererDokumenter(
         correlationId = CorrelationId.generate(),
     )
     return saksversjon + 1
@@ -128,6 +144,18 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
+            """.trimIndent().hentListe(emptyMap(), it) {
+                it.string("hendelseId")
+            }.single()
+        }
+    }
+}
+
+internal fun AppComponents.verifiserGenererDokumentForAvbrytelseKonsument() {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                select * from hendelse_konsument where konsumentId = 'GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.single()

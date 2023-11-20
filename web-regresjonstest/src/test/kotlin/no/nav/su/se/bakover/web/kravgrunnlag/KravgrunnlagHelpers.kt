@@ -36,8 +36,8 @@ internal fun AppComponents.emulerViMottarKravgrunnlagstatusendring(
     this.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
         råttKravgrunnlag = RåttKravgrunnlag(
             xmlMelding = kravgrunnlagStatusendringXml(
-                saksnummer = saksnummer.toString(),
-                fnr = fnr.toString(),
+                saksnummer = saksnummer,
+                fnr = fnr,
                 vedtakId = eksternVedtakId,
             ),
         ),

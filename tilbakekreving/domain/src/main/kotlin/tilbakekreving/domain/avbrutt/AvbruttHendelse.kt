@@ -69,6 +69,7 @@ data class AvbruttHendelse(
                 avsluttetTidspunkt = hendelsestidspunkt,
                 avsluttetAv = utførtAv,
                 begrunnelse = begrunnelse,
+                versjon = this.versjon,
             )
         }
     }

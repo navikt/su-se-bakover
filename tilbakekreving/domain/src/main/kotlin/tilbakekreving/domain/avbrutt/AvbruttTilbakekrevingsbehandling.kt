@@ -18,6 +18,7 @@ data class AvbruttTilbakekrevingsbehandling(
     val forrigeSteg: KanEndres,
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker,
+    override val versjon: Hendelsesversjon,
     val begrunnelse: String,
 ) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt {
 

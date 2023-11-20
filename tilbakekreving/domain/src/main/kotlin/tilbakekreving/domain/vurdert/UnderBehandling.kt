@@ -52,6 +52,7 @@ sealed interface UnderBehandling :
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null,
         override val kravgrunnlag: Kravgrunnlag,
+        override val erKravgrunnlagUtdatert: Boolean,
     ) : UnderBehandling, KanEndres by forrigeSteg {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 

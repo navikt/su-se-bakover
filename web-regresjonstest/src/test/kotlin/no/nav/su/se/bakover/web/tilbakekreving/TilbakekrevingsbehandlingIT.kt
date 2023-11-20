@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
+import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test
 internal class TilbakekrevingsbehandlingIT {
 
     @Test
-    fun `kan opprette tilbakekrevingsbehandling`() {
+    fun `kjører gjennom en tilbakekrevingsbehandling til iverksetting, med underkjenning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
             clock = clock,
@@ -213,6 +214,116 @@ internal class TilbakekrevingsbehandlingIT {
             appComponents.verifiserOppgaveHendelser(
                 sakId = sakId,
                 antallOppdaterteOppgaver = 4,
+                antallLukketOppgaver = 1,
+            )
+            appComponents.verifiserDokumentHendelser(
+                sakId = sakId,
+                antallGenererteDokumenter = 1,
+                antallJournalførteDokumenter = 1,
+            )
+        }
+    }
+
+    @Test
+    fun `oppdaterer kravgrunnlag på en tilbakekreving, også avslutter behandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            clock = clock,
+        ) { appComponents ->
+            val stønadStart = 1.januar(2021)
+            val stønadSlutt = 31.januar(2021)
+            val fnr = Fnr.generer().toString()
+
+            val søknadsbehandlingJson = opprettInnvilgetSøknadsbehandling(
+                fnr = fnr,
+                fraOgMed = stønadStart.toString(),
+                tilOgMed = stønadSlutt.toString(),
+                client = this.client,
+                appComponents = appComponents,
+            )
+
+            val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
+
+            opprettIverksattRevurdering(
+                sakid = sakId,
+                fraogmed = 1.januar(2021).toString(),
+                tilogmed = 31.januar(2021).toString(),
+                client = this.client,
+                appComponents = appComponents,
+                skalUtsetteTilbakekreving = true,
+            )
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
+            verifiserKravgrunnlagPåSak(sakId, client, true, 2)
+            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = opprettTilbakekrevingsbehandling(
+                sakId = sakId,
+                saksversjon = 2,
+                client = this.client,
+            ).let {
+                hentTilbakekrevingsbehandlingId(it.first) to it.second
+            }
+            val versjonEtterOpprettelseAvOppgave = appComponents.opprettOppgave(saksversjonEtterOpprettelseAvBehandling)
+            appComponents.verifiserOpprettetOppgaveKonsument()
+
+            opprettIverksattRevurdering(
+                sakid = sakId,
+                fraogmed = 1.januar(2021).toString(),
+                tilogmed = 31.januar(2021).toString(),
+                client = this.client,
+                appComponents = appComponents,
+                skalUtsetteTilbakekreving = true,
+                leggTilFradrag = { fradragSakId, behandlingId, fraOgMed, tilOgMed ->
+                    leggTilFradrag(
+                        sakId = fradragSakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        body = { """{"fradrag": [{"periode": {"fraOgMed": "$fraOgMed", "tilOgMed": "$tilOgMed"}, "type": "PrivatPensjon", "beløp": 35000.0, "utenlandskInntekt": null, "tilhører": "EPS"}]}""" },
+                        client = this.client,
+                    )
+                },
+            )
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
+            val versjonEtterNyttKravgrunnlag = versjonEtterOpprettelseAvOppgave + 1
+            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterNyttKravgrunnlag.toInt())
+            val (_, versjonEtterOppdateringAvKravgrunnlag) = oppdaterKravgrunnlag(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = versjonEtterNyttKravgrunnlag,
+                client = this.client,
+            )
+
+            forhåndsvisAvbrytTilbakekreving(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+                saksversjon = versjonEtterOppdateringAvKravgrunnlag,
+            )
+
+            val (_, versjonEtterAvbrytelse) = avbrytTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+                saksversjon = versjonEtterOppdateringAvKravgrunnlag,
+            )
+
+            val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterAvbrytelse)
+            appComponents.verifiserLukketOppgaveKonsument()
+            val versjonEtterGenerering = appComponents.genererDokumenterForAvbryt(versjonEtterLukking)
+            appComponents.verifiserGenererDokumentForAvbrytelseKonsument()
+            val versjonEtterJournalføring = appComponents.journalførDokmenter(versjonEtterGenerering)
+            appComponents.verifiserJournalførDokumenterKonsument(1)
+
+            // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
+            appComponents.runAllConsumers(versjonEtterJournalføring)
+            appComponents.verifiserOpprettetOppgaveKonsument()
+            appComponents.verifiserOppdatertOppgaveKonsument(0)
+            appComponents.verifiserLukketOppgaveKonsument()
+            appComponents.verifiserGenererDokumentForAvbrytelseKonsument()
+            appComponents.verifiserJournalførDokumenterKonsument(1)
+
+            appComponents.verifiserOppgaveHendelser(
+                sakId = sakId,
+                antallOppdaterteOppgaver = 0,
                 antallLukketOppgaver = 1,
             )
             appComponents.verifiserDokumentHendelser(

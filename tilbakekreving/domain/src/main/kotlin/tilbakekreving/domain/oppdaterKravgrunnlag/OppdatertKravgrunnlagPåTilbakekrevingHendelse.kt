@@ -47,6 +47,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
                 forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                 vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                 kravgrunnlag = kravgrunnlag,
+                erKravgrunnlagUtdatert = false,
             )
         }
     }

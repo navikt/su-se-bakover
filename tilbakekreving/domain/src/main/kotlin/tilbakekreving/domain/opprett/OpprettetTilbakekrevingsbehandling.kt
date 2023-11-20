@@ -42,6 +42,7 @@ data class OpprettetTilbakekrevingsbehandling(
         månedsvurderinger = this.månedsvurderinger,
         forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
         kravgrunnlag = kravgrunnlag,
+        erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
     )
 
     override fun leggTilVurderinger(
@@ -55,6 +56,7 @@ data class OpprettetTilbakekrevingsbehandling(
         forhåndsvarselsInfo = listOf(),
         versjon = versjon,
         kravgrunnlag = kravgrunnlag,
+        erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
     )
 
     override val månedsvurderinger: Vurderinger? = null
