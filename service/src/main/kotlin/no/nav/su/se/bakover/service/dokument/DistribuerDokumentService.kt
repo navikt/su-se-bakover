@@ -10,7 +10,7 @@ import dokument.domain.KunneIkkeJournalføreOgDistribuereBrev
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
 import dokument.domain.brev.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import dokument.domain.distribuering.DokDistFordeling
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat

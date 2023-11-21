@@ -10,20 +10,6 @@ pluginManagement {
         kotlin("jvm") version kotlinVersion
     }
 }
-/*dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            version("slf4j", "2.0.9")
-            library("slf4j-api", "org.slf4j", "slf4j-api").versionRef("slf4j")
-            library("jul-to-slf4j", "org.slf4j", "jul-to-slf4j").versionRef("slf4j")
-            library("jcl-over-slf4j", "org.slf4j", "jcl-over-slf4j").versionRef("slf4j")
-            library("log4j-over-slf4j", "org.slf4j", "log4j-over-slf4j").versionRef("slf4j")
-        }
-    }
-}*/
-
-
-
 rootProject.name = "su-se-bakover"
 include("domain")
 include("application")

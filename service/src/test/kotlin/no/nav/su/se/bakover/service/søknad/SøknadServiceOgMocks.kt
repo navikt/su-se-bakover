@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.søknad
 
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
@@ -20,7 +20,7 @@ internal data class SøknadServiceOgMocks(
     val sakService: SakService = defaultMock(),
     val sakFactory: SakFactory = SakFactory(clock = fixedClock),
     val pdfGenerator: PdfGenerator = defaultMock(),
-    val dokArkiv: DokArkiv = defaultMock(),
+    val journalførSøknadClient: JournalførSøknadClient = defaultMock(),
     val personService: PersonService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val søknadMetrics: SøknadMetrics = defaultMock(),
@@ -31,7 +31,7 @@ internal data class SøknadServiceOgMocks(
         sakService = sakService,
         sakFactory = sakFactory,
         pdfGenerator = pdfGenerator,
-        dokArkiv = dokArkiv,
+        journalførSøknadClient = journalførSøknadClient,
         personService = personService,
         oppgaveService = oppgaveService,
         søknadMetrics = søknadMetrics,
@@ -42,7 +42,7 @@ internal data class SøknadServiceOgMocks(
         søknadRepo,
         sakService,
         pdfGenerator,
-        dokArkiv,
+        journalførSøknadClient,
         personService,
         oppgaveService,
         søknadMetrics,

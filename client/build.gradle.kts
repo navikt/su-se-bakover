@@ -1,4 +1,3 @@
-val fuelVersion = "2.3.1"
 val tjenestespesifikasjonVersion = "2618.0448179"
 val cxfVersion = "3.5.5"
 
@@ -8,12 +7,13 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":dokument:infrastructure"))
     implementation(project(":oppgave:domain"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
 
-    implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
-    implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
+    implementation(rootProject.libs.kittinunf.fuel)
+    implementation(rootProject.libs.kittinunf.fuel.gson)
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     implementation("org.json:json:20231013")
@@ -39,7 +39,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
 
     testImplementation(project(":test-common"))
-    testImplementation("org.wiremock:wiremock:3.3.1") {
+    implementation(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")

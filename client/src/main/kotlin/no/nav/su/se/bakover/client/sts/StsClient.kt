@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.client.sts
 
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.ExpiringTokenResponse
 import no.nav.su.se.bakover.client.isValid
+import no.nav.su.se.bakover.common.domain.auth.AccessToken
+import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import org.json.JSONObject
 import java.time.Clock
 

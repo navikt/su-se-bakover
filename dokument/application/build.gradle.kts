@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":person:domain"))
 
     implementation(project(":domain"))
-    implementation(project(":client"))
 
     testImplementation(project(":test-common"))
 }

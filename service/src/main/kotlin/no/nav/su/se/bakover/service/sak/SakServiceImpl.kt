@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
@@ -49,7 +49,7 @@ class SakServiceImpl(
     private val clock: Clock,
     private val dokumentRepo: DokumentRepo,
     private val brevService: BrevService,
-    private val journalpostClient: JournalpostClient,
+    private val journalpostClient: QueryJournalpostClient,
     private val personService: PersonService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)

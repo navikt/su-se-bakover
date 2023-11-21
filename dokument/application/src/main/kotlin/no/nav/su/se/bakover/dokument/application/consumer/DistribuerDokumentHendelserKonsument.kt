@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.dokument.application.consumer
 
 import arrow.core.Nel
+import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokument
 import dokument.domain.hendelser.JournalførtDokumentHendelse
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.persistence.SessionFactory

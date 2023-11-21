@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.client.skjerming.Skjerming
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig

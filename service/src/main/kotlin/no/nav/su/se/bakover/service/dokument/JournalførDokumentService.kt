@@ -9,10 +9,9 @@ import dokument.domain.Dokumentdistribusjon
 import dokument.domain.KunneIkkeJournalføreOgDistribuereBrev
 import dokument.domain.brev.KunneIkkeJournalføreBrev
 import dokument.domain.brev.KunneIkkeJournalføreDokument
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import dokument.domain.journalføring.brev.JournalførBrevClient
+import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
-import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
@@ -25,7 +24,7 @@ import person.domain.PersonService
  * journalfører 'vanlige' dokumenter (f.eks vedtak). Ment å bli kallt fra en jobb
  */
 class JournalførDokumentService(
-    private val dokArkiv: DokArkiv,
+    private val journalførBrevClient: JournalførBrevClient,
     private val dokumentRepo: DokumentRepo,
     private val sakService: SakService,
     private val personService: PersonService,
@@ -49,7 +48,7 @@ class JournalførDokumentService(
 
         val journalførtDokument = dokumentdistribusjon.journalfør {
             journalfør(
-                journalpost = JournalpostForSakCommand.Brev(
+                command = JournalførBrevCommand(
                     saksnummer = sakInfo.saksnummer,
                     dokument = dokumentdistribusjon.dokument,
                     sakstype = sakInfo.type,
@@ -71,8 +70,8 @@ class JournalførDokumentService(
             }
     }
 
-    private fun journalfør(journalpost: JournalpostCommand): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-        return dokArkiv.opprettJournalpost(journalpost)
+    private fun journalfør(command: JournalførBrevCommand): Either<KunneIkkeJournalføreBrev, JournalpostId> {
+        return journalførBrevClient.journalførBrev(command)
             .mapLeft {
                 log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")
                 KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost

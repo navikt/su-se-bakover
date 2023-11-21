@@ -2,38 +2,42 @@ package no.nav.su.se.bakover.client.journalpost
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 
 class HentJournalposterForTest {
 
     @Test
     fun `håndterer vanlige http feil`() {
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer stsToken")
-                .willReturn(WireMock.unauthorized()),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                token("Bearer stsToken")
+                    .willReturn(WireMock.unauthorized()),
+            )
 
-        setupClient().also { client ->
-            client.hentJournalposterFor(Saksnummer(10002027)).onLeft {
-                it.shouldBeType<KunneIkkeHenteJournalposter.ClientError>()
+            setupClient(baseUrl()).also { client ->
+                client.hentJournalposterFor(Saksnummer(10002027)).onLeft {
+                    it.shouldBeType<KunneIkkeHenteJournalposter.ClientError>()
+                }
             }
         }
     }
 
     @Test
     fun `produsert request er riktig`() {
-        WiremockBase.wireMockServer.stubFor(token("Bearer stsToken").willReturn(WireMock.ok(happyJson())))
-        val expected = """
+        startedWireMockServerWithCorrelationId {
+            stubFor(token("Bearer stsToken").willReturn(WireMock.ok(happyJson())))
+            val expected = """
             {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":null,"tema":"SUP","journalposttyper":[],"journalstatuser":[],"foerste":50}}
-        """.trimIndent()
+            """.trimIndent()
 
-        setupClient().also {
-            it.hentJournalposterFor(Saksnummer(10002027))
-            String(WiremockBase.wireMockServer.serveEvents.requests.first().request.body) shouldBe expected
+            setupClient(baseUrl()).also {
+                it.hentJournalposterFor(Saksnummer(10002027))
+                String(serveEvents.requests.first().request.body) shouldBe expected
+            }
         }
     }
 

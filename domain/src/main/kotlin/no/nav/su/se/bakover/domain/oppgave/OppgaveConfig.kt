@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.Behandlingstema
-import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock

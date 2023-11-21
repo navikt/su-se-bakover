@@ -78,7 +78,7 @@ data object ServiceBuilder {
             clock = clock,
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
-            clients.journalpostClient,
+            clients.queryJournalpostClient,
             personService = personService,
         ).apply { addObserver(statistikkEventObserver) }
 
@@ -90,7 +90,7 @@ data object ServiceBuilder {
             sakService = sakService,
             sakFactory = SakFactory(clock = clock),
             pdfGenerator = clients.pdfGenerator,
-            dokArkiv = clients.dokArkiv,
+            journalførSøknadClient = clients.journalførClients.søknad,
             personService = personService,
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
@@ -126,7 +126,8 @@ data object ServiceBuilder {
             personOppslag = clients.personOppslag,
             dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             journalførSkattDokumentService = JournalførSkattDokumentService(
-                dokArkiv = clients.dokArkiv,
+                journalførSkattedokumentPåSakClient = clients.journalførClients.skattedokumentPåSak,
+                journalførSkattedokumentUtenforSakClient = clients.journalførClients.skattedokumentUtenforSak,
                 sakService = sakService,
                 dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             ),
@@ -161,7 +162,7 @@ data object ServiceBuilder {
                 // TODO jah: Finnes nå 2 instanser av denne. Opprettes også i DatabaseBuilder for StønadsperiodePostgresRepo
                 sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
             ),
-            journalpostClient = clients.journalpostClient,
+            queryJournalpostClient = clients.queryJournalpostClient,
             stansAvYtelseService = stansAvYtelseService,
         )
 
@@ -228,7 +229,7 @@ data object ServiceBuilder {
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
-            journalpostClient = clients.journalpostClient,
+            queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
         ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(

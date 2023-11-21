@@ -142,7 +142,7 @@ fun Application.susebakover(
                 hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
                 sakService = services.sak,
                 dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
-                dokArkiv = clients.dokArkiv,
+                journalførBrevClient = clients.journalførClients.brev,
                 dokDistFordeling = clients.dokDistFordeling,
             ),
         )

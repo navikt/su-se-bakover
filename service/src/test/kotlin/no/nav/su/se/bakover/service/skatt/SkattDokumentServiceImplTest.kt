@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
+import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -418,7 +418,7 @@ internal class SkattDokumentServiceImplTest {
             on { person(any()) } doReturn person.right()
         }
         val journalførSkattDokumentService = mock<JournalførSkattDokumentService> {
-            on { journalfør(any()) } doReturn JournalpostId("journalpostId").right()
+            on { journalfør(any<JournalførSkattedokumentUtenforSakCommand>()) } doReturn JournalpostId("journalpostId").right()
         }
 
         mockedServices(
@@ -456,8 +456,8 @@ internal class SkattDokumentServiceImplTest {
             )
 
             verify(journalførSkattDokumentService).journalfør(
-                argThat {
-                    (it as JournalpostSkattUtenforSak) shouldBe JournalpostSkattUtenforSak.create(
+                argThat<JournalførSkattedokumentUtenforSakCommand> {
+                    it shouldBe JournalførSkattedokumentUtenforSakCommand.create(
                         fnr = fnr,
                         sakstype = Sakstype.ALDER,
                         fagsystemId = "fagsystemId",

@@ -6,10 +6,11 @@ import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.isSuccess
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
+import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig

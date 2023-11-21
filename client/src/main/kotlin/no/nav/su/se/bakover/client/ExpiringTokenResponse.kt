@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.se.bakover.common.domain.auth.AccessToken
 import org.json.JSONObject
 import java.time.Clock
 import java.time.LocalDateTime
@@ -22,4 +23,3 @@ open class ExpiringTokenResponse(
 fun ExpiringTokenResponse?.isValid(): Boolean {
     return this != null && ExpiringTokenResponse.isValid(this)
 }
-data class AccessToken(val value: String)

@@ -10,10 +10,10 @@ import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
+import dokument.domain.distribuering.DokDistFordeling
+import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.Person
@@ -67,13 +66,13 @@ internal class DistribuerDokumentServiceTest {
                 it.first().brevbestillingsId shouldBe BrevbestillingId("id")
             }
 
-        verify(dokumentRepo, times(1)).hentDokumenterForDistribusjon()
+        verify(dokumentRepo).hentDokumenterForDistribusjon()
         verify(dokdistFordeling).bestillDistribusjon(
             argThat { it shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId() },
             argThat { it shouldBe Distribusjonstype.VEDTAK },
             argThat { it shouldBe Distribusjonstidspunkt.KJERNETID },
         )
-        verify(dokumentRepo, times(1)).oppdaterDokumentdistribusjon(
+        verify(dokumentRepo).oppdaterDokumentdistribusjon(
             dokumentdistribusjon.copy(
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     JournalpostId("very"),

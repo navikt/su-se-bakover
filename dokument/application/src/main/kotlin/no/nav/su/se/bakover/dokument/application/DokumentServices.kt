@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.dokument.application
 
+import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.hendelser.DokumentHendelseRepo
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import dokument.domain.journalføring.brev.JournalførBrevClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
@@ -18,12 +18,12 @@ class DokumentServices(
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sakService: SakService,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
-    private val dokArkiv: DokArkiv,
+    private val journalførBrevClient: JournalførBrevClient,
     private val dokDistFordeling: DokDistFordeling,
     val journalførtDokumentHendelserKonsument: JournalførDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
         sakService = sakService,
         personService = personService,
-        dokArkiv = dokArkiv,
+        journalførBrevClient = journalførBrevClient,
         dokumentHendelseRepo = dokumentHendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         sessionFactory = sessionFactory,

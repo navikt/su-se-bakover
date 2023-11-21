@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
+import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
@@ -80,7 +80,7 @@ class SkattDokumentServiceImpl(
                 log.info("Genererte skatte-pdf for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
 
                 journalførSkattDokumentService.journalfør(
-                    JournalpostSkattUtenforSak.tryCreate(
+                    JournalførSkattedokumentUtenforSakCommand.tryCreate(
                         fnr = request.skattegrunnlagSøkers.fnr,
                         sakstype = request.sakstype,
                         fagsystemId = request.fagsystemId,

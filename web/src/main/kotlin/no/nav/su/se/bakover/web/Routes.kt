@@ -110,14 +110,14 @@ internal fun Application.setupKtorRoutes(
                         registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
-                            journalpostClient = clients.journalpostClient,
+                            queryJournalpostClient = clients.queryJournalpostClient,
                             auditLogger = CefAuditLogger,
                             personService = services.person,
                         ),
                         korrigerService = KorrigerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
-                            journalpostClient = clients.journalpostClient,
+                            queryJournalpostClient = clients.queryJournalpostClient,
                             auditLogger = CefAuditLogger,
                             personService = services.person,
                         ),

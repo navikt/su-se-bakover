@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.audit.AuditLogger
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.korrigerUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -16,7 +16,7 @@ import person.domain.PersonService
 class KorrigerUtenlandsoppholdService(
     private val sakRepo: SakRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
-    private val journalpostClient: JournalpostClient,
+    private val queryJournalpostClient: QueryJournalpostClient,
     private val auditLogger: AuditLogger,
     private val personService: PersonService,
 ) {
@@ -31,7 +31,7 @@ class KorrigerUtenlandsoppholdService(
             command = command,
             utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
         ) { j: JournalpostId, s: Saksnummer ->
-            journalpostClient.erTilknyttetSak(j, s)
+            queryJournalpostClient.erTilknyttetSak(j, s)
         }.map { (sak, hendelse, auditHendelse) ->
             utenlandsoppholdRepo.lagre(hendelse)
             auditLogger.log(auditHendelse)

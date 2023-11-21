@@ -10,14 +10,14 @@ import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokument
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import dokument.domain.journalføring.brev.JournalførBrevClient
+import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -37,7 +37,7 @@ import java.util.UUID
 class JournalførDokumentHendelserKonsument(
     private val sakService: SakService,
     private val personService: PersonService,
-    private val dokArkiv: DokArkiv,
+    private val journalførBrevClient: JournalførBrevClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sessionFactory: SessionFactory,
@@ -163,8 +163,8 @@ class JournalførDokumentHendelserKonsument(
         navn: Person.Navn,
         relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
-    ): Either<Unit, JournalpostId> = dokArkiv.opprettJournalpost(
-        dokumentInnhold = JournalpostForSakCommand.Brev(
+    ): Either<Unit, JournalpostId> = journalførBrevClient.journalførBrev(
+        JournalførBrevCommand(
             fnr = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
             dokument = relatertHendelse.dokumentUtenFil.toDokumentMedMetadata(relatertFil.fil),

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -57,7 +58,12 @@ internal class ServiceBuilderTest {
                 personOppslag = mock(),
                 tokenOppslag = mock(),
                 pdfGenerator = mock(),
-                dokArkiv = mock(),
+                journalførClients = JournalførClients(
+                    skattedokumentUtenforSak = mock(),
+                    skattedokumentPåSak = mock(),
+                    brev = mock(),
+                    søknad = mock(),
+                ),
                 oppgaveClient = mock(),
                 kodeverk = mock(),
                 simuleringClient = mock(),
@@ -69,7 +75,7 @@ internal class ServiceBuilderTest {
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
                 klageClient = mock(),
-                journalpostClient = mock(),
+                queryJournalpostClient = mock(),
                 tilbakekrevingClient = mock(),
                 skatteOppslag = mock(),
             ),

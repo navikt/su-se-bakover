@@ -5,50 +5,31 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.client.AccessToken
-import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.auth.AccessToken
+import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Isolated
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.MDC
 
-// "denne må kjøres isolated siden MDC er static og vil tukle med andre tester som bruker MDC og kjører parallellt" - Quote from John Andre Hestad 2022
-@Isolated
 internal class JournalpostHttpClientTest {
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            MDC.put("Authorization", "lol")
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            MDC.remove("Authorization")
-        }
-    }
 
     @Test
     fun `sjekker om journalpost er tilknyttet oppgitt saksnummer`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "journalpost": {
@@ -58,24 +39,32 @@ internal class JournalpostHttpClientTest {
                 }
               }
             }
-            """.trimIndent()
+                """.trimIndent()
 
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer aadToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
+            stubFor(
+                token("Bearer aadToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
 
-        runBlocking {
-            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Ja.right()
-            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2023)) shouldBe ErTilknyttetSak.Nei.right()
+            runBlocking {
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2021),
+                ) shouldBe ErTilknyttetSak.Ja.right()
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2023),
+                ) shouldBe ErTilknyttetSak.Nei.right()
+            }
         }
     }
 
     @Test
     fun `svarer nei dersom journalpost ikke er tilknyttet noen sak`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": {
                 "journalpost": {
@@ -83,59 +72,68 @@ internal class JournalpostHttpClientTest {
                 }
               }
             }
-            """.trimIndent()
+                """.trimIndent()
 
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer aadToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-        runBlocking {
-            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Nei.right()
+            stubFor(
+                token("Bearer aadToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+            runBlocking {
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2021),
+                ) shouldBe ErTilknyttetSak.Nei.right()
+            }
         }
     }
 
     @Test
     fun `feil ved deserialisering av response`() {
-        //language=JSON
-        val suksessResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val suksessResponseJson =
+                """
             {
               "data": "{bogus content}"
             }
-            """.trimIndent()
+                """.trimIndent()
 
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer aadToken")
-                .willReturn(WireMock.ok(suksessResponseJson)),
-        )
-        runBlocking {
-            setupClient().erTilknyttetSak(
-                JournalpostId("j"),
-                Saksnummer(2021),
-            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
+            stubFor(
+                token("Bearer aadToken")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+            runBlocking {
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2021),
+                ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
+            }
         }
     }
 
     @Test
     fun `får ukjent feil dersom client kall feiler`() {
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer aadToken")
-                .willReturn(WireMock.serverError()),
-        )
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                token("Bearer aadToken")
+                    .willReturn(WireMock.serverError()),
+            )
 
-        runBlocking {
-            setupClient().erTilknyttetSak(
-                JournalpostId("j"),
-                Saksnummer(2022),
-            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
+            runBlocking {
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2022),
+                ) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
+            }
         }
     }
 
     @Test
     fun `fant ikke journalpost`() {
-        //language=JSON
-        val errorResponseJson =
-            """
+        startedWireMockServerWithCorrelationId {
+            //language=JSON
+            val errorResponseJson =
+                """
             {
               "errors": [
                 {
@@ -159,18 +157,19 @@ internal class JournalpostHttpClientTest {
                 "journalpost": null
               }
             }
-            """.trimIndent()
+                """.trimIndent()
 
-        WiremockBase.wireMockServer.stubFor(
-            token("Bearer aadToken")
-                .willReturn(WireMock.ok(errorResponseJson)),
-        )
+            stubFor(
+                token("Bearer aadToken")
+                    .willReturn(WireMock.ok(errorResponseJson)),
+            )
 
-        runBlocking {
-            setupClient().erTilknyttetSak(
-                JournalpostId("j"),
-                Saksnummer(2022),
-            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+            runBlocking {
+                setupClient(baseUrl()).erTilknyttetSak(
+                    JournalpostId("j"),
+                    Saksnummer(2022),
+                ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+            }
         }
     }
 
@@ -178,27 +177,30 @@ internal class JournalpostHttpClientTest {
     fun `mapper fra graphql feil`() {
         skalMappeKodeTilRiktigErrorType(
             "forbidden",
-            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Forbidden("j", "du har feil"),
+            QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.Forbidden("j", "du har feil"),
         )
         skalMappeKodeTilRiktigErrorType(
             "not_found",
-            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.NotFound("j", "du har feil"),
+            QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.NotFound("j", "du har feil"),
         )
         skalMappeKodeTilRiktigErrorType(
             "bad_request",
-            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.BadRequest("j", "du har feil"),
+            QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.BadRequest("j", "du har feil"),
         )
         skalMappeKodeTilRiktigErrorType(
             "server_error",
-            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.ServerError("j", "du har feil"),
+            QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.ServerError("j", "du har feil"),
         )
         skalMappeKodeTilRiktigErrorType(
             "top_secret",
-            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent("j", "du har feil"),
+            QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent("j", "du har feil"),
         )
     }
 
-    private fun skalMappeKodeTilRiktigErrorType(code: String, expected: JournalpostHttpClient.GraphQLApiFeil.HttpFeil) {
+    private fun skalMappeKodeTilRiktigErrorType(
+        code: String,
+        expected: QueryJournalpostHttpClient.GraphQLApiFeil.HttpFeil,
+    ) {
         val httpResponse = HentJournalpostHttpResponse(
             data = HentJournalpostResponse(null),
             errors = listOf(
@@ -218,8 +220,9 @@ internal class JournalpostHttpClientTest {
 }
 
 internal fun setupClient(
+    baseUrl: String,
     safConfig: ApplicationConfig.ClientsConfig.SafConfig = ApplicationConfig.ClientsConfig.SafConfig(
-        url = WiremockBase.wireMockServer.baseUrl(),
+        url = baseUrl,
         clientId = "clientId",
     ),
     azureAd: AzureAd = mock {
@@ -231,7 +234,7 @@ internal fun setupClient(
     metrics: JournalpostClientMetrics = mock {
         doNothing().whenever(it).inkrementerBenyttetSkjema(any())
     },
-) = JournalpostHttpClient(
+) = QueryJournalpostHttpClient(
     safConfig = safConfig,
     azureAd = azureAd,
     sts = sts,
