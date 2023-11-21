@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
-import arrow.core.NonEmptyList
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.GenerertDokument
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentMetaDataDbJson.Companion.toHendelseDbJson
@@ -24,7 +22,7 @@ internal data class GenerertDokumentHendelseDbJson(
     val distribusjonstidspunkt: DistribusjonstidspunktDbJson,
     val tittel: String,
     val generertDokumentJson: String,
-    val relaterteHendelser: List<String>,
+    val relaterteHendelse: String,
     val dokumentMeta: DokumentMetaDataDbJson,
     val skalSendeBrev: Boolean,
 ) {
@@ -61,8 +59,7 @@ internal data class GenerertDokumentHendelseDbJson(
                     hendelsestidspunkt = hendelsestidspunkt,
                     versjon = versjon,
                     meta = meta,
-                    relaterteHendelser = deserialized.relaterteHendelser.map { HendelseId.fromString(it) }
-                        .toNonEmptyList(),
+                    relaterteHendelse = HendelseId.fromString(deserialized.relaterteHendelse),
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                     skalSendeBrev = deserialized.skalSendeBrev,
                 )
@@ -76,7 +73,7 @@ internal data class GenerertDokumentHendelseDbJson(
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
             meta: DefaultHendelseMetadata,
-            relaterteHendelser: NonEmptyList<HendelseId>,
+            relaterteHendelse: HendelseId,
             dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
             skalSendeBrev: Boolean,
         ): GenerertDokumentHendelse = GenerertDokumentHendelse.fraPersistert(
@@ -86,13 +83,13 @@ internal data class GenerertDokumentHendelseDbJson(
             entitetId = sakId,
             versjon = versjon,
             sakId = sakId,
-            relaterteHendelser = relaterteHendelser,
+            relatertHendelse = relaterteHendelse,
             dokument = dokumentMedMetadataUtenFil,
             skalSendeBrev = skalSendeBrev,
         )
 
         internal fun DokumentMedMetadataUtenFil.toDbJson(
-            relaterteHendelser: NonEmptyList<HendelseId>,
+            relaterteHendelse: HendelseId,
             skalSendeBrev: Boolean,
         ): String =
             GenerertDokumentHendelseDbJson(
@@ -102,7 +99,7 @@ internal data class GenerertDokumentHendelseDbJson(
                 distribusjonstidspunkt = this.distribusjonstidspunkt.toHendelseDbJson(),
                 tittel = this.tittel,
                 generertDokumentJson = this.generertDokumentJson,
-                relaterteHendelser = relaterteHendelser.map { it.toString() },
+                relaterteHendelse = relaterteHendelse.toString(),
                 dokumentMeta = this.metadata.toHendelseDbJson(),
                 skalSendeBrev = skalSendeBrev,
             ).let { serialize(it) }

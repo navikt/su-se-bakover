@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -15,7 +16,7 @@ class DokumentJobber(
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,
     private val journalførtDokumentHendelserKonsument: JournalførDokumentHendelserKonsument,
-
+    private val distribuerDokumentHendelserKonsument: DistribuerDokumentHendelserKonsument,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Dokument"
@@ -33,6 +34,7 @@ class DokumentJobber(
                 Either.catch {
                     withCorrelationId { correlationId ->
                         journalførtDokumentHendelserKonsument.journalførDokumenter(correlationId)
+                        distribuerDokumentHendelserKonsument.distribuer(correlationId)
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
+import dokument.domain.brev.BrevbestillingId
+import dokument.domain.hendelser.DistribuertDokument
+import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
-import dokument.domain.hendelser.JournalførtDokument
-import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -13,10 +13,9 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.util.UUID
 
-internal data class JournalførtDokumentHendelseDbJson(
+internal data class DistribuertDokumentHendelseDbJson(
     val relaterteHendelse: String,
-    val journalpostId: String,
-    val skalSendeBrev: Boolean,
+    val brevbestillingId: String,
 ) {
     companion object {
         fun toDomain(
@@ -28,34 +27,32 @@ internal data class JournalførtDokumentHendelseDbJson(
             versjon: Hendelsesversjon,
             meta: DefaultHendelseMetadata,
         ): DokumentHendelse {
-            val deserialized = deserialize<JournalførtDokumentHendelseDbJson>(data)
+            val deserialized = deserialize<DistribuertDokumentHendelseDbJson>(data)
 
             return when (type) {
-                JournalførtDokument -> toJournalførtDokumentHendelse(
+                DistribuertDokument -> toDistribuertDokumentHendelse(
                     hendelseId = hendelseId,
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
                     versjon = versjon,
                     meta = meta,
                     relaterteHendelse = HendelseId.fromString(deserialized.relaterteHendelse),
-                    journalpostId = JournalpostId(deserialized.journalpostId),
-                    skalSendeBrev = deserialized.skalSendeBrev,
+                    brevbestillingId = deserialized.brevbestillingId,
                 )
 
                 else -> throw IllegalStateException("Ugyldig type for journalført dokument hendelse. type var $type")
             }
         }
 
-        private fun toJournalførtDokumentHendelse(
+        private fun toDistribuertDokumentHendelse(
             hendelseId: HendelseId,
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
             meta: DefaultHendelseMetadata,
             relaterteHendelse: HendelseId,
-            journalpostId: JournalpostId,
-            skalSendeBrev: Boolean,
-        ): JournalførtDokumentHendelse = JournalførtDokumentHendelse.fraPersistert(
+            brevbestillingId: String,
+        ): DistribuertDokumentHendelse = DistribuertDokumentHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
             hendelseMetadata = meta,
@@ -63,15 +60,13 @@ internal data class JournalførtDokumentHendelseDbJson(
             versjon = versjon,
             sakId = sakId,
             relatertHendelse = relaterteHendelse,
-            journalpostId = journalpostId,
-            skalSendeBrev = skalSendeBrev,
+            brevbestillingId = BrevbestillingId(brevbestillingId),
         )
 
-        internal fun JournalførtDokumentHendelse.dataDbJson(relaterteHendelse: HendelseId): String =
-            JournalførtDokumentHendelseDbJson(
+        internal fun DistribuertDokumentHendelse.dataDbJson(relaterteHendelse: HendelseId): String =
+            DistribuertDokumentHendelseDbJson(
                 relaterteHendelse = relaterteHendelse.toString(),
-                journalpostId = journalpostId.toString(),
-                skalSendeBrev = skalSendeBrev,
+                brevbestillingId = this.brevbestillingId.value,
             ).let { serialize(it) }
     }
 }

@@ -264,6 +264,7 @@ fun startJobberOgConsumers(
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
+            distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
         ).schedule()
 
         KravgrunnlagIbmMqConsumer(
@@ -403,6 +404,7 @@ fun startJobberOgConsumers(
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
+            distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
         ).schedule()
 
         SendTilbakekrevingsvedtakForRevurdering(

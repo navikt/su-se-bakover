@@ -1,8 +1,6 @@
 package dokument.domain.hendelser
 
-import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -24,7 +22,7 @@ data class GenerertDokumentHendelse(
     override val versjon: Hendelsesversjon,
     override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
-    override val relaterteHendelser: NonEmptyList<HendelseId>,
+    override val relatertHendelse: HendelseId,
     val dokumentUtenFil: DokumentMedMetadataUtenFil,
     val skalSendeBrev: Boolean,
 ) : DokumentHendelse {
@@ -47,7 +45,7 @@ data class GenerertDokumentHendelse(
             entitetId: UUID,
             versjon: Hendelsesversjon,
             sakId: UUID,
-            relaterteHendelser: List<HendelseId>,
+            relatertHendelse: HendelseId,
             dokument: DokumentMedMetadataUtenFil,
             skalSendeBrev: Boolean,
         ): GenerertDokumentHendelse {
@@ -57,7 +55,7 @@ data class GenerertDokumentHendelse(
                 meta = hendelseMetadata,
                 sakId = sakId,
                 versjon = versjon,
-                relaterteHendelser = relaterteHendelser.toNonEmptyList(),
+                relatertHendelse = relatertHendelse,
                 dokumentUtenFil = dokument,
                 skalSendeBrev = skalSendeBrev,
             ).also {

@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokument
 import dokument.domain.hendelser.GenerertDokumentHendelse
@@ -84,7 +84,7 @@ class JournalførDokumentHendelserKonsument(
         val sakId = sak.id
         val dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId)
 
-        dokumentHendelser.any { it.relaterteHendelser.contains(hendelseId) }.ifTrue {
+        dokumentHendelser.any { it.relatertHendelse == hendelseId }.ifTrue {
             hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
             return
         }
@@ -152,7 +152,7 @@ class JournalførDokumentHendelserKonsument(
             versjon = versjon,
             meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             sakId = sakInfo.sakId,
-            relaterteHendelser = nonEmptyListOf(generertDokumentHendelse.hendelseId),
+            relatertHendelse = generertDokumentHendelse.hendelseId,
             journalpostId = it,
             skalSendeBrev = skalSendeBrev,
         ).right()
@@ -186,6 +186,10 @@ class JournalførDokumentHendelserKonsument(
                 is GenerertDokumentHendelse -> d
                 is JournalførtDokumentHendelse -> return Unit.left().also {
                     log.error("Feil under journalføring: GenerertDokumentHendelse $hendelseId var ikke av typen JournalførtDokumentHendelse. Sak $sakId")
+                }
+
+                is DistribuertDokumentHendelse -> return Unit.left().also {
+                    log.error("Feil under journalføring: Hendelse $hendelseId er journalført og distribuert fra før, for sak $sakId")
                 }
 
                 null -> return Unit.left().also {

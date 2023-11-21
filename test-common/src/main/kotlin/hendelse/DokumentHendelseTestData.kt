@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.test.hendelse
 
-import arrow.core.Nel
-import arrow.core.nonEmptyListOf
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -20,7 +18,7 @@ fun lagretDokumentForJournalføringHendelse(
     versjon: Hendelsesversjon = Hendelsesversjon(15),
     metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
+    relaterteHendelse: HendelseId = HendelseId.generer(),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
     skalSendeBrev: Boolean = true,
 ): GenerertDokumentHendelse = GenerertDokumentHendelse(
@@ -29,7 +27,7 @@ fun lagretDokumentForJournalføringHendelse(
     versjon = versjon,
     meta = metadata,
     sakId = sakId,
-    relaterteHendelser = relaterteHendelser,
+    relatertHendelse = relaterteHendelse,
     dokumentUtenFil = dokumentUtenFil,
     skalSendeBrev = skalSendeBrev,
 )
@@ -40,7 +38,7 @@ fun lagretDokumentForUtsendelseHendelse(
     versjon: Hendelsesversjon = Hendelsesversjon(15),
     metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    relaterteHendelser: Nel<HendelseId> = nonEmptyListOf(HendelseId.generer()),
+    relaterteHendelse: HendelseId = HendelseId.generer(),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
     skalSendeBrev: Boolean = true,
 ): GenerertDokumentHendelse = GenerertDokumentHendelse(
@@ -49,7 +47,7 @@ fun lagretDokumentForUtsendelseHendelse(
     versjon = versjon,
     meta = metadata,
     sakId = sakId,
-    relaterteHendelser = relaterteHendelser,
+    relatertHendelse = relaterteHendelse,
     dokumentUtenFil = dokumentUtenFil,
     skalSendeBrev = skalSendeBrev,
 )

@@ -140,7 +140,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     }.sorted(),
                     dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
                         .filter { dokumentHendelse ->
-                            tilbakekrevingsHendelser.any { dokumentHendelse.relaterteHendelser.contains(it.hendelseId) }
+                            tilbakekrevingsHendelser.any { dokumentHendelse.relatertHendelse == it.hendelseId }
                         }.sorted(),
                 )
             }

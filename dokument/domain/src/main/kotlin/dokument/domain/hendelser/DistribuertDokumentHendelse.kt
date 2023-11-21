@@ -1,6 +1,6 @@
 package dokument.domain.hendelser
 
-import no.nav.su.se.bakover.common.journal.JournalpostId
+import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -8,20 +8,14 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
-/**
- * Hendelse som representerer at et dokument har blitt journalført (hos Joark) og skal muligens sendes ut til bruker avhengig av hva [skalSendeBrev] er satt til.
- *
- * @param skalSendeBrev vil være utledet av brevvalget under behandlingen og skal alltid samsvare med dette.
- */
-data class JournalførtDokumentHendelse(
+data class DistribuertDokumentHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
     override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
     override val relatertHendelse: HendelseId,
-    val journalpostId: JournalpostId,
-    val skalSendeBrev: Boolean,
+    val brevbestillingId: BrevbestillingId,
 ) : DokumentHendelse {
     override val entitetId: UUID = sakId
 
@@ -41,18 +35,16 @@ data class JournalførtDokumentHendelse(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relatertHendelse: HendelseId,
-            journalpostId: JournalpostId,
-            skalSendeBrev: Boolean,
-        ): JournalførtDokumentHendelse {
-            return JournalførtDokumentHendelse(
+            brevbestillingId: BrevbestillingId,
+        ): DistribuertDokumentHendelse {
+            return DistribuertDokumentHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,
                 sakId = sakId,
                 versjon = versjon,
                 relatertHendelse = relatertHendelse,
-                journalpostId = journalpostId,
-                skalSendeBrev = skalSendeBrev,
+                brevbestillingId = brevbestillingId,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "

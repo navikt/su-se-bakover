@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
@@ -161,7 +160,7 @@ class GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument(
             command = command,
             dokumentMedMetadataUtenFil = dokument.tilDokumentUtenFil(),
             nesteVersjon = nesteVersjon,
-            relaterteHendelser = nonEmptyListOf(avbruttHendelse.hendelseId),
+            relaterteHendelse = avbruttHendelse.hendelseId,
             clock = clock,
         )
 

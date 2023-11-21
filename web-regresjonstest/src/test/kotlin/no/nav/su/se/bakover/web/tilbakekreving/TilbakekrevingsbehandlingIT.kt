@@ -84,16 +84,21 @@ internal class TilbakekrevingsbehandlingIT {
                 sakId = sakId,
                 antallGenererteDokumenter = 1,
                 antallJournalførteDokumenter = 0,
+                antallDistribuerteDokumenter = 0,
             )
             appComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
             val versjonEtterJournalføringAvForhåndsvarsel =
-                appComponents.journalførDokmenter(versjonEtterGenereringAvForhåndsvarselsDokument)
+                appComponents.journalførDokumenter(versjonEtterGenereringAvForhåndsvarselsDokument)
             appComponents.verifiserJournalførDokumenterKonsument(1)
+
+            val versjonEtterDistribusjonAvForhåndsvarsel =
+                appComponents.distribuerDokumenter(versjonEtterJournalføringAvForhåndsvarsel)
+            appComponents.verifiserDistribuerteDokumenterKonsument(1)
 
             val (vurderinger, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterJournalføringAvForhåndsvarsel,
+                saksversjon = versjonEtterDistribusjonAvForhåndsvarsel,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
             ).let {
@@ -199,27 +204,16 @@ internal class TilbakekrevingsbehandlingIT {
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.opprettOppgave(versjonEtterLukking)
-            appComponents.oppdaterOppgave(versjonEtterLukking)
-            appComponents.lukkOppgave(versjonEtterLukking)
-            appComponents.genererDokumenterForForhåndsvarsel(versjonEtterLukking)
-            appComponents.journalførDokmenter(versjonEtterLukking)
-
-            appComponents.verifiserOpprettetOppgaveKonsument()
-            appComponents.verifiserOppdatertOppgaveKonsument(4)
-            appComponents.verifiserLukketOppgaveKonsument()
-            appComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
-            appComponents.verifiserJournalførDokumenterKonsument(1)
-
-            appComponents.verifiserOppgaveHendelser(
+            appComponents.runAllConsumers(versjonEtterLukking)
+            appComponents.runAllVerifiseringer(
                 sakId = sakId,
-                antallOppdaterteOppgaver = 4,
+                antallOpprettetOppgaver = 1,
+                antallOppdatertOppgaveHendelser = 4,
                 antallLukketOppgaver = 1,
-            )
-            appComponents.verifiserDokumentHendelser(
-                sakId = sakId,
-                antallGenererteDokumenter = 1,
+                antallGenererteForhåndsvarsler = 1,
+                antallGenererteAvbrytelser = 0,
                 antallJournalførteDokumenter = 1,
+                antallDistribuertDokumenter = 1,
             )
         }
     }
@@ -310,26 +304,22 @@ internal class TilbakekrevingsbehandlingIT {
             appComponents.verifiserLukketOppgaveKonsument()
             val versjonEtterGenerering = appComponents.genererDokumenterForAvbryt(versjonEtterLukking)
             appComponents.verifiserGenererDokumentForAvbrytelseKonsument()
-            val versjonEtterJournalføring = appComponents.journalførDokmenter(versjonEtterGenerering)
+            val versjonEtterJournalføring = appComponents.journalførDokumenter(versjonEtterGenerering)
             appComponents.verifiserJournalførDokumenterKonsument(1)
+            val versjonEtterDistribuering = appComponents.distribuerDokumenter(versjonEtterJournalføring)
+            appComponents.verifiserDistribuerteDokumenterKonsument(1)
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.runAllConsumers(versjonEtterJournalføring)
-            appComponents.verifiserOpprettetOppgaveKonsument()
-            appComponents.verifiserOppdatertOppgaveKonsument(0)
-            appComponents.verifiserLukketOppgaveKonsument()
-            appComponents.verifiserGenererDokumentForAvbrytelseKonsument()
-            appComponents.verifiserJournalførDokumenterKonsument(1)
-
-            appComponents.verifiserOppgaveHendelser(
+            appComponents.runAllConsumers(versjonEtterDistribuering)
+            appComponents.runAllVerifiseringer(
                 sakId = sakId,
-                antallOppdaterteOppgaver = 0,
+                antallOpprettetOppgaver = 1,
+                antallOppdatertOppgaveHendelser = 0,
                 antallLukketOppgaver = 1,
-            )
-            appComponents.verifiserDokumentHendelser(
-                sakId = sakId,
-                antallGenererteDokumenter = 1,
+                antallGenererteForhåndsvarsler = 0,
+                antallGenererteAvbrytelser = 1,
                 antallJournalførteDokumenter = 1,
+                antallDistribuertDokumenter = 1,
             )
         }
     }

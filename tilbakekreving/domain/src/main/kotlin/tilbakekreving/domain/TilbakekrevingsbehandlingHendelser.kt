@@ -76,7 +76,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         require(
             tilhørendeOgSorterteDokumentHendelser.all { dokumentHendelse ->
                 sorterteHendelser.any { opprettetHendelse ->
-                    dokumentHendelse.relaterteHendelser.contains(opprettetHendelse.hendelseId)
+                    dokumentHendelse.relatertHendelse == opprettetHendelse.hendelseId
                 }
             },
         ) { "DokumentHendelse må være relatert til minst 1 tilbakekrevingsbehandlingHendelse" }
@@ -171,7 +171,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     }
 
     fun hentDokumenterForHendelseId(hendelseId: HendelseId): List<DokumentHendelse> {
-        return tilhørendeOgSorterteDokumentHendelser.filter { it.relaterteHendelser.contains(hendelseId) }
+        return tilhørendeOgSorterteDokumentHendelser.filter { it.relatertHendelse == hendelseId }
     }
 
     fun hentSerieFor(behandlingsid: TilbakekrevingsbehandlingId): TilbakekrevingbehandlingsSerie =

@@ -3,7 +3,6 @@
 
 package tilbakekreving.domain
 
-import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.domain.Avbrutt
@@ -28,7 +27,7 @@ data class AvbruttTilbakekrevingsbehandling(
         command: AvbruttTilbakekrevingsbehandlingDokumentCommand,
         dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
         nesteVersjon: Hendelsesversjon,
-        relaterteHendelser: NonEmptyList<HendelseId>,
+        relaterteHendelse: HendelseId,
         clock: Clock,
     ): GenerertDokumentHendelse = GenerertDokumentHendelse(
         hendelseId = HendelseId.generer(),
@@ -36,7 +35,7 @@ data class AvbruttTilbakekrevingsbehandling(
         versjon = nesteVersjon,
         meta = command.toDefaultHendelsesMetadata(),
         sakId = command.sakId,
-        relaterteHendelser = relaterteHendelser,
+        relatertHendelse = relaterteHendelse,
         dokumentUtenFil = dokumentMedMetadataUtenFil,
         skalSendeBrev = true,
     )

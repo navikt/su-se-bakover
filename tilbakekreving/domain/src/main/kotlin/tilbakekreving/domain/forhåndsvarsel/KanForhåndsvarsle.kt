@@ -3,7 +3,6 @@
 
 package tilbakekreving.domain
 
-import arrow.core.NonEmptyList
 import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -28,7 +27,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
         command: SakshendelseCommand,
         dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
         nesteVersjon: Hendelsesversjon,
-        relaterteHendelser: NonEmptyList<HendelseId>,
+        relaterteHendelse: HendelseId,
         clock: Clock,
     ): GenerertDokumentHendelse {
         return GenerertDokumentHendelse(
@@ -37,7 +36,7 @@ sealed interface KanForhåndsvarsle : KanEndres {
             versjon = nesteVersjon,
             meta = command.toDefaultHendelsesMetadata(),
             sakId = command.sakId,
-            relaterteHendelser = relaterteHendelser,
+            relatertHendelse = relaterteHendelse,
             dokumentUtenFil = dokumentMedMetadataUtenFil,
             skalSendeBrev = true,
         )

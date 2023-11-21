@@ -143,6 +143,7 @@ fun Application.susebakover(
                 sakService = services.sak,
                 dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
                 dokArkiv = clients.dokArkiv,
+                dokDistFordeling = clients.dokDistFordeling,
             ),
         )
     },

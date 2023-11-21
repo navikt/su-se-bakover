@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.dokument.application
 
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -17,12 +19,21 @@ class DokumentServices(
     private val sakService: SakService,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val dokArkiv: DokArkiv,
+    private val dokDistFordeling: DokDistFordeling,
     val journalførtDokumentHendelserKonsument: JournalførDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
         sakService = sakService,
         personService = personService,
         dokArkiv = dokArkiv,
         dokumentHendelseRepo = dokumentHendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
+    ),
+    val distribuerDokumentHendelserKonsument: DistribuerDokumentHendelserKonsument = DistribuerDokumentHendelserKonsument(
+        sakService = sakService,
+        dokDistFordeling = dokDistFordeling,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        dokumentHendelseRepo = dokumentHendelseRepo,
         sessionFactory = sessionFactory,
         clock = clock,
     ),

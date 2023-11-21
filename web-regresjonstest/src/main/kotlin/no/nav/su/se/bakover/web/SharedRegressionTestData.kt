@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.dokument.application.DokumentServices
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
@@ -217,12 +218,21 @@ data object SharedRegressionTestData {
                             sakService = services.sak,
                             dokumentHendelseRepo = repos.dokumentHendelseRepo,
                             dokArkiv = clients.dokArkiv,
+                            dokDistFordeling = clients.dokDistFordeling,
                             journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
                                 sakService = services.sak,
                                 personService = services.person,
                                 dokArkiv = clients.dokArkiv,
                                 dokumentHendelseRepo = repos.dokumentHendelseRepo,
                                 hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                                sessionFactory = repos.sessionFactory,
+                                clock = clock,
+                            ),
+                            distribuerDokumentHendelserKonsument = DistribuerDokumentHendelserKonsument(
+                                sakService = services.sak,
+                                dokDistFordeling = clients.dokDistFordeling,
+                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
                                 sessionFactory = repos.sessionFactory,
                                 clock = clock,
                             ),

@@ -6,6 +6,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.application.DokumentServices
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
@@ -162,6 +163,7 @@ internal fun withKomptestApplication(
                 sakService = services.sak,
                 dokumentHendelseRepo = repos.dokumentHendelseRepo,
                 dokArkiv = clients.dokArkiv,
+                dokDistFordeling = clients.dokDistFordeling,
                 journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
                     sakService = services.sak,
                     personService = services.person,
@@ -171,8 +173,15 @@ internal fun withKomptestApplication(
                     sessionFactory = repos.sessionFactory,
                     clock = clock,
                 ),
+                distribuerDokumentHendelserKonsument = DistribuerDokumentHendelserKonsument(
+                    sakService = services.sak,
+                    dokDistFordeling = clients.dokDistFordeling,
+                    hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                    dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                    sessionFactory = repos.sessionFactory,
+                    clock = clock,
+                ),
             ),
-
         )
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,

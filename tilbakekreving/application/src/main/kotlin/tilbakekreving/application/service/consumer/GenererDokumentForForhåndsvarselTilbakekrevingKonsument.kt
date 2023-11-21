@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
@@ -146,7 +145,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             command = command,
             dokumentMedMetadataUtenFil = dokument.tilDokumentUtenFil(),
             nesteVersjon = nesteVersjon,
-            relaterteHendelser = nonEmptyListOf(forhåndsvarsleHendelse.hendelseId),
+            relaterteHendelse = forhåndsvarsleHendelse.hendelseId,
             clock = clock,
         )
 

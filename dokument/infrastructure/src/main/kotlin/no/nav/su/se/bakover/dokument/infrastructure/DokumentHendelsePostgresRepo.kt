@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
+import dokument.domain.hendelser.DistribuertDokument
+import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokument
@@ -10,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionCon
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.dokument.infrastructure.DistribuertDokumentHendelseDbJson.Companion.dataDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.GenerertDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -39,10 +42,16 @@ class DokumentHendelsePostgresRepo(
             type = when (hendelse) {
                 is GenerertDokumentHendelse -> GenerertDokument
                 is JournalførtDokumentHendelse -> JournalførtDokument
+                is DistribuertDokumentHendelse -> DistribuertDokument
             },
             data = when (hendelse) {
-                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relaterteHendelser.toNonEmptySet())
-                is GenerertDokumentHendelse -> hendelse.dokumentUtenFil.toDbJson(hendelse.relaterteHendelser, hendelse.skalSendeBrev)
+                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relatertHendelse)
+                is GenerertDokumentHendelse -> hendelse.dokumentUtenFil.toDbJson(
+                    hendelse.relatertHendelse,
+                    hendelse.skalSendeBrev,
+                )
+
+                is DistribuertDokumentHendelse -> hendelse.dataDbJson(hendelse.relatertHendelse)
             },
             sessionContext = sessionContext,
         )
@@ -60,6 +69,7 @@ class DokumentHendelsePostgresRepo(
             listOf(
                 GenerertDokument,
                 JournalførtDokument,
+                DistribuertDokument,
             ).flatMap {
                 repo.hentHendelserForSakIdOgType(
                     sakId = sakId,
@@ -119,6 +129,16 @@ private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
         )
 
         JournalførtDokument -> JournalførtDokumentHendelseDbJson.toDomain(
+            type = type,
+            data = data,
+            hendelseId = hendelseId,
+            sakId = sakId!!,
+            hendelsestidspunkt = hendelsestidspunkt,
+            versjon = versjon,
+            meta = this.defaultHendelseMetadata(),
+        )
+
+        DistribuertDokument -> DistribuertDokumentHendelseDbJson.toDomain(
             type = type,
             data = data,
             hendelseId = hendelseId,
