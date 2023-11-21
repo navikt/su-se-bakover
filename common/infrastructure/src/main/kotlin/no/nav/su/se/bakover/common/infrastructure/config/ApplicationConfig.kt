@@ -225,18 +225,18 @@ data class ApplicationConfig(
         }
     }
 
-    sealed class DatabaseConfig {
-        abstract val jdbcUrl: String
+    sealed interface DatabaseConfig {
+        val jdbcUrl: String
 
         data class RotatingCredentials(
             val databaseName: String,
             override val jdbcUrl: String,
             val vaultMountPath: String,
-        ) : DatabaseConfig()
+        ) : DatabaseConfig
 
         data class StaticCredentials(
             override val jdbcUrl: String,
-        ) : DatabaseConfig() {
+        ) : DatabaseConfig {
             val username = "user"
             val password = "pwd"
         }

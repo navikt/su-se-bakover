@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.beregning.Merknad
 
-internal sealed class PersistertMerknad {
+internal sealed interface PersistertMerknad {
 
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -30,12 +30,12 @@ internal sealed class PersistertMerknad {
             name = "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
     )
-    sealed class Beregning : PersistertMerknad() {
+    sealed interface Beregning : PersistertMerknad {
         /** Historisk verdi. Bevares for at deserialisering ikke skal feile. Forkastes. Skal ikke serialiseres. */
-        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
-        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
-        data object BeløpMellomNullOgToProsentAvHøySats : Beregning()
-        data object BeløpErNull : Beregning()
+        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning
+        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning
+        data object BeløpMellomNullOgToProsentAvHøySats : Beregning
+        data object BeløpErNull : Beregning
     }
 }
 
