@@ -10,8 +10,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned

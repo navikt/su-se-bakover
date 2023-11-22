@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedok
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pdf.PdfClient
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup

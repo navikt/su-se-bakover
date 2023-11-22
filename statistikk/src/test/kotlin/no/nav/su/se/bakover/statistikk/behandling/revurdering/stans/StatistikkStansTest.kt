@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.statistikk.behandling.revurdering.stans
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.sak.SakRepo

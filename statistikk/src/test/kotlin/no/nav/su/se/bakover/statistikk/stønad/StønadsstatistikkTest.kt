@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.statistikk.stønad
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit

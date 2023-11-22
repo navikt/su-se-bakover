@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.kafka
 
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer

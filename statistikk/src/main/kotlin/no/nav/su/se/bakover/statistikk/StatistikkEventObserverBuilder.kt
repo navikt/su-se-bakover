@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.statistikk
 
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import person.domain.PersonService

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.statistikk.behandling.revurdering.revurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

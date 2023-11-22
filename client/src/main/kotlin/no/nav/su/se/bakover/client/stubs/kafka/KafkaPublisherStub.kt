@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.stubs.kafka
 
-import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import org.slf4j.LoggerFactory
 
 data object KafkaPublisherStub : KafkaPublisher {
