@@ -336,9 +336,6 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
 
 fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
-    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
-        fritekst = "fritekst",
-    ),
     utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
@@ -356,6 +353,5 @@ fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     id = forrigeHendelse.id,
     tidligereHendelseId = forrigeHendelse.hendelseId,
     utførtAv = utførtAv,
-    brevvalg = brevvalg,
     begrunnelse = "Avbrutt av TilbakekrevingTestData.kt",
 )

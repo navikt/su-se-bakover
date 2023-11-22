@@ -22,8 +22,7 @@ internal fun AppComponents.runAllConsumers(saksversjon: Long): Long {
 
     // --- dokumenter ---
     val forhåndsvarsel = this.genererDokumenterForForhåndsvarsel(lukk)
-    val avbryt = this.genererDokumenterForAvbryt(forhåndsvarsel)
-    val journalført = this.journalførDokumenter(avbryt)
+    val journalført = this.journalførDokumenter(forhåndsvarsel)
     return this.distribuerDokumenter(journalført)
 }
 
@@ -33,7 +32,6 @@ internal fun AppComponents.runAllVerifiseringer(
     antallOppdatertOppgaveHendelser: Int,
     antallLukketOppgaver: Int,
     antallGenererteForhåndsvarsler: Int,
-    antallGenererteAvbrytelser: Int,
     antallJournalførteDokumenter: Int,
     antallDistribuertDokumenter: Int,
 ) {
@@ -47,12 +45,11 @@ internal fun AppComponents.runAllVerifiseringer(
     )
 
     this.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenererteForhåndsvarsler)
-    this.verifiserGenererDokumentForAvbrytelseKonsument(antallGenererteAvbrytelser)
     this.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter)
     this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter)
     this.verifiserDokumentHendelser(
         sakId = sakId,
-        antallGenererteDokumenter = antallGenererteAvbrytelser + antallGenererteForhåndsvarsler,
+        antallGenererteDokumenter = antallGenererteForhåndsvarsler,
         antallJournalførteDokumenter = antallJournalførteDokumenter,
         antallDistribuerteDokumenter = antallDistribuertDokumenter,
     )
@@ -81,13 +78,6 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
 
 internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
-        correlationId = CorrelationId.generate(),
-    )
-    return saksversjon + 1
-}
-
-internal fun AppComponents.genererDokumenterForAvbryt(saksversjon: Long): Long {
-    this.tilbakekrevingskomponenter.services.genererDokumentForAvbruttTilbakekrevingsbehandlingKonsument.genererDokumenter(
         correlationId = CorrelationId.generate(),
     )
     return saksversjon + 1
@@ -201,18 +191,6 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(a
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
-            """.trimIndent().hentListe(emptyMap(), it) {
-                it.string("hendelseId")
-            }.size shouldBe antallGenerert
-        }
-    }
-}
-
-internal fun AppComponents.verifiserGenererDokumentForAvbrytelseKonsument(antallGenerert: Int = 1) {
-    this.databaseRepos.hendelsekonsumenterRepo.let {
-        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
-            """
-                select * from hendelse_konsument where konsumentId = 'GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.size shouldBe antallGenerert

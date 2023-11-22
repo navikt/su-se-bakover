@@ -3,7 +3,6 @@
 
 package tilbakekreving.domain
 
-import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -22,7 +21,6 @@ data class AvbruttHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val brevvalg: Brevvalg.SaksbehandlersValg,
     val begrunnelse: String,
 ) : TilbakekrevingsbehandlingHendelse {
 
@@ -41,7 +39,6 @@ data class AvbruttHendelse(
             clock: Clock,
             id: TilbakekrevingsbehandlingId,
             utførtAv: NavIdentBruker.Saksbehandler,
-            brevvalg: Brevvalg.SaksbehandlersValg,
             begrunnelse: String,
         ) = AvbruttHendelse(
             hendelseId = HendelseId.generer(),
@@ -52,7 +49,6 @@ data class AvbruttHendelse(
             id = id,
             tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
-            brevvalg = brevvalg,
             begrunnelse = begrunnelse,
         )
     }
@@ -80,7 +76,6 @@ fun KanEndres.avbryt(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Saksbehandler,
-    brevvalg: Brevvalg.SaksbehandlersValg,
     begrunnelse: String,
 ): Pair<AvbruttHendelse, AvbruttTilbakekrevingsbehandling> {
     return AvbruttHendelse.create(
@@ -91,7 +86,6 @@ fun KanEndres.avbryt(
         clock = clock,
         id = this.id,
         utførtAv = utførtAv,
-        brevvalg = brevvalg,
         begrunnelse = begrunnelse,
     ).let { it to it.applyToState(this) }
 }

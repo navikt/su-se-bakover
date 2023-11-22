@@ -147,7 +147,6 @@ internal fun Application.setupKtorRoutes(
                         underkjennTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.underkjennTilbakekrevingsbehandlingService,
                         iverksettTilbakekrevingService = tilbakekrevingskomponenter.services.iverksettTilbakekrevingService,
                         avbrytTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.avbrytTilbakekrevingsbehandlingService,
-                        forhåndsvisAvbruttTilbakekrevingsbehandlingBrevService = tilbakekrevingskomponenter.services.forhåndsvisAvbruttTilbakekrevingsbehandlingBrevService,
                         oppdaterKravgrunnlagService = tilbakekrevingskomponenter.services.oppdaterKravgrunnlagService,
                     )
                 }

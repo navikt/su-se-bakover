@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.consumer.GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
@@ -24,7 +23,6 @@ class Tilbakekrevingsjobber(
     private val lukkOppgaveKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument,
     private val oppdaterOppgaveKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument,
     private val genererDokumenterForForhåndsvarselKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument,
-    private val genererDokumentForAvbruttTilbakekrevingsbehandlingKonsument: GenererDokumentForAvbruttTilbakekrevingsbehandlingKonsument,
     private val initialDelay: Duration,
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,
@@ -51,7 +49,6 @@ class Tilbakekrevingsjobber(
                         genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
                         lukkOppgaveKonsument.lukkOppgaver(correlationId)
                         oppdaterOppgaveKonsument.oppdaterOppgaver(correlationId)
-                        genererDokumentForAvbruttTilbakekrevingsbehandlingKonsument.genererDokumenter(correlationId)
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

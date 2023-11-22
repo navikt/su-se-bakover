@@ -97,7 +97,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:44.456789Z"
+  "avsluttetTidspunkt": "2021-02-01T01:04:41.456789Z"
 }"""
     JSONAssert.assertEquals(
         expected,

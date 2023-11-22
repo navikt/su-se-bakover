@@ -47,7 +47,6 @@ class AvbrytTilbakekrevingsbehandlingService(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
-            brevvalg = command.brevvalg,
             begrunnelse = command.begrunnelse,
         ).let {
             tilbakekrevingsbehandlingRepo.lagre(it.first)

@@ -1,9 +1,7 @@
 package tilbakekreving.presentation.api.avslutt
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
-import dokument.domain.brev.Brevvalg
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -16,7 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -35,8 +32,6 @@ import java.util.UUID
 private data class Body(
     val versjon: Long,
     val begrunnelse: String,
-    val skalSendeBrev: String,
-    val fritekst: String?,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -52,24 +47,6 @@ private data class Body(
             correlationId = correlationId,
             brukerroller = brukerroller.toNonEmptyList(),
             klientensSisteSaksversjon = Hendelsesversjon(versjon),
-            brevvalg = when (skalSendeBrev) {
-                "SKAL_SENDE_BREV_MED_FRITEKST" -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
-                    fritekst = if (fritekst.isNullOrBlank()) {
-                        return HttpStatusCode.BadRequest.errorJson(
-                            "Fritekst må suppleres dersom det skal sendes brev",
-                            "mangler_fritekst",
-                        ).left()
-                    } else {
-                        fritekst
-                    },
-                )
-
-                "SKAL_IKKE_SENDE_BREV" -> Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(begrunnelse)
-                else -> return HttpStatusCode.BadRequest.errorJson(
-                    "Ukjent brevvalg - Kan kun velge om brev skal sendes ut med fritekst, eller ikke.",
-                    "ukjent_brevvalg",
-                ).left()
-            },
             begrunnelse = begrunnelse,
         ).right()
     }
@@ -81,22 +58,21 @@ internal fun Route.avbrytTilbakekrevingsbehandlingRoute(
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/avbryt") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                call.withTilbakekrevingId { id ->
+                call.withTilbakekrevingId { behandlingsId ->
                     call.withBody<Body> { body ->
-                        body.toCommand(
-                            sakId = sakId,
-                            behandlingsId = id,
-                            utførtAv = call.suUserContext.saksbehandler,
-                            correlationId = call.correlationId,
-                            brukerroller = call.suUserContext.roller,
+                        service.avbryt(
+                            AvbrytTilbakekrevingsbehandlingCommand(
+                                sakId = sakId,
+                                behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
+                                utførtAv = call.suUserContext.saksbehandler,
+                                correlationId = call.correlationId,
+                                brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                                klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
+                                begrunnelse = body.begrunnelse,
+                            ),
                         ).fold(
-                            { call.svar(it) },
-                            {
-                                service.avbryt(it).fold(
-                                    { call.svar(it.tilResultat()) },
-                                    { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                                )
-                            },
+                            { call.svar(it.tilResultat()) },
+                            { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
                         )
                     }
                 }

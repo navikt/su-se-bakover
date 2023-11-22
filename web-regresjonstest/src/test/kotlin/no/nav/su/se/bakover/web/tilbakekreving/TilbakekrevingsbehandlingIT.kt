@@ -211,7 +211,6 @@ internal class TilbakekrevingsbehandlingIT {
                 antallOppdatertOppgaveHendelser = 4,
                 antallLukketOppgaver = 1,
                 antallGenererteForhåndsvarsler = 1,
-                antallGenererteAvbrytelser = 0,
                 antallJournalførteDokumenter = 1,
                 antallDistribuertDokumenter = 1,
             )
@@ -286,13 +285,6 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
             )
 
-            forhåndsvisAvbrytTilbakekreving(
-                sakId = sakId,
-                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                client = this.client,
-                saksversjon = versjonEtterOppdateringAvKravgrunnlag,
-            )
-
             val (_, versjonEtterAvbrytelse) = avbrytTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
@@ -302,24 +294,17 @@ internal class TilbakekrevingsbehandlingIT {
 
             val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterAvbrytelse)
             appComponents.verifiserLukketOppgaveKonsument()
-            val versjonEtterGenerering = appComponents.genererDokumenterForAvbryt(versjonEtterLukking)
-            appComponents.verifiserGenererDokumentForAvbrytelseKonsument()
-            val versjonEtterJournalføring = appComponents.journalførDokumenter(versjonEtterGenerering)
-            appComponents.verifiserJournalførDokumenterKonsument(1)
-            val versjonEtterDistribuering = appComponents.distribuerDokumenter(versjonEtterJournalføring)
-            appComponents.verifiserDistribuerteDokumenterKonsument(1)
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.runAllConsumers(versjonEtterDistribuering)
+            appComponents.runAllConsumers(versjonEtterLukking)
             appComponents.runAllVerifiseringer(
                 sakId = sakId,
                 antallOpprettetOppgaver = 1,
                 antallOppdatertOppgaveHendelser = 0,
                 antallLukketOppgaver = 1,
                 antallGenererteForhåndsvarsler = 0,
-                antallGenererteAvbrytelser = 1,
-                antallJournalførteDokumenter = 1,
-                antallDistribuertDokumenter = 1,
+                antallJournalførteDokumenter = 0,
+                antallDistribuertDokumenter = 0,
             )
         }
     }
