@@ -14,7 +14,7 @@ import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
 import tilbakekreving.domain.vurdert.VurderCommand
 import java.time.Clock
 
-fun Sak.oppdaterVedtaksbrev(
+fun Sak.vurderTilbakekrevingsbehandling(
     command: VurderCommand,
     clock: Clock,
 ): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
