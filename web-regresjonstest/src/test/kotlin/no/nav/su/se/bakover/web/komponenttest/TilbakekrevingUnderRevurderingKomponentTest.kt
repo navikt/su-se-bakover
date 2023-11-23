@@ -250,18 +250,26 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 tilOgMedRevurdering = tilOgMedRevurdering.toString(),
             )
 
-            val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakInnvilgetRevurdering
+            val vedtak =
+                appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakInnvilgetRevurdering
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            val eksternVedtakId = appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(UUID.fromString(sakid)).let {
-                it.size shouldBe 1
-                it[0].eksternVedtakId
-            }
+            val eksternVedtakId =
+                appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
+                    UUID.fromString(sakid),
+                ).let {
+                    it.size shouldBe 1
+                    it[0].eksternVedtakId
+                }
             appComponents.emulerViMottarKravgrunnlagstatusendring(
                 saksnummer = vedtak.behandling.saksnummer.toString(),
                 fnr = vedtak.behandling.fnr.toString(),
                 eksternVedtakId = eksternVedtakId,
             )
-            appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(UUID.fromString(sakid)).let {
+            appComponents.tilbakekrevingskomponenter.repos.kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
+                UUID.fromString(
+                    sakid,
+                ),
+            ).let {
                 it.size shouldBe 2
             }
 
@@ -511,11 +519,12 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             ).let {
                 it.copy(
-                    grunnlagsmåneder = it.grunnlagsmåneder.map {
+                    grunnlagsperioder = it.grunnlagsperioder.map {
                         it.copy(
-                            ytelse = it.ytelse.copy(
-                                beløpSkalTilbakekreves = 99,
-                            ),
+                            bruttoFeilutbetaling = 100,
+                            bruttoTidligereUtbetalt = 300,
+                            bruttoNyUtbetaling = 200,
+                            betaltSkattForYtelsesgruppen = 400,
                         )
                     },
                 )
@@ -535,7 +544,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             ).let {
                 it.shouldBeLeft()
                 it.value.size shouldBe 1
-                it.value[0].message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=99))])"
+                it.value[0].message shouldBe "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:$revurderingId. Simulering: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=18308))]), Kravgrunnlag: Månedsbeløp(månedbeløp=[MånedBeløp(periode=2021-01, beløp=Beløp(value=100))])"
                 it.value[0].shouldBeTypeOf<IllegalStateException>()
             }
 
@@ -578,11 +587,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             ).let {
                 it.copy(
-                    grunnlagsmåneder = it.grunnlagsmåneder.map {
-                        it.copy(
-                            måned = desember(2021),
-                        )
-                    },
+                    grunnlagsperioder = it.grunnlagsperioder.map { it.copy(periode = desember(2021)) },
                 )
             }
             appComponents.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(

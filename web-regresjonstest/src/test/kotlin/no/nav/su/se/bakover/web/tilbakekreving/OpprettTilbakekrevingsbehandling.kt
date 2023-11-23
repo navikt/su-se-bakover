@@ -80,25 +80,20 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "beløpSkattMnd":"6192",
-          "ytelse": {
-            "beløpTidligereUtbetaling":"20946",
-            "beløpNyUtbetaling":"8563",
-            "beløpSkalTilbakekreves":"12383",
-            "beløpSkalIkkeTilbakekreves":"0",
-            "skatteProsent":"50",
-            "nettoBeløp": "6191"
-          },
+        "betaltSkattForYtelsesgruppen":"6192",
+        "bruttoTidligereUtbetalt":"20946",
+        "bruttoNyUtbetaling":"8563",
+        "bruttoFeilutbetaling":"12383",
+        "skatteProsent":"50"
       }
     ],
-    "summertGrunnlagsmåneder":{
-        "betaltSkattForYtelsesgruppen":"6192",
-        "beløpTidligereUtbetaling":"20946",
-        "beløpNyUtbetaling":"8563",
-        "beløpSkalTilbakekreves":"12383",
-        "beløpSkalIkkeTilbakekreves":"0",
-        "nettoBeløp": "6191"
-    } 
+    "summertBetaltSkattForYtelsesgruppen": "6192",
+    "summertBruttoTidligereUtbetalt": 20946,
+    "summertBruttoNyUtbetaling": 8563,
+    "summertBruttoFeilutbetaling": 12383,
+    "summertNettoFeilutbetaling": 6191,
+    "summertSkattFeilutbetaling": 6192,
+    "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"OPPRETTET",
   "månedsvurderinger":[],
@@ -115,9 +110,8 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
         actual,
         CustomComparator(
             JSONCompareMode.STRICT,
-            Customization(
-                "id",
-            ) { _, _ -> true },
+            Customization("id") { _, _ -> true },
+            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
         ),
     )
     JSONObject(actual).has("id") shouldBe true

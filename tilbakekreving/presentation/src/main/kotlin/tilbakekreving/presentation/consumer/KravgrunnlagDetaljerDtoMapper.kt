@@ -73,54 +73,52 @@ internal fun KravgrunnlagRootDto.toDomain(
                 eksternKontrollfelt = kravgrunnlagDto.kontrollfelt,
                 behandler = kravgrunnlagDto.saksbehId,
                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
-                grunnlagsmåneder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
+                grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
                     require(tilbakekrevingsperiode.tilbakekrevingsbeløp.size == 2) {
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = Måned.fra(
+
+                    val tilbakekrevingsbeløpForYtelse =
+                        tilbakekrevingsperiode.tilbakekrevingsbeløp.single { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
+                    val tilbakekrevingsbeløpForFeilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp
+                        .single { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
+                    val bruttoFeilutbetaling =
+                        BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
+
+                    // --- tilbakekrevingsbeløpForYtelse ---
+                    require(BigDecimal(tilbakekrevingsbeløpForYtelse.belopUinnkrevd).compareTo(BigDecimal.ZERO) == 0) {
+                        "Forventer at kravgrunnlaget sitt belopUinnkrevd alltid er 0, men var ${tilbakekrevingsbeløpForYtelse.belopUinnkrevd}"
+                    }
+                    // --- tilbakekrevingsbeløpForFeilutbetaling ---
+                    require(BigDecimal(tilbakekrevingsbeløpForFeilutbetaling.skattProsent).compareTo(BigDecimal.ZERO) == 0) {
+                        "Forventer at skatteprosenten alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløpForFeilutbetaling.skattProsent}"
+                    }
+                    require(BigDecimal(tilbakekrevingsbeløpForFeilutbetaling.belopOpprUtbet).compareTo(BigDecimal.ZERO) == 0) {
+                        "Forventer at belopOpprUtbet alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløpForFeilutbetaling.belopOpprUtbet}"
+                    }
+                    require(BigDecimal(tilbakekrevingsbeløpForFeilutbetaling.belopTilbakekreves).compareTo(BigDecimal.ZERO) == 0) {
+                        "Forventer at belopOpprUtbet alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløpForFeilutbetaling.belopTilbakekreves}"
+                    }
+                    require(BigDecimal(tilbakekrevingsbeløpForFeilutbetaling.belopUinnkrevd).compareTo(BigDecimal.ZERO) == 0) {
+                        "Forventer at belopOpprUtbet alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløpForFeilutbetaling.belopUinnkrevd}"
+                    }
+                    require(BigDecimal(tilbakekrevingsbeløpForFeilutbetaling.belopNy).intValueExact() == bruttoFeilutbetaling) {
+                        "Forventer at belopNy(${tilbakekrevingsbeløpForFeilutbetaling.belopNy}) i feilutbetalingsdelen alltid er lik bruttoFeilutbetaling($bruttoFeilutbetaling) i ytelsesdelen i kravgrunnlag fra oppdrag."
+                    }
+
+                    Kravgrunnlag.Grunnlagsperiode(
+                        periode = Måned.fra(
                             LocalDate.parse(tilbakekrevingsperiode.periode.fraOgMed),
                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                         ),
-                        betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
-                        ytelse = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
-                            .let {
-                                // Vi forventer kun en ytelse per måned
-                                val tilbakekrevingsbeløp = it.single()
-                                Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                                    beløpTidligereUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopOpprUtbet).intValueExact(),
-                                    beløpNyUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopNy).intValueExact(),
-                                    beløpSkalTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopTilbakekreves).intValueExact(),
-                                    beløpSkalIkkeTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopUinnkrevd).intValueExact(),
-                                    skatteProsent = BigDecimal(tilbakekrevingsbeløp.skattProsent),
-                                )
-                            },
-                        feilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp.filter { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
-                            .let {
-                                // Vi forventer kun en feilutbetaling per måned
-                                val tilbakekrevingsbeløp = it.single()
-                                require(
-                                    BigDecimal(tilbakekrevingsbeløp.skattProsent).compareTo(
-                                        BigDecimal.ZERO,
-                                    ) == 0,
-                                ) {
-                                    "Forventer at skatteprosenten alltid er 0 for FEIL i kravgrunnlag fra oppdrag, men var ${tilbakekrevingsbeløp.skattProsent}"
-                                }
-                                Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                                    beløpTidligereUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopOpprUtbet).intValueExact(),
-                                    beløpNyUtbetaling = BigDecimal(tilbakekrevingsbeløp.belopNy).intValueExact(),
-                                    beløpSkalTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopTilbakekreves).intValueExact(),
-                                    beløpSkalIkkeTilbakekreves = BigDecimal(tilbakekrevingsbeløp.belopUinnkrevd).intValueExact(),
-                                )
-                            },
+                        betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned).intValueExact(),
+                        bruttoTidligereUtbetalt = BigDecimal(tilbakekrevingsbeløpForYtelse.belopOpprUtbet).intValueExact(),
+                        bruttoNyUtbetaling = BigDecimal(tilbakekrevingsbeløpForYtelse.belopNy).intValueExact(),
+                        bruttoFeilutbetaling = bruttoFeilutbetaling,
+                        skatteProsent = BigDecimal(tilbakekrevingsbeløpForYtelse.skattProsent),
                     )
                 },
-                eksternTidspunkt = Tidspunkt(
-                    kontrollfeltFormatter.parse(
-                        kravgrunnlagDto.kontrollfelt,
-                        Instant::from,
-                    ),
-                ),
+                eksternTidspunkt = Tidspunkt(kontrollfeltFormatter.parse(kravgrunnlagDto.kontrollfelt, Instant::from)),
                 hendelseId = hendelseId,
             )
         }

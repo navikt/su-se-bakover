@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
-import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsmånedDb
-import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsmånedDb.Companion.toDbJson
+import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsperiodeDbJson
+import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsperiodeDbJson.Companion.toDbJson
 
 /**
  * Databasejsontype for [tilbakekreving.domain.kravgrunnlag.Kravgrunnlag]
@@ -23,7 +23,7 @@ internal data class KravgrunnlagDbJson(
     val behandler: String,
     val utbetalingId: String,
     val saksnummer: String,
-    val grunnlagsmåneder: List<GrunnlagsmånedDb>,
+    val grunnlagsperioder: List<GrunnlagsperiodeDbJson>,
     val eksternTidspunkt: Tidspunkt,
     val hendelseId: String,
 ) {
@@ -35,7 +35,7 @@ internal data class KravgrunnlagDbJson(
             status = this.status.toKravgrunnlagStatus(),
             behandler = this.behandler,
             utbetalingId = UUID30.fromString(this.utbetalingId),
-            grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDomain() },
+            grunnlagsperioder = this.grunnlagsperioder.map { it.toDomain() },
             saksnummer = Saksnummer.parse(this.saksnummer),
             eksternTidspunkt = eksternTidspunkt,
             hendelseId = HendelseId.fromString(hendelseId),
@@ -52,7 +52,7 @@ internal data class KravgrunnlagDbJson(
                 behandler = this.behandler,
                 utbetalingId = this.utbetalingId.value,
                 saksnummer = this.saksnummer.toString(),
-                grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDbJson() },
+                grunnlagsperioder = this.grunnlagsperioder.map { it.toDbJson() },
                 eksternTidspunkt = eksternTidspunkt,
                 hendelseId = this.hendelseId.toString(),
             )

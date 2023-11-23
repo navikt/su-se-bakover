@@ -7,6 +7,7 @@ import arrow.core.Tuple6
 import arrow.core.Tuple8
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.shouldBe
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
@@ -644,9 +645,7 @@ class TestDataHelper(
             } ?: Pair(null, null)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                 sak.uteståendeKravgrunnlag?.also {
-                    require(sak.uteståendeKravgrunnlag == persistertSak!!.uteståendeKravgrunnlag) {
-                        "Forventet at kravgrunnlaget skulle være det samme som det som ble sendt inn."
-                    }
+                    sak.uteståendeKravgrunnlag shouldBe persistertSak!!.uteståendeKravgrunnlag
                 }
                 Tuple6(
                     first = persistertSak!!,

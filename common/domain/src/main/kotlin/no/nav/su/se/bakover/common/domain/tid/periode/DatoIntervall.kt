@@ -112,6 +112,10 @@ open class DatoIntervall(
         }
     }
 
+    override fun equals(other: Any?) = other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
+
+    override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
+
     data object DatoIntervallKanIkkeSlåsSammen
 }
 

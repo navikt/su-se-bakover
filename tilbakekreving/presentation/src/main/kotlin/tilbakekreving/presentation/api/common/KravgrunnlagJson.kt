@@ -5,25 +5,25 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder
-import tilbakekreving.domain.kravgrunnlag.SummertGrunnlagsmåneder.Companion.netto
-import tilbakekreving.domain.kravgrunnlag.total
-import tilbakekreving.presentation.api.common.GrunnlagsbeløpYtelseJson.Companion.toJson
 import tilbakekreving.presentation.api.common.GrunnlagsperiodeJson.Companion.toJson
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson.Companion.toJson
-import tilbakekreving.presentation.api.common.SummertGrunnlagsmånederJson.Companion.toJson
-import java.math.BigDecimal
 
 /**
  * Kontrakten mot su-se-framover
  */
 data class KravgrunnlagJson(
+    val hendelseId: String,
     val eksternKravgrunnlagsId: String,
     val eksternVedtakId: String,
     val kontrollfelt: String,
     val status: KravgrunnlagStatusJson,
     val grunnlagsperiode: List<GrunnlagsperiodeJson>,
-    val summertGrunnlagsmåneder: SummertGrunnlagsmånederJson,
+    val summertBetaltSkattForYtelsesgruppen: String,
+    val summertBruttoTidligereUtbetalt: Int,
+    val summertBruttoNyUtbetaling: Int,
+    val summertBruttoFeilutbetaling: Int,
+    val summertNettoFeilutbetaling: Int,
+    val summertSkattFeilutbetaling: Int,
 ) {
 
     companion object {
@@ -32,8 +32,14 @@ data class KravgrunnlagJson(
             eksternVedtakId = this.eksternVedtakId,
             kontrollfelt = this.eksternKontrollfelt,
             status = this.status.toJson(),
-            grunnlagsperiode = this.grunnlagsmåneder.toJson(),
-            summertGrunnlagsmåneder = this.grunnlagsmåneder.total().toJson(),
+            grunnlagsperiode = this.grunnlagsperioder.toJson(),
+            hendelseId = this.hendelseId.toString(),
+            summertBetaltSkattForYtelsesgruppen = this.summertBetaltSkattForYtelsesgruppen.toString(),
+            summertBruttoTidligereUtbetalt = this.summertBruttoTidligereUtbetalt,
+            summertBruttoNyUtbetaling = this.summertBruttoNyUtbetaling,
+            summertBruttoFeilutbetaling = this.summertBruttoFeilutbetaling,
+            summertNettoFeilutbetaling = this.summertNettoFeilutbetaling,
+            summertSkattFeilutbetaling = this.summertSkattFeilutbetaling,
         )
 
         fun Kravgrunnlag.toStringifiedJson(): String = serialize(this.toJson())
@@ -41,59 +47,24 @@ data class KravgrunnlagJson(
 }
 
 data class GrunnlagsperiodeJson(
-    // TODO bytt till et uuuu-MM format (f.eks. toString() av YearMonth)
     val periode: PeriodeJson,
-    val beløpSkattMnd: String,
-    val ytelse: GrunnlagsbeløpYtelseJson,
+    val betaltSkattForYtelsesgruppen: String,
+    val bruttoTidligereUtbetalt: String,
+    val bruttoNyUtbetaling: String,
+    val bruttoFeilutbetaling: String,
+    val skatteProsent: String,
 ) {
     companion object {
-        fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
+        fun List<Kravgrunnlag.Grunnlagsperiode>.toJson(): List<GrunnlagsperiodeJson> = this.map {
             GrunnlagsperiodeJson(
-                periode = it.måned.toJson(),
-                beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
-                ytelse = it.ytelse.toJson(it.betaltSkattForYtelsesgruppen),
+                periode = it.periode.toJson(),
+                betaltSkattForYtelsesgruppen = it.betaltSkattForYtelsesgruppen.toString(),
+                bruttoTidligereUtbetalt = it.bruttoTidligereUtbetalt.toString(),
+                bruttoNyUtbetaling = it.bruttoNyUtbetaling.toString(),
+                bruttoFeilutbetaling = it.bruttoFeilutbetaling.toString(),
+                skatteProsent = it.skatteProsent.toString(),
             )
         }
-    }
-}
-
-data class GrunnlagsbeløpYtelseJson(
-    val beløpTidligereUtbetaling: String,
-    val beløpNyUtbetaling: String,
-    val beløpSkalTilbakekreves: String,
-    val beløpSkalIkkeTilbakekreves: String,
-    val skatteProsent: String,
-    val nettoBeløp: String,
-) {
-    companion object {
-        fun Kravgrunnlag.Grunnlagsmåned.Ytelse.toJson(betaltSkattForYtelsesgruppen: BigDecimal): GrunnlagsbeløpYtelseJson = GrunnlagsbeløpYtelseJson(
-            beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
-            beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
-            beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
-            beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
-            skatteProsent = this.skatteProsent.toString(),
-            nettoBeløp = this.netto(betaltSkattForYtelsesgruppen).sum().toString(),
-        )
-    }
-}
-
-data class SummertGrunnlagsmånederJson(
-    val betaltSkattForYtelsesgruppen: String,
-    val beløpTidligereUtbetaling: String,
-    val beløpNyUtbetaling: String,
-    val beløpSkalTilbakekreves: String,
-    val beløpSkalIkkeTilbakekreves: String,
-    val nettoBeløp: String,
-) {
-    companion object {
-        fun SummertGrunnlagsmåneder.toJson(): SummertGrunnlagsmånederJson = SummertGrunnlagsmånederJson(
-            betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen.toString(),
-            beløpTidligereUtbetaling = this.beløpTidligereUtbetaling.toString(),
-            beløpNyUtbetaling = this.beløpNyUtbetaling.toString(),
-            beløpSkalTilbakekreves = this.beløpSkalTilbakekreves.toString(),
-            beløpSkalIkkeTilbakekreves = this.beløpSkalIkkeTilbakekreves.toString(),
-            nettoBeløp = this.nettoBeløp.sum().toString(),
-        )
     }
 }
 

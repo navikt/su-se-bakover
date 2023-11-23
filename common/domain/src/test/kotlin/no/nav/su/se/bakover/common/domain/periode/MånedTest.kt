@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.november
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
@@ -118,7 +119,7 @@ internal class MånedTest {
                     fraOgMed = 2.januar(2021),
                     tilOgMed = 31.januar(2021),
                 )
-            }.message shouldBe "fraOgMed: 2021-01-02 må være den 1. i måneden for å mappes til en måned."
+            }.message shouldBe "FraOgMedDatoMåVæreFørsteDagIMåneden"
         }
 
         @Test
@@ -128,7 +129,7 @@ internal class MånedTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 1.januar(2021),
                 )
-            }.message shouldBe "tilOgMed: 2021-01-01 må være den siste i måneden for å mappes til en måned."
+            }.message shouldBe "TilOgMedDatoMåVæreSisteDagIMåneden"
         }
 
         @Test
@@ -205,5 +206,43 @@ internal class MånedTest {
         Periode.create(1.januar(2022), 31.januar(2022)).måneder().single() shouldBeSameInstanceAs januar(2022)
         Måned.fra(YearMonth.of(2022, Month.JANUARY)) shouldBeSameInstanceAs januar(2022)
         Måned.fra(1.januar(2022), 31.januar(2022)) shouldBeSameInstanceAs Måned.fra(YearMonth.of(2022, Month.JANUARY))
+    }
+
+    @Test
+    fun `datoIntervall equals måned`() {
+        januar(2021) shouldBe DatoIntervall(1.januar(2021), 31.januar(2021))
+        DatoIntervall(1.januar(2021), 31.januar(2021)) shouldBe januar(2021)
+    }
+
+    @Test
+    fun `datoIntervall compareTo måned`() {
+        DatoIntervall(1.januar(2021), 31.januar(2021)).compareTo(januar(2021)) shouldBe 0
+        januar(2021).compareTo(DatoIntervall(1.januar(2021), 31.januar(2021))) shouldBe 0
+    }
+
+    @Test
+    fun `datoIntervall skal ha samme hash som måned`() {
+        januar(2021).hashCode() shouldBe DatoIntervall(1.januar(2021), 31.januar(2021)).hashCode()
+        DatoIntervall(1.januar(2021), 31.januar(2021)).hashCode() shouldBe januar(2021).hashCode()
+    }
+
+    @Test
+    fun `periode skal være lik måned`() {
+        januar(2021) shouldBe Periode.create(1.januar(2021), 31.januar(2021))
+        Periode.create(1.januar(2021), 31.januar(2021)) shouldBe januar(2021)
+        Periode.create(1.januar(2021), 31.januar(2021)).compareTo(januar(2021)) shouldBe 0
+        januar(2021).compareTo(Periode.create(1.januar(2021), 31.januar(2021))) shouldBe 0
+    }
+
+    @Test
+    fun `periode skal ha samme hash som datoIntervall`() {
+        januar(2021).hashCode() shouldBe Periode.create(1.januar(2021), 31.januar(2021)).hashCode()
+        Periode.create(1.januar(2021), 31.januar(2021)).hashCode() shouldBe januar(2021).hashCode()
+    }
+
+    @Test
+    fun `periode hash skal være lik datoIntervall ved compareTo`() {
+        Periode.create(1.januar(2021), 31.januar(2021)).hashCode().compareTo(januar(2021).hashCode()) shouldBe 0
+        januar(2021).hashCode().compareTo(Periode.create(1.januar(2021), 31.januar(2021)).hashCode()) shouldBe 0
     }
 }

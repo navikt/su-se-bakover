@@ -141,30 +141,30 @@ fun lagKravgrunnlagDetaljerXml(
                 kontrollfelt = kravgrunnlag.eksternKontrollfelt,
                 saksbehId = kravgrunnlag.behandler,
                 utbetalingId = kravgrunnlag.utbetalingId.toString(),
-                tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
+                tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
                     KravgrunnlagDto.Tilbakekrevingsperiode(
                         periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
-                            fraOgMed = it.måned.fraOgMed.toString(),
-                            tilOgMed = it.måned.tilOgMed.toString(),
+                            fraOgMed = it.periode.fraOgMed.toString(),
+                            tilOgMed = it.periode.tilOgMed.toString(),
                         ),
                         skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
                         tilbakekrevingsbeløp = listOf(
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                 kodeKlasse = "SUUFORE",
                                 typeKlasse = "YTEL",
-                                belopOpprUtbet = it.ytelse.beløpTidligereUtbetaling.toString(),
-                                belopNy = it.ytelse.beløpNyUtbetaling.toString(),
-                                belopTilbakekreves = it.ytelse.beløpSkalTilbakekreves.toString(),
-                                belopUinnkrevd = it.ytelse.beløpSkalIkkeTilbakekreves.toString(),
-                                skattProsent = it.ytelse.skatteProsent.toString(),
+                                belopOpprUtbet = it.bruttoTidligereUtbetalt.toString(),
+                                belopNy = it.bruttoNyUtbetaling.toString(),
+                                belopTilbakekreves = it.bruttoFeilutbetaling.toString(),
+                                belopUinnkrevd = "0.00",
+                                skattProsent = it.skatteProsent.toString(),
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                 kodeKlasse = "KL_KODE_FEIL_INNT",
                                 typeKlasse = "FEIL",
-                                belopOpprUtbet = it.feilutbetaling.beløpTidligereUtbetaling.toString(),
-                                belopNy = it.feilutbetaling.beløpNyUtbetaling.toString(),
-                                belopTilbakekreves = it.feilutbetaling.beløpSkalTilbakekreves.toString(),
-                                belopUinnkrevd = it.feilutbetaling.beløpSkalIkkeTilbakekreves.toString(),
+                                belopOpprUtbet = "0.00",
+                                belopNy = it.bruttoFeilutbetaling.toString(),
+                                belopTilbakekreves = "0.00",
+                                belopUinnkrevd = "0.00",
                                 skattProsent = "0.0000",
                             ),
                         ),
@@ -204,7 +204,7 @@ fun genererKravgrunnlagFraSimulering(
         behandler = behandler,
         utbetalingId = utbetalingId,
         eksternTidspunkt = eksternTidspunkt,
-        grunnlagsmåneder = simulering.hentFeilutbetalteBeløp()
+        grunnlagsperioder = simulering.hentFeilutbetalteBeløp()
             .map { (måned, feilutbetaling) ->
                 val beløpTidligereUtbetaling = simulering.hentUtbetalteBeløp(måned)!!.sum()
                 val beløpNyUtbetaling = simulering.hentTotalUtbetaling(måned)!!.sum()
@@ -212,24 +212,15 @@ fun genererKravgrunnlagFraSimulering(
                 require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves) {
                     "Forventet at beløpTidligereUtbetaling ($beløpTidligereUtbetaling) - beløpNyUtbetaling($beløpNyUtbetaling) == beløpSkalTilbakekreves($beløpSkalTilbakekreves)."
                 }
-                Kravgrunnlag.Grunnlagsmåned(
-                    måned = måned,
+                Kravgrunnlag.Grunnlagsperiode(
+                    periode = måned,
                     betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves)).divide(
                         BigDecimal(100.0000),
-                    ).setScale(0, RoundingMode.UP),
-                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
-                        beløpNyUtbetaling = beløpNyUtbetaling,
-                        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
-                        beløpSkalIkkeTilbakekreves = 0,
-                        skatteProsent = skatteprosent,
-                    ),
-                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                        beløpTidligereUtbetaling = 0,
-                        beløpNyUtbetaling = simulering.hentFeilutbetalteBeløp(måned)!!.sum(),
-                        beløpSkalTilbakekreves = 0,
-                        beløpSkalIkkeTilbakekreves = 0,
-                    ),
+                    ).setScale(0, RoundingMode.UP).intValueExact(),
+                    bruttoTidligereUtbetalt = beløpTidligereUtbetaling,
+                    bruttoNyUtbetaling = beløpNyUtbetaling,
+                    bruttoFeilutbetaling = beløpSkalTilbakekreves,
+                    skatteProsent = skatteprosent,
                 )
             },
     )

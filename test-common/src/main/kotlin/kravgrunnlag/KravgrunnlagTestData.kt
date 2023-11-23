@@ -80,10 +80,10 @@ fun kravgrunnlag(
     status: Kravgrunnlagstatus = Kravgrunnlagstatus.Manuell,
     behandler: String = saksbehandler.toString(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
-    grunnlagsperioder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
-        grunnlagsmåned(),
+    grunnlagsperioder: Nel<Kravgrunnlag.Grunnlagsperiode> = nonEmptyListOf(
+        grunnlagsperiode(),
     ),
-    kravgrunnlagPåSakHendelseId: HendelseId,
+    kravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
 ): Kravgrunnlag {
     return Kravgrunnlag(
         saksnummer = saksnummer,
@@ -93,7 +93,7 @@ fun kravgrunnlag(
         status = status,
         behandler = behandler,
         utbetalingId = utbetalingId,
-        grunnlagsmåneder = grunnlagsperioder,
+        grunnlagsperioder = grunnlagsperioder,
         eksternTidspunkt = eksternTidspunkt,
         hendelseId = kravgrunnlagPåSakHendelseId,
     )
@@ -116,8 +116,8 @@ fun kravgrunnlagPåSakHendelse(
     status: Kravgrunnlagstatus = Kravgrunnlagstatus.Nytt,
     behandler: String = attestant.navIdent,
     utbetalingId: UUID30 = UUID30.randomUUID(),
-    grunnlagsmåneder: Nel<Kravgrunnlag.Grunnlagsmåned> = nonEmptyListOf(
-        grunnlagsmåned(),
+    grunnlagsmåneder: Nel<Kravgrunnlag.Grunnlagsperiode> = nonEmptyListOf(
+        grunnlagsperiode(),
     ),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     kravgrunnlag: Kravgrunnlag = Kravgrunnlag(
@@ -127,7 +127,7 @@ fun kravgrunnlagPåSakHendelse(
         status = status,
         behandler = behandler,
         utbetalingId = utbetalingId,
-        grunnlagsmåneder = grunnlagsmåneder,
+        grunnlagsperioder = grunnlagsmåneder,
         saksnummer = saksnummer,
         eksternTidspunkt = eksternTidspunkt,
         hendelseId = hendelseId,
@@ -146,49 +146,21 @@ fun kravgrunnlagPåSakHendelse(
     )
 }
 
-fun grunnlagsmåned(
-    måned: Måned = januar(2021),
-    betaltSkattForYtelsesgruppen: BigDecimal = BigDecimal("1000.00"),
-    ytelse: Kravgrunnlag.Grunnlagsmåned.Ytelse = grunnlagsbeløpYtel(),
-    feilutbetaling: Kravgrunnlag.Grunnlagsmåned.Feilutbetaling = grunnlagsbeløpFeil(),
-): Kravgrunnlag.Grunnlagsmåned {
-    return Kravgrunnlag.Grunnlagsmåned(
-        måned = måned,
-        betaltSkattForYtelsesgruppen = betaltSkattForYtelsesgruppen,
-        ytelse = ytelse,
-        feilutbetaling = feilutbetaling,
-    )
-}
-
-fun grunnlagsbeløpYtel(
-    beløpTidligereUtbetaling: Int = 2000,
-    beløpNyUtbetaling: Int = 1000,
-    beløpSkalTilbakekreves: Int = 1000,
-    beløpSkalIkkeTilbakekreves: Int = 0,
+fun grunnlagsperiode(
+    periode: Måned = januar(2021),
+    betaltSkattForYtelsesgruppen: Int = 1000,
+    bruttoTidligereUtbetalt: Int = 2000,
+    bruttoNyUtbetaling: Int = 1000,
+    bruttoFeilutbetaling: Int = 1000,
     skatteProsent: BigDecimal = BigDecimal("50.0000"),
-): Kravgrunnlag.Grunnlagsmåned.Ytelse {
-    require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves) {
-        "beløpTidligereUtbetaling $beløpTidligereUtbetaling - beløpNyUtbetaling $beløpNyUtbetaling må være lik beløpSkalTilbakekreves $beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves $beløpSkalIkkeTilbakekreves"
-    }
-    require(skatteProsent >= BigDecimal.ZERO && skatteProsent <= BigDecimal("100.0000"))
-    return Kravgrunnlag.Grunnlagsmåned.Ytelse(
-        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
-        beløpNyUtbetaling = beløpNyUtbetaling,
-        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
-        beløpSkalIkkeTilbakekreves = beløpSkalIkkeTilbakekreves,
+): Kravgrunnlag.Grunnlagsperiode {
+    return Kravgrunnlag.Grunnlagsperiode(
+        periode = periode,
+        betaltSkattForYtelsesgruppen = betaltSkattForYtelsesgruppen,
+        bruttoTidligereUtbetalt = bruttoTidligereUtbetalt,
+        bruttoNyUtbetaling = bruttoNyUtbetaling,
+        bruttoFeilutbetaling = bruttoFeilutbetaling,
         skatteProsent = skatteProsent,
-    )
-}
-
-fun grunnlagsbeløpFeil(
-    beløpNyUtbetaling: Int = 1000,
-): Kravgrunnlag.Grunnlagsmåned.Feilutbetaling {
-    require(beløpNyUtbetaling >= 0)
-    return Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-        beløpTidligereUtbetaling = 0,
-        beløpNyUtbetaling = beløpNyUtbetaling,
-        beløpSkalTilbakekreves = 0,
-        beløpSkalIkkeTilbakekreves = 0,
     )
 }
 

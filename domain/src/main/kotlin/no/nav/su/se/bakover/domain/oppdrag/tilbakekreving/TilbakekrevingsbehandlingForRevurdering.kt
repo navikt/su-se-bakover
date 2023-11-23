@@ -3,7 +3,11 @@ package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -80,7 +84,7 @@ data class AvventerKravgrunnlag(
         kravgrunnlagMottatt: Tidspunkt,
         hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
     ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
-        kontrollerKravgrunnlagMotRevurdering(
+        unsafeKontrollerKravgrunnlagMotRevurdering(
             kravgrunnlag = kravgrunnlag,
             hentRevurdering = hentRevurdering,
         )
@@ -91,7 +95,10 @@ data class AvventerKravgrunnlag(
         )
     }
 
-    private fun kontrollerKravgrunnlagMotRevurdering(
+    /**
+     * @throws IllegalArgumentException dersom perioden til kravgrunnlaget ikke er en [Måned]
+     */
+    private fun unsafeKontrollerKravgrunnlagMotRevurdering(
         kravgrunnlag: Kravgrunnlag,
         hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
     ) {
@@ -108,7 +115,7 @@ data class AvventerKravgrunnlag(
         }
 
         val fraSimulering = simulering.hentFeilutbetalteBeløp()
-        val fraKravgrunnlag = kravgrunnlag.hentBeløpSkalTilbakekreves()
+        val fraKravgrunnlag = kravgrunnlag.unsafeHentBeløpSkalTilbakekreves()
 
         if (fraSimulering != fraKravgrunnlag) {
             throw IllegalStateException("Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:${avgjort.revurderingId}. Simulering: $fraSimulering, Kravgrunnlag: $fraKravgrunnlag")
@@ -143,17 +150,17 @@ data class MottattKravgrunnlag(
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler,
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map { grunnlagsperiode ->
+            tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = grunnlagsperiode.måned,
+                    periode = grunnlagsperiode.unsafeTilMåned(),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     ytelse = mapDelkomponentForYtelse(
-                        ytelse = grunnlagsperiode.ytelse,
+                        grunnlagsperiode = grunnlagsperiode,
                         betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
                         resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                     ),
-                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode.feilutbetaling),
+                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode),
                 )
             },
         )
@@ -166,44 +173,44 @@ data class MottattKravgrunnlag(
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
             behandler = kravgrunnlag.behandler,
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map { grunnlagsperiode ->
+            tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = grunnlagsperiode.måned,
+                    periode = grunnlagsperiode.unsafeTilMåned(),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     ytelse = mapDelkomponentForYtelse(
-                        ytelse = grunnlagsperiode.ytelse,
+                        grunnlagsperiode = grunnlagsperiode,
                         betaltSkattForYtelsesgruppen = grunnlagsperiode.betaltSkattForYtelsesgruppen,
                         resultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
                     ),
-                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode.feilutbetaling),
+                    feilutbetaling = mapDelkomponentForFeilutbetaling(grunnlagsperiode),
                 )
             },
         )
     }
 
     private fun mapDelkomponentForYtelse(
-        ytelse: Kravgrunnlag.Grunnlagsmåned.Ytelse,
-        betaltSkattForYtelsesgruppen: BigDecimal,
+        grunnlagsperiode: Kravgrunnlag.Grunnlagsperiode,
+        betaltSkattForYtelsesgruppen: Int,
         resultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat,
     ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
-            beløpTidligereUtbetaling = BigDecimal(ytelse.beløpTidligereUtbetaling),
-            beløpNyUtbetaling = BigDecimal(ytelse.beløpNyUtbetaling),
+            beløpTidligereUtbetaling = BigDecimal(grunnlagsperiode.bruttoTidligereUtbetalt),
+            beløpNyUtbetaling = BigDecimal(grunnlagsperiode.bruttoNyUtbetaling),
             beløpSomSkalTilbakekreves = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
                 Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
             },
             beløpSomIkkeTilbakekreves = when (resultat) {
                 Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal.ZERO
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
             },
             beløpSkatt = when (resultat) {
-                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(ytelse.beløpSkalTilbakekreves)
-                    .multiply(ytelse.skatteProsent)
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> BigDecimal(grunnlagsperiode.bruttoFeilutbetaling)
+                    .multiply(grunnlagsperiode.skatteProsent)
                     .divide(BigDecimal("100"))
+                    .min(BigDecimal(betaltSkattForYtelsesgruppen))
                     .setScale(0, RoundingMode.DOWN)
-                    .min(betaltSkattForYtelsesgruppen)
 
                 Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> BigDecimal.ZERO
             },
@@ -215,12 +222,14 @@ data class MottattKravgrunnlag(
         )
     }
 
-    private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsmåned.Feilutbetaling): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
+    private fun mapDelkomponentForFeilutbetaling(
+        grunnlagsperiode: Kravgrunnlag.Grunnlagsperiode,
+    ): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
-            beløpTidligereUtbetaling = BigDecimal(it.beløpTidligereUtbetaling),
-            beløpNyUtbetaling = BigDecimal(it.beløpNyUtbetaling),
-            beløpSomSkalTilbakekreves = BigDecimal(it.beløpSkalTilbakekreves),
-            beløpSomIkkeTilbakekreves = BigDecimal(it.beløpSkalIkkeTilbakekreves),
+            beløpTidligereUtbetaling = BigDecimal.ZERO,
+            beløpNyUtbetaling = grunnlagsperiode.bruttoFeilutbetaling.toBigDecimal(),
+            beløpSomSkalTilbakekreves = BigDecimal.ZERO,
+            beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
         )
     }
 
@@ -363,3 +372,26 @@ sealed interface Tilbakekrevingsbehandling {
         }
     }
 }
+
+/**
+ * TODO jah: Sletter når vi fjerner tilbakekreving under revurdering
+ *
+ * @throws IllegalArgumentException dersom perioden ikke er en [Måned]
+ */
+private fun Kravgrunnlag.unsafeHentBeløpSkalTilbakekreves(): Månedsbeløp = Månedsbeløp(
+    grunnlagsperioder
+        .map { it.unsafeHentBruttoFeilutbetalingSomMånedBeløp() }
+        .filter { it.sum() > 0 },
+)
+
+/**
+ * TODO jah: Sletter når vi fjerner tilbakekreving under revurdering
+ *
+ * @throws IllegalArgumentException dersom perioden ikke er en [Måned]
+ */
+private fun Kravgrunnlag.Grunnlagsperiode.unsafeHentBruttoFeilutbetalingSomMånedBeløp(): MånedBeløp = MånedBeløp(
+    periode = Måned.fra(periode.fraOgMed, periode.tilOgMed),
+    beløp = Beløp(bruttoFeilutbetaling),
+)
+
+fun Kravgrunnlag.Grunnlagsperiode.unsafeTilMåned(): Måned = Måned.fra(this.periode.fraOgMed, this.periode.tilOgMed)

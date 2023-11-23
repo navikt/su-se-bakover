@@ -58,7 +58,7 @@ fun genererKravgrunnlagFraSimulering(
         behandler = behandler,
         utbetalingId = utbetalingId,
         eksternTidspunkt = eksternTidspunkt,
-        grunnlagsmåneder = simulering.hentFeilutbetalteBeløp()
+        grunnlagsperioder = simulering.hentFeilutbetalteBeløp()
             .map { (måned, feilutbetaling) ->
                 val beløpTidligereUtbetaling = simulering.hentUtbetalteBeløp(måned)!!.sum()
                 val beløpNyUtbetaling = simulering.hentTotalUtbetaling(måned)!!.sum()
@@ -66,23 +66,14 @@ fun genererKravgrunnlagFraSimulering(
                 require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves) {
                     "Forventet at beløpTidligereUtbetaling ($beløpTidligereUtbetaling) - beløpNyUtbetaling($beløpNyUtbetaling) == beløpSkalTilbakekreves($beløpSkalTilbakekreves)."
                 }
-                Kravgrunnlag.Grunnlagsmåned(
-                    måned = måned,
+                Kravgrunnlag.Grunnlagsperiode(
+                    periode = måned,
                     betaltSkattForYtelsesgruppen = skatteprosent.times(BigDecimal(beløpSkalTilbakekreves))
-                        .divide(BigDecimal(100.0000)).setScale(0, RoundingMode.UP),
-                    ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
-                        beløpNyUtbetaling = beløpNyUtbetaling,
-                        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
-                        beløpSkalIkkeTilbakekreves = 0,
-                        skatteProsent = skatteprosent,
-                    ),
-                    feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                        beløpTidligereUtbetaling = 0,
-                        beløpNyUtbetaling = simulering.hentFeilutbetalteBeløp(måned)!!.sum(),
-                        beløpSkalTilbakekreves = 0,
-                        beløpSkalIkkeTilbakekreves = 0,
-                    ),
+                        .divide(BigDecimal(100.0000)).setScale(0, RoundingMode.UP).intValueExact(),
+                    bruttoTidligereUtbetalt = beløpTidligereUtbetaling,
+                    bruttoNyUtbetaling = beløpNyUtbetaling,
+                    bruttoFeilutbetaling = beløpSkalTilbakekreves,
+                    skatteProsent = skatteprosent,
                 )
             },
     )

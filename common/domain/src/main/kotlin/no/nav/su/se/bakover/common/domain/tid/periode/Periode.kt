@@ -158,9 +158,9 @@ open class Periode protected constructor(
         data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
     }
 
-    override fun equals(other: Any?) = other is Periode && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
+    override fun equals(other: Any?) = super.equals(other)
 
-    override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
+    override fun hashCode() = super.hashCode()
 
     override fun toString(): String {
         return "Periode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"

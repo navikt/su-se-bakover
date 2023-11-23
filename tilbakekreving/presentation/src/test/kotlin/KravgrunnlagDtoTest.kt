@@ -88,23 +88,15 @@ internal class KravgrunnlagDtoTest {
                 behandler = "K231B433",
                 utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                 eksternTidspunkt = fixedTidspunkt,
-                grunnlagsmåneder = listOf(
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = oktober(2021),
-                        betaltSkattForYtelsesgruppen = BigDecimal(4395).setScale(2),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            beløpTidligereUtbetaling = 9989,
-                            beløpNyUtbetaling = 0,
-                            beløpSkalTilbakekreves = 9989,
-                            beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal("43.9983").setScale(4, RoundingMode.HALF_UP),
-                        ),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = 9989,
-                            beløpSkalTilbakekreves = 0,
-                            beløpSkalIkkeTilbakekreves = 0,
-                        ),
+                grunnlagsperioder = listOf(
+                    Kravgrunnlag.Grunnlagsperiode(
+                        periode = oktober(2021),
+                        betaltSkattForYtelsesgruppen = 4395,
+                        bruttoTidligereUtbetalt = 9989,
+                        bruttoNyUtbetaling = 0,
+                        bruttoFeilutbetaling = 9989,
+                        skatteProsent = BigDecimal("43.9983").setScale(4, RoundingMode.HALF_UP),
+
                     ),
                 ),
             ),
@@ -208,46 +200,27 @@ internal class KravgrunnlagDtoTest {
                 behandler = "K231B433",
                 utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                 eksternKontrollfelt = "2021-01-01-02.02.03.456789",
-                grunnlagsmåneder = listOf(
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = oktober(2021),
-                        betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            beløpTidligereUtbetaling = 21989,
-                            beløpNyUtbetaling = 9989,
-                            beløpSkalTilbakekreves = 12000,
-                            beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal("43.9992")
-                                .setScale(4, RoundingMode.HALF_UP),
-                        ),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = 12000,
-                            beløpSkalTilbakekreves = 0,
-                            beløpSkalIkkeTilbakekreves = 0,
-                        ),
+                grunnlagsperioder = listOf(
+                    Kravgrunnlag.Grunnlagsperiode(
+                        periode = oktober(2021),
+                        betaltSkattForYtelsesgruppen = 5280,
+                        bruttoTidligereUtbetalt = 21989,
+                        bruttoNyUtbetaling = 9989,
+                        bruttoFeilutbetaling = 12000,
+                        skatteProsent = BigDecimal("43.9992")
+                            .setScale(4, RoundingMode.HALF_UP),
 
                     ),
-                    Kravgrunnlag.Grunnlagsmåned(
-                        måned = november(2021),
-                        betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
-                        ytelse = Kravgrunnlag.Grunnlagsmåned.Ytelse(
-                            beløpTidligereUtbetaling = 21989,
-                            beløpNyUtbetaling = 9989,
-                            beløpSkalTilbakekreves = 12000,
-                            beløpSkalIkkeTilbakekreves = 0,
-                            skatteProsent = BigDecimal("43.9992")
-                                .setScale(4, RoundingMode.HALF_UP),
-                        ),
-                        feilutbetaling = Kravgrunnlag.Grunnlagsmåned.Feilutbetaling(
-                            beløpTidligereUtbetaling = 0,
-                            beløpNyUtbetaling = 12000,
-                            beløpSkalTilbakekreves = 0,
-                            beløpSkalIkkeTilbakekreves = 0,
-                        ),
+                    Kravgrunnlag.Grunnlagsperiode(
+                        periode = november(2021),
+                        betaltSkattForYtelsesgruppen = 5280,
+                        bruttoTidligereUtbetalt = 21989,
+                        bruttoNyUtbetaling = 9989,
+                        bruttoFeilutbetaling = 12000,
+                        skatteProsent = BigDecimal("43.9992")
+                            .setScale(4, RoundingMode.HALF_UP),
                     ),
                 ),
-
             ),
             Kravgrunnlag::hendelseId,
         )

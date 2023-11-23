@@ -126,7 +126,7 @@ internal class TilbakekrevingUnderRevurderingTest {
         ).lagTilbakekrevingsvedtak(kravgrunnlag).let { tilbakekrevingsvedtak ->
             tilbakekrevingsvedtak.tilbakekrevingsperioder
                 .filterIsInstance<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
-                .all { it.beløpSkatt == BigDecimal("1759") && it.beløpSkatt < kravgrunnlag.grunnlagsmåneder[0].betaltSkattForYtelsesgruppen } shouldBe true
+                .all { it.beløpSkatt == BigDecimal("1759") && it.beløpSkatt < BigDecimal(kravgrunnlag.grunnlagsperioder[0].betaltSkattForYtelsesgruppen) } shouldBe true
         }
     }
 
