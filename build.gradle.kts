@@ -8,7 +8,6 @@ plugins {
 }
 
 version = "0.0.1"
-val ktorVersion: String by project
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -75,17 +74,17 @@ subprojects {
         implementation("com.github.navikt:vault-jdbc:1.3.10")
         implementation("org.postgresql:postgresql:42.7.0")
 
-        implementation("io.ktor:ktor-server-netty:$ktorVersion")
-        implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion") {
+        implementation(rootProject.libs.ktor.server.netty)
+        implementation(rootProject.libs.ktor.server.auth.jwt) {
             exclude(group = "junit")
         }
-        implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-        implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-        implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-        implementation("io.ktor:ktor-server-call-id:$ktorVersion")
-        implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-        implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
-        implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+        implementation(rootProject.libs.ktor.server.metrics.micrometer)
+        implementation(rootProject.libs.ktor.serialization.jackson)
+        implementation(rootProject.libs.ktor.server.content.negotiation)
+        implementation(rootProject.libs.ktor.server.call.id)
+        implementation(rootProject.libs.ktor.server.call.logging)
+        implementation(rootProject.libs.ktor.server.forwarded.header)
+        implementation(rootProject.libs.ktor.server.status.pages)
 
         testRuntimeOnly(rootProject.libs.jupiter.engine)
 
@@ -108,7 +107,7 @@ subprojects {
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
         testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
         testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
-        testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
+        testImplementation(rootProject.libs.ktor.server.test.host) {
             exclude(group = "junit")
             exclude(group = "org.eclipse.jetty") // conflicts with WireMock
             exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock

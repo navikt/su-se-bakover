@@ -1,6 +1,5 @@
 // Inneholder regresjonstester for web-laget (black-box asserting).
 // Separert til sin egen modul for å kunne bygges parallelt med de andre testene på byggserveren.
-val ktorVersion: String by project
 dependencies {
     implementation(project(":domain"))
     implementation(project(":database"))
@@ -31,8 +30,8 @@ dependencies {
 
     implementation(project(":person:domain"))
 
-    implementation("io.ktor:ktor-client-java:$ktorVersion")
-    implementation("io.ktor:ktor-server-test-host:$ktorVersion") {
+    implementation(rootProject.libs.ktor.client.java)
+    implementation(rootProject.libs.ktor.server.test.host) {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
