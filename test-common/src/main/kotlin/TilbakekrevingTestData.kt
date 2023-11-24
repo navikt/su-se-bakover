@@ -11,20 +11,21 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
-import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Vurdering
 import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -139,7 +140,7 @@ fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyVurdertTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -158,15 +159,23 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
     meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
     vurderinger: Vurderinger = Vurderinger(
-        vurderinger = nonEmptyListOf(
-            Månedsvurdering(
-                måned = januar(2021),
+        nonEmptyListOf(
+            Vurderinger.Periodevurdering(
+                periode = januar(2021),
                 vurdering = Vurdering.SkalTilbakekreve,
             ),
         ),
     ),
-): MånedsvurderingerTilbakekrevingsbehandlingHendelse = MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ),
+): VurdertTilbakekrevingsbehandlingHendelse = VurdertTilbakekrevingsbehandlingHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
@@ -175,7 +184,7 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
-    vurderinger = vurderinger,
+    vurderingerMedKrav = vurderingerMedKrav,
 )
 
 /**
@@ -183,28 +192,36 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
     vurderinger: Vurderinger = Vurderinger(
-        vurderinger = nonEmptyListOf(
-            Månedsvurdering(
-                måned = januar(2021),
+        nonEmptyListOf(
+            Vurderinger.Periodevurdering(
+                periode = januar(2021),
                 vurdering = Vurdering.SkalTilbakekreve,
             ),
         ),
     ),
-    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ),
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
-        vurderinger = vurderinger,
+        vurderingerMedKrav = vurderingerMedKrav,
         utførtAv = utførtAv,
     ),
     hendelseId: HendelseId = HendelseId.generer(),
@@ -231,7 +248,7 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
  * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
@@ -239,24 +256,32 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
     vurderinger: Vurderinger = Vurderinger(
-        vurderinger = nonEmptyListOf(
-            Månedsvurdering(
-                måned = januar(2021),
+        nonEmptyListOf(
+            Vurderinger.Periodevurdering(
+                periode = januar(2021),
                 vurdering = Vurdering.SkalTilbakekreve,
             ),
         ),
     ),
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ),
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
-    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
-        vurderinger = vurderinger,
+        vurderingerMedKrav = vurderingerMedKrav,
         utførtAv = utførtAv,
         brevvalg = brevvalg,
     ),
@@ -280,7 +305,7 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
  * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
  * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
- * @param vurderinger Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
  * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
  */
 fun nyIverksattTilbakekrevingsbehandlingHendelse(
@@ -288,25 +313,33 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     kravgrunnlagPåSakHendelseId: HendelseId,
     dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Attestant = attestant,
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
     vurderinger: Vurderinger = Vurderinger(
-        vurderinger = nonEmptyListOf(
-            Månedsvurdering(
-                måned = januar(2021),
+        nonEmptyListOf(
+            Vurderinger.Periodevurdering(
+                periode = januar(2021),
                 vurdering = Vurdering.SkalTilbakekreve,
             ),
         ),
     ),
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ),
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
-    utførtAv: NavIdentBruker.Attestant = attestant,
     sendtTilAttesteringUtførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyTilbakekrevingsbehandlingTilAttesteringHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         dokumentId = dokumentId,
-        vurderinger = vurderinger,
+        vurderingerMedKrav = vurderingerMedKrav,
         utførtAv = sendtTilAttesteringUtførtAv,
         brevvalg = brevvalg,
     ),

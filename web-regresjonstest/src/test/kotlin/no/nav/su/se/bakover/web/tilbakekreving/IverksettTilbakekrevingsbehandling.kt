@@ -102,7 +102,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"IVERKSATT",
-  "månedsvurderinger":$vurderinger,
+  "vurderinger":$vurderinger,
   "fritekst":"$fritekst",
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",

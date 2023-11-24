@@ -43,7 +43,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
                 forrigeSteg = behandling,
                 hendelseId = hendelseId,
                 versjon = versjon,
-                månedsvurderinger = behandling.månedsvurderinger,
+                vurderingerMedKrav = behandling.vurderingerMedKrav,
                 forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                 vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                 kravgrunnlag = kravgrunnlag,

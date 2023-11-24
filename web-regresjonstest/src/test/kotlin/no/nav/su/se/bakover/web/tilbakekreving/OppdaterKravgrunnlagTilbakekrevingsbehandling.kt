@@ -90,7 +90,7 @@ fun verifiserOppdatertKravgrunnlagRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"FORHÅNDSVARSLET",
-  "månedsvurderinger":[],
+  "vurderinger":null,
   "fritekst":null,
   "forhåndsvarselsInfo": [],
   "sendtTilAttesteringAv": null,

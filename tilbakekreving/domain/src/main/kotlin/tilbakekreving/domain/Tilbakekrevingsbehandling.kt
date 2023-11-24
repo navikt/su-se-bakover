@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.util.UUID
 
 /**
@@ -26,7 +26,7 @@ sealed interface Tilbakekrevingsbehandling {
     val opprettetAv: NavIdentBruker.Saksbehandler
     val kravgrunnlag: Kravgrunnlag
     val erKravgrunnlagUtdatert: Boolean
-    val månedsvurderinger: Vurderinger?
+    val vurderingerMedKrav: VurderingerMedKrav?
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon

@@ -3,7 +3,6 @@ package tilbakekreving.application.service.vurder
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.vurderTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
@@ -37,10 +36,9 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
         if (sak.versjon != command.klientensSisteSaksversjon) {
             log.info("Vurdering av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
-        return sak.vurderTilbakekrevingsbehandling(command, clock).let { pair ->
-            pair.second.right().onRight {
-                tilbakekrevingsbehandlingRepo.lagre(pair.first)
-            }
+        return sak.vurderTilbakekrevingsbehandling(command, clock).map { pair ->
+            tilbakekrevingsbehandlingRepo.lagre(pair.first)
+            pair.second
         }
     }
 }

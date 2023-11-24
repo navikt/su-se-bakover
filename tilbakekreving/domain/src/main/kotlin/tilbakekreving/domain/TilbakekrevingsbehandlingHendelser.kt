@@ -107,7 +107,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     )
                 }
 
-                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(
+                is VurdertTilbakekrevingsbehandlingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)
 

@@ -6,10 +6,10 @@ package tilbakekreving.domain
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 
 sealed interface KanLeggeTilBrev : KanEndres {
-    override val månedsvurderinger: Vurderinger?
+    override val vurderingerMedKrav: VurderingerMedKrav?
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
 
     fun oppdaterVedtaksbrev(

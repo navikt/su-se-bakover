@@ -88,7 +88,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"AVBRUTT",
-  "månedsvurderinger":[],
+  "vurderinger":null,
   "fritekst":null,
   "forhåndsvarselsInfo": [],
   "sendtTilAttesteringAv": null,

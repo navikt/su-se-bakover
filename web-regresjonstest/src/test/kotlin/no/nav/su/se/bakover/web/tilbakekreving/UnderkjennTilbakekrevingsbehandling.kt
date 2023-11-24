@@ -114,7 +114,7 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"VEDTAKSBREV",
-  "månedsvurderinger":$vurderinger,
+  "vurderinger":$vurderinger,
   "fritekst": "$brevtekst",
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,

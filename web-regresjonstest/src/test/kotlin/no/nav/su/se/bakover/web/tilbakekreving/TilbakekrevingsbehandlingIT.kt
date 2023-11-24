@@ -161,10 +161,13 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = versjonEtterOppdateringAvOppgaveUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-                vurderinger = """
+                vurderingerRequest = """
                     [
                         {
-                            "måned": "2021-01",
+                            "periode": {
+                              "fraOgMed": "2021-01-01",
+                              "tilOgMed": "2021-01-31"
+                            },
                             "vurdering": "SkalIkkeTilbakekreve"
                         }
                     ]
@@ -172,6 +175,32 @@ internal class TilbakekrevingsbehandlingIT {
                 tilstand = "VEDTAKSBREV",
                 expectedFritekst = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
                 expectedAttesteringer = underkjentAttestering,
+                expectedVurderinger = """
+              {
+                "perioder":[
+                  {
+                    "periode":{
+                      "fraOgMed":"2021-01-01",
+                      "tilOgMed":"2021-01-31"
+                    },
+                    "vurdering":"SkalIkkeTilbakekreve",
+                    "betaltSkattForYtelsesgruppen":6192,
+                    "bruttoTidligereUtbetalt":20946,
+                    "bruttoNyUtbetaling":8563,
+                    "bruttoSkalTilbakekreve":0,
+                    "nettoSkalTilbakekreve":0,
+                    "bruttoSkalIkkeTilbakekreve":12383,
+                    "skatteProsent":"50"
+                  }
+                ],
+                "eksternKravgrunnlagId":"123456",
+                "eksternVedtakId":"654321",
+                "eksternKontrollfelt":"2021-02-01-02.03.28.456789",
+                "bruttoSkalTilbakekreveSummert":0,
+                "nettoSkalTilbakekreveSummert":0,
+                "bruttoSkalIkkeTilbakekreveSummert":12383
+              }
+                """.trimIndent(),
             ).let {
                 hentVurderinger(it.first) to it.second
             }

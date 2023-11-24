@@ -20,7 +20,7 @@ data class TilbakekrevingsbehandlingJson(
     val opprettetAv: String,
     val kravgrunnlag: KravgrunnlagJson,
     val status: TilbakekrevingsbehandlingStatus,
-    val månedsvurderinger: List<MånedsvurderingJson>,
+    val vurderinger: VurderingerMedKravJson?,
     val fritekst: String?,
     val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfoJson>,
     val versjon: Long,
@@ -55,12 +55,7 @@ data class TilbakekrevingsbehandlingJson(
                 is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")
             },
-            månedsvurderinger = this.månedsvurderinger?.vurderinger?.map {
-                MånedsvurderingJson(
-                    it.måned.toString(),
-                    it.vurdering.toString(),
-                )
-            } ?: emptyList(),
+            vurderinger = this.vurderingerMedKrav?.toJson(),
             forhåndsvarselsInfo = forhåndsvarselsInfo.toJson(),
             fritekst = this.vedtaksbrevvalg?.fritekst,
             versjon = this.versjon.value,

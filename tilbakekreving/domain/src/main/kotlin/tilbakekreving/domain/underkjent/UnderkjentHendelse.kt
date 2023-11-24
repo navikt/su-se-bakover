@@ -79,7 +79,7 @@ data class UnderkjentHendelse(
                             kommentar = begrunnelse,
                         ),
                     ),
-                    månedsvurderinger = behandling.månedsvurderinger,
+                    vurderingerMedKrav = behandling.vurderingerMedKrav,
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                     forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                 )

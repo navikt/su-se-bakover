@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.util.UUID
 
 data class OpprettetTilbakekrevingsbehandling(
@@ -39,26 +39,26 @@ data class OpprettetTilbakekrevingsbehandling(
         forrigeSteg = this,
         hendelseId = hendelseId,
         versjon = versjon,
-        månedsvurderinger = this.månedsvurderinger,
+        vurderingerMedKrav = this.vurderingerMedKrav,
         forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
         kravgrunnlag = kravgrunnlag,
         erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
     )
 
     override fun leggTilVurderinger(
-        månedsvurderinger: Vurderinger,
+        månedsvurderinger: VurderingerMedKrav,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
     ) = UnderBehandling.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
-        månedsvurderinger = månedsvurderinger,
+        vurderingerMedKrav = månedsvurderinger,
         forhåndsvarselsInfo = listOf(),
         versjon = versjon,
         kravgrunnlag = kravgrunnlag,
         erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
     )
 
-    override val månedsvurderinger: Vurderinger? = null
+    override val vurderingerMedKrav: VurderingerMedKrav? = null
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
 }

@@ -37,6 +37,24 @@ data class Kravgrunnlag(
     /** En eller flere perioder kravgrunnlaget knyttes mot. Antar at det finnes minst ett element i lista. */
     val grunnlagsperioder: List<Grunnlagsperiode>,
 ) {
+
+    init {
+        grunnlagsperioder.map { it.periode }.let {
+            require(it.sorted() == it) {
+                "Kravgrunnlagsperiodene må være sortert."
+            }
+            it.zipWithNext { a, b ->
+                require(!a.overlapper(b)) {
+                    "Perioder kan ikke overlappe."
+                }
+            }
+        }
+    }
+
+    fun forPeriode(periode: DatoIntervall): Grunnlagsperiode? {
+        return grunnlagsperioder.find { it.periode == periode }
+    }
+
     val summertBetaltSkattForYtelsesgruppen by lazy { grunnlagsperioder.sumOf { it.betaltSkattForYtelsesgruppen } }
     val summertBruttoTidligereUtbetalt by lazy { grunnlagsperioder.sumOf { it.bruttoTidligereUtbetalt } }
     val summertBruttoNyUtbetaling by lazy { grunnlagsperioder.sumOf { it.bruttoNyUtbetaling } }

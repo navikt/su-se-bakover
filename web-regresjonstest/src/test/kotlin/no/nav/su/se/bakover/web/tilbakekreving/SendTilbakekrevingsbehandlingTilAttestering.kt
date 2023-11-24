@@ -98,7 +98,7 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"TIL_ATTESTERING",
-  "månedsvurderinger":$vurderinger,
+  "vurderinger":$vurderinger,
   "fritekst":"$fritekst",
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": "Z990Lokal",

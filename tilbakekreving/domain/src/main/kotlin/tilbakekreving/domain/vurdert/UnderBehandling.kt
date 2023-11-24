@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.util.UUID
 
 /**
@@ -30,7 +30,7 @@ sealed interface UnderBehandling :
     KanForhåndsvarsle,
     UnderBehandlingEllerTilAttestering {
 
-    override val månedsvurderinger: Vurderinger?
+    override val vurderingerMedKrav: VurderingerMedKrav?
     override fun erÅpen() = true
 
     val erUnderkjent: Boolean
@@ -48,7 +48,7 @@ sealed interface UnderBehandling :
         val forrigeSteg: KanEndres,
         override val hendelseId: HendelseId,
         override val versjon: Hendelsesversjon,
-        override val månedsvurderinger: Vurderinger?,
+        override val vurderingerMedKrav: VurderingerMedKrav?,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null,
         override val kravgrunnlag: Kravgrunnlag,
@@ -65,7 +65,7 @@ sealed interface UnderBehandling :
             require(forrigeSteg is OpprettetTilbakekrevingsbehandling || forrigeSteg is Påbegynt)
         }
 
-        fun erVurdert(): Boolean = månedsvurderinger != null
+        fun erVurdert(): Boolean = vurderingerMedKrav != null
 
         /**
          * Siden vedtaksbrevet er avhengig av månedsperiodene krever vi at månedsvurderingene er utfylt først.
@@ -76,12 +76,12 @@ sealed interface UnderBehandling :
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
         ): Utfylt {
-            return if (månedsvurderinger == null) {
+            return if (vurderingerMedKrav == null) {
                 throw IllegalArgumentException("Må gjøre månedsvurderingene før man tar stilling til vedtaksbrev")
             } else {
                 Utfylt(
                     forrigeSteg = this,
-                    månedsvurderinger = månedsvurderinger,
+                    vurderingerMedKrav = vurderingerMedKrav,
                     hendelseId = hendelseId,
                     vedtaksbrevvalg = vedtaksbrevvalg,
                     attesteringer = forrigeSteg.attesteringer,
@@ -107,11 +107,11 @@ sealed interface UnderBehandling :
         }
 
         override fun leggTilVurderinger(
-            månedsvurderinger: Vurderinger,
+            månedsvurderinger: VurderingerMedKrav,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
         ) = this.copy(
-            månedsvurderinger = månedsvurderinger,
+            vurderingerMedKrav = månedsvurderinger,
             hendelseId = hendelseId,
             versjon = versjon,
         )
@@ -130,7 +130,7 @@ sealed interface UnderBehandling :
         val forrigeSteg: UnderBehandlingEllerTilAttestering,
         override val hendelseId: HendelseId,
         override val versjon: Hendelsesversjon,
-        override val månedsvurderinger: Vurderinger,
+        override val vurderingerMedKrav: VurderingerMedKrav,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
@@ -144,7 +144,7 @@ sealed interface UnderBehandling :
             forrigeSteg = forrigeSteg,
             hendelseId = hendelseId,
             versjon = versjon,
-            månedsvurderinger = forrigeSteg.månedsvurderinger,
+            vurderingerMedKrav = forrigeSteg.vurderingerMedKrav,
             vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
             attesteringer = forrigeSteg.attesteringer,
             forhåndsvarselsInfo = forrigeSteg.forhåndsvarselsInfo,
@@ -152,12 +152,12 @@ sealed interface UnderBehandling :
 
         override val erUnderkjent = attesteringer.isNotEmpty()
         override fun leggTilVurderinger(
-            månedsvurderinger: Vurderinger,
+            månedsvurderinger: VurderingerMedKrav,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
         ) = this.copy(
             hendelseId = hendelseId,
-            månedsvurderinger = månedsvurderinger,
+            vurderingerMedKrav = månedsvurderinger,
             versjon = versjon,
         )
 

@@ -20,7 +20,6 @@ import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
-import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
@@ -29,6 +28,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
+import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.avbrutt.mapToTilAvbruttHendelse
@@ -47,7 +47,7 @@ import tilbakekreving.infrastructure.repo.underkjenn.mapToTilUnderkjentHendelse
 import tilbakekreving.infrastructure.repo.underkjenn.toJson
 import tilbakekreving.infrastructure.repo.vedtaksbrev.mapToBrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.infrastructure.repo.vedtaksbrev.toJson
-import tilbakekreving.infrastructure.repo.vurdering.mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse
+import tilbakekreving.infrastructure.repo.vurdering.mapToVurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.infrastructure.repo.vurdering.toJson
 import java.time.Clock
 import java.util.UUID
@@ -83,7 +83,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
             hendelse = hendelse,
             type = when (hendelse) {
                 is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettetTilbakekrevingsbehandlingHendelsestype
-                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurdertTilbakekrevingsbehandlingHendelsestype
+                is VurdertTilbakekrevingsbehandlingHendelse -> VurdertTilbakekrevingsbehandlingHendelsestype
                 is BrevTilbakekrevingsbehandlingHendelse -> OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype
                 is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
                 is TilAttesteringHendelse -> TilbakekrevingsbehandlingTilAttesteringHendelsestype
@@ -237,15 +237,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             meta = this.defaultHendelseMetadata(),
         )
 
-        VurdertTilbakekrevingsbehandlingHendelsestype -> mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
-            data = this.data,
-            hendelseId = this.hendelseId,
-            sakId = this.sakId!!,
-            hendelsestidspunkt = this.hendelsestidspunkt,
-            versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
-            tidligereHendelsesId = this.tidligereHendelseId!!,
-        )
+        VurdertTilbakekrevingsbehandlingHendelsestype -> mapToVurdertTilbakekrevingsbehandlingHendelse()
 
         OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype -> mapToBrevTilbakekrevingsbehandlingHendelse(
             data = this.data,
@@ -314,7 +306,7 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
     return when (this) {
         is OpprettetTilbakekrevingsbehandlingHendelse -> this.toJson()
         is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> this.toJson()
-        is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> this.toJson()
+        is VurdertTilbakekrevingsbehandlingHendelse -> this.toJson()
         is BrevTilbakekrevingsbehandlingHendelse -> this.toJson()
         is TilAttesteringHendelse -> this.toJson()
         is IverksattHendelse -> this.toJson()

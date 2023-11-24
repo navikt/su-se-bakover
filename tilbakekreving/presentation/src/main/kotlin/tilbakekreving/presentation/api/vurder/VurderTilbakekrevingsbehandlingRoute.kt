@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -22,28 +23,26 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.VurderCommand
 import tilbakekreving.domain.vurdert.Vurdering
 import tilbakekreving.domain.vurdert.Vurderinger
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
+import tilbakekreving.presentation.api.common.kravgrunnlagetHarEndretSeg
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
-import java.time.YearMonth
 import java.util.UUID
 
 private data class Body(
     val versjon: Long,
-    val måneder: List<Måned>,
+    val perioder: List<ForPeriode>,
 ) {
-    data class Måned(
-        val måned: String,
+    data class ForPeriode(
+        val periode: PeriodeJson,
         val vurdering: String,
     )
 }
@@ -55,14 +54,14 @@ private fun Body.toCommand(
     correlationId: CorrelationId,
     brukerroller: List<Brukerrolle>,
 ): Either<Resultat, VurderCommand> {
-    return this.måneder.map { måned ->
-        Månedsvurdering(
-            måned = Måned.fra(YearMonth.parse(måned.måned)),
-            vurdering = when (måned.vurdering) {
+    return this.perioder.map { forPeriode ->
+        Vurderinger.Periodevurdering(
+            periode = forPeriode.periode.toDatoIntervall(),
+            vurdering = when (forPeriode.vurdering) {
                 "SkalIkkeTilbakekreve" -> Vurdering.SkalIkkeTilbakekreve
                 "SkalTilbakekreve" -> Vurdering.SkalTilbakekreve
                 else -> return HttpStatusCode.BadRequest.errorJson(
-                    message = "Ukjent vurdering, må være en av SkalTilbakekreve/SkalIkkeTilbakekreve, men var: ${måned.vurdering}",
+                    message = "Ukjent vurdering, må være en av SkalTilbakekreve/SkalIkkeTilbakekreve, men var: ${forPeriode.vurdering}",
                     code = "ukjent_vurdering",
                 ).left()
             },
@@ -132,5 +131,6 @@ internal fun Route.vurderTilbakekrevingsbehandlingRoute(
 
 private fun KunneIkkeVurdereTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {
     is KunneIkkeVurdereTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
-    KunneIkkeVurdereTilbakekrevingsbehandling.UlikVersjon -> Feilresponser.utdatertVersjon
+    is KunneIkkeVurdereTilbakekrevingsbehandling.UlikVersjon -> Feilresponser.utdatertVersjon
+    KunneIkkeVurdereTilbakekrevingsbehandling.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
 }

@@ -9,7 +9,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
 
 data class VurderCommand(
-    val vurderinger: List<Månedsvurdering>,
+    val vurderinger: Vurderinger,
     val sakId: UUID,
     val behandlingsId: TilbakekrevingsbehandlingId,
     val utførtAv: NavIdentBruker.Saksbehandler,

@@ -24,13 +24,42 @@ fun vurderTilbakekrevingsbehandling(
     saksversjon: Long,
     verifiserForhåndsvarselDokumenter: String,
     tilstand: String = "VURDERT",
-    vurderinger: String = """
+    vurderingerRequest: String = """
         [
             {
-                "måned": "2021-01",
+                "periode": {
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31"
+                },
                 "vurdering": "SkalTilbakekreve"
             }
         ]
+    """.trimIndent(),
+    expectedVurderinger: String = """
+      {
+        "perioder":[
+          {
+            "periode":{
+              "fraOgMed":"2021-01-01",
+              "tilOgMed":"2021-01-31"
+            },
+            "vurdering":"SkalTilbakekreve",
+            "betaltSkattForYtelsesgruppen":6192,
+            "bruttoTidligereUtbetalt":20946,
+            "bruttoNyUtbetaling":8563,
+            "bruttoSkalTilbakekreve":12383,
+            "nettoSkalTilbakekreve":6191,
+            "bruttoSkalIkkeTilbakekreve":0,
+            "skatteProsent":"50"
+          }
+        ],
+        "eksternKravgrunnlagId":"123456",
+        "eksternVedtakId":"654321",
+        "eksternKontrollfelt":"2021-02-01-02.03.28.456789",
+        "bruttoSkalTilbakekreveSummert":12383,
+        "nettoSkalTilbakekreveSummert":6191,
+        "bruttoSkalIkkeTilbakekreveSummert":0,
+      }
     """.trimIndent(),
     expectedFritekst: String? = null,
     expectedAttesteringer: String = "[]",
@@ -47,7 +76,7 @@ fun vurderTilbakekrevingsbehandling(
                 """
             {
                 "versjon": $saksversjon,
-                "måneder": $vurderinger
+                "perioder": $vurderingerRequest
             }
                 """.trimIndent(),
             )
@@ -60,13 +89,13 @@ fun vurderTilbakekrevingsbehandling(
                 verifiserVurdertTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
-                    måneder = vurderinger,
                     status = tilstand,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     expectedVersjon = expectedVersjon,
                     expectedFritekst = expectedFritekst,
                     expectedAttesteringer = expectedAttesteringer,
+                    expectedVurderinger = expectedVurderinger,
                 )
             }
         } to expectedVersjon
@@ -79,10 +108,10 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     forhåndsvarselDokumenter: String,
     sakId: String,
     status: String,
-    måneder: String,
     expectedVersjon: Long,
     expectedFritekst: String?,
     expectedAttesteringer: String,
+    expectedVurderinger: String,
 ) {
     //language=json
     val expected = """
@@ -109,7 +138,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
         "skatteProsent":"50"
       }
     ],
-        "summertBetaltSkattForYtelsesgruppen": "6192",
+    "summertBetaltSkattForYtelsesgruppen": "6192",
     "summertBruttoTidligereUtbetalt": 20946,
     "summertBruttoNyUtbetaling": 8563,
     "summertBruttoFeilutbetaling": 12383,
@@ -118,7 +147,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"$status",
-  "månedsvurderinger":$måneder,
+  "vurderinger":$expectedVurderinger,
   "fritekst": ${expectedFritekst?.let { "\"$it\"" }},
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,

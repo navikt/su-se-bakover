@@ -2,88 +2,126 @@ package tilbakekreving.infrastructure.repo.vurdering
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.vurdert.Månedsvurdering
-import tilbakekreving.domain.vurdert.Vurdering
-import tilbakekreving.domain.vurdert.Vurderinger
-import tilbakekreving.infrastructure.repo.vurdering.MånedsvurderingerDbJson.Companion.toDomain
-import java.lang.IllegalArgumentException
-import java.time.YearMonth
+import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.vurdert.PeriodevurderingMedKrav
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.UUID
 
-internal fun mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
-    data: String,
-    hendelseId: HendelseId,
-    tidligereHendelsesId: HendelseId,
-    sakId: UUID,
-    hendelsestidspunkt: Tidspunkt,
-    versjon: Hendelsesversjon,
-    meta: DefaultHendelseMetadata,
-): MånedsvurderingerTilbakekrevingsbehandlingHendelse {
+internal fun PersistertHendelse.mapToVurdertTilbakekrevingsbehandlingHendelse(): VurdertTilbakekrevingsbehandlingHendelse {
     val deserialized = deserialize<MånedsvurderingTilbakekrevingsbehandlingDbJson>(data)
 
-    return MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+    return VurdertTilbakekrevingsbehandlingHendelse(
         hendelseId = hendelseId,
-        sakId = sakId,
+        sakId = sakId!!,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = meta,
+        meta = defaultHendelseMetadata(),
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
-        tidligereHendelseId = tidligereHendelsesId,
+        tidligereHendelseId = tidligereHendelseId!!,
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),
-        vurderinger = deserialized.vurderinger.toDomain(),
+        vurderingerMedKrav = deserialized.toDomain(),
     )
 }
 
 private data class MånedsvurderingTilbakekrevingsbehandlingDbJson(
     val behandlingsId: UUID,
     val utførtAv: String,
-    val vurderinger: List<MånedsvurderingerDbJson>,
-)
+    val vurderinger: List<PeriodevurderingMedKravDbJson>,
+    val saksnummer: String,
+    val eksternKravgrunnlagId: String,
+    val eksternVedtakId: String,
+    val eksternKontrollfelt: String,
+) {
+    fun toDomain(): VurderingerMedKrav {
+        return VurderingerMedKrav.fraPersistert(
+            perioder = vurderinger.map { it.toDomain() }.toNonEmptyList(),
+            saksnummer = Saksnummer.parse(saksnummer),
+            eksternKravgrunnlagId = eksternKravgrunnlagId,
+            eksternVedtakId = eksternVedtakId,
+            eksternKontrollfelt = eksternKontrollfelt,
+        )
+    }
+}
 
-internal fun MånedsvurderingerTilbakekrevingsbehandlingHendelse.toJson(): String {
+internal fun VurdertTilbakekrevingsbehandlingHendelse.toJson(): String {
     return MånedsvurderingTilbakekrevingsbehandlingDbJson(
         behandlingsId = this.id.value,
         utførtAv = this.utførtAv.navIdent,
-        vurderinger = this.vurderinger.toJson(),
+        vurderinger = this.vurderingerMedKrav.toJson(),
+        saksnummer = this.vurderingerMedKrav.saksnummer.toString(),
+        eksternKravgrunnlagId = this.vurderingerMedKrav.eksternKravgrunnlagId,
+        eksternVedtakId = this.vurderingerMedKrav.eksternVedtakId,
+        eksternKontrollfelt = this.vurderingerMedKrav.eksternKontrollfelt,
     ).let {
         serialize(it)
     }
 }
 
-private data class MånedsvurderingerDbJson(
-    val måned: String,
+private data class PeriodevurderingMedKravDbJson(
+    val fraOgMed: String,
+    val tilOgMed: String,
     val vurdering: String,
+    val betaltSkattForYtelsesgruppen: Int,
+    val bruttoTidligereUtbetalt: Int,
+    val bruttoNyUtbetaling: Int,
+    val bruttoSkalIkkeTilbakekreve: Int,
+    val bruttoSkalTilbakekreve: Int,
+    val nettoSkalTilbakekreve: Int,
+    val skatteProsent: String,
 ) {
-    fun toDomain(): Månedsvurdering = Månedsvurdering(
-        måned = Måned.fra(YearMonth.parse(måned)),
-        vurdering = when (vurdering) {
-            "SkalIkkeTilbakekreve" -> Vurdering.SkalIkkeTilbakekreve
-            "SkalTilbakekreve" -> Vurdering.SkalTilbakekreve
-            else -> throw IllegalArgumentException("Ukjent vurderingstype")
-        },
-    )
+    fun toDomain(): PeriodevurderingMedKrav {
+        val periode = DatoIntervall(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+        val skatteProsent = BigDecimal(this.skatteProsent)
+        return when (vurdering) {
+            "SkalIkkeTilbakekreve" -> {
+                PeriodevurderingMedKrav.SkalIkkeTilbakekreve(
+                    periode = periode,
+                    betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen,
+                    bruttoTidligereUtbetalt = this.bruttoTidligereUtbetalt,
+                    bruttoNyUtbetaling = this.bruttoNyUtbetaling,
+                    bruttoSkalIkkeTilbakekreve = this.bruttoSkalIkkeTilbakekreve,
+                    skatteProsent = skatteProsent,
+                )
+            }
 
-    companion object {
-        fun List<MånedsvurderingerDbJson>.toDomain(): Vurderinger = Vurderinger(this.map { it.toDomain() }.toNonEmptyList())
+            "SkalTilbakekreve" -> PeriodevurderingMedKrav.SkalTilbakekreve(
+                periode = periode,
+                betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen,
+                bruttoTidligereUtbetalt = this.bruttoTidligereUtbetalt,
+                bruttoNyUtbetaling = this.bruttoNyUtbetaling,
+                bruttoSkalTilbakekreve = this.bruttoSkalTilbakekreve,
+                nettoSkalTilbakekreve = this.nettoSkalTilbakekreve,
+                skatteProsent = skatteProsent,
+            )
+
+            else -> throw IllegalArgumentException("Ukjent vurderingstype")
+        }
     }
 }
 
-private fun Vurderinger.toJson(): Nel<MånedsvurderingerDbJson> = this.vurderinger.map {
-    MånedsvurderingerDbJson(
-        måned = it.måned.toString(),
-        vurdering = when (it.vurdering) {
-            Vurdering.SkalIkkeTilbakekreve -> "SkalIkkeTilbakekreve"
-            Vurdering.SkalTilbakekreve -> "SkalTilbakekreve"
+private fun VurderingerMedKrav.toJson(): Nel<PeriodevurderingMedKravDbJson> = this.perioder.map {
+    PeriodevurderingMedKravDbJson(
+        fraOgMed = it.periode.fraOgMed.toString(),
+        tilOgMed = it.periode.tilOgMed.toString(),
+        vurdering = when (it) {
+            is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> "SkalIkkeTilbakekreve"
+            is PeriodevurderingMedKrav.SkalTilbakekreve -> "SkalTilbakekreve"
         },
+        betaltSkattForYtelsesgruppen = it.betaltSkattForYtelsesgruppen,
+        bruttoTidligereUtbetalt = it.bruttoTidligereUtbetalt,
+        bruttoNyUtbetaling = it.bruttoNyUtbetaling,
+        bruttoSkalIkkeTilbakekreve = it.bruttoSkalIkkeTilbakekreve,
+        bruttoSkalTilbakekreve = it.bruttoSkalTilbakekreve,
+        nettoSkalTilbakekreve = it.nettoSkalTilbakekreve,
+        skatteProsent = it.skatteProsent.toString(),
     )
 }

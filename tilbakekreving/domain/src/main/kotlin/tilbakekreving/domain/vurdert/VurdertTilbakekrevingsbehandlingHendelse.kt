@@ -3,7 +3,6 @@
 
 package tilbakekreving.domain
 
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -11,11 +10,11 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.vurdert.VurderCommand
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.time.Clock
 import java.util.UUID
 
-data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+data class VurdertTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -24,7 +23,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val vurderinger: Vurderinger,
+    val vurderingerMedKrav: VurderingerMedKrav,
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
@@ -35,7 +34,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is KanVurdere -> behandling.leggTilVurderinger(
-                månedsvurderinger = this.vurderinger,
+                månedsvurderinger = this.vurderingerMedKrav,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
             )
@@ -52,8 +51,8 @@ fun KanVurdere.leggTilVurdering(
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, UnderBehandling> {
-    val hendelse = MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+): Pair<VurdertTilbakekrevingsbehandlingHendelse, UnderBehandling> {
+    val hendelse = VurdertTilbakekrevingsbehandlingHendelse(
         hendelseId = HendelseId.generer(),
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),
@@ -66,7 +65,7 @@ fun KanVurdere.leggTilVurdering(
         ),
         id = command.behandlingsId,
         utførtAv = command.utførtAv,
-        vurderinger = Vurderinger(command.vurderinger.toNonEmptyList()),
+        vurderingerMedKrav = VurderingerMedKrav.utledFra(command.vurderinger, this.kravgrunnlag),
     )
     return hendelse to hendelse.applyToState(this)
 }

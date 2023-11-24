@@ -96,7 +96,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"OPPRETTET",
-  "månedsvurderinger":[],
+  "vurderinger":null,
   "fritekst":null,
   "forhåndsvarselsInfo": [],
   "sendtTilAttesteringAv": null,

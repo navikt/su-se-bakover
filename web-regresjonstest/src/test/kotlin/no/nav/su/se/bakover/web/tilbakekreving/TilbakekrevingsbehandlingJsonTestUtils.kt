@@ -13,7 +13,7 @@ fun hentFritekst(json: String): String {
     return JSONObject(json).getString("fritekst")
 }
 fun hentVurderinger(json: String): String {
-    return JSONObject(json).getJSONArray("månedsvurderinger").toString()
+    return JSONObject(json).getJSONObject("vurderinger").toString()
 }
 fun hentAttesteringer(json: String): String {
     return JSONObject(json).getJSONArray("attesteringer").toString()

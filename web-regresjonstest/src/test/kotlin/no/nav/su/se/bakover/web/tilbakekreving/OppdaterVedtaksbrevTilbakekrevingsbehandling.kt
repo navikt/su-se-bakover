@@ -104,7 +104,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"VEDTAKSBREV",
-  "månedsvurderinger":$vurderinger,
+  "vurderinger":$vurderinger,
   "fritekst":"${brevtekst?.let { "$brevtekst" } ?: ""}",
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,

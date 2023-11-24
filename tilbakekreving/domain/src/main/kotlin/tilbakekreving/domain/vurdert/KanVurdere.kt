@@ -5,12 +5,12 @@ package tilbakekreving.domain
 
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdert.VurderingerMedKrav
 
 sealed interface KanVurdere : KanEndres {
 
     fun leggTilVurderinger(
-        månedsvurderinger: Vurderinger,
+        månedsvurderinger: VurderingerMedKrav,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
     ): UnderBehandling
