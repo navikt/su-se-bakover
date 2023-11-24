@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
     id("com.diffplug.spotless") version "6.22.0"
 }
 
@@ -21,12 +21,11 @@ subprojects {
     }
     val kotestVersion = "5.8.0"
     val jacksonVersion = "2.16.0"
-    val kotlinVersion: String by this
     val confluentVersion = "7.3.1"
     dependencies {
-        implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-        implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
-        implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+        implementation(rootProject.libs.kotlin.reflect)
+        implementation(rootProject.libs.kotlin.script.runtime)
+        implementation(rootProject.libs.kotlin.compiler.embeddable)
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
         implementation(platform("io.arrow-kt:arrow-stack:1.2.1"))
         implementation("io.arrow-kt:arrow-core")

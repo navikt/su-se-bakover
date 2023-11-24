@@ -1,13 +1,7 @@
-
-
 pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-    }
-    plugins {
-        val kotlinVersion: String by settings
-        kotlin("jvm") version kotlinVersion
     }
 }
 rootProject.name = "su-se-bakover"
@@ -61,5 +55,4 @@ include("dokument:domain")
 include("dokument:application")
 include("dokument:infrastructure")
 include("dokument:presentation")
-findProject(":dokument:presentation")?.name = "presentation"
 include("common:presentation")
