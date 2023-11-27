@@ -8,7 +8,7 @@ dependencies {
 
     testImplementation(project(":test-common"))
     // Mockito
-    testImplementation(project(":utenlandsopphold:domain"))
+    testImplementation(project(":vilkår:utenlandsopphold:domain"))
     testImplementation(project(":hendelse:domain"))
     testImplementation(project(":økonomi:domain"))
     testImplementation(project(":tilbakekreving:domain"))

@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":utenlandsopphold:domain"))
+    implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":hendelse:domain"))
     implementation(project(":common:domain"))
     implementation(project(":domain"))
@@ -7,5 +7,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("utenlandsopphold-application")
+    archiveBaseName.set("vilkår-utenlandsopphold-application")
 }

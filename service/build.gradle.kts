@@ -12,6 +12,6 @@ dependencies {
     implementation(project(":behandling:domain"))
     implementation(project(":sats"))
 
-    testImplementation(project(":utenlandsopphold:domain"))
+    testImplementation(project(":vilkår:utenlandsopphold:domain"))
     testImplementation(project(":test-common"))
 }

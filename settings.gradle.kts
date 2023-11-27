@@ -20,10 +20,6 @@ include("statistikk")
 include("hendelse:infrastructure")
 include("hendelse:domain")
 
-include("utenlandsopphold:infrastructure")
-include("utenlandsopphold:application")
-include("utenlandsopphold:domain")
-
 include("datapakker:soknad")
 
 include("kontrollsamtale:infrastructure")
@@ -34,6 +30,12 @@ include("vilkår:institusjonsopphold:infrastructure")
 include("vilkår:institusjonsopphold:application")
 include("vilkår:institusjonsopphold:domain")
 include("vilkår:institusjonsopphold:presentation")
+
+include("vilkår:utenlandsopphold:infrastructure")
+include("vilkår:utenlandsopphold:application")
+include("vilkår:utenlandsopphold:domain")
+
+include("vilkår:formue:domain")
 
 include("oppgave:domain")
 include("oppgave:application")

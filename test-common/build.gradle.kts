@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
-    implementation(project(":utenlandsopphold:domain"))
+    implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":vilkår:institusjonsopphold:domain"))
     implementation(project(":vilkår:institusjonsopphold:presentation"))
