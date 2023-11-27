@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
+import behandling.domain.beregning.fradrag.Fradragstype.ForventetInntekt
+import behandling.domain.beregning.fradrag.Fradragstype.Kontantstøtte
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.ForventetInntekt
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Kontantstøtte
 import org.junit.jupiter.api.Test
 
 internal class EnsligStrategyTest {

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import behandling.domain.beregning.fradrag.Fradragstype
 
 sealed class Merknader {
 

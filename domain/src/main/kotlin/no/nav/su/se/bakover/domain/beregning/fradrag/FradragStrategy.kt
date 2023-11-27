@@ -2,6 +2,7 @@
 
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.satser.SatsFactory

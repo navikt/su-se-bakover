@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
 import arrow.core.Either
+import behandling.domain.beregning.fradrag.Fradragstype
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak

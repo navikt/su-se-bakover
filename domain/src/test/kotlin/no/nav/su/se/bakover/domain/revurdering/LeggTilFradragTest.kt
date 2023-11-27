@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.left
+import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig

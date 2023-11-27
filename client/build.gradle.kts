@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
+    implementation(project(":behandling:domain"))
 
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)

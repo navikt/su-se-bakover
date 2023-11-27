@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.extensions.desember

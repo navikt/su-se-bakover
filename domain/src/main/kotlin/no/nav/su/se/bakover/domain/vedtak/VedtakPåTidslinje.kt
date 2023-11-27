@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import behandling.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje

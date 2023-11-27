@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":tilbakekreving:infrastructure"))
 
     implementation(project(":person:domain"))
+    implementation(project(":behandling:domain"))
 
     implementation(rootProject.libs.ktor.client.java)
     implementation(rootProject.libs.ktor.server.test.host) {

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database
 
 import arrow.core.Either
 import arrow.core.left
+import behandling.domain.beregning.fradrag.Fradragstype
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import java.sql.PreparedStatement
 

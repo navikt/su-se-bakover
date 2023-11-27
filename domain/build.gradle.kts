@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
+    implementation(project(":behandling:domain"))
 
     testImplementation(project(":test-common"))
 }

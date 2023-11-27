@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
     implementation(project(":hendelse:domain"))
+    implementation(project(":behandling:domain"))
 
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")

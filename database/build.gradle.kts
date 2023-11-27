@@ -22,5 +22,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
 
+    implementation(project(":behandling:domain"))
+
     testImplementation(project(":test-common"))
 }
