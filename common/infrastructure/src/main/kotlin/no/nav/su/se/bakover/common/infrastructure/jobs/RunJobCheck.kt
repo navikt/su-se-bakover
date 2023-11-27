@@ -6,7 +6,9 @@ import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import java.net.InetAddress
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalTime
+import java.time.ZonedDateTime
 
 data class RunCheckFactory(
     private val leaderPodLookup: LeaderPodLookup,
@@ -34,13 +36,18 @@ fun List<RunJobCheck>.shouldRun(): Boolean {
 }
 
 data class ÅpningstidStormaskin(
+    // TODO jah: Ta inn ZonedDateTime?
     private val ordinærÅpningstidOppdrag: Pair<LocalTime, LocalTime>,
     private val clock: Clock,
 ) : RunJobCheck {
     override fun shouldRun(): Boolean {
-        return LocalTime.now(clock.withZone(zoneIdOslo)).let {
-            it > ordinærÅpningstidOppdrag.first && it < ordinærÅpningstidOppdrag.second
-        }
+        val zonedDateTime = ZonedDateTime.now(clock.withZone(zoneIdOslo))
+        val now = zonedDateTime.toLocalTime()
+        val today = zonedDateTime.dayOfWeek
+
+        return now.isAfter(ordinærÅpningstidOppdrag.first) &&
+            now.isBefore(ordinærÅpningstidOppdrag.second) &&
+            today !in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
     }
 }
 

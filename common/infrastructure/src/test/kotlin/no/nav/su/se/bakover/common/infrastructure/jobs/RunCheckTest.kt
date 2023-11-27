@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common.infrastructure.jobs
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
@@ -55,6 +56,28 @@ internal class RunCheckTest {
             clock = Clock.fixed(5.oktober(2022).atTime(18, 59, 59).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
             it.åpningstidStormaskin().shouldRun() shouldBe true
+        }
+
+        // Skal ikke være åpent i helgen (lørdag)
+        RunCheckFactory(
+            leaderPodLookup = mock {
+                on { amITheLeader(any()) } doReturn false.right()
+            },
+            applicationConfig = ApplicationConfig.createLocalConfig(),
+            clock = Clock.fixed(25.november(2023).atTime(12, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
+        ).let {
+            it.åpningstidStormaskin().shouldRun() shouldBe false
+        }
+
+        // Skal ikke være åpent i helgen (søndag)
+        RunCheckFactory(
+            leaderPodLookup = mock {
+                on { amITheLeader(any()) } doReturn false.right()
+            },
+            applicationConfig = ApplicationConfig.createLocalConfig(),
+            clock = Clock.fixed(26.november(2023).atTime(12, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
+        ).let {
+            it.åpningstidStormaskin().shouldRun() shouldBe false
         }
     }
 
