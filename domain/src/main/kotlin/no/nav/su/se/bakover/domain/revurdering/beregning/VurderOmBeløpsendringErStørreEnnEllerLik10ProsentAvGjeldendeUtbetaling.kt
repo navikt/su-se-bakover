@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
+import behandling.domain.beregning.Merknad
 import behandling.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger

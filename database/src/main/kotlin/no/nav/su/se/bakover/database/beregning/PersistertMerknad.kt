@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.beregning
 
+import behandling.domain.beregning.Merknad
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.domain.beregning.Merknad
 
 internal sealed interface PersistertMerknad {
 

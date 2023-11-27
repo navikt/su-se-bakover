@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import behandling.domain.beregning.Merknad
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.domain.beregning.Merknad
 
 internal fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
 

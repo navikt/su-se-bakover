@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import behandling.domain.beregning.Merknad
 import behandling.domain.beregning.fradrag.Fradrag
 import behandling.domain.beregning.fradrag.FradragFactory
 import behandling.domain.beregning.fradrag.FradragTilhører

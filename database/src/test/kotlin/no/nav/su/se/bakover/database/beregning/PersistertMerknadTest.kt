@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.beregning
 
+import behandling.domain.beregning.Merknad
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 

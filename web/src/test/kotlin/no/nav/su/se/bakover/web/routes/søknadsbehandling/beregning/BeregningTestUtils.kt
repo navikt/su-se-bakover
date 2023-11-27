@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import behandling.domain.beregning.Merknad
 import behandling.domain.beregning.fradrag.Fradrag
 import behandling.domain.beregning.fradrag.FradragForMåned
 import behandling.domain.beregning.fradrag.FradragTilhører
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato

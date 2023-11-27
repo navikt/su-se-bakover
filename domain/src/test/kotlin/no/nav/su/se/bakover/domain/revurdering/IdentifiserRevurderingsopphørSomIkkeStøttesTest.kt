@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.domain.beregning.Merknad
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.revurdering.opphør.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes

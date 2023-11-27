@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.domain.beregning.Merknad
 import behandling.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon

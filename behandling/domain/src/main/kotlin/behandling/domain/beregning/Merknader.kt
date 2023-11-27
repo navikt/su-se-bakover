@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
+package behandling.domain.beregning
 
 import behandling.domain.beregning.fradrag.Fradragstype
 
