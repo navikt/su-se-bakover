@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Co
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import vilkår.formue.domain.FormuegrenserFactory
 
 sealed interface Vilkårsvurderinger {
     val vilkår: Set<Vilkår>

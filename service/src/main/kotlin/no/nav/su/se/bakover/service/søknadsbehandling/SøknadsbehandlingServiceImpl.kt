@@ -74,7 +74,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -97,6 +96,7 @@ import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.Year
 import java.util.UUID

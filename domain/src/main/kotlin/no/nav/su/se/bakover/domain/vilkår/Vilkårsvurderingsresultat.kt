@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import vilkår.domain.Inngangsvilkår
 
 /**
  * vilkårsvurderinger - inneholder vilkårsvurdering av alle grunnlagstyper

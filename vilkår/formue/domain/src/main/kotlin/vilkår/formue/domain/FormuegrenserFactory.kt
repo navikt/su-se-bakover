@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.startOfMonth
@@ -15,7 +15,6 @@ import java.time.LocalDate
  * @param tidligsteTilgjengeligeMåned Tidligste tilgjengelige måned denne satsen er aktuell. Som for denne satsen er 2021-01-01, men siden vi har tester som antar den gjelder før dette er den dynamisk.
  */
 class FormuegrenserFactory private constructor(
-    private val grunnbeløpFactory: GrunnbeløpFactory,
     private val månedTilFormuegrense: Map<Måned, FormuegrenseForMåned>,
     val knekkpunkt: Knekkpunkt,
     val tidligsteTilgjengeligeMåned: Måned,
@@ -46,7 +45,6 @@ class FormuegrenserFactory private constructor(
                     },
                 knekkpunkt = knekkpunkt,
                 tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
-                grunnbeløpFactory = grunnbeløpFactory,
             )
         }
     }

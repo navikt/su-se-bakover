@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.domain.Inngangsvilkår
 import java.time.LocalDate
 
 /**

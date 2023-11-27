@@ -48,6 +48,8 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":sats"))
+    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:formue:domain"))
 
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")

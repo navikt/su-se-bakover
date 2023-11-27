@@ -15,13 +15,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perio
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 

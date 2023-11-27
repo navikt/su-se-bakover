@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import sats.grunnbeløp.GrunnbeløpForMåned
+import vilkår.formue.domain.FormuegrenseForMåned
 import java.math.BigDecimal
 
 internal class FormuegrenserFactoryTest {

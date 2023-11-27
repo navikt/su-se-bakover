@@ -10,6 +10,8 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":sats"))
+    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:formue:domain"))
 
     testImplementation(project(":test-common"))
 }

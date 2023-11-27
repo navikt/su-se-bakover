@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
+import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
 /**

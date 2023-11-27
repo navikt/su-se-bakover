@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.satser
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import sats.FullSupplerendeStønadForMåned
 import sats.Knekkpunkt
 import sats.Satskategori
 import sats.grunnbeløp.GrunnbeløpForMåned
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 import java.time.YearMonth
 

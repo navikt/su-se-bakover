@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import org.slf4j.LoggerFactory
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 interface SendPåminnelserOmNyStønadsperiodeService {

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth

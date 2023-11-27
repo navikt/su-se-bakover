@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 

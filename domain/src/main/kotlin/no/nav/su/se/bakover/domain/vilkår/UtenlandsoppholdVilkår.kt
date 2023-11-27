@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.Inngangsvilkår
 import java.util.UUID
 
 sealed interface UtenlandsoppholdVilkår : Vilkår {

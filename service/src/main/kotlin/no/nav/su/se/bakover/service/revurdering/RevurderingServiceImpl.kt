@@ -81,7 +81,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -107,6 +106,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 

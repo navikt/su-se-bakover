@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 /**
 Et inngangsvilkår er de vilkårene som kan føre til avslag før det beregnes?

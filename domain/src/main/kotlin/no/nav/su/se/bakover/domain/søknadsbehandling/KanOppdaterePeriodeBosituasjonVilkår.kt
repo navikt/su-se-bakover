@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.VilkårsfeilVedSø
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurdertVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 /**

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.mockito.kotlin.mock
 import person.domain.PersonService
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun createSøknadsbehandlingService(

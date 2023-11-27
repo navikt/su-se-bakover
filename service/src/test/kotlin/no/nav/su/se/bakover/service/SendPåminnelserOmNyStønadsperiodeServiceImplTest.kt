@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -54,6 +53,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month

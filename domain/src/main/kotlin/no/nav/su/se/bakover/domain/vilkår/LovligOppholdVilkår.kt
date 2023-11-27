@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.Inngangsvilkår
 
 sealed interface LovligOppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.LovligOpphold

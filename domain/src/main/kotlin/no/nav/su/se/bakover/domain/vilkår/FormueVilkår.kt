@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.Inngangsvilkår
+import vilkår.formue.domain.FormuegrenserFactory
 
 sealed interface FormueVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Formue

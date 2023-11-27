@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.Faktor
