@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import sats.Satskategori
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset

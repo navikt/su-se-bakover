@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain.satser
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import sats.FullSupplerendeStønadFactory
+import sats.FullSupplerendeStønadForMåned
+import sats.Knekkpunkt
+import sats.Satskategori
+import sats.grunnbeløp.GrunnbeløpFactory
+import sats.grunnbeløp.GrunnbeløpForMåned
 
 /**
  * Satser for supplerende stønad som er gyldig på en gitt dato.

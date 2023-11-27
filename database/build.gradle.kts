@@ -24,5 +24,7 @@ dependencies {
 
     implementation(project(":behandling:domain"))
 
+    implementation(project(":sats"))
+
     testImplementation(project(":test-common"))
 }

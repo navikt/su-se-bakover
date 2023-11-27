@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.regulering
 import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.september
@@ -11,16 +12,11 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.satser.Faktor
-import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
-import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
-import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -28,6 +24,10 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
+import sats.FullSupplerendeStønadForMåned
+import sats.MinsteÅrligYtelseForUføretrygdedeForMåned
+import sats.Satskategori
+import sats.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {

@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":sats"))
 
     testImplementation(project(":utenlandsopphold:domain"))
     testImplementation(project(":test-common"))

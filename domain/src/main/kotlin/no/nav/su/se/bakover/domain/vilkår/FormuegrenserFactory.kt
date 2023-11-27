@@ -4,9 +4,9 @@ import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
-import no.nav.su.se.bakover.domain.satser.Knekkpunkt
-import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
+import sats.Knekkpunkt
+import sats.Knekkpunkt.Companion.compareTo
+import sats.grunnbeløp.GrunnbeløpFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 

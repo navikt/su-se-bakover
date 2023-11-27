@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.satser
+package sats
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf

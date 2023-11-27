@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":sats"))
 
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)

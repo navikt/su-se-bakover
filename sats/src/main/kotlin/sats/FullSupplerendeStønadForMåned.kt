@@ -1,8 +1,8 @@
-package no.nav.su.se.bakover.domain.satser
+package sats
 
 import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
+import sats.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 import java.math.MathContext
 import java.time.LocalDate

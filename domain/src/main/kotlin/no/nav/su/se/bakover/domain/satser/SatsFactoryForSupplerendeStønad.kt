@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.satser
 
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
@@ -10,9 +11,13 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
-import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import sats.FullSupplerendeStønadFactory
+import sats.GarantipensjonFactory
+import sats.Knekkpunkt
+import sats.MinsteÅrligYtelseForUføretrygdedeFactory
+import sats.grunnbeløp.GrunnbeløpFactory
+import sats.grunnbeløp.Grunnbeløpsendring
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId

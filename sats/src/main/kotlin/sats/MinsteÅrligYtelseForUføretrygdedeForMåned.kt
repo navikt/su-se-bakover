@@ -1,5 +1,6 @@
-package no.nav.su.se.bakover.domain.satser
+package sats
 
+import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.math.BigDecimal
 import java.time.LocalDate

@@ -30,6 +30,7 @@ dependencies {
 
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":sats"))
 
     implementation(rootProject.libs.ktor.client.java)
     implementation(rootProject.libs.ktor.server.test.host) {

@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.satser.Satskategori
 import org.slf4j.LoggerFactory
+import sats.Satskategori
 import java.math.RoundingMode
 
 /**

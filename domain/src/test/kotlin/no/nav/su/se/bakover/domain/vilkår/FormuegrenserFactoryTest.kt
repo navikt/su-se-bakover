@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
@@ -11,13 +12,12 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
-import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import sats.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 
 internal class FormuegrenserFactoryTest {

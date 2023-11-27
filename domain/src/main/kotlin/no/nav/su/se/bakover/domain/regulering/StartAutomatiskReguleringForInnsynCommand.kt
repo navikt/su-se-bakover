@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
-import no.nav.su.se.bakover.domain.satser.GarantipensjonFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerHøy
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerOrdinær
 import no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer
+import sats.GarantipensjonFactory
+import sats.grunnbeløp.Grunnbeløpsendring
 import java.time.LocalDate
 
 /**

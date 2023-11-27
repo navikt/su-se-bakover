@@ -23,6 +23,11 @@ import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import org.junit.jupiter.api.Test
+import sats.Månedssats
+import sats.Månedssatser
+import sats.RåSats
+import sats.RåSatser
+import sats.periodisert
 
 internal class Periode_periodisert_Test {
 

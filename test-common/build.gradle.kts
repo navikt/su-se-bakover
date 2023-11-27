@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":tilbakekreving:infrastructure"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":sats"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.
