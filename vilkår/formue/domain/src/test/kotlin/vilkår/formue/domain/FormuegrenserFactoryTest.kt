@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
@@ -17,8 +17,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import sats.grunnbeløp.GrunnbeløpForMåned
-import vilkår.formue.domain.FormuegrenseForMåned
+import sats.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 
 internal class FormuegrenserFactoryTest {

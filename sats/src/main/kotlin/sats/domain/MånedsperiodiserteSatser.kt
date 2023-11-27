@@ -1,4 +1,4 @@
-package sats
+package sats.domain
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf

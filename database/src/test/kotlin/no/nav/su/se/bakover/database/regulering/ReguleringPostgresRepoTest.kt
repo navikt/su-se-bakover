@@ -24,10 +24,10 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
-import sats.FullSupplerendeStønadForMåned
-import sats.MinsteÅrligYtelseForUføretrygdedeForMåned
-import sats.Satskategori
-import sats.grunnbeløp.GrunnbeløpForMåned
+import sats.domain.FullSupplerendeStønadForMåned
+import sats.domain.MinsteÅrligYtelseForUføretrygdedeForMåned
+import sats.domain.Satskategori
+import sats.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {

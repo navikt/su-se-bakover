@@ -1,15 +1,15 @@
-package sats.grunnbeløp
+package sats.domain.grunnbeløp
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import sats.Knekkpunkt
-import sats.Knekkpunkt.Companion.compareTo
-import sats.RåSats
-import sats.RåSatser
-import sats.periodisert
+import sats.domain.Knekkpunkt
+import sats.domain.Knekkpunkt.Companion.compareTo
+import sats.domain.RåSats
+import sats.domain.RåSatser
+import sats.domain.periodisert
 import java.time.LocalDate
 /**
  * Fra lov om supplerende stønad (https://lovdata.no/dokument/NL/lov/2005-04-29-21):

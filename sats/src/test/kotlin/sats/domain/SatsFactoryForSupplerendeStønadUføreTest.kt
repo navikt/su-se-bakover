@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.satser
+package sats.domain
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -20,20 +20,15 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.november
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import sats.FullSupplerendeStønadForMåned
-import sats.GarantipensjonFactory
-import sats.GarantipensjonForMåned
-import sats.MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring
-import sats.MinsteÅrligYtelseForUføretrygdedeForMåned
-import sats.Satskategori
-import sats.grunnbeløp.GrunnbeløpForMåned
-import sats.grunnbeløp.Grunnbeløpsendring
+import sats.domain.grunnbeløp.GrunnbeløpForMåned
+import sats.domain.grunnbeløp.Grunnbeløpsendring
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
@@ -465,14 +460,38 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                     Grunnbeløpsendring(1.februar(2022), 2.januar(2022), 30),
                 ),
                 minsteÅrligYtelseForUføretrygdedeOrdinær = nonEmptyListOf(
-                    MinsteÅrligUføre(1.november(2021), 16.november(2021), Faktor(1.0)),
-                    MinsteÅrligUføre(1.desember(2021), 18.desember(2021), Faktor(2.0)),
-                    MinsteÅrligUføre(1.januar(2022), 2.januar(2022), Faktor(3.0)),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.november(2021),
+                        16.november(2021),
+                        Faktor(1.0),
+                    ),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.desember(2021),
+                        18.desember(2021),
+                        Faktor(2.0),
+                    ),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.januar(2022),
+                        2.januar(2022),
+                        Faktor(3.0),
+                    ),
                 ),
                 minsteÅrligYtelseForUføretrygdedeHøy = nonEmptyListOf(
-                    MinsteÅrligUføre(1.november(2021), 16.november(2021), Faktor(4.0)),
-                    MinsteÅrligUføre(1.desember(2021), 18.desember(2021), Faktor(5.0)),
-                    MinsteÅrligUføre(1.januar(2022), 2.januar(2022), Faktor(6.0)),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.november(2021),
+                        16.november(2021),
+                        Faktor(4.0),
+                    ),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.desember(2021),
+                        18.desember(2021),
+                        Faktor(5.0),
+                    ),
+                    MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+                        1.januar(2022),
+                        2.januar(2022),
+                        Faktor(6.0),
+                    ),
                 ),
             )
             satsFactory.gjeldende(1.januar(2022)).let {
@@ -516,5 +535,3 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         }
     }
 }
-
-private typealias MinsteÅrligUføre = MinsteÅrligYtelseForUføretrygdedeEndring

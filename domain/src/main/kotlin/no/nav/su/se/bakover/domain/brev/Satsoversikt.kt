@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import sats.Satskategori
+import sats.domain.Satskategori
 import java.time.LocalDate
 
 /**

@@ -1,4 +1,4 @@
-package sats
+package sats.domain
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.Faktor
@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import sats.Knekkpunkt.Companion.compareTo
+import sats.domain.Knekkpunkt.Companion.compareTo
 import java.time.LocalDate
 
 /**

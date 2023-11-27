@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import sats.Satskategori
+import sats.domain.Satskategori
 import vilkår.personligOppmøtevilkårInnvilget
 
 internal class SøknadsbehandlingAlderKomponentTest {

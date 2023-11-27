@@ -1,4 +1,4 @@
-package sats.grunnbeløp
+package sats.domain.grunnbeløp
 
 import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.extensions.isEqualOrBefore

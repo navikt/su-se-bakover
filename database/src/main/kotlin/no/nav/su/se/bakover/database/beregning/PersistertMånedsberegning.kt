@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import org.slf4j.LoggerFactory
-import sats.Satskategori
+import sats.domain.Satskategori
 import java.math.RoundingMode
 
 /**

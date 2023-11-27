@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.satser
+package sats.domain
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
@@ -14,9 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
-import sats.FullSupplerendeStønadForMåned
-import sats.GarantipensjonForMåned
-import sats.Satskategori
 import java.math.BigDecimal
 
 internal class GarantipensjonFactoryTest {

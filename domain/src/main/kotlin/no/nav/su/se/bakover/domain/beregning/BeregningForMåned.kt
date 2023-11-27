@@ -4,8 +4,8 @@ import behandling.domain.beregning.Merknad
 import behandling.domain.beregning.Merknader
 import behandling.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import sats.FullSupplerendeStønadForMåned
-import sats.Satskategori
+import sats.domain.FullSupplerendeStønadForMåned
+import sats.domain.Satskategori
 
 /**
  * Gjelder for kun 1 måned.

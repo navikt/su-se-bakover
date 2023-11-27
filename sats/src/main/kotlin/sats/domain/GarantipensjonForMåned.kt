@@ -1,4 +1,4 @@
-package sats
+package sats.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.LocalDate

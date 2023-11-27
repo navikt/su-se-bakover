@@ -1,9 +1,9 @@
-package sats
+package sats.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import sats.Knekkpunkt.Companion.compareTo
-import sats.grunnbeløp.GrunnbeløpFactory
+import sats.domain.Knekkpunkt.Companion.compareTo
+import sats.domain.grunnbeløp.GrunnbeløpFactory
 import java.math.BigDecimal
 import java.math.MathContext
 

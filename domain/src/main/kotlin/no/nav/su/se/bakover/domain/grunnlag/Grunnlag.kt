@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import org.jetbrains.annotations.TestOnly
-import sats.Satskategori
+import sats.domain.Satskategori
 import java.time.Clock
 import java.util.UUID
 

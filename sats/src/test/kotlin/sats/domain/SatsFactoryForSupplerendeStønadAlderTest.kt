@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.satser
+package sats.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.juni
@@ -7,9 +7,6 @@ import no.nav.su.se.bakover.common.extensions.scaleTo4
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
-import sats.FullSupplerendeStønadForMåned
-import sats.GarantipensjonForMåned
-import sats.Satskategori
 import java.math.BigDecimal
 
 internal class SatsFactoryForSupplerendeStønadAlderTest {

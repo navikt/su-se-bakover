@@ -1,4 +1,4 @@
-package sats
+package sats.domain
 
 enum class Satskategori {
     ORDINÆR,

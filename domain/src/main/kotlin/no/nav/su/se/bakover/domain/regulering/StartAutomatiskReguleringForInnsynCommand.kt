@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerHøy
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerOrdinær
 import no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer
-import sats.GarantipensjonFactory
-import sats.grunnbeløp.Grunnbeløpsendring
+import sats.domain.GarantipensjonFactory
+import sats.domain.grunnbeløp.Grunnbeløpsendring
 import java.time.LocalDate
 
 /**

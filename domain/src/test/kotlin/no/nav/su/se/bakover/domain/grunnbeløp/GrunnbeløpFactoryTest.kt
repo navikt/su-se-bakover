@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import org.junit.jupiter.api.Test
-import sats.grunnbeløp.GrunnbeløpForMåned
-import sats.grunnbeløp.Grunnbeløpsendring
+import sats.domain.grunnbeløp.GrunnbeløpForMåned
+import sats.domain.grunnbeløp.Grunnbeløpsendring
 
 internal class GrunnbeløpFactoryTest {
 
