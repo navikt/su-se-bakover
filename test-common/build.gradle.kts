@@ -26,7 +26,7 @@ dependencies {
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.
     compileOnly("org.mockito.kotlin:mockito-kotlin:5.1.0")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
-    compileOnly("io.zonky.test:embedded-postgres:2.0.4")
+    compileOnly("io.zonky.test:embedded-postgres:2.0.5")
     compileOnly(rootProject.libs.jupiter.api)
     implementation(rootProject.libs.wiremock) {
         exclude(group = "junit")
