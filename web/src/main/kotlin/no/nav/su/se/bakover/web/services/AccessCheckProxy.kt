@@ -1227,7 +1227,8 @@ open class AccessCheckProxy(
                     get() = kastKanKunKallesFraAnnenService()
 
                 override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                    get() = kastKanKunKallesFraAnnenService()
+                    // Denne kalles fra en driftsjobb.
+                    get() = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService
             },
             resendStatistikkhendelserService = object : ResendStatistikkhendelserService {
                 override fun resendIverksattSøknadsbehandling(fraOgMedDato: LocalDate) {

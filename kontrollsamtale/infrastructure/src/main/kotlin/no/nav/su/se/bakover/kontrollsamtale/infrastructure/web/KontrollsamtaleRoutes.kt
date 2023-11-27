@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleJson.Companion.toJson
 import java.time.LocalDate
 
@@ -24,6 +25,7 @@ const val SAK_PATH = "/saker"
 
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
+    utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService,
 ) {
     post("$SAK_PATH/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -82,4 +84,6 @@ fun Route.kontrollsamtaleRoutes(
             }
         }
     }
+
+    stansUtløpteKontrollsamtalerRoute(utløptFristForKontrollsamtaleService)
 }

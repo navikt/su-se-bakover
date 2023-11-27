@@ -64,7 +64,7 @@ internal class KontrollsamtaleRoutesKtTest {
                             override val annullerKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = fail("Should not end up here.")
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
                         },
                     ),
                 )
@@ -104,7 +104,7 @@ internal class KontrollsamtaleRoutesKtTest {
                             override val annullerKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val utløptFristForKontrollsamtaleService
-                                get() = fail("Should not end up here.")
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
                         },
                     ),
                 )
@@ -141,7 +141,7 @@ internal class KontrollsamtaleRoutesKtTest {
                             override val annullerKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = fail("Should not end up here.")
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
                         },
                     ),
                 )
@@ -178,7 +178,7 @@ internal class KontrollsamtaleRoutesKtTest {
                             override val annullerKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = fail("Should not end up here.")
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
                         },
                     ),
                 )
@@ -212,7 +212,7 @@ internal class KontrollsamtaleRoutesKtTest {
                             override val annullerKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = fail("Should not end up here.")
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
                         },
                     ),
                 )

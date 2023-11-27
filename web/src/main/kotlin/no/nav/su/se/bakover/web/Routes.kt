@@ -97,7 +97,10 @@ internal fun Application.setupKtorRoutes(
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
-                    kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService)
+                    kontrollsamtaleRoutes(
+                        kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
+                        utløptFristForKontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
+                    )
                     reguleringRoutes(accessProtectedServices.reguleringService, clock)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
@@ -131,9 +134,6 @@ internal fun Application.setupKtorRoutes(
                     leggTilBrevvalgRevurderingRoute(
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactoryIDag,
-                    )
-                    kontrollsamtaleRoutes(
-                        kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
                     tilbakekrevingRoutes(
                         opprettTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.opprettTilbakekrevingsbehandlingService,
