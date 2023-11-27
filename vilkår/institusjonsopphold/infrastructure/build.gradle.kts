@@ -2,7 +2,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":common:domain"))
     implementation(project(":hendelse:domain"))
-    implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":vilkår:institusjonsopphold:domain"))
     // avhengig av økonomi pga sak
     implementation(project(":økonomi:domain"))
 
@@ -13,7 +13,7 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("institusjonsopphold-infrastructure")
+    archiveBaseName.set("vilkår-institusjonsopphold-infrastructure")
 }
 
 tasks.test {

@@ -7,7 +7,7 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("institusjonsopphold-domain")
+    archiveBaseName.set("vilkår-institusjonsopphold-domain")
 }
 
 tasks.test {

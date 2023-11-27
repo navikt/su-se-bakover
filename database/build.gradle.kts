@@ -11,8 +11,8 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:infrastructure"))
 
-    implementation(project(":institusjonsopphold:infrastructure"))
-    implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":vilkår:institusjonsopphold:infrastructure"))
+    implementation(project(":vilkår:institusjonsopphold:domain"))
 
     implementation(project(":oppgave:infrastructure"))
     implementation(project(":oppgave:domain"))

@@ -1,6 +1,6 @@
 dependencies {
-    implementation(project(":institusjonsopphold:application"))
-    implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":vilkår:institusjonsopphold:application"))
+    implementation(project(":vilkår:institusjonsopphold:domain"))
     implementation(project(":hendelse:domain"))
 
     implementation(project(":common:domain"))
@@ -11,7 +11,7 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("institusjonsopphold-presentation")
+    archiveBaseName.set("vilkår-institusjonsopphold-presentation")
 }
 
 tasks.test {
