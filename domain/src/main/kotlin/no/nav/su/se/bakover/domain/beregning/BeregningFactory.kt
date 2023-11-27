@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import behandling.domain.beregning.fradrag.Fradrag
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
+import behandling.domain.beregning.fradrag.utenSosialstønad
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.time.Clock
 import java.util.UUID
 

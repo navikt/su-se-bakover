@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.vilkår
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import behandling.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling

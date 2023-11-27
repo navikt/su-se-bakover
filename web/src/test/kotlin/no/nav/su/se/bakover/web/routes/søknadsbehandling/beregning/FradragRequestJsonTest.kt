@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.right
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import org.junit.jupiter.api.Test
 
 internal class FradragRequestJsonTest {

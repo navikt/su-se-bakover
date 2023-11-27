@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy.EpsUnder67ÅrOgUf
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock

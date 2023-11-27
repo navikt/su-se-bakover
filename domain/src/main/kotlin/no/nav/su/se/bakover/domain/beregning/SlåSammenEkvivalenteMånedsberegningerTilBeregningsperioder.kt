@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import behandling.domain.beregning.fradrag.Fradrag
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 
 /**

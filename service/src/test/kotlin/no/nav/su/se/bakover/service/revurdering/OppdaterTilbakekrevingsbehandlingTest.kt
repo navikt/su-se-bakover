@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
+import behandling.domain.beregning.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering

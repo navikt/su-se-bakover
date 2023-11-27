@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover.domain.beregning.fradrag
+package behandling.domain.beregning.fradrag
 
-import behandling.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.KopierbarForSnitt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 

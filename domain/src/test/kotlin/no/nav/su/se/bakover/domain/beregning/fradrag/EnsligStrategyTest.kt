@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import behandling.domain.beregning.fradrag.Fradragstype.ForventetInntekt
 import behandling.domain.beregning.fradrag.Fradragstype.Kontantstøtte

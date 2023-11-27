@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning.fradrag
+package behandling.domain.beregning.fradrag
 
 import arrow.core.Either
 import arrow.core.getOrElse

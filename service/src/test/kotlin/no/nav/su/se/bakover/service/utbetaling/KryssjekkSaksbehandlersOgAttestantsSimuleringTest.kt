@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.left
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.februar
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling

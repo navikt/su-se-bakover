@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.left
+import behandling.domain.beregning.fradrag.Fradrag
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -24,9 +27,6 @@ import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato

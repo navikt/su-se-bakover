@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.FradragTilhører.BRUKER
+import behandling.domain.beregning.fradrag.FradragTilhører.EPS
 import behandling.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import behandling.domain.beregning.fradrag.Fradragstype.BeregnetFradragEPS
 import behandling.domain.beregning.fradrag.Fradragstype.ForventetInntekt
@@ -18,8 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.EPS
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 

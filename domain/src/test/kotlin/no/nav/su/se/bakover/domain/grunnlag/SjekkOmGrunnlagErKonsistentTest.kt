@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.beregning.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fullstendigMedEPS

@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragForMåned
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe

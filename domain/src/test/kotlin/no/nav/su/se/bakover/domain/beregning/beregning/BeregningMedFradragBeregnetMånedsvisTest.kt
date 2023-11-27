@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import arrow.core.left
+import behandling.domain.beregning.fradrag.FradragFactory
+import behandling.domain.beregning.fradrag.FradragForMåned
+import behandling.domain.beregning.fradrag.FradragForPeriode
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainAll
@@ -35,10 +39,6 @@ import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt

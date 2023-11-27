@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.getOrElse
+import behandling.domain.beregning.fradrag.FradragForPeriode
+import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
@@ -13,8 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 
