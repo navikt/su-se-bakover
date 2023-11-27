@@ -10,7 +10,8 @@ interface KontrollsamtaleRepo {
     fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Kontrollsamtale>
     fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): List<Kontrollsamtale>
 
-    fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale>
+    fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate?
+    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
     fun defaultSessionContext(): SessionContext
 
     fun defaultTransactionContext(): TransactionContext

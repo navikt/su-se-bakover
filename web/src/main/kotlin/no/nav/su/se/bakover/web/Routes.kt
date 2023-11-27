@@ -99,7 +99,6 @@ internal fun Application.setupKtorRoutes(
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
-                        utløptFristForKontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
                     )
                     reguleringRoutes(accessProtectedServices.reguleringService, clock)
                     opplysningspliktRoutes(

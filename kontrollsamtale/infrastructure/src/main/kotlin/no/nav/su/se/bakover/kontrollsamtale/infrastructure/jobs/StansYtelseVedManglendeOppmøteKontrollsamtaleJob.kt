@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.extensions.igår
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import java.time.Clock
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
@@ -19,7 +17,6 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
     private val intervall: Duration,
     private val initialDelay: Duration,
     private val service: UtløptFristForKontrollsamtaleService,
-    private val clock: Clock,
     private val runCheckFactory: RunCheckFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -40,7 +37,7 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
                         runCheckFactory.åpningstidStormaskin(),
                         runCheckFactory.leaderPod(),
                     ).shouldRun().ifTrue {
-                        service.håndterUtløpsdato(igår(clock))
+                        service.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
                     }
                 }
             }.mapLeft {

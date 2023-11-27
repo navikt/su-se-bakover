@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
@@ -84,14 +85,37 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale> {
+    /**
+     * TODO jah: Dette er en midlertidig fix før vi har tid til å refaktorere hele automatisk stans.
+     *
+     * @return null hvis det ikke finnes noen rader, ellers den siste fristen før eller på gitt dato.
+     */
+    override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate? {
+        return dbMetrics.timeQuery("hentFristFørEllerPåDato") {
+            sessionFactory.withSession { session ->
+                """
+                     SELECT MAX(frist) as frist
+                     FROM kontrollsamtale
+                     WHERE frist <= :frist
+                """.trimIndent()
+                    .hent(
+                        mapOf(
+                            "frist" to fristFørEllerPåDato,
+                        ),
+                        session,
+                    ) { it.localDateOrNull("frist") }
+            }
+        }
+    }
+
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentKontrollsamtaleFristUtløpt") {
             sessionFactory.withSession { session ->
-                "select * from kontrollsamtale where status=:status and frist = :dato"
+                "select * from kontrollsamtale where status=:status and frist = :frist"
                     .hentListe(
                         mapOf(
                             "status" to Kontrollsamtalestatus.INNKALT.toString(),
-                            "dato" to dato,
+                            "frist" to fristPåDato,
                         ),
                         session,
                     ) { it.toKontrollsamtale() }

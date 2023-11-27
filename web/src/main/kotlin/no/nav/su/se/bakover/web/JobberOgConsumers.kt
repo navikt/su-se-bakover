@@ -303,7 +303,6 @@ fun startJobberOgConsumers(
             intervall = Duration.of(2, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
-            clock = clock,
             runCheckFactory = runCheckFactory,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -424,7 +423,6 @@ fun startJobberOgConsumers(
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
-            clock = clock,
             runCheckFactory = runCheckFactory,
         ).schedule()
     }

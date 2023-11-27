@@ -21,7 +21,9 @@ interface KontrollsamtaleService {
 
     fun defaultSessionContext(): SessionContext
 
-    fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale>
+    fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate?
+
+    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
 
     fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext)
     fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale>

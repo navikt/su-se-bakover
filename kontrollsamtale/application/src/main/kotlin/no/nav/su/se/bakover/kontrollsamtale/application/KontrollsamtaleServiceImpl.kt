@@ -157,8 +157,12 @@ class KontrollsamtaleServiceImpl(
         }
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale> {
-        return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløpt(dato)
+    override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate? {
+        return kontrollsamtaleRepo.hentFristUtløptFørEllerPåDato(fristFørEllerPåDato)
+    }
+
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
     }
 
     private fun lagDokument(

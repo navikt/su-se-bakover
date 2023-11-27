@@ -36,20 +36,29 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private val personService: PersonService,
     private val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo,
 ) : UtløptFristForKontrollsamtaleService {
+
     private val log = LoggerFactory.getLogger(this::class.java)
-    override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
-        val initialContext = hentEllerOpprettContext(dato)
-        val kontrollsamtaler = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløpt(dato)
-        return initialContext.uprosesserte { kontrollsamtaler.map { it.id } }
+
+    override fun stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist(): UtløptFristForKontrollsamtaleContext? {
+        val fristPåDato = kontrollsamtaleService.hentFristUtløptFørEllerPåDato(LocalDate.now(clock))
+            ?: run {
+                log.info("Det finnes ingen kontrollsamtaler. Avslutter jobb.")
+                return null
+            }
+        // Oppretter en tom jobb dersom den ikke finnes. Denne e
+        val initialContext = hentEllerOpprettContext(fristPåDato)
+
+        val innkalteKontrollsamtalerMedUtløptFrist = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
+        return initialContext.uprosesserte { innkalteKontrollsamtalerMedUtløptFrist.map { it.id } }
             .ifEmpty {
-                log.debug("Fant ingen uprosesserte kontrollsamtaler med utløp: {}.", dato)
+                log.debug("Fant ingen uprosesserte kontrollsamtaler med utløp: {}.", fristPåDato)
                 return initialContext
             }
             .also {
-                log.debug("Fant {} uprosesserte kontrollsamtaler med utløp: {}", it.count(), dato)
+                log.debug("Fant {} uprosesserte kontrollsamtaler med utløp: {}", it.count(), fristPåDato)
             }
             .fold(initialContext) { context, prosesseres ->
-                val kontrollsamtale = kontrollsamtaler.single { it.id == prosesseres }
+                val kontrollsamtale = innkalteKontrollsamtalerMedUtløptFrist.single { it.id == prosesseres }
                 context.håndter(
                     kontrollsamtale = kontrollsamtale,
                     sak = sakService.hentSak(kontrollsamtale.sakId).getOrElse {

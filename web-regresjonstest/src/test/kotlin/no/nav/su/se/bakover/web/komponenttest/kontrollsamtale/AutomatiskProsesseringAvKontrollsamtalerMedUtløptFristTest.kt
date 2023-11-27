@@ -181,10 +181,10 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 tikkendeKlokke = tikkendeKlokke,
                 kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
             )
-
+            tikkendeKlokke.spolTil(testController.utløpsfrist)
             (0 until antallKjøringer).forEach { kjøring ->
                 val utløpsfristKontrollsamtale = testController.utløpsfrist
-                utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+                utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
                 kontrollsamtaleJobRepo.hent(
                     id = NameAndLocalDateId(
                         name = "HåndterUtløptFristForKontrollsamtale",

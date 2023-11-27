@@ -1197,7 +1197,7 @@ open class AccessCheckProxy(
                         return service.hentNestePlanlagteKontrollsamtale(sakId)
                     }
 
-                    override fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate) =
+                    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate) =
                         kastKanKunKallesFraAnnenService()
 
                     override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) =
@@ -1218,6 +1218,8 @@ open class AccessCheckProxy(
                     ) = kastKanKunKallesFraAnnenService()
 
                     override fun defaultSessionContext() = service.defaultSessionContext()
+                    override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate) =
+                        kastKanKunKallesFraAnnenService()
                 }
 
                 override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService
@@ -1227,10 +1229,10 @@ open class AccessCheckProxy(
                     get() = kastKanKunKallesFraAnnenService()
 
                 override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                    // Denne kalles fra en driftsjobb.
-                    get() = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService
+                    get() = kastKanKunKallesFraAnnenService()
             },
-            resendStatistikkhendelserService = object : ResendStatistikkhendelserService {
+            resendStatistikkhendelserService =
+            object : ResendStatistikkhendelserService {
                 override fun resendIverksattSøknadsbehandling(fraOgMedDato: LocalDate) {
                     // Driftsendepunkt, ingen direkteoppslag på person og ingen returdata
                     services.resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMedDato)
