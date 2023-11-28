@@ -41,14 +41,14 @@ internal data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
 }
 
 internal data class MånedsoversiktMedSum private constructor(
-    val sortereMåneder: List<EnkeltMånedsoversikt>,
+    val sorterteMåneder: List<EnkeltMånedsoversikt>,
     val sumBruttoSkalTilbakekreve: Int,
     val sumNettoSkalTilbakekreve: Int,
 ) {
     companion object {
         fun VurderingerMedKrav.månedsoversiktMedSum(): MånedsoversiktMedSum {
             return MånedsoversiktMedSum(
-                sortereMåneder = this.perioder.map {
+                sorterteMåneder = this.perioder.map {
                     EnkeltMånedsoversikt(
                         periode = it.periode.ddMMyyyy(),
                         vurdering = when (it) {
