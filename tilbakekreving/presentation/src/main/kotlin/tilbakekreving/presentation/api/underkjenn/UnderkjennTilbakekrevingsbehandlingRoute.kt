@@ -57,7 +57,7 @@ private data class Body(
             }.getOrElse {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Kunne ikke mappe grunn til Attesteringsgrunn - input var $grunn",
-                    "kunne_ikke_mappe_grunn",
+                    "kunne_ikke_mappe_attesteringsgrunn",
                 ).left()
             },
             kommentar = kommentar,
