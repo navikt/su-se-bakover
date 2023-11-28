@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 import java.util.UUID

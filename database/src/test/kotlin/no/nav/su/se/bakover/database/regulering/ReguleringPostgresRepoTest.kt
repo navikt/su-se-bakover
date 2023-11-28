@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.regulering
 
 import behandling.domain.beregning.fradrag.FradragTilhører
 import behandling.domain.beregning.fradrag.Fradragstype
+import grunnbeløp.domain.GrunnbeløpForMåned
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.extensions.januar
@@ -24,10 +25,9 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
-import sats.domain.FullSupplerendeStønadForMåned
-import sats.domain.MinsteÅrligYtelseForUføretrygdedeForMåned
-import sats.domain.Satskategori
-import sats.domain.grunnbeløp.GrunnbeløpForMåned
+import satser.domain.Satskategori
+import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {

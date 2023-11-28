@@ -10,6 +10,8 @@ dependencies {
     testImplementation(project(":database"))
     testImplementation(project(":test-common"))
     testImplementation(project(":web-regresjonstest"))
+    testImplementation(project(":grunnbeløp"))
+    testImplementation(project(":satser"))
 }
 tasks.named<Jar>("jar") {
     archiveBaseName.set("app")

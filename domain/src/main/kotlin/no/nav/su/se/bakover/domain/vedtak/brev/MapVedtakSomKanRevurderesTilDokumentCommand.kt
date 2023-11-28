@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 fun VedtakSomKanRevurderes.lagDokumentKommando(

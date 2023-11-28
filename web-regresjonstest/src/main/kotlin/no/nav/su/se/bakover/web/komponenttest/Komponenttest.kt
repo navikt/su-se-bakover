@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos

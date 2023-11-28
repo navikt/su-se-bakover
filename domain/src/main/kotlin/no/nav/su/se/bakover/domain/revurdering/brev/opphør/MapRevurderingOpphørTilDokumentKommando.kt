@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEP
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vilkår.hentUføregrunnlag
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 /**

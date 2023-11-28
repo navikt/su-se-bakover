@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 

@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import java.time.LocalDate
 import java.util.UUID
 

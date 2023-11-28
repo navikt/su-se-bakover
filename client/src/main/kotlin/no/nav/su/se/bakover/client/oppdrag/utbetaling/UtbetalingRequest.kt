@@ -138,7 +138,7 @@ data class UtbetalingRequest(
         "kodeKlassifik",
         "datoVedtakFom",
         "datoVedtakTom",
-        "sats/domain",
+        "satser/domain",
         "fradragTillegg",
         "typeSats",
         "brukKjoreplan",

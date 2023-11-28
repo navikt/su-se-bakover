@@ -1,7 +1,10 @@
 package vilkår.formue.domain
 
+import grunnbeløp.domain.GrunnbeløpFactory
+import grunnbeløp.domain.GrunnbeløpForMåned
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
+import no.nav.su.se.bakover.common.domain.Knekkpunkt
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
@@ -15,8 +18,7 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import sats.domain.SatsFactoryForSupplerendeStønad
-import sats.domain.grunnbeløp.GrunnbeløpForMåned
+import satser.domain.supplerendestønad.grunnbeløpsendringer
 import java.math.BigDecimal
 
 internal class FormuegrenserFactoryTest {
@@ -116,11 +118,14 @@ internal class FormuegrenserFactoryTest {
     inner class `virkningstidspunkt()` {
         @Test
         fun `virkningstidspunkt fra januar 2016`() {
-            val satsFactory =
-                SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(1.juni(2022))
+            val grunnbeløpFactory = GrunnbeløpFactory(
+                tidligsteTilgjengeligeMåned = januar(2016),
+                knekkpunkt = Knekkpunkt(1.juni(2022)),
+                grunnbeløpsendringer = grunnbeløpsendringer,
+            )
             val formuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
-                grunnbeløpFactory = satsFactory.grunnbeløpFactory,
-                tidligsteTilgjengeligeMåned = satsFactory.tidligsteTilgjengeligeMåned,
+                grunnbeløpFactory = grunnbeløpFactory,
+                tidligsteTilgjengeligeMåned = januar(2016),
             )
 
             formuegrenserFactory.virkningstidspunkt(

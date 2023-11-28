@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import org.slf4j.LoggerFactory
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 import java.util.UUID
 

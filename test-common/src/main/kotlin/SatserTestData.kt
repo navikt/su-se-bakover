@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 import java.time.ZoneId

@@ -170,7 +170,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser

@@ -1,13 +1,13 @@
 package vilkår.formue.domain
 
 import arrow.core.NonEmptyList
+import grunnbeløp.domain.GrunnbeløpForMåned
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.extensions.roundToDecimals
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import sats.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 import java.time.LocalDate
 

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 /**

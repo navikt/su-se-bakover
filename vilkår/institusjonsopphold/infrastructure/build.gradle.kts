@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
 
     testImplementation(project(":test-common"))
+    testImplementation(project(":satser"))
 }
 
 tasks.named<Jar>("jar") {

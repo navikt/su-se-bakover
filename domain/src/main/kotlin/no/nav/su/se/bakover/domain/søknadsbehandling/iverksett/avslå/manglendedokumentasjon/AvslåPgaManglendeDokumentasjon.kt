@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 

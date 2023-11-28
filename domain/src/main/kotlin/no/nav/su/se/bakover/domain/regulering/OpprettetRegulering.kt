@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

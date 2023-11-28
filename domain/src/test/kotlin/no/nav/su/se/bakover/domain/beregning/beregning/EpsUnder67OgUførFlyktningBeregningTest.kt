@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingAlder
 import org.junit.jupiter.api.Test
-import sats.domain.Satskategori
+import satser.domain.Satskategori
 import java.time.LocalDate
 
 internal class EpsUnder67OgUførFlyktningBeregningTest {

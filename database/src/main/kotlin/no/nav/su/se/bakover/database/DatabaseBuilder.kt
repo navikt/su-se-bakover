@@ -60,7 +60,7 @@ import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHend
 import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag

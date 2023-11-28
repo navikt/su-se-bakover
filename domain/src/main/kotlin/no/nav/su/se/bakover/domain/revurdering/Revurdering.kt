@@ -56,7 +56,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

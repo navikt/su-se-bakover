@@ -67,7 +67,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 

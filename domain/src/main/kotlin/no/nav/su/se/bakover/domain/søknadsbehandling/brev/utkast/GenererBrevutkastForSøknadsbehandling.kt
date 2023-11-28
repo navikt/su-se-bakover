@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanGenerereBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.util.UUID
 
 fun genererBrevutkastForSøknadsbehandling(

@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import sats.domain.SatsFactory
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos

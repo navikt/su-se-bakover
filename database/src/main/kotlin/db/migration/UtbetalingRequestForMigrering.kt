@@ -34,7 +34,7 @@ data class UtbetalingRequestForMigrering(
         "kodeKlassifik",
         "datoVedtakFom",
         "datoVedtakTom",
-        "sats/domain",
+        "satser/domain",
         "fradragTillegg",
         "typeSats",
         "brukKjoreplan",

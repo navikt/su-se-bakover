@@ -8,8 +8,8 @@ import behandling.domain.beregning.fradrag.FradragForMåned
 import behandling.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
-import sats.domain.FullSupplerendeStønadForMåned
-import sats.domain.Satskategori
+import satser.domain.Satskategori
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int

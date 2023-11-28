@@ -5,7 +5,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 
 sealed interface KanGenerereBrev : Søknadsbehandling {
     /**

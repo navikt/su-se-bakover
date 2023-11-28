@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.mockito.kotlin.mock
 import person.domain.PersonService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 

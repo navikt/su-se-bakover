@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 class IverksettSøknadsbehandlingServiceImpl(

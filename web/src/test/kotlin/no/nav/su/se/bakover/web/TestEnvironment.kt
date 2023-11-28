@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate

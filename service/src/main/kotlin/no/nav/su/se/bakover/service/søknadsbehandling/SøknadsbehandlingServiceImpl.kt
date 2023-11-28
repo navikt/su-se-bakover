@@ -95,7 +95,7 @@ import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.Year

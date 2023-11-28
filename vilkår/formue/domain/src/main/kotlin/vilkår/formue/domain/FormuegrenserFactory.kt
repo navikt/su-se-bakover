@@ -1,10 +1,10 @@
 package vilkår.formue.domain
 
+import grunnbeløp.domain.GrunnbeløpFactory
 import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import sats.domain.grunnbeløp.GrunnbeløpFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 

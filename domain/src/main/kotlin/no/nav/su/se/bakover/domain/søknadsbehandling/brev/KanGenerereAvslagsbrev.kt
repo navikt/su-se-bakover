@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 
 sealed interface KanGenerereAvslagsbrev : KanGenerereBrev, ErAvslag {
 

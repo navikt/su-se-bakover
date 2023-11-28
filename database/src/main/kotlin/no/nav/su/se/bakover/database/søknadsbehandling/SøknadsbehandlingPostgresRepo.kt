@@ -55,7 +55,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbeh
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import sats.domain.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 

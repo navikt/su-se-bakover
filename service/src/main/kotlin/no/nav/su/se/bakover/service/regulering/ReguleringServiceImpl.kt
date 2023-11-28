@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

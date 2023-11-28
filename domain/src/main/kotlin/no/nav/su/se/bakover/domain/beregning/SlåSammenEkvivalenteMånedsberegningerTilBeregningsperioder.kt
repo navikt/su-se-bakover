@@ -5,7 +5,7 @@ import behandling.domain.beregning.fradrag.FradragFactory
 import behandling.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import sats.domain.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 
 /**
  * Join equivalent månedsberegninger to form distinct periods of ytelse and fradrag.

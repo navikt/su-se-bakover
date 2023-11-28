@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

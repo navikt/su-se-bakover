@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
-import sats.domain.Satskategori
+import satser.domain.Satskategori
 
 internal class BeregningMedFlereSatserTest {
     @Test

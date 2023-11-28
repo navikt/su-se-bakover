@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentComm
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.lang.IllegalArgumentException
 
 /**

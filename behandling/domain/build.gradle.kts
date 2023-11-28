@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":common:domain"))
-    implementation(project(":sats"))
+    implementation(project(":satser"))
 }
 
 tasks.named<Jar>("jar") {

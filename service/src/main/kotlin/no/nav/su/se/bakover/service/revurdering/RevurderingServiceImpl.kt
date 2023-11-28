@@ -105,7 +105,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID

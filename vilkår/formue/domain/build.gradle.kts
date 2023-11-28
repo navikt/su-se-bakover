@@ -1,10 +1,11 @@
 dependencies {
     implementation(project(":common:domain"))
-    implementation(project(":sats"))
+    implementation(project(":grunnbeløp"))
 
     testImplementation(project(":test-common"))
     // TODO jah: pga. FormuegrenserFactoryTest.kt refererer til SatsFactoryForSupplerendeStønad (skal flyttes)
     testImplementation(project(":domain"))
+    testImplementation(project(":satser"))
 }
 
 tasks.named<Jar>("jar") {

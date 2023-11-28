@@ -47,7 +47,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.PersonService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 import java.util.UUID
 

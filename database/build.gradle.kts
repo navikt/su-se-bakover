@@ -29,7 +29,8 @@ dependencies {
 
     implementation(project(":behandling:domain"))
 
-    implementation(project(":sats"))
+    implementation(project(":grunnbeløp"))
+    implementation(project(":satser"))
 
     testImplementation(project(":test-common"))
 }

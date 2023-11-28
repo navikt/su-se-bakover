@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt.lagRevurderingInntektDokumentKommando
 import no.nav.su.se.bakover.domain.revurdering.brev.opphør.lagRevurderingOpphørtDokumentKommando
 import no.nav.su.se.bakover.domain.revurdering.brev.tilbakekreving.lagTilbakekrevingDokumentKommando
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 fun Revurdering.lagDokumentKommando(

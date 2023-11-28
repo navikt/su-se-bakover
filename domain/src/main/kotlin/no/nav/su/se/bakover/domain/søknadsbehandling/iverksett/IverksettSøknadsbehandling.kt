@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.iverksettAvslagSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.iverksettInnvilgetSøknadsbehandling
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 /**

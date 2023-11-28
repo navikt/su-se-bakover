@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import sats.domain.FullSupplerendeStønadForMåned
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import java.time.Clock
 
 data class Beregningsperiode(

@@ -22,7 +22,8 @@ dependencies {
     implementation(project(":tilbakekreving:infrastructure"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
-    implementation(project(":sats"))
+    implementation(project(":grunnbeløp"))
+    implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
 

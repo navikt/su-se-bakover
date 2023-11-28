@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.mockito.kotlin.mock
 import person.domain.IdentClient
 import person.domain.PersonService
-import sats.domain.SatsFactory
+import satser.domain.SatsFactory
 import java.time.Clock
 
 internal data class RevurderingServiceMocks(
