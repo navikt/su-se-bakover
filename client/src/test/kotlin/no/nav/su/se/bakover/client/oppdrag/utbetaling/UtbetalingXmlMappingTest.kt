@@ -20,22 +20,14 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
-import org.hamcrest.MatcherAssert.assertThat
+import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import org.junit.jupiter.api.Test
-import org.xmlunit.diff.DefaultNodeMatcher
-import org.xmlunit.diff.ElementSelectors
-import org.xmlunit.matchers.CompareMatcher.isSimilarTo
 
 class UtbetalingXmlMappingTest {
 
-    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
-
     @Test
     fun `mapper utbetaling til xml request`() {
-        assertThat(
-            xmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
-            isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        xmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)) shouldBeSimilarXmlTo expected
     }
 
     private val clock = TikkendeKlokke()

@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagstatusendring
@@ -50,22 +51,16 @@ import no.nav.su.se.bakover.web.services.tilbakekreving.lagKravgrunnlagDetaljerX
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
-import org.hamcrest.MatcherAssert
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.xmlunit.diff.DefaultNodeMatcher
-import org.xmlunit.diff.ElementSelectors
-import org.xmlunit.matchers.CompareMatcher
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.util.UUID
 
 class TilbakekrevingUnderRevurderingKomponentTest {
-
-    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     @Test
     fun `happy path full tilbakekreving`() {
@@ -210,10 +205,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 	</tilbakekrevingsvedtak>
 </TilbakekrevingsvedtakRequest>
                     """.trimIndent()
-                    MatcherAssert.assertThat(
-                        actualXml,
-                        CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher).ignoreWhitespace(),
-                    )
+                    actualXml shouldBeSimilarXmlTo expected
                 }
             @Suppress("UNCHECKED_CAST")
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
@@ -325,10 +317,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 	</tilbakekrevingsvedtak>
 </TilbakekrevingsvedtakRequest>
                     """.trimIndent()
-                    MatcherAssert.assertThat(
-                        actualXml,
-                        CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher).ignoreWhitespace(),
-                    )
+                    actualXml shouldBeSimilarXmlTo expected
                 }
             @Suppress("UNCHECKED_CAST")
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
@@ -435,10 +424,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
 	</tilbakekrevingsvedtak>
 </TilbakekrevingsvedtakRequest>
                     """.trimIndent()
-                    MatcherAssert.assertThat(
-                        actualXml,
-                        CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher).ignoreWhitespace(),
-                    )
+                    actualXml shouldBeSimilarXmlTo expected
                 }
 
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))

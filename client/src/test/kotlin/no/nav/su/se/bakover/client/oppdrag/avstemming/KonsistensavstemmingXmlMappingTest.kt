@@ -9,14 +9,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
-import org.hamcrest.MatcherAssert
+import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import org.junit.jupiter.api.Test
-import org.xmlunit.diff.DefaultNodeMatcher
-import org.xmlunit.diff.ElementSelectors
-import org.xmlunit.matchers.CompareMatcher
 
 internal class KonsistensavstemmingXmlMappingTest {
-    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     private val utbetaling = oversendtUtbetalingUtenKvittering(
         fnr = Fnr("88888888888"),
@@ -61,10 +57,7 @@ internal class KonsistensavstemmingXmlMappingTest {
             </sendAsynkronKonsistensavstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            requestBuilder.startXml(),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        requestBuilder.startXml() shouldBeSimilarXmlTo expected
     }
 
     @Test
@@ -121,10 +114,7 @@ internal class KonsistensavstemmingXmlMappingTest {
             </sendAsynkronKonsistensavstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            requestBuilder.dataXml()[0],
-            CompareMatcher.isSimilarTo(expected1).withNodeMatcher(nodeMatcher),
-        )
+        requestBuilder.dataXml()[0] shouldBeSimilarXmlTo expected1
     }
 
     @Test
@@ -152,10 +142,7 @@ internal class KonsistensavstemmingXmlMappingTest {
             </sendAsynkronKonsistensavstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            requestBuilder.avsluttXml(),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        requestBuilder.avsluttXml() shouldBeSimilarXmlTo expected
     }
 
     @Test
@@ -188,9 +175,6 @@ internal class KonsistensavstemmingXmlMappingTest {
             </sendAsynkronKonsistensavstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            requestBuilder.totaldataXml(),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        requestBuilder.totaldataXml() shouldBeSimilarXmlTo expected
     }
 }

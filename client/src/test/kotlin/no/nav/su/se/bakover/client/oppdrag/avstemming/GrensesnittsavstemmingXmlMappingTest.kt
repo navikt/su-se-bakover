@@ -6,15 +6,11 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
-import org.hamcrest.MatcherAssert
+import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import org.junit.jupiter.api.Test
-import org.xmlunit.diff.DefaultNodeMatcher
-import org.xmlunit.diff.ElementSelectors
-import org.xmlunit.matchers.CompareMatcher
 import java.math.BigDecimal
 
 internal class GrensesnittsavstemmingXmlMappingTest {
-    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     @Test
     fun `Sjekk mapping av start melding`() {
@@ -47,10 +43,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             </avstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            xmlMapper.writeValueAsString(request),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        xmlMapper.writeValueAsString(request) shouldBeSimilarXmlTo expected
     }
 
     @Test
@@ -144,10 +137,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             </avstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            xmlMapper.writeValueAsString(dataRequest),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        xmlMapper.writeValueAsString(dataRequest) shouldBeSimilarXmlTo expected
     }
 
     @Test
@@ -181,9 +171,6 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             </avstemmingsdata>
             """.trimIndent()
 
-        MatcherAssert.assertThat(
-            xmlMapper.writeValueAsString(request),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
-        )
+        xmlMapper.writeValueAsString(request) shouldBeSimilarXmlTo expected
     }
 }
