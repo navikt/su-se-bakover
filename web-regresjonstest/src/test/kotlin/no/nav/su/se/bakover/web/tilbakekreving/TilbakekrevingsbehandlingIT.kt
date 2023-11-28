@@ -141,6 +141,12 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
             )
 
+            forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+            )
+
             val (underkjentAttestering, versjonEtterUnderkjenning) = underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,

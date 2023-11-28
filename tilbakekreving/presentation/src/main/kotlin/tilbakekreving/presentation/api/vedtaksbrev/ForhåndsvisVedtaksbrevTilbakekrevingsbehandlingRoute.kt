@@ -68,4 +68,5 @@ internal fun KunneIkkeForhåndsviseVedtaksbrev.tilResultat(): Resultat = when (t
     )
 
     KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument -> Feilresponser.feilVedGenereringAvDokument
+    KunneIkkeForhåndsviseVedtaksbrev.UgyldigTilstand -> Feilresponser.ugyldigTilstand
 }

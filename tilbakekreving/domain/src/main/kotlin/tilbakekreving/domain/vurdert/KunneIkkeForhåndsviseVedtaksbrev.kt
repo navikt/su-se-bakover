@@ -9,4 +9,5 @@ sealed interface KunneIkkeForhåndsviseVedtaksbrev {
     data object FantIkkeBehandling : KunneIkkeForhåndsviseVedtaksbrev
     data object IkkeTattStillingTilBrevvalg : KunneIkkeForhåndsviseVedtaksbrev
     data object FeilVedGenereringAvDokument : KunneIkkeForhåndsviseVedtaksbrev
+    data object UgyldigTilstand : KunneIkkeForhåndsviseVedtaksbrev
 }
