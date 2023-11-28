@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import sats.domain.SatsFactory
 import java.time.Clock
 
 /**

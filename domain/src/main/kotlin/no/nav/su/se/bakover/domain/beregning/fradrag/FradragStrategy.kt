@@ -11,7 +11,7 @@ import behandling.domain.beregning.fradrag.sum
 import behandling.domain.beregning.fradrag.sumEksklusiv
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import sats.domain.SatsFactory
 import java.lang.Double.max
 sealed class FradragStrategy {
 

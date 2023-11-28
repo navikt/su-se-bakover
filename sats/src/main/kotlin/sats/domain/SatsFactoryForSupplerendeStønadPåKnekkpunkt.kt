@@ -1,10 +1,6 @@
-package no.nav.su.se.bakover.domain.satser
+package sats.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import sats.domain.FullSupplerendeStønadFactory
-import sats.domain.FullSupplerendeStønadForMåned
-import sats.domain.Knekkpunkt
-import sats.domain.Satskategori
 import sats.domain.grunnbeløp.GrunnbeløpFactory
 import sats.domain.grunnbeløp.GrunnbeløpForMåned
 

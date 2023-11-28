@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vedtak.brev
 
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import sats.domain.SatsFactory
 import java.time.Clock
 
 fun VedtakSomKanRevurderes.lagDokumentKommando(

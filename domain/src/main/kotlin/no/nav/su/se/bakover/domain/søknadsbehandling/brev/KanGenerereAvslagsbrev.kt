@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import sats.domain.SatsFactory
 
 sealed interface KanGenerereAvslagsbrev : KanGenerereBrev, ErAvslag {
 

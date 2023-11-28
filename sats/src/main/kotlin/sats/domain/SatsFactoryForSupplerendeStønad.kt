@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.satser
+package sats.domain
 
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
@@ -11,10 +11,6 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.januar
-import sats.domain.FullSupplerendeStønadFactory
-import sats.domain.GarantipensjonFactory
-import sats.domain.Knekkpunkt
-import sats.domain.MinsteÅrligYtelseForUføretrygdedeFactory
 import sats.domain.grunnbeløp.GrunnbeløpFactory
 import sats.domain.grunnbeløp.Grunnbeløpsendring
 import java.time.Clock
@@ -101,14 +97,14 @@ class SatsFactoryForSupplerendeStønad(
     private val tidligsteTilgjengeligeMåned: Måned = januar(2020),
     private val datoTilFactory: MutableMap<Knekkpunkt, SatsFactoryForSupplerendeStønadPåKnekkpunkt> = mutableMapOf(),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer,
+    private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = sats.domain.grunnbeløpsendringer,
     /**
      * Garantipensjon ble innført som konsept 2016-01-01: https://lovdata.no/forskrift/2015-11-20-1335/§1.
      * Satsene endres ofte sammen med grunnbeløpet.
      */
-    private val garantipensjonsendringerOrdinær: Nel<GarantipensjonFactory.Garantipensjonsendring> = no.nav.su.se.bakover.domain.satser.garantipensjonsendringerOrdinær,
+    private val garantipensjonsendringerOrdinær: Nel<GarantipensjonFactory.Garantipensjonsendring> = sats.domain.garantipensjonsendringerOrdinær,
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = no.nav.su.se.bakover.domain.satser.garantipensjonsendringerHøy,
+    private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = sats.domain.garantipensjonsendringerHøy,
     private val minsteÅrligYtelseForUføretrygdedeOrdinær: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40. Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(

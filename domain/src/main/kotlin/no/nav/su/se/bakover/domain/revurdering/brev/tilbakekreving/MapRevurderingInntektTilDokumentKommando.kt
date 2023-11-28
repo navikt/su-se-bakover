@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt.lagRevurderingInntektDokumentKommando
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import sats.domain.SatsFactory
 import økonomi.domain.simulering.Simulering
 import java.lang.IllegalArgumentException
 

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHen
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
+import sats.domain.SatsFactoryForSupplerendeStønad
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos

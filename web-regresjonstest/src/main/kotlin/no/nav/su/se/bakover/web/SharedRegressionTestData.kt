@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalpostId
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.JournalførBrevFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -64,6 +63,7 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
+import sats.domain.SatsFactoryForSupplerendeStønad
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos

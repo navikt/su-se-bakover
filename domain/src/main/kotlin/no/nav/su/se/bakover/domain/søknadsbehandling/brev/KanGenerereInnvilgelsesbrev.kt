@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import sats.domain.SatsFactory
 
 sealed interface KanGenerereInnvilgelsesbrev : KanGenerereBrev {
     override val beregning: Beregning
