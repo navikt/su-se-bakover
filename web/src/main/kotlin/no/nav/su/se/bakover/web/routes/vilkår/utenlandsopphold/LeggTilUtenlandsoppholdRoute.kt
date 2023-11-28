@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
@@ -38,11 +37,12 @@ import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -63,7 +63,7 @@ internal fun Route.leggTilUtenlandsopphold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                             },
                         )
                     }
@@ -75,7 +75,7 @@ internal fun Route.leggTilUtenlandsopphold(
 
 internal fun Route.leggTilUtlandsoppholdRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -89,7 +89,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                                 ifLeft = { call.svar(it.tilResultat()) },
                                 ifRight = {
                                     call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                                 },
                             )
                     }

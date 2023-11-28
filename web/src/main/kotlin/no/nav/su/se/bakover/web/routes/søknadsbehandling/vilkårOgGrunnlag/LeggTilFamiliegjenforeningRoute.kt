@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
@@ -24,11 +23,12 @@ import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.Familiegjenforeni
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
 internal fun Route.leggTilFamiliegjenforeningRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -41,7 +41,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

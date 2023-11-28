@@ -23,15 +23,15 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.person.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
 internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val fraOgMed: LocalDate,
@@ -64,7 +64,7 @@ internal fun Route.opprettRevurderingRoute(
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

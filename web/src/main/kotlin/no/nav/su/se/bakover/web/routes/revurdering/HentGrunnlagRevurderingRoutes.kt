@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import vilkår.formue.domain.FormuegrenserFactory
 
 /**
  * Mulighet for å hente grunnlagene som stod til grunn for revurderingen (før). Dvs, ikke nye grunnlag som er lagt til
@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
 internal fun Route.hentGrunnlagRevurderingRoutes(
     // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
     sakService: SakService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     get("$REVURDERING_PATH/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -69,9 +69,9 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                                     HttpStatusCode.OK,
                                     serialize(
                                         GrunnlagsdataOgVilkårsvurderingerJson.create(
-                                            it.grunnlagsdata,
-                                            it.vilkårsvurderinger,
-                                            satsFactory = satsFactory,
+                                            grunnlagsdata = it.grunnlagsdata,
+                                            vilkårsvurderinger = it.vilkårsvurderinger,
+                                            formuegrenserFactory = formuegrenserFactory,
                                         ),
                                     ),
                                 ),

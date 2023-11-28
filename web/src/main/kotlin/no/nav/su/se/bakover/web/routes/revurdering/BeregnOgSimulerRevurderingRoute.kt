@@ -29,9 +29,9 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkke
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 
 data class Body(
     val skalUtsetteTilbakekreving: Boolean = false,
@@ -39,7 +39,7 @@ data class Body(
 
 internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/beregnOgSimuler") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -55,7 +55,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                         }.map { response ->
                             call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
                             call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(formuegrenserFactory))))
                         }
                     }
                 }
@@ -70,13 +70,13 @@ internal data class RevurderingOgFeilmeldingerResponseJson(
     val varselmeldinger: List<ErrorJson>,
 )
 
-internal fun RevurderingOgFeilmeldingerResponse.json(satsFactory: SatsFactory): String {
-    return serialize(toJson(satsFactory))
+internal fun RevurderingOgFeilmeldingerResponse.json(formuegrenserFactory: FormuegrenserFactory): String {
+    return serialize(toJson(formuegrenserFactory))
 }
 
-internal fun RevurderingOgFeilmeldingerResponse.toJson(satsFactory: SatsFactory) =
+internal fun RevurderingOgFeilmeldingerResponse.toJson(formuegrenserFactory: FormuegrenserFactory) =
     RevurderingOgFeilmeldingerResponseJson(
-        revurdering = revurdering.toJson(satsFactory),
+        revurdering = revurdering.toJson(formuegrenserFactory),
         feilmeldinger = feilmeldinger.map { it.toJson() },
         varselmeldinger = varselmeldinger.map { it.toJson() },
     )

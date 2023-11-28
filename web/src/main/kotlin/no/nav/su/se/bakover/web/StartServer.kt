@@ -81,16 +81,20 @@ fun Application.susebakover(
             metrics = clientMetrics,
         ).build(applicationConfig)
     },
-    services: Services = ServiceBuilder.build(
-        databaseRepos = databaseRepos,
-        clients = clients,
-        behandlingMetrics = behandlingMetrics,
-        søknadMetrics = søknadMetrics,
-        clock = clock,
-        satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
-        applicationConfig = applicationConfig,
-        dbMetrics = dbMetrics,
-    ),
+    services: Services = run {
+        val satsFactoryGjeldendePåDato = satsFactory.gjeldende(LocalDate.now(clock))
+        ServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = behandlingMetrics,
+            søknadMetrics = søknadMetrics,
+            clock = clock,
+            satsFactory = satsFactoryGjeldendePåDato,
+            formuegrenserFactory = satsFactoryGjeldendePåDato.formuegrenserFactory,
+            applicationConfig = applicationConfig,
+            dbMetrics = dbMetrics,
+        )
+    },
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter = run {
         val repos = TilbakekrevingRepos(
             clock = clock,
@@ -158,6 +162,7 @@ fun Application.susebakover(
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
     val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
+    val formuegrenserFactoryIDag = satsFactoryIDag.formuegrenserFactory
 
     setupKtor(
         services = services,
@@ -165,7 +170,7 @@ fun Application.susebakover(
         applicationConfig = applicationConfig,
         accessCheckProxy = accessCheckProxy,
         clients = clients,
-        satsFactoryIDag = satsFactoryIDag,
+        formuegrenserFactoryIDag = formuegrenserFactoryIDag,
         databaseRepos = databaseRepos,
         extraRoutes = extraRoutes,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,

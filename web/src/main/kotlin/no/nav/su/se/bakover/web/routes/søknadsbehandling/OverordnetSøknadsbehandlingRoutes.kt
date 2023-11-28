@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.fastOppholdVilkårRoutes
@@ -18,47 +17,48 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.pens
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.personligOppmøteVilkårRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtenlandsopphold
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingServices: SøknadsbehandlingServices,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     applicationConfig: ApplicationConfig,
 ) {
-    søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
+    søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, formuegrenserFactory)
 
-    leggTilUføregrunnlagRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilUføregrunnlagRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    leggTilLovligOppholdRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilLovligOppholdRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    leggTilGrunnlagFradrag(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
+    leggTilGrunnlagFradrag(søknadsbehandlingServices.søknadsbehandlingService, clock, formuegrenserFactory)
 
-    leggTilUtenlandsopphold(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilUtenlandsopphold(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
-    leggTilFamiliegjenforeningRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilFamiliegjenforeningRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
-    pensjonsVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    pensjonsVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
-    flyktningVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    flyktningVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
-    fastOppholdVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    fastOppholdVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
-    personligOppmøteVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    personligOppmøteVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
-    institusjonsoppholdRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
+    institusjonsoppholdRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
     iverksettSøknadsbehandlingRoute(
         søknadsbehandlingServices.iverksettSøknadsbehandlingService,
-        satsFactory,
+        formuegrenserFactory,
         clock,
         applicationConfig,
     )
-    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 }

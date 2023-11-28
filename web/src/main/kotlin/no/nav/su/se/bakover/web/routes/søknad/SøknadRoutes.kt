@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
@@ -54,6 +53,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 enum class Søknadstype(val value: String) {
@@ -68,7 +68,7 @@ internal fun Route.søknadRoutes(
     lukkSøknadService: LukkSøknadService,
     avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$SØKNAD_PATH/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
@@ -163,7 +163,7 @@ internal fun Route.søknadRoutes(
                             ),
                         )
                         call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
                     }
                 }
             }
@@ -186,7 +186,7 @@ internal fun Route.søknadRoutes(
                         call.svar(it.tilResultat())
                     }.map {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
                     }
                 }
             }

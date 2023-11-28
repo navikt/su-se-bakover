@@ -20,18 +20,18 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
 import no.nav.su.se.bakover.web.routes.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.iverksettSøknadsbehandlingRoute(
     service: IverksettSøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     applicationConfig: ApplicationConfig,
 ) {
@@ -59,7 +59,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
                         call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                        call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, satsFactory))
+                        call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, formuegrenserFactory))
                     },
                 )
             }

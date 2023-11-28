@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -95,7 +95,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
                 status shouldBe HttpStatusCode.Created
                 JSONAssert.assertEquals(
                     bodyAsText(),
-                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())),
+                    serialize(vilkårsvurdert.toJson(formuegrenserFactoryTestPåDato())),
                     true,
                 )
             }

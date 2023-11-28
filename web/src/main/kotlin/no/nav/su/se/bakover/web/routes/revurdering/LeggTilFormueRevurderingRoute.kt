@@ -31,12 +31,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -95,7 +95,7 @@ private data class FormueBody(
 
 internal fun Route.leggTilFormueRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/formuegrunnlag") {
@@ -110,7 +110,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                                     .map {
                                         call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                                         call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
-                                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                                     }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
                                         call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
                                     }

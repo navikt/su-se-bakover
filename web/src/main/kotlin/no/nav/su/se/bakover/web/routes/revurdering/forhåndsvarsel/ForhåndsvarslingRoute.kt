@@ -19,15 +19,15 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class ForhåndsvarsleBody(val fritekst: String)
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
@@ -41,7 +41,7 @@ internal fun Route.forhåndsvarslingRoute(
                     ).map {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                     }.mapLeft {
                         call.svar(it.tilResultat())
                     }

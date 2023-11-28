@@ -5,12 +5,12 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.avsluttRevurderingRoute
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtlandsoppholdRoute
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal const val REVURDERING_PATH = "$SAK_PATH/{sakId}/revurderinger"
@@ -21,53 +21,53 @@ internal fun Route.revurderingRoutes(
     gjenopptakAvYtelseService: GjenopptaYtelseService,
     sakService: SakService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
-    opprettRevurderingRoute(revurderingService, satsFactory)
+    opprettRevurderingRoute(revurderingService, formuegrenserFactory)
 
-    oppdaterRevurderingRoute(revurderingService, satsFactory)
+    oppdaterRevurderingRoute(revurderingService, formuegrenserFactory)
 
-    beregnOgSimulerRevurdering(revurderingService, satsFactory)
+    beregnOgSimulerRevurdering(revurderingService, formuegrenserFactory)
 
-    oppdaterTilbakekrevingsbehandlingRoute(revurderingService, satsFactory)
+    oppdaterTilbakekrevingsbehandlingRoute(revurderingService, formuegrenserFactory)
 
-    forhåndsvarslingRoute(revurderingService, satsFactory)
+    forhåndsvarslingRoute(revurderingService, formuegrenserFactory)
 
-    sendRevurderingTilAttestering(revurderingService, satsFactory)
+    sendRevurderingTilAttestering(revurderingService, formuegrenserFactory)
 
-    underkjennRevurdering(revurderingService, satsFactory, clock)
+    underkjennRevurdering(revurderingService, formuegrenserFactory, clock)
 
-    iverksettRevurderingRoute(revurderingService, satsFactory)
+    iverksettRevurderingRoute(revurderingService, formuegrenserFactory)
 
     brevutkastForRevurdering(revurderingService)
 
-    leggTilGrunnlagRevurderingRoutes(revurderingService, satsFactory)
+    leggTilGrunnlagRevurderingRoutes(revurderingService, formuegrenserFactory)
 
-    leggTilUtlandsoppholdRoute(revurderingService, satsFactory)
+    leggTilUtlandsoppholdRoute(revurderingService, formuegrenserFactory)
 
-    leggTilFradragRevurdering(revurderingService, clock, satsFactory)
+    leggTilFradragRevurdering(revurderingService, clock, formuegrenserFactory)
 
-    leggTilGrunnlagBosituasjonRoutes(revurderingService, satsFactory)
+    leggTilGrunnlagBosituasjonRoutes(revurderingService, formuegrenserFactory)
 
-    leggTilFormueRevurderingRoute(revurderingService, satsFactory, clock)
+    leggTilFormueRevurderingRoute(revurderingService, formuegrenserFactory, clock)
 
-    hentGrunnlagRevurderingRoutes(sakService, satsFactory)
+    hentGrunnlagRevurderingRoutes(sakService, formuegrenserFactory)
 
-    stansUtbetaling(stansAvYtelseService, satsFactory)
+    stansUtbetaling(stansAvYtelseService, formuegrenserFactory)
 
-    gjenopptaUtbetaling(gjenopptakAvYtelseService, satsFactory)
+    gjenopptaUtbetaling(gjenopptakAvYtelseService, formuegrenserFactory)
 
-    avsluttRevurderingRoute(revurderingService, satsFactory)
+    avsluttRevurderingRoute(revurderingService, formuegrenserFactory)
 
-    pensjonsVilkårRoutes(revurderingService, satsFactory, clock)
+    pensjonsVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
-    leggTilLovligOppholdRoute(revurderingService, satsFactory)
+    leggTilLovligOppholdRoute(revurderingService, formuegrenserFactory)
 
-    flyktningVilkårRoutes(revurderingService, satsFactory, clock)
+    flyktningVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
-    fastOppholdVilkårRoutes(revurderingService, satsFactory, clock)
+    fastOppholdVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
-    personligOppmøteVilkårRoutes(revurderingService, satsFactory, clock)
+    personligOppmøteVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
-    institusjonsoppholdRoutes(revurderingService, satsFactory, clock)
+    institusjonsoppholdRoutes(revurderingService, formuegrenserFactory, clock)
 }

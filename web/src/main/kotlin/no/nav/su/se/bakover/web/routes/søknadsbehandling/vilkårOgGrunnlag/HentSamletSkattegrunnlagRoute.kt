@@ -12,15 +12,15 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.hentSamletSkattegrunnlagRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     get("$SØKNADSBEHANDLING_PATH/{behandlingId}/samletSkattegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -30,7 +30,7 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
                     call.suUserContext.saksbehandler,
                 ).fold(
                     { call.svar(it.tilResultat()) },
-                    { call.svar(HttpStatusCode.OK.jsonBody(it, satsFactory)) },
+                    { call.svar(HttpStatusCode.OK.jsonBody(it, formuegrenserFactory)) },
                 )
             }
         }

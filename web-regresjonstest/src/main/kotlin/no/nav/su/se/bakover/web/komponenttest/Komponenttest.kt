@@ -94,7 +94,6 @@ internal fun withKomptestApplication(
         SharedRegressionTestData.databaseRepos(
             dataSource = dataSource,
             clock = klokke,
-            // TODO uheldig at vi ikke kan overstyre denne med satsFactory.gjeldende(LocalDate.now(clock))
             satsFactory = satsFactory,
         )
     },
@@ -105,16 +104,20 @@ internal fun withKomptestApplication(
         ).build(applicationConfig)
     },
     serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services = { databaseRepos, clients, klokke, satsFactory ->
-        ServiceBuilder.build(
-            databaseRepos = databaseRepos,
-            clients = clients,
-            behandlingMetrics = mock(),
-            søknadMetrics = mock(),
-            clock = klokke,
-            satsFactory = satsFactory.gjeldende(LocalDate.now(klokke)),
-            applicationConfig = applicationConfig,
-            dbMetrics = dbMetricsStub,
-        )
+        run {
+            val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(klokke))
+            ServiceBuilder.build(
+                databaseRepos = databaseRepos,
+                clients = clients,
+                behandlingMetrics = mock(),
+                søknadMetrics = mock(),
+                clock = klokke,
+                satsFactory = satsFactoryIDag,
+                formuegrenserFactory = satsFactoryIDag.formuegrenserFactory,
+                applicationConfig = applicationConfig,
+                dbMetrics = dbMetricsStub,
+            )
+        }
     },
     tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter = { databaseRepos, services ->
         val repos = TilbakekrevingRepos(

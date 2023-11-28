@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
@@ -42,7 +42,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         fun create(
             grunnlagsdata: Grunnlagsdata,
             vilkårsvurderinger: Vilkårsvurderinger,
-            satsFactory: SatsFactory,
+            formuegrenserFactory: FormuegrenserFactory,
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = vilkårsvurderinger.uføreVilkår().fold(
@@ -52,7 +52,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 lovligOpphold = vilkårsvurderinger.lovligOppholdVilkår().toJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
-                formue = vilkårsvurderinger.formueVilkår().toJson(satsFactory),
+                formue = vilkårsvurderinger.formueVilkår().toJson(formuegrenserFactory),
                 utenlandsopphold = vilkårsvurderinger.utenlandsoppholdVilkår().toJson(),
                 opplysningsplikt = vilkårsvurderinger.opplysningspliktVilkår().toJson(),
                 pensjon = vilkårsvurderinger.pensjonsVilkår().fold(
@@ -75,10 +75,10 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     }
 }
 
-internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(satsFactory: SatsFactory): GrunnlagsdataOgVilkårsvurderingerJson {
+internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(formuegrenserFactory: FormuegrenserFactory): GrunnlagsdataOgVilkårsvurderingerJson {
     return GrunnlagsdataOgVilkårsvurderingerJson.create(
         grunnlagsdata = this.grunnlagsdata,
         vilkårsvurderinger = this.vilkårsvurderinger,
-        satsFactory = satsFactory,
+        formuegrenserFactory = formuegrenserFactory,
     )
 }

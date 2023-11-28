@@ -10,13 +10,13 @@ import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
 internal data class ReguleringJson(
@@ -50,7 +50,7 @@ internal data class ReguleringJson(
     }
 }
 
-internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
+internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
     id = id,
     fnr = fnr.toString(),
     opprettet = opprettet,
@@ -76,7 +76,7 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        satsFactory = satsFactory,
+        formuegrenserFactory = formuegrenserFactory,
     ),
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {

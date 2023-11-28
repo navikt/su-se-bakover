@@ -33,13 +33,13 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -47,7 +47,7 @@ import kotlin.reflect.KClass
 internal fun Route.leggTilGrunnlagFradrag(
     behandlingService: SøknadsbehandlingService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val fradrag: List<FradragsgrunnlagJson>,
@@ -99,7 +99,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                     .map {
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     }
                             }.merge(),
                         )

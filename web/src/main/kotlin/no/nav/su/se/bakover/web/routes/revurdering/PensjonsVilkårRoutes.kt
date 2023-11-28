@@ -14,16 +14,16 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.LeggTilVurderingsperiodePensjonsvilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toDomain
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.pensjonsVilkårRoutes(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/pensjon") {
@@ -40,7 +40,7 @@ internal fun Route.pensjonsVilkårRoutes(
                             { it.tilResultat() },
                             {
                                 call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
-                                Resultat.json(HttpStatusCode.Created, it.json(satsFactory))
+                                Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                             },
                         ),
                     )

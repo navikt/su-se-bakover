@@ -30,10 +30,10 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 data class UnderkjennBody(
@@ -57,7 +57,7 @@ data class UnderkjennBody(
 
 internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     log: Logger = LoggerFactory.getLogger("Route.underkjennRevurdering"),
 ) {
@@ -98,7 +98,7 @@ internal fun Route.underkjennRevurdering(
                                         return@authorize call.svar(
                                             Resultat.json(
                                                 HttpStatusCode.OK,
-                                                serialize(it.toJson(satsFactory)),
+                                                serialize(it.toJson(formuegrenserFactory)),
                                             ),
                                         )
                                     },

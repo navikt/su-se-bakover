@@ -20,11 +20,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val avgjørelse: OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse,
@@ -44,7 +44,7 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
                         ifRight = {
                             call.sikkerlogg("Oppdatert tilbakekrevingsbehandling for $revurderingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

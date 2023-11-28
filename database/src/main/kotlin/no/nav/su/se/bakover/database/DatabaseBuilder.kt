@@ -94,12 +94,12 @@ data object DatabaseBuilder {
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         return buildInternal(
-            userDatastore,
-            dbMetrics,
-            clock,
-            satsFactory,
-            queryParameterMappers,
-            råttKravgrunnlagMapper,
+            dataSource = userDatastore,
+            dbMetrics = dbMetrics,
+            clock = clock,
+            satsFactory = satsFactory,
+            queryParameterMappers = queryParameterMappers,
+            råttKravgrunnlagMapper = råttKravgrunnlagMapper,
         )
     }
 
