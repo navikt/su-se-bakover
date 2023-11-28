@@ -130,6 +130,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             fritekst = forhåndsvarsleHendelse.fritekst,
             saksbehandler = forhåndsvarsleHendelse.utførtAv,
             correlationId = correlationId,
+            kravgrunnlag = behandling.kravgrunnlag,
         )
 
         val dokument = brevService.lagDokument(id = forhåndsvarsleHendelse.dokumentId, command = command)

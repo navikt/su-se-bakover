@@ -106,4 +106,5 @@ internal fun KunneIkkeForhåndsviseForhåndsvarsel.tilResultat(): Resultat = whe
     }
 
     KunneIkkeForhåndsviseForhåndsvarsel.UlikVersjon -> Feilresponser.utdatertVersjon
+    KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
 }

@@ -6,7 +6,9 @@ import arrow.core.left
 import arrow.core.right
 import java.time.LocalDate
 import java.time.Period
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 /**
  * Supertype for [Periode] som tillater at datoer ikke faller på første/siste dag i en måned.
@@ -110,6 +112,14 @@ open class DatoIntervall(
         } else {
             DatoIntervallKanIkkeSlåsSammen.left()
         }
+    }
+
+    /**
+     * Periode i formatet "dd.MM.yyyy - dd.MM.yyyy".
+     */
+    fun ddMMyyyy(): String {
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.of("nb", "NO"))
+        return "${this.fraOgMed.format(formatter)} - ${this.tilOgMed.format(formatter)}"
     }
 
     override fun equals(other: Any?) = other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed

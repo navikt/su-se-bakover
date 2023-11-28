@@ -8,5 +8,7 @@ sealed interface KunneIkkeForhåndsviseForhåndsvarsel {
     data class FeilVedDokumentGenerering(
         val kunneIkkeLageDokument: KunneIkkeLageDokument,
     ) : KunneIkkeForhåndsviseForhåndsvarsel
+
+    data object FantIkkeBehandling : KunneIkkeForhåndsviseForhåndsvarsel
     data object UlikVersjon : KunneIkkeForhåndsviseForhåndsvarsel
 }

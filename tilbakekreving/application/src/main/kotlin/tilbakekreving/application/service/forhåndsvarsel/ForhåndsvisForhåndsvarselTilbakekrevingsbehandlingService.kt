@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.hentTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
@@ -33,14 +34,18 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
             log.info("Forhåndsvis forhåndsvarsel av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
 
+        val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
+            ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
+
         return brevService.lagDokument(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
-                fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
                 fritekst = command.fritekst,
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,
+                kravgrunnlag = behandling.kravgrunnlag,
+                fødselsnummer = sak.fnr,
             ),
         )
             .mapLeft { KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(it) }

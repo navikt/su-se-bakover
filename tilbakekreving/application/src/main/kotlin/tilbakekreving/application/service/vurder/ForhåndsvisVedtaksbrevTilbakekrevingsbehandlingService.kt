@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.hentTilbake
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vurdert.ForhåndsvisVedtaksbrevCommand
 import tilbakekreving.domain.vurdert.KunneIkkeForhåndsviseVedtaksbrev
@@ -32,7 +33,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             throw IllegalStateException("Kunne ikke oppdatere vedtaksbrev for tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
         }
 
-        val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
+        val behandling = (sak.hentTilbakekrevingsbehandling(command.behandlingId) as? UnderBehandling.Utfylt)
             ?: return KunneIkkeForhåndsviseVedtaksbrev.FantIkkeBehandling.left()
 
         return brevService.lagDokument(
@@ -47,12 +48,12 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                     is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> return KunneIkkeForhåndsviseVedtaksbrev.BrevetMåVæreVedtaksbrevMedFritekst.left().also {
                         log.error("Tilbakekrevingsbehandling ${behandling.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
                     }
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> behandling.vedtaksbrevvalg!!.fritekst
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> behandling.vedtaksbrevvalg.fritekst
                     is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> return KunneIkkeForhåndsviseVedtaksbrev.BrevetMåVæreVedtaksbrevMedFritekst.left().also {
                         log.error("Tilbakekrevingsbehandling ${behandling.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
                     }
-                    null -> return KunneIkkeForhåndsviseVedtaksbrev.IkkeTattStillingTilBrevvalg.left()
                 },
+                vurderingerMedKrav = behandling.vurderingerMedKrav,
             ),
         )
             .map { it.generertDokument }
