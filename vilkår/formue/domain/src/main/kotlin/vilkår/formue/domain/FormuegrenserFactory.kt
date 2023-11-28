@@ -4,25 +4,26 @@ import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import sats.domain.Knekkpunkt
-import sats.domain.Knekkpunkt.Companion.compareTo
 import sats.domain.grunnbeløp.GrunnbeløpFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * @param knekkpunkt ikrafttredelsesdatoen til en gitt lov/sats. Brukes for å finne ut hvilke satser som gjaldt på en gitt dato.
+ * Et av vilkårene for å få Supplerende Stønad er at formuen er under et halvt grunnbeløp.
+ * Grunnbeløpet endres årlig og vil få virkning fra 1. mai, men trer som regel i kraft i løpet av mai eller senere.
+ * [createFromGrunnbeløp] tar inn et [GrunnbeløpFactory] som baserer seg på et gitt virkningspunkt. For eksempel når applikasjonen startet, eller enda bedre; nå.
+ * Så lenge vi kun legger i grunnbeløpsverdier etter de har tredd i kraft og kun vurderer vilkår på nytt, vil ikke dette bli et problem.
+ * TODO jah: Men dersom vi f.eks. skal gå tilbake i tid og verifisere et vilkår på et gitt tidspunkt, må vi kunne justere for tidspunktet vedtaket ble iverksatt.
+ *
  * @param tidligsteTilgjengeligeMåned Tidligste tilgjengelige måned denne satsen er aktuell. Som for denne satsen er 2021-01-01, men siden vi har tester som antar den gjelder før dette er den dynamisk.
  */
 class FormuegrenserFactory private constructor(
     private val månedTilFormuegrense: Map<Måned, FormuegrenseForMåned>,
-    val knekkpunkt: Knekkpunkt,
     val tidligsteTilgjengeligeMåned: Måned,
 ) {
     private val sisteMånedMedEndring: Måned = månedTilFormuegrense.keys.last()
 
     init {
-        require(månedTilFormuegrense.values.all { it.ikrafttredelse <= knekkpunkt })
         require(månedTilFormuegrense.isNotEmpty())
         require(månedTilFormuegrense.erSammenhengendeSortertOgUtenDuplikater())
         require(månedTilFormuegrense.keys.first() == tidligsteTilgjengeligeMåned)
@@ -31,10 +32,8 @@ class FormuegrenserFactory private constructor(
     companion object {
         fun createFromGrunnbeløp(
             grunnbeløpFactory: GrunnbeløpFactory,
-            knekkpunkt: Knekkpunkt,
             tidligsteTilgjengeligeMåned: Måned,
         ): FormuegrenserFactory {
-            require(knekkpunkt == grunnbeløpFactory.knekkpunkt)
             require(tidligsteTilgjengeligeMåned == grunnbeløpFactory.tidligsteTilgjengeligeMåned)
             return FormuegrenserFactory(
                 månedTilFormuegrense = grunnbeløpFactory.alleGrunnbeløp(tidligsteTilgjengeligeMåned)
@@ -43,7 +42,6 @@ class FormuegrenserFactory private constructor(
                             grunnbeløpForMåned = grunnbeløpForMåned,
                         )
                     },
-                knekkpunkt = knekkpunkt,
                 tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
             )
         }

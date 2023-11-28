@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -14,9 +15,15 @@ fun satsFactoryTestPåDato(påDato: LocalDate = fixedLocalDate) = satsFactoryTes
 
 fun formuegrenserFactoryTestPåDato(
     påDato: LocalDate = fixedLocalDate,
-) = satsFactoryTestPåDato(påDato).formuegrenserFactory
+): FormuegrenserFactory {
+    val satsFactoryTestPåDato = satsFactoryTestPåDato(påDato = påDato)
+    return FormuegrenserFactory.createFromGrunnbeløp(
+        grunnbeløpFactory = satsFactoryTestPåDato.grunnbeløpFactory,
+        tidligsteTilgjengeligeMåned = satsFactoryTestPåDato.tidligsteTilgjengeligeMåned,
+    )
+}
 
 fun formuegrenserFactoryTestPåDato(
     påDato: Tidspunkt = fixedTidspunkt,
     zoneId: ZoneId = ZoneOffset.UTC,
-) = satsFactoryTestPåDato(påDato.toLocalDate(zoneId)).formuegrenserFactory
+) = formuegrenserFactoryTestPåDato(påDato.toLocalDate(zoneId))

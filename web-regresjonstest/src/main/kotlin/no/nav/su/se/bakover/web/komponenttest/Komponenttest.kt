@@ -29,6 +29,7 @@ import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -106,6 +107,10 @@ internal fun withKomptestApplication(
     serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services = { databaseRepos, clients, klokke, satsFactory ->
         run {
             val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(klokke))
+            val formuegrenserFactoryIDag = FormuegrenserFactory.createFromGrunnbeløp(
+                grunnbeløpFactory = satsFactoryIDag.grunnbeløpFactory,
+                tidligsteTilgjengeligeMåned = satsFactoryIDag.tidligsteTilgjengeligeMåned,
+            )
             ServiceBuilder.build(
                 databaseRepos = databaseRepos,
                 clients = clients,
@@ -113,7 +118,7 @@ internal fun withKomptestApplication(
                 søknadMetrics = mock(),
                 clock = klokke,
                 satsFactory = satsFactoryIDag,
-                formuegrenserFactory = satsFactoryIDag.formuegrenserFactory,
+                formuegrenserFactory = formuegrenserFactoryIDag,
                 applicationConfig = applicationConfig,
                 dbMetrics = dbMetricsStub,
             )

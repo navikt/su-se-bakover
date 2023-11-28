@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 
@@ -37,6 +38,10 @@ internal fun Application.testSusebakoverWithMockedDb(
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     /** Bruk gjeldende satser i hht angitt [clock] */
     satsFactory: SatsFactory = satsFactoryTest.gjeldende(LocalDate.now(clock)),
+    formuegrenserFactory: FormuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
+        grunnbeløpFactory = satsFactory.grunnbeløpFactory,
+        tidligsteTilgjengeligeMåned = satsFactory.tidligsteTilgjengeligeMåned,
+    ),
     services: Services = run {
         ServiceBuilder.build(
             // build actual clients
@@ -46,7 +51,7 @@ internal fun Application.testSusebakoverWithMockedDb(
             søknadMetrics = org.mockito.kotlin.mock(),
             clock = clock,
             satsFactory = satsFactory,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            formuegrenserFactory = formuegrenserFactory,
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
         )

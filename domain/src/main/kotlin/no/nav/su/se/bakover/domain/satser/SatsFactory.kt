@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import sats.domain.FullSupplerendeStønadForMåned
 import sats.domain.Knekkpunkt
 import sats.domain.Satskategori
+import sats.domain.grunnbeløp.GrunnbeløpFactory
 import sats.domain.grunnbeløp.GrunnbeløpForMåned
-import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -34,10 +34,7 @@ interface SatsFactory {
      */
     val tidligsteTilgjengeligeMåned: Måned
 
-    /**
-     * TODO jah: Bytt ut denne med en formuegrenseForMåned og formuegrenser etter en gitt dato/måned.
-     */
-    val formuegrenserFactory: FormuegrenserFactory
+    val grunnbeløpFactory: GrunnbeløpFactory
 
     /** høy supplerende stønad for uføre */
     fun høyUføre(måned: Måned): FullSupplerendeStønadForMåned.Uføre

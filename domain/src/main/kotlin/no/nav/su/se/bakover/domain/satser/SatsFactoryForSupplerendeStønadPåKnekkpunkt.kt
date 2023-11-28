@@ -7,7 +7,6 @@ import sats.domain.Knekkpunkt
 import sats.domain.Satskategori
 import sats.domain.grunnbeløp.GrunnbeløpFactory
 import sats.domain.grunnbeløp.GrunnbeløpForMåned
-import vilkår.formue.domain.FormuegrenserFactory
 
 /**
  * Satser for supplerende stønad som er gyldig på en gitt dato.
@@ -15,8 +14,7 @@ import vilkår.formue.domain.FormuegrenserFactory
  * Vi ønsker å skille denne fra virkningstidspunktet, da disse har begynt å skille lag i senere år.
  */
 class SatsFactoryForSupplerendeStønadPåKnekkpunkt(
-    private val grunnbeløpFactory: GrunnbeløpFactory,
-    override val formuegrenserFactory: FormuegrenserFactory,
+    override val grunnbeløpFactory: GrunnbeløpFactory,
     private val uføreOrdinær: FullSupplerendeStønadFactory.Ordinær.Ufør,
     private val uføreHøy: FullSupplerendeStønadFactory.Høy.Ufør,
     private val alderOrdinær: FullSupplerendeStønadFactory.Ordinær.Alder,

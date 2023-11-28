@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
@@ -31,6 +32,7 @@ import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -60,6 +62,11 @@ fun Application.susebakover(
     dbMetrics: DbMetrics = DbMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
+    satsFactoryIDag: SatsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
+    formuegrenserFactoryIDag: FormuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
+        grunnbeløpFactory = satsFactoryIDag.grunnbeløpFactory,
+        tidligsteTilgjengeligeMåned = satsFactoryIDag.tidligsteTilgjengeligeMåned,
+    ),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = dbMetrics,
@@ -82,15 +89,14 @@ fun Application.susebakover(
         ).build(applicationConfig)
     },
     services: Services = run {
-        val satsFactoryGjeldendePåDato = satsFactory.gjeldende(LocalDate.now(clock))
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = behandlingMetrics,
             søknadMetrics = søknadMetrics,
             clock = clock,
-            satsFactory = satsFactoryGjeldendePåDato,
-            formuegrenserFactory = satsFactoryGjeldendePåDato.formuegrenserFactory,
+            satsFactory = satsFactoryIDag,
+            formuegrenserFactory = formuegrenserFactoryIDag,
             applicationConfig = applicationConfig,
             dbMetrics = dbMetrics,
         )
@@ -161,9 +167,6 @@ fun Application.susebakover(
     ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
-    val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
-    val formuegrenserFactoryIDag = satsFactoryIDag.formuegrenserFactory
-
     setupKtor(
         services = services,
         clock = clock,

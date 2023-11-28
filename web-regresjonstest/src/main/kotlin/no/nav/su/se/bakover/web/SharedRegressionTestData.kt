@@ -68,6 +68,7 @@ import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -166,6 +167,10 @@ data object SharedRegressionTestData {
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
                     run {
                         val satsFactoryIdag = satsFactory.gjeldende(LocalDate.now(clock))
+                        val formuegrenserFactoryIDag = FormuegrenserFactory.createFromGrunnbeløp(
+                            grunnbeløpFactory = satsFactoryIdag.grunnbeløpFactory,
+                            tidligsteTilgjengeligeMåned = satsFactoryIdag.tidligsteTilgjengeligeMåned,
+                        )
                         ServiceBuilder.build(
                             databaseRepos = databaseRepos,
                             clients = clients,
@@ -173,7 +178,7 @@ data object SharedRegressionTestData {
                             søknadMetrics = mock(),
                             clock = clock,
                             satsFactory = satsFactoryIdag,
-                            formuegrenserFactory = satsFactoryIdag.formuegrenserFactory,
+                            formuegrenserFactory = formuegrenserFactoryIDag,
                             applicationConfig = applicationConfig(),
                             dbMetrics = dbMetricsStub,
                         )
@@ -275,6 +280,10 @@ data object SharedRegressionTestData {
         ).build(applicationConfig),
         services: Services = run {
             val satsFactoryIDag = satsFactoryTestPåDato(LocalDate.now(clock))
+            val formuegrenserFactoryIDag = FormuegrenserFactory.createFromGrunnbeløp(
+                grunnbeløpFactory = satsFactoryIDag.grunnbeløpFactory,
+                tidligsteTilgjengeligeMåned = satsFactoryIDag.tidligsteTilgjengeligeMåned,
+            )
             ServiceBuilder.build(
                 databaseRepos = databaseRepos,
                 clients = clients,
@@ -282,7 +291,7 @@ data object SharedRegressionTestData {
                 søknadMetrics = mock(),
                 clock = clock,
                 satsFactory = satsFactoryIDag,
-                formuegrenserFactory = satsFactoryIDag.formuegrenserFactory,
+                formuegrenserFactory = formuegrenserFactoryIDag,
                 applicationConfig = applicationConfig(),
                 dbMetrics = dbMetricsStub,
             )

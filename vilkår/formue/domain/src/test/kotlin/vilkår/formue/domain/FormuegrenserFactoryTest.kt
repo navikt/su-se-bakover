@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import sats.domain.grunnbeløp.GrunnbeløpForMåned
@@ -117,7 +116,14 @@ internal class FormuegrenserFactoryTest {
     inner class `virkningstidspunkt()` {
         @Test
         fun `virkningstidspunkt fra januar 2016`() {
-            SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(1.juni(2022)).formuegrenserFactory.virkningstidspunkt(
+            val satsFactory =
+                SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(1.juni(2022))
+            val formuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
+                grunnbeløpFactory = satsFactory.grunnbeløpFactory,
+                tidligsteTilgjengeligeMåned = satsFactory.tidligsteTilgjengeligeMåned,
+            )
+
+            formuegrenserFactory.virkningstidspunkt(
                 januar(2016),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
@@ -172,45 +178,45 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse januar 2021`() {
-            satsFactoryTestPåDato(
+            formuegrenserFactoryTestPåDato(
                 påDato = 1.januar(2021),
-            ).formuegrenserFactory.virkningstidspunkt(
+            ).virkningstidspunkt(
                 fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
         }
 
         @Test
         fun `Ikrafttredelse april 2021`() {
-            satsFactoryTestPåDato(
+            formuegrenserFactoryTestPåDato(
                 påDato = 1.april(2021),
-            ).formuegrenserFactory.virkningstidspunkt(
+            ).virkningstidspunkt(
                 fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
         }
 
         @Test
         fun `Ikrafttredelse mai 2021`() {
-            satsFactoryTestPåDato(
+            formuegrenserFactoryTestPåDato(
                 påDato = 21.mai(2021),
-            ).formuegrenserFactory.virkningstidspunkt(
+            ).virkningstidspunkt(
                 fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
         }
 
         @Test
         fun `Ikrafttredelse april 2022`() {
-            satsFactoryTestPåDato(
+            formuegrenserFactoryTestPåDato(
                 påDato = 1.april(2022),
-            ).formuegrenserFactory.virkningstidspunkt(
+            ).virkningstidspunkt(
                 fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
         }
 
         @Test
         fun `Ikrafttredelse mai 2022`() {
-            satsFactoryTestPåDato(
+            formuegrenserFactoryTestPåDato(
                 påDato = 20.mai(2022),
-            ).formuegrenserFactory.virkningstidspunkt(
+            ).virkningstidspunkt(
                 fraOgMed = januar(2021),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),

@@ -17,7 +17,6 @@ import sats.domain.Knekkpunkt
 import sats.domain.MinsteÅrligYtelseForUføretrygdedeFactory
 import sats.domain.grunnbeløp.GrunnbeløpFactory
 import sats.domain.grunnbeløp.Grunnbeløpsendring
-import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
@@ -163,11 +162,6 @@ class SatsFactoryForSupplerendeStønad(
                 )
             SatsFactoryForSupplerendeStønadPåKnekkpunkt(
                 grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
-                formuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
-                    grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
-                    knekkpunkt = knekkpunkt,
-                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
-                ),
                 uføreOrdinær = FullSupplerendeStønadFactory.Ordinær.Ufør(
                     grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt,
