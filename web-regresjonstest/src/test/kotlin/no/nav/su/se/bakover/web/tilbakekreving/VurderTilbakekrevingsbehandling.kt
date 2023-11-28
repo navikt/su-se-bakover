@@ -59,6 +59,9 @@ fun vurderTilbakekrevingsbehandling(
         "bruttoSkalTilbakekreveSummert":12383,
         "nettoSkalTilbakekreveSummert":6191,
         "bruttoSkalIkkeTilbakekreveSummert":0,
+        "betaltSkattForYtelsesgruppenSummert":6192,
+        "bruttoNyUtbetalingSummert":8563,
+        "bruttoTidligereUtbetaltSummert":20946
       }
     """.trimIndent(),
     expectedFritekst: String? = null,

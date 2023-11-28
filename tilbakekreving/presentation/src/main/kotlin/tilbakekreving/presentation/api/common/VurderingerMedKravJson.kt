@@ -10,6 +10,9 @@ data class VurderingerMedKravJson(
     val bruttoSkalTilbakekreveSummert: Int,
     val nettoSkalTilbakekreveSummert: Int,
     val bruttoSkalIkkeTilbakekreveSummert: Int,
+    val betaltSkattForYtelsesgruppenSummert: Int,
+    val bruttoNyUtbetalingSummert: Int,
+    val bruttoTidligereUtbetaltSummert: Int,
 )
 
 internal fun VurderingerMedKrav.toJson(): VurderingerMedKravJson {
@@ -20,8 +23,9 @@ internal fun VurderingerMedKrav.toJson(): VurderingerMedKravJson {
         bruttoSkalTilbakekreveSummert = this.bruttoSkalTilbakekreveSummert,
         nettoSkalTilbakekreveSummert = this.nettoSkalTilbakekreveSummert,
         bruttoSkalIkkeTilbakekreveSummert = this.bruttoSkalIkkeTilbakekreveSummert,
-        perioder = this.perioder.map {
-            it.toJson()
-        },
+        perioder = this.perioder.map { it.toJson() },
+        betaltSkattForYtelsesgruppenSummert = this.betaltSkattForYtelsesgruppenSummert,
+        bruttoNyUtbetalingSummert = this.bruttoNyUtbetalingSummert,
+        bruttoTidligereUtbetaltSummert = this.bruttoTidligereUtbetaltSummert,
     )
 }

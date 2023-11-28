@@ -198,7 +198,10 @@ internal class TilbakekrevingsbehandlingIT {
                 "eksternKontrollfelt":"2021-02-01-02.03.28.456789",
                 "bruttoSkalTilbakekreveSummert":0,
                 "nettoSkalTilbakekreveSummert":0,
-                "bruttoSkalIkkeTilbakekreveSummert":12383
+                "bruttoSkalIkkeTilbakekreveSummert":12383,
+                "betaltSkattForYtelsesgruppenSummert":6192,
+                "bruttoNyUtbetalingSummert":8563,
+                "bruttoTidligereUtbetaltSummert":20946
               }
                 """.trimIndent(),
             ).let {

@@ -21,6 +21,9 @@ data class VurderingerMedKrav private constructor(
     val bruttoSkalTilbakekreveSummert: Int,
     val nettoSkalTilbakekreveSummert: Int,
     val bruttoSkalIkkeTilbakekreveSummert: Int,
+    val betaltSkattForYtelsesgruppenSummert: Int,
+    val bruttoNyUtbetalingSummert: Int,
+    val bruttoTidligereUtbetaltSummert: Int,
 ) : List<PeriodevurderingMedKrav> by perioder {
 
     init {
@@ -75,6 +78,10 @@ data class VurderingerMedKrav private constructor(
                 bruttoSkalTilbakekreveSummert = perioder.sumOf { it.bruttoSkalTilbakekreve },
                 nettoSkalTilbakekreveSummert = perioder.sumOf { it.nettoSkalTilbakekreve },
                 bruttoSkalIkkeTilbakekreveSummert = perioder.sumOf { it.bruttoSkalIkkeTilbakekreve },
+                betaltSkattForYtelsesgruppenSummert = perioder.sumOf { it.betaltSkattForYtelsesgruppen },
+                bruttoNyUtbetalingSummert = perioder.sumOf { it.bruttoNyUtbetaling },
+                bruttoTidligereUtbetaltSummert = perioder.sumOf { it.bruttoTidligereUtbetalt },
+
             )
         }
 
@@ -97,6 +104,9 @@ data class VurderingerMedKrav private constructor(
                 bruttoSkalTilbakekreveSummert = perioder.sumOf { it.bruttoSkalTilbakekreve },
                 nettoSkalTilbakekreveSummert = perioder.sumOf { it.nettoSkalTilbakekreve },
                 bruttoSkalIkkeTilbakekreveSummert = perioder.sumOf { it.bruttoSkalIkkeTilbakekreve },
+                betaltSkattForYtelsesgruppenSummert = perioder.sumOf { it.betaltSkattForYtelsesgruppen },
+                bruttoNyUtbetalingSummert = perioder.sumOf { it.bruttoNyUtbetaling },
+                bruttoTidligereUtbetaltSummert = perioder.sumOf { it.bruttoTidligereUtbetalt },
             )
         }
     }
