@@ -32,13 +32,13 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.gjenopptaUtbetaling(
     service: GjenopptaYtelseService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/gjenoppta") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -63,7 +63,12 @@ internal fun Route.gjenopptaUtbetaling(
                             // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                             call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
                             call.audit(it.first.fnr, AuditLogEvent.Action.CREATE, it.first.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.first.toJson(satsFactory))))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.Created,
+                                    serialize(it.first.toJson(formuegrenserFactory)),
+                                ),
+                            )
                         },
                     )
                 }
@@ -96,7 +101,12 @@ internal fun Route.gjenopptaUtbetaling(
                                 // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                                 call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
                                 call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.first.toJson(satsFactory))))
+                                call.svar(
+                                    Resultat.json(
+                                        HttpStatusCode.OK,
+                                        serialize(it.first.toJson(formuegrenserFactory)),
+                                    ),
+                                )
                             },
                         )
                     }
@@ -117,7 +127,7 @@ internal fun Route.gjenopptaUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Iverksatt gjenopptak av utbetalinger for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

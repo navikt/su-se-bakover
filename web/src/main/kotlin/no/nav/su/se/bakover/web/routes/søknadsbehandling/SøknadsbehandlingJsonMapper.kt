@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -25,13 +24,14 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Compani
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøkandsbehandlingStatusJson.Companion.status
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.format.DateTimeFormatter
 
-internal fun Søknadsbehandling.json(satsFactory: SatsFactory): String {
-    return serialize(toJson(satsFactory))
+internal fun Søknadsbehandling.json(formuegrenserFactory: FormuegrenserFactory): String {
+    return serialize(toJson(formuegrenserFactory))
 }
 
-internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): SøknadsbehandlingJson {
+internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactory): SøknadsbehandlingJson {
     return when (this) {
         is VilkårsvurdertSøknadsbehandling -> SøknadsbehandlingJson(
             id = id.toString(),
@@ -45,7 +45,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
             fritekstTilBrev = fritekstTilBrev,
             sakId = sakId,
             stønadsperiode = stønadsperiode?.toJson(),
-            grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+            grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
             erLukket = false,
             sakstype = sakstype.toJson(),
             aldersvurdering = this.aldersvurdering?.toJson(),
@@ -65,7 +65,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -86,7 +86,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -107,7 +107,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -128,7 +128,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -149,7 +149,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -187,7 +187,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -208,7 +208,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -229,7 +229,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -250,7 +250,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -271,7 +271,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -292,7 +292,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
                 fritekstTilBrev = fritekstTilBrev,
                 sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, formuegrenserFactory),
                 erLukket = false,
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
@@ -301,13 +301,13 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): Søknadsbehand
         }
 
         is LukketSøknadsbehandling -> {
-            underliggendeSøknadsbehandling.toJson(satsFactory).copy(erLukket = true)
+            underliggendeSøknadsbehandling.toJson(formuegrenserFactory).copy(erLukket = true)
         }
     }
 }
 
-internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling, satsFactory: SatsFactory): Resultat {
-    return Resultat.json(this, serialize(søknadsbehandling.toJson(satsFactory)))
+internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling, formuegrenserFactory: FormuegrenserFactory): Resultat {
+    return Resultat.json(this, serialize(søknadsbehandling.toJson(formuegrenserFactory)))
 }
 
 internal enum class SøkandsbehandlingStatusJson {

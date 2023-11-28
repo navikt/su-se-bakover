@@ -37,17 +37,20 @@ internal fun Application.testSusebakoverWithMockedDb(
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     /** Bruk gjeldende satser i hht angitt [clock] */
     satsFactory: SatsFactory = satsFactoryTest.gjeldende(LocalDate.now(clock)),
-    services: Services = ServiceBuilder.build(
-        // build actual clients
-        databaseRepos = databaseRepos,
-        clients = clients,
-        behandlingMetrics = org.mockito.kotlin.mock(),
-        søknadMetrics = org.mockito.kotlin.mock(),
-        clock = clock,
-        satsFactory = satsFactory,
-        applicationConfig = applicationConfig(),
-        dbMetrics = dbMetricsStub,
-    ),
+    services: Services = run {
+        ServiceBuilder.build(
+            // build actual clients
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = org.mockito.kotlin.mock(),
+            søknadMetrics = org.mockito.kotlin.mock(),
+            clock = clock,
+            satsFactory = satsFactory,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            applicationConfig = applicationConfig(),
+            dbMetrics = dbMetricsStub,
+        )
+    },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
         databaseRepos.person,
         services,

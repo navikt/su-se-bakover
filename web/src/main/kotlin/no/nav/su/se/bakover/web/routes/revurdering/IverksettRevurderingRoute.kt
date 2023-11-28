@@ -25,14 +25,14 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
@@ -49,7 +49,7 @@ internal fun Route.iverksettRevurderingRoute(
                         call.sikkerlogg("Iverksatt revurdering med id $revurderingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.REVURDERING)
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                     },
                 )
             }

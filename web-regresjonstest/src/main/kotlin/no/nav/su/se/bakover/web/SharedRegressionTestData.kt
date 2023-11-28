@@ -164,16 +164,20 @@ data object SharedRegressionTestData {
                     ).build(applicationConfig)
                 },
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
-                    ServiceBuilder.build(
-                        databaseRepos = databaseRepos,
-                        clients = clients,
-                        behandlingMetrics = mock(),
-                        søknadMetrics = mock(),
-                        clock = clock,
-                        satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
-                        applicationConfig = applicationConfig(),
-                        dbMetrics = dbMetricsStub,
-                    )
+                    run {
+                        val satsFactoryIdag = satsFactory.gjeldende(LocalDate.now(clock))
+                        ServiceBuilder.build(
+                            databaseRepos = databaseRepos,
+                            clients = clients,
+                            behandlingMetrics = mock(),
+                            søknadMetrics = mock(),
+                            clock = clock,
+                            satsFactory = satsFactoryIdag,
+                            formuegrenserFactory = satsFactoryIdag.formuegrenserFactory,
+                            applicationConfig = applicationConfig(),
+                            dbMetrics = dbMetricsStub,
+                        )
+                    }
                 },
                 applicationConfig = applicationConfig,
                 tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
@@ -269,16 +273,20 @@ data object SharedRegressionTestData {
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             databaseRepos = databaseRepos,
         ).build(applicationConfig),
-        services: Services = ServiceBuilder.build(
-            databaseRepos = databaseRepos,
-            clients = clients,
-            behandlingMetrics = mock(),
-            søknadMetrics = mock(),
-            clock = clock,
-            satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
-            applicationConfig = applicationConfig(),
-            dbMetrics = dbMetricsStub,
-        ),
+        services: Services = run {
+            val satsFactoryIDag = satsFactoryTestPåDato(LocalDate.now(clock))
+            ServiceBuilder.build(
+                databaseRepos = databaseRepos,
+                clients = clients,
+                behandlingMetrics = mock(),
+                søknadMetrics = mock(),
+                clock = clock,
+                satsFactory = satsFactoryIDag,
+                formuegrenserFactory = satsFactoryIDag.formuegrenserFactory,
+                applicationConfig = applicationConfig(),
+                dbMetrics = dbMetricsStub,
+            )
+        },
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {
         return susebakover(

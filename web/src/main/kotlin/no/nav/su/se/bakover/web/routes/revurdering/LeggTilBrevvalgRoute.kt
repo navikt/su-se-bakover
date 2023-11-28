@@ -19,11 +19,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.leggTilBrevvalgRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val valg: LeggTilBrevvalgRequest.Valg,
@@ -49,7 +49,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                             ifRight = {
                                 call.sikkerlogg("Oppdaterte brevvalg for revurdering:$revurderingId")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, revurderingId)
-                                Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
+                                Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                             },
                         ),
                     )

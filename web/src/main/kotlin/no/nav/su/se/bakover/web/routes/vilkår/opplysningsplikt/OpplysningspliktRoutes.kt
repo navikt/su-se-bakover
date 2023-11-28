@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
@@ -28,13 +27,14 @@ import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspl
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 
 internal fun Route.opplysningspliktRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("/vilkar/opplysningsplikt") {
@@ -52,7 +52,7 @@ internal fun Route.opplysningspliktRoutes(
                                     { it.tilResultat() },
                                     {
                                         call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     },
                                 )
                         }
@@ -63,7 +63,7 @@ internal fun Route.opplysningspliktRoutes(
                                     { it.tilResultat() },
                                     {
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     },
                                 )
                         }

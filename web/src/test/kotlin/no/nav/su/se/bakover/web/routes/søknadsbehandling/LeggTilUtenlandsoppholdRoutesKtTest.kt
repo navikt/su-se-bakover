@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -128,7 +128,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     bodyAsText(),
-                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())),
+                    serialize(vilkårsvurdert.toJson(formuegrenserFactoryTestPåDato())),
                     true,
                 )
             }

@@ -14,12 +14,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val clock: Clock,
     private val sakService: SakService,
     private val satsFactory: SatsFactory,
+    private val formuegrenserFactory: FormuegrenserFactory,
     private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
     private val utbetalingService: UtbetalingService,
     private val brevService: BrevService,
@@ -45,6 +47,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 command = command,
                 clock = clock,
                 satsFactory = satsFactory,
+                formuegrenserFactory = formuegrenserFactory,
                 genererPdf = brevService::lagDokument,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
             )

@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -540,8 +540,8 @@ internal class SøknadsbehandlingJsonTest {
                }
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
-        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
+        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())), true)
+        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())
     }
 
     @Test
@@ -746,7 +746,7 @@ internal class SøknadsbehandlingJsonTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
-        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
+        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())), true)
+        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())
     }
 }

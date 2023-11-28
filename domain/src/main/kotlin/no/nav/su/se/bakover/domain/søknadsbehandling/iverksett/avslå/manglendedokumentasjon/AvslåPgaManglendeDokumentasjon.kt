@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 /**
@@ -33,6 +34,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     command: AvslåManglendeDokumentasjonCommand,
     clock: Clock,
     satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
@@ -59,7 +61,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
             },
             request = command,
             clock = clock,
-            satsFactory = satsFactory,
+            formuegrenserFactory = formuegrenserFactory,
         )
     }.let {
         it.getOrElse {
@@ -91,14 +93,14 @@ private fun avslå(
     søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår,
     request: AvslåManglendeDokumentasjonCommand,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ): Either<KunneIkkeAvslåSøknad, Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>> {
     // TODO jah: Vi burde gå via sak i alle stegene vi muterer søknadsbehandlingen.
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda. Dette vil implisitt legge på opplysningspliktvilkåret.
         .leggTilStønadsperiodeOgAldersvurderingHvisNull(
             clock = clock,
-            satsFactory = satsFactory,
+            formuegrenserFactory = formuegrenserFactory,
         ).avslåPgaOpplysningsplikt(
             saksbehandler = request.saksbehandler,
             tidspunkt = Tidspunkt.now(clock),
@@ -124,7 +126,7 @@ private fun avslå(
  */
 private fun KanOppdaterePeriodeBosituasjonVilkår.leggTilStønadsperiodeOgAldersvurderingHvisNull(
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ): KanOppdaterePeriodeBosituasjonVilkår {
     if (stønadsperiode != null) return this
 
@@ -132,7 +134,7 @@ private fun KanOppdaterePeriodeBosituasjonVilkår.leggTilStønadsperiodeOgAlders
         aldersvurdering = Aldersvurdering.SkalIkkeVurderes(
             Stønadsperiode.create(Måned.now(clock)),
         ),
-        formuegrenserFactory = satsFactory.formuegrenserFactory,
+        formuegrenserFactory = formuegrenserFactory,
         clock = clock,
     )
 }

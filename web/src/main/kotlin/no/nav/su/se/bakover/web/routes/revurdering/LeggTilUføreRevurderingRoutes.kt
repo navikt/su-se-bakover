@@ -19,13 +19,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.leggTilGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -39,7 +39,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                         it.tilResultat()
                                     }.map {
                                         call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     }
                             }.getOrElse { it },
                     )

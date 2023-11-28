@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
@@ -74,12 +74,12 @@ internal class SakJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson(fixedClock, satsFactoryTestPåDato())), true)
+        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson(fixedClock, formuegrenserFactoryTestPåDato())), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson(fixedClock, satsFactoryTestPåDato())
+        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson(fixedClock, formuegrenserFactoryTestPåDato())
     }
 
     @Nested
@@ -136,7 +136,7 @@ internal class SakJsonTest {
 
             val sak = sak.copy(utbetalinger = Utbetalinger(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
-            val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
+            val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, formuegrenserFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(
                 fraOgMed = nyUtbetaling.periode.fraOgMed,
                 tilOgMed = midlertidigStans.periode.fraOgMed.minusDays(1),

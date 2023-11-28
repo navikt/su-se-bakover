@@ -16,14 +16,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.oppdaterFødselsnummerPåSakRoute(
     sakService: SakService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     put("$SAK_PATH/{sakId}/fødselsnummer") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -43,7 +43,7 @@ internal fun Route.oppdaterFødselsnummerPåSakRoute(
                         {
                             Resultat.json(
                                 HttpStatusCode.OK,
-                                serialize(it.toJson(clock, satsFactory)),
+                                serialize(it.toJson(clock, formuegrenserFactory)),
                             )
                         },
                     ),

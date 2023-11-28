@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -22,11 +21,12 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toDomain
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.flyktningVilkårRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/flyktning") {
@@ -44,7 +44,7 @@ internal fun Route.flyktningVilkårRoutes(
                             { it.tilResultat() },
                             {
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                Resultat.json(HttpStatusCode.Created, it.json(satsFactory))
+                                Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                             },
                         ),
                     )

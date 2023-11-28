@@ -14,18 +14,18 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.LeggTilVurderingsperiodeInstitusjonsoppholdJson
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.institusjonsoppholdRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/institusjonsopphold") {
@@ -44,7 +44,7 @@ internal fun Route.institusjonsoppholdRoutes(
                                 { it.tilResultat() },
                                 {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                    Resultat.json(HttpStatusCode.Created, it.json(satsFactory))
+                                    Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                                 },
                             )
                         }.merge(),

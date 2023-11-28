@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
@@ -64,6 +65,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 
@@ -407,6 +409,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService = mock(),
         val sakService: SakService = mock(),
         val satsFactory: SatsFactory = satsFactoryTestPåDato(),
+        val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
         val utbetalingService: UtbetalingService = mock(),
         val brevService: BrevService = mock(),
     ) {
@@ -414,6 +417,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             clock = clock,
             sakService = sakService,
             satsFactory = satsFactory,
+            formuegrenserFactory = formuegrenserFactory,
             iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
             utbetalingService = utbetalingService,
             brevService = brevService,

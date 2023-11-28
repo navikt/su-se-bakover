@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.api.tilbakekrevingRoutes
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Application.setupKtorRoutes(
@@ -46,7 +46,7 @@ internal fun Application.setupKtorRoutes(
     accessCheckProxy: AccessCheckProxy,
     extraRoutes: Route.(services: Services) -> Unit,
     azureGroupMapper: AzureGroupMapper,
-    satsFactoryIDag: SatsFactory,
+    formuegrenserFactoryIDag: FormuegrenserFactory,
     databaseRepos: DatabaseRepos,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clients: Clients,
@@ -65,19 +65,19 @@ internal fun Application.setupKtorRoutes(
                 ) { accessProtectedServices ->
                     extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak, clock, satsFactoryIDag)
+                    sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                         clock = clock,
-                        satsFactoryIDag,
+                        formuegrenserFactory = formuegrenserFactoryIDag,
                     )
                     overordnetSøknadsbehandligRoutes(
-                        accessProtectedServices.søknadsbehandling,
-                        clock,
-                        satsFactoryIDag,
-                        applicationConfig,
+                        søknadsbehandlingServices = accessProtectedServices.søknadsbehandling,
+                        clock = clock,
+                        formuegrenserFactory = formuegrenserFactoryIDag,
+                        applicationConfig = applicationConfig,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(
@@ -89,7 +89,7 @@ internal fun Application.setupKtorRoutes(
                         revurderingService = accessProtectedServices.revurdering,
                         sakService = accessProtectedServices.sak,
                         clock = clock,
-                        satsFactory = satsFactoryIDag,
+                        formuegrenserFactory = formuegrenserFactoryIDag,
                         stansAvYtelseService = accessProtectedServices.stansYtelse,
                         gjenopptakAvYtelseService = accessProtectedServices.gjenopptaYtelse,
                     )
@@ -104,7 +104,7 @@ internal fun Application.setupKtorRoutes(
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
                         revurderingService = accessProtectedServices.revurdering,
-                        satsFactory = satsFactoryIDag,
+                        formuegrenserFactory = formuegrenserFactoryIDag,
                         clock = clock,
                     )
                     skattRoutes(accessProtectedServices.skatteService)
@@ -132,7 +132,7 @@ internal fun Application.setupKtorRoutes(
                     )
                     leggTilBrevvalgRevurderingRoute(
                         revurderingService = accessProtectedServices.revurdering,
-                        satsFactory = satsFactoryIDag,
+                        formuegrenserFactory = formuegrenserFactoryIDag,
                     )
                     tilbakekrevingRoutes(
                         opprettTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.opprettTilbakekrevingsbehandlingService,

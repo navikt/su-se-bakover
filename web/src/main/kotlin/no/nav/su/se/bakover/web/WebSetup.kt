@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.application.service.Tilbakekrevingskomponenter
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.format.DateTimeParseException
 
@@ -50,7 +50,7 @@ internal fun Application.setupKtor(
     clock: Clock,
     applicationConfig: ApplicationConfig,
     accessCheckProxy: AccessCheckProxy,
-    satsFactoryIDag: SatsFactory,
+    formuegrenserFactoryIDag: FormuegrenserFactory,
     databaseRepos: DatabaseRepos,
     clients: Clients,
     extraRoutes: Route.(services: Services) -> Unit,
@@ -79,7 +79,7 @@ internal fun Application.setupKtor(
         accessCheckProxy = accessCheckProxy,
         extraRoutes = extraRoutes,
         azureGroupMapper = azureGroupMapper,
-        satsFactoryIDag = satsFactoryIDag,
+        formuegrenserFactoryIDag = formuegrenserFactoryIDag,
         databaseRepos = databaseRepos,
         clients = clients,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,

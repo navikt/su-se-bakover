@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/bosituasjongrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -44,7 +44,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                                 response.revurdering.id,
                                             )
                                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
-                                            Resultat.json(HttpStatusCode.OK, serialize(response.toJson(satsFactory)))
+                                            Resultat.json(HttpStatusCode.OK, serialize(response.toJson(formuegrenserFactory)))
                                         }
                                 }.getOrElse { it },
                         )

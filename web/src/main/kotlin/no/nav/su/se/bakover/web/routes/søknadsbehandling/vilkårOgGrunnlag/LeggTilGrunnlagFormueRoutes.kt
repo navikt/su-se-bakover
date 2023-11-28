@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FormueBody.Companion.toServiceRequest
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -102,7 +102,7 @@ private data class FormueBody(
 
 internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/formuegrunnlag") {
@@ -117,7 +117,7 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                                 .map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
-                                    return@authorize call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                    return@authorize call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                                 }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
                                     return@authorize call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
                                 }

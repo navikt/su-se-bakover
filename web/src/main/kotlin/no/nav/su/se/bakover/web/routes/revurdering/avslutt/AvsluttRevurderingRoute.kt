@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
@@ -35,10 +34,11 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Bre
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/avslutt") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -56,7 +56,7 @@ internal fun Route.avsluttRevurderingRoute(
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

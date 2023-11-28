@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.dokument.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
@@ -45,6 +44,7 @@ import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import person.domain.KunneIkkeHenteNavnForNavIdent
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 
@@ -53,12 +53,12 @@ internal const val SAK_PATH = "/saker"
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     oppdaterFødselsnummerPåSakRoute(
         sakService = sakService,
         clock = clock,
-        satsFactory = satsFactory,
+        formuegrenserFactory = formuegrenserFactory,
     )
 
     post("$SAK_PATH/søk") {
@@ -97,7 +97,7 @@ internal fun Route.sakRoutes(
                                         return@authorize call.svar(
                                             Resultat.json(
                                                 OK,
-                                                serialize(it.toJson(clock, satsFactory)),
+                                                serialize(it.toJson(clock, formuegrenserFactory)),
                                             ),
                                         )
                                     }
@@ -125,7 +125,7 @@ internal fun Route.sakRoutes(
                                         },
                                         {
                                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                                            Resultat.json(OK, serialize((it.toJson(clock, satsFactory))))
+                                            Resultat.json(OK, serialize((it.toJson(clock, formuegrenserFactory))))
                                         },
                                     )
                                 },
@@ -184,7 +184,7 @@ internal fun Route.sakRoutes(
                         { NotFound.errorJson("Fant ikke sak med id: $sakId", "fant_ikke_sak") },
                         {
                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                            Resultat.json(OK, serialize((it.toJson(clock, satsFactory))))
+                            Resultat.json(OK, serialize((it.toJson(clock, formuegrenserFactory))))
                         },
                     ),
                 )
@@ -216,7 +216,7 @@ internal fun Route.sakRoutes(
                             {
                                 Resultat.json(
                                     OK,
-                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson(satsFactory)))),
+                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson(formuegrenserFactory)))),
                                 )
                             },
                         ),

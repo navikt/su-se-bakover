@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
@@ -26,6 +25,7 @@ import tilbakekreving.presentation.api.common.KravgrunnlagJson
 import tilbakekreving.presentation.api.common.KravgrunnlagJson.Companion.toJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal data class SakJson(
@@ -48,12 +48,12 @@ internal data class SakJson(
     val uteståendeKravgrunnlag: KravgrunnlagJson?,
 ) {
     companion object {
-        internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
+        internal fun Sak.toJson(clock: Clock, formuegrenserFactory: FormuegrenserFactory) = SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
             søknader = søknader.map { it.toJson() },
-            behandlinger = søknadsbehandlinger.map { it.toJson(satsFactory) },
+            behandlinger = søknadsbehandlinger.map { it.toJson(formuegrenserFactory) },
             utbetalinger = utbetalingstidslinje()?.let {
                 it.map {
                     UtbetalingJson(
@@ -70,11 +70,11 @@ internal data class SakJson(
                 }
             } ?: emptyList(),
             utbetalingerKanStansesEllerGjenopptas = kanUtbetalingerStansesEllerGjenopptas(clock),
-            revurderinger = revurderinger.map { it.toJson(satsFactory) },
+            revurderinger = revurderinger.map { it.toJson(formuegrenserFactory) },
             vedtak = vedtakListe.map { it.toJson() },
             klager = klager.map { it.toJson() },
             reguleringer = reguleringer.map {
-                it.toJson(satsFactory)
+                it.toJson(formuegrenserFactory)
             },
             sakstype = type.toJson(),
             vedtakPåTidslinje = this.vedtakstidslinje()?.toJson() ?: emptyList(),

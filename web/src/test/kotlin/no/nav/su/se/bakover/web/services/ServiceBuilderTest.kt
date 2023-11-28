@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.defaultMock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
@@ -83,6 +84,7 @@ internal class ServiceBuilderTest {
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
         ).let {

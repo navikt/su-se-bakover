@@ -27,16 +27,16 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson.Companion.toFradrag
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
     clock: Clock,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragRequestJson>,
@@ -83,7 +83,7 @@ internal fun Route.leggTilFradragRevurdering(
                                 }.map {
                                     call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
-                                    Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))
+                                    Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory)))
                                 }
                             }.getOrElse { it },
                         )

@@ -22,16 +22,16 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurd
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
 internal fun Route.oppdaterRevurderingRoute(
     revurderingService: RevurderingService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val fraOgMed: LocalDate,
@@ -62,7 +62,7 @@ internal fun Route.oppdaterRevurderingRoute(
                         ifRight = {
                             call.sikkerlogg("Oppdaterte perioden på revurdering med id: $revurderingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

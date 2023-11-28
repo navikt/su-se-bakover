@@ -32,15 +32,15 @@ import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
 internal fun Route.stansUtbetaling(
     service: StansYtelseService,
-    satsFactory: SatsFactory,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     /**
      * Oppretter en ny stansbehandling.
@@ -68,7 +68,7 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }
@@ -102,7 +102,7 @@ internal fun Route.stansUtbetaling(
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                             },
                         )
                     }
@@ -123,7 +123,7 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Iverksatt stans av utbetalinger for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

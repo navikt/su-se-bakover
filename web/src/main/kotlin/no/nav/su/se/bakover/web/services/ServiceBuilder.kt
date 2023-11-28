@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 data object ServiceBuilder {
@@ -49,6 +50,7 @@ data object ServiceBuilder {
         søknadMetrics: SøknadMetrics,
         clock: Clock,
         satsFactory: SatsFactory,
+        formuegrenserFactory: FormuegrenserFactory,
         applicationConfig: ApplicationConfig,
         dbMetrics: DbMetrics,
     ): Services {
@@ -175,7 +177,7 @@ data object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             sessionFactory = databaseRepos.sessionFactory,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            formuegrenserFactory = formuegrenserFactory,
             sakService = sakService,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
@@ -213,7 +215,7 @@ data object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             sakService = sakService,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            formuegrenserFactory = formuegrenserFactory,
             satsFactory = satsFactory,
             sessionFactory = databaseRepos.sessionFactory,
             skatteService = skatteServiceImpl,
@@ -287,6 +289,7 @@ data object ServiceBuilder {
                 clock = clock,
                 sakService = sakService,
                 satsFactory = satsFactory,
+                formuegrenserFactory = formuegrenserFactory,
                 iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
                 utbetalingService = utbetalingService,
                 brevService = brevService,
@@ -301,7 +304,7 @@ data object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
-                formuegrenserFactory = satsFactory.formuegrenserFactory,
+                formuegrenserFactory = formuegrenserFactory,
             ),
             skatteService = skatteServiceImpl,
             stansYtelse = stansAvYtelseService,
