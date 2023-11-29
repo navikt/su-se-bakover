@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
 import arrow.core.Either
+import beregning.domain.Beregning
+import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.FradragForMåned
 import beregning.domain.fradrag.Fradragstype
@@ -14,8 +16,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak

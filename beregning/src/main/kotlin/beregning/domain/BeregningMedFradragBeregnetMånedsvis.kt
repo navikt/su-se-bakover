@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
+package beregning.domain
 
 import arrow.core.NonEmptyList
 import beregning.domain.fradrag.Fradrag

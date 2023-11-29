@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
+package beregning.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import beregning.domain.Merknad
 import beregning.domain.fradrag.Fradrag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
@@ -73,8 +72,6 @@ fun Beregning.finnMånederMedMerknadForAvslag(): Either<IngenMerknaderForAvslag,
         .reduce { a, b -> a + b }
         .right()
 }
-
-data object IngenMerknaderForAvslag
 
 fun Beregning.finnFørsteMånedMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, Pair<Månedsberegning, Merknad.Beregning>> {
     return finnMånederMedMerknadForAvslag()

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
-import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
+import beregning.domain.Beregning as FaktiskBeregning
 
 data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning,

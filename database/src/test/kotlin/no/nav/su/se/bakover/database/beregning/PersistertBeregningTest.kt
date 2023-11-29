@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.beregning
 
+import beregning.domain.Beregning
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode

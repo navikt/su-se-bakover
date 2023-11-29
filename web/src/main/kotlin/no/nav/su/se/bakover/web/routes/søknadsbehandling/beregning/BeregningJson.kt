@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import beregning.domain.Beregning
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 

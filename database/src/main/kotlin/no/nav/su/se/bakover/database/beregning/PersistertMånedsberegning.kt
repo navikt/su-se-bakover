@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.beregning
 
+import beregning.domain.BeregningForMåned
 import beregning.domain.Merknader
+import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
 import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
-import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori

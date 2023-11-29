@@ -1,7 +1,5 @@
-package no.nav.su.se.bakover.domain.beregning
+package beregning.domain
 
-import beregning.domain.Merknad
-import beregning.domain.Merknader
 import beregning.domain.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori

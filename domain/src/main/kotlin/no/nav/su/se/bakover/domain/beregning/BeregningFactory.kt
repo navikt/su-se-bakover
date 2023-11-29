@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import beregning.domain.BeregningForMåned
+import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import beregning.domain.Merknad
+import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.Fradrag
 import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragStrategy
 import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype
 import beregning.domain.fradrag.utenSosialstønad
@@ -10,7 +14,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.time.Clock
 import java.util.UUID
 

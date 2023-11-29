@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.regulering
 
+import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype
 import grunnbeløp.domain.GrunnbeløpForMåned
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling

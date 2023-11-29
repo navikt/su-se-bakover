@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.beregning
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering

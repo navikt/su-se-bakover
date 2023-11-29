@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import beregning.domain.BeregningForMåned
 import beregning.domain.fradrag.Fradrag
 import beregning.domain.fradrag.sum
 import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo

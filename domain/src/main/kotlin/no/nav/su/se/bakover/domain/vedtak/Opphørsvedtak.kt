@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import økonomi.domain.simulering.Simulering
 import java.time.Clock

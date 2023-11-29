@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import beregning.domain.Beregning
+import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.Fradrag
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.FradragTilhører
@@ -32,11 +34,9 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling

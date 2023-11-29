@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt

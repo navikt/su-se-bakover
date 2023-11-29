@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.FradragStrategy
 import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.doubles.plusOrMinus

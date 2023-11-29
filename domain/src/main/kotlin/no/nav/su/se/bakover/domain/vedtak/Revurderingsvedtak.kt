@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import økonomi.domain.simulering.Simulering
 

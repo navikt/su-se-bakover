@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.revurdering.opphør
 
 import arrow.core.getOrElse
+import beregning.domain.Beregning
 import beregning.domain.Merknad
+import beregning.domain.finnFørsteMånedMedMerknadForAvslag
+import beregning.domain.finnMånederMedMerknadForAvslag
+import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
-import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
-import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock

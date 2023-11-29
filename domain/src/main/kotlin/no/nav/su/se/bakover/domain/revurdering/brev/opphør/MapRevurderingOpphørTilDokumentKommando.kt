@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.brev.opphør
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS

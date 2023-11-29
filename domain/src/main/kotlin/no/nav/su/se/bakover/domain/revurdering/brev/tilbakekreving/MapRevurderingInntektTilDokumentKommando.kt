@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.brev.tilbakekreving
 
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand

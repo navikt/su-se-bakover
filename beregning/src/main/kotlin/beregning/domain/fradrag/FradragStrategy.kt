@@ -1,14 +1,7 @@
 @file:Suppress("ktlint:standard:function-naming")
 
-package no.nav.su.se.bakover.domain.beregning.fradrag
+package beregning.domain.fradrag
 
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.sum
-import beregning.domain.fradrag.sumEksklusiv
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import satser.domain.SatsFactory

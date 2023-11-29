@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import beregning.domain.fradrag.FradragStrategy
 import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype.Arbeidsinntekt
 import beregning.domain.fradrag.Fradragstype.ForventetInntekt
