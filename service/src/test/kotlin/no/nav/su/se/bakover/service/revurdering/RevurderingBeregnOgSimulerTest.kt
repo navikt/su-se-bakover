@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import behandling.domain.beregning.fradrag.FradragTilhører
+import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

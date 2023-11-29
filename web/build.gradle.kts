@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
+    implementation(project(":beregning"))
 
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")

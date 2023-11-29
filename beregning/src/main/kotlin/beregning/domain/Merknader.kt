@@ -1,6 +1,6 @@
-package behandling.domain.beregning
+package beregning.domain
 
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype
 
 sealed class Merknader {
 

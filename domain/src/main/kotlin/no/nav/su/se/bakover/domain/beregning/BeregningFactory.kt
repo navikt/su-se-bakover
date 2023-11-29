@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import behandling.domain.beregning.Merknad
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.utenSosialstønad
+import beregning.domain.Merknad
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.utenSosialstønad
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned

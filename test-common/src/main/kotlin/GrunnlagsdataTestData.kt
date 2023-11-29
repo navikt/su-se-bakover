@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode

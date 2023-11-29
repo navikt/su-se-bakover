@@ -1,4 +1,4 @@
-package behandling.domain.beregning.fradrag
+package beregning.domain.fradrag
 
 import arrow.core.Either
 import arrow.core.getOrElse

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.getOrElse
-import behandling.domain.beregning.Merknad
+import beregning.domain.Merknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 

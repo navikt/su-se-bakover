@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.desember

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.beregning
 
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.FradragForPeriode
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.FradragForPeriode
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.UtenlandskInntekt
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson

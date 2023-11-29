@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import behandling.domain.beregning.Merknad
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.Merknad
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import satser.domain.Satskategori

@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import behandling.domain.beregning.fradrag.FradragTilhører.BRUKER
-import behandling.domain.beregning.fradrag.FradragTilhører.EPS
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
-import behandling.domain.beregning.fradrag.Fradragstype.BeregnetFradragEPS
-import behandling.domain.beregning.fradrag.Fradragstype.ForventetInntekt
-import behandling.domain.beregning.fradrag.Fradragstype.Kapitalinntekt
-import behandling.domain.beregning.fradrag.Fradragstype.Kontantstøtte
-import behandling.domain.beregning.fradrag.Fradragstype.NAVytelserTilLivsopphold
-import behandling.domain.beregning.fradrag.Fradragstype.PrivatPensjon
+import beregning.domain.fradrag.FradragTilhører.BRUKER
+import beregning.domain.fradrag.FradragTilhører.EPS
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype.Arbeidsinntekt
+import beregning.domain.fradrag.Fradragstype.BeregnetFradragEPS
+import beregning.domain.fradrag.Fradragstype.ForventetInntekt
+import beregning.domain.fradrag.Fradragstype.Kapitalinntekt
+import beregning.domain.fradrag.Fradragstype.Kontantstøtte
+import beregning.domain.fradrag.Fradragstype.NAVytelserTilLivsopphold
+import beregning.domain.fradrag.Fradragstype.PrivatPensjon
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize

@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.database
 
 import arrow.core.Either
 import arrow.core.left
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper

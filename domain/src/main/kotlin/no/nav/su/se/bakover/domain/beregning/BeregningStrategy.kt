@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.getOrElse
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.FradragForMåned
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode

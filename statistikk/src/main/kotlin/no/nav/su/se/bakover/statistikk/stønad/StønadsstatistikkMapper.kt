@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
 import arrow.core.Either
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.Fradragstype
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo

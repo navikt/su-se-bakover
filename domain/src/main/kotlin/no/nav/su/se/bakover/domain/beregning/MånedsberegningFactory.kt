@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.sum
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.sum
 import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.extensions.positiveOrZero
 import no.nav.su.se.bakover.common.tid.periode.Måned

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype

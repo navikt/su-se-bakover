@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
-import behandling.domain.beregning.Merknad
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.Merknad
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode

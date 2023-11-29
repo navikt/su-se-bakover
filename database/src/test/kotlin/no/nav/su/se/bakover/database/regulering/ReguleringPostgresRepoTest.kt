@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.regulering
 
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import grunnbeløp.domain.GrunnbeløpForMåned
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor

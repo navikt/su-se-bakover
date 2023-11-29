@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
-import behandling.domain.beregning.Merknad
+import beregning.domain.Merknad
 import no.nav.su.se.bakover.common.serialize
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

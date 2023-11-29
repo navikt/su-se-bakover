@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
-import behandling.domain.beregning.fradrag.FradragTilhører
+import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember

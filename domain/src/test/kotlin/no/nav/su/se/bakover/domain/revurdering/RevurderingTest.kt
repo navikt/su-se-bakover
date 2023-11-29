@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import behandling.domain.beregning.fradrag.FradragTilhører
+import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.extensions.april

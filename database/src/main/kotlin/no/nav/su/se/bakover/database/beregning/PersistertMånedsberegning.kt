@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.beregning
 
-import behandling.domain.beregning.Merknader
+import beregning.domain.Merknader
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson

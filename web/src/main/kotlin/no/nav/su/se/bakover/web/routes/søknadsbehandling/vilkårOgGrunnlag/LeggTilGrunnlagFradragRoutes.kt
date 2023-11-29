@@ -6,9 +6,9 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.merge
 import arrow.core.right
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route

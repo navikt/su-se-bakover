@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode

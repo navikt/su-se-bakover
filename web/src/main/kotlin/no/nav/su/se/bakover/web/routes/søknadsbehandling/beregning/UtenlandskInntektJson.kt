@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.Either
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.UtenlandskInntekt
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson

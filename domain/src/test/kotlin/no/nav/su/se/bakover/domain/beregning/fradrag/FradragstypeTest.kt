@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.left
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

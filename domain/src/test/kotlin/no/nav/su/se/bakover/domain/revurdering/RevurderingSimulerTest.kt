@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import behandling.domain.beregning.fradrag.FradragTilhører
+import beregning.domain.fradrag.FradragTilhører
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.tid.periode.mars

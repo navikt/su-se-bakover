@@ -26,9 +26,10 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
+    implementation(project(":beregning"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
-    // TODO jah: Finn en måte å gjenbruke de versjonene her på.
+    // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml
     compileOnly("org.mockito.kotlin:mockito-kotlin:5.1.0")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
     compileOnly("io.zonky.test:embedded-postgres:2.0.5")

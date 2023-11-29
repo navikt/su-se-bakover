@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import behandling.domain.beregning.Merknad
+import beregning.domain.Merknad
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember

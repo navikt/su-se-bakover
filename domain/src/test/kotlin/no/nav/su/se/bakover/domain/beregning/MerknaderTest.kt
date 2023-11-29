@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import behandling.domain.beregning.Merknad
-import behandling.domain.beregning.Merknader
+import beregning.domain.Merknad
+import beregning.domain.Merknader
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 

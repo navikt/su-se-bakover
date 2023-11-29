@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
-import behandling.domain.beregning.fradrag.Fradragstype.ForventetInntekt
-import behandling.domain.beregning.fradrag.Fradragstype.Kontantstøtte
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype.Arbeidsinntekt
+import beregning.domain.fradrag.Fradragstype.ForventetInntekt
+import beregning.domain.fradrag.Fradragstype.Kontantstøtte
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

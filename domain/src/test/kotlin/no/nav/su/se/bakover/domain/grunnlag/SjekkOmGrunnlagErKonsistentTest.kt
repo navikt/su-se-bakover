@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
 import arrow.core.right
-import behandling.domain.beregning.fradrag.FradragTilhører
+import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember

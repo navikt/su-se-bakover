@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragForMåned
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragForMåned
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain

@@ -31,6 +31,7 @@ dependencies {
 
     implementation(project(":grunnbeløp"))
     implementation(project(":satser"))
+    implementation(project(":beregning"))
 
     testImplementation(project(":test-common"))
 }

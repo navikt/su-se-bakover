@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":beregning"))
 
     testImplementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
-import behandling.domain.beregning.Merknad
+import beregning.domain.Merknad
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 

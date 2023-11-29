@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.getOrElse
-import behandling.domain.beregning.fradrag.FradragForPeriode
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.FradragForPeriode
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics

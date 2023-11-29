@@ -1,4 +1,4 @@
-package behandling.domain.beregning.fradrag
+package beregning.domain.fradrag
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.UtenlandskInntekt
 
 data class Månedsfradrag(
     val type: String,

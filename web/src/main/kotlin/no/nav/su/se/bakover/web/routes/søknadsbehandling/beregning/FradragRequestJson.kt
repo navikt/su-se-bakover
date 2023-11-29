@@ -5,11 +5,11 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
-import behandling.domain.beregning.fradrag.Fradrag
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.Fradrag
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.UtenlandskInntekt
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson

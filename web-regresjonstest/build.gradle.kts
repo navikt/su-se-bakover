@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
+    implementation(project(":beregning"))
 
     implementation(rootProject.libs.ktor.client.java)
     implementation(rootProject.libs.ktor.server.test.host) {

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import behandling.domain.beregning.fradrag.FradragForPeriode
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.FradragForPeriode
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.UtenlandskInntekt
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag

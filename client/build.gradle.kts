@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":satser"))
+    implementation(project(":beregning"))
 
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)

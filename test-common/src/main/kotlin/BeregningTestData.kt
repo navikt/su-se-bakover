@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import behandling.domain.beregning.fradrag.Fradragstype
+import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember

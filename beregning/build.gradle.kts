@@ -3,5 +3,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("utmåling")
+    archiveBaseName.set("beregning")
 }

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Tuple4
-import behandling.domain.beregning.fradrag.FradragFactory
-import behandling.domain.beregning.fradrag.FradragTilhører
-import behandling.domain.beregning.fradrag.Fradragstype
-import behandling.domain.beregning.fradrag.UtenlandskInntekt
+import beregning.domain.fradrag.FradragFactory
+import beregning.domain.fradrag.FradragTilhører
+import beregning.domain.fradrag.Fradragstype
+import beregning.domain.fradrag.UtenlandskInntekt
 import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.fail
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
