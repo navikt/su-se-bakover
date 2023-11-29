@@ -24,7 +24,7 @@ import satser.domain.Satskategori
 import java.time.Clock
 import java.util.UUID
 
-sealed interface Grunnlag {
+interface Grunnlag {
     val id: UUID
 
     val periode: Periode

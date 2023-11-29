@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
 
     testImplementation(project(":test-common"))
+    testImplementation(project(":beregning"))
 }
 
 tasks.named<Jar>("jar") {
