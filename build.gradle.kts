@@ -38,7 +38,7 @@ subprojects {
         implementation(rootProject.libs.jul.to.slf4j)
         implementation(rootProject.libs.jcl.over.slf4j)
         implementation(rootProject.libs.log4j.over.slf4j)
-        implementation("ch.qos.logback:logback-classic:1.4.11")
+        implementation("ch.qos.logback:logback-classic:1.4.13")
         implementation("net.logstash.logback:logstash-logback-encoder:7.4")
         implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
