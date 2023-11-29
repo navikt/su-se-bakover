@@ -101,8 +101,10 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
         "betaltSkattForYtelsesgruppen":"6192",
         "bruttoTidligereUtbetalt":"20946",
         "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"12383",
-        "skatteProsent":"50"
+        "bruttoFeilutbetaling":"12383", 
+        "nettoFeilutbetaling": "6191",
+        "skatteProsent":"50",
+        "skattFeilutbetaling":"6192"
       }
     ],
         "summertBetaltSkattForYtelsesgruppen": "6192",

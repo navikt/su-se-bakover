@@ -75,8 +75,10 @@ fun verifiserAvbrytTilbakekrevingRespons(
         "betaltSkattForYtelsesgruppen":"3025",
         "bruttoTidligereUtbetalt":"8563",
         "bruttoNyUtbetaling":"2513",
-        "bruttoFeilutbetaling":"6050",
-        "skatteProsent":"50"
+        "bruttoFeilutbetaling":"6050", 
+        "nettoFeilutbetaling": "3025",
+        "skatteProsent":"50",
+        "skattFeilutbetaling":"3025"
       }
     ],
     "summertBetaltSkattForYtelsesgruppen": "3025",

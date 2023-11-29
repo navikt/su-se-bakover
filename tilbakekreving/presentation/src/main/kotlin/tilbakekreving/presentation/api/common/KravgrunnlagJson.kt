@@ -52,7 +52,9 @@ data class GrunnlagsperiodeJson(
     val bruttoTidligereUtbetalt: String,
     val bruttoNyUtbetaling: String,
     val bruttoFeilutbetaling: String,
+    val nettoFeilutbetaling: String,
     val skatteProsent: String,
+    val skattFeilutbetaling: String,
 ) {
     companion object {
         fun List<Kravgrunnlag.Grunnlagsperiode>.toJson(): List<GrunnlagsperiodeJson> = this.map {
@@ -62,7 +64,9 @@ data class GrunnlagsperiodeJson(
                 bruttoTidligereUtbetalt = it.bruttoTidligereUtbetalt.toString(),
                 bruttoNyUtbetaling = it.bruttoNyUtbetaling.toString(),
                 bruttoFeilutbetaling = it.bruttoFeilutbetaling.toString(),
+                nettoFeilutbetaling = it.nettoFeilutbetaling.toString(),
                 skatteProsent = it.skatteProsent.toString(),
+                skattFeilutbetaling = it.skattFeilutbetaling.toString(),
             )
         }
     }
