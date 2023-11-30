@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import økonomi.domain.utbetaling.Utbetalingslinje
+import java.time.LocalDate
 
 sealed class UtbetalingslinjePåTidslinje {
     abstract val kopiertFraId: UUID30
@@ -166,4 +170,11 @@ internal fun Utbetalingslinje.mapTilTidslinje(nyPeriode: Periode? = null): Utbet
             beløp = beløp,
         )
     }
+}
+
+fun Utbetalinger.hentGjeldendeUtbetaling(forDato: LocalDate): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    return tidslinje().fold(
+        { Utbetalinger.FantIkkeGjeldendeUtbetaling.left() },
+        { it.gjeldendeForDato(forDato)?.right() ?: Utbetalinger.FantIkkeGjeldendeUtbetaling.left() },
+    )
 }

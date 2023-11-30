@@ -1,12 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.Sak
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import økonomi.domain.utbetaling.IngenUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
@@ -79,23 +74,12 @@ data class Utbetalinger(
 
     data object FantIkkeGjeldendeUtbetaling
 
-    fun hentGjeldendeUtbetaling(forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-        return tidslinje().fold(
-            { FantIkkeGjeldendeUtbetaling.left() },
-            { it.gjeldendeForDato(forDato)?.right() ?: FantIkkeGjeldendeUtbetaling.left() },
-        )
-    }
-
     fun sisteUtbetalingslinje(): Utbetalingslinje? {
         return utbetalinger.lastOrNull()?.sisteUtbetalingslinje()
     }
 
     fun sisteUtbetalingslinjeId(): UUID30? {
         return sisteUtbetalingslinje()?.id
-    }
-
-    fun tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-        return TidslinjeForUtbetalinger.fra(this)?.right() ?: IngenUtbetalinger.left()
     }
 
     private fun sjekkDuplikateIder() {
@@ -259,10 +243,4 @@ private infix operator fun List<Utbetaling>.plus(utbetaling: Utbetaling): Utbeta
     result.addAll(this)
     result.add(utbetaling)
     return Utbetalinger(result)
-}
-
-fun Sak.hentGjeldendeUtbetaling(
-    forDato: LocalDate,
-): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this.utbetalinger.hentGjeldendeUtbetaling(forDato = forDato)
 }

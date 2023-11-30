@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.extensions.between
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -9,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.minus
+import økonomi.domain.utbetaling.IngenUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
@@ -159,4 +163,8 @@ data class TidslinjeForUtbetalinger private constructor(
 
 fun Utbetaling.tidslinje(): TidslinjeForUtbetalinger {
     return TidslinjeForUtbetalinger.fra(this)
+}
+
+fun Utbetalinger.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return TidslinjeForUtbetalinger.fra(this)?.right() ?: IngenUtbetalinger.left()
 }

@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.hentGjeldendeUtbetaling
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 import økonomi.domain.utbetaling.Utbetaling
@@ -146,4 +149,10 @@ fun Sak.lagNyUtbetalingUføre(
 
         else -> throw IllegalArgumentException("Ugyldig type:$type for uføreutbetaling")
     }
+}
+
+fun Sak.hentGjeldendeUtbetaling(
+    forDato: LocalDate,
+): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    return this.utbetalinger.hentGjeldendeUtbetaling(forDato = forDato)
 }

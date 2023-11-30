@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.tidslinje
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import økonomi.domain.simulering.Simulering
@@ -390,7 +391,7 @@ class SimuleringStub(
                 ).let { simulering ->
                     /**
                      * Setter bare netto til halvparten av brutto for at det skal oppføre seg ca som OS.
-                     * Eventuell skatt som trekkes fra brutto filtreres ut i [no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper]
+                     * Eventuell skatt som trekkes fra brutto filtreres ut i [no.nav.su.se.bakover.client.oppdrag.simulering.toSimulering]
                      */
                     simulering.copy(nettoBeløp = (simulering.hentTilUtbetaling().sum() * 0.5).roundToInt())
                 }
