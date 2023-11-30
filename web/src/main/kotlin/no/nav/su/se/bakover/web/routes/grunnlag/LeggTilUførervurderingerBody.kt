@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {

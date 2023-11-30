@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -150,7 +151,7 @@ sealed class BeregnetRevurdering : RevurderingKanBeregnes() {
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
-            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
             skalUtsetteTilbakekreving: Boolean,
         ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
             return simuler(

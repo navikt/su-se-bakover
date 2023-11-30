@@ -3,8 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class UføreVilkårsvurderingPostgresRepoTest {
@@ -53,7 +53,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
-            val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            val uføregrunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
@@ -87,7 +87,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
-            val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            val uføregrunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),

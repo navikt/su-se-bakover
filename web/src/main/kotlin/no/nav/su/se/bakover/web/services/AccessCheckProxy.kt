@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
@@ -1119,7 +1120,7 @@ open class AccessCheckProxy(
 
                 override fun regulerManuelt(
                     reguleringId: UUID,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Grunnlag.Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {

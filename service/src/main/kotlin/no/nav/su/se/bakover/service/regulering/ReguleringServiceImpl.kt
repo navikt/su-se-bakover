@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -203,7 +204,7 @@ class ReguleringServiceImpl(
 
     override fun regulerManuelt(
         reguleringId: UUID,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {

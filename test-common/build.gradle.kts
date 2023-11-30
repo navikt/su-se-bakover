@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
+    implementation(project(":vilkår:uføre:domain"))
     implementation(project(":beregning"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")

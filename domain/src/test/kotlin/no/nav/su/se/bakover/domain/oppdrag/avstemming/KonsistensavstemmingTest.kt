@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
 import java.time.Clock

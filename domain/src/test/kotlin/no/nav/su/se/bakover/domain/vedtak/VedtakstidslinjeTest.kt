@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class VedtakstidslinjeTest {
@@ -69,7 +70,7 @@ internal class VedtakstidslinjeTest {
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
         val periode = år(2021)
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        val uføregrunnlag = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
@@ -224,7 +225,7 @@ internal class VedtakstidslinjeTest {
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
         val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val periode = år(2021)
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        val uføregrunnlag = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = periode,

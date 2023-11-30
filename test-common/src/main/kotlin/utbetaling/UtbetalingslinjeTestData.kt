@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
+import vilkår.uføre.domain.Uføregrad
 import java.time.Clock
 import java.time.LocalDate
 

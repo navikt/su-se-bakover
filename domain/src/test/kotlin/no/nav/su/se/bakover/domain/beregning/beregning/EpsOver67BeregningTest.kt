@@ -15,8 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingAlder
 import org.junit.jupiter.api.Test
 import satser.domain.Satskategori
+import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
 
 internal class EpsOver67BeregningTest {
@@ -64,7 +64,7 @@ internal class EpsOver67BeregningTest {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = periode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,

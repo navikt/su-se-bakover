@@ -9,8 +9,7 @@ import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
@@ -47,10 +46,10 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
@@ -61,7 +60,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet)),
         )
 
-        val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
+        val nyttUføregrunnlag = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = opprettetRevurdering.periode,

@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.vilkår.uføre
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class LeggTilUførevilkårRequestTest {

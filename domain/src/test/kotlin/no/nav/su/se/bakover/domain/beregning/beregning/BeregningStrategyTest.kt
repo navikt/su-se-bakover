@@ -16,13 +16,13 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy.EpsUnder67År
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 
 internal class BeregningStrategyTest {
     @Test
@@ -31,7 +31,7 @@ internal class BeregningStrategyTest {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = periode,
                     uføregrad = Uføregrad.parse(90),
                     forventetInntekt = 12000,

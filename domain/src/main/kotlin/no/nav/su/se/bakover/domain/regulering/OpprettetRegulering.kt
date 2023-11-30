@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simuleringsresultat
@@ -74,7 +75,7 @@ data class OpprettetRegulering(
             ),
         )
 
-    fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering {
+    fun leggTilUføre(uføregrunnlag: List<Uføregrunnlag>, clock: Clock): OpprettetRegulering {
         sikkerLogg.debug(
             "Skal legge til {} for regulering {}. Vilkår & grunnlag som er på behandling NÅ: {}, {}",
             uføregrunnlag,
@@ -120,7 +121,7 @@ data class OpprettetRegulering(
     }
 
     fun simuler(
-        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simuleringsresultat>,
+        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Uføregrunnlag>?) -> Either<SimuleringFeilet, Simuleringsresultat>,
     ): Either<KunneIkkeSimulereRegulering, Pair<OpprettetRegulering, Utbetaling.SimulertUtbetaling>> {
         return simuler(
             beregning ?: return KunneIkkeSimulereRegulering.FantIngenBeregning.left(),
@@ -139,8 +140,13 @@ data class OpprettetRegulering(
         ).mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet }
             .map {
                 when (it) {
-                    is Simuleringsresultat.UtenForskjeller -> Pair(copy(simulering = it.simulertUtbetaling.simulering), it.simulertUtbetaling)
-                    is Simuleringsresultat.MedForskjeller -> return KunneIkkeSimulereRegulering.Forskjeller(it.forskjeller).left()
+                    is Simuleringsresultat.UtenForskjeller -> Pair(
+                        copy(simulering = it.simulertUtbetaling.simulering),
+                        it.simulertUtbetaling,
+                    )
+
+                    is Simuleringsresultat.MedForskjeller -> return KunneIkkeSimulereRegulering.Forskjeller(it.forskjeller)
+                        .left()
                 }
             }
     }

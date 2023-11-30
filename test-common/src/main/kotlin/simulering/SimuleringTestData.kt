@@ -19,8 +19,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -46,6 +45,7 @@ import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import økonomi.domain.simulering.Simulering
@@ -246,7 +246,7 @@ fun simulerStans(
 fun simulerNyUtbetaling(
     sak: Sak,
     beregning: Beregning,
-    uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>,
+    uføregrunnlag: NonEmptyList<Uføregrunnlag>,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
@@ -344,8 +344,8 @@ fun simuleringNy(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
     // TODO default her bør fjernes og sendes inn fra behandlingen
-    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
-        Grunnlag.Uføregrunnlag(
+    uføregrunnlag: List<Uføregrunnlag> = listOf(
+        Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             periode = beregning.periode,
@@ -381,8 +381,8 @@ fun utbetalingForSimulering(
     sakstype: Sakstype = Sakstype.UFØRE,
     behandler: NavIdentBruker = saksbehandler,
     kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
-        Grunnlag.Uføregrunnlag(
+    uføregrunnlag: List<Uføregrunnlag> = listOf(
+        Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             periode = beregning.periode,

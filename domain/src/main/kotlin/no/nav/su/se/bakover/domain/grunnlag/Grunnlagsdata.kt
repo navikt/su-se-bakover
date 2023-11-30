@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock

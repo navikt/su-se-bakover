@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":behandling:domain"))
     implementation(project(":satser"))
     implementation(project(":beregning"))
+    implementation(project(":vilkår:uføre:domain"))
 
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)

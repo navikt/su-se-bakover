@@ -17,14 +17,14 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class UførhetTest {
@@ -94,7 +94,7 @@ internal class UførhetTest {
         val v1 = lagUføreVurderingsperiode(periode = januar(2021))
         val v2 = lagUføreVurderingsperiode(
             periode = februar(2021),
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = februar(2021),
@@ -268,7 +268,7 @@ internal class UførhetTest {
         periode: Periode,
         tidspunkt: Tidspunkt = fixedTidspunkt,
         vurdering: Vurdering = Vurdering.Innvilget,
-        grunnlag: Grunnlag.Uføregrunnlag? = null,
+        grunnlag: Uføregrunnlag? = null,
     ): VurderingsperiodeUføre {
         return VurderingsperiodeUføre.create(
             opprettet = tidspunkt,

@@ -8,6 +8,7 @@ dependencies {
 
     testImplementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))
+    testImplementation(project(":vilkår:uføre:domain"))
 }
 
 tasks.named<Jar>("jar") {

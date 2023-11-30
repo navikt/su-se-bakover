@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
@@ -37,6 +36,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
 
 internal class StønadsstatistikkTest {

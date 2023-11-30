@@ -27,8 +27,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -37,6 +36,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import vilkår.uføre.domain.Uføregrad
 import java.time.Month
 import java.time.YearMonth
 
@@ -379,14 +379,14 @@ internal class TidslinjeTest {
 
     @Test
     fun `kan lage tidslinje for forskjellige typer objekter`() {
-        val a = Grunnlag.Uføregrunnlag(
+        val a = Uføregrunnlag(
             opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = år(2021),
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 15000,
         )
 
-        val b = Grunnlag.Uføregrunnlag(
+        val b = Uføregrunnlag(
             opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = år(2021),
             uføregrad = Uføregrad.parse(100),

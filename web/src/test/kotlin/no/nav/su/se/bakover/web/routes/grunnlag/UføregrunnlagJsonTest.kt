@@ -4,11 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.uføre.domain.Uføregrad
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -42,7 +42,7 @@ internal class UføregrunnlagJsonTest {
             }
         """.trimIndent()
 
-        internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        internal val uføregrunnlag = Uføregrunnlag(
             id = uføregrunnlagId,
             opprettet = uføregrunnlagOpprettet,
             periode = år(2021),

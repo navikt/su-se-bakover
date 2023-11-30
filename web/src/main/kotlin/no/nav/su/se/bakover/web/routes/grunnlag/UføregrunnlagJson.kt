@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 
 internal data class UføregrunnlagJson(
     val id: String,
@@ -12,7 +12,7 @@ internal data class UføregrunnlagJson(
     val forventetInntekt: Int,
 )
 
-internal fun Grunnlag.Uføregrunnlag.toJson() = UføregrunnlagJson(
+internal fun Uføregrunnlag.toJson() = UføregrunnlagJson(
     id = this.id.toString(),
     opprettet = this.opprettet.toString(),
     periode = this.periode.toJson(),
@@ -20,6 +20,6 @@ internal fun Grunnlag.Uføregrunnlag.toJson() = UføregrunnlagJson(
     forventetInntekt = this.forventetInntekt,
 )
 
-internal fun List<Grunnlag.Uføregrunnlag>.toJson() = this.map {
+internal fun List<Uføregrunnlag>.toJson() = this.map {
     it.toJson()
 }

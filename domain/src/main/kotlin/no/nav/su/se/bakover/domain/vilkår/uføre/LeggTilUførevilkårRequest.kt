@@ -6,11 +6,11 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
+import vilkår.uføre.domain.Uføregrad
 import java.time.Clock
 import java.util.UUID
 
@@ -43,7 +43,7 @@ data class LeggTilUførevilkårRequest(
                 if (uføregrad == null || forventetInntekt == null) return UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
                 VurderingsperiodeUføre.tryCreate(
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
+                    grunnlag = Uføregrunnlag(
                         periode = periode,
                         uføregrad = uføregrad,
                         forventetInntekt = forventetInntekt,

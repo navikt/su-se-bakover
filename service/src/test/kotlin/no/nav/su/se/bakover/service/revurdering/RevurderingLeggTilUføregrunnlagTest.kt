@@ -4,7 +4,6 @@ import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
@@ -20,6 +19,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.uføre.domain.Uføregrad
 
 internal class RevurderingLeggTilUføregrunnlagTest {
 

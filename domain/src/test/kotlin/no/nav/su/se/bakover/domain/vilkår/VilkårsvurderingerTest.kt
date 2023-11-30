@@ -13,8 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class VilkårsvurderingerTest {
@@ -64,7 +64,7 @@ internal class VilkårsvurderingerTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             vurdering = Vurdering.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
+                            grunnlag = Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 periode = Periode.create(1.januar(2021), 31.august(2021)),
@@ -260,7 +260,7 @@ internal class VilkårsvurderingerTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             vurdering = Vurdering.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
+                            grunnlag = Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 periode = Periode.create(1.januar(2021), 31.august(2021)),

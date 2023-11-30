@@ -50,7 +50,7 @@ import java.util.UUID
 /**
  * Ikke journalført eller distribuert brev.
  * Oversendt utbetaling uten kvittering.
- * @param grunnlagsdata bosituasjon må være fullstendig
+ * @param customGrunnlag bosituasjon må være fullstendig
  */
 fun vedtakSøknadsbehandlingIverksattInnvilget(
     clock: Clock = TikkendeKlokke(),

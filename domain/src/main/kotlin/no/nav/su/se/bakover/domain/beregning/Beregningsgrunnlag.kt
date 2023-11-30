@@ -11,6 +11,7 @@ import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import org.jetbrains.annotations.TestOnly
 
 data class Beregningsgrunnlag private constructor(
@@ -22,7 +23,7 @@ data class Beregningsgrunnlag private constructor(
         @TestOnly
         fun create(
             beregningsperiode: Periode,
-            uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+            uføregrunnlag: List<Uføregrunnlag>,
             fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
         ): Beregningsgrunnlag {
             return tryCreate(
@@ -34,7 +35,7 @@ data class Beregningsgrunnlag private constructor(
 
         fun tryCreate(
             beregningsperiode: Periode,
-            uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+            uføregrunnlag: List<Uføregrunnlag>,
             fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
         ): Either<UgyldigBeregningsgrunnlag, Beregningsgrunnlag> {
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
@@ -48,7 +49,7 @@ data class Beregningsgrunnlag private constructor(
                     )
                 }.ifEmpty {
                     // TODO jah: Dette er egentlig bare en snarvei for testene som går ut over typesikkerheten.
-                    //  Vurder å bytt fra List<Grunnlag.Uføregrunnlag> til NonEmptyList<Grunnlag.Uføregrunnlag>
+                    //  Vurder å bytt fra List<Uføregrunnlag> til NonEmptyList<Uføregrunnlag>
                     listOf(
                         FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.ForventetInntekt,

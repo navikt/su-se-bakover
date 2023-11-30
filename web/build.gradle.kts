@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
+    implementation(project(":vilkår:uføre:domain"))
     implementation(project(":beregning"))
 
     testImplementation(project(":test-common"))

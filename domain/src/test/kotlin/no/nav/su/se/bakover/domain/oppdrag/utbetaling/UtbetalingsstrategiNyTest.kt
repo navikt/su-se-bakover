@@ -37,8 +37,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -67,6 +66,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
+import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
 import java.time.LocalDate
@@ -200,7 +200,7 @@ internal class UtbetalingsstrategiNyTest {
         val clock = TikkendeKlokke(fixedClock)
 
         val uføregrunnlagListe = listOf(
-            Grunnlag.Uføregrunnlag(
+            Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = januar(2000).rangeTo(desember(2050)),
@@ -243,7 +243,7 @@ internal class UtbetalingsstrategiNyTest {
         val clock = TikkendeKlokke(fixedClock)
 
         val uføregrunnlagListe = listOf(
-            Grunnlag.Uføregrunnlag(
+            Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = januar(2000).rangeTo(desember(2050)),
@@ -800,7 +800,7 @@ internal fun createBeregning(
 
 internal fun nyUtbetaling(
     clock: Clock = fixedClock,
-    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
+    uføregrunnlag: List<Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
     ),
     beregning: Beregning = createBeregning(
@@ -827,7 +827,7 @@ internal fun nyUtbetaling(
 
 internal fun oversendtUtbetaling(
     clock: Clock = fixedClock,
-    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
+    uføregrunnlag: List<Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
     ),
     beregning: Beregning = createBeregning(
@@ -861,7 +861,7 @@ internal fun oversendtUtbetaling(
 
 internal fun kvittertUtbetaling(
     clock: Clock = fixedClock,
-    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
+    uføregrunnlag: List<Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
     ),
     beregning: Beregning = createBeregning(

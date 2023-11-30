@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
 import java.time.Clock

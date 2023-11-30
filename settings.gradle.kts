@@ -10,6 +10,7 @@ include("application")
 include("web")
 include("common:domain")
 include("common:infrastructure")
+include("common:presentation")
 include("service")
 include("database")
 include("client")
@@ -26,6 +27,8 @@ include("kontrollsamtale:infrastructure")
 include("kontrollsamtale:application")
 include("kontrollsamtale:domain")
 
+include("vilkår:domain")
+
 include("vilkår:institusjonsopphold:infrastructure")
 include("vilkår:institusjonsopphold:application")
 include("vilkår:institusjonsopphold:domain")
@@ -36,6 +39,8 @@ include("vilkår:utenlandsopphold:application")
 include("vilkår:utenlandsopphold:domain")
 
 include("vilkår:formue:domain")
+
+include("vilkår:uføre:domain")
 
 include("oppgave:domain")
 include("oppgave:application")
@@ -58,13 +63,14 @@ include("dokument:domain")
 include("dokument:application")
 include("dokument:infrastructure")
 include("dokument:presentation")
-include("common:presentation")
+
 include("behandling:domain")
 include("behandling:søknadsbehandling:domain")
 include("behandling:revurdering:domain")
 include("behandling:regulering:domain")
 include("behandling:klage:domain")
+
 include("satser")
 include("grunnbeløp")
-include("vilkår:domain")
+
 include("beregning")

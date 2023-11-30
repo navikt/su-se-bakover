@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 
 internal class BeregningsgrunnlagTest {
     @Test
@@ -31,7 +31,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(20),
                     forventetInntekt = 120_000,
@@ -71,7 +71,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(20),
                     forventetInntekt = 120_000,
@@ -111,7 +111,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
@@ -136,7 +136,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
@@ -149,7 +149,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = år(2019),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
@@ -167,13 +167,13 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -186,13 +186,13 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = år(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.mai(2021), 31.juli(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -205,13 +205,13 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.mai(2021), 31.juli(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = år(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -224,13 +224,13 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.januar(2021), 30.april(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12_000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 24_000,
@@ -263,13 +263,13 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = desember(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -282,7 +282,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.januar(2021), 30.november(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -295,7 +295,7 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.februar(2021), 31.desember(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 2000,
@@ -308,19 +308,19 @@ internal class BeregningsgrunnlagTest {
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12_000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.februar(2021), 31.juli(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 24_000,
                     opprettet = fixedTidspunkt,
                 ),
-                Grunnlag.Uføregrunnlag(
+                Uføregrunnlag(
                     periode = Periode.create(1.august(2021), 31.desember(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 48_000,

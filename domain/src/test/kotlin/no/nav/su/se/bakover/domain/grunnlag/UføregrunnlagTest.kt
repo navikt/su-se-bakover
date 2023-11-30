@@ -14,16 +14,17 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class UføregrunnlagTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
-        val original = Grunnlag.Uføregrunnlag(
+        val original = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -41,7 +42,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
-        val original = Grunnlag.Uføregrunnlag(
+        val original = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -63,7 +64,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `tom uføregrunnlag liste gir ut en tom liste tilbake`() {
-        emptyList<Grunnlag.Uføregrunnlag>().slåSammenPeriodeOgUføregrad() shouldBe emptyList()
+        emptyList<Uføregrunnlag>().slåSammenPeriodeOgUføregrad() shouldBe emptyList()
     }
 
     @Test
@@ -71,7 +72,7 @@ internal class UføregrunnlagTest {
         val periode = år(2021)
         val uføregrad = Uføregrad.parse(20)
         val uføregrunnlag = listOf(
-            Grunnlag.Uføregrunnlag(
+            Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode,
@@ -87,21 +88,21 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `slår sammen uføregrunnlag som er like og tilstøtende`() {
-        val januarApril = Grunnlag.Uføregrunnlag(
+        val januarApril = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 0,
         )
-        val mai = Grunnlag.Uføregrunnlag(
+        val mai = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = mai(2021),
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 0,
         )
-        val juniDesember = Grunnlag.Uføregrunnlag(
+        val juniDesember = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
@@ -118,7 +119,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `2 uføregrunnlag tilstøter og er lik`() {
-        val u1 = Grunnlag.Uføregrunnlag(
+        val u1 = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
@@ -135,7 +136,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `2 uføregrunnlag ikke tilstøter, men er lik`() {
-        val u1 = Grunnlag.Uføregrunnlag(
+        val u1 = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
@@ -152,7 +153,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `2 uføregrunnlag tilstøter, men er uføregrad er ulik`() {
-        val u1 = Grunnlag.Uføregrunnlag(
+        val u1 = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
@@ -170,7 +171,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `2 uføregrunnlag tilstøter, men er forventet inntekt er ulik`() {
-        val u1 = Grunnlag.Uføregrunnlag(
+        val u1 = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
@@ -188,7 +189,7 @@ internal class UføregrunnlagTest {
 
     @Test
     fun `2 uføregrunnlag som ikke tilstøter, og er ulik`() {
-        val u1 = Grunnlag.Uføregrunnlag(
+        val u1 = Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),

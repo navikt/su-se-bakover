@@ -12,8 +12,7 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class LeggTilUførevurderingerRequestTest {
@@ -246,7 +246,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
+                    grunnlag = Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
                         periode = januar(2021),
@@ -259,7 +259,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
+                    grunnlag = Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
                         periode = februar(2021),
@@ -308,7 +308,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
+                    grunnlag = Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
                         periode = januar(2021),
@@ -321,7 +321,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
+                    grunnlag = Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
                         periode = februar(2021),

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
 
 data class Utbetalingsperiode(

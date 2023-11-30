@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -29,7 +29,7 @@ internal class VurderingsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
@@ -61,7 +61,7 @@ internal class VurderingsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
@@ -92,7 +92,7 @@ internal class VurderingsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
@@ -106,7 +106,7 @@ internal class VurderingsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
             vurdering = Vurdering.Innvilget,
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -163,7 +163,7 @@ internal class VurderingsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Grunnlag.Uføregrunnlag(
+            grunnlag = Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = år(2021),

@@ -4,8 +4,7 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
@@ -14,13 +13,14 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlag
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 fun innvilgetUførevilkårForventetInntekt0(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    uføregrunnlag: Grunnlag.Uføregrunnlag = uføregrunnlagForventetInntekt0(
+    uføregrunnlag: Uføregrunnlag = uføregrunnlagForventetInntekt0(
         id = UUID.randomUUID(),
         opprettet = opprettet,
         periode = periode,

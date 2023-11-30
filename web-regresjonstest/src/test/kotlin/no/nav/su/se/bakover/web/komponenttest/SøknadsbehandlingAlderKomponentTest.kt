@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -52,6 +51,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
 import vilkår.personligOppmøtevilkårInnvilget
+import vilkår.uføre.domain.Uføregrad
 
 internal class SøknadsbehandlingAlderKomponentTest {
     @Test

@@ -5,12 +5,12 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.uføre.domain.Uføregrad
 import java.time.temporal.ChronoUnit
 
 internal class UtbetalingslinjeTest {

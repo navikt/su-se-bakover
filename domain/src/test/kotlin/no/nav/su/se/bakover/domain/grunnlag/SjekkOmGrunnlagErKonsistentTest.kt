@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.ufullstendigEnslig
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.Uføregrad
 
 internal class SjekkOmGrunnlagErKonsistentTest {
 
@@ -199,7 +200,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
     inner class HappyCase {
         @Test
         fun `happy case`() {
-            val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            val uføregrunnlag = Uføregrunnlag(
                 periode = periode,
                 uføregrad = Uføregrad.parse(100),
                 forventetInntekt = 0,

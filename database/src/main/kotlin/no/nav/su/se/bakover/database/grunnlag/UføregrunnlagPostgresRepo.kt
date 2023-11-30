@@ -10,15 +10,15 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 internal class UføregrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagreUføregrunnlag") {
             slettForBehandlingId(behandlingId, tx)
             uføregrunnlag.forEach {
@@ -27,7 +27,7 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    internal fun hentUføregrunnlagForBehandlingId(behandlingId: UUID, session: Session): List<Grunnlag.Uføregrunnlag> {
+    internal fun hentUføregrunnlagForBehandlingId(behandlingId: UUID, session: Session): List<Uføregrunnlag> {
         return dbMetrics.timeQuery("hentUføregrunnlagForBehandlingId") {
             """
                 select * from grunnlag_uføre where behandlingId = :behandlingId
@@ -43,7 +43,7 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    internal fun hentForUføregrunnlagForId(uføregrunnlagId: UUID, session: Session): Grunnlag.Uføregrunnlag? {
+    internal fun hentForUføregrunnlagForId(uføregrunnlagId: UUID, session: Session): Uføregrunnlag? {
         return dbMetrics.timeQuery("hentForUføregrunnlagForId") {
             """ select * from grunnlag_uføre where id=:id""".trimIndent()
                 .hent(
@@ -69,8 +69,8 @@ internal class UføregrunnlagPostgresRepo(
             )
     }
 
-    private fun Row.toUføregrunnlag(): Grunnlag.Uføregrunnlag {
-        return Grunnlag.Uføregrunnlag(
+    private fun Row.toUføregrunnlag(): Uføregrunnlag {
+        return Uføregrunnlag(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             periode = Periode.create(localDate("fraOgMed"), localDate("tilOgMed")),
@@ -79,7 +79,7 @@ internal class UføregrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(uføregrunnlag: Uføregrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_uføre
             (

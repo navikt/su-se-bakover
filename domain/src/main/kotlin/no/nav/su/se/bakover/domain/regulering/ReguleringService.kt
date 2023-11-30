@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import java.util.UUID
 
 sealed interface KunneIkkeFerdigstilleOgIverksette {
@@ -62,7 +63,7 @@ interface ReguleringService {
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
         reguleringId: UUID,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>

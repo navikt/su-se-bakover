@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -71,7 +71,7 @@ fun Sak.lagNyUtbetaling(
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
-    uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?,
+    uføregrunnlag: NonEmptyList<Uføregrunnlag>?,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.ALDER -> {
@@ -123,7 +123,7 @@ fun Sak.lagNyUtbetalingUføre(
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
-    uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>,
+    uføregrunnlag: NonEmptyList<Uføregrunnlag>,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.UFØRE -> {

@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -16,7 +16,7 @@ data class VurderingsperiodeUføre private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
-    override val grunnlag: Grunnlag.Uføregrunnlag?,
+    override val grunnlag: Uføregrunnlag?,
     override val periode: Periode,
 ) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeUføre> {
 
@@ -61,7 +61,7 @@ data class VurderingsperiodeUføre private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
-            grunnlag: Grunnlag.Uføregrunnlag?,
+            grunnlag: Uføregrunnlag?,
             periode: Periode,
         ): VurderingsperiodeUføre {
             return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrElse {
@@ -73,7 +73,7 @@ data class VurderingsperiodeUføre private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
-            grunnlag: Grunnlag.Uføregrunnlag?,
+            grunnlag: Uføregrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeUføre> {
             grunnlag?.let {

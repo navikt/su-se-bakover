@@ -6,7 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
@@ -642,7 +642,7 @@ internal fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
 /**
  * @throws NotImplementedError for alder
  */
-fun Vilkårsvurderinger.hentUføregrunnlag(): List<Grunnlag.Uføregrunnlag> {
+fun Vilkårsvurderinger.hentUføregrunnlag(): List<Uføregrunnlag> {
     return when (this) {
         is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
         is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag

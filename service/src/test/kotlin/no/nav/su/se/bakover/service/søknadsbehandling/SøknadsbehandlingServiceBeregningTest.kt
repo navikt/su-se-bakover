@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
@@ -41,6 +41,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -117,7 +118,7 @@ class SøknadsbehandlingServiceBeregningTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             vurdering = Vurdering.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
+                            grunnlag = Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 periode = Periode.create(1.januar(2021), 30.april(2021)),
@@ -130,7 +131,7 @@ class SøknadsbehandlingServiceBeregningTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             vurdering = Vurdering.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
+                            grunnlag = Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 periode = Periode.create(1.mai(2021), 31.desember(2021)),

@@ -145,7 +145,7 @@ data object DatabaseBuilder {
         Flyway(dataSource).migrate()
     }
 
-    internal fun buildInternal(
+    private fun buildInternal(
         dataSource: DataSource,
         dbMetrics: DbMetrics,
         clock: Clock,

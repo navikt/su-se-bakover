@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
-    private val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+    private val uføregrunnlag: List<Uføregrunnlag>,
     private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon.Fullstendig>,
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 ) {
@@ -45,11 +45,11 @@ data class SjekkOmGrunnlagErKonsistent(
     }
 
     data class Uføre(
-        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        val uføregrunnlag: List<Uføregrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.Uføre>, Unit> = uføregrunnlag(uføregrunnlag)
 
-        private fun uføregrunnlag(uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<Set<Konsistensproblem.Uføre>, Unit> {
+        private fun uføregrunnlag(uføregrunnlag: List<Uføregrunnlag>): Either<Set<Konsistensproblem.Uføre>, Unit> {
             mutableSetOf<Konsistensproblem.Uføre>().apply {
                 when {
                     uføregrunnlag.isEmpty() -> {

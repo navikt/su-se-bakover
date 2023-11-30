@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -105,7 +105,7 @@ private fun Sak.validerGjeldendeVedtak(
 
 private fun hentUføregrunnlag(
     iverksattBehandling: IverksattSøknadsbehandling.Innvilget,
-): NonEmptyList<Grunnlag.Uføregrunnlag>? {
+): NonEmptyList<Uføregrunnlag>? {
     return when (iverksattBehandling.sakstype) {
         Sakstype.ALDER -> {
             null

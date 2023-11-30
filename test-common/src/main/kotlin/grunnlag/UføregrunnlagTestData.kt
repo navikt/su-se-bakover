@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.test.grunnlag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import vilkår.uføre.domain.Uføregrad
 import java.util.UUID
 
 /**
@@ -16,7 +16,7 @@ fun uføregrunnlagForventetInntekt0(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Grunnlag.Uføregrunnlag {
+): Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
         id = id,
         opprettet = opprettet,
@@ -33,7 +33,7 @@ fun uføregrunnlagForventetInntekt12000(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Grunnlag.Uføregrunnlag {
+): Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
         id = id,
         opprettet = opprettet,
@@ -48,8 +48,8 @@ fun uføregrunnlagForventetInntekt(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     forventetInntekt: Int,
-): Grunnlag.Uføregrunnlag {
-    return Grunnlag.Uføregrunnlag(
+): Uføregrunnlag {
+    return Uføregrunnlag(
         id = id,
         opprettet = opprettet,
         periode = periode,
@@ -64,8 +64,8 @@ fun uføregrunnlag(
     periode: Periode = år(2021),
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
-): Grunnlag.Uføregrunnlag {
-    return Grunnlag.Uføregrunnlag(
+): Uføregrunnlag {
+    return Uføregrunnlag(
         id = id,
         opprettet = opprettet,
         periode = periode,

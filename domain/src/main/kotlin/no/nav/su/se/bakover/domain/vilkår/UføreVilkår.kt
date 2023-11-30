@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minus
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import vilkår.domain.Inngangsvilkår
@@ -19,14 +19,14 @@ val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDE
 
 sealed interface UføreVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Uførhet
-    val grunnlag: List<Grunnlag.Uføregrunnlag>
+    val grunnlag: List<Uføregrunnlag>
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UføreVilkår
 
     abstract override fun lagTidslinje(periode: Periode): UføreVilkår
 
     data object IkkeVurdert : UføreVilkår, IkkeVurdertVilkår {
-        override val grunnlag = emptyList<Grunnlag.Uføregrunnlag>()
+        override val grunnlag = emptyList<Uføregrunnlag>()
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
         override fun lagTidslinje(periode: Periode): IkkeVurdert = this
         override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
@@ -42,7 +42,7 @@ sealed interface UføreVilkår : Vilkår {
             require(!vurderingsperioder.harOverlappende())
         }
 
-        override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
+        override val grunnlag: List<Uføregrunnlag> = vurderingsperioder.mapNotNull {
             it.grunnlag
         }
 

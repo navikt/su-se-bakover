@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknad
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.uføre.domain.Uføregrad
 
 internal class UtbetalingsstrategiOpphørTest {
     @Test
