@@ -217,6 +217,19 @@ fun startJobberOgConsumers(
                     29.september(2023),
                     30.oktober(2023),
                     22.november(2023),
+                    // ------- 2024
+                    4.januar(2024),
+                    30.januar(2024),
+                    28.februar(2024),
+                    29.mars(2024),
+                    25.april(2024),
+                    24.mai(2024),
+                    28.juni(2024),
+                    30.juli(2024),
+                    30.august(2024),
+                    27.september(2024),
+                    30.oktober(2024),
+                    25.november(2024),
                 )
             } else {
                 emptySet()
