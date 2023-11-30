@@ -191,7 +191,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `oppdaterer periodene på grunnlagene`() {
         val forrigePeriode = år(2021)
         val oppdatertPeriode = januar(2021)
-        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+        val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(

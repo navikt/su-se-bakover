@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
@@ -17,7 +18,7 @@ fun fradragsgrunnlagArbeidsinntekt1000(
     periode: Periode = år(2021),
     opprettet: Tidspunkt = fixedTidspunkt,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
-): Grunnlag.Fradragsgrunnlag {
+): Fradragsgrunnlag {
     return fradragsgrunnlagArbeidsinntekt(periode = periode, arbeidsinntekt = 1000.0, opprettet = opprettet, tilhører = tilhører)
 }
 
@@ -30,7 +31,7 @@ fun fradragsgrunnlagArbeidsinntekt(
     arbeidsinntekt: Double,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
     opprettet: Tidspunkt = fixedTidspunkt,
-): Grunnlag.Fradragsgrunnlag {
+): Fradragsgrunnlag {
     return lagFradragsgrunnlag(
         id = id,
         type = Fradragstype.Arbeidsinntekt,
@@ -115,7 +116,7 @@ fun bosituasjongrunnlagEpsUførFlyktning(
  */
 fun grunnlagsdataEnsligUtenFradrag(
     periode: Periode = år(2021),
-    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
+    fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
@@ -129,7 +130,7 @@ fun grunnlagsdataEnsligUtenFradrag(
  */
 fun grunnlagsdataEnsligMedFradrag(
     periode: Periode = år(2021),
-    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(
+    fradragsgrunnlag: NonEmptyList<Fradragsgrunnlag> = nonEmptyListOf(
         fradragsgrunnlagArbeidsinntekt1000(
             periode = periode,
         ),
@@ -148,7 +149,7 @@ fun grunnlagsdataEnsligMedFradrag(
 fun grunnlagsdataMedEpsMedFradrag(
     periode: Periode = år(2021),
     epsFnr: Fnr = Fnr.generer(),
-    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(
+    fradragsgrunnlag: NonEmptyList<Fradragsgrunnlag> = nonEmptyListOf(
         fradragsgrunnlagArbeidsinntekt1000(
             periode = periode,
         ),
@@ -168,7 +169,7 @@ fun grunnlagsdataMedEpsMedFradrag(
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
-fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Grunnlag.Fradragsgrunnlag {
+fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Fradragsgrunnlag {
     return lagFradragsgrunnlag(
         type = Fradragstype.Arbeidsinntekt,
         månedsbeløp = 5000.0,

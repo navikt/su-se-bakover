@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
@@ -41,10 +41,10 @@ internal fun Route.leggTilFradragRevurdering(
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragRequestJson>,
     ) {
-        fun toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> =
+        fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
             fradrag.toFradrag().map {
                 it.map { fradrag ->
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
+                    Fradragsgrunnlag.tryCreate(
                         fradrag = fradrag,
                         opprettet = Tidspunkt.now(clock),
                     ).getOrElse {

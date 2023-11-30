@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import java.util.UUID
 
@@ -64,7 +64,7 @@ interface ReguleringService {
     fun regulerManuelt(
         reguleringId: UUID,
         uføregrunnlag: List<Uføregrunnlag>,
-        fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 }

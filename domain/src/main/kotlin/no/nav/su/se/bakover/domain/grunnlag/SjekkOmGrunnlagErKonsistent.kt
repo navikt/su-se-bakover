@@ -6,18 +6,18 @@ import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
     private val uføregrunnlag: List<Uføregrunnlag>,
     private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon.Fullstendig>,
-    private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+    private val fradragsgrunnlag: List<Fradragsgrunnlag>,
 ) {
     constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
         formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
@@ -106,7 +106,7 @@ data class SjekkOmGrunnlagErKonsistent(
      */
     data class BosituasjonOgFradrag(
         val bosituasjon: List<Grunnlag.Bosituasjon>,
-        val fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        val fradrag: List<Fradragsgrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> = bosituasjonOgFradrag()
 

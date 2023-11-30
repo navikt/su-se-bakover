@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
@@ -140,7 +141,7 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterUtenlandsoppholdOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { or ->
-            grunnlagsdataOverrides.filterIsInstance<Grunnlag.Fradragsgrunnlag>().let {
+            grunnlagsdataOverrides.filterIsInstance<Fradragsgrunnlag>().let {
                 if (it.isNotEmpty()) {
                     or.oppdaterFradragOgMarkerSomVurdert(it).getOrFail()
                 } else {
@@ -619,7 +620,7 @@ fun lagFradragsgrunnlag(
     periode: Periode,
     utenlandskInntekt: UtenlandskInntekt? = null,
     tilhører: FradragTilhører,
-) = Grunnlag.Fradragsgrunnlag.tryCreate(
+) = Fradragsgrunnlag.tryCreate(
     id = id,
     opprettet = opprettet,
     fradrag = FradragFactory.nyFradragsperiode(

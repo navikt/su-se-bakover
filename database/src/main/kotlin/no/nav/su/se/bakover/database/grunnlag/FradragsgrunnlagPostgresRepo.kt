@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import java.util.UUID
 
 internal class FradragsgrunnlagPostgresRepo(
@@ -23,7 +23,7 @@ internal class FradragsgrunnlagPostgresRepo(
 ) {
     internal fun lagreFradragsgrunnlag(
         behandlingId: UUID,
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        fradragsgrunnlag: List<Fradragsgrunnlag>,
         tx: TransactionalSession,
     ) {
         dbMetrics.timeQuery("lagreFradragsgrunnlag") {
@@ -34,7 +34,7 @@ internal class FradragsgrunnlagPostgresRepo(
         }
     }
 
-    internal fun hentFradragsgrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Fradragsgrunnlag> {
+    internal fun hentFradragsgrunnlag(behandlingId: UUID, session: Session): List<Fradragsgrunnlag> {
         return dbMetrics.timeQuery("hentFradragsgrunnlag") {
             """
                 select * from grunnlag_fradrag where behandlingId = :behandlingId
@@ -62,8 +62,8 @@ internal class FradragsgrunnlagPostgresRepo(
             )
     }
 
-    private fun Row.toFradragsgrunnlag(): Grunnlag.Fradragsgrunnlag {
-        return Grunnlag.Fradragsgrunnlag.tryCreate(
+    private fun Row.toFradragsgrunnlag(): Fradragsgrunnlag {
+        return Fradragsgrunnlag.tryCreate(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             fradrag = FradragForPeriode(
@@ -79,7 +79,7 @@ internal class FradragsgrunnlagPostgresRepo(
         ).getOrNull()!!
     }
 
-    private fun lagre(fradragsgrunnlag: Grunnlag.Fradragsgrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(fradragsgrunnlag: Fradragsgrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_fradrag
             (

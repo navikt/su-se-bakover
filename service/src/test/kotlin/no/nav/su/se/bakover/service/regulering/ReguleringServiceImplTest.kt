@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -110,7 +110,7 @@ internal class ReguleringServiceImplTest {
             vedtakSøknadsbehandlingIverksattInnvilget(
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.create(
+                        Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,
@@ -404,7 +404,7 @@ internal class ReguleringServiceImplTest {
                 /* Manuell regulering */
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.create(
+                        Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,
@@ -449,7 +449,7 @@ internal class ReguleringServiceImplTest {
                 /* Manuell regulering */
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.create(
+                        Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,

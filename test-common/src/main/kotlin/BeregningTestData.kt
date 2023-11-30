@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
@@ -72,7 +73,7 @@ fun beregning(
      * Bruk uføregrunnlag for forventet inntekt
      * Selvom fradragFraSaksbehandler krever List<Fradrag> for øyeblikket vil den bli refaktorert til List<FradragGrunnlag> i fremtiden.
      */
-    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
+    fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
 ): Beregning {
     if (fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }) {
         throw IllegalArgumentException("Foreventet inntekt etter uføre populeres via uføregrunnlag")

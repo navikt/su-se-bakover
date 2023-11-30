@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -50,7 +50,7 @@ class SøknadsbehandlingServiceBeregningTest {
     fun `oppretter beregning`() {
         val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
             customGrunnlag = nonEmptyListOf(
-                Grunnlag.Fradragsgrunnlag.create(
+                Fradragsgrunnlag.create(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     fradrag = FradragFactory.nyFradragsperiode(

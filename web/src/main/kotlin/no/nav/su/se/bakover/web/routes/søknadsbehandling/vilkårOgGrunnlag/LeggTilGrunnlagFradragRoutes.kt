@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
@@ -56,7 +56,7 @@ internal fun Route.leggTilGrunnlagFradrag(
             LeggTilFradragsgrunnlagRequest(
                 behandlingId = behandlingId,
                 fradragsgrunnlag = fradrag.map { fradrag ->
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
+                    Fradragsgrunnlag.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         fradrag = FradragFactory.nyFradragsperiode(
@@ -77,7 +77,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                         ),
                     ).getOrElse {
                         return when (it) {
-                            Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
+                            Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
                         }
                     }
                 },

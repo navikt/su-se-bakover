@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -36,7 +36,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `ugyldig for enkelte fradragstyper`() {
-        Grunnlag.Fradragsgrunnlag.tryCreate(
+        Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 150.0,
@@ -45,9 +45,9 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+        ) shouldBe Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
-        Grunnlag.Fradragsgrunnlag.tryCreate(
+        Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.BeregnetFradragEPS,
                 månedsbeløp = 150.0,
@@ -56,9 +56,9 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+        ) shouldBe Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
-        Grunnlag.Fradragsgrunnlag.tryCreate(
+        Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 150.0,
@@ -67,7 +67,7 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+        ) shouldBe Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
     }
 
     @Test
@@ -80,7 +80,7 @@ internal class FradragsgrunnlagTest {
                 Fradragstype.Kategori.Annet,
             ).contains(it)
         }.forEach {
-            Grunnlag.Fradragsgrunnlag.tryCreate(
+            Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.from(it, null),
                     månedsbeløp = 150.0,
@@ -96,7 +96,7 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fradrag med periode som er lik stønadsperiode, blir oppdatert til å gjelde for hele stønadsperioden`() {
         val oppdatertPeriode = år(2022)
-        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+        val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -117,7 +117,7 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fraOgMed blir kuttet og satt lik stønadsperiode FOM når oppdatertPeriode er etter fraOgMed `() {
         val oppdatertPeriode = Periode.create(1.mai(2021), 31.desember(2021))
-        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+        val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -138,7 +138,7 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `tilOgMed blir kuttet og satt lik stønadsperiode TOM når oppdatertPeriode er før tilOgMed `() {
         val oppdatertPeriode = Periode.create(1.januar(2021), 31.august(2021))
-        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+        val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -159,7 +159,7 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fradrag med deler av periode i 2022, oppdaterer periode til å gjelde for 2021, får fradragene til å gjelde for hele 2021`() {
         val oppdatertPeriode = år(2021)
-        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+        val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -280,7 +280,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fjerner fradrag som tilhører EPS, når vi har bosituasjon uten EPS`() {
-        val f1 = Grunnlag.Fradragsgrunnlag.create(
+        val f1 = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -292,7 +292,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        val f2 = Grunnlag.Fradragsgrunnlag.create(
+        val f2 = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -315,7 +315,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fjerner ikke fradrag for EPS, dersom søker bor med EPS`() {
-        val f1 = Grunnlag.Fradragsgrunnlag.create(
+        val f1 = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -327,7 +327,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        val f2 = Grunnlag.Fradragsgrunnlag.create(
+        val f2 = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
@@ -451,8 +451,8 @@ internal class FradragsgrunnlagTest {
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
         tilhører: FradragTilhører = FradragTilhører.BRUKER,
-    ): Grunnlag.Fradragsgrunnlag {
-        return Grunnlag.Fradragsgrunnlag.create(
+    ): Fradragsgrunnlag {
+        return Fradragsgrunnlag.create(
             opprettet = opprettet,
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = type,

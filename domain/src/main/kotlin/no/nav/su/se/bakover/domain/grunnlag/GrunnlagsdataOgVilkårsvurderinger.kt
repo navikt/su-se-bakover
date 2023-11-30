@@ -47,7 +47,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
     /**
      * Erstatter eksisterende fradragsgrunnlag med nye.
      */
-    fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
     fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Søknadsbehandling
 
     /**
@@ -59,7 +59,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
     private fun oppdaterBosituasjonInternal(
         bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
             /*
@@ -147,7 +147,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Søknadsbehandling)
         }
 
-        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
+        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Søknadsbehandling {
             return copy(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = fradragsgrunnlag,
@@ -281,7 +281,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering)
         }
 
-        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
+        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Revurdering {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
         }
 

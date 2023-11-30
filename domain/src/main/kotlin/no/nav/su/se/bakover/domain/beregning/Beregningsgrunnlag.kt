@@ -10,7 +10,7 @@ import beregning.domain.fradrag.FradragTilhører
 import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import org.jetbrains.annotations.TestOnly
 
@@ -24,7 +24,7 @@ data class Beregningsgrunnlag private constructor(
         fun create(
             beregningsperiode: Periode,
             uføregrunnlag: List<Uføregrunnlag>,
-            fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
+            fradragFraSaksbehandler: List<Fradragsgrunnlag>,
         ): Beregningsgrunnlag {
             return tryCreate(
                 beregningsperiode,
@@ -36,7 +36,7 @@ data class Beregningsgrunnlag private constructor(
         fun tryCreate(
             beregningsperiode: Periode,
             uføregrunnlag: List<Uføregrunnlag>,
-            fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
+            fradragFraSaksbehandler: List<Fradragsgrunnlag>,
         ): Either<UgyldigBeregningsgrunnlag, Beregningsgrunnlag> {
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {

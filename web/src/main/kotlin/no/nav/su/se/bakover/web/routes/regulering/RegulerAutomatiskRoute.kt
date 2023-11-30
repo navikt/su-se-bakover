@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -217,7 +217,7 @@ internal fun Route.reguler(
     }
 }
 
-private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
+private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this
         .map { it.toFradrag() }
         .separateEither()
@@ -225,7 +225,7 @@ private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, Li
     if (resultat.isNotEmpty()) return resultat.first().left()
 
     return f.map {
-        Grunnlag.Fradragsgrunnlag.tryCreate(
+        Fradragsgrunnlag.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             fradrag = it,

@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
@@ -184,7 +184,7 @@ internal class SøknadsbehandlingBeregnTest {
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
             vilkårsvurdert.oppdaterFradragsgrunnlag(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
+                    Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(

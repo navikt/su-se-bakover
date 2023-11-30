@@ -9,6 +9,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -309,13 +310,13 @@ fun List<Grunnlag.Bosituasjon>.shouldBeEqualToExceptId(expected: List<Grunnlag.B
     }
 }
 
-fun Grunnlag.Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Grunnlag.Fradragsgrunnlag) {
-    this.shouldBeEqualToIgnoringFields(expected, Grunnlag.Fradragsgrunnlag::id)
+fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
+    this.shouldBeEqualToIgnoringFields(expected, Fradragsgrunnlag::id)
     this.id shouldNotBe expected.id
 }
 
 @JvmName("shouldBeEqualToExceptIdGrunnlagFradragsgrunnlag")
-fun List<Grunnlag.Fradragsgrunnlag>.shouldBeEqualToExceptId(expected: List<Grunnlag.Fradragsgrunnlag>) {
+fun List<Fradragsgrunnlag>.shouldBeEqualToExceptId(expected: List<Fradragsgrunnlag>) {
     this.zip(expected).map { (actual, expected) ->
         actual.shouldBeEqualToExceptId(expected)
     }

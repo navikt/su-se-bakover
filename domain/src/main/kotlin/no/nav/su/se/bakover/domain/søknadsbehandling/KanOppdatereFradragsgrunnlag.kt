@@ -5,8 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
 import java.time.Clock
 
 /**
@@ -21,7 +21,7 @@ sealed interface KanOppdatereFradragsgrunnlag : Søknadsbehandling, KanOppdatere
      */
     fun oppdaterFradragsgrunnlag(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        fradragsgrunnlag: List<Fradragsgrunnlag>,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, VilkårsvurdertSøknadsbehandling.Innvilget> {
         validerFradragsgrunnlag(fradragsgrunnlag).onLeft { return it.left() }
@@ -38,7 +38,7 @@ sealed interface KanOppdatereFradragsgrunnlag : Søknadsbehandling, KanOppdatere
             ).right() // TODO cast - kan kanskje kalle oppdaterFradragsgrunnlag på VilkårsvurdertSøknadsbehandling.Innvilget?
     }
 
-    private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
+    private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (!periode.inneholder(fradragsgrunnlag.perioder())) {
                 return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()

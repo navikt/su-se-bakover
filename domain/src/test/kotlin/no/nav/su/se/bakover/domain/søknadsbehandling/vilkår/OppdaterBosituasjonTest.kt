@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.vilkår
 import arrow.core.nonEmptyListOf
 import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
+import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
