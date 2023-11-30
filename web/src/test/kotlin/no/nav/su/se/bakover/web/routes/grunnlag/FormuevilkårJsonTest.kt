@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
@@ -28,13 +28,13 @@ internal class FormuevilkårJsonTest {
         val janDes = år(2021)
         val janJun = Periode.create(1.januar(2021), 30.juni(2021))
         val julDes = Periode.create(1.juli(2021), 31.desember(2021))
-        val bosituasjonJanJun = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        val bosituasjonJanJun = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
             opprettet = fixedTidspunkt,
             periode = janDes,
             fnr = Fnr("12312312345"),
         )
-        val bosituasjonJulDes = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        val bosituasjonJulDes = Bosituasjon.Fullstendig.Enslig(
             id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95790"),
             opprettet = fixedTidspunkt,
             periode = janDes,

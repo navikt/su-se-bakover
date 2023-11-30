@@ -178,6 +178,13 @@ fun List<Periode>.minAndMaxOf(): Periode {
     )
 }
 
+fun NonEmptyList<Periode>.minAndMaxOf(): Periode {
+    return Periode.create(
+        fraOgMed = this.minOf { it.fraOgMed },
+        tilOgMed = this.maxOf { it.tilOgMed },
+    )
+}
+
 fun List<Periode>.minAndMaxOfOrNull(): Periode? {
     if (this.isEmpty()) return null
     return Periode.create(

@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
@@ -106,7 +106,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {

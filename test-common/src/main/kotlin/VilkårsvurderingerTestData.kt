@@ -5,7 +5,7 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -106,7 +106,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
     lovligOppholdVilkår: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
         nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode)),
     ),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(
         bosituasjongrunnlagEnslig(
             id = UUID.randomUUID(),
             periode = periode,
@@ -142,7 +142,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
 fun vilkårsvurderingerRevurderingInnvilget(
     periode: Periode = år(2021),
     uføre: UføreVilkår = innvilgetUførevilkårForventetInntekt0(periode = periode),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
         nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode)),
     ),
@@ -170,7 +170,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
 fun vilkårsvurderingerAvslåttAlleRevurdering(
     periode: Periode = år(2021),
     uføre: UføreVilkår = avslåttUførevilkårUtenGrunnlag(periode = periode),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
         nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode)),
     ),
@@ -241,7 +241,7 @@ fun vilkårsvurderingerAvslåttAlle(
  */
 fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
@@ -264,7 +264,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
 fun vilkårsvurderingerAlderInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(
         bosituasjongrunnlagEnslig(
             id = UUID.randomUUID(),
             periode = stønadsperiode.periode,

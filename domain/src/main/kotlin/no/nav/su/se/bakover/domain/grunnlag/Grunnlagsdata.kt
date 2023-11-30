@@ -7,9 +7,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.inneholder
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -62,7 +62,7 @@ data class Satsoversikt(
             return fra(revurdering.grunnlagsdata.bosituasjon, satsFactory, revurdering.sakstype)
         }
 
-        fun fra(bosituasjoner: List<Grunnlag.Bosituasjon>, satsFactory: SatsFactory, sakstype: Sakstype): Satsoversikt {
+        fun fra(bosituasjoner: List<Bosituasjon>, satsFactory: SatsFactory, sakstype: Sakstype): Satsoversikt {
             return bosituasjoner
                 .map { it.fullstendigOrThrow() }
                 .flatMap { bosituasjon ->

@@ -10,9 +10,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
@@ -53,13 +53,13 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
     /**
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): GrunnlagsdataOgVilkårsvurderinger {
+    fun oppdaterBosituasjon(bosituasjon: List<Bosituasjon.Fullstendig>): GrunnlagsdataOgVilkårsvurderinger {
         return oppdaterBosituasjonFullstendig(bosituasjon)
     }
 
     private fun oppdaterBosituasjonInternal(
-        bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
+        bosituasjon: List<Bosituasjon.Fullstendig>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Fradragsgrunnlag>, bosituasjon: List<Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
             /*
@@ -115,7 +115,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
     private fun oppdaterBosituasjonFullstendig(
-        bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+        bosituasjon: List<Bosituasjon.Fullstendig>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         return oppdaterBosituasjonInternal(
             bosituasjon = bosituasjon,
@@ -181,7 +181,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             )
         }
 
-        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
+        override fun oppdaterBosituasjon(bosituasjon: List<Bosituasjon.Fullstendig>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
         }
 
@@ -264,7 +264,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             kastHvisPerioderIkkeErLike()
         }
 
-        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
+        override fun oppdaterBosituasjon(bosituasjon: List<Bosituasjon.Fullstendig>): Revurdering {
             return super.oppdaterBosituasjon(bosituasjon) as Revurdering
         }
 

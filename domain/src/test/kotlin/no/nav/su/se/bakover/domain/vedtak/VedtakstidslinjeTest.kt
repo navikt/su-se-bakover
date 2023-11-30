@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -100,7 +100,7 @@ internal class VedtakstidslinjeTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val bosituasjonMedEps = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        val bosituasjonMedEps = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             fnr = Fnr.generer(),
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -233,13 +233,13 @@ internal class VedtakstidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val b1 = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+        val b1 = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         )
 
-        val b2 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+        val b2 = Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
@@ -435,12 +435,12 @@ internal class VedtakstidslinjeTest {
                             }
                         kopi.grunnlagsdata.bosituasjon.let {
                             it shouldHaveSize 2
-                            it[0].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen>()
+                            it[0].shouldBeType<Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen>()
                                 .let {
                                     it.id shouldNotBe b1.id
                                     it.periode shouldBe Periode.create(1.mai(2021), 30.juni(2021))
                                 }
-                            it[1].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre>()
+                            it[1].shouldBeType<Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre>()
                                 .let {
                                     it.id shouldNotBe b1.id
                                     it.periode shouldBe juli(2021)
@@ -499,7 +499,7 @@ internal class VedtakstidslinjeTest {
                 val førstePeriode = januar(2021)..april(2021)
                 a.periode shouldBe førstePeriode
                 a.grunnlagsdata.bosituasjon.all { it.periode == førstePeriode } shouldBe true
-                a.grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig.Enslig } shouldBe true
+                a.grunnlagsdata.bosituasjon.all { it is Bosituasjon.Fullstendig.Enslig } shouldBe true
                 a.grunnlagsdata.fradragsgrunnlag.all { it.periode == førstePeriode } shouldBe true
                 a.grunnlagsdata.fradragsgrunnlag.all { it.månedsbeløp == 5000.0 } shouldBe true
                 a.vilkårsvurderinger.vilkår.map { it.perioder.single() }.all { it == førstePeriode } shouldBe true
@@ -510,7 +510,7 @@ internal class VedtakstidslinjeTest {
                 val senestePeriode = mai(2021)..desember(2021)
                 b.periode shouldBe senestePeriode
                 b.grunnlagsdata.bosituasjon.all { it.periode == senestePeriode } shouldBe true
-                b.grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre } shouldBe true
+                b.grunnlagsdata.bosituasjon.all { it is Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre } shouldBe true
                 b.grunnlagsdata.fradragsgrunnlag.all { it.periode == senestePeriode } shouldBe true
                 b.grunnlagsdata.fradragsgrunnlag.all { it.månedsbeløp == 1000.0 } shouldBe true
                 b.vilkårsvurderinger.vilkår.map { it.perioder.single() }.all { it == senestePeriode } shouldBe true

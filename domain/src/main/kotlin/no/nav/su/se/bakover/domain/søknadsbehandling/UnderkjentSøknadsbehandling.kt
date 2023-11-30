@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet

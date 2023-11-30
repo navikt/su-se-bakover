@@ -4,7 +4,7 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
@@ -48,7 +48,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `kan lagre EPS selvom man ikke har tilgang til saken`() {
         val (_, uavklart) = nySøknadsbehandlingMedStønadsperiode()
 
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = uavklart.periode,

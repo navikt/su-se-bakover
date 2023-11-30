@@ -5,8 +5,8 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
@@ -29,7 +29,7 @@ fun formuevilkårIkkeVurdert(): FormueVilkår {
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
+    bosituasjon: Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
 ): FormueVilkår {
     return formuevilkårUtenEps0Innvilget(
         opprettet = opprettet,
@@ -41,9 +41,9 @@ fun formuevilkårUtenEps0Innvilget(
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
 ): FormueVilkår.Vurdert {
-    val bosituasjonsperiode = bosituasjon.toList().periode()
+    val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {
         "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
     }
@@ -64,9 +64,9 @@ fun formuevilkårUtenEps0Innvilget(
 fun formuevilkårMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
 ): FormueVilkår.Vurdert {
-    val bosituasjonsperiode = bosituasjon.toList().periode()
+    val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {
         "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
     }
@@ -87,7 +87,7 @@ fun formuevilkårMedEps0Innvilget(
 fun formuevilkårAvslåttPgaBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
+    bosituasjon: Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
         periode = periode,
     ),
 ): FormueVilkår.Vurdert {
@@ -112,7 +112,7 @@ fun formuevilkårAvslåttPgaBrukersformue(
 fun formuevilkårAvslåttPgaBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
 ): FormueVilkår {
     return FormueVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
@@ -136,8 +136,8 @@ fun avslåttFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
-        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(
+        Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
@@ -176,7 +176,7 @@ fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+    bosituasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
@@ -194,7 +194,7 @@ private fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode,
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
 ): FormueVilkår.Vurdert {
     require(bosituasjon.all { it.harEPS() } || bosituasjon.none { it.harEPS() }) {
         "Test-dataene har ikke støtte for å dele opp formue i fler perioder enda."

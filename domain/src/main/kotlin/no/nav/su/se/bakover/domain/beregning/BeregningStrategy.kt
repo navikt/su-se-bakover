@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -63,7 +63,7 @@ class BeregningStrategyFactory(
         val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
             Beregningsperiode(
                 periode = it.periode,
-                strategy = (it as Grunnlag.Bosituasjon.Fullstendig).utledBeregningsstrategi(satsFactory, sakstype),
+                strategy = (it as Bosituasjon.Fullstendig).utledBeregningsstrategi(satsFactory, sakstype),
             )
         }
 
@@ -233,28 +233,28 @@ sealed class BeregningStrategy {
     }
 }
 
-fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(
+fun Bosituasjon.Fullstendig.utledBeregningsstrategi(
     satsFactory: SatsFactory,
     sakstype: Sakstype,
 ): BeregningStrategy {
     return when (this) {
-        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne(
+        is Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År(
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre(
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
-        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene(
+        is Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )

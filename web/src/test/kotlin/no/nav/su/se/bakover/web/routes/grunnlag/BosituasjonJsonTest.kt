@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
@@ -42,7 +42,7 @@ internal class BosituasjonJsonTest {
         ]
         """.trimIndent()
 
-        internal val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        internal val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = bosituasjonId,
             opprettet = bosituasjonOpprettet,
             periode = år(2021),

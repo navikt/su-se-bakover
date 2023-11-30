@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
@@ -213,8 +213,8 @@ private fun stønadsklassifisering(
     }
 
     return when (bosituasjon) {
-        is Grunnlag.Bosituasjon.Fullstendig -> bosituasjon.stønadsklassifisering()
-        is Grunnlag.Bosituasjon.Ufullstendig -> StønadsklassifiseringDto.UFULLSTENDIG_GRUNNLAG.also {
+        is Bosituasjon.Fullstendig -> bosituasjon.stønadsklassifisering()
+        is Bosituasjon.Ufullstendig -> StønadsklassifiseringDto.UFULLSTENDIG_GRUNNLAG.also {
             log.error("Kunne ikke avgjøre stønadsklassifisering ved utsending av statistikk, siden grunnlaget var ufullstendig. Behandling id: ${behandling.id}")
         }
     }

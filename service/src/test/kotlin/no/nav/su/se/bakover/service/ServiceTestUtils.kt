@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -23,7 +23,7 @@ internal fun formuegrunnlag(
     periode = periode,
     epsFormue = epsFormue,
     søkersFormue = Formuegrunnlag.Verdier.empty(),
-    bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+    bosituasjon = Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,

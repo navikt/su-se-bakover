@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
@@ -343,7 +343,7 @@ sealed class Revurdering :
         }
     }
 
-    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
+    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
         KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     protected fun oppdaterUføreOgMarkerSomVurdertInternal(
@@ -446,12 +446,12 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         return oppdaterBosituasjonInternal(bosituasjon)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
     }
 
-    private fun oppdaterBosituasjonInternal(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    private fun oppdaterBosituasjonInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(bosituasjon.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilBosituasjon.PerioderMangler.left()
         }

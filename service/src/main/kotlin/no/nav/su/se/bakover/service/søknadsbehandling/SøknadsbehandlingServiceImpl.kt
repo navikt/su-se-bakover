@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.tid.krympTilØvreGrense
 import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigEpsOrNull
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger

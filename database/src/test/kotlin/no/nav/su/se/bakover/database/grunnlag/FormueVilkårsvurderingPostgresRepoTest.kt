@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
@@ -46,7 +46,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     private fun formuegrunnlag(
         periode: Periode,
-        bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        bosituasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,

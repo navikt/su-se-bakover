@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag

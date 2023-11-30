@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -110,7 +110,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering(
                     grunnlagsdataOverrides = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = år(2021),
@@ -230,7 +230,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering(
                     grunnlagsdataOverrides = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                        Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                             id = UUID.randomUUID(),
                             fnr = epsFnr,
                             opprettet = fixedTidspunkt,

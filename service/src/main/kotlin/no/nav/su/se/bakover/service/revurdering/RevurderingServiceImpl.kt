@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -369,7 +369,7 @@ class RevurderingServiceImpl(
         // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
         @Suppress("UNCHECKED_CAST")
         val bosituasjon =
-            revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
+            revurdering.grunnlagsdata.bosituasjon as List<Bosituasjon.Fullstendig>
 
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, formuegrenserFactory).getOrElse {
             return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()

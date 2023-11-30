@@ -88,7 +88,7 @@ internal class FormuegrunnlagTest {
     @Nested
     inner class FormuegrunnlagTest {
 
-        val enslig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        val enslig = Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             periode = januar(2021),
@@ -144,7 +144,7 @@ internal class FormuegrunnlagTest {
                     kontanter = 1,
                     depositumskonto = 1,
                 ),
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                     id = UUID.randomUUID(),
                     fnr = Fnr.generer(),
                     opprettet = Tidspunkt.EPOCH,
@@ -253,7 +253,7 @@ internal class FormuegrunnlagTest {
 
     @Test
     fun `2 formue grunnlag som tilstøter, men eps verdier er ulik`() {
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -282,7 +282,7 @@ internal class FormuegrunnlagTest {
         periodeInnenfor2021: Periode,
         søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.empty(),
         epsFormue: Formuegrunnlag.Verdier? = null,
-        bosiutasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        bosiutasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periodeInnenfor2021,

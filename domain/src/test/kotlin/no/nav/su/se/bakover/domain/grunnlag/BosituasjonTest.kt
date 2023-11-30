@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -24,46 +24,46 @@ internal class BosituasjonTest {
 
     @Test
     fun `viser om søker har ektefelle eller ikke`() {
-        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
         ).harEPS() shouldBe true
 
-        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
         ).harEPS() shouldBe true
 
-        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+        Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
         ).harEPS() shouldBe true
 
-        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEPS() shouldBe false
 
-        Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+        Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEPS() shouldBe false
 
-        Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+        Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEPS() shouldBe false
 
-        Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+        Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fnr = Fnr.generer(),
@@ -74,7 +74,7 @@ internal class BosituasjonTest {
     @Test
     fun `oppdaterer periode i bosituasjon`() {
         val oppdatertPeriode = Periode.create(1.februar(2021), 31.januar(2022))
-        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        val gjeldendeBosituasjon = Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -87,7 +87,7 @@ internal class BosituasjonTest {
 
     @Test
     fun `slår sammen like og tilstøtende bosituasjoner`() {
-        val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        val b1 = Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
@@ -95,7 +95,7 @@ internal class BosituasjonTest {
         val b2 = b1.copy(
             periode = februar(2021),
         )
-        val b3 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        val b3 = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = mars(2021),
@@ -104,12 +104,12 @@ internal class BosituasjonTest {
 
         val actual = listOf(b1, b2, b3).slåSammenPeriodeOgBosituasjon()
         actual.size shouldBe 2
-        actual.first() shouldBe Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        actual.first() shouldBe Bosituasjon.Fullstendig.Enslig(
             id = b1.id,
             opprettet = fixedTidspunkt,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
         )
-        actual.last() shouldBe Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        actual.last() shouldBe Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = b3.id,
             opprettet = fixedTidspunkt,
             periode = mars(2021),
@@ -122,7 +122,7 @@ internal class BosituasjonTest {
     inner class HarFjernetEllerEndretEps {
         @Test
         fun `tom bosituasjon som blir oppdatert til tom - gir false`() {
-            listOf<Grunnlag.Bosituasjon>().harFjernetEllerEndretEps(emptyList()) shouldBe false
+            listOf<Bosituasjon>().harFjernetEllerEndretEps(emptyList()) shouldBe false
         }
 
         @Test
@@ -132,7 +132,7 @@ internal class BosituasjonTest {
 
         @Test
         fun `fra tom til 1 - false`() {
-            emptyList<Grunnlag.Bosituasjon>().harFjernetEllerEndretEps(listOf(bosituasjonEpsOver67())) shouldBe false
+            emptyList<Bosituasjon>().harFjernetEllerEndretEps(listOf(bosituasjonEpsOver67())) shouldBe false
         }
 
         @Test

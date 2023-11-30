@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -24,7 +24,7 @@ data class LeggTilBosituasjonRequest(
     fun toDomain(
         clock: Clock,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Grunnlag.Bosituasjon.Fullstendig> {
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Bosituasjon.Fullstendig> {
         val log = LoggerFactory.getLogger(this::class.java)
 
         if ((epsFnr == null && delerBolig == null) || (epsFnr != null && delerBolig != null)) {
@@ -44,7 +44,7 @@ data class LeggTilBosituasjonRequest(
             }
 
             return when {
-                epsAlder >= 67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+                epsAlder >= 67 -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
@@ -52,14 +52,14 @@ data class LeggTilBosituasjonRequest(
                 ).right()
 
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
-                    true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                    true -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
                     ).right()
 
-                    false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+                    false -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
@@ -73,13 +73,13 @@ data class LeggTilBosituasjonRequest(
 
         if (delerBolig != null) {
             return when (delerBolig) {
-                true -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                true -> Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
                 ).right()
 
-                false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                false -> Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,

@@ -147,7 +147,7 @@ data class Formuegrunnlag private constructor(
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
-            bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+            bosituasjon: List<Bosituasjon.Fullstendig>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -181,7 +181,7 @@ data class Formuegrunnlag private constructor(
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             // Tillater ufullstending for å kunne bruke med søknadsbehandling
-            bosituasjon: List<Grunnlag.Bosituasjon>,
+            bosituasjon: List<Bosituasjon>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -222,7 +222,7 @@ data class Formuegrunnlag private constructor(
         }
 
         private fun konsistenssjekk(
-            bosituasjon: List<Grunnlag.Bosituasjon>,
+            bosituasjon: List<Bosituasjon>,
             formuegrunnlag: List<Formuegrunnlag>,
         ): Either<KunneIkkeLageFormueGrunnlag, Unit> {
             return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(

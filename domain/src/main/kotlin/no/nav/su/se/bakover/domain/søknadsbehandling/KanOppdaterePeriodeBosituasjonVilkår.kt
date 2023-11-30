@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.avslåPgaOpplysningsplikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -271,7 +271,7 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
 
     fun oppdaterBosituasjon(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+        bosituasjon: Bosituasjon.Fullstendig,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, VilkårsvurdertSøknadsbehandling> {
         if (this.periode != bosituasjon.periode) {
             return KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.GrunnlagetMåVæreInnenforBehandlingsperioden.left()

@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -20,7 +20,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            val bosituasjon = Bosituasjon.Fullstendig.Enslig(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -38,7 +38,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+            val bosituasjon = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -56,7 +56,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+            val bosituasjon = Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -74,7 +74,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            val bosituasjon = Bosituasjon.Ufullstendig.HarEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -93,7 +93,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+            val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -112,7 +112,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+            val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -131,7 +131,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+            val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,

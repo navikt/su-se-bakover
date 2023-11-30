@@ -5,18 +5,18 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.common.tid.periode.inneholder
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harOverlappende
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
     private val uføregrunnlag: List<Uføregrunnlag>,
-    private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon.Fullstendig>,
+    private val bosituasjongrunnlag: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Fullstendig>,
     private val fradragsgrunnlag: List<Fradragsgrunnlag>,
 ) {
     constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
@@ -62,16 +62,16 @@ data class SjekkOmGrunnlagErKonsistent(
     }
 
     data class Bosituasjon(
-        val bosituasjon: List<Grunnlag.Bosituasjon>,
+        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
     ) {
         val resultat: Either<Set<Konsistensproblem.Bosituasjon>, Unit> = bosituasjon(bosituasjon)
 
-        private fun bosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
+        private fun bosituasjon(bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
             mutableSetOf<Konsistensproblem.Bosituasjon>().apply {
                 if (bosituasjon.isEmpty()) {
                     add(Konsistensproblem.Bosituasjon.Mangler)
                 }
-                if (bosituasjon.any { it is Grunnlag.Bosituasjon.Ufullstendig }) {
+                if (bosituasjon.any { it is no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Ufullstendig }) {
                     add(Konsistensproblem.Bosituasjon.Ufullstendig)
                 }
                 if (bosituasjon.harOverlappende()) {
@@ -105,7 +105,7 @@ data class SjekkOmGrunnlagErKonsistent(
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har fradrag.
      */
     data class BosituasjonOgFradrag(
-        val bosituasjon: List<Grunnlag.Bosituasjon>,
+        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
         val fradrag: List<Fradragsgrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> = bosituasjonOgFradrag()
@@ -141,7 +141,7 @@ data class SjekkOmGrunnlagErKonsistent(
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har formue.
      */
     data class BosituasjonOgFormue(
-        val bosituasjon: List<Grunnlag.Bosituasjon>,
+        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
         val formue: List<Formuegrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> = bosituasjonOgFormue()

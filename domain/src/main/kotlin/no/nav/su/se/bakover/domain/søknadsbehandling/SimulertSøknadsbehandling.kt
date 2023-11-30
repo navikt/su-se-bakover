@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet

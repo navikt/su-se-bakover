@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -120,10 +121,10 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterFlyktningvilkårOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { or ->
-            grunnlagsdataOverrides.filterIsInstance<Grunnlag.Bosituasjon>().let {
+            grunnlagsdataOverrides.filterIsInstance<Bosituasjon>().let {
                 if (it.isNotEmpty()) {
                     @Suppress("UNCHECKED_CAST")
-                    or.oppdaterBosituasjonOgMarkerSomVurdert(it as List<Grunnlag.Bosituasjon.Fullstendig>).getOrFail()
+                    or.oppdaterBosituasjonOgMarkerSomVurdert(it as List<Bosituasjon.Fullstendig>).getOrFail()
                 } else {
                     or
                 }

@@ -7,6 +7,7 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
@@ -23,7 +24,7 @@ data class LeggTilFormuevilkårRequest(
     val tidspunkt: Tidspunkt,
 ) {
     fun toDomain(
-        bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon>,
+        bosituasjon: List<Bosituasjon>,
         behandlingsperiode: Periode,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
@@ -64,7 +65,7 @@ data class LeggTilFormuevilkårRequest(
 
     @JvmName("toDomainFullstendig")
     fun toDomain(
-        bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Fullstendig>,
+        bosituasjon: List<Bosituasjon.Fullstendig>,
         behandlingsperiode: Periode,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {

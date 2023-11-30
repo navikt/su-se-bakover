@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
@@ -36,7 +36,7 @@ internal class FormueVilkårTest {
     fun `slår sammen tilstøtende og like formueperioder`() {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
         val f2 = lagFormueVurderingsperiode(periodeInnenfor2021 = februar(2021))
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+        val bosituasjon = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = mars(2021),
@@ -82,7 +82,7 @@ internal class FormueVilkårTest {
     @Test
     fun `2 formue-perioder som tilstøter, men resultat er ulik`() {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+        val bosituasjon = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = februar(2021),
@@ -110,7 +110,7 @@ internal class FormueVilkårTest {
                 søkersFormue = Formuegrunnlag.Verdier.empty().copy(
                     verdiEiendommer = 100,
                 ),
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                bosituasjon = Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = februar(2021),
@@ -133,7 +133,7 @@ internal class FormueVilkårTest {
                 periode = februar(2021),
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                bosituasjon = Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = februar(2021),
@@ -302,7 +302,7 @@ internal class FormueVilkårTest {
         tidspunkt: Tidspunkt = fixedTidspunkt,
         vurdering: Vurdering = Vurdering.Innvilget,
         periodeInnenfor2021: Periode,
-        bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        bosituasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.Enslig(
             id = id,
             opprettet = tidspunkt,
             periode = periodeInnenfor2021,

@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -124,7 +124,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(
                     behandlingId,
                     session,
-                ) as List<Grunnlag.Bosituasjon.Fullstendig>,
+                ) as List<Bosituasjon.Fullstendig>,
             )
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {

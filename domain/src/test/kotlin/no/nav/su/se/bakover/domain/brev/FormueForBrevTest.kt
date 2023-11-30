@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.brev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -41,7 +41,7 @@ internal class FormueForBrevTest {
                 kontanter = 10,
                 depositumskonto = 10,
             ),
-            bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+            bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 fnr = Fnr.generer(),
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,

@@ -8,9 +8,9 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -50,7 +50,7 @@ fun Formuegrunnlag.Companion.create(
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
-    vararg bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    vararg bosituasjon: Bosituasjon.Fullstendig,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
     id = id,
@@ -68,7 +68,7 @@ fun Formuegrunnlag.Companion.create(
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Bosituasjon.Fullstendig,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
     id = id,
@@ -86,7 +86,7 @@ fun Formuegrunnlag.Companion.create(
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
-    bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: List<Bosituasjon.Fullstendig>,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
     id = id,
@@ -298,13 +298,13 @@ fun OpplysningspliktVilkår.shouldBeEqualToExceptId(expected: OpplysningspliktVi
     }
 }
 
-fun Grunnlag.Bosituasjon.shouldBeEqualToExceptId(expected: Grunnlag.Bosituasjon) {
-    this.shouldBeEqualToIgnoringFields(expected, Grunnlag.Bosituasjon::id)
+fun Bosituasjon.shouldBeEqualToExceptId(expected: Bosituasjon) {
+    this.shouldBeEqualToIgnoringFields(expected, Bosituasjon::id)
     this.id shouldNotBe expected.id
 }
 
 @JvmName("shouldBeEqualToExceptIdGrunnlagBosituasjon")
-fun List<Grunnlag.Bosituasjon>.shouldBeEqualToExceptId(expected: List<Grunnlag.Bosituasjon>) {
+fun List<Bosituasjon>.shouldBeEqualToExceptId(expected: List<Bosituasjon>) {
     this.zip(expected).map { (actual, expected) ->
         actual.shouldBeEqualToExceptId(expected)
     }

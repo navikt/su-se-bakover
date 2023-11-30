@@ -47,7 +47,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                     bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(
@@ -90,7 +90,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
                 bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(
@@ -155,7 +155,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
                 bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(
@@ -202,7 +202,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
         )
-        val bosiutasjongrunnlag = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+        val bosiutasjongrunnlag = Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = forrigePeriode,

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -369,7 +369,7 @@ internal class RevurderingSendTilAttesteringTest {
                             periode = førsteUførevurderingsperiode,
                             bosituasjon = grunnlagsdataEnsligUtenFradrag(
                                 periode = førsteUførevurderingsperiode,
-                            ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
+                            ).bosituasjon.map { it as Bosituasjon.Fullstendig }.toNonEmptyList(),
                         ),
                         formueGrunnlagUtenEpsAvslått(
                             periode = andreUførevurderingsperiode,

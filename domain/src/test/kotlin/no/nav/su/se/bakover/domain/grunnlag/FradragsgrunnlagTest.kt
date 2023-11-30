@@ -304,7 +304,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+        val bosituasjonUtenEPS = Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -339,7 +339,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+        val bosituasjonUtenEPS = Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),

@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
 
@@ -47,8 +47,8 @@ fun bosituasjongrunnlagEnslig(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Grunnlag.Bosituasjon.Fullstendig.Enslig {
-    return Grunnlag.Bosituasjon.Fullstendig.Enslig(
+): Bosituasjon.Fullstendig.Enslig {
+    return Bosituasjon.Fullstendig.Enslig(
         id = id,
         opprettet = opprettet,
         periode = periode,
@@ -59,8 +59,8 @@ fun bosituasjonBorMedAndreVoksne(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen {
-    return Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+): Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen {
+    return Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
         id = id,
         opprettet = opprettet,
         periode = periode,
@@ -71,8 +71,8 @@ fun bosituasjonEpsOver67(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre {
-    return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+): Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre {
+    return Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
         id = id,
         opprettet = opprettet,
         periode = periode,
@@ -85,8 +85,8 @@ fun bosituasjonEpsUnder67(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     fnr: Fnr = fnrUnder67,
-): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning {
-    return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+): Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning {
+    return Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
         id = id,
         opprettet = opprettet,
         periode = periode,
@@ -98,8 +98,8 @@ fun bosituasjongrunnlagEpsUførFlyktning(
     id: UUID = UUID.randomUUID(),
     periode: Periode = år(2021),
     epsFnr: Fnr = no.nav.su.se.bakover.test.epsFnr,
-): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer {
-    return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+): Bosituasjon.Fullstendig.EktefellePartnerSamboer {
+    return Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
         id = id,
         fnr = epsFnr,
         opprettet = fixedTidspunkt,
@@ -117,7 +117,7 @@ fun bosituasjongrunnlagEpsUførFlyktning(
 fun grunnlagsdataEnsligUtenFradrag(
     periode: Periode = år(2021),
     fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
-    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: Nel<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
@@ -135,7 +135,7 @@ fun grunnlagsdataEnsligMedFradrag(
             periode = periode,
         ),
     ),
-    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: Nel<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
@@ -159,7 +159,7 @@ fun grunnlagsdataMedEpsMedFradrag(
             tilhører = FradragTilhører.EPS,
         ),
     ),
-    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
+    bosituasjon: Nel<Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
         bosituasjongrunnlagEpsUførFlyktning(
             epsFnr = epsFnr,
             periode = periode,

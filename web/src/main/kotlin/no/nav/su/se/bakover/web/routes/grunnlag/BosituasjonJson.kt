@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 
 internal data class BosituasjonJson(
     val type: String,
@@ -13,15 +13,15 @@ internal data class BosituasjonJson(
     val periode: PeriodeJson,
 )
 
-internal fun List<Grunnlag.Bosituasjon>.toJson(): List<BosituasjonJson> {
+internal fun List<Bosituasjon>.toJson(): List<BosituasjonJson> {
     return this.map {
         it.toJson()
     }
 }
 
-internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
+internal fun Bosituasjon.toJson(): BosituasjonJson {
     return when (this) {
-        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen ->
+        is Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen ->
             BosituasjonJson(
                 type = "DELER_BOLIG_MED_VOKSNE",
                 fnr = null,
@@ -30,7 +30,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
             BosituasjonJson(
                 type = "EPS_IKKE_UFØR_FLYKTNING",
                 fnr = this.fnr.toString(),
@@ -39,7 +39,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
             BosituasjonJson(
                 type = "EPS_OVER_67",
                 fnr = this.fnr.toString(),
@@ -48,7 +48,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
             BosituasjonJson(
                 type = "EPS_UFØR_FLYKTNING",
                 fnr = this.fnr.toString(),
@@ -57,7 +57,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Fullstendig.Enslig ->
+        is Bosituasjon.Fullstendig.Enslig ->
             BosituasjonJson(
                 type = "ENSLIG",
                 fnr = null,
@@ -66,7 +66,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Ufullstendig.HarEps ->
+        is Bosituasjon.Ufullstendig.HarEps ->
             BosituasjonJson(
                 type = "UFULLSTENDIG_HAR_EPS",
                 fnr = this.fnr.toString(),
@@ -75,7 +75,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 sats = null,
                 periode = this.periode.toJson(),
             )
-        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps ->
+        is Bosituasjon.Ufullstendig.HarIkkeEps ->
             BosituasjonJson(
                 type = "UFULLSTENDIG_HAR_IKKE_EPS",
                 fnr = null,

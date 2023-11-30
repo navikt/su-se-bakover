@@ -5,8 +5,8 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
@@ -16,9 +16,9 @@ import java.util.UUID
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
 ): Formuegrunnlag {
-    val bosituasjonsperiode = bosituasjon.toList().periode()
+    val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {
         "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
     }
@@ -45,9 +45,9 @@ fun formueGrunnlagUtenEps0Innvilget(
 fun formueGrunnlagMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
 ): Formuegrunnlag {
-    val bosituasjonsperiode = bosituasjon.toList().periode()
+    val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {
         "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
     }
@@ -84,7 +84,7 @@ fun formueGrunnlagUtenEpsAvslått(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
+    bosituasjon: Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
 ): Formuegrunnlag {
     return formueGrunnlagUtenEpsAvslått(
         id = id,
@@ -98,9 +98,9 @@ fun formueGrunnlagUtenEpsAvslått(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
 ): Formuegrunnlag {
-    val bosituasjonsperiode = bosituasjon.toList().periode()
+    val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {
         "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
     }

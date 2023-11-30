@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -200,7 +200,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
 
                     oppdatert.grunnlagsdata.also {
                         it.fradragsgrunnlag shouldBe emptyList()
-                        it.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Fullstendig.Enslig>()
+                        it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
                     }
                 }
                 appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFormuevilkår(
@@ -264,7 +264,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                             it.månedsbeløp shouldBe 1000.0
                             it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
                         }
-                        it.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Fullstendig.Enslig>()
+                        it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
                     }
                 }
 
