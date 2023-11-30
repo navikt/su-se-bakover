@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.minus
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
 /**
@@ -155,4 +155,8 @@ data class TidslinjeForUtbetalinger private constructor(
             require(a.før(b)) { "Tidslinje må være sortert etter periode og ikke overlappe, men $a er etter $b" }
         }
     }
+}
+
+fun Utbetaling.tidslinje(): TidslinjeForUtbetalinger {
+    return TidslinjeForUtbetalinger.fra(this)
 }

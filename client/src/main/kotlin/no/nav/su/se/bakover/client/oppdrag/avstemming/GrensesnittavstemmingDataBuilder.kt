@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 
 internal class GrensesnittavstemmingDataBuilder(
     private val avstemming: Avstemming.Grensesnittavstemming,

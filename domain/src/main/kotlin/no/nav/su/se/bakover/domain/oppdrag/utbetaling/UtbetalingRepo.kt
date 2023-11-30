@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import økonomi.domain.avstemming.Avstemmingsnøkkel
+import økonomi.domain.utbetaling.Utbetaling
 import java.util.UUID
 
 interface UtbetalingRepo {

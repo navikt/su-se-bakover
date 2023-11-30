@@ -8,10 +8,9 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrags
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilUføregrad
 import no.nav.su.se.bakover.common.extensions.and
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalingslinje
 
 private fun Utbetaling.trengerNyttOppdrag(): Boolean = utbetalingslinjer.let { linjer ->
     linjer.any { it.forrigeUtbetalingslinjeId == null }

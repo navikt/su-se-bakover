@@ -5,10 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.IngenUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import økonomi.domain.utbetaling.IngenUtbetalinger
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
 /**

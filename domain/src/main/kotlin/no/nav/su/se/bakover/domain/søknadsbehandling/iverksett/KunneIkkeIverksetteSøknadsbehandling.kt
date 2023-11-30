@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import dokument.domain.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
+import økonomi.domain.utbetaling.UtbetalingFeilet
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling

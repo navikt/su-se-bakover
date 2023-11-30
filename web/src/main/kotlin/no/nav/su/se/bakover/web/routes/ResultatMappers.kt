@@ -6,14 +6,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kryssjekkTid
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeUtbetale
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvTidslinjeOgSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
+import økonomi.domain.simulering.ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.UtbetalingFeilet
 
 internal fun UtbetalingFeilet.tilResultat(): Resultat {
     return when (this) {

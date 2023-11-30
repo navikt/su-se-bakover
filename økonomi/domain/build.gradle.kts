@@ -2,6 +2,7 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":hendelse:domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":vilkår:uføre:domain"))
 
     testImplementation(project(":test-common"))
     testImplementation(project(":beregning"))

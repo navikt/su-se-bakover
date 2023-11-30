@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain
 
 enum class Fagområde {
     SUALDER,

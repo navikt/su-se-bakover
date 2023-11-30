@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.stans
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import økonomi.domain.simulering.SimulerStansFeilet
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeStanseYtelse {

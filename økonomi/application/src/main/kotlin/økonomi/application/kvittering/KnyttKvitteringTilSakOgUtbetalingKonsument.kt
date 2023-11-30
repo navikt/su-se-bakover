@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.RåKvitteringHendelse
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
+import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 
 class KnyttKvitteringTilSakOgUtbetalingKonsument(

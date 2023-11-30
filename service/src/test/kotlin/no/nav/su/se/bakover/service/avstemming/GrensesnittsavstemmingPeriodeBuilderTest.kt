@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.common.extensions.endOfDay
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
-import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import økonomi.domain.Fagområde
 import java.time.Clock
 
 internal class GrensesnittsavstemmingPeriodeBuilderTest {

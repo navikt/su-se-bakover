@@ -1,8 +1,8 @@
 package økonomi.infrastructure.kvittering.consumer.lokal
 
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import org.slf4j.LoggerFactory
+import økonomi.domain.utbetaling.Utbetaling
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 
 /**

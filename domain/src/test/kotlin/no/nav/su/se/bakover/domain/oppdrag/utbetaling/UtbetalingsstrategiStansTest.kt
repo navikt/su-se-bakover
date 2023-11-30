@@ -27,12 +27,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fnr
@@ -41,9 +36,15 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -123,7 +124,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.juli(2020),
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErEnStans.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErEnStans.left()
     }
 
     @Test
@@ -156,7 +157,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.juli(2020),
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErOpphør.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErOpphør.left()
     }
 
     @Test
@@ -178,7 +179,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.juli(2021),
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.IngenUtbetalingerEtterStansDato.left()
     }
 
     @Test
@@ -200,7 +201,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 10.juli(2020),
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
     }
 
     @Test
@@ -247,7 +248,7 @@ internal class UtbetalingsstrategiStansTest {
                 clock = fixedClock,
                 sakstype = Sakstype.UFØRE,
             )
-                .generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
+                .generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
         }
     }
 
@@ -305,7 +306,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.august(2021),
             clock = clock15Juli21,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder.left()
     }
 
     @Test
@@ -365,7 +366,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.august(2021),
             clock = clock15Juli21,
             sakstype = Sakstype.UFØRE,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
+        ).generer() shouldBe KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder.left()
     }
 
     @Test

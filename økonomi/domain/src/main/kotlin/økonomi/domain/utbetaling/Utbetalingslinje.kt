@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain.utbetaling
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -7,13 +7,13 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Opphør
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Reaktivering
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Stans
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Opphør
+import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Reaktivering
+import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Stans
 import java.time.Clock
 import java.time.LocalDate
 

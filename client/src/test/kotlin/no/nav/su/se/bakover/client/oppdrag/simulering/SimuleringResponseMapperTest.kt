@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -37,6 +36,7 @@ import økonomi.domain.simulering.Kontobeløp
 import økonomi.domain.simulering.Kontooppstilling
 import økonomi.domain.simulering.PeriodeOppsummering
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.SimuleringsOppsummering
 import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned

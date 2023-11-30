@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.domain.oppdrag.utbetaling
+package økonomi.domain.utbetaling
 
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
+import økonomi.domain.simulering.SimulerStansFeilet
 
 sealed class UtbetalStansFeil {
     data class KunneIkkeSimulere(val feil: SimulerStansFeilet) : UtbetalStansFeil()

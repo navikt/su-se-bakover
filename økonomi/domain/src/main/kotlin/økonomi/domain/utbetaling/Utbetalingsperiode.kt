@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain.utbetaling
 
 import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate

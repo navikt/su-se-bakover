@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.avstemming
+package økonomi.domain.avstemming
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.tid.Tidspunkt

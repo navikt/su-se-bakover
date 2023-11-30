@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import økonomi.domain.simulering.SimuleringFeilet
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeBeregneOgSimulereRevurdering {

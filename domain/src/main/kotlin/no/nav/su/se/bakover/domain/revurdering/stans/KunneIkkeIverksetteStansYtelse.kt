@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.stans
 
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeIverksetteStansYtelse {
@@ -14,6 +14,7 @@ sealed interface KunneIkkeIverksetteStansYtelse {
         val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> =
             StansAvYtelseRevurdering.IverksattStansAvYtelse::class
     }
+
     data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse
     data class UkjentFeil(val msg: String) : KunneIkkeIverksetteStansYtelse
     data object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteStansYtelse
@@ -22,6 +23,6 @@ sealed interface KunneIkkeIverksetteStansYtelse {
     ) : KunneIkkeIverksetteStansYtelse
 
     data class KunneIkkeGenerereUtbetaling(
-        val underliggende: Utbetalingsstrategi.Stans.Feil,
+        val underliggende: KunneIkkeGenerereUtbetalingsstrategiForStans,
     ) : KunneIkkeIverksetteStansYtelse
 }

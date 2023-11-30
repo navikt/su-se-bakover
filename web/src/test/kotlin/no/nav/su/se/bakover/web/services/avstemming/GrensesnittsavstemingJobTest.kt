@@ -5,7 +5,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
-import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -13,6 +12,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import økonomi.domain.Fagområde
 
 internal class GrensesnittsavstemingJobTest {
     @Test

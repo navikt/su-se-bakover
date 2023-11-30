@@ -1,6 +1,6 @@
-package no.nav.su.se.bakover.domain.oppdrag.simulering
+package økonomi.domain.simulering
 
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import økonomi.domain.utbetaling.Utbetaling
 
 /**
  * En sammenligning av utbetalingslinjene mot simuleringen.

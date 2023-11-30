@@ -4,8 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.simulering.Simuleringsresultat
+import økonomi.domain.utbetaling.Utbetaling
 
 /**
  * Hjelpefunksjon for å simulere utbetalinger.
