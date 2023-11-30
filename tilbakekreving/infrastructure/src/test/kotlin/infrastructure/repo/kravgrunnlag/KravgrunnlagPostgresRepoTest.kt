@@ -47,7 +47,8 @@ class KravgrunnlagPostgresRepoTest {
     @Test
     fun `kan lagre og hente kravgrunnlag knyttet til sak`() {
         val sakId = UUID.randomUUID()
-        val hendelse1 = kravgrunnlagPåSakHendelse(sakId = sakId)
+        val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse()
+        val hendelse1 = kravgrunnlagPåSakHendelse(sakId = sakId, tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId)
         withMigratedDb { dataSource ->
 
             val testDataHelper = TestDataHelper(dataSource)
@@ -63,6 +64,7 @@ class KravgrunnlagPostgresRepoTest {
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 sakId = sakId,
             )
+            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse)
             kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,
             ) shouldBe emptyList()
