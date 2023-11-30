@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.utbetaling
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
+import økonomi.domain.simulering.SimuleringClient
 import java.time.Clock
 
 internal class UtbetalingServiceAndMocks(

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import økonomi.domain.utbetaling.UtbetalingFeilet
 
 sealed interface KunneIkkeFerdigstilleIverksettelsestransaksjon {
     data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) :

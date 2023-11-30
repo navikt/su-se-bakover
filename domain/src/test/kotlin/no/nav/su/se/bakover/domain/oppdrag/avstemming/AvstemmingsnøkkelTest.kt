@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 import java.time.Instant
 
 internal class AvstemmingsnøkkelTest {

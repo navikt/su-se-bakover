@@ -25,8 +25,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -36,6 +34,8 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.domain.simulering.SimulerStansFeilet
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 import java.time.LocalDate
 
 internal fun Route.stansUtbetaling(
@@ -213,44 +213,44 @@ private fun SimulerStansFeilet.tilResultat(): Resultat {
     }
 }
 
-private fun Utbetalingsstrategi.Stans.Feil.tilResultat(): Resultat {
+private fun KunneIkkeGenerereUtbetalingsstrategiForStans.tilResultat(): Resultat {
     return when (this) {
-        Utbetalingsstrategi.Stans.Feil.FantIngenUtbetalinger -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.FantIngenUtbetalinger -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger",
                 code = "fant_ingen_utbetalinger",
             )
         }
 
-        Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.IngenUtbetalingerEtterStansDato -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger etter stansdato",
                 code = "fant_ingen_utbetalinger_etter_stansdato",
             )
         }
 
-        Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse opphørte utbetalinger",
                 code = "kan_ikke_stanse_opphørte_utbetalinger",
             )
         }
 
-        Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErEnStans -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErEnStans -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er stanset",
                 code = "utbetaling_allerede_stanset",
             )
         }
 
-        Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErOpphør -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErOpphør -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er opphørt",
                 code = "utbetaling_allerede_opphørt",
             )
         }
 
-        Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned -> {
+        KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i inneværende eller neste måned",
                 code = "stansdato_ikke_første_i_inneværende_eller_neste_måned",

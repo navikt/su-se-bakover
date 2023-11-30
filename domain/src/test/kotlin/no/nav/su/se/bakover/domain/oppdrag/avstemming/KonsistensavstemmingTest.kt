@@ -25,11 +25,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -38,8 +34,13 @@ import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.Fagområde
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset

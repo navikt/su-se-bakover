@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalingsrequest
 
 interface UtbetalingPublisher {
 

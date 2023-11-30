@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.gjenopptak
 
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import økonomi.domain.simulering.SimuleringFeilet
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeSimulereGjenopptakAvYtelse {

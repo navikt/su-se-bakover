@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
@@ -26,7 +24,9 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.S
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.net.SocketException
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException

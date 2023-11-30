@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
+import økonomi.domain.utbetaling.Utbetaling
 
 /**
  * Tidligere steg:

@@ -7,10 +7,11 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import vilkår.uføre.domain.Uføregrunnlag
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.time.LocalDate
 
@@ -18,7 +19,7 @@ fun Sak.lagUtbetalingForStans(
     stansdato: LocalDate,
     behandler: NavIdentBruker,
     clock: Clock,
-): Either<Utbetalingsstrategi.Stans.Feil, Utbetaling.UtbetalingForSimulering> {
+): Either<KunneIkkeGenerereUtbetalingsstrategiForStans, Utbetaling.UtbetalingForSimulering> {
     return Utbetalingsstrategi.Stans(
         sakId = id,
         saksnummer = saksnummer,
@@ -82,6 +83,7 @@ fun Sak.lagNyUtbetaling(
                 utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
             )
         }
+
         Sakstype.UFØRE -> {
             lagNyUtbetalingUføre(
                 saksbehandler = saksbehandler,
@@ -114,6 +116,7 @@ fun Sak.lagNyUtbetalingAlder(
                 sakstype = type,
             ).generate()
         }
+
         else -> throw IllegalArgumentException("Ugyldig type:$type for aldersutbetaling")
     }
 }

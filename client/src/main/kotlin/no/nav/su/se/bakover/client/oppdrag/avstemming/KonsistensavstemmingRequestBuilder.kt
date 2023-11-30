@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.OppdragForKonsistensavstemming
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 
 internal class KonsistensavstemmingRequestBuilder(
     private val avstemming: Avstemming.Konsistensavstemming.Ny,

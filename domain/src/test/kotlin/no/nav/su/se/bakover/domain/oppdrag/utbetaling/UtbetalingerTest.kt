@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeStans
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.Utbetalingslinje
 
 internal class UtbetalingerTest {
 

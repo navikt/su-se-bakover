@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.database.beregning.serialiser
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.vedtak.VedtakType
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingslinje
 import java.sql.PreparedStatement
 
 data object DomainToQueryParameterMapper : QueryParameterMapper {

@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
+import økonomi.domain.Fagområde
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate

@@ -17,12 +17,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -63,6 +57,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import økonomi.domain.simulering.SimulerStansFeilet
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingFeilet
+import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.util.UUID
 

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingOgSimulering
+import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 
 sealed interface KunneIkkeSimulereRegulering {
     data object FantIngenBeregning : KunneIkkeSimulereRegulering

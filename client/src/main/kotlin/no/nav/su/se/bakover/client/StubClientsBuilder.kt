@@ -36,13 +36,13 @@ import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.Journalf
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.slf4j.LoggerFactory
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import økonomi.domain.simulering.SimuleringClient
 import java.time.Clock
 import java.time.LocalDate
 

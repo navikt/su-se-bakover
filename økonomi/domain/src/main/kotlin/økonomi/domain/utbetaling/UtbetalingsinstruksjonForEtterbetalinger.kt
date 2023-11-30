@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain.utbetaling
 
 /**
  * Instruks som gjør det mulig å kontrollere tidspunktet eventuelle etterbetalinger skal gjennomføres på.

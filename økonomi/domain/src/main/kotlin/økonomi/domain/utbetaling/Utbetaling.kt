@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain.utbetaling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -10,8 +10,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -64,10 +63,6 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
 
     fun kontrollerUtbetalingslinjer() {
         utbetalingslinjer.kontrollerUtbetalingslinjer()
-    }
-
-    fun tidslinje(): TidslinjeForUtbetalinger {
-        return TidslinjeForUtbetalinger.fra(this)
     }
 
     data class UtbetalingForSimulering(
@@ -144,9 +139,6 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
     }
 }
 
-/**
- * Brukes internt av [Utbetaling], men også av [TidslinjeForUtbetalinger] (siden den lager en tidslinje av utbetalingslinjer før den har laget en komplett utbetaling.)
- */
 fun List<Utbetalingslinje>.kontrollerUtbetalingslinjer() {
     this.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
     this.sjekkSortering()

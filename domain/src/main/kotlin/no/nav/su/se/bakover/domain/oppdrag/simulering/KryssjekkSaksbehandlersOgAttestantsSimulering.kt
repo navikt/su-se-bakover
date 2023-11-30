@@ -5,10 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.utbetaling.Utbetaling
 
 class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val saksbehandlersSimulering: Simulering,

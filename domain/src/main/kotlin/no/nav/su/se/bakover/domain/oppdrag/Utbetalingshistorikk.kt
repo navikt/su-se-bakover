@@ -9,6 +9,11 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.ekvivalentMedInnenforPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.mapTilTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse
+import økonomi.domain.utbetaling.sjekkIngenNyeOverlapper
+import økonomi.domain.utbetaling.sjekkSortering
+import økonomi.domain.utbetaling.sjekkUnikOpprettet
 import java.time.LocalDate
 import java.util.LinkedList
 

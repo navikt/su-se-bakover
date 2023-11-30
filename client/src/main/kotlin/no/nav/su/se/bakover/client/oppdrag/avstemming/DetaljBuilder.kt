@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus.FEIL
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus.OK_MED_VARSEL
+import økonomi.domain.utbetaling.Utbetaling
 
 internal class DetaljBuilder(
     internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>,

@@ -11,6 +11,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse
+import økonomi.domain.utbetaling.sjekkIngenNyeOverlapper
+import økonomi.domain.utbetaling.sjekkSortering
 import java.time.temporal.ChronoUnit
 
 internal class UtbetalingslinjeTest {

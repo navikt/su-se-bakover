@@ -37,10 +37,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -68,6 +64,10 @@ import org.mockito.kotlin.mock
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

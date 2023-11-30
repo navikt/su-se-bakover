@@ -15,12 +15,7 @@ import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
@@ -33,8 +28,13 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.ZoneOffset
 

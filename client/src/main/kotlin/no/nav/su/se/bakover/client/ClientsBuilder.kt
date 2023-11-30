@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClie
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import økonomi.domain.simulering.SimuleringClient
 
 interface ClientsBuilder {
     fun build(applicationConfig: ApplicationConfig): Clients

@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.revurdering.gjenopptak
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.simulering.ForskjellerMellomUtbetalingOgSimulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import java.util.UUID
 
 interface GjenopptaYtelseService {

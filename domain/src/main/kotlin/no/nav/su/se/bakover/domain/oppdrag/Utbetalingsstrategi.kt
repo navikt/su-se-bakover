@@ -16,10 +16,19 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
+import økonomi.domain.avstemming.Avstemmingsnøkkel
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.Utbetalingsperiode
+import økonomi.domain.utbetaling.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse
+import økonomi.domain.utbetaling.sjekkIngenNyeOverlapper
+import økonomi.domain.utbetaling.sjekkSortering
+import økonomi.domain.utbetaling.sjekkUnikOpprettet
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -88,34 +97,34 @@ sealed class Utbetalingsstrategi {
             eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
         }
 
-        fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
+        fun generer(): Either<KunneIkkeGenerereUtbetalingsstrategiForStans, Utbetaling.UtbetalingForSimulering> {
             val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.sisteUtbetalingslinje()
-                ?: return Feil.FantIngenUtbetalinger.left()
+                ?: return KunneIkkeGenerereUtbetalingsstrategiForStans.FantIngenUtbetalinger.left()
 
             when {
                 !eksisterendeUtbetalinger.harUtbetalingerEtterEllerPåDato(stansDato) -> {
-                    return Feil.IngenUtbetalingerEtterStansDato.left()
+                    return KunneIkkeGenerereUtbetalingsstrategiForStans.IngenUtbetalingerEtterStansDato.left()
                 }
 
                 !(
                     LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1)
                         .startOfMonth() == stansDato
                     ) -> {
-                    return Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
+                    return KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
                 }
 
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans -> {
-                    return Feil.SisteUtbetalingErEnStans.left()
+                    return KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErEnStans.left()
                 }
 
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Opphør -> {
-                    return Feil.SisteUtbetalingErOpphør.left()
+                    return KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErOpphør.left()
                 }
                 /**
                  * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
                  */
                 unngåBugMedReaktiveringAvOpphørIOppdrag(stansDato).isLeft() -> {
-                    return Feil.KanIkkeStanseOpphørtePerioder.left()
+                    return KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder.left()
                 }
             }
 
@@ -143,15 +152,6 @@ sealed class Utbetalingsstrategi {
                 it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }.right()
-        }
-
-        sealed class Feil {
-            data object IngenUtbetalingerEtterStansDato : Feil()
-            data object StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned : Feil()
-            data object SisteUtbetalingErEnStans : Feil()
-            data object SisteUtbetalingErOpphør : Feil()
-            data object KanIkkeStanseOpphørtePerioder : Feil()
-            data object FantIngenUtbetalinger : Feil()
         }
     }
 

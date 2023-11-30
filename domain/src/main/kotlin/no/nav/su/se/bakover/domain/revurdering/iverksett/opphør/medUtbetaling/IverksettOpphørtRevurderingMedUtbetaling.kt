@@ -5,8 +5,6 @@ import arrow.core.flatMap
 import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
@@ -14,6 +12,8 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmåne
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 
 internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(

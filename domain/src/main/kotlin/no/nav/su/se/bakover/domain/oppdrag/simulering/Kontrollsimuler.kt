@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.Utbetaling
 
 /**
  * Hjelpefunksjon for å sammenligne 2 simuleringer.

@@ -7,12 +7,14 @@ import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
+import økonomi.domain.simulering.ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.utbetaling.Utbetaling
 
 /**
  * En sjekk som gjøres for å gi saksbehandler tilbakemelding om simuleringen stemmer overens med utbetalingslinjene som kommer til å bli sendt.

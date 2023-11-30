@@ -7,9 +7,6 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
@@ -19,6 +16,9 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import org.slf4j.LoggerFactory
+import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingFeilet
+import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("IverksettInnvilgetRevurderingResponse")

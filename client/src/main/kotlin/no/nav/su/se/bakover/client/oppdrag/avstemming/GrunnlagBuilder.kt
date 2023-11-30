@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.utbetaling.Utbetaling
 import java.math.BigDecimal
 
 internal class GrunnlagBuilder(

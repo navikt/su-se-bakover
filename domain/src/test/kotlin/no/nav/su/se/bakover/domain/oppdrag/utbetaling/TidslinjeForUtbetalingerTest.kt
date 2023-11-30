@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.tidslinje
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeOpphørt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.Utbetalingslinje
 
 internal class TidslinjeForUtbetalingerTest {
 
