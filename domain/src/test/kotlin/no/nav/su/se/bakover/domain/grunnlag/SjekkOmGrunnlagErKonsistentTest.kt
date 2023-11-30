@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import vilkår.uføre.domain.Uføregrunnlag
 
 internal class SjekkOmGrunnlagErKonsistentTest {
 

@@ -10,13 +10,14 @@ import beregning.domain.fradrag.Fradrag
 import beregning.domain.fradrag.FradragFactory
 import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
+import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
-import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import org.jetbrains.annotations.TestOnly
+import vilkår.domain.grunnlag.Grunnlag
 import java.time.Clock
 import java.util.UUID
 

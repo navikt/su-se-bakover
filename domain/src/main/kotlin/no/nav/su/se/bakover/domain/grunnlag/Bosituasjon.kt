@@ -1,14 +1,15 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import satser.domain.Satskategori
+import vilkår.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 /**

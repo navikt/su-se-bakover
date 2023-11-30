@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
+import vilkår.uføre.domain.Uføregrunnlag
 
 internal data class UføregrunnlagJson(
     val id: String,

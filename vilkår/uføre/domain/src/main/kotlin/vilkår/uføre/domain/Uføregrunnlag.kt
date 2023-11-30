@@ -1,11 +1,11 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.uføre.domain
 
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import vilkår.uføre.domain.Uføregrad
+import vilkår.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 /**

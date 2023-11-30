@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import vilkår.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 /**

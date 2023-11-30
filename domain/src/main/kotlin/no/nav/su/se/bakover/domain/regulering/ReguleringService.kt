@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
+import vilkår.uføre.domain.Uføregrunnlag
 import java.util.UUID
 
 sealed interface KunneIkkeFerdigstilleOgIverksette {

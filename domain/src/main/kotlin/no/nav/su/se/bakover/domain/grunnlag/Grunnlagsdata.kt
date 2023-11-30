@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.oppdaterBositu
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList

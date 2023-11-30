@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.min
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import vilkår.uføre.domain.Uføregrunnlag
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,

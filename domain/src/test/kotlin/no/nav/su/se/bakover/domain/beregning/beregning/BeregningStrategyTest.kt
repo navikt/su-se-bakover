@@ -16,13 +16,13 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy.EpsUnder67År
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import vilkår.uføre.domain.Uføregrunnlag
 
 internal class BeregningStrategyTest {
     @Test

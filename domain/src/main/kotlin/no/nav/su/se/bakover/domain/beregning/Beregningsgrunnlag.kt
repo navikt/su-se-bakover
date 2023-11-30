@@ -11,8 +11,8 @@ import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import org.jetbrains.annotations.TestOnly
+import vilkår.uføre.domain.Uføregrunnlag
 
 data class Beregningsgrunnlag private constructor(
     val beregningsperiode: Periode,
