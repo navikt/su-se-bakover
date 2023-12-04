@@ -4,6 +4,7 @@
 package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -28,12 +29,23 @@ sealed interface UnderBehandling :
     KanLeggeTilBrev,
     KanVurdere,
     KanForhåndsvarsle,
+    KanLeggeTilNotat,
     UnderBehandlingEllerTilAttestering {
 
     override val vurderingerMedKrav: VurderingerMedKrav?
+    val erUnderkjent: Boolean
+
     override fun erÅpen() = true
 
-    val erUnderkjent: Boolean
+    override fun oppdaterNotat(
+        notat: NonBlankString?,
+        hendelseId: HendelseId,
+        versjon: Hendelsesversjon,
+    ): UnderBehandling =
+        when (this) {
+            is Påbegynt -> this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
+            is Utfylt -> this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
+        }
 
     /**
      * Kan kun gå fra [OpprettetTilbakekrevingsbehandling] til [Påbegynt], men ikke tilbake til [OpprettetTilbakekrevingsbehandling].
@@ -53,6 +65,7 @@ sealed interface UnderBehandling :
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null,
         override val kravgrunnlag: Kravgrunnlag,
         override val erKravgrunnlagUtdatert: Boolean,
+        override val notat: NonBlankString?,
     ) : UnderBehandling, KanEndres by forrigeSteg {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
@@ -87,6 +100,7 @@ sealed interface UnderBehandling :
                     attesteringer = forrigeSteg.attesteringer,
                     forhåndsvarselsInfo = forhåndsvarselsInfo,
                     versjon = versjon,
+                    notat = notat,
                 )
             }
         }
@@ -134,6 +148,7 @@ sealed interface UnderBehandling :
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
+        override val notat: NonBlankString?,
     ) : UnderBehandling, KanEndres, UnderBehandlingEllerTilAttestering by forrigeSteg, ErUtfylt {
 
         constructor(
@@ -148,6 +163,7 @@ sealed interface UnderBehandling :
             vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
             attesteringer = forrigeSteg.attesteringer,
             forhåndsvarselsInfo = forrigeSteg.forhåndsvarselsInfo,
+            notat = forrigeSteg.notat,
         )
 
         override val erUnderkjent = attesteringer.isNotEmpty()

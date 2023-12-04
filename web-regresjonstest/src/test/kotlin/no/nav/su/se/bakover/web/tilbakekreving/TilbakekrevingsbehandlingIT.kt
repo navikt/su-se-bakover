@@ -121,10 +121,22 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
             )
 
+            val (notat, versjonEtterNotat) = leggTilNotatTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+                saksversjon = versjonEtterOppdateringAvVedtaksbrev,
+                verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
+                verifiserVurderinger = vurderinger,
+                verifiserFritekst = fritekst,
+            ).let {
+                hentNotat(it.first) to it.second
+            }
+
             val (_, versjonEtterFørsteSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOppdateringAvVedtaksbrev,
+                saksversjon = versjonEtterNotat,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
@@ -210,6 +222,7 @@ internal class TilbakekrevingsbehandlingIT {
                 "bruttoTidligereUtbetaltSummert":20946
               }
                 """.trimIndent(),
+                expectedNotat = notat,
             ).let {
                 hentVurderinger(it.first) to it.second
             }

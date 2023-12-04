@@ -135,6 +135,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)
 
+                is NotatTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
                 is OppdatertKravgrunnlagPåTilbakekrevingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(
                         acc[hendelse.tidligereHendelseId]!!,

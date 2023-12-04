@@ -15,56 +15,65 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 
-fun avbrytTilbakekrevingsbehandling(
+fun leggTilNotatTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
+    verifiserForhåndsvarselDokumenter: String,
+    verifiserVurderinger: String,
+    verifiserFritekst: String = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
 ): Pair<String, Long> {
     val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/avbryt",
+            "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/notat",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) {
-            setBody("""{"versjon": $saksversjon, "fritekst": "friteksten", "begrunnelse": "begrunnelsen", "skalSendeBrev": "SKAL_SENDE_BREV_MED_FRITEKST"}""")
+            setBody("""{"versjon": $saksversjon, "notat": "notatet"}""")
         }.apply {
-            withClue("Kunne ikke avbryte tilbakekrevingsbehandling: ${this.bodyAsText()}") {
+            withClue("Kunne ikke legge til notat til tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().also {
             if (verifiserRespons) {
-                verifiserAvbrytTilbakekrevingRespons(
+                verifiserLeggTilNotatTilbakekrevingRespons(
                     actual = it,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     sakId = sakId,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    vurderinger = verifiserVurderinger,
+                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     expectedVersjon = expectedVersjon,
+                    fritekst = verifiserFritekst,
                 )
             }
         } to expectedVersjon
     }
 }
 
-fun verifiserAvbrytTilbakekrevingRespons(
+fun verifiserLeggTilNotatTilbakekrevingRespons(
     actual: String,
     tilbakekrevingsbehandlingId: String,
+    forhåndsvarselDokumenter: String,
     sakId: String,
+    vurderinger: String,
+    fritekst: String,
     expectedVersjon: Long,
 ) {
     val expected = """
 {
-  "id":"$tilbakekrevingsbehandlingId",
+  "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
   "opprettet":"2021-02-01T01:03:32.456789Z",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.04.36.456789",
+    "kontrollfelt":"2021-02-01-02.03.28.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -72,33 +81,33 @@ fun verifiserAvbrytTilbakekrevingRespons(
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "betaltSkattForYtelsesgruppen":"3025",
-        "bruttoTidligereUtbetalt":"8563",
-        "bruttoNyUtbetaling":"2513",
-        "bruttoFeilutbetaling":"6050", 
-        "nettoFeilutbetaling": "3025",
+        "betaltSkattForYtelsesgruppen":"6192",
+        "bruttoTidligereUtbetalt":"20946",
+        "bruttoNyUtbetaling":"8563",
+        "bruttoFeilutbetaling":"12383",
+         "nettoFeilutbetaling": "6191",
         "skatteProsent":"50",
-        "skattFeilutbetaling":"3025"
+        "skattFeilutbetaling":"6192",
       }
     ],
-    "summertBetaltSkattForYtelsesgruppen": "3025",
-    "summertBruttoTidligereUtbetalt": 8563,
-    "summertBruttoNyUtbetaling": 2513,
-    "summertBruttoFeilutbetaling": 6050,
-    "summertNettoFeilutbetaling": 3025,
-    "summertSkattFeilutbetaling": 3025,
+        "summertBetaltSkattForYtelsesgruppen": "6192",
+    "summertBruttoTidligereUtbetalt": 20946,
+    "summertBruttoNyUtbetaling": 8563,
+    "summertBruttoFeilutbetaling": 12383,
+    "summertNettoFeilutbetaling": 6191,
+    "summertSkattFeilutbetaling": 6192,
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
-  "status":"AVBRUTT",
-  "vurderinger":null,
-  "fritekst":null,
-  "forhåndsvarselsInfo": [],
+  "status":"VEDTAKSBREV",
+  "vurderinger":$vurderinger,
+  "fritekst":"$fritekst",
+  "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
   "sendtTilAttesteringAv": null,
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:41.456789Z",
-  "notat": null,
+  "avsluttetTidspunkt": null,
+  "notat": "notatet",
 }"""
     JSONAssert.assertEquals(
         expected,

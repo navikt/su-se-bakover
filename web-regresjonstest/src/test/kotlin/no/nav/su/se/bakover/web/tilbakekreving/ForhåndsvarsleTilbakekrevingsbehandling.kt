@@ -104,7 +104,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
   "avsluttetTidspunkt": null,
-
+  "notat": null,
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -66,6 +66,7 @@ fun vurderTilbakekrevingsbehandling(
     """.trimIndent(),
     expectedFritekst: String? = null,
     expectedAttesteringer: String = "[]",
+    expectedNotat: String? = null,
 ): Pair<String, Long> {
     val expectedVersjon: Long = saksversjon + 1
     return runBlocking {
@@ -99,6 +100,7 @@ fun vurderTilbakekrevingsbehandling(
                     expectedFritekst = expectedFritekst,
                     expectedAttesteringer = expectedAttesteringer,
                     expectedVurderinger = expectedVurderinger,
+                    expectedNotat = expectedNotat,
                 )
             }
         } to expectedVersjon
@@ -115,6 +117,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     expectedFritekst: String?,
     expectedAttesteringer: String,
     expectedVurderinger: String,
+    expectedNotat: String?,
 ) {
     //language=json
     val expected = """
@@ -159,7 +162,8 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": $expectedAttesteringer,
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": null
+  "avsluttetTidspunkt": null,
+  "notat": ${expectedNotat?.let { "\"$it\"" }}
 }"""
     JSONAssert.assertEquals(
         expected,

@@ -82,6 +82,7 @@ data class UnderkjentHendelse(
                     vurderingerMedKrav = behandling.vurderingerMedKrav,
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                     forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
+                    notat = behandling.notat,
                 )
             }
         }

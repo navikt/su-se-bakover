@@ -83,6 +83,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             versjon = versjon,
             hendelseId = hendelseId,
             erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+            notat = null,
         )
     }
 }

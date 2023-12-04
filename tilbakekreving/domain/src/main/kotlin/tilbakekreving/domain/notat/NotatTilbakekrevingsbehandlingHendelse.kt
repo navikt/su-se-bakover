@@ -3,16 +3,18 @@
 
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.notat.OppdaterNotatCommand
+import java.time.Clock
 import java.util.UUID
 
-data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
+data class NotatTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -21,7 +23,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val kravgrunnlagPåSakHendelseId: HendelseId,
+    val notat: NonBlankString?,
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
@@ -29,27 +31,40 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    fun applyToState(
-        behandling: Tilbakekrevingsbehandling,
-        kravgrunnlag: Kravgrunnlag,
-    ): UnderBehandling.Påbegynt {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            -> throw IllegalArgumentException("Tilstandene [Avbrutt, Iverksatt, TilAttestering] kan ikke oppdatere kravgrunnlag. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            is OpprettetTilbakekrevingsbehandling,
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is KanOppdatereKravgrunnlag -> UnderBehandling.Påbegynt(
-                forrigeSteg = behandling,
-                hendelseId = hendelseId,
-                versjon = versjon,
-                vurderingerMedKrav = behandling.vurderingerMedKrav,
-                forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
-                vedtaksbrevvalg = behandling.vedtaksbrevvalg,
-                kravgrunnlag = kravgrunnlag,
-                erKravgrunnlagUtdatert = false,
-                notat = behandling.notat,
+            is KanLeggeTilNotat -> behandling.oppdaterNotat(
+                notat = this.notat,
+                hendelseId = this.hendelseId,
+                versjon = this.versjon,
             )
         }
     }
+}
+
+fun KanLeggeTilNotat.leggTilNotat(
+    command: OppdaterNotatCommand,
+    tidligereHendelsesId: HendelseId,
+    nesteVersjon: Hendelsesversjon,
+    clock: Clock,
+): Pair<NotatTilbakekrevingsbehandlingHendelse, UnderBehandling> {
+    val hendelse = NotatTilbakekrevingsbehandlingHendelse(
+        hendelseId = HendelseId.generer(),
+        sakId = command.sakId,
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        versjon = nesteVersjon,
+        meta = command.toDefaultHendelsesMetadata(),
+        tidligereHendelseId = tidligereHendelsesId,
+        id = command.behandlingId,
+        utførtAv = command.utførtAv,
+        notat = command.notat,
+    )
+
+    return hendelse to hendelse.applyToState(this)
 }

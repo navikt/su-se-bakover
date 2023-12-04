@@ -20,6 +20,7 @@ import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
+import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
@@ -37,6 +38,8 @@ import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbake
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.toJson
 import tilbakekreving.infrastructure.repo.iverksatt.mapToTilIverksattHendelse
 import tilbakekreving.infrastructure.repo.iverksatt.toJson
+import tilbakekreving.infrastructure.repo.notat.mapTilNotatHendelse
+import tilbakekreving.infrastructure.repo.notat.toJson
 import tilbakekreving.infrastructure.repo.oppdatertKravgrunnlag.mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.infrastructure.repo.oppdatertKravgrunnlag.toJson
 import tilbakekreving.infrastructure.repo.opprettet.OpprettTilbakekrevingsbehandlingHendelseDbJson
@@ -65,6 +68,7 @@ val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT
 val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
 val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
 val OppdatertKravgrunnlagPåTilbakekrevingHendelse = Hendelsestype("OPPDATERT_KRAVGRUNNLAG")
+val NotatTilbakekrevingsbehandlingHendelsestype = Hendelsestype("NOTAT_TILBAKEKREVINGSBEHANDLING")
 
 class TilbakekrevingsbehandlingPostgresRepo(
     private val sessionFactory: SessionFactory,
@@ -91,6 +95,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 is AvbruttHendelse -> AvbruttTilbakekrevingsbehandlingHendelsestype
                 is UnderkjentHendelse -> UnderkjentTilbakekrevingsbehandlingHendelsestype
                 is OppdatertKravgrunnlagPåTilbakekrevingHendelse -> OppdatertKravgrunnlagPåTilbakekrevingHendelse
+                is NotatTilbakekrevingsbehandlingHendelse -> NotatTilbakekrevingsbehandlingHendelsestype
             },
             data = hendelse.toJson(),
             sessionContext = sessionContext,
@@ -120,6 +125,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 AvbruttTilbakekrevingsbehandlingHendelsestype,
                 UnderkjentTilbakekrevingsbehandlingHendelsestype,
                 OppdatertKravgrunnlagPåTilbakekrevingHendelse,
+                NotatTilbakekrevingsbehandlingHendelsestype,
             ).flatMap {
                 (hendelseRepo as HendelsePostgresRepo)
                     .hentHendelserForSakIdOgType(
@@ -299,6 +305,16 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
+        NotatTilbakekrevingsbehandlingHendelsestype -> mapTilNotatHendelse(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = defaultHendelseMetadata(),
+            tidligereHendelsesId = this.tidligereHendelseId!!,
+        )
+
         else -> throw IllegalStateException("Ukjent tilbakekrevingsbehandlinghendelsestype")
     }
 
@@ -313,6 +329,7 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
         is AvbruttHendelse -> this.toJson()
         is UnderkjentHendelse -> this.toJson()
         is OppdatertKravgrunnlagPåTilbakekrevingHendelse -> this.toJson()
+        is NotatTilbakekrevingsbehandlingHendelse -> this.toJson()
     }
 }
 
@@ -326,6 +343,7 @@ internal fun String.toTilbakekrevingHendelsestype(): Hendelsestype = when (this)
     "IVERKSATT_TILBAKEKREVINGSBEHANDLING" -> IverksattTilbakekrevingsbehandlingHendelsestype
     "AVBRUTT_TILBAKEKREVINGSBEHANDLING" -> AvbruttTilbakekrevingsbehandlingHendelsestype
     "OPPDATERT_KRAVGRUNNLAG" -> OppdatertKravgrunnlagPåTilbakekrevingHendelse
+    "NOTAT_TILBAKEKREVINGSBEHANDLING" -> NotatTilbakekrevingsbehandlingHendelsestype
     else -> throw IllegalStateException("Ukjent hendelsestype for tilbakekreving - fikk $this")
 }
 
@@ -337,6 +355,7 @@ internal fun Hendelsestype.erÅpen(): Boolean = when (this) {
     TilbakekrevingsbehandlingTilAttesteringHendelsestype,
     UnderkjentTilbakekrevingsbehandlingHendelsestype,
     OppdatertKravgrunnlagPåTilbakekrevingHendelse,
+    NotatTilbakekrevingsbehandlingHendelsestype,
     -> true
 
     IverksattTilbakekrevingsbehandlingHendelsestype,
@@ -352,6 +371,7 @@ internal fun Hendelsestype.toBehandlingssamendragStatus(): Behandlingssammendrag
     VurdertTilbakekrevingsbehandlingHendelsestype,
     OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
     OppdatertKravgrunnlagPåTilbakekrevingHendelse,
+    NotatTilbakekrevingsbehandlingHendelsestype,
     -> Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
 
     TilbakekrevingsbehandlingTilAttesteringHendelsestype -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING

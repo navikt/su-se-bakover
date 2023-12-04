@@ -18,3 +18,6 @@ fun hentVurderinger(json: String): String {
 fun hentAttesteringer(json: String): String {
     return JSONObject(json).getJSONArray("attesteringer").toString()
 }
+fun hentNotat(json: String): String {
+    return JSONObject(json).getString("notat").toString()
+}

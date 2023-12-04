@@ -4,6 +4,7 @@
 package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -23,6 +24,7 @@ data class OpprettetTilbakekrevingsbehandling(
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
     override val erKravgrunnlagUtdatert: Boolean,
+    override val notat: NonBlankString?,
 ) : KanForhåndsvarsle, KanVurdere, KanOppdatereKravgrunnlag {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -43,6 +45,7 @@ data class OpprettetTilbakekrevingsbehandling(
         forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
         kravgrunnlag = kravgrunnlag,
         erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
+        notat = this.notat,
     )
 
     override fun leggTilVurderinger(
@@ -57,6 +60,7 @@ data class OpprettetTilbakekrevingsbehandling(
         versjon = versjon,
         kravgrunnlag = kravgrunnlag,
         erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
+        notat = this.notat,
     )
 
     override val vurderingerMedKrav: VurderingerMedKrav? = null

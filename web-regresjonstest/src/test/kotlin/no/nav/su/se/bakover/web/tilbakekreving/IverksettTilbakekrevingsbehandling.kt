@@ -114,11 +114,12 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
     {
       "attestant": "AttestantLokal",
       "underkjennelse":null,
-       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:04:01.456789Z\""}  
+       "opprettet": ${if (tidligereAttesteringer == null) "\"2021-02-01T01:03:54.456789Z\"" else "\"2021-02-01T01:04:02.456789Z\""}  
     }
   ],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": null
+  "avsluttetTidspunkt": null,
+  "notat": "notatet"
 }"""
     JSONAssert.assertEquals(
         expected,

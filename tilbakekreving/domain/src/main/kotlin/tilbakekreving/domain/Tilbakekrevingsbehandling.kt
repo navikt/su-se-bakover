@@ -1,6 +1,7 @@
 package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -32,6 +33,7 @@ sealed interface Tilbakekrevingsbehandling {
     val versjon: Hendelsesversjon
     val hendelseId: HendelseId
     val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>
+    val notat: NonBlankString?
 
     fun erÅpen(): Boolean
 }
