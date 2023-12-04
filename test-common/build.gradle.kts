@@ -31,7 +31,7 @@ dependencies {
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml
-    compileOnly("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    compileOnly("org.mockito.kotlin:mockito-kotlin:5.2.1")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
     compileOnly("io.zonky.test:embedded-postgres:2.0.5")
     compileOnly(rootProject.libs.jupiter.api)
