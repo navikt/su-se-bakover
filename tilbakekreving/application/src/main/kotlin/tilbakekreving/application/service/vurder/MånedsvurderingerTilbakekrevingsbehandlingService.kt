@@ -3,8 +3,8 @@ package tilbakekreving.application.service.vurder
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.vurderTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.vurderTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.UnderBehandling

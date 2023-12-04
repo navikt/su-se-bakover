@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import arrow.core.left
 import arrow.core.right
@@ -13,8 +13,8 @@ import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakRequest
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakResponse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
@@ -23,12 +23,12 @@ internal class TilbakekrevingSoapClientTest {
 
     @Test
     fun `svarer med feil hvis problemer hos mottaker`() {
-        TilbakekrevingSoapClient(
+        TilbakekrevingUnderRevurderingSoapClient(
             tilbakekrevingPortType = object : TilbakekrevingPortType {
                 override fun tilbakekrevingsvedtak(p0: TilbakekrevingsvedtakRequest?): TilbakekrevingsvedtakResponse {
-                    return TilbakekrevingSoapClientMapper.fromXml(
+                    return TilbakekrevingUnderRevurderingSoapClientMapper.fromXml(
                         lagResponse(
-                            alvorlighetsgrad = TilbakekrevingSoapClient.Alvorlighetsgrad.ALVORLIG_FEIL,
+                            alvorlighetsgrad = TilbakekrevingUnderRevurderingSoapClient.Alvorlighetsgrad.ALVORLIG_FEIL,
                         ),
                     )
                 }
@@ -46,8 +46,8 @@ internal class TilbakekrevingSoapClientTest {
                 }
             },
             clock = fixedClock,
-        ).sendTilbakekrevingsvedtak(
-            Tilbakekrevingsvedtak.FullTilbakekreving(
+        ).sendTilbakekrevingsvedtakForRevurdering(
+            TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving(
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
@@ -59,7 +59,7 @@ internal class TilbakekrevingSoapClientTest {
 
     @Test
     fun `svarer med feil dersom exception kastes`() {
-        TilbakekrevingSoapClient(
+        TilbakekrevingUnderRevurderingSoapClient(
             tilbakekrevingPortType = object : TilbakekrevingPortType {
                 override fun tilbakekrevingsvedtak(p0: TilbakekrevingsvedtakRequest?): TilbakekrevingsvedtakResponse {
                     throw RuntimeException("Et eller annet gærnt")
@@ -78,8 +78,8 @@ internal class TilbakekrevingSoapClientTest {
                 }
             },
             clock = fixedClock,
-        ).sendTilbakekrevingsvedtak(
-            Tilbakekrevingsvedtak.FullTilbakekreving(
+        ).sendTilbakekrevingsvedtakForRevurdering(
+            TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving(
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
@@ -94,16 +94,16 @@ internal class TilbakekrevingSoapClientTest {
         var requestXml = ""
         var responseXml = ""
 
-        TilbakekrevingSoapClient(
+        TilbakekrevingUnderRevurderingSoapClient(
             tilbakekrevingPortType = object : TilbakekrevingPortType {
                 override fun tilbakekrevingsvedtak(p0: TilbakekrevingsvedtakRequest?): TilbakekrevingsvedtakResponse {
-                    requestXml = TilbakekrevingSoapClientMapper.toXml(p0!!)
-                    val response = TilbakekrevingSoapClientMapper.fromXml(
+                    requestXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(p0!!)
+                    val response = TilbakekrevingUnderRevurderingSoapClientMapper.fromXml(
                         lagResponse(
-                            alvorlighetsgrad = TilbakekrevingSoapClient.Alvorlighetsgrad.OK,
+                            alvorlighetsgrad = TilbakekrevingUnderRevurderingSoapClient.Alvorlighetsgrad.OK,
                         ),
                     )
-                    responseXml = TilbakekrevingSoapClientMapper.toXml(response)
+                    responseXml = TilbakekrevingUnderRevurderingSoapClientMapper.toXml(response)
                     return response
                 }
 
@@ -120,8 +120,8 @@ internal class TilbakekrevingSoapClientTest {
                 }
             },
             clock = fixedClock,
-        ).sendTilbakekrevingsvedtak(
-            Tilbakekrevingsvedtak.FullTilbakekreving(
+        ).sendTilbakekrevingsvedtakForRevurdering(
+            TilbakekrevingsvedtakUnderRevurdering.FullTilbakekreving(
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
@@ -137,7 +137,7 @@ internal class TilbakekrevingSoapClientTest {
 
     //language=xml
     private fun lagResponse(
-        alvorlighetsgrad: TilbakekrevingSoapClient.Alvorlighetsgrad,
+        alvorlighetsgrad: TilbakekrevingUnderRevurderingSoapClient.Alvorlighetsgrad,
     ): String {
         return """
         <?xml version="1.0" encoding="UTF-8"?>

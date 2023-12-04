@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling
+package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import arrow.core.left
@@ -19,7 +19,7 @@ import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
 import tilbakekreving.domain.vurdert.VurderCommand
 import java.time.Clock
 
-private val log = LoggerFactory.getLogger("VurderTilbakekrevingsbehandling.kt")
+private val log = LoggerFactory.getLogger("SakVurderTilbakekrevingsbehandling.kt")
 
 fun Sak.vurderTilbakekrevingsbehandling(
     command: VurderCommand,

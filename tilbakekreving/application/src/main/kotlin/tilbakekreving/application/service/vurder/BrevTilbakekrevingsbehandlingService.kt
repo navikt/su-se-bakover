@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.oppdaterVedtaksbrev
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.oppdaterVedtaksbrev
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.UnderBehandling

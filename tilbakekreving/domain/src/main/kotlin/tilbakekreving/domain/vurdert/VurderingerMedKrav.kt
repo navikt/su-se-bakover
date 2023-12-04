@@ -66,6 +66,7 @@ data class VurderingerMedKrav private constructor(
                         bruttoSkalTilbakekreve = kravgrunnlagsperiode.bruttoFeilutbetaling,
                         nettoSkalTilbakekreve = kravgrunnlagsperiode.nettoFeilutbetaling,
                         skatteProsent = kravgrunnlagsperiode.skatteProsent,
+                        skattSomGårTilReduksjon = kravgrunnlagsperiode.skattFeilutbetaling,
                     )
                 }
             }.toNonEmptyList()
@@ -120,6 +121,7 @@ sealed interface PeriodevurderingMedKrav {
     val bruttoSkalTilbakekreve: Int
     val nettoSkalTilbakekreve: Int
     val bruttoSkalIkkeTilbakekreve: Int
+    val skattSomGårTilReduksjon: Int
     val skatteProsent: BigDecimal
 
     data class SkalTilbakekreve(
@@ -130,8 +132,15 @@ sealed interface PeriodevurderingMedKrav {
         override val bruttoSkalTilbakekreve: Int,
         override val nettoSkalTilbakekreve: Int,
         override val skatteProsent: BigDecimal,
+        override val skattSomGårTilReduksjon: Int,
     ) : PeriodevurderingMedKrav {
         override val bruttoSkalIkkeTilbakekreve = 0
+
+        init {
+            require(skattSomGårTilReduksjon <= betaltSkattForYtelsesgruppen) {
+                "Skatt som går til reduksjon ($skattSomGårTilReduksjon) kan ikke være større enn betalt skatt for ytelsesgruppen ($betaltSkattForYtelsesgruppen)."
+            }
+        }
     }
 
     data class SkalIkkeTilbakekreve(
@@ -143,6 +152,7 @@ sealed interface PeriodevurderingMedKrav {
         override val skatteProsent: BigDecimal,
     ) : PeriodevurderingMedKrav {
         override val bruttoSkalTilbakekreve = 0
+        override val skattSomGårTilReduksjon = 0
         override val nettoSkalTilbakekreve = 0
     }
 }

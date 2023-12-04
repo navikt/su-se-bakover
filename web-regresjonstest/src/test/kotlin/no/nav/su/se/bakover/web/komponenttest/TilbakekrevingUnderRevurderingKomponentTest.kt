@@ -20,10 +20,10 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.MottattKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -619,7 +619,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).copy(
                     tilbakekrevingClient = mock {
-                        on { sendTilbakekrevingsvedtak(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()
+                        on { sendTilbakekrevingsvedtakForRevurdering(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()
                     },
                 )
             },

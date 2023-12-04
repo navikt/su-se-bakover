@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering
 
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import java.math.BigDecimal
 
-sealed interface Tilbakekrevingsvedtak {
+sealed interface TilbakekrevingsvedtakUnderRevurdering {
     val vedtakId: String
     val ansvarligEnhet: String
     val kontrollFelt: String
@@ -32,7 +32,7 @@ sealed interface Tilbakekrevingsvedtak {
         override val kontrollFelt: String,
         override val behandler: String,
         override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
-    ) : Tilbakekrevingsvedtak
+    ) : TilbakekrevingsvedtakUnderRevurdering
 
     data class IngenTilbakekreving(
         override val vedtakId: String,
@@ -40,7 +40,7 @@ sealed interface Tilbakekrevingsvedtak {
         override val kontrollFelt: String,
         override val behandler: String,
         override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
-    ) : Tilbakekrevingsvedtak
+    ) : TilbakekrevingsvedtakUnderRevurdering
 
     data class Tilbakekrevingsperiode(
         val periode: Periode,

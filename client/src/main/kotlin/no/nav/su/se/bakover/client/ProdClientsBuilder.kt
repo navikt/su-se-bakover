@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekreving.TilbakekrevingSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekreving.TilbakekrevingSoapClientConfig
+import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClient
+import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientConfig
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
@@ -152,8 +152,8 @@ data class ProdClientsBuilder(
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,
             queryJournalpostClient = journalpostClient,
-            tilbakekrevingClient = TilbakekrevingSoapClient(
-                tilbakekrevingPortType = TilbakekrevingSoapClientConfig(
+            tilbakekrevingClient = TilbakekrevingUnderRevurderingSoapClient(
+                tilbakekrevingPortType = TilbakekrevingUnderRevurderingSoapClientConfig(
                     tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,

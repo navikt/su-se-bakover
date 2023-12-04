@@ -21,14 +21,14 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.MottattKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
@@ -44,12 +44,12 @@ import java.util.UUID
 internal class TilbakekrevingUnderRevurderingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val råttKravgrunnlagMapper: MapRåttKravgrunnlag,
-) : TilbakekrevingRepo {
+) : TilbakekrevingUnderRevurderingRepo {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(
-        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
         sessionContext: SessionContext?,
     ) {
         sessionContext.withOptionalSession(sessionFactory) { session ->
@@ -58,7 +58,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
     }
 
     override fun lagre(
-        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
+        tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
         transactionContext: TransactionContext,
     ) {
         transactionContext.withTransaction { session ->
@@ -66,7 +66,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
         }
     }
 
-    override fun hentMottattKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
+    override fun hentMottattKravgrunnlag(): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from revurdering_tilbakekreving where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtakForsendelse is null"
                 .hentListe(
@@ -74,12 +74,12 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     session,
                 ) {
                     it.toTilbakekrevingsbehandling()
-                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag>()
+                }.filterIsInstance<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag>()
         }
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving,
+        tilbakrekrevingsbehanding: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving,
         tx: TransactionalSession,
     ) {
         slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, tx)
@@ -105,7 +105,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag,
+        tilbakrekrevingsbehanding: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag,
         session: Session,
     ) {
         """
@@ -121,7 +121,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+        tilbakrekrevingsbehanding: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
         session: Session,
     ) {
         """
@@ -139,7 +139,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
+        tilbakrekrevingsbehanding: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
         session: Session,
     ) {
         """
@@ -171,7 +171,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
             )
     }
 
-    internal fun hentTilbakekrevingsbehandling(revurderingId: UUID, session: Session): Tilbakekrevingsbehandling? {
+    internal fun hentTilbakekrevingsbehandling(revurderingId: UUID, session: Session): TilbakekrevingsbehandlingUnderRevurdering? {
         return """
             select * from revurdering_tilbakekreving where revurderingId = :revurderingId
         """.trimIndent()
@@ -183,7 +183,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
             }
     }
 
-    private fun Row.toTilbakekrevingsbehandling(): Tilbakekrevingsbehandling {
+    private fun Row.toTilbakekrevingsbehandling(): TilbakekrevingsbehandlingUnderRevurdering {
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
         val revurderingId = uuid("revurderingId")
@@ -240,13 +240,13 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
 
             Tilstand.AVVENTER_KRAVGRUNNLAG -> {
                 AvventerKravgrunnlag(
-                    avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+                    avgjort = tilbakekrevingsbehandling as TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
                 )
             }
 
             Tilstand.MOTTATT_KRAVGRUNNLAG -> {
                 MottattKravgrunnlag(
-                    avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+                    avgjort = tilbakekrevingsbehandling as TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
                     kravgrunnlag = kravgrunnlag!!,
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
                 )
@@ -254,7 +254,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
 
             Tilstand.SENDT_TILBAKEKREVINGSVEDTAK -> {
                 SendtTilbakekrevingsvedtak(
-                    avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+                    avgjort = tilbakekrevingsbehandling as TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
                     kravgrunnlag = kravgrunnlag!!,
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
                     tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse!!,
@@ -314,7 +314,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
         return sessionFactory.newTransactionContext()
     }
 
-    override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(sakId: UUID): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from revurdering_tilbakekreving where sakId = :sakId and tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(
@@ -324,12 +324,12 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     session = session,
                 ) {
                     it.toTilbakekrevingsbehandling()
-                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
+                }.filterIsInstance<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
         }
     }
 
     // TODO klarer vi å lage noe berdre test-support som lar oss teste denne typen sqls uten å kode seg ihjel? Mulig å bridge oppsett for testdata og TestDataHelper for db?
-    override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
+    override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
         return sessionFactory.withSession { session ->
             """
                 select t.* from revurdering_tilbakekreving t
@@ -346,11 +346,11 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     session = session,
                 ) {
                     it.toTilbakekrevingsbehandling()
-                } as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
+                } as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
         }
     }
 
-    override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(): List<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from revurdering_tilbakekreving where tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(
@@ -358,7 +358,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     session = session,
                 ) {
                     it.toTilbakekrevingsbehandling()
-                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
+                }.filterIsInstance<TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
         }
     }
 

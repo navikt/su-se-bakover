@@ -1,10 +1,12 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering
 
 import arrow.core.Either
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 
 interface TilbakekrevingClient {
-    fun sendTilbakekrevingsvedtak(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse>
+    fun sendTilbakekrevingsvedtakForRevurdering(
+        tilbakekrevingsvedtak: TilbakekrevingsvedtakUnderRevurdering,
+    ): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse>
 }
 
 /**

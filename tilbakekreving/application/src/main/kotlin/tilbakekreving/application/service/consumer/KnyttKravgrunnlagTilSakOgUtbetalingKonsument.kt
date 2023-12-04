@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -151,7 +151,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             if (revurderingId != null) {
                 val revurdering = sak.hentRevurdering(revurderingId).getOrNull() as IverksattRevurdering
 
-                (revurdering.tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
+                (revurdering.tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
                     kravgrunnlag = kravgrunnlag,
                     kravgrunnlagMottatt = Tidspunkt.now(clock),
                     hentRevurdering = { revurdering },
