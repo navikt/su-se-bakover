@@ -18,4 +18,5 @@ interface DokumentHendelseRepo {
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?
     fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
     fun hentHendelseOgFilForDokument(dokumentId: UUID, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
+    fun hentDokumentHendelseForRelatert(relatertHendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
 }

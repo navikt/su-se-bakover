@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -66,6 +67,12 @@ class DistribuerDokumentHendelserKonsument(
     ) {
         val lagretHendelse = dokumentHendelseRepo.hentHendelse(hendelseId) ?: return Unit.also {
             log.error("Feil under distribuering: Kunne ikke hente hendelse $hendelseId for sak $sak")
+        }
+
+        dokumentHendelseRepo.hentForSak(sak.id).any { it.relatertHendelse == hendelseId }.ifTrue {
+            hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
+            log.error("Prøvde å distribuere dokument som allerede er distribuert. Sak ${sak.id}, hendelse $hendelseId. Konsumenten har lagret denne hendelsen")
+            return
         }
 
         when (lagretHendelse) {

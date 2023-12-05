@@ -5,13 +5,11 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelseData.Companion.toJson
 
 internal data class OppgaveHendelseData(
     val oppgaveId: String,
@@ -79,10 +77,9 @@ internal data class OppgaveHendelseData(
     }
 }
 
-internal fun PersistertHendelse.toOppgaveHendelse(
-    meta: DefaultHendelseMetadata,
-): OppgaveHendelse {
+internal fun PersistertHendelse.toOppgaveHendelse(): OppgaveHendelse {
     val data = deserialize<OppgaveHendelseData>(this.data)
+    val meta = this.defaultHendelseMetadata()
 
     return when (data.status) {
         "LUKKET_MANUELT" -> OppgaveHendelse.Lukket.Manuelt(

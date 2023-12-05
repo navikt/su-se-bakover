@@ -102,6 +102,13 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
             val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
                 ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å oppdatere oppgave. sak $sakId, hendelse $relatertHendelsesId") }
 
+            oppgaveHendelseRepo.hentHendelseForRelatert(relatertHendelse.hendelseId, sak.id)?.let {
+                return@mapOneIndexed Unit.also {
+                    hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId)
+                    log.error("Feil ved oppdatering av oppgave for tilbakekreving ${relatertHendelse.id.value}. Oppgave allerede oppdatert for hendelse ${relatertHendelse.hendelseId}. Konsumenten vil lagre denne hendelsen")
+                }
+            }
+
             val alleSakensOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
 
             val tilbakekrevingshendelsesSerie =
@@ -160,7 +167,10 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
             oppgaveId = tidligereOppgaveHendelse.oppgaveId,
             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
         )
-            .mapLeft { KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave }
+            .mapLeft {
+                // TODO - her må returnere lukket manuelt dersom den er blitt ferdigstilt
+                KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave
+            }
             .map {
                 OppgaveHendelse.Oppdatert(
                     hendelsestidspunkt = Tidspunkt.now(clock),

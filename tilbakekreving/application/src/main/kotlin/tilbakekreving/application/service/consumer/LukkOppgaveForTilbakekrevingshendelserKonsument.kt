@@ -73,6 +73,13 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
             val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
                 ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å lukke oppgave. sak $sakId, hendelse $relatertHendelsesId") }
 
+            oppgaveHendelseRepo.hentHendelseForRelatert(relatertHendelse.hendelseId, sak.id)?.let {
+                return@mapOneIndexed Unit.also {
+                    hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId)
+                    log.error("Feil ved oppretting av oppgave for tilbakekreving ${relatertHendelse.id.value}. Oppgave allerede opprettet for hendelse ${relatertHendelse.hendelseId}. Konsumenten vil lagre denne hendelsen")
+                }
+            }
+
             val alleSakensOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
 
             val tilbakekrevingshendelsesSerie =

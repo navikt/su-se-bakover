@@ -77,6 +77,17 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         nesteVersjon: Hendelsesversjon,
     ) {
         val sakId = sak.id
+
+        tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
+            if (it.isNotEmpty()) {
+                val ider = it.map { it.hendelseId }
+                return Unit.also {
+                    hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
+                    log.error("Feil under generering av forhåndsvarseldokument: Fant dokumenter knyttet til hendelsen. Dor sak $sakId og hendelse $hendelseId og dokumenthendelser $ider")
+                }
+            }
+        }
+
         val forhåndsvarsleHendelse =
             (tilbakekrevingsbehandlingRepo.hentHendelse(hendelseId) as? ForhåndsvarsleTilbakekrevingsbehandlingHendelse)
                 ?: return Unit.also {
@@ -90,15 +101,6 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     "Feil under generering av forhåndsvarseldokument: Fant ikke behandling $behandlingId, eller var ikke i KanForhåndsvarsle tilstand, for sak $sakId og hendelse $hendelseId",
                 )
             }
-        tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
-            if (it.isNotEmpty()) {
-                val ider = it.map { it.hendelseId }
-                return Unit.also {
-                    hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
-                    log.error("Feil under generering av forhåndsvarseldokument: Fant dokumenter knyttet til hendelsen. Dor sak $sakId og hendelse $hendelseId og dokumenthendelser $ider")
-                }
-            }
-        }
 
         opprettDokumentForForhåndsvarsel(
             forhåndsvarsleHendelse = forhåndsvarsleHendelse,

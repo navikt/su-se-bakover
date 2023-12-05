@@ -14,7 +14,7 @@ fun nyOppgaveHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
-    nesteVersjon: Hendelsesversjon,
+    nesteVersjon: Hendelsesversjon = Hendelsesversjon(4),
     relaterteHendelser: List<HendelseId> = listOf(HendelseId.generer()),
     metadata: OppgaveHendelseMetadata = OppgaveHendelseMetadata(
         correlationId = correlationId(),

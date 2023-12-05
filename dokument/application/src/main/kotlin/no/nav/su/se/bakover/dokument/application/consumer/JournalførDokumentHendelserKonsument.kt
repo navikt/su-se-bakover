@@ -86,6 +86,7 @@ class JournalførDokumentHendelserKonsument(
 
         dokumentHendelser.any { it.relatertHendelse == hendelseId }.ifTrue {
             hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
+            log.error("Prøvde å journalføre dokument som allerede er journalført. Sak $sakId, hendelse $hendelseId. Konsumenten har lagret denne hendelsen")
             return
         }
 

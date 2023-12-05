@@ -268,6 +268,7 @@ data object DatabaseBuilder {
         val oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(
             dbMetrics = dbMetrics,
             hendelseRepo = hendelseRepo,
+            sessionFactory = sessionFactory,
         )
 
         // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
@@ -326,7 +327,7 @@ data object DatabaseBuilder {
             utenlandsoppholdRepo = utenlandsoppholdRepo,
             dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
             institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(dbMetrics, hendelseRepo),
-            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(dbMetrics, hendelseRepo),
+            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(dbMetrics, hendelseRepo, sessionFactory),
             hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory),
             dokumentHendelseRepo = DokumentHendelsePostgresRepo(
                 hendelseRepo = hendelseRepo,

@@ -114,6 +114,22 @@ class DokumentHendelsePostgresRepo(
             Pair(hendelseOgFil?.first, hendelseOgFil?.second)
         }
     }
+
+    override fun hentDokumentHendelseForRelatert(
+        relatertHendelseId: HendelseId,
+        sessionContext: SessionContext?,
+    ): DokumentHendelse? {
+        return sessionContext?.withOptionalSession(sessionFactory) {
+            """
+            select * from hendelse where data ->> 'relatertHendelse' = :relatertHendelseId
+            """.trimIndent().hent(
+                mapOf("relatertHendelseId" to relatertHendelseId.toString()),
+                it,
+            ) {
+                HendelsePostgresRepo.toPersistertHendelse(it)
+            }?.toDokumentHendelse()
+        }
+    }
 }
 
 private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
