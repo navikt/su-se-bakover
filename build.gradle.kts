@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    id("com.diffplug.spotless") version "6.23.2"
+    id("com.diffplug.spotless") version "6.23.3"
 }
 
 version = "0.0.1"
