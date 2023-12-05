@@ -19,6 +19,6 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
 ) : GenererDokumentCommand, SakshendelseCommand {
-    override val ident: NavIdentBruker? = null
+    override val utførtAv: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

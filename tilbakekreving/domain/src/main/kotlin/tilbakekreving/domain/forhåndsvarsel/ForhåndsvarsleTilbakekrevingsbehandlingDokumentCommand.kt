@@ -19,6 +19,6 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
     val fritekst: String?,
     val kravgrunnlag: Kravgrunnlag,
 ) : GenererDokumentCommand, SakshendelseCommand {
-    override val ident: NavIdentBruker? = null
+    override val utførtAv: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

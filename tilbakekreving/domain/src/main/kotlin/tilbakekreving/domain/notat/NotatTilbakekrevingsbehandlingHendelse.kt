@@ -36,14 +36,15 @@ data class NotatTilbakekrevingsbehandlingHendelse(
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandling,
-            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            -> throw IllegalArgumentException("Kan ikke gå fra [TilAttestering, Avbrutt, Iverksatt,] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is KanLeggeTilNotat -> behandling.oppdaterNotat(
                 notat = this.notat,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
             )
+
+            else -> throw IllegalStateException("Kan ikke gå fra ${behandling::class.simpleName} -> Vurdert.Utfylt. tilstand ${behandling::class.simpleName} er ikke støttet. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
         }
     }
 }

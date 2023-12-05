@@ -5,7 +5,8 @@ import java.lang.IllegalArgumentException
 /**
  * A string that is guaranteed to be non-blank.
  */
-data class NonBlankString private constructor(
+@JvmInline
+value class NonBlankString private constructor(
     val value: String,
 ) {
     companion object {

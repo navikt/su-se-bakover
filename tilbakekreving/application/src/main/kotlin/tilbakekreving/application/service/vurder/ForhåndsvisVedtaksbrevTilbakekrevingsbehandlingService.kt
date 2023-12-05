@@ -65,7 +65,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 saksnummer = sak.saksnummer,
                 correlationId = command.correlationId,
                 sakId = sak.id,
-                saksbehandler = command.ident,
+                saksbehandler = command.utførtAv,
                 fritekst = fritekst,
                 vurderingerMedKrav = vurderingMedKrav,
             ),

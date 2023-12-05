@@ -12,23 +12,19 @@ import java.util.UUID
 data class ForhåndsvarselTilbakekrevingsbehandlingCommand(
     override val sakId: UUID,
     val behandlingId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     override val correlationId: CorrelationId,
     override val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
     val fritekst: String,
-) : SakshendelseCommand {
-    override val ident: NavIdentBruker = utførtAv
-}
+) : SakshendelseCommand
 
 data class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand(
     override val sakId: UUID,
     val behandlingId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     override val correlationId: CorrelationId,
     override val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
     val fritekst: String?,
-) : SakshendelseCommand {
-    override val ident: NavIdentBruker = utførtAv
-}
+) : SakshendelseCommand

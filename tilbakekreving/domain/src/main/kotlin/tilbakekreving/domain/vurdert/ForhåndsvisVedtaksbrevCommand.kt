@@ -11,6 +11,6 @@ data class ForhåndsvisVedtaksbrevCommand(
     override val sakId: UUID,
     val behandlingId: TilbakekrevingsbehandlingId,
     override val correlationId: CorrelationId?,
-    override val ident: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     override val brukerroller: List<Brukerrolle>,
 ) : SakshendelseCommand

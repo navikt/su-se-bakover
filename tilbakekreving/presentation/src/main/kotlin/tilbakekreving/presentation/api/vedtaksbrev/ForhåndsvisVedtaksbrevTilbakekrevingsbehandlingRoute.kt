@@ -35,7 +35,7 @@ internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
                             sakId = sakId,
                             behandlingId = TilbakekrevingsbehandlingId(tilbakekrevingId),
                             correlationId = call.correlationId,
-                            ident = call.suUserContext.saksbehandler,
+                            utførtAv = call.suUserContext.saksbehandler,
                             brukerroller = call.suUserContext.roller,
                         ),
                     )

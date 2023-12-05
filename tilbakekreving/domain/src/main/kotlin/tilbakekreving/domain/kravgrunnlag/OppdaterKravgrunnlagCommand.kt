@@ -16,5 +16,5 @@ data class OppdaterKravgrunnlagCommand(
     val behandlingId: TilbakekrevingsbehandlingId,
     val klientensSisteSaksversjon: Hendelsesversjon,
 ) : SakshendelseCommand {
-    override val ident: NavIdentBruker = oppdatertAv
+    override val utførtAv: NavIdentBruker = oppdatertAv
 }

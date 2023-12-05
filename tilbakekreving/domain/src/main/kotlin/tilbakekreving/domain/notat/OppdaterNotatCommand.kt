@@ -13,10 +13,8 @@ data class OppdaterNotatCommand(
     override val sakId: UUID,
     override val correlationId: CorrelationId?,
     override val brukerroller: List<Brukerrolle>,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     val notat: NonBlankString?,
     val behandlingId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
     val klientensSisteSaksversjon: Hendelsesversjon,
-) : SakshendelseCommand {
-    override val ident: NavIdentBruker = utførtAv
-}
+) : SakshendelseCommand

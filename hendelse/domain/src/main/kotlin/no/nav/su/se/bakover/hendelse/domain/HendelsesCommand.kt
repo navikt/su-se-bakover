@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 
 interface HendelsesCommand {
     val correlationId: CorrelationId?
-    val ident: NavIdentBruker?
+    val utførtAv: NavIdentBruker?
     val brukerroller: List<Brukerrolle>
 
     fun toDefaultHendelsesMetadata(): DefaultHendelseMetadata = DefaultHendelseMetadata(
         correlationId = correlationId,
-        ident = ident,
+        ident = utførtAv,
         brukerroller = brukerroller,
     )
 }

@@ -13,17 +13,16 @@ import java.util.UUID
 data class AvbrytTilbakekrevingsbehandlingCommand(
     override val sakId: UUID,
     val behandlingsId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Saksbehandler,
+    override val utførtAv: NavIdentBruker.Saksbehandler,
     override val correlationId: CorrelationId,
     override val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
     val begrunnelse: String,
 ) : SakshendelseCommand {
-    override val ident: NavIdentBruker = utførtAv
 
     fun defaultHendelseMetadata() = DefaultHendelseMetadata(
         correlationId = correlationId,
-        ident = utførtAv,
+        ident = this.utførtAv,
         brukerroller = brukerroller,
     )
 }

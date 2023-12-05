@@ -28,18 +28,18 @@ class NotatTilbakekrevingsbehandlingService(
             return KunneIkkeLagreNotat.IkkeTilgang(it).left()
         }
         val sak = sakService.hentSak(command.sakId).getOrElse {
-            throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
+            throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling ${command.behandlingId}, fant ikke sak ${command.sakId}")
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
-            log.info("Lagre notat for tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+            log.info("Lagre notat for tilbakekreving ${command.behandlingId} - Sakens (${command.sakId}) versjon (${sak.versjon}) er ulik saksbehandlers versjon")
         }
 
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(command.behandlingId)
-                ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling. Fant ikke Tilbakekrevingsbehandling ${command.behandlingId}. Command: $command")
+                ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling (${command.behandlingId}). Fant ikke Tilbakekrevingsbehandling, sak ${command.sakId}")
             ).let {
             it as? KanLeggeTilNotat
-                ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling ${command.behandlingId}, behandlingen er ikke i riktig tilstand. Command: $command")
+                ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling (${command.behandlingId}), behandlingen er ikke i riktig tilstand. sak ${command.sakId}")
         }
 
         return behandling.leggTilNotat(

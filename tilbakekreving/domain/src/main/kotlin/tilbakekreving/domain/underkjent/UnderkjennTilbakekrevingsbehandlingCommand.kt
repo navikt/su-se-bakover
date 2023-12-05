@@ -12,12 +12,10 @@ import java.util.UUID
 data class UnderkjennTilbakekrevingsbehandlingCommand(
     override val sakId: UUID,
     val behandlingsId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Attestant,
+    override val utførtAv: NavIdentBruker.Attestant,
     override val correlationId: CorrelationId,
     override val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
     val grunn: UnderkjennAttesteringsgrunnTilbakekreving,
     val kommentar: String,
-) : SakshendelseCommand {
-    override val ident: NavIdentBruker = utførtAv
-}
+) : SakshendelseCommand
