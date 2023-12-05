@@ -103,7 +103,7 @@ subprojects {
             // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.15.0"),
         )
-        testImplementation("io.zonky.test:embedded-postgres:2.0.5")
+        testImplementation("io.zonky.test:embedded-postgres:2.0.6")
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
         testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
         testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
