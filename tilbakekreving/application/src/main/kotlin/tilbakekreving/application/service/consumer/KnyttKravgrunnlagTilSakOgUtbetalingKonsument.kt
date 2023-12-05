@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
@@ -30,7 +30,7 @@ import java.time.Clock
 
 class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private val kravgrunnlagRepo: KravgrunnlagRepo,
-    private val tilbakekrevingService: TilbakekrevingService,
+    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val sakService: SakService,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,

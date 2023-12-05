@@ -21,7 +21,7 @@ import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 import java.util.UUID
 
-interface TilbakekrevingService {
+interface TilbakekrevingUnderRevurderingService {
     /**
      * Lagrer et nytt kravgrunnlag vi har mottatt fra Oppdrag.
      */
@@ -48,7 +48,7 @@ class TilbakekrevingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
-) : TilbakekrevingService {
+) : TilbakekrevingUnderRevurderingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 

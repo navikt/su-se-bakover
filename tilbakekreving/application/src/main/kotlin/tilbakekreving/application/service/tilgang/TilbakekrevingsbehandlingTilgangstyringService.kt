@@ -1,4 +1,4 @@
-package tilbakekreving.application.service.common
+package tilbakekreving.application.service.tilgang
 
 import arrow.core.Either
 import arrow.core.right

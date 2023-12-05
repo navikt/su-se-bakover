@@ -8,11 +8,10 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
-import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
@@ -23,13 +22,16 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsv
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
 import tilbakekreving.application.service.kravgrunnlag.OppdaterKravgrunnlagService
+import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
+import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
+import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -41,154 +43,184 @@ import java.time.Clock
  * Det kan hende vi må splitte denne i en data class + builder.
  */
 class TilbakekrevingServices(
-    private val clock: Clock,
-    private val sessionFactory: SessionFactory,
-    private val personRepo: PersonRepo,
-    private val personService: PersonService,
-    private val kravgrunnlagRepo: KravgrunnlagRepo,
-    private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    private val tilbakekrevingService: TilbakekrevingService,
-    private val sakService: SakService,
-    private val oppgaveService: OppgaveService,
-    private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
-    private val hendelseRepo: HendelseRepo,
-    private val dokumentHendelseRepo: DokumentHendelseRepo,
-    private val brevService: BrevService,
-    private val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
-        personRepo = personRepo,
-        personService = personService,
-    ),
-    val brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService = BrevTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        clock = clock,
-    ),
-    val forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService: ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService = ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        brevService = brevService,
-    ),
-    val knyttKravgrunnlagTilSakOgUtbetalingKonsument: KnyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
-        kravgrunnlagRepo = kravgrunnlagRepo,
-        tilbakekrevingService = tilbakekrevingService,
-        sakService = sakService,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-        mapRåttKravgrunnlag = mapRåttKravgrunnlag,
-        clock = clock,
-        sessionFactory = sessionFactory,
-    ),
-    val månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService = MånedsvurderingerTilbakekrevingsbehandlingService(
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        sakService = sakService,
-        tilgangstyring = tilgangstyringService,
-        clock = clock,
-    ),
-    val opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService = OpprettTilbakekrevingsbehandlingService(
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        tilgangstyring = tilgangstyringService,
-        clock = clock,
-        sakService = sakService,
-        personService = personService,
-        sessionFactory = sessionFactory,
-    ),
-    val råttKravgrunnlagService: RåttKravgrunnlagService = RåttKravgrunnlagService(
-        kravgrunnlagRepo = kravgrunnlagRepo,
-        clock = clock,
-    ),
-    val forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService = ForhåndsvarsleTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        oppgaveService = oppgaveService,
-        oppgaveHendelseRepo = oppgaveHendelseRepo,
-        brevService = brevService,
-        sessionFactory = sessionFactory,
-        clock = clock,
-    ),
-    val forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        brevService = brevService,
-    ),
-    val genererDokumentForForhåndsvarselTilbakekrevingKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
-        sakService = sakService,
-        brevService = brevService,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        dokumentHendelseRepo = dokumentHendelseRepo,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-        sessionFactory = sessionFactory,
-        clock = clock,
-    ),
-    val opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
-        sakService = sakService,
-        personService = personService,
-        oppgaveService = oppgaveService,
-        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
-        oppgaveHendelseRepo = oppgaveHendelseRepo,
-        hendelseRepo = hendelseRepo,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-        sessionFactory = sessionFactory,
-        clock = clock,
-    ),
-    val tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        clock = clock,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-    ),
-    val visUtsendtForhåndsvarselbrevForTilbakekrevingService: VisUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
-        dokumentHendelseRepo = dokumentHendelseRepo,
-    ),
-    val underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        clock = clock,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-    ),
-    val iverksettTilbakekrevingService: IverksettTilbakekrevingService = IverksettTilbakekrevingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        clock = clock,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-    ),
-    val avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        clock = clock,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-    ),
-    val lukkOppgaveForTilbakekrevingshendelserKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
-        sakService = sakService,
-        oppgaveService = oppgaveService,
-        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
-        oppgaveHendelseRepo = oppgaveHendelseRepo,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-        sessionFactory = sessionFactory,
-        clock = clock,
-    ),
-    val oppdaterOppgaveForTilbakekrevingshendelserKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument = OppdaterOppgaveForTilbakekrevingshendelserKonsument(
-        sakService = sakService,
-        oppgaveService = oppgaveService,
-        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
-        oppgaveHendelseRepo = oppgaveHendelseRepo,
-        hendelseRepo = hendelseRepo,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-        sessionFactory = sessionFactory,
-        clock = clock,
-    ),
-    val oppdaterKravgrunnlagService: OppdaterKravgrunnlagService = OppdaterKravgrunnlagService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        clock = clock,
-    ),
-    val notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService = NotatTilbakekrevingsbehandlingService(
-        tilgangstyring = tilgangstyringService,
-        sakService = sakService,
-        tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-        clock = clock,
-    ),
-)
+    val brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
+    val forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService: ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService,
+    val knyttKravgrunnlagTilSakOgUtbetalingKonsument: KnyttKravgrunnlagTilSakOgUtbetalingKonsument,
+    val månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
+    val opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,
+    val råttKravgrunnlagService: RåttKravgrunnlagService,
+    val forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
+    val forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
+    val genererDokumentForForhåndsvarselTilbakekrevingKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument,
+    val opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument,
+    val tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService,
+    val visUtsendtForhåndsvarselbrevForTilbakekrevingService: VisUtsendtForhåndsvarselbrevForTilbakekrevingService,
+    val underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService,
+    val iverksettTilbakekrevingService: IverksettTilbakekrevingService,
+    val avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService,
+    val lukkOppgaveForTilbakekrevingshendelserKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument,
+    val oppdaterOppgaveForTilbakekrevingshendelserKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument,
+    val oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
+    val notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService,
+) {
+    companion object {
+        fun create(
+            clock: Clock,
+            sessionFactory: SessionFactory,
+            personRepo: PersonRepo,
+            personService: PersonService,
+            kravgrunnlagRepo: KravgrunnlagRepo,
+            hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+            tilbakekrevingService: TilbakekrevingUnderRevurderingService,
+            sakService: SakService,
+            oppgaveService: OppgaveService,
+            tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+            oppgaveHendelseRepo: OppgaveHendelseRepo,
+            mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
+            hendelseRepo: HendelseRepo,
+            dokumentHendelseRepo: DokumentHendelseRepo,
+            brevService: BrevService,
+            tilbakekrevingsklient: Tilbakekrevingsklient,
+        ): TilbakekrevingServices {
+            val tilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
+                personRepo = personRepo,
+                personService = personService,
+            )
+            return TilbakekrevingServices(
+                brevTilbakekrevingsbehandlingService = BrevTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    clock = clock,
+                ),
+                forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService = ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    brevService = brevService,
+                ),
+                knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
+                    kravgrunnlagRepo = kravgrunnlagRepo,
+                    tilbakekrevingService = tilbakekrevingService,
+                    sakService = sakService,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    mapRåttKravgrunnlag = mapRåttKravgrunnlag,
+                    clock = clock,
+                    sessionFactory = sessionFactory,
+                ),
+                månedsvurderingerTilbakekrevingsbehandlingService = MånedsvurderingerTilbakekrevingsbehandlingService(
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    sakService = sakService,
+                    tilgangstyring = tilgangstyringService,
+                    clock = clock,
+                ),
+                opprettTilbakekrevingsbehandlingService = OpprettTilbakekrevingsbehandlingService(
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    tilgangstyring = tilgangstyringService,
+                    clock = clock,
+                    sakService = sakService,
+                    personService = personService,
+                    sessionFactory = sessionFactory,
+                ),
+                råttKravgrunnlagService = RåttKravgrunnlagService(
+                    kravgrunnlagRepo = kravgrunnlagRepo,
+                    clock = clock,
+                ),
+                forhåndsvarsleTilbakekrevingsbehandlingService = ForhåndsvarsleTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    oppgaveService = oppgaveService,
+                    oppgaveHendelseRepo = oppgaveHendelseRepo,
+                    brevService = brevService,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    brevService = brevService,
+                ),
+                genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
+                    sakService = sakService,
+                    brevService = brevService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    dokumentHendelseRepo = dokumentHendelseRepo,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                opprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
+                    sakService = sakService,
+                    personService = personService,
+                    oppgaveService = oppgaveService,
+                    tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+                    oppgaveHendelseRepo = oppgaveHendelseRepo,
+                    hendelseRepo = hendelseRepo,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                tilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    clock = clock,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                ),
+                visUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
+                    dokumentHendelseRepo = dokumentHendelseRepo,
+                ),
+                underkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    clock = clock,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                ),
+
+                iverksettTilbakekrevingService = IverksettTilbakekrevingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    clock = clock,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    tilbakekrevingsklient = tilbakekrevingsklient,
+                ),
+                avbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    clock = clock,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                ),
+                lukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
+                    sakService = sakService,
+                    oppgaveService = oppgaveService,
+                    tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+                    oppgaveHendelseRepo = oppgaveHendelseRepo,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                oppdaterOppgaveForTilbakekrevingshendelserKonsument = OppdaterOppgaveForTilbakekrevingshendelserKonsument(
+                    sakService = sakService,
+                    oppgaveService = oppgaveService,
+                    tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+                    oppgaveHendelseRepo = oppgaveHendelseRepo,
+                    hendelseRepo = hendelseRepo,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                oppdaterKravgrunnlagService = OppdaterKravgrunnlagService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    clock = clock,
+                ),
+                notatTilbakekrevingsbehandlingService = NotatTilbakekrevingsbehandlingService(
+                    tilgangstyring = tilgangstyringService,
+                    sakService = sakService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    clock = clock,
+                ),
+            )
+        }
+    }
+}

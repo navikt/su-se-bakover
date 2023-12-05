@@ -28,9 +28,7 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import tilbakekreving.application.service.TilbakekrevingServices
-import tilbakekreving.application.service.Tilbakekrevingskomponenter
-import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
+import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
@@ -101,35 +99,22 @@ fun Application.susebakover(
             dbMetrics = dbMetrics,
         )
     },
-    tilbakekrevingskomponenter: Tilbakekrevingskomponenter = run {
-        val repos = TilbakekrevingRepos(
-            clock = clock,
-            sessionFactory = databaseRepos.sessionFactory,
-            hendelseRepo = databaseRepos.hendelseRepo,
-            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-            oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-        )
-        Tilbakekrevingskomponenter(
-            services = TilbakekrevingServices(
-                clock = clock,
-                sessionFactory = databaseRepos.sessionFactory,
-                personRepo = databaseRepos.person,
-                personService = services.person,
-                kravgrunnlagRepo = repos.kravgrunnlagRepo,
-                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                tilbakekrevingService = services.tilbakekrevingService,
-                sakService = services.sak,
-                tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
-                oppgaveService = services.oppgave,
-                mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
-                oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
-                hendelseRepo = repos.hendelseRepo,
-                brevService = services.brev,
-                dokumentHendelseRepo = repos.dokumentHendelseRepo,
-            ),
-            repos = repos,
-        )
-    },
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter = Tilbakekrevingskomponenter.create(
+        clock = clock,
+        sessionFactory = databaseRepos.sessionFactory,
+        personRepo = databaseRepos.person,
+        personService = services.person,
+        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+        tilbakekrevingUnderRevurderingService = services.tilbakekrevingUnderRevurderingService,
+        sakService = services.sak,
+        oppgaveService = services.oppgave,
+        oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
+        mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
+        hendelseRepo = databaseRepos.hendelseRepo,
+        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+        brevService = services.brev,
+        tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
+    ),
     dokumentkomponenter: Dokumentkomponenter = run {
         val dokumentRepos = DokumentRepos(
             clock = clock,

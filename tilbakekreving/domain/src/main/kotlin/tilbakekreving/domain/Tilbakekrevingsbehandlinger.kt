@@ -16,7 +16,12 @@ data class Tilbakekrevingsbehandlinger(
                 "Tilbakekrevingsbehandlinger for sak $sakId må være sortert etter versjon, men var: $it"
             }
             require(it.distinct() == it) {
-                "Tilbakekrevingsbehandlinger for sak $sakId kan ikke inneholde duplikater: $it"
+                "Tilbakekrevingsbehandlinger for sak $sakId kan ikke inneholde duplikate versjoner, men var: $it"
+            }
+        }
+        this.map { it.id }.let {
+            require(it.distinct() == it) {
+                "Tilbakekrevingsbehandlinger for sak $sakId kan ikke inneholde duplikate IDer, men var: $it"
             }
         }
     }

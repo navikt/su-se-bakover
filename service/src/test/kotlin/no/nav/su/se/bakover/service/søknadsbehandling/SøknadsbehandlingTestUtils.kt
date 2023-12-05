@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
@@ -59,7 +59,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val brevService: BrevService = defaultMock(),
     val clock: Clock = fixedClock,
     val sakService: SakService = defaultMock(),
-    val tilbakekrevingService: TilbakekrevingService = defaultMock(),
+    val tilbakekrevingService: TilbakekrevingUnderRevurderingService = defaultMock(),
     val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
     val sessionFactory: TestSessionFactory = TestSessionFactory(),

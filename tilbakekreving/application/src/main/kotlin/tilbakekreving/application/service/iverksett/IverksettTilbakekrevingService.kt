@@ -6,12 +6,13 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.iverksett
 import tilbakekreving.domain.iverksett.IverksettTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.iverksett.KunneIkkeIverksette
+import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 
@@ -20,6 +21,7 @@ class IverksettTilbakekrevingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val tilbakekrevingsklient: Tilbakekrevingsklient,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

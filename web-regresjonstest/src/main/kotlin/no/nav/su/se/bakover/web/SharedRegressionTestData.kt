@@ -64,9 +64,7 @@ import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import tilbakekreving.application.service.TilbakekrevingServices
-import tilbakekreving.application.service.Tilbakekrevingskomponenter
-import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
+import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
@@ -186,32 +184,21 @@ data object SharedRegressionTestData {
                 },
                 applicationConfig = applicationConfig,
                 tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
-                    val repos = TilbakekrevingRepos(
+                    Tilbakekrevingskomponenter.create(
                         clock = clock,
                         sessionFactory = databaseRepos.sessionFactory,
-                        hendelseRepo = databaseRepos.hendelseRepo,
+                        personRepo = databaseRepos.person,
+                        personService = services.person,
                         hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        tilbakekrevingUnderRevurderingService = services.tilbakekrevingUnderRevurderingService,
+                        sakService = services.sak,
+                        oppgaveService = services.oppgave,
                         oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-                    )
-                    Tilbakekrevingskomponenter(
-                        repos = repos,
-                        services = TilbakekrevingServices(
-                            clock = clock,
-                            sessionFactory = databaseRepos.sessionFactory,
-                            personRepo = databaseRepos.person,
-                            personService = services.person,
-                            kravgrunnlagRepo = repos.kravgrunnlagRepo,
-                            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                            tilbakekrevingService = services.tilbakekrevingService,
-                            sakService = services.sak,
-                            tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
-                            mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlagPåSakHendelse,
-                            oppgaveService = services.oppgave,
-                            oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
-                            hendelseRepo = repos.hendelseRepo,
-                            brevService = services.brev,
-                            dokumentHendelseRepo = repos.dokumentHendelseRepo,
-                        ),
+                        mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
+                        hendelseRepo = databaseRepos.hendelseRepo,
+                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+                        brevService = services.brev,
+                        tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
                     )
                 },
                 dokumentKomponenterBuilder = { databaseRepos, services, clients ->

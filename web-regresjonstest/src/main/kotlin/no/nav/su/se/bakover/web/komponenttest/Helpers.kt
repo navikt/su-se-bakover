@@ -30,7 +30,7 @@ internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId:
 }
 
 internal fun AppComponents.sendTilbakekrevingsvedtakTilØkonomi() {
-    services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+    services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
 }
 
 internal fun lagUtbetalingsKvittering(utbetalingsrequest: Utbetalingsrequest): String {

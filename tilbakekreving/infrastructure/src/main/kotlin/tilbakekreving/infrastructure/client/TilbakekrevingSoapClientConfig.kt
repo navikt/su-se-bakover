@@ -2,16 +2,13 @@ package tilbakekreving.infrastructure.client
 
 import common.infrastructure.cxf.wrapInStsClient
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.slf4j.LoggerFactory
 import javax.xml.namespace.QName
 
 class TilbakekrevingSoapClientConfig(
-    private val tilbakekrevingServiceUrl: String,
-    private val stsSoapUrl: String,
-    private val disableCNCheck: Boolean,
-    private val serviceUser: ApplicationConfig.ServiceUserConfig,
+    private val tilbakekrevingConfig: TilbakekrevingConfig,
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -24,14 +21,14 @@ class TilbakekrevingSoapClientConfig(
     }
 
     fun tilbakekrevingSoapService(): TilbakekrevingPortType {
-        log.info("Using tilbakekrevingService url $tilbakekrevingServiceUrl")
+        log.info("Using tilbakekrevingService url ${tilbakekrevingConfig.soap.url} and sts url ${tilbakekrevingConfig.soap.stsSoapUrl}")
         return JaxWsProxyFactoryBean().apply {
-            address = tilbakekrevingServiceUrl
+            address = tilbakekrevingConfig.soap.url
             wsdlURL = WSDL
             serviceName = SERVICE
             endpointName = PORT
             serviceClass = TilbakekrevingPortType::class.java
             // features = listOf(LoggingFeature()) // Add LoggingFeature() to enable full logging of req/resp
-        }.wrapInStsClient(stsSoapUrl, serviceUser, disableCNCheck)
+        }.wrapInStsClient(tilbakekrevingConfig.soap.stsSoapUrl, tilbakekrevingConfig.serviceUserConfig, true)
     }
 }

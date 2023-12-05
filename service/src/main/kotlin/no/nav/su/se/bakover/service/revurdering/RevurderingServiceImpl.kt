@@ -98,7 +98,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
@@ -122,7 +122,7 @@ class RevurderingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
-    private val tilbakekrevingService: TilbakekrevingService,
+    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val satsFactory: SatsFactory,
 ) : RevurderingService {
 

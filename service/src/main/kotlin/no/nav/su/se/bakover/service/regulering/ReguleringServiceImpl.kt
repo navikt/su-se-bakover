@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -55,7 +55,7 @@ class ReguleringServiceImpl(
     private val vedtakService: VedtakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val tilbakekrevingService: TilbakekrevingService,
+    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val satsFactory: SatsFactory,
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)

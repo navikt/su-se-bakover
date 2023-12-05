@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
+import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.AzureConfig
@@ -11,7 +13,7 @@ fun applicationConfig() = ApplicationConfig(
     gitCommit = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
-    serviceUser = ApplicationConfig.ServiceUserConfig(
+    serviceUser = ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",
     ),
@@ -44,12 +46,17 @@ fun applicationConfig() = ApplicationConfig(
             url = "simuleringTestUrl",
             stsSoapUrl = "simuleringStsTestSoapUrl",
         ),
-        tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
-            mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
+        tilbakekreving = TilbakekrevingConfig(
+            mq = TilbakekrevingConfig.Mq(
                 mottak = "tilbakekrevingMqTestSendQueue",
             ),
-            soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
+            soap = TilbakekrevingConfig.Soap(
                 url = "tilbakekrevingUrl",
+                stsSoapUrl = "stsSoapUrl",
+            ),
+            serviceUserConfig = ServiceUserConfig(
+                username = "tilbakekrevingServiceUserTestUsername",
+                password = "tilbakekrevingServiceUserTestPassword",
             ),
         ),
     ),

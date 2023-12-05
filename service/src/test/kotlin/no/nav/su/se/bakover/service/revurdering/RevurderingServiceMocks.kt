@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -38,7 +38,7 @@ internal data class RevurderingServiceMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val observer: StatistikkEventObserver = mock(),
     val clock: Clock = TikkendeKlokke(),
-    val tilbakekrevingService: TilbakekrevingService = defaultMock(),
+    val tilbakekrevingService: TilbakekrevingUnderRevurderingService = defaultMock(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
 ) {
     val revurderingService = RevurderingServiceImpl(

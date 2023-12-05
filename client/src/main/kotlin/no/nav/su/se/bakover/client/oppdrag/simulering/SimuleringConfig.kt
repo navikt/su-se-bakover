@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import common.infrastructure.cxf.wrapInStsClient
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.apache.cxf.transport.http.HttpConduitConfig
@@ -15,7 +15,7 @@ class SimuleringConfig(
     private val simuleringServiceUrl: String,
     private val stsSoapUrl: String,
     private val disableCNCheck: Boolean,
-    private val serviceUser: ApplicationConfig.ServiceUserConfig,
+    private val serviceUser: ServiceUserConfig,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

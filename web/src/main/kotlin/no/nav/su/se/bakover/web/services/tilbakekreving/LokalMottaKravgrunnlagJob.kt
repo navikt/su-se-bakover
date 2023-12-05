@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.simulering.deserializeSimulering
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.RåttKravgrunnlagService
+import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag

@@ -297,7 +297,7 @@ data object ServiceBuilder {
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
-            tilbakekrevingService = tilbakekrevingService,
+            tilbakekrevingUnderRevurderingService = tilbakekrevingService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakRepo = databaseRepos.sak,

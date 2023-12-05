@@ -1,4 +1,4 @@
-package tilbakekreving.application.service
+package tilbakekreving.application.service.kravgrunnlag
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId

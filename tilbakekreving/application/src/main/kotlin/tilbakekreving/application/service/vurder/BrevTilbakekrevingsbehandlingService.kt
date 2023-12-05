@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterVedtaksbrev
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst

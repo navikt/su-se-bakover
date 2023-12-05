@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -14,7 +14,7 @@ import kotlin.concurrent.fixedRateTimer
  * I en overgangsfase, så lenge vi støtter å vurdere tilbakekreving i revurderingen, må vi ha denne jobben som sender tilbakekrevingsvedtakene til oppdrag for de tilfellene.
  */
 internal class SendTilbakekrevingsvedtakForRevurdering(
-    private val tilbakekrevingService: TilbakekrevingService,
+    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val initialDelay: Duration,
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,

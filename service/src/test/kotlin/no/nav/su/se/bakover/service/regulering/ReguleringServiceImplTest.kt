@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -511,7 +511,7 @@ internal class ReguleringServiceImplTest {
         val utbetalingMock = mock<UtbetalingService> {}
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
-        val tilbakekrevingMock = mock<TilbakekrevingService> {}
+        val tilbakekrevingMock = mock<TilbakekrevingUnderRevurderingService> {}
 
         ReguleringServiceImpl(
             reguleringRepo = reguleringMock,

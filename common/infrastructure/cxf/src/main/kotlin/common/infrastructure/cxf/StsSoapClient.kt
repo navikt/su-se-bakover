@@ -1,6 +1,6 @@
 package common.infrastructure.cxf
 
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import org.apache.cxf.Bus
 import org.apache.cxf.binding.soap.Soap12
 import org.apache.cxf.binding.soap.SoapMessage
@@ -22,7 +22,7 @@ const val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
 
 inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
     stsSoapUrl: String,
-    serviceUser: ApplicationConfig.ServiceUserConfig,
+    serviceUser: ServiceUserConfig,
     disableCNCheck: Boolean,
 ): T {
     return this.create(T::class.java).apply {

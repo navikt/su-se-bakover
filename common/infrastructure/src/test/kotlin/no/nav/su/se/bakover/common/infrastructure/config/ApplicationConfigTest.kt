@@ -4,6 +4,8 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
+import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -45,7 +47,7 @@ class ApplicationConfigTest {
         gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
-        serviceUser = ApplicationConfig.ServiceUserConfig(
+        serviceUser = ServiceUserConfig(
             username = "username",
             password = "password",
         ),
@@ -78,9 +80,13 @@ class ApplicationConfigTest {
                 url = "simuleringUrl",
                 stsSoapUrl = "stsSoapUrl",
             ),
-            tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
-                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
-                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
+            tilbakekreving = TilbakekrevingConfig(
+                mq = TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
+                soap = TilbakekrevingConfig.Soap("tilbakekrevingUrl", "stsSoapUrl"),
+                serviceUserConfig = ServiceUserConfig(
+                    username = "username",
+                    password = "password",
+                ),
             ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
@@ -223,7 +229,7 @@ class ApplicationConfigTest {
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 naisCluster = null,
                 leaderPodLookupPath = "",
-                serviceUser = ApplicationConfig.ServiceUserConfig(
+                serviceUser = ServiceUserConfig(
                     username = "unused",
                     password = "unused",
                 ),
@@ -245,9 +251,13 @@ class ApplicationConfigTest {
                         url = "unused",
                         stsSoapUrl = "unused",
                     ),
-                    tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
-                        mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("unused"),
-                        soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("unused"),
+                    tilbakekreving = TilbakekrevingConfig(
+                        mq = TilbakekrevingConfig.Mq("unused"),
+                        soap = TilbakekrevingConfig.Soap("unused", "unused"),
+                        serviceUserConfig = ServiceUserConfig(
+                            username = "unused",
+                            password = "unused",
+                        ),
                     ),
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(

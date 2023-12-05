@@ -2,10 +2,8 @@ package tilbakekreving.infrastructure.repo
 
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -15,29 +13,35 @@ import java.time.Clock
 /**
  * Et forsøk på modularisering av [no.nav.su.se.bakover.domain.DatabaseRepos] der de forskjellige modulene er ansvarlige for å wire opp sine komponenter.
  *
- * Det kan hende vi må splitte denne i en data class + builder.
  */
 class TilbakekrevingRepos(
-    val clock: Clock,
-    val sessionFactory: SessionFactory,
-    val hendelseRepo: HendelseRepo,
-    val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
-        hendelseRepo = hendelseRepo,
-        hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
-        sessionFactory,
-    ),
-    val kravgrunnlagRepo: KravgrunnlagRepo = KravgrunnlagPostgresRepo(
-        hendelseRepo = hendelseRepo,
-        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-    ),
-    val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
-        sessionFactory = sessionFactory,
-        hendelseRepo = hendelseRepo,
-        clock = clock,
-        kravgrunnlagRepo = kravgrunnlagRepo,
-        oppgaveRepo = oppgaveHendelseRepo,
-        dokumentHendelseRepo = dokumentHendelseRepo,
-    ),
-)
+    val kravgrunnlagRepo: KravgrunnlagRepo,
+    val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+) {
+    companion object {
+        fun create(
+            clock: Clock,
+            sessionFactory: SessionFactory,
+            hendelseRepo: HendelseRepo,
+            hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+            oppgaveHendelseRepo: OppgaveHendelseRepo,
+            dokumentHendelseRepo: DokumentHendelseRepo,
+        ): TilbakekrevingRepos {
+            val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
+                hendelseRepo = hendelseRepo,
+                hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+            )
+            return TilbakekrevingRepos(
+                kravgrunnlagRepo = kravgrunnlagRepo,
+                tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
+                    sessionFactory = sessionFactory,
+                    hendelseRepo = hendelseRepo,
+                    clock = clock,
+                    kravgrunnlagRepo = kravgrunnlagRepo,
+                    oppgaveRepo = oppgaveHendelseRepo,
+                    dokumentHendelseRepo = dokumentHendelseRepo,
+                ),
+            )
+        }
+    }
+}

@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.web.routes.vedtak.stønadsmottakereRoute
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
-import tilbakekreving.application.service.Tilbakekrevingskomponenter
+import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.api.tilbakekrevingRoutes
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock

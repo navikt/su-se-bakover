@@ -145,15 +145,15 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     it shouldBe emptyList()
                 }
 
-            appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
+            appComponents.services.tilbakekrevingUnderRevurderingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
-            appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
+            appComponents.services.tilbakekrevingUnderRevurderingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
 
-            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+            appComponents.services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.also {
@@ -265,7 +265,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 it.size shouldBe 2
             }
 
-            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+            appComponents.services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.also {
@@ -366,9 +366,9 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     it shouldBe emptyList()
                 }
 
-            appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
+            appComponents.services.tilbakekrevingUnderRevurderingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
-            appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
+            appComponents.services.tilbakekrevingUnderRevurderingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.emulerViMottarKravgrunnlagDetaljer()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -465,7 +465,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             appComponents.emulerViMottarKravgrunnlagDetaljer(
                 overstyrUtbetalingId = listOf(null, utbetalingIdForSøknadsbehandling),
             )
-            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+            appComponents.services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!.also {
@@ -534,7 +534,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 it.value[0].shouldBeTypeOf<IllegalStateException>()
             }
 
-            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+            appComponents.services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!.also {
                     it.shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
@@ -595,7 +595,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                 it.value[0].shouldBeTypeOf<IllegalStateException>()
             }
 
-            appComponents.services.tilbakekrevingService.sendUteståendeTilbakekrevingsvedtak()
+            appComponents.services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!.also {
                     it.shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()

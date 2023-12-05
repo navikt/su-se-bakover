@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.common.infrastructure.config
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
+import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrNull
@@ -20,7 +22,7 @@ import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-private data object EnvironmentConfig {
+internal data object EnvironmentConfig {
     private val env by lazy {
         dotenv {
             ignoreIfMissing = true
@@ -72,27 +74,6 @@ data class ApplicationConfig(
         Prod,
     }
 
-    data class ServiceUserConfig(
-        val username: String,
-        val password: String,
-    ) {
-        override fun toString(): String {
-            return "ServiceUser(username='$username', password='****')"
-        }
-
-        companion object {
-            fun createFromEnvironmentVariables() = ServiceUserConfig(
-                username = getEnvironmentVariableOrThrow("username"),
-                password = getEnvironmentVariableOrThrow("password"),
-            )
-
-            fun createLocalConfig() = ServiceUserConfig(
-                username = "unused",
-                password = "unused",
-            )
-        }
-    }
-
     data class FrikortConfig(
         val serviceUsername: List<String>,
         val useStubForSts: Boolean,
@@ -125,7 +106,7 @@ data class ApplicationConfig(
          */
         val ordinærÅpningstid = LocalTime.of(6, 0, 0) to LocalTime.of(21, 0, 0)
 
-        data class UtbetalingConfig constructor(
+        data class UtbetalingConfig(
             val mqSendQueue: String,
             val mqReplyTo: String,
         ) {
@@ -137,7 +118,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class AvstemmingConfig constructor(
+        data class AvstemmingConfig(
             val mqSendQueue: String,
         ) {
             companion object {
@@ -147,7 +128,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class SimuleringConfig constructor(
+        data class SimuleringConfig(
             val url: String,
             val stsSoapUrl: String,
         ) {
@@ -156,38 +137,6 @@ data class ApplicationConfig(
                     url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
                     stsSoapUrl = getEnvironmentVariableOrThrow("STS_URL_SOAP"),
                 )
-            }
-        }
-
-        data class TilbakekrevingConfig(
-            val mq: Mq,
-            val soap: Soap,
-        ) {
-            companion object {
-                fun createFromEnvironmentVariables() = TilbakekrevingConfig(
-                    mq = Mq.createFromEnvironmentVariables(),
-                    soap = Soap.createFromEnvironmentVariables(),
-                )
-            }
-
-            data class Mq(
-                val mottak: String,
-            ) {
-                companion object {
-                    fun createFromEnvironmentVariables() = Mq(
-                        mottak = getEnvironmentVariableOrThrow("MQ_TILBAKEKREVING_MOTTAK"),
-                    )
-                }
-            }
-
-            data class Soap(
-                val url: String,
-            ) {
-                companion object {
-                    fun createFromEnvironmentVariables() = Soap(
-                        url = getEnvironmentVariableOrThrow("TILBAKEKREVING_URL"),
-                    )
-                }
             }
         }
 
@@ -219,7 +168,8 @@ data class ApplicationConfig(
                 ),
                 tilbakekreving = TilbakekrevingConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
-                    soap = TilbakekrevingConfig.Soap("unused"),
+                    soap = TilbakekrevingConfig.Soap("unused", "unused"),
+                    serviceUserConfig = ServiceUserConfig("unused", "unused"),
                 ),
             )
         }

@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":common:presentation"))
 
     implementation(project(":økonomi:domain"))
+    implementation(project(":oppgave:domain"))
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":hendelse:domain"))
     implementation(project(":dokument:domain"))

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering
 
 import common.infrastructure.cxf.wrapInStsClient
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.slf4j.LoggerFactory
 import javax.xml.namespace.QName
@@ -14,7 +14,7 @@ class TilbakekrevingUnderRevurderingSoapClientConfig(
     private val tilbakekrevingServiceUrl: String,
     private val stsSoapUrl: String,
     private val disableCNCheck: Boolean,
-    private val serviceUser: ApplicationConfig.ServiceUserConfig,
+    private val serviceUser: ServiceUserConfig,
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
