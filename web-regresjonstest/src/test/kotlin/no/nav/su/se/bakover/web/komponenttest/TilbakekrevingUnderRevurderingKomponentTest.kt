@@ -160,7 +160,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     it.simulering.harFeilutbetalinger() shouldBe true
                 }.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
                 .also { tilbakekrevingsvedtak ->
-                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.originalRequest()
+                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.requestXml
                     val expected = """
 <TilbakekrevingsvedtakRequest>
 	<tilbakekrevingsvedtak>
@@ -272,7 +272,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     it.simulering.harFeilutbetalinger() shouldBe true
                 }.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
                 .also { tilbakekrevingsvedtak ->
-                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.originalRequest()
+                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.requestXml
                     val expected = """
 <TilbakekrevingsvedtakRequest>
 	<tilbakekrevingsvedtak>
@@ -379,7 +379,7 @@ class TilbakekrevingUnderRevurderingKomponentTest {
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
                 .also { tilbakekrevingsvedtak ->
-                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.originalRequest()
+                    val actualXml = tilbakekrevingsvedtak.tilbakekrevingsvedtakForsendelse.requestXml
                     val expected = """
 <TilbakekrevingsvedtakRequest>
 	<tilbakekrevingsvedtak>

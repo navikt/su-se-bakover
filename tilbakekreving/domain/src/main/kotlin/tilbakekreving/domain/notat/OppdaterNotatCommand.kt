@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.SakshendelseCommand
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
@@ -17,4 +18,10 @@ data class OppdaterNotatCommand(
     val notat: NonBlankString?,
     val behandlingId: TilbakekrevingsbehandlingId,
     val klientensSisteSaksversjon: Hendelsesversjon,
-) : SakshendelseCommand
+) : SakshendelseCommand {
+    fun toDefaultHendelsesMetadata() = DefaultHendelseMetadata(
+        correlationId = correlationId,
+        ident = this.utførtAv,
+        brukerroller = brukerroller,
+    )
+}

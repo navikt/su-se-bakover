@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
@@ -64,7 +65,6 @@ import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
@@ -184,7 +184,7 @@ data object SharedRegressionTestData {
                 },
                 applicationConfig = applicationConfig,
                 tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
-                    Tilbakekrevingskomponenter.create(
+                    tilbakekrevingskomponenterMedClientStubs(
                         clock = clock,
                         sessionFactory = databaseRepos.sessionFactory,
                         personRepo = databaseRepos.person,
@@ -198,7 +198,6 @@ data object SharedRegressionTestData {
                         hendelseRepo = databaseRepos.hendelseRepo,
                         dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
                         brevService = services.brev,
-                        tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
                     )
                 },
                 dokumentKomponenterBuilder = { databaseRepos, services, clients ->

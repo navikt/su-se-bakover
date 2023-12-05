@@ -10,6 +10,7 @@ import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilga
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.iverksett
+import tilbakekreving.domain.iverksett.IverksattHendelseMetadata
 import tilbakekreving.domain.iverksett.IverksettTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.iverksett.KunneIkkeIverksette
 import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
@@ -21,8 +22,7 @@ class IverksettTilbakekrevingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    // Skal bruke i neste PR
-    @Suppress("unused") private val tilbakekrevingsklient: Tilbakekrevingsklient,
+    private val tilbakekrevingsklient: Tilbakekrevingsklient,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -58,6 +58,12 @@ class IverksettTilbakekrevingService(
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
         }
 
+        val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
+            vurderingerMedKrav = behandling.vurderingerMedKrav,
+            attestertAv = command.utførtAv,
+        ).getOrElse {
+            return KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak.left()
+        }
         return behandling.iverksett(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
@@ -74,7 +80,15 @@ class IverksettTilbakekrevingService(
              *      lag, journalfør og distribuer vedtaksbrev
              */
             // ved lagring av iverksett hendelsen, skal en jobb starte brev løpet
-            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            tilbakekrevingsbehandlingRepo.lagreIverksattTilbakekrevingshendelse(
+                it.first,
+                IverksattHendelseMetadata(
+                    correlationId = command.correlationId,
+                    ident = command.utførtAv,
+                    brukerroller = command.brukerroller,
+                    tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse,
+                ),
+            )
             it.second.right()
         }
     }

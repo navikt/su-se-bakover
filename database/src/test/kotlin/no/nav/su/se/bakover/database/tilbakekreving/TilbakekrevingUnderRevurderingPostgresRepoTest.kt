@@ -158,9 +158,9 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
 
             val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
                 tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
-                    "requestXml",
-                    fixedTidspunkt,
-                    "responseXml",
+                    requestXml = "requestXml",
+                    responseXml = "responseXml",
+                    tidspunkt = fixedTidspunkt,
                 ),
             )
             testDataHelper.sessionFactory.withSession { session ->

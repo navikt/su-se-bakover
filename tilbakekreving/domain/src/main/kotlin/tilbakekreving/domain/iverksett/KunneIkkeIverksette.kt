@@ -12,4 +12,5 @@ sealed interface KunneIkkeIverksette {
     data object KravgrunnlagetHarEndretSeg : KunneIkkeIverksette
     data object UlikVersjon : KunneIkkeIverksette
     data object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeIverksette
+    data object KunneIkkeSendeTilbakekrevingsvedtak : KunneIkkeIverksette
 }
