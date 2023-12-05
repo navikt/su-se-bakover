@@ -30,11 +30,14 @@ data class AnnullerUtenlandsoppholdCommand(
             nesteVersjon = nesteVersjon,
             utførtAv = opprettetAv,
             clock = clock,
-            hendelseMetadata = DefaultHendelseMetadata(
-                correlationId = correlationId,
-                ident = opprettetAv,
-                brukerroller = brukerroller,
-            ),
+        )
+    }
+
+    fun toMetadata(): DefaultHendelseMetadata {
+        return DefaultHendelseMetadata(
+            correlationId = correlationId,
+            ident = opprettetAv,
+            brukerroller = brukerroller,
         )
     }
 }

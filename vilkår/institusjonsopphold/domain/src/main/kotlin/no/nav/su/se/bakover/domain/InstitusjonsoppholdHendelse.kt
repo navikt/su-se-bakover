@@ -56,7 +56,7 @@ data class InstitusjonsoppholdHendelse(
     override val tidligereHendelseId: HendelseId? = null,
     val eksterneHendelse: EksternInstitusjonsoppholdHendelse,
 ) : Sakshendelse {
-    override val meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom()
+    val meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom()
     override val entitetId: UUID = sakId
 
     override fun compareTo(other: Sakshendelse): Int {

@@ -10,11 +10,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
@@ -80,6 +82,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
 ) : TilbakekrevingsbehandlingRepo {
     override fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
+        meta: DefaultHendelseMetadata,
         sessionContext: SessionContext?,
     ) {
         // TODO jah: Kanskje vi bør flytte denne til interfacet?
@@ -99,6 +102,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
             },
             data = hendelse.toJson(),
             sessionContext = sessionContext,
+            meta = meta.toDbJson(),
         )
     }
 
@@ -230,7 +234,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
         )
 
         ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
@@ -240,7 +243,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelsesId = this.tidligereHendelseId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
         )
 
         VurdertTilbakekrevingsbehandlingHendelsestype -> mapToVurdertTilbakekrevingsbehandlingHendelse()
@@ -251,7 +253,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
@@ -261,7 +262,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
@@ -271,7 +271,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
@@ -281,7 +280,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
@@ -291,7 +289,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = defaultHendelseMetadata(),
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
@@ -301,7 +298,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = defaultHendelseMetadata(),
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
@@ -311,7 +307,6 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = defaultHendelseMetadata(),
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 

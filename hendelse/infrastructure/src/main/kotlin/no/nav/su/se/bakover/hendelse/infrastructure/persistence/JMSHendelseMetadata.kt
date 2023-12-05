@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 
-private data class JMSHendelseMetadataJson(
+private data class JMSHendelseMetadataDbJson(
     val jmsCorrelationId: String?,
     val jmsDeliveryMode: Int?,
     val jmsDeliveryTime: Long?,
@@ -21,7 +21,7 @@ private data class JMSHendelseMetadataJson(
 )
 
 fun toJMSHendelseMetaData(data: String): JMSHendelseMetadata {
-    return deserialize<JMSHendelseMetadataJson>(data).let {
+    return deserialize<JMSHendelseMetadataDbJson>(data).let {
         JMSHendelseMetadata(
             jmsCorrelationId = it.jmsCorrelationId,
             jmsDeliveryMode = it.jmsDeliveryMode,
@@ -39,8 +39,8 @@ fun toJMSHendelseMetaData(data: String): JMSHendelseMetadata {
     }
 }
 
-fun JMSHendelseMetadata.toJson(): String {
-    return JMSHendelseMetadataJson(
+fun JMSHendelseMetadata.toDbJson(): String {
+    return JMSHendelseMetadataDbJson(
         jmsCorrelationId = jmsCorrelationId,
         jmsDeliveryMode = jmsDeliveryMode,
         jmsDeliveryTime = jmsDeliveryTime,

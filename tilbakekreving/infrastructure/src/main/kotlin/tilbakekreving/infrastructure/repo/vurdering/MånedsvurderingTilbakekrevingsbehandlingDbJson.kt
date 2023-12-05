@@ -24,7 +24,6 @@ internal fun PersistertHendelse.mapToVurdertTilbakekrevingsbehandlingHendelse():
         sakId = sakId!!,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = defaultHendelseMetadata(),
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         tidligereHendelseId = tidligereHendelseId!!,
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),

@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.IverksattHendelse
@@ -22,7 +21,6 @@ internal fun mapToTilIverksattHendelse(
     sakId: UUID,
     hendelsestidspunkt: Tidspunkt,
     versjon: Hendelsesversjon,
-    meta: DefaultHendelseMetadata,
     tidligereHendelseId: HendelseId,
 ): IverksattHendelse {
     val deserialized = deserialize<IverksattHendelseDbJson>(data)
@@ -32,7 +30,6 @@ internal fun mapToTilIverksattHendelse(
         sakId = sakId,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = meta,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
         tidligereHendelseId = tidligereHendelseId,

@@ -51,12 +51,11 @@ class TilbakekrevingsbehandlingTilAttesteringService(
         }
 
         return behandling.tilAttestering(
-            meta = command.defaultHendelseMetadata(),
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it)
+            tilbakekrevingsbehandlingRepo.lagre(it, command.defaultHendelseMetadata())
             it.applyToState(behandling).right()
         }
     }

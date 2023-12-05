@@ -3,7 +3,6 @@ package økonomi.domain.kvittering
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
@@ -18,7 +17,6 @@ data class KvitteringPåSakHendelse(
     override val versjon: Hendelsesversjon,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: HendelseMetadata,
     override val tidligereHendelseId: HendelseId? = null,
     val utbetalingsstatus: Kvittering.Utbetalingsstatus,
     val originalKvittering: String,
@@ -41,7 +39,6 @@ data class KvitteringPåSakHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: HendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             utbetalingsstatus: Kvittering.Utbetalingsstatus,
@@ -52,7 +49,6 @@ data class KvitteringPåSakHendelse(
             return KvitteringPåSakHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
-                meta = hendelseMetadata,
                 sakId = sakId,
                 utbetalingsstatus = utbetalingsstatus,
                 originalKvittering = originalKvittering,

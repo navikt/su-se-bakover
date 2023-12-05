@@ -4,11 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.brev.BrevService
-import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.KanForhåndsvarsle
@@ -22,11 +18,7 @@ import java.time.Clock
 class ForhåndsvarsleTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
     private val sakService: SakService,
-    private val brevService: BrevService,
-    private val oppgaveService: OppgaveService,
-    private val oppgaveHendelseRepo: OppgaveHendelseRepo,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -62,7 +54,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first)
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
             return it.second.right()
         }
     }

@@ -111,7 +111,7 @@ internal class OppgaveHttpClient(
         }.flatMap { token ->
             hentOppgave(oppgaveId, token)
         }.map {
-            it.toDomain()
+            it.oppgaveResponse.toDomain()
         }
     }
 
@@ -121,7 +121,7 @@ internal class OppgaveHttpClient(
         return tokenoppslagForSystembruker.token().value.let {
             hentOppgave(oppgaveId, it)
         }.map {
-            it.toDomain()
+            it.oppgaveResponse.toDomain()
         }
     }
 
@@ -260,7 +260,7 @@ internal class OppgaveHttpClient(
     private fun hentOppgave(
         oppgaveId: OppgaveId,
         token: String,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata> {
         return Either.catch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/$oppgaveId"))
@@ -274,7 +274,11 @@ internal class OppgaveHttpClient(
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 if (it.isSuccess()) {
                     val oppgave = deserialize<OppgaveResponse>(it.body())
-                    oppgave.right()
+                    OppgaveResponseMedMetadata(
+                        oppgaveResponse = oppgave,
+                        jsonRequest = null,
+                        jsonResponse = it.body(),
+                    ).right()
                 } else {
                     log.error(
                         "Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}",

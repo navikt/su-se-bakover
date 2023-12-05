@@ -18,7 +18,6 @@ data class SakOpprettetHendelse private constructor(
     val fnr: Fnr,
     val opprettetAv: NavIdentBruker,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: DefaultHendelseMetadata,
 ) : Sakshendelse {
     override val tidligereHendelseId: HendelseId? = null
     override val entitetId = sakId
@@ -39,7 +38,6 @@ data class SakOpprettetHendelse private constructor(
             fnr: Fnr,
             opprettetAv: NavIdentBruker,
             hendelsestidspunkt: Tidspunkt,
-            meta: DefaultHendelseMetadata,
             entitetId: UUID,
             versjon: Long,
         ): SakOpprettetHendelse {
@@ -49,7 +47,6 @@ data class SakOpprettetHendelse private constructor(
                 fnr = fnr,
                 opprettetAv = opprettetAv,
                 hendelsestidspunkt = hendelsestidspunkt,
-                meta = meta,
             ).also {
                 require(entitetId == it.entitetId) {
                     "EntitetId til SakOpprettetHendelse må være sakId $sakId, men var $entitetId"

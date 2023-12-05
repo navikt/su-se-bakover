@@ -14,18 +14,14 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
 import no.nav.su.se.bakover.test.getFileSourceContent
-import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
-import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -45,13 +41,11 @@ fun råttKravgrunnlagHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     clock: Clock = fixedClock,
     hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    meta: JMSHendelseMetadata = jmsHendelseMetadata(),
     råttKravgrunnlag: RåttKravgrunnlag = råttKravgrunnlagTomt(),
 ): RåttKravgrunnlagHendelse {
     return RåttKravgrunnlagHendelse(
         hendelseId = hendelseId,
         hendelsestidspunkt = hendelsestidspunkt,
-        meta = meta,
         råttKravgrunnlag = råttKravgrunnlag,
     )
 }
@@ -108,7 +102,6 @@ fun kravgrunnlagPåSakHendelse(
     sakId: UUID = UUID.randomUUID(),
     clock: Clock = fixedClock,
     hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    meta: DefaultHendelseMetadata = defaultHendelseMetadata(),
     tidligereHendelseId: HendelseId = HendelseId.generer(),
     eksternKravgrunnlagId: String = UUID.randomUUID().toString(),
     eksternVedtakId: String = UUID.randomUUID().toString(),
@@ -139,7 +132,6 @@ fun kravgrunnlagPåSakHendelse(
         versjon = versjon,
         sakId = sakId,
         hendelsestidspunkt = hendelsestidspunkt,
-        meta = meta,
         tidligereHendelseId = tidligereHendelseId,
         kravgrunnlag = kravgrunnlag,
         revurderingId = revurderingId,

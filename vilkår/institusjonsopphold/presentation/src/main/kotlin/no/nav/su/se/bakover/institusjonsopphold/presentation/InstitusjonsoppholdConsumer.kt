@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
@@ -51,10 +52,10 @@ class InstitusjonsoppholdConsumer private constructor(
         CoroutineScope(Dispatchers.IO).launch {
             while (this.isActive) {
                 Either.catch {
-                    withCorrelationIdSuspend {
+                    withCorrelationIdSuspend { correlationId ->
                         val messages = consumer.poll(pollTimeoutDuration)
                         if (!messages.isEmpty) {
-                            consume(messages)
+                            consume(messages, correlationId)
                         }
                     }
                 }.mapLeft {
@@ -67,14 +68,17 @@ class InstitusjonsoppholdConsumer private constructor(
         }
     }
 
-    private fun consume(messages: ConsumerRecords<String, String>) {
+    private fun consume(
+        messages: ConsumerRecords<String, String>,
+        correlationId: CorrelationId,
+    ) {
         val offsets = mutableMapOf<TopicPartition, OffsetAndMetadata>()
         log.debug("InstitusjonsoppholdConsumer: Prosesserer ${messages.count()} nye meldinger.")
 
         run offsets@{
             messages.forEach { message ->
                 val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
-                institusjonsoppholdService.process(eksternInstHendelse.toDomain())
+                institusjonsoppholdService.process(eksternInstHendelse.toDomain(), correlationId)
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
             }
             consumer.commitSync(offsets)

@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.domain.NonBlankString.Companion.toNonBlankStr
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
@@ -25,7 +24,6 @@ internal fun mapTilNotatHendelse(
     sakId: UUID,
     hendelsestidspunkt: Tidspunkt,
     versjon: Hendelsesversjon,
-    meta: DefaultHendelseMetadata,
 ): NotatTilbakekrevingsbehandlingHendelse {
     val deserialized = deserialize<NotatHendelseDbJson>(data)
 
@@ -34,7 +32,6 @@ internal fun mapTilNotatHendelse(
         sakId = sakId,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = meta,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         tidligereHendelseId = tidligereHendelsesId,
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),

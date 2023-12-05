@@ -43,7 +43,6 @@ internal data class RegistrertUtenlandsoppholdJson(
                     begrunnelse = json.begrunnelse,
                     opprettetAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,
-                    hendelseMetadata = this.defaultHendelseMetadata(),
                     forrigeVersjon = this.versjon,
                     entitetId = this.entitetId,
                 )

@@ -6,7 +6,6 @@ package tilbakekreving.domain
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
@@ -19,7 +18,6 @@ data class BrevTilbakekrevingsbehandlingHendelse(
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: DefaultHendelseMetadata,
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
@@ -70,11 +68,6 @@ fun KanLeggeTilBrev.leggTilBrevtekst(
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),
         versjon = nesteVersjon,
-        meta = DefaultHendelseMetadata(
-            correlationId = command.correlationId,
-            ident = command.utførtAv,
-            brukerroller = command.brukerroller,
-        ),
         tidligereHendelseId = tidligereHendelsesId,
         id = command.behandlingId,
         utførtAv = command.utførtAv,

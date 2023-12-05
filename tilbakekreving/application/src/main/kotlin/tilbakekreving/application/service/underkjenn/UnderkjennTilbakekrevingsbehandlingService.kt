@@ -44,14 +44,13 @@ class UnderkjennTilbakekrevingsbehandlingService(
         }
 
         return behandling.underkjenn(
-            meta = command.toDefaultHendelsesMetadata(),
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
             grunn = command.grunn,
             kommentar = command.kommentar,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first)
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
             it.second.right()
         }
     }

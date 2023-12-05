@@ -9,9 +9,11 @@ import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
 import no.nav.su.se.bakover.domain.OppholdId
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelseData.Companion.toStringifiedJson
 import java.util.UUID
 
@@ -22,10 +24,14 @@ class InstitusjonsoppholdHendelsePostgresRepo(
     private val hendelseRepo: HendelsePostgresRepo,
 ) : InstitusjonsoppholdHendelseRepo {
 
-    override fun lagre(hendelse: InstitusjonsoppholdHendelse) {
+    override fun lagre(
+        hendelse: InstitusjonsoppholdHendelse,
+        meta: DefaultHendelseMetadata,
+    ) {
         dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse") {
             hendelseRepo.persisterSakshendelse(
                 hendelse = hendelse,
+                meta = meta.toDbJson(),
                 type = InstitusjonsoppholdHendelsestype,
                 data = hendelse.toStringifiedJson(),
             )

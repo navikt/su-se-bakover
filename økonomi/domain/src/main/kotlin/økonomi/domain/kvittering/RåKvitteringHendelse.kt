@@ -1,13 +1,10 @@
 package økonomi.domain.kvittering
 
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import java.time.Clock
 import java.util.UUID
 
@@ -21,7 +18,6 @@ import java.util.UUID
 data class RåKvitteringHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: JMSHendelseMetadata,
     val originalKvittering: String,
 ) : Hendelse<RåKvitteringHendelse> {
     override val tidligereHendelseId: HendelseId? = null
@@ -40,7 +36,6 @@ data class RåKvitteringHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: JMSHendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             originalKvittering: String,
@@ -48,7 +43,6 @@ data class RåKvitteringHendelse(
             return RåKvitteringHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
-                meta = hendelseMetadata,
                 originalKvittering = originalKvittering,
             ).also {
                 require(it.entitetId == entitetId) {
@@ -62,7 +56,6 @@ data class RåKvitteringHendelse(
     }
 
     fun tilKvitteringPåSakHendelse(
-        correlationId: CorrelationId,
         sakId: UUID,
         nesteVersjon: Hendelsesversjon,
         utbetalingId: UUID30,
@@ -73,17 +66,12 @@ data class RåKvitteringHendelse(
         return KvitteringPåSakHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             sakId = sakId,
             utbetalingsstatus = utbetalingsstatus,
             originalKvittering = this.originalKvittering,
             versjon = nesteVersjon,
             utbetalingId = utbetalingId,
             tidligereHendelseId = tidligereHendelseId,
-        ).also {
-            require(correlationId != this.meta.correlationId) {
-                "CorrelationId skal ikke være lik mellom disse hendelsene, siden de skjer i 2 contexter:${it.meta.correlationId} vs. $correlationId."
-            }
-        }
+        )
     }
 }

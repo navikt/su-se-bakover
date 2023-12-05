@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
@@ -25,7 +24,6 @@ import java.time.LocalDate
 internal fun KravgrunnlagRootDto.toHendelse(
     hentSak: (Saksnummer) -> Either<Throwable, Sak>,
     hendelsesTidspunkt: Tidspunkt,
-    meta: DefaultHendelseMetadata,
     tidligereHendelseId: HendelseId,
 ): Either<Throwable, Pair<Sak, KravgrunnlagDetaljerPåSakHendelse>> {
     val hendelseId = HendelseId.generer()
@@ -51,7 +49,6 @@ internal fun KravgrunnlagRootDto.toHendelse(
                 versjon = sak.versjon.inc(),
                 sakId = sak.id,
                 hendelsestidspunkt = hendelsesTidspunkt,
-                meta = meta,
                 tidligereHendelseId = tidligereHendelseId,
                 kravgrunnlag = kravgrunnlag,
                 revurderingId = revurdering?.id,

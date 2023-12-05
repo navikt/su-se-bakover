@@ -8,7 +8,6 @@ import java.util.UUID
  * @property entitetId Også kalt streamId. knytter et domeneområdet sammen (f.eks sak)
  * @property versjon rekkefølgen hendelser skjer innenfor [entitetId]
  * @property hendelsestidspunkt Tidspunktet hendelsen skjedde fra domenet sin side.
- * @property meta metadata knyttet til hendelsen for auditing/tracing/debug-formål.
  */
 interface Sakshendelse : Hendelse<Sakshendelse> {
     override val hendelseId: HendelseId
@@ -16,6 +15,5 @@ interface Sakshendelse : Hendelse<Sakshendelse> {
     override val entitetId: UUID
     override val versjon: Hendelsesversjon
     override val hendelsestidspunkt: Tidspunkt
-    override val meta: HendelseMetadata
     val sakId: UUID
 }

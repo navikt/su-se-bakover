@@ -5,7 +5,6 @@ import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
@@ -77,7 +76,6 @@ class TilbakekrevingServices(
             tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
             oppgaveHendelseRepo: OppgaveHendelseRepo,
             mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
-            hendelseRepo: HendelseRepo,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
@@ -129,10 +127,6 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-                    oppgaveService = oppgaveService,
-                    oppgaveHendelseRepo = oppgaveHendelseRepo,
-                    brevService = brevService,
-                    sessionFactory = sessionFactory,
                     clock = clock,
                 ),
                 forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
@@ -155,7 +149,6 @@ class TilbakekrevingServices(
                     oppgaveService = oppgaveService,
                     tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
                     oppgaveHendelseRepo = oppgaveHendelseRepo,
-                    hendelseRepo = hendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sessionFactory = sessionFactory,
                     clock = clock,
@@ -203,7 +196,6 @@ class TilbakekrevingServices(
                     oppgaveService = oppgaveService,
                     tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
                     oppgaveHendelseRepo = oppgaveHendelseRepo,
-                    hendelseRepo = hendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sessionFactory = sessionFactory,
                     clock = clock,

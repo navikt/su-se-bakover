@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -26,7 +25,6 @@ internal data class JournalførtDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
         ): DokumentHendelse {
             val deserialized = deserialize<JournalførtDokumentHendelseDbJson>(data)
 
@@ -36,7 +34,6 @@ internal data class JournalførtDokumentHendelseDbJson(
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
                     versjon = versjon,
-                    meta = meta,
                     relaterteHendelse = HendelseId.fromString(deserialized.relaterteHendelse),
                     journalpostId = JournalpostId(deserialized.journalpostId),
                     skalSendeBrev = deserialized.skalSendeBrev,
@@ -51,14 +48,12 @@ internal data class JournalførtDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
             relaterteHendelse: HendelseId,
             journalpostId: JournalpostId,
             skalSendeBrev: Boolean,
         ): JournalførtDokumentHendelse = JournalførtDokumentHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
-            hendelseMetadata = meta,
             entitetId = sakId,
             versjon = versjon,
             sakId = sakId,

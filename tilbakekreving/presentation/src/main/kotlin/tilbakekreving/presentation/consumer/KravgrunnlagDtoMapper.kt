@@ -9,12 +9,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -72,19 +71,17 @@ data object KravgrunnlagDtoMapper {
 
     fun toKravgrunnlagPåSakHendelse(
         råttKravgrunnlagHendelse: RåttKravgrunnlagHendelse,
-        correlationId: CorrelationId,
+        metaTilHendelsen: JMSHendelseMetadata,
         hentSak: (Saksnummer) -> Either<Throwable, Sak>,
         clock: Clock,
     ): Either<Throwable, Pair<Sak, KravgrunnlagPåSakHendelse>> {
         return toDto(råttKravgrunnlagHendelse.råttKravgrunnlag.melding)
             .mapLeft { it }
             .flatMap { tilbakekrevingsmeldingDto ->
-                val meta = DefaultHendelseMetadata.fraCorrelationId(correlationId)
                 when (tilbakekrevingsmeldingDto) {
                     is KravgrunnlagRootDto -> tilbakekrevingsmeldingDto.toHendelse(
                         hentSak = hentSak,
                         hendelsesTidspunkt = Tidspunkt.now(clock),
-                        meta = meta,
                         tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
                     )
 
@@ -92,7 +89,7 @@ data object KravgrunnlagDtoMapper {
                         tilbakekrevingsmeldingDto.toHendelse(
                             hentSak = hentSak,
                             clock = clock,
-                            meta = meta,
+                            metaTilHendelsen = metaTilHendelsen,
                             råttKravgrunnlagHendelse = råttKravgrunnlagHendelse,
                         )
                     }

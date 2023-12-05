@@ -46,7 +46,6 @@ internal data class KorrigerUtenlandsoppholdJson(
                     utførtAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     versjon = this.versjon,
-                    hendelseMetadata = this.defaultHendelseMetadata(),
                     entitetId = this.entitetId,
                 )
             }

@@ -30,7 +30,6 @@ internal data class AnnullerUtenlandsoppholdJson(
                     utførtAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     versjon = this.versjon,
-                    meta = this.defaultHendelseMetadata(),
                     entitetId = this.entitetId,
                 )
             }

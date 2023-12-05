@@ -1,13 +1,15 @@
 package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJson
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
@@ -26,6 +28,7 @@ class KravgrunnlagPostgresRepo(
 
     override fun lagreRåttKravgrunnlagHendelse(
         hendelse: RåttKravgrunnlagHendelse,
+        meta: JMSHendelseMetadata,
         sessionContext: SessionContext?,
     ) {
         (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
@@ -33,7 +36,7 @@ class KravgrunnlagPostgresRepo(
             type = MottattKravgrunnlagHendelsestype,
             data = hendelse.toJson(),
             sessionContext = sessionContext,
-            meta = hendelse.meta.toJson(),
+            meta = meta.toDbJson(),
         )
     }
 
@@ -56,22 +59,29 @@ class KravgrunnlagPostgresRepo(
      * Kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
      * Husk og marker hendelsen som prosessert etter at den er behandlet.
      */
-    override fun hentRåttKravgrunnlagHendelseForHendelseId(
+    override fun hentRåttKravgrunnlagHendelseMedMetadataForHendelseId(
         hendelseId: HendelseId,
         sessionContext: SessionContext?,
-    ): RåttKravgrunnlagHendelse? {
-        return (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(hendelseId)
-            ?.toRåttKravgrunnlagHendelse()
+    ): Pair<RåttKravgrunnlagHendelse, JMSHendelseMetadata>? {
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelseMedMetadataForHendelseId(hendelseId)
+            ?.let {
+                it.hendelse.toRåttKravgrunnlagHendelse() to it.jmsHendelseMetadata()
+            }
     }
 
     /**
      * Denne er kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
      */
-    override fun lagreKravgrunnlagPåSakHendelse(hendelse: KravgrunnlagPåSakHendelse, sessionContext: SessionContext?) {
+    override fun lagreKravgrunnlagPåSakHendelse(
+        hendelse: KravgrunnlagPåSakHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
         (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
             hendelse = hendelse,
             type = KnyttetKravgrunnlagTilSakHendelsestype,
             data = hendelse.toDbJson(),
+            meta = meta.toDbJson(),
             sessionContext = sessionContext,
         )
     }

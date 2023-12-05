@@ -23,9 +23,9 @@ class RåKvitteringService(
             hendelse = RåKvitteringHendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
-                meta = meta,
                 originalKvittering = originalKvittering,
             ),
+            meta = meta,
         )
     }
 }

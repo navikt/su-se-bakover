@@ -101,13 +101,16 @@ class JournalførDokumentHendelserKonsument(
             generertDokumentHendelse = generertDokumentHendelse,
             relatertFil = relatertFil,
             versjon = nesteVersjon,
-            correlationId = correlationId,
             skalSendeBrev = generertDokumentHendelse.skalSendeBrev,
         ).getOrElse {
             return
         }.let { journalførtDokumentHendelse ->
             sessionFactory.withSessionContext {
-                dokumentHendelseRepo.lagre(journalførtDokumentHendelse, it)
+                dokumentHendelseRepo.lagre(
+                    hendelse = journalførtDokumentHendelse,
+                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                    sessionContext = it,
+                )
                 hendelsekonsumenterRepo.lagre(hendelseId, konsumentId, it)
             }
         }
@@ -137,7 +140,6 @@ class JournalførDokumentHendelserKonsument(
         generertDokumentHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
-        correlationId: CorrelationId,
         skalSendeBrev: Boolean,
     ): Either<Unit, JournalførtDokumentHendelse> = opprettJournalpost(
         sakInfo = sakInfo,
@@ -151,7 +153,6 @@ class JournalførDokumentHendelserKonsument(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = versjon,
-            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             sakId = sakInfo.sakId,
             relatertHendelse = generertDokumentHendelse.hendelseId,
             journalpostId = it,

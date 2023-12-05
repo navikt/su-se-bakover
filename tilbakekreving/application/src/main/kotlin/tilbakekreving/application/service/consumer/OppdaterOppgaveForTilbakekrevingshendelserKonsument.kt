@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -36,7 +36,6 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
     private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingHendelseRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val hendelseRepo: HendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -140,13 +139,16 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
                         ).map {
                             sessionFactory.withTransactionContext { context ->
-                                oppgaveHendelseRepo.lagre(it, context)
+                                oppgaveHendelseRepo.lagre(it.first, it.second, context)
                                 hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
                             }
                         }.mapLeft {
                             log.error(
-                                "Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}",
-                                it,
+                                "Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}, se sikkerlogg for mer info",
+                                RuntimeException("Genererer stacktrace for enklere debug"),
+                            )
+                            sikkerLogg.error(
+                                "Feil skjedde ved oppdatering av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}. Underliggende feil: $it",
                             )
                         }
                     }
@@ -162,7 +164,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
         oppdaterOppgaveInfo: OppdaterOppgaveInfo,
-    ): Either<KunneIkkeOppdatereOppgave, OppgaveHendelse> {
+    ): Either<KunneIkkeOppdatereOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = tidligereOppgaveHendelse.oppgaveId,
             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
@@ -172,22 +174,24 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                 KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave
             }
             .map {
-                OppgaveHendelse.Oppdatert(
-                    hendelsestidspunkt = Tidspunkt.now(clock),
-                    oppgaveId = tidligereOppgaveHendelse.oppgaveId,
-                    versjon = nesteVersjon,
-                    sakId = sakInfo.sakId,
-                    relaterteHendelser = listOf(relaterteHendelse),
-                    meta = OppgaveHendelseMetadata(
+                Pair(
+                    OppgaveHendelse.Oppdatert(
+                        hendelsestidspunkt = Tidspunkt.now(clock),
+                        oppgaveId = tidligereOppgaveHendelse.oppgaveId,
+                        versjon = nesteVersjon,
+                        sakId = sakInfo.sakId,
+                        relaterteHendelser = listOf(relaterteHendelse),
+                        tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                        beskrivelse = it.beskrivelse,
+                        oppgavetype = it.oppgavetype,
+                    ),
+                    OppgaveHendelseMetadata(
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
                         request = it.request,
                         response = it.response,
                     ),
-                    tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
-                    beskrivelse = it.beskrivelse,
-                    oppgavetype = it.oppgavetype,
                 )
             }
     }

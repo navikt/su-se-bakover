@@ -24,9 +24,9 @@ class RåttKravgrunnlagService(
             hendelse = RåttKravgrunnlagHendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
-                meta = meta,
                 råttKravgrunnlag = råttKravgrunnlag,
             ),
+            meta,
         )
     }
 }

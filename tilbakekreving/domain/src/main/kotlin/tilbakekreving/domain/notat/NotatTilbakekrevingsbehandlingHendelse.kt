@@ -6,7 +6,6 @@ package tilbakekreving.domain
 import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
@@ -19,7 +18,6 @@ data class NotatTilbakekrevingsbehandlingHendelse(
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: DefaultHendelseMetadata,
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
@@ -36,6 +34,8 @@ data class NotatTilbakekrevingsbehandlingHendelse(
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
+            // TODO jah: Opprettet kan godt implemente KanLeggeTilNotat
+            is OpprettetTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [TilAttestering, Avbrutt, Iverksatt,] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is KanLeggeTilNotat -> behandling.oppdaterNotat(
@@ -43,8 +43,6 @@ data class NotatTilbakekrevingsbehandlingHendelse(
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
             )
-
-            else -> throw IllegalStateException("Kan ikke gå fra ${behandling::class.simpleName} -> Vurdert.Utfylt. tilstand ${behandling::class.simpleName} er ikke støttet. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
         }
     }
 }
@@ -60,7 +58,6 @@ fun KanLeggeTilNotat.leggTilNotat(
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),
         versjon = nesteVersjon,
-        meta = command.toDefaultHendelsesMetadata(),
         tidligereHendelseId = tidligereHendelsesId,
         id = command.behandlingId,
         utførtAv = command.utførtAv,

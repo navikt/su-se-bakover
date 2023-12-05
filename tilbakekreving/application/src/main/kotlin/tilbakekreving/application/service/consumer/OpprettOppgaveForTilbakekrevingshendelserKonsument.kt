@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -36,7 +35,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
     private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingHendelseRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val hendelseRepo: HendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -80,10 +78,11 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 nesteVersjon = sak.versjon.inc(idx),
                 sakInfo = sak.info(),
                 correlationId = correlationId,
-                tilordnetRessurs = relatertHendelse.meta.ident as NavIdentBruker.Saksbehandler,
+                // TODO jah: Sjekk om vi skal tilordne ressurs her.
+                tilordnetRessurs = relatertHendelse.utførtAv as NavIdentBruker.Saksbehandler,
             ).map {
                 sessionFactory.withTransactionContext { context ->
-                    oppgaveHendelseRepo.lagre(it, context)
+                    oppgaveHendelseRepo.lagre(it.first, it.second, context)
                     hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
                 }
             }.mapLeft {
@@ -98,7 +97,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
         tilordnetRessurs: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppretteOppgave, OppgaveHendelse> {
+    ): Either<KunneIkkeOppretteOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
         val aktørId = personService.hentAktørIdMedSystembruker(sakInfo.fnr).getOrElse {
             return KunneIkkeOppretteOppgave.FeilVedHentingAvPerson(it).left()
         }
@@ -115,22 +114,24 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
             return KunneIkkeOppretteOppgave.FeilVedOpprettelseAvOppgave.left()
         }
 
-        return OppgaveHendelse.Opprettet(
-            hendelseId = HendelseId.generer(),
-            hendelsestidspunkt = Tidspunkt.now(clock),
-            oppgaveId = oppgaveResponse.oppgaveId,
-            versjon = nesteVersjon,
-            sakId = sakInfo.sakId,
-            relaterteHendelser = listOf(relaterteHendelse),
-            meta = OppgaveHendelseMetadata(
+        return Pair(
+            OppgaveHendelse.Opprettet(
+                hendelseId = HendelseId.generer(),
+                hendelsestidspunkt = Tidspunkt.now(clock),
+                oppgaveId = oppgaveResponse.oppgaveId,
+                versjon = nesteVersjon,
+                sakId = sakInfo.sakId,
+                relaterteHendelser = listOf(relaterteHendelse),
+                beskrivelse = oppgaveResponse.beskrivelse,
+                oppgavetype = oppgaveResponse.oppgavetype,
+            ),
+            OppgaveHendelseMetadata(
                 correlationId = correlationId,
                 ident = null,
                 brukerroller = listOf(),
                 request = oppgaveResponse.request,
                 response = oppgaveResponse.response,
             ),
-            beskrivelse = oppgaveResponse.beskrivelse,
-            oppgavetype = oppgaveResponse.oppgavetype,
         ).right()
     }
 }

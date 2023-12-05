@@ -33,7 +33,7 @@ class KorrigerUtenlandsoppholdService(
         ) { j: JournalpostId, s: Saksnummer ->
             queryJournalpostClient.erTilknyttetSak(j, s)
         }.map { (sak, hendelse, auditHendelse) ->
-            utenlandsoppholdRepo.lagre(hendelse)
+            utenlandsoppholdRepo.lagre(hendelse, command.toMetadata())
             auditLogger.log(auditHendelse)
             sak.utenlandsopphold
         }

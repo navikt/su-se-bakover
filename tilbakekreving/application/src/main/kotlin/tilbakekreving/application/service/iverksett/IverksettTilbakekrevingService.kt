@@ -21,7 +21,8 @@ class IverksettTilbakekrevingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val tilbakekrevingsklient: Tilbakekrevingsklient,
+    // Skal bruke i neste PR
+    @Suppress("unused") private val tilbakekrevingsklient: Tilbakekrevingsklient,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -58,12 +59,11 @@ class IverksettTilbakekrevingService(
         }
 
         return behandling.iverksett(
-            meta = command.defaultHendelseMetadata(),
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it)
+            tilbakekrevingsbehandlingRepo.lagre(it, command.defaultHendelseMetadata())
             it.applyToState(behandling).right()
         }
     }

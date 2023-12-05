@@ -14,5 +14,5 @@ data class OppgaveHendelseMetadata(
     override val ident: NavIdentBruker?,
     override val brukerroller: List<Brukerrolle>,
     val request: String?,
-    val response: String?,
+    val response: String,
 ) : HendelseMetadata

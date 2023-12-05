@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
@@ -85,7 +84,6 @@ fun nyOpprettetTilbakekrevingsbehandlingHendelse(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = Hendelsesversjon(2),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
     opprettetAv: NavIdentBruker.Saksbehandler = saksbehandler,
     kravgrunnlagPåSakHendelseId: HendelseId,
@@ -94,7 +92,6 @@ fun nyOpprettetTilbakekrevingsbehandlingHendelse(
     sakId = sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = behandlingId,
     opprettetAv = opprettetAv,
     kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
@@ -119,7 +116,6 @@ fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     fritekst: String = "",
     dokumentId: UUID = UUID.randomUUID(),
 ): ForhåndsvarsleTilbakekrevingsbehandlingHendelse = ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
@@ -127,7 +123,6 @@ fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
@@ -158,7 +153,6 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     kravgrunnlag: Kravgrunnlag = kravgrunnlag(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         behandler = utførtAv.toString(),
@@ -180,7 +174,6 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
@@ -227,7 +220,6 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
@@ -236,7 +228,6 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
@@ -288,13 +279,11 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
 ): TilAttesteringHendelse = TilAttesteringHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
@@ -346,13 +335,11 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
 ): IverksattHendelse = IverksattHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
@@ -362,7 +349,6 @@ fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
-    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     kravgrunnlagPåSakHendelseId: HendelseId,
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyOpprettetTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
@@ -373,7 +359,6 @@ fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = meta,
     id = forrigeHendelse.id,
     tidligereHendelseId = forrigeHendelse.hendelseId,
     utførtAv = utførtAv,

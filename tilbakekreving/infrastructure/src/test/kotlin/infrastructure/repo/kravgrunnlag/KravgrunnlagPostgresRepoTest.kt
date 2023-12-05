@@ -3,6 +3,8 @@ package infrastructure.repo.kravgrunnlag
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagPåSakHendelse
 import no.nav.su.se.bakover.test.kravgrunnlag.råttKravgrunnlagHendelse
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -28,7 +30,7 @@ class KravgrunnlagPostgresRepoTest {
                 hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = testDataHelper.hendelsekonsumenterRepo,
             )
-            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse1)
+            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse1, jmsHendelseMetadata())
             val konsumentId = HendelseskonsumentId("konsumentId")
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
@@ -37,7 +39,7 @@ class KravgrunnlagPostgresRepoTest {
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
             ) shouldBe emptySet()
-            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse2)
+            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse2, jmsHendelseMetadata())
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
             ) shouldBe listOf(hendelse2.hendelseId)
@@ -64,7 +66,7 @@ class KravgrunnlagPostgresRepoTest {
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 sakId = sakId,
             )
-            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse)
+            kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse, jmsHendelseMetadata())
             kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,
             ) shouldBe emptyList()
@@ -72,7 +74,7 @@ class KravgrunnlagPostgresRepoTest {
                 konsumentId = konsumentId,
             ) shouldBe emptySet()
 
-            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(hendelse1)
+            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(hendelse1, defaultHendelseMetadata())
 
             kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,

@@ -15,12 +15,14 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.DistribuertDokumentHendelseDbJson.Companion.dataDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.GenerertDokumentHendelseDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import java.util.UUID
 
 class DokumentHendelsePostgresRepo(
@@ -28,15 +30,40 @@ class DokumentHendelsePostgresRepo(
     private val hendelseFilRepo: HendelseFilPostgresRepo,
     private val sessionFactory: SessionFactory,
 ) : DokumentHendelseRepo {
-    override fun lagre(hendelse: DokumentHendelse, sessionContext: SessionContext?) {
-        lagreHendelse(hendelse, null, sessionContext)
+
+    override fun lagre(
+        hendelse: DokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        lagreHendelse(
+            hendelse = hendelse,
+            meta = meta,
+            null,
+            sessionContext = sessionContext,
+        )
     }
 
-    override fun lagre(hendelse: DokumentHendelse, hendelseFil: HendelseFil, sessionContext: SessionContext?) {
-        lagreHendelse(hendelse, hendelseFil, sessionContext)
+    override fun lagre(
+        hendelse: DokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        hendelseFil: HendelseFil,
+        sessionContext: SessionContext?,
+    ) {
+        lagreHendelse(
+            hendelse = hendelse,
+            meta = meta,
+            hendelseFil = hendelseFil,
+            sessionContext = sessionContext,
+        )
     }
 
-    private fun lagreHendelse(hendelse: DokumentHendelse, hendelseFil: HendelseFil?, sessionContext: SessionContext?) {
+    private fun lagreHendelse(
+        hendelse: DokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        hendelseFil: HendelseFil?,
+        sessionContext: SessionContext?,
+    ) {
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
             type = when (hendelse) {
@@ -54,6 +81,7 @@ class DokumentHendelsePostgresRepo(
                 is DistribuertDokumentHendelse -> hendelse.dataDbJson(hendelse.relatertHendelse)
             },
             sessionContext = sessionContext,
+            meta = meta.toDbJson(),
         )
         hendelseFil?.let {
             hendelseFilRepo.lagre(
@@ -141,7 +169,6 @@ private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.defaultHendelseMetadata(),
         )
 
         JournalførtDokument -> JournalførtDokumentHendelseDbJson.toDomain(
@@ -151,7 +178,6 @@ private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
             sakId = sakId!!,
             hendelsestidspunkt = hendelsestidspunkt,
             versjon = versjon,
-            meta = this.defaultHendelseMetadata(),
         )
 
         DistribuertDokument -> DistribuertDokumentHendelseDbJson.toDomain(
@@ -161,7 +187,6 @@ private fun PersistertHendelse.toDokumentHendelse(): DokumentHendelse {
             sakId = sakId!!,
             hendelsestidspunkt = hendelsestidspunkt,
             versjon = versjon,
-            meta = this.defaultHendelseMetadata(),
         )
 
         else -> throw IllegalStateException("Ugyldig type for dokument hendelse. type var $type")

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson
 import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson.Companion.toJson
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
@@ -21,7 +20,6 @@ internal fun mapToBrevTilbakekrevingsbehandlingHendelse(
     sakId: UUID,
     hendelsestidspunkt: Tidspunkt,
     versjon: Hendelsesversjon,
-    meta: DefaultHendelseMetadata,
 ): BrevTilbakekrevingsbehandlingHendelse {
     val deserialized = deserialize<BrevTilbakekrevingsbehandlingDbJson>(data)
 
@@ -30,7 +28,6 @@ internal fun mapToBrevTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = meta,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         tidligereHendelseId = tidligereHendelsesId,
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),

@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -48,11 +47,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
     fun `oppretter oppgave for hendelser som ikke har fått opprettet oppgave fra før`() {
         val (sak, _) = nySakUføre()
         val hendelseId = HendelseId.generer()
-        val meta = DefaultHendelseMetadata(
-            correlationId = CorrelationId("Correlation-id"),
-            ident = saksbehandler,
-            brukerroller = emptyList(),
-        )
         val konsumenterRepo = mock<HendelsekonsumenterRepo> {
             on {
                 hentUteståendeSakOgHendelsesIderForKonsumentOgType(any(), any(), anyOrNull(), anyOrNull())
@@ -66,7 +60,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                 hentHendelse(any(), anyOrNull())
             } doReturn nyOpprettetTilbakekrevingsbehandlingHendelse(
                 hendelseId = hendelseId,
-                meta = meta,
                 kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             )
         }
@@ -88,7 +81,8 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
             oppgaveHendelseRepo = oppgaveHendelse,
         )
-        mockedServices.service().opprettOppgaver(CorrelationId("Correlation-id"))
+        val correlationId = CorrelationId("Correlation-id")
+        mockedServices.service().opprettOppgaver(correlationId)
 
         verify(konsumenterRepo).hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             HendelseskonsumentId("OpprettOppgaveForTilbakekrevingsbehandlingHendelser"),
@@ -117,15 +111,17 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                     versjon = Hendelsesversjon(value = 2),
                     sakId = sak.id,
                     relaterteHendelser = listOf(hendelseId),
-                    meta = OppgaveHendelseMetadata(
-                        correlationId = CorrelationId("Correlation-id"),
-                        ident = null,
-                        brukerroller = listOf(),
-                        request = "request",
-                        response = "response",
-                    ),
                     beskrivelse = "beskrivelse",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                )
+            },
+            argThat {
+                it shouldBe OppgaveHendelseMetadata(
+                    correlationId = correlationId,
+                    ident = null,
+                    brukerroller = listOf(),
+                    request = "request",
+                    response = "response",
                 )
             },
             anyOrNull(),
@@ -210,7 +206,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                 oppgaveService = oppgaveService,
                 tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingRepo,
                 oppgaveHendelseRepo = oppgaveHendelseRepo,
-                hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             )
 
