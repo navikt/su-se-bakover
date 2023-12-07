@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetali
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import økonomi.domain.utbetaling.Utbetaling

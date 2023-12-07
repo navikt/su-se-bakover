@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -69,6 +68,7 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

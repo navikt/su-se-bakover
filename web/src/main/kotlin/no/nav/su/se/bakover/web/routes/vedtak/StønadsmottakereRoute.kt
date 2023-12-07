@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import java.time.Clock
 
 internal fun Route.stønadsmottakereRoute(

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID

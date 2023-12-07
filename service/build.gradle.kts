@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":vedtak:domain"))
+    implementation(project(":vedtak:application"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":satser"))

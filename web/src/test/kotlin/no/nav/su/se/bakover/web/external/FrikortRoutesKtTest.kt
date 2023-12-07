@@ -15,9 +15,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.jwt.asBearerToken
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest

@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattSt
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull

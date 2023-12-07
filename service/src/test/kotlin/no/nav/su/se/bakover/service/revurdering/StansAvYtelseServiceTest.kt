@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -47,6 +46,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor

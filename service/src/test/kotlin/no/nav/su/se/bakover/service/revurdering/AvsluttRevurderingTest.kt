@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull

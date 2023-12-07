@@ -10,12 +10,12 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.mockito.kotlin.mock
 import person.domain.IdentClient
 import person.domain.PersonService

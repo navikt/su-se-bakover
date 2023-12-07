@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -61,6 +60,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakRevurdering
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

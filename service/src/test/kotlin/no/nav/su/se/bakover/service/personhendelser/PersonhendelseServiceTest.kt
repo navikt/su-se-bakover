@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

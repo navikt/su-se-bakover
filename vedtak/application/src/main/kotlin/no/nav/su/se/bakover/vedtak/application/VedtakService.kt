@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vedtak
+package no.nav.su.se.bakover.vedtak.application
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.journal.JournalpostId

@@ -77,3 +77,4 @@ include("grunnbeløp")
 include("beregning")
 
 include("vedtak:domain")
+include("vedtak:application")

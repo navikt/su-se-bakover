@@ -210,7 +210,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person

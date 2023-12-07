@@ -36,8 +36,8 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
-import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock

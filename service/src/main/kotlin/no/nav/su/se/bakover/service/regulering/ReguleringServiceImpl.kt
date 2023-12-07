@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory

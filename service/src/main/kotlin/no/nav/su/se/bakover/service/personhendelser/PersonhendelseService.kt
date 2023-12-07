@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMånedEllerSenere
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock

@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -46,6 +45,7 @@ import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
