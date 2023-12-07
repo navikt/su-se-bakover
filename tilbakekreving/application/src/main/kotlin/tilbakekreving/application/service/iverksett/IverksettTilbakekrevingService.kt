@@ -63,8 +63,19 @@ class IverksettTilbakekrevingService(
             clock = clock,
             utførtAv = command.utførtAv,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it, command.defaultHendelseMetadata())
-            it.applyToState(behandling).right()
+            /**
+             * TODO
+             *  send til oppdrag og verifiser at det er ok
+             *      Dersom det ikke er ok - stopp her
+             *      Dersom det er ok - fortsett
+             *  Fortsett -
+             *      lagre respons fra oppdrag
+             *      lagre vedtak
+             *      lag, journalfør og distribuer vedtaksbrev
+             */
+            // ved lagring av iverksett hendelsen, skal en jobb starte brev løpet
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            it.second.right()
         }
     }
 }

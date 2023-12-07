@@ -3,12 +3,15 @@
 
 package tilbakekreving.domain
 
+import dokument.domain.Dokumenttilstand
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.iverksett.VedtakTilbakekrevingsbehandling
 import java.time.Clock
 import java.util.UUID
 
@@ -75,7 +78,7 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Attestant,
-): IverksattHendelse {
+): Triple<IverksattHendelse, IverksattTilbakekrevingsbehandling, VedtakTilbakekrevingsbehandling> {
     return IverksattHendelse.iverksett(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,
@@ -83,5 +86,25 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
         clock = clock,
         id = this.id,
         utførtAv = utførtAv,
-    )
+    ).let {
+        val iverksattBehandling = it.applyToState(this)
+        Triple(
+            it,
+            iverksattBehandling,
+            VedtakTilbakekrevingsbehandling(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                saksbehandler = this.sendtTilAttesteringAv,
+                attestant = utførtAv,
+                // TODO - fint om vi kan abstrahere denne på en bedre måte
+                dokumenttilstand = when (this.vedtaksbrevvalg) {
+                    is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                },
+                behandling = iverksattBehandling,
+            ),
+        )
+    }
 }

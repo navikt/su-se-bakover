@@ -15,10 +15,13 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     override val saksnummer: Saksnummer,
     override val correlationId: CorrelationId?,
     override val sakId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
+    /**
+     * TODO - her burde vi bare tillate saksbehandler + attestant
+     */
+    val saksbehandler: NavIdentBruker,
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
 ) : GenererDokumentCommand, SakshendelseCommand {
-    override val utførtAv: NavIdentBruker? = null
+    override val utførtAv: NavIdentBruker = saksbehandler
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

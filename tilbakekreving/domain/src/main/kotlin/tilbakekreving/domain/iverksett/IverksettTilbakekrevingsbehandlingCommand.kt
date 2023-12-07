@@ -4,22 +4,16 @@ import arrow.core.Nel
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.SakshendelseCommand
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
 
 data class IverksettTilbakekrevingsbehandlingCommand(
-    val sakId: UUID,
+    override val sakId: UUID,
+    override val utførtAv: NavIdentBruker.Attestant,
+    override val correlationId: CorrelationId,
+    override val brukerroller: Nel<Brukerrolle>,
     val tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId,
-    val utførtAv: NavIdentBruker.Attestant,
-    val correlationId: CorrelationId,
-    val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
-) {
-    fun defaultHendelseMetadata() = DefaultHendelseMetadata(
-        correlationId = correlationId,
-        ident = utførtAv,
-        brukerroller = brukerroller,
-    )
-}
+) : SakshendelseCommand
