@@ -75,3 +75,5 @@ include("satser")
 include("grunnbeløp")
 
 include("beregning")
+
+include("vedtak:domain")

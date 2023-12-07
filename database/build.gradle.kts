@@ -4,6 +4,8 @@ dependencies {
 
     implementation(project(":domain"))
 
+    implementation(project(":vedtak:domain"))
+
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
 

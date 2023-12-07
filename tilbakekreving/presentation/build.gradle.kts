@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":dokument:domain"))
     implementation(project(":person:domain"))
+    implementation(project(":vedtak:domain"))
 
     implementation(project(":domain"))
     implementation(project(":service"))

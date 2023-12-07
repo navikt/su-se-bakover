@@ -20,6 +20,8 @@ dependencies {
 
     implementation(project(":oppgave:domain"))
 
+    implementation(project(":vedtak:domain"))
+
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
 

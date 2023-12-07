@@ -5,6 +5,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":person:domain"))
     implementation(project(":oppgave:domain"))
+    implementation(project(":vedtak:domain"))
 
     testImplementation(project(":test-common"))
     // Mockito

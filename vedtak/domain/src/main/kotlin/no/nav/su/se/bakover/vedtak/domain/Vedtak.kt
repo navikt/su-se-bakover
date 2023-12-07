@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vedtak
+package no.nav.su.se.bakover.vedtak.domain
 
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.domain.Avsluttet
@@ -9,7 +9,7 @@ import java.util.UUID
 /**
  * Toppnivået av vedtak. Støtter både stønadsvedtak og klagevedtak.
  */
-sealed interface Vedtak : Avsluttet {
+interface Vedtak : Avsluttet {
     val id: UUID
 
     /**

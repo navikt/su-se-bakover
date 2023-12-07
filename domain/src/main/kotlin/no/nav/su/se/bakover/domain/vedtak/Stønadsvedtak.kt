@@ -4,12 +4,15 @@ import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
+import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import økonomi.domain.simulering.Simulering
 
 /**
  * Vedtak som er knyttet til:
  * - en stønadsperiode (søknadsbehandlinger)
  * - en periode som kan være deler av en stønadsperiode eller på tvers av stønadsperioder (revurdering)
+ *
+ * TODO - flytt til vedtaksmodulen
  */
 sealed interface Stønadsvedtak : Vedtak {
     val periode: Periode

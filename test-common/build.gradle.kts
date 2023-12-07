@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":beregning"))
+    implementation(project(":vedtak:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml

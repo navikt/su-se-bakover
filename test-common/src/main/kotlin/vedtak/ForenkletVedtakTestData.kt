@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import java.util.UUID
 
 fun forenkletVedtakSøknadsbehandling(
@@ -97,6 +97,7 @@ fun List<Vedtak>.toVedtaksammendrag(): List<Vedtaksammendrag> {
         when (it) {
             is Klagevedtak -> null
             is Stønadsvedtak -> it.toVedtaksammendrag()
+            else -> throw IllegalStateException("Vedtak er av ukjent type - ${it::class.simpleName}")
         }
     }
 }

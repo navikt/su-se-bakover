@@ -41,6 +41,8 @@ dependencies {
 
     implementation(project(":person:domain"))
 
+    implementation(project(":vedtak:domain"))
+
     implementation(project(":tilbakekreving:presentation"))
     implementation(project(":tilbakekreving:application"))
     implementation(project(":tilbakekreving:domain"))

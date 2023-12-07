@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":beregning"))
+    implementation(project(":vedtak:domain"))
 
     testImplementation(project(":test-common"))
 }
