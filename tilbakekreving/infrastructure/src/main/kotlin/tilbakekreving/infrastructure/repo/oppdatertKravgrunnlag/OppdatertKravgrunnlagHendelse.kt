@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
@@ -24,7 +23,6 @@ fun mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(
     tidligereHendelsesId: HendelseId,
     hendelsestidspunkt: Tidspunkt,
     versjon: Hendelsesversjon,
-    meta: DefaultHendelseMetadata,
 ): OppdatertKravgrunnlagPåTilbakekrevingHendelse {
     val deserialized = deserialize<OppdatertKravgrunnlagHendelseDbJson>(data)
 
@@ -33,7 +31,6 @@ fun mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(
         sakId = sakId,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
-        meta = meta,
         tidligereHendelseId = tidligereHendelsesId,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Saksbehandler(navIdent = deserialized.utførtAv),

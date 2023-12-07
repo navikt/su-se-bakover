@@ -34,7 +34,6 @@ sealed interface KanForhåndsvarsle : KanEndres {
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,
-            meta = command.toDefaultHendelsesMetadata(),
             sakId = command.sakId,
             relatertHendelse = relaterteHendelse,
             dokumentUtenFil = dokumentMedMetadataUtenFil,

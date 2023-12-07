@@ -2,6 +2,7 @@ package tilbakekreving.domain.opprett
 
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.TilbakekrevingbehandlingsSerie
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
@@ -11,6 +12,7 @@ import java.util.UUID
 interface TilbakekrevingsbehandlingRepo {
     fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
+        meta: DefaultHendelseMetadata,
         sessionContext: SessionContext? = null,
     )
 
@@ -21,7 +23,11 @@ interface TilbakekrevingsbehandlingRepo {
 
     fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): TilbakekrevingsbehandlingHendelser
 
-    fun hentBehandlingsSerieFor(hendelse: TilbakekrevingsbehandlingHendelse, sessionContext: SessionContext? = null): TilbakekrevingbehandlingsSerie
+    fun hentBehandlingsSerieFor(
+        hendelse: TilbakekrevingsbehandlingHendelse,
+        sessionContext: SessionContext? = null,
+    ): TilbakekrevingbehandlingsSerie
+
     fun hentÅpneBehandlingssammendrag(sessionContext: SessionContext? = null): List<Behandlingssammendrag>
     fun hentFerdigeBehandlingssamendrag(sessionContext: SessionContext? = null): List<Behandlingssammendrag>
 }

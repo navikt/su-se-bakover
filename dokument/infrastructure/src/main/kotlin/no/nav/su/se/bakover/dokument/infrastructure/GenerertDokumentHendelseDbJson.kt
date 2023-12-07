@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.DokumentMetaDataDbJson.Companion.toHendelseDbJson
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -34,7 +33,6 @@ internal data class GenerertDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
         ): DokumentHendelse {
             val deserialized = deserialize<GenerertDokumentHendelseDbJson>(data)
             val dokumentUtenFil = DokumentMedMetadataUtenFil(
@@ -58,7 +56,6 @@ internal data class GenerertDokumentHendelseDbJson(
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
                     versjon = versjon,
-                    meta = meta,
                     relaterteHendelse = HendelseId.fromString(deserialized.relaterteHendelse),
                     dokumentMedMetadataUtenFil = dokumentUtenFil,
                     skalSendeBrev = deserialized.skalSendeBrev,
@@ -72,14 +69,12 @@ internal data class GenerertDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
             relaterteHendelse: HendelseId,
             dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,
             skalSendeBrev: Boolean,
         ): GenerertDokumentHendelse = GenerertDokumentHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
-            hendelseMetadata = meta,
             entitetId = sakId,
             versjon = versjon,
             sakId = sakId,

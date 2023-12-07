@@ -4,11 +4,11 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import no.nav.su.se.bakover.test.nySakUføre
@@ -28,7 +28,6 @@ internal class KravgrunnlagStatusendringDtoMapperTest {
         val hendelseId = HendelseId.generer()
         val eksternVedtakId = "123456"
         val råttKravgrunnlagHendelse = kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(
-            correlationId = correlationId,
             saksnummer = sak.saksnummer.toString(),
             fnr = sak.fnr.toString(),
             hendelseId = hendelseId,
@@ -37,8 +36,8 @@ internal class KravgrunnlagStatusendringDtoMapperTest {
         KravgrunnlagDtoMapper.toKravgrunnlagPåSakHendelse(
             råttKravgrunnlagHendelse = råttKravgrunnlagHendelse,
             hentSak = { sak.right() },
-            correlationId = correlationId,
             clock = clock,
+            metaTilHendelsen = jmsHendelseMetadata(correlationId = correlationId),
         ).getOrFail().second.shouldBeEqualToIgnoringFields(
             KravgrunnlagStatusendringPåSakHendelse(
                 // Denne ignoreres.
@@ -46,7 +45,6 @@ internal class KravgrunnlagStatusendringDtoMapperTest {
                 versjon = sak.versjon.inc(),
                 sakId = sak.id,
                 hendelsestidspunkt = Tidspunkt.parse("2021-01-01T01:02:05.456789Z"),
-                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                 tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
                 saksnummer = sak.saksnummer,
                 eksternVedtakId = eksternVedtakId,

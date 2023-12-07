@@ -7,7 +7,6 @@ import dokument.domain.hendelser.DokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -25,7 +24,6 @@ internal data class DistribuertDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
         ): DokumentHendelse {
             val deserialized = deserialize<DistribuertDokumentHendelseDbJson>(data)
 
@@ -35,7 +33,6 @@ internal data class DistribuertDokumentHendelseDbJson(
                     sakId = sakId,
                     hendelsestidspunkt = hendelsestidspunkt,
                     versjon = versjon,
-                    meta = meta,
                     relaterteHendelse = HendelseId.fromString(deserialized.relaterteHendelse),
                     brevbestillingId = deserialized.brevbestillingId,
                 )
@@ -49,13 +46,11 @@ internal data class DistribuertDokumentHendelseDbJson(
             sakId: UUID,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
             relaterteHendelse: HendelseId,
             brevbestillingId: String,
         ): DistribuertDokumentHendelse = DistribuertDokumentHendelse.fraPersistert(
             hendelseId = hendelseId,
             hendelsestidspunkt = hendelsestidspunkt,
-            hendelseMetadata = meta,
             entitetId = sakId,
             versjon = versjon,
             sakId = sakId,

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -110,7 +111,12 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             correlationId = correlationId,
         ).map {
             sessionFactory.withTransactionContext { context ->
-                dokumentHendelseRepo.lagre(it.first, it.second, context)
+                dokumentHendelseRepo.lagre(
+                    hendelse = it.first,
+                    hendelseFil = it.second,
+                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                    sessionContext = context,
+                )
                 hendelsekonsumenterRepo.lagre(forhåndsvarsleHendelse.hendelseId, konsumentId, context)
             }
         }.mapLeft {

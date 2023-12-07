@@ -48,7 +48,7 @@ class NotatTilbakekrevingsbehandlingService(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first)
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
             it.second.right()
         }
     }

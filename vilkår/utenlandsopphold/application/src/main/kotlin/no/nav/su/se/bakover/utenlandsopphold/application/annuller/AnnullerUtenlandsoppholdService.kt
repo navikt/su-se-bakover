@@ -27,7 +27,7 @@ class AnnullerUtenlandsoppholdService(
             command = command,
             utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
         ).map { (sak, hendelse, auditHendelse) ->
-            utenlandsoppholdRepo.lagre(hendelse)
+            utenlandsoppholdRepo.lagre(hendelse, command.toMetadata())
             auditLogger.log(auditHendelse)
             sak.utenlandsopphold
         }

@@ -39,7 +39,7 @@ class BrevTilbakekrevingsbehandlingService(
 
         return sak.oppdaterVedtaksbrev(command, clock).let { pair ->
             pair.second.right().onRight {
-                tilbakekrevingsbehandlingRepo.lagre(pair.first)
+                tilbakekrevingsbehandlingRepo.lagre(pair.first, command.toDefaultHendelsesMetadata())
             }
         }
     }

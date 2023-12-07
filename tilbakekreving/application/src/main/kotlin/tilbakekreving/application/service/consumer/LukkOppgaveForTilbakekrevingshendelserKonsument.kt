@@ -115,7 +115,11 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                             tidligereOppgaveHendelse = it,
                         ).map {
                             sessionFactory.withTransactionContext { context ->
-                                oppgaveHendelseRepo.lagre(it, context)
+                                oppgaveHendelseRepo.lagre(
+                                    hendelse = it.first,
+                                    meta = it.second,
+                                    sessionContext = context,
+                                )
                                 hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
                             }
                         }.mapLeft {
@@ -136,47 +140,56 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         tidligereOppgaveHendelse: OppgaveHendelse,
         sakInfo: SakInfo,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeLukkeOppgave, OppgaveHendelse> {
+    ): Either<KunneIkkeLukkeOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
         return oppgaveService.lukkOppgaveMedSystembruker(tidligereOppgaveHendelse.oppgaveId).fold(
             {
                 when (it) {
                     is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
                     is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvToken -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
                     is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave -> when (
-                        val ko =
-                            it.originalFeil
+                        val alleredeFerdigstilt = it.originalFeil
                     ) {
                         is KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
                         is KunneIkkeOppdatereOppgave.FeilVedHentingAvToken -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
                         is KunneIkkeOppdatereOppgave.FeilVedRequest -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
-                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> toManueltLukketHendelse(
-                            tidligereOppgaveHendelse,
-                            nesteVersjon,
-                            sakInfo,
-                            relaterteHendelse,
-                            correlationId,
-                            ko,
+                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> Pair(
+                            toManueltLukketHendelse(
+                                tidligereOppgaveHendelse = tidligereOppgaveHendelse,
+                                nesteVersjon = nesteVersjon,
+                                sakInfo = sakInfo,
+                                relaterteHendelse = relaterteHendelse,
+                                alleredeFerdigstilt = alleredeFerdigstilt,
+                            ),
+                            OppgaveHendelseMetadata(
+                                correlationId = correlationId,
+                                ident = null,
+                                brukerroller = listOf(),
+                                request = alleredeFerdigstilt.jsonRequest,
+                                response = alleredeFerdigstilt.jsonResponse,
+                            ),
                         ).right()
                     }
                 }
             },
             {
-                OppgaveHendelse.Lukket.Maskinelt(
-                    hendelseId = HendelseId.generer(),
-                    hendelsestidspunkt = Tidspunkt.now(clock),
-                    oppgaveId = tidligereOppgaveHendelse.oppgaveId,
-                    versjon = nesteVersjon,
-                    sakId = sakInfo.sakId,
-                    relaterteHendelser = listOf(relaterteHendelse),
-                    meta = OppgaveHendelseMetadata(
+                Pair(
+                    OppgaveHendelse.Lukket.Maskinelt(
+                        hendelseId = HendelseId.generer(),
+                        hendelsestidspunkt = Tidspunkt.now(clock),
+                        oppgaveId = tidligereOppgaveHendelse.oppgaveId,
+                        versjon = nesteVersjon,
+                        sakId = sakInfo.sakId,
+                        relaterteHendelser = listOf(relaterteHendelse),
+                        beskrivelse = it.beskrivelse,
+                        tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                    ),
+                    OppgaveHendelseMetadata(
                         correlationId = correlationId,
                         ident = null,
                         brukerroller = listOf(),
                         request = it.request,
                         response = it.response,
                     ),
-                    beskrivelse = it.beskrivelse,
-                    tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
                 ).right()
             },
         )
@@ -187,8 +200,7 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,
         relaterteHendelse: HendelseId,
-        correlationId: CorrelationId,
-        ko: KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt,
+        alleredeFerdigstilt: KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt,
     ) = OppgaveHendelse.Lukket.Manuelt(
         hendelseId = HendelseId.generer(),
         hendelsestidspunkt = Tidspunkt.now(clock),
@@ -196,14 +208,7 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         versjon = nesteVersjon,
         sakId = sakInfo.sakId,
         relaterteHendelser = listOf(relaterteHendelse),
-        meta = OppgaveHendelseMetadata(
-            correlationId = correlationId,
-            ident = null,
-            brukerroller = listOf(),
-            request = null,
-            response = null,
-        ),
         tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
-        ferdigstiltAv = ko.ferdigstiltAv,
+        ferdigstiltAv = alleredeFerdigstilt.ferdigstiltAv,
     )
 }

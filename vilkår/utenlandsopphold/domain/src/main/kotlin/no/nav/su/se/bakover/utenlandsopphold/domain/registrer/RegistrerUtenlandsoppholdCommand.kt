@@ -34,12 +34,15 @@ data class RegistrerUtenlandsoppholdCommand(
             begrunnelse = begrunnelse,
             opprettetAv = opprettetAv,
             clock = clock,
-            hendelseMetadata = DefaultHendelseMetadata(
-                correlationId = correlationId,
-                ident = opprettetAv,
-                brukerroller = brukerroller,
-            ),
             nesteVersjon = nesteVersjon,
+        )
+    }
+
+    fun toMetadata(): DefaultHendelseMetadata {
+        return DefaultHendelseMetadata(
+            correlationId = correlationId,
+            ident = opprettetAv,
+            brukerroller = brukerroller,
         )
     }
 }

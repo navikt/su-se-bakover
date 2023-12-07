@@ -25,7 +25,6 @@ fun PersistertHendelse.toKravgrunnlagDetaljerPåSakHendelse(): KravgrunnlagDetal
             KravgrunnlagDetaljerPåSakHendelse.fraPersistert(
                 hendelseId = this.hendelseId,
                 hendelsestidspunkt = this.hendelsestidspunkt,
-                hendelseMetadata = this.defaultHendelseMetadata(),
                 forrigeVersjon = this.versjon,
                 entitetId = this.entitetId,
                 sakId = this.sakId!!,

@@ -164,7 +164,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
             on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
-            doNothing().whenever(it).lagre(any(), any())
+            doNothing().whenever(it).lagre(any(), any(), any())
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(hendelse))
@@ -222,16 +222,18 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                     versjon = Hendelsesversjon(value = 3),
                     hendelsestidspunkt = fixedTidspunkt,
                     oppgaveId = OppgaveId("123"),
-                    meta = OppgaveHendelseMetadata(
-                        correlationId = correlationId,
-                        ident = null,
-                        brukerroller = listOf(),
-                        request = "request",
-                        response = "response",
-                    ),
                     beskrivelse = "beskrivelse",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
                     relaterteHendelser = nonEmptyListOf(hendelse.hendelseId),
+                )
+            },
+            argThat {
+                it shouldBe OppgaveHendelseMetadata(
+                    correlationId = correlationId,
+                    ident = null,
+                    brukerroller = listOf(),
+                    request = "request",
+                    response = "response",
                 )
             },
             anyOrNull(),

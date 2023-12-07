@@ -1,9 +1,9 @@
 package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -14,7 +14,7 @@ import java.time.Clock
 typealias MapRåttKravgrunnlag = (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>
 typealias MapRåttKravgrunnlagTilHendelse = (
     råttKravgrunnlag: RåttKravgrunnlagHendelse,
-    correlationId: CorrelationId,
+    metaTilHendelsen: JMSHendelseMetadata,
     hentSak: (Saksnummer) -> Either<Throwable, Sak>,
     clock: Clock,
 ) -> Either<Throwable, Pair<Sak, KravgrunnlagPåSakHendelse>>

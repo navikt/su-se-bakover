@@ -41,7 +41,7 @@ internal class OppdaterOppgaveHttpClient(
     private val hentOppgave: (
         oppgaveId: OppgaveId,
         token: String,
-    ) -> Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponse>,
+    ) -> Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata>,
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -53,14 +53,16 @@ internal class OppdaterOppgaveHttpClient(
         return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
-            if (it.erFerdigstilt()) {
+            if (it.oppgaveResponse.erFerdigstilt()) {
                 log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
                 KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt(
-                    ferdigstiltTidspunkt = it.ferdigstiltTidspunkt!!.toTidspunkt(),
-                    ferdigstiltAv = NavIdentBruker.Saksbehandler(it.endretAv!!),
+                    ferdigstiltTidspunkt = it.oppgaveResponse.ferdigstiltTidspunkt!!.toTidspunkt(),
+                    ferdigstiltAv = NavIdentBruker.Saksbehandler(it.oppgaveResponse.endretAv!!),
+                    jsonRequest = it.jsonRequest,
+                    jsonResponse = it.jsonResponse,
                 ).left()
             } else {
-                endreOppgave(it, token, data)
+                endreOppgave(it.oppgaveResponse, token, data)
             }
         }
     }

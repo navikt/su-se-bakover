@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelseData.Companion.toStringifiedJson
 import java.util.UUID
 
 val OppgaveHendelsestype = Hendelsestype("OPPGAVE")
@@ -21,12 +21,17 @@ class OppgaveHendelsePostgresRepo(
     private val sessionFactory: SessionFactory,
 ) : OppgaveHendelseRepo {
 
-    override fun lagre(hendelse: OppgaveHendelse, sessionContext: SessionContext) {
+    override fun lagre(
+        hendelse: OppgaveHendelse,
+        meta: OppgaveHendelseMetadata,
+        sessionContext: SessionContext,
+    ) {
         dbMetrics.timeQuery("lagreOppgaveHendelse") {
             hendelseRepo.persisterSakshendelse(
                 hendelse = hendelse,
+                meta = meta.toDbJson(),
                 type = OppgaveHendelsestype,
-                data = hendelse.toStringifiedJson(),
+                data = hendelse.toDbJson(),
                 sessionContext = sessionContext,
             )
         }

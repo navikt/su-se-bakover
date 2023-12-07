@@ -22,7 +22,7 @@ internal data class KvitteringPåSakHendelseJson(
     }
 
     companion object {
-        fun KvitteringPåSakHendelse.toJson(): String {
+        fun KvitteringPåSakHendelse.toDbJson(): String {
             fun Kvittering.Utbetalingsstatus.toDbString(): String {
                 return when (this) {
                     Kvittering.Utbetalingsstatus.OK -> "OK"
@@ -47,7 +47,6 @@ internal data class KvitteringPåSakHendelseJson(
                 KvitteringPåSakHendelse.fraPersistert(
                     hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
-                    hendelseMetadata = this.defaultHendelseMetadata(),
                     forrigeVersjon = this.versjon,
                     entitetId = this.entitetId,
                     utbetalingsstatus = json.utbetalingsstatusDomain,

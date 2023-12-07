@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.util.UUID
 
@@ -16,13 +15,6 @@ fun nyOppgaveHendelse(
     oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
     nesteVersjon: Hendelsesversjon = Hendelsesversjon(4),
     relaterteHendelser: List<HendelseId> = listOf(HendelseId.generer()),
-    metadata: OppgaveHendelseMetadata = OppgaveHendelseMetadata(
-        correlationId = correlationId(),
-        ident = null,
-        brukerroller = listOf(),
-        request = "requestBody - OppgaveHendelseTestData.kt",
-        response = "response - OppgaveHendelseTestData.kt",
-    ),
     oppgavetype: Oppgavetype = Oppgavetype.BEHANDLE_SAK,
     beskrivelse: String = "OppgaveHendelseTestData.kt",
 ): OppgaveHendelse {
@@ -32,7 +24,6 @@ fun nyOppgaveHendelse(
         versjon = nesteVersjon,
         hendelsestidspunkt = hendelsesTidspunkt,
         oppgaveId = oppgaveId,
-        meta = metadata,
         relaterteHendelser = relaterteHendelser,
         oppgavetype = oppgavetype,
         beskrivelse = beskrivelse,

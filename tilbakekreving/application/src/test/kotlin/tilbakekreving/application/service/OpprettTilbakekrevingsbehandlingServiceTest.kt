@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
+import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.sakMedUteståendeKravgrunnlag
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -82,15 +82,16 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                     // vi bruker tikkende-klokke
                     hendelsestidspunkt = it.hendelsestidspunkt,
                     versjon = Hendelsesversjon(value = 2),
-                    meta = DefaultHendelseMetadata(
-                        correlationId = correlationId,
-                        ident = saksbehandler,
-                        brukerroller = brukerroller,
-                    ),
                     // Denne blir generert av domenet.
                     id = it.id,
                     opprettetAv = opprettetAv,
                     kravgrunnlagPåSakHendelseId = kravgrunnlag.hendelseId,
+                )
+            },
+            argThat {
+                it shouldBe defaultHendelseMetadata(
+                    correlationId = correlationId,
+                    brukerroller = brukerroller,
                 )
             },
             anyOrNull(),

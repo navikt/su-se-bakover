@@ -29,7 +29,6 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,
             tidligereHendelseId = this.hendelseId,
-            meta = command.toDefaultHendelsesMetadata(),
             id = command.behandlingId,
             utførtAv = command.oppdatertAv,
             kravgrunnlagPåSakHendelseId = nyttKravgrunnlag.hendelseId,

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain.annuller
 
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
@@ -27,7 +27,6 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
     override val utførtAv: NavIdentBruker.Saksbehandler,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: DefaultHendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
     companion object {
@@ -39,7 +38,6 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: DefaultHendelseMetadata,
             entitetId: UUID,
         ): AnnullerUtenlandsoppholdHendelse {
             return AnnullerUtenlandsoppholdHendelse(
@@ -49,7 +47,6 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
                 utførtAv = utførtAv,
                 hendelsestidspunkt = hendelsestidspunkt,
                 versjon = versjon,
-                meta = meta,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "
@@ -63,7 +60,6 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             clock: Clock,
             hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-            hendelseMetadata: DefaultHendelseMetadata,
             nesteVersjon: Hendelsesversjon,
         ): AnnullerUtenlandsoppholdHendelse {
             require(annullererHendelse is RegistrerUtenlandsoppholdHendelse || annullererHendelse is KorrigerUtenlandsoppholdHendelse) {
@@ -76,19 +72,18 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
                 utførtAv = utførtAv,
                 hendelsestidspunkt = hendelsestidspunkt,
                 versjon = nesteVersjon,
-                meta = hendelseMetadata,
             )
         }
     }
 
-    fun toAuditEvent(berørtBrukerId: Fnr): AuditLogEvent {
+    fun toAuditEvent(berørtBrukerId: Fnr, correlationId: CorrelationId): AuditLogEvent {
         return AuditLogEvent(
-            navIdent = this.meta.ident.toString(),
+            navIdent = this.utførtAv.toString(),
             berørtBrukerId = berørtBrukerId,
             action = AuditLogEvent.Action.UPDATE,
             // Et utenlandsopphold er ikke knyttet til en behandling, men en sak.
             behandlingId = null,
-            callId = this.meta.correlationId?.toString(),
+            callId = correlationId.toString(),
         )
     }
 }

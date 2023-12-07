@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import java.util.UUID
 
 /**
@@ -15,7 +14,6 @@ import java.util.UUID
 data class RåttKravgrunnlagHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: JMSHendelseMetadata,
     val råttKravgrunnlag: RåttKravgrunnlag,
 ) : Hendelse<RåttKravgrunnlagHendelse> {
     // Vi tar ikke stilling til sammenhengen mellom kravgrunnlagshendelsene her, men lar heller den logikken ligge der vi knytter hendelsen til saken.
@@ -35,7 +33,6 @@ data class RåttKravgrunnlagHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            jmsHendelseMetadata: JMSHendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             råttKravgrunnlag: RåttKravgrunnlag,
@@ -43,7 +40,6 @@ data class RåttKravgrunnlagHendelse(
             return RåttKravgrunnlagHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
-                meta = jmsHendelseMetadata,
                 råttKravgrunnlag = råttKravgrunnlag,
             ).also {
                 require(it.entitetId == entitetId) {

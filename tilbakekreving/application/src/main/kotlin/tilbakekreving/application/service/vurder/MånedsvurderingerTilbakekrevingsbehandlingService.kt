@@ -37,7 +37,7 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
             log.info("Vurdering av tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
         return sak.vurderTilbakekrevingsbehandling(command, clock).map { pair ->
-            tilbakekrevingsbehandlingRepo.lagre(pair.first)
+            tilbakekrevingsbehandlingRepo.lagre(pair.first, command.toDefaultHendelsesMetadata())
             pair.second
         }
     }

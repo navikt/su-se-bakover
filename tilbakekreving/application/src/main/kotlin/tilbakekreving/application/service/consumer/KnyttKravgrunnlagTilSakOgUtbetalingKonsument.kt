@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
@@ -70,15 +71,15 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         correlationId: CorrelationId,
     ): Either<Throwable, Unit> {
         return Either.catch {
-            val råttKravgrunnlagHendelse =
-                kravgrunnlagRepo.hentRåttKravgrunnlagHendelseForHendelseId(hendelseId) ?: run {
+            val (råttKravgrunnlagHendelse, meta) =
+                kravgrunnlagRepo.hentRåttKravgrunnlagHendelseMedMetadataForHendelseId(hendelseId) ?: run {
                     log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
                     return IllegalStateException("Kunne ikke prosessere kravgrunnlag. Se logger.").left()
                 }
             val (sak, kravgrunnlagPåSakHendelse) =
                 mapRåttKravgrunnlag(
                     råttKravgrunnlagHendelse,
-                    correlationId,
+                    meta,
                     { saksnummer ->
                         sakService.hentSak(saksnummer).mapLeft {
                             IllegalStateException("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
@@ -105,11 +106,13 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     sak = sak,
                     hendelseId = hendelseId,
                     kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                    correlationId = correlationId,
                 )
 
                 is KravgrunnlagStatusendringPåSakHendelse -> prosesserStatus(
                     hendelseId = hendelseId,
                     kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                    correlationId = correlationId,
                 )
             }
         }.onLeft {
@@ -120,10 +123,15 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private fun prosesserStatus(
         hendelseId: HendelseId,
         kravgrunnlagPåSakHendelse: KravgrunnlagStatusendringPåSakHendelse,
+        correlationId: CorrelationId,
     ) {
         // Statusendringene har ikke noen unik indikator i seg selv, annet enn JMS-meldingen sin id. Siden vi ikke får til noen god dedup. så vi aksepterer alle statusendringer.
         sessionFactory.withTransactionContext { tx ->
-            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(kravgrunnlagPåSakHendelse, tx)
+            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
+                hendelse = kravgrunnlagPåSakHendelse,
+                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                sessionContext = tx,
+            )
             hendelsekonsumenterRepo.lagre(
                 hendelseId = hendelseId,
                 konsumentId = konsumentId,
@@ -136,12 +144,17 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         sak: Sak,
         hendelseId: HendelseId,
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
+        correlationId: CorrelationId,
     ) {
         val kravgrunnlag = kravgrunnlagPåSakHendelse.kravgrunnlag
         val sakId = sak.id
 
         sessionFactory.withTransactionContext { tx ->
-            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(kravgrunnlagPåSakHendelse, tx)
+            kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
+                hendelse = kravgrunnlagPåSakHendelse,
+                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                sessionContext = tx,
+            )
             hendelsekonsumenterRepo.lagre(
                 hendelseId = hendelseId,
                 konsumentId = konsumentId,

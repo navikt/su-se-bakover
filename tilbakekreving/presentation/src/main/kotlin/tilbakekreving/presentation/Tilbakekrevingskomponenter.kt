@@ -70,7 +70,6 @@ class Tilbakekrevingskomponenter(
                     tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
                     oppgaveHendelseRepo = oppgaveHendelseRepo,
                     mapRåttKravgrunnlag = mapRåttKravgrunnlag,
-                    hendelseRepo = hendelseRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     brevService = brevService,
                     tilbakekrevingsklient = clients.tilbakekrevingsklient,

@@ -4,6 +4,7 @@ import arrow.core.Nel
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
@@ -16,4 +17,10 @@ data class VurderCommand(
     val correlationId: CorrelationId,
     val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
-)
+) {
+    fun toDefaultHendelsesMetadata(): DefaultHendelseMetadata = DefaultHendelseMetadata(
+        correlationId = correlationId,
+        ident = utførtAv,
+        brukerroller = brukerroller,
+    )
+}

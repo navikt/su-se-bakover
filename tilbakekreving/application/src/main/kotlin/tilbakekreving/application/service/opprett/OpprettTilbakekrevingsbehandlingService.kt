@@ -53,7 +53,7 @@ class OpprettTilbakekrevingsbehandlingService(
                 kravgrunnlag = k,
                 erKravgrunnlagUtdatert = false,
             ).let { (hendelse, behandling) ->
-                tilbakekrevingsbehandlingRepo.lagre(hendelse)
+                tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata())
                 behandling.right()
             }
         }

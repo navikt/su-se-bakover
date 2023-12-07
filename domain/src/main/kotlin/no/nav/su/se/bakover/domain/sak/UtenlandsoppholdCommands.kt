@@ -58,7 +58,7 @@ fun Sak.registrerUtenlandsopphold(
                 versjon = nesteVersjon,
             ),
             hendelse,
-            hendelse.toAuditEvent(fnr),
+            hendelse.toAuditEvent(fnr, command.correlationId),
         )
     }
 }
@@ -93,7 +93,7 @@ fun Sak.korrigerUtenlandsopphold(
                 versjon = nesteVersjon,
             ),
             hendelse,
-            hendelse.toAuditEvent(fnr),
+            hendelse.toAuditEvent(fnr, command.correlationId),
         )
     }
 }
@@ -123,7 +123,7 @@ fun Sak.annullerUtenlandsopphold(
                 versjon = nesteVersjon,
             ),
             hendelse,
-            hendelse.toAuditEvent(fnr),
+            hendelse.toAuditEvent(fnr, command.correlationId),
         )
     }
 }

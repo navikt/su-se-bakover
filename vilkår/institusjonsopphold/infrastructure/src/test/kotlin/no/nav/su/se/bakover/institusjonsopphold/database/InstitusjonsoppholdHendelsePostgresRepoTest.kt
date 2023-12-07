@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.institusjonsopphold.database
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.domain.OppholdId
+import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
 import no.nav.su.se.bakover.test.nyEksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -17,7 +18,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
             val expected = nyInstitusjonsoppholdHendelse(sakId = sak.id)
-            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected)
+            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
                 it!!.size shouldBe 1
@@ -33,7 +34,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             val (sak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
 
             val expected = nyInstitusjonsoppholdHendelse(sakId = sak.id)
-            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected)
+            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
                 it!!.size shouldBe 1
@@ -55,8 +56,8 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
                 versjon = expected.versjon.inc(),
             )
 
-            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected)
-            testDataHelper.institusjonsoppholdHendelseRepo.lagre(unexpected)
+            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
+            testDataHelper.institusjonsoppholdHendelseRepo.lagre(unexpected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentTidligereInstHendelserForOpphold(
                 sak.id,
                 OppholdId(2),

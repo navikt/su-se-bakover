@@ -170,13 +170,6 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
             versjon = nesteHendelsesversjon,
             oppgaveId = oppgaveResponse.oppgaveId,
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = OppgaveHendelseMetadata(
-                correlationId = correlationId,
-                ident = null,
-                brukerroller = listOf(),
-                request = oppgaveResponse.request,
-                response = oppgaveResponse.response,
-            ),
             relaterteHendelser = hendelserSomManglerOppgaver,
             beskrivelse = oppgaveResponse.beskrivelse,
             oppgavetype = oppgaveResponse.oppgavetype,
@@ -185,6 +178,13 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
             oppgaveHendelseRepo.lagre(
                 hendelse = opprettetOppgaveHendelse,
                 sessionContext = tx,
+                meta = OppgaveHendelseMetadata(
+                    correlationId = correlationId,
+                    ident = null,
+                    brukerroller = listOf(),
+                    request = oppgaveResponse.request,
+                    response = oppgaveResponse.response,
+                ),
             )
             merkSomProsessert(uprosesserteHendelser, tx)
         }

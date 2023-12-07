@@ -6,8 +6,8 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
@@ -20,8 +20,8 @@ private val log: Logger = LoggerFactory.getLogger("KravgrunnlagStatusendringDtoM
 internal fun KravgrunnlagStatusendringRootDto.toHendelse(
     hentSak: (Saksnummer) -> Either<Throwable, Sak>,
     clock: Clock,
-    meta: DefaultHendelseMetadata,
     råttKravgrunnlagHendelse: RåttKravgrunnlagHendelse,
+    metaTilHendelsen: JMSHendelseMetadata,
 ): Either<Throwable, Pair<Sak, KravgrunnlagStatusendringPåSakHendelse>> {
     val tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId
     val hendelsestidspunkt = Tidspunkt.now(clock)
@@ -36,12 +36,11 @@ internal fun KravgrunnlagStatusendringRootDto.toHendelse(
                 versjon = sak.versjon.inc(),
                 sakId = sak.id,
                 hendelsestidspunkt = hendelsestidspunkt,
-                meta = meta,
                 tidligereHendelseId = tidligereHendelseId,
                 saksnummer = saksnummer,
                 eksternVedtakId = it.vedtakId,
                 status = it.kodeStatusKrav.toKravgrunnlagstatus(),
-                eksternTidspunkt = råttKravgrunnlagHendelse.meta.jmsTimestamp?.let {
+                eksternTidspunkt = metaTilHendelsen.jmsTimestamp?.let {
                     Tidspunkt(Instant.ofEpochMilli(it))
                 } ?: hendelsestidspunkt.also {
                     log.error("Kunne ikke finne jmsTimestamp for kravgrunnlag, bruker hendelsestidspunkt istedet. Dersom hendelsene har kommet inn i feil rekkefølge, vil dette kunne påvirke sorteringen. RåttKravgrunnlagHendelse $tidligereHendelseId og sak ${sak.id}")

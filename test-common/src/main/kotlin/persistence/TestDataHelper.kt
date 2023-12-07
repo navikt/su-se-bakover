@@ -120,6 +120,9 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
+import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.oppgaveHendelseMetadata
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -630,7 +633,7 @@ class TestDataHelper(
             val (råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) = sak.uteståendeKravgrunnlag?.let {
                 // XMLen her er tom, men det går bra siden vi lagrer knytt kravgrunnlag mot sak hendelsen selv.
                 val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse()
-                kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse)
+                kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse, jmsHendelseMetadata())
                 val kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse(
                     kravgrunnlag = it,
                     sakId = sak.id,
@@ -639,7 +642,8 @@ class TestDataHelper(
                     hendelseId = it.hendelseId,
                 )
                 kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
-                    kravgrunnlagPåSakHendelse,
+                    hendelse = kravgrunnlagPåSakHendelse,
+                    meta = defaultHendelseMetadata(),
                 )
                 råttKravgrunnlagHendelse to kravgrunnlagPåSakHendelse
             } ?: Pair(null, null)
@@ -1685,7 +1689,7 @@ class TestDataHelper(
     fun persisterInstitusjonsoppholdHendelse(): InstitusjonsoppholdHendelse {
         return persisterSøknadsbehandlingIverksatt().let {
             nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
-                institusjonsoppholdHendelseRepo.lagre(it)
+                institusjonsoppholdHendelseRepo.lagre(it, defaultHendelseMetadata())
             }
         }
     }
@@ -1698,7 +1702,7 @@ class TestDataHelper(
                 sakId = it.sakId,
             ).also { oppgaveHendelse ->
                 sessionFactory.withSessionContext {
-                    oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
+                    oppgaveHendelseRepo.lagre(oppgaveHendelse, oppgaveHendelseMetadata(), it)
                 }
             }
         }
@@ -1715,7 +1719,7 @@ class TestDataHelper(
             )
         }.also { oppgaveHendelse ->
             sessionFactory.withSessionContext {
-                oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
+                oppgaveHendelseRepo.lagre(oppgaveHendelse, oppgaveHendelseMetadata(), it)
             }
         }
     }
@@ -1738,10 +1742,10 @@ class TestDataHelper(
         return persisterSøknadsbehandlingIverksatt().let {
             sessionFactory.withSessionContext { tx ->
                 val første = nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
-                    institusjonsoppholdHendelseRepo.lagre(it)
+                    institusjonsoppholdHendelseRepo.lagre(it, defaultHendelseMetadata())
                 }
                 val andre = nyInstitusjonsoppholdHendelse(sakId = it.first.id, versjon = Hendelsesversjon(3)).also {
-                    institusjonsoppholdHendelseRepo.lagre(it)
+                    institusjonsoppholdHendelseRepo.lagre(it, defaultHendelseMetadata())
                 }
 
                 listOf(første, andre).also {
@@ -1768,7 +1772,7 @@ class TestDataHelper(
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
-                        tilbakekrevingHendelseRepo.lagre(it)
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
                         // Ingen asynke hendelser trigger av denne hendelsen.
                         hendelser.leggTil(it)
                     }
@@ -1790,7 +1794,7 @@ class TestDataHelper(
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
-                        tilbakekrevingHendelseRepo.lagre(it)
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
                         // Ingen asynke hendelser trigger av denne hendelsen.
                         hendelser.leggTil(it)
                     }
@@ -1812,7 +1816,7 @@ class TestDataHelper(
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
-                        tilbakekrevingHendelseRepo.lagre(it)
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
                         // Ingen asynke hendelser trigger av denne hendelsen.
                         hendelser.leggTil(it)
                     }
@@ -1834,7 +1838,7 @@ class TestDataHelper(
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
                     ).let {
-                        tilbakekrevingHendelseRepo.lagre(it)
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
                         // Ingen asynke hendelser trigger av denne hendelsen.
                         hendelser.leggTil(it)
                     }
@@ -1860,7 +1864,7 @@ class TestDataHelper(
                             versjon = it.eighth.versjon.inc(),
                             kravgrunnlagPåSakHendelseId = it.sixth.kravgrunnlag.hendelseId,
                         ).also {
-                            tilbakekrevingHendelseRepo.lagre(it)
+                            tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
                             // TODO jah: Utføres en asynk oppgave+dokumenthendelse etter dette.
                         },
                     ),
@@ -1888,7 +1892,7 @@ class TestDataHelper(
                 kravgrunnlagPåSakHendelseId = sak.uteståendeKravgrunnlag!!.hendelseId,
                 versjon = sak.versjon.inc(),
             ).let { opprettetHendelse ->
-                tilbakekrevingHendelseRepo.lagre(opprettetHendelse)
+                tilbakekrevingHendelseRepo.lagre(opprettetHendelse, defaultHendelseMetadata())
                 val oppgaveHendelse = persisterOppgaveHendelseFraRelatertHendelse { opprettetHendelse }
                 Tuple8(
                     first = sak,
@@ -1913,7 +1917,7 @@ class TestDataHelper(
                 versjon = hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)!!.inc(),
                 kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelse.hendelseId,
             ).let { avbruttHendelse ->
-                tilbakekrevingHendelseRepo.lagre(avbruttHendelse)
+                tilbakekrevingHendelseRepo.lagre(avbruttHendelse, defaultHendelseMetadata())
                 val oppgaveHendelse = persisterOppgaveHendelseFraRelatertHendelse { avbruttHendelse }
                 Tuple8(
                     first = sak,

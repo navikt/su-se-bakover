@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -30,19 +32,21 @@ internal class InstitusjonsoppholdServiceTest {
 
     @Test
     fun `person har ikke sak blir prosessert men ingenting skjer`() {
+        val correlationId = CorrelationId.generate()
         val fnrSomIkkeHarSak = Fnr.generer()
         val sakRepo = mock<SakRepo> { on { hentSaker(any()) } doReturn emptyList() }
         val testMocks = mockedServices(sakRepo = sakRepo)
         testMocks.institusjonsoppholdService()
-            .process(nyEksternInstitusjonsoppholdHendelse(norskIdent = fnrSomIkkeHarSak))
+            .process(nyEksternInstitusjonsoppholdHendelse(norskIdent = fnrSomIkkeHarSak), correlationId)
         verify(sakRepo).hentSaker(argThat { it shouldBe fnrSomIkkeHarSak })
         testMocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `person har sak blir prosessert og hendelse blir knyttet til sak`() {
+        val correlationId = CorrelationId.generate()
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
-            doNothing().whenever(it).lagre(any())
+            doNothing().whenever(it).lagre(any(), any())
             on { hentTidligereInstHendelserForOpphold(any(), any()) } doReturn emptyList()
         }
         val sak = søknadsbehandlingIverksattInnvilget().first
@@ -52,7 +56,7 @@ internal class InstitusjonsoppholdServiceTest {
         val testMocks =
             mockedServices(sakRepo = sakRepo, institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo)
         val hendelse = nyEksternInstitusjonsoppholdHendelse()
-        testMocks.institusjonsoppholdService().process(hendelse)
+        testMocks.institusjonsoppholdService().process(hendelse, correlationId)
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(institusjonsoppholdHendelseRepo).hentTidligereInstHendelserForOpphold(
@@ -69,12 +73,16 @@ internal class InstitusjonsoppholdServiceTest {
                     hendelsestidspunkt = fixedTidspunkt,
                 )
             },
+            argThat {
+                it shouldBe DefaultHendelseMetadata.fraCorrelationId(correlationId)
+            },
         )
         testMocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `knytter ny hendelse med en tidligere dersom de har samme oppholdId`() {
+        val correlationId = CorrelationId.generate()
         val sak = søknadsbehandlingIverksattInnvilget().first
         val tidligereHendelse = nyInstitusjonsoppholdHendelse()
         val nyHendelse = nyEksternInstitusjonsoppholdHendelse(
@@ -83,7 +91,7 @@ internal class InstitusjonsoppholdServiceTest {
         )
 
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
-            doNothing().whenever(it).lagre(any())
+            doNothing().whenever(it).lagre(any(), any())
             on { hentTidligereInstHendelserForOpphold(any(), any()) } doReturn listOf(tidligereHendelse)
             on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(tidligereHendelse))
         }
@@ -95,7 +103,7 @@ internal class InstitusjonsoppholdServiceTest {
                 sakRepo = sakRepo,
                 institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
             )
-        testMocks.institusjonsoppholdService().process(nyHendelse)
+        testMocks.institusjonsoppholdService().process(nyHendelse, correlationId)
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(institusjonsoppholdHendelseRepo).hentTidligereInstHendelserForOpphold(
@@ -113,6 +121,9 @@ internal class InstitusjonsoppholdServiceTest {
                     eksterneHendelse = nyHendelse,
                     hendelsestidspunkt = fixedTidspunkt,
                 )
+            },
+            argThat {
+                it shouldBe DefaultHendelseMetadata.fraCorrelationId(correlationId)
             },
         )
         testMocks.verifyNoMoreInteractions()

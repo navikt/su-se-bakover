@@ -4,7 +4,6 @@ import dokument.domain.DokumentMedMetadataUtenFil
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -16,7 +15,6 @@ fun lagretDokumentForJournalføringHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = Hendelsesversjon(15),
-    metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelse: HendelseId = HendelseId.generer(),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
@@ -25,7 +23,6 @@ fun lagretDokumentForJournalføringHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = metadata,
     sakId = sakId,
     relatertHendelse = relaterteHendelse,
     dokumentUtenFil = dokumentUtenFil,
@@ -36,7 +33,6 @@ fun lagretDokumentForUtsendelseHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = Hendelsesversjon(15),
-    metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     relaterteHendelse: HendelseId = HendelseId.generer(),
     dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
@@ -45,7 +41,6 @@ fun lagretDokumentForUtsendelseHendelse(
     hendelseId = hendelseId,
     hendelsestidspunkt = hendelsesTidspunkt,
     versjon = versjon,
-    meta = metadata,
     sakId = sakId,
     relatertHendelse = relaterteHendelse,
     dokumentUtenFil = dokumentUtenFil,

@@ -1,11 +1,8 @@
 package no.nav.su.se.bakover.test.kravgrunnlag
 
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import java.time.Clock
@@ -18,13 +15,10 @@ fun kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     clock: Clock = fixedClock,
     hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    correlationId: CorrelationId = CorrelationId.generate(),
-    metadata: JMSHendelseMetadata = jmsHendelseMetadata(correlationId = correlationId),
 ): RåttKravgrunnlagHendelse {
     return RåttKravgrunnlagHendelse(
         hendelseId = hendelseId,
         hendelsestidspunkt = hendelsestidspunkt,
-        meta = metadata,
         råttKravgrunnlag = kravgrunnlagStatusendringSomRåttKravgrunnlag(
             vedtakId = eksternVedtakId,
             saksnummer = saksnummer,

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
@@ -20,14 +21,12 @@ fun sakOpprettetHendelse(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     opprettetAv: NavIdentBruker = saksbehandler,
     hendelsestidspunkt: Tidspunkt = fixedTidspunkt,
-    meta: DefaultHendelseMetadata = defaultHendelseMetadata(),
 ) = SakOpprettetHendelse.fraPersistert(
     hendelseId = hendelseId,
     sakId = sakId,
     fnr = fnr,
     opprettetAv = opprettetAv,
     hendelsestidspunkt = hendelsestidspunkt,
-    meta = meta,
     entitetId = sakId,
     versjon = 1,
 )
@@ -71,4 +70,18 @@ fun jmsHendelseMetadata(
     jmsTimestamp = jmsTimestamp,
     jmsType = jmsType,
     correlationId = correlationId,
+)
+
+fun oppgaveHendelseMetadata(
+    correlationId: CorrelationId = CorrelationId.generate(),
+    ident: NavIdentBruker = saksbehandler,
+    brukerroller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
+    requestJson: String? = "{\"requestJson\": null}",
+    responseJson: String = "{\"responseJson\": null}",
+) = OppgaveHendelseMetadata(
+    correlationId = correlationId,
+    ident = ident,
+    brukerroller = brukerroller,
+    request = requestJson,
+    response = responseJson,
 )

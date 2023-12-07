@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.institusjonsopphold.application.service
 
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.domain.hentSisteHendelse
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harStans
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -27,7 +29,7 @@ class EksternInstitusjonsoppholdKonsument(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun process(hendelse: EksternInstitusjonsoppholdHendelse) {
+    fun process(hendelse: EksternInstitusjonsoppholdHendelse, correlationId: CorrelationId) {
         sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
             this.forEach { sak ->
                 institusjonsoppholdHendelseRepo.hentForSak(sak.id)?.let {
@@ -41,20 +43,22 @@ class EksternInstitusjonsoppholdKonsument(
                         .whenever(
                             isEmpty = {
                                 institusjonsoppholdHendelseRepo.lagre(
-                                    hendelse.nyHendelsePåSak(
+                                    hendelse = hendelse.nyHendelsePåSak(
                                         sakId = sak.id,
                                         nesteVersjon = sak.versjon.inc(),
                                         clock = clock,
                                     ),
+                                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                                 )
                             },
                             isNotEmpty = {
                                 institusjonsoppholdHendelseRepo.lagre(
-                                    hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
+                                    hendelse = hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
                                         tidligereHendelse = it.hentSisteHendelse(),
                                         nesteVersjon = sak.versjon.inc(),
                                         clock = clock,
                                     ),
+                                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                                 )
                             },
                         )

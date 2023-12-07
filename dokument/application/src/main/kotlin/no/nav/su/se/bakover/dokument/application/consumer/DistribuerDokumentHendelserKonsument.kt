@@ -100,13 +100,16 @@ class DistribuerDokumentHendelserKonsument(
                             hendelseId = HendelseId.generer(),
                             hendelsestidspunkt = Tidspunkt.now(clock),
                             versjon = nesteVersjon,
-                            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                             sakId = sak.id,
                             relatertHendelse = lagretHendelse.hendelseId,
                             brevbestillingId = it,
                         ).let { distribuertDokumentHendelse ->
                             sessionFactory.withSessionContext { tx ->
-                                dokumentHendelseRepo.lagre(distribuertDokumentHendelse, tx)
+                                dokumentHendelseRepo.lagre(
+                                    hendelse = distribuertDokumentHendelse,
+                                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                                    sessionContext = tx,
+                                )
                                 hendelsekonsumenterRepo.lagre(lagretHendelse.hendelseId, konsumentId, tx)
                             }
                         }

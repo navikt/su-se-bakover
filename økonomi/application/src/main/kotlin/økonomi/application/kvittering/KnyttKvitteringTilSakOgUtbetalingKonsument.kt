@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
@@ -79,10 +80,13 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                             utbetalingId = utbetalingId,
                             utbetalingsstatus = utbetalingsstatus,
                             clock = clock,
-                            correlationId = correlationId,
                         )
                         sessionFactory.withTransactionContext { tx ->
-                            utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
+                            utbetalingKvitteringRepo.lagre(
+                                hendelse = hendelsePåSak,
+                                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                                sessionContext = tx,
+                            )
                             hendelsekonsumenterRepo.lagre(
                                 hendelseId = råKvittering.hendelseId,
                                 konsumentId = konsumentId,
@@ -130,10 +134,13 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                 utbetalingId = utbetalingId,
                 utbetalingsstatus = utbetalingsstatus,
                 clock = clock,
-                correlationId = correlationId,
             )
             sessionFactory.withTransactionContext { tx ->
-                utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
+                utbetalingKvitteringRepo.lagre(
+                    hendelsePåSak,
+                    DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                    tx,
+                )
                 hendelsekonsumenterRepo.lagre(
                     hendelseId = hendelseId,
                     konsumentId = konsumentId,

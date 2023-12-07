@@ -43,13 +43,12 @@ class AvbrytTilbakekrevingsbehandlingService(
         }
 
         return behandling.avbryt(
-            meta = command.toDefaultHendelsesMetadata(),
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
             begrunnelse = command.begrunnelse,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first)
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
             it.second.right()
         }
     }

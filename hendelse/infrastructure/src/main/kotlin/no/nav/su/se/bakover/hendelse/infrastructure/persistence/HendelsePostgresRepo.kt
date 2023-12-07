@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.DefaultMetadataJson.Companion.toMeta
 import java.util.UUID
 
 class HendelsePostgresRepo(
@@ -32,8 +31,8 @@ class HendelsePostgresRepo(
         hendelse: Sakshendelse,
         type: Hendelsestype,
         data: String,
+        meta: String,
         sessionContext: SessionContext? = null,
-        meta: String = hendelse.toMeta(),
     ) {
         persister(
             hendelse = hendelse,
@@ -53,7 +52,7 @@ class HendelsePostgresRepo(
         type: Hendelsestype,
         data: String,
         sessionContext: SessionContext? = null,
-        meta: String = hendelse.toMeta(),
+        meta: String,
     ) {
         persister(
             hendelse = hendelse,
@@ -74,7 +73,7 @@ class HendelsePostgresRepo(
         data: String,
         sakId: UUID?,
         sessionContext: SessionContext? = null,
-        meta: String = hendelse.toMeta(),
+        meta: String,
     ) {
         dbMetrics.timeQuery("persisterHendelse") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
@@ -163,8 +162,10 @@ class HendelsePostgresRepo(
         return dbMetrics.timeQuery("hentHendelseForHendelseId") {
             sessionFactory.withSessionContext(sessionContext) { context ->
                 context.withSession { session ->
+                    // Henter ikke metadata i disse tilfellene, da det ikke trengs. Ekskluderer også et par andre felter.
                     """
-                    select * from hendelse
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    from hendelse
                     where hendelseId = :hendelseId
                     """.trimIndent().hent(
                         params = mapOf(
@@ -172,6 +173,29 @@ class HendelsePostgresRepo(
                         ),
                         session = session,
                     ) { toPersistertHendelse(it) }
+                }
+            }
+        }
+    }
+
+    fun hentHendelseMedMetadataForHendelseId(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext? = sessionFactory.newSessionContext(),
+    ): PersistertHendelseMedMetadata? {
+        return dbMetrics.timeQuery("hentHendelseMedMetadataForHendelseId") {
+            sessionFactory.withSessionContext(sessionContext) { context ->
+                context.withSession { session ->
+                    // Det er noen få felter vi ikke trenger.
+                    """
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId, meta
+                    from hendelse
+                    where hendelseId = :hendelseId
+                    """.trimIndent().hent(
+                        params = mapOf(
+                            "hendelseId" to hendelseId.value,
+                        ),
+                        session = session,
+                    ) { PersistertHendelseMedMetadata(toPersistertHendelse(it), it.string("meta")) }
                 }
             }
         }
@@ -195,7 +219,6 @@ class HendelsePostgresRepo(
                     SakOpprettetHendelseJson.toDomain(
                         hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
                         sakId = it.uuid("sakId"),
-                        metadata = DefaultMetadataJson.toDomain(it.string("meta")),
                         json = it.string("data"),
                         entitetId = it.uuid("entitetId"),
                         versjon = it.long("versjon"),
@@ -235,7 +258,6 @@ class HendelsePostgresRepo(
             sakId = it.uuidOrNull("sakId"),
             hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
             tidligereHendelseId = it.uuidOrNull("tidligereHendelseId")?.let { HendelseId.fromUUID(it) },
-            hendelseMetadataDbJson = it.string("meta"),
             entitetId = it.uuid("entitetId"),
         )
     }
