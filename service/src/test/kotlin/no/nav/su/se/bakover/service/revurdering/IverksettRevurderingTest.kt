@@ -93,7 +93,7 @@ internal class IverksettRevurderingTest {
                 }.whenever(it).simulerUtbetaling(any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             tilbakekrevingService = mock {
@@ -111,7 +111,7 @@ internal class IverksettRevurderingTest {
             utbetaling = any(),
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+        verify(serviceAndMocks.vedtakService).lagreITransaksjon(
             vedtak = argThat { it should beOfType<VedtakInnvilgetRevurdering>() },
             tx = argThat { TestSessionFactory.transactionContext },
         )
@@ -159,7 +159,7 @@ internal class IverksettRevurderingTest {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlarForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},
@@ -179,7 +179,7 @@ internal class IverksettRevurderingTest {
             utbetaling = any(),
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+        verify(serviceAndMocks.vedtakService).lagreITransaksjon(
             vedtak = argThat { it should beOfType<VedtakOpphørMedUtbetaling>() },
             tx = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
@@ -227,7 +227,7 @@ internal class IverksettRevurderingTest {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},
@@ -247,7 +247,7 @@ internal class IverksettRevurderingTest {
                 any(),
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+            verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                 any(),
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
@@ -297,7 +297,7 @@ internal class IverksettRevurderingTest {
                 }.whenever(it).simulerUtbetaling(any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             tilbakekrevingService = mock {
@@ -312,7 +312,7 @@ internal class IverksettRevurderingTest {
         )
 
         inOrder(*serviceAndMocks.all(), utbetalingKlargjortForOversendelse.callback) {
-            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+            verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                 vedtak = any(),
                 tx = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
@@ -369,7 +369,7 @@ internal class IverksettRevurderingTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 on { lagreITransaksjon(any(), anyOrNull()) } doThrow expectedException
             },
             tilbakekrevingService = mock {
@@ -424,7 +424,7 @@ internal class IverksettRevurderingTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 on { lagreITransaksjon(any(), anyOrNull()) } doThrow expectedException
             },
             tilbakekrevingService = mock {
@@ -485,7 +485,7 @@ internal class IverksettRevurderingTest {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock { },
@@ -537,7 +537,7 @@ internal class IverksettRevurderingTest {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {
@@ -598,7 +598,7 @@ internal class IverksettRevurderingTest {
                 }.whenever(it).simulerUtbetaling(any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
-            vedtakRepo = mock {
+            vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},

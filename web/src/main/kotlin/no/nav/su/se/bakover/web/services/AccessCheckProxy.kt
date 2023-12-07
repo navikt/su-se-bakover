@@ -155,6 +155,7 @@ import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -976,6 +977,13 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+                override fun hentForFødselsnumreOgFraOgMedMåned(
+                    fødselsnumre: List<Fnr>,
+                    fraOgMed: Måned,
+                ): List<Vedtaksammendrag> = kastKanKunKallesFraAnnenService()
+
+                override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> =
+                    kastKanKunKallesFraAnnenService()
             },
             nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {

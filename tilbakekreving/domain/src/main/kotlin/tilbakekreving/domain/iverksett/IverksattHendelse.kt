@@ -100,8 +100,8 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
                 dokumenttilstand = when (this.vedtaksbrevvalg) {
                     is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
                     is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
                 },
                 behandling = iverksattBehandling,
             ),

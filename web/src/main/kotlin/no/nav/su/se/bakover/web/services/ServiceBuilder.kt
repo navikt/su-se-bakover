@@ -100,17 +100,16 @@ data object ServiceBuilder {
         ).apply {
             addObserver(statistikkEventObserver)
         }
+        val vedtakService = VedtakServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo,
+        )
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,
-            vedtakRepo = databaseRepos.vedtakRepo,
+            vedtakService = vedtakService,
             behandlingMetrics = behandlingMetrics,
             clock = clock,
             satsFactory = satsFactory,
-        )
-
-        val vedtakService = VedtakServiceImpl(
-            vedtakRepo = databaseRepos.vedtakRepo,
         )
 
         val tilbakekrevingService = TilbakekrevingServiceImpl(
@@ -175,7 +174,7 @@ data object ServiceBuilder {
             personService = personService,
             brevService = brevService,
             clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo,
+            vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = formuegrenserFactory,
             sakService = sakService,
@@ -188,7 +187,7 @@ data object ServiceBuilder {
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo,
+            vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = databaseRepos.sessionFactory,
         ).apply { addObserver(statistikkEventObserver) }
@@ -248,7 +247,7 @@ data object ServiceBuilder {
             utbetalingService = utbetalingService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            vedtakRepo = databaseRepos.vedtakRepo,
+            vedtakService = vedtakService,
             opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
             ferdigstillVedtakService = ferdigstillVedtakService,
             brevService = brevService,
@@ -311,7 +310,7 @@ data object ServiceBuilder {
             gjenopptaYtelse = gjenopptakAvYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
-                vedtakRepo = databaseRepos.vedtakRepo,
+                vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,
                 statistikkEventObserver = statistikkEventObserver,
             ),

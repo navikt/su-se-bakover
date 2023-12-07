@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
@@ -327,7 +327,7 @@ internal class AvsluttRevurderingTest {
         personService: PersonService = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
-        vedtakRepo: VedtakRepo = mock(),
+        vedtakService: VedtakService = mock(),
         sakService: SakService = mock(),
         annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
@@ -341,7 +341,7 @@ internal class AvsluttRevurderingTest {
             personService = personService,
             brevService = brevService,
             clock = clock,
-            vedtakRepo = vedtakRepo,
+            vedtakService = vedtakService,
             annullerKontrollsamtaleService = annullerKontrollsamtaleService,
             sessionFactory = sessionFactory,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),

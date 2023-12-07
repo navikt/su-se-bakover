@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMånedEllerSenere
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock
@@ -18,7 +18,7 @@ import java.util.UUID
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
     private val personService: PersonService,
     private val clock: Clock,
@@ -28,7 +28,7 @@ class PersonhendelseService(
     fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
-        val eksisterendeSakIdOgNummer = vedtakRepo.hentForFødselsnumreOgFraOgMedMåned(
+        val eksisterendeSakIdOgNummer = vedtakService.hentForFødselsnumreOgFraOgMedMåned(
             fødselsnumre = fødselsnumre,
             fraOgMed = fraOgMedEllerSenere,
         ).tilInnvilgetForMånedEllerSenere(fraOgMedEllerSenere).sakInfo.filter {

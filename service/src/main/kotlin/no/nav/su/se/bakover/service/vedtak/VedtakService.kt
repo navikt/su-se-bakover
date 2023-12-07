@@ -3,10 +3,13 @@ package no.nav.su.se.bakover.service.vedtak
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import java.time.LocalDate
 import java.util.UUID
 
 interface VedtakService {
@@ -24,4 +27,6 @@ interface VedtakService {
      */
     fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
+    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
+    fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 }

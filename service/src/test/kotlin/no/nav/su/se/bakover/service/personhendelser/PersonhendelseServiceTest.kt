@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -47,7 +47,7 @@ internal class PersonhendelseServiceTest {
         val sakRepoMock = mock<SakRepo> {}
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
-        val vedtakRepoMock = mock<VedtakRepo> {
+        val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn listOf(
                 Vedtaksammendrag(
                     opprettet = fixedTidspunkt,
@@ -63,7 +63,7 @@ internal class PersonhendelseServiceTest {
         val personhendelseService = PersonhendelseService(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            vedtakRepo = vedtakRepoMock,
+            vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             personService = personServiceMock,
             clock = fixedClock,
@@ -71,7 +71,7 @@ internal class PersonhendelseServiceTest {
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(vedtakRepoMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
+        verify(vedtakServiceMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
         verify(personhendelseRepoMock).lagre(
             personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
                 it shouldBe nyPersonhendelse.tilknyttSak(
@@ -89,7 +89,7 @@ internal class PersonhendelseServiceTest {
             personhendelseRepoMock,
             sakRepoMock,
             oppgaveServiceMock,
-            vedtakRepoMock,
+            vedtakServiceMock,
             personServiceMock,
         )
     }
@@ -99,7 +99,7 @@ internal class PersonhendelseServiceTest {
         val sakRepoMock = mock<SakRepo> {}
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
-        val vedtakRepoMock = mock<VedtakRepo> {
+        val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn emptyList()
         }
         val personServiceMock = mock<PersonService>()
@@ -109,17 +109,17 @@ internal class PersonhendelseServiceTest {
             oppgaveServiceImpl = oppgaveServiceMock,
             personService = personServiceMock,
             clock = fixedClock,
-            vedtakRepo = vedtakRepoMock,
+            vedtakService = vedtakServiceMock,
         )
         val fnr = Fnr.generer()
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
-        verify(vedtakRepoMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
+        verify(vedtakServiceMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
         verifyNoMoreInteractions(
             personhendelseRepoMock,
             sakRepoMock,
             oppgaveServiceMock,
-            vedtakRepoMock,
+            vedtakServiceMock,
             personServiceMock,
         )
     }
@@ -142,14 +142,14 @@ internal class PersonhendelseServiceTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo> {
+        val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
         val personhendelseService = PersonhendelseService(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            vedtakRepo = vedtakRepoMock,
+            vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             personService = personServiceMock,
             clock = fixedClock,
@@ -180,7 +180,7 @@ internal class PersonhendelseServiceTest {
             personhendelseRepoMock,
             sakRepoMock,
             personServiceMock,
-            vedtakRepoMock,
+            vedtakServiceMock,
         )
     }
 
@@ -202,7 +202,7 @@ internal class PersonhendelseServiceTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo> {
+        val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
@@ -210,7 +210,7 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            vedtakRepo = vedtakRepoMock,
+            vedtakService = vedtakServiceMock,
             personService = personServiceMock,
             clock = fixedClock,
         )
@@ -236,7 +236,7 @@ internal class PersonhendelseServiceTest {
             personhendelseRepoMock,
             sakRepoMock,
             personServiceMock,
-            vedtakRepoMock,
+            vedtakServiceMock,
         )
     }
 

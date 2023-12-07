@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -41,7 +40,7 @@ interface FerdigstillVedtakService {
 class FerdigstillVedtakServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
@@ -64,7 +63,7 @@ class FerdigstillVedtakServiceImpl(
                 Unit.right()
             } else {
                 log.info("Ferdigstiller vedtak etter utbetaling")
-                vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit } }
+                vedtakService.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit } }
                     ?: return KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(utbetaling.id)
                         .left()
                         .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
@@ -73,7 +72,7 @@ class FerdigstillVedtakServiceImpl(
     }
 
     override fun ferdigstillVedtak(vedtakId: UUID): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
-        return vedtakRepo.hentVedtakForId(vedtakId)!!.let { vedtak ->
+        return vedtakService.hentForVedtakId(vedtakId)!!.let { vedtak ->
             vedtak as VedtakSomKanRevurderes
             ferdigstillVedtak(vedtak).onLeft {
                 log.error(

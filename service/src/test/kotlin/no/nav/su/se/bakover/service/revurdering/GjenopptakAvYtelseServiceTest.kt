@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -335,7 +335,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 callback = callback,
             ).right()
         }
-        val vedtakRepoMock: VedtakRepo = mock()
+        val vedtakServiceMock: VedtakService = mock()
         val observerMock: StatistikkEventObserver = mock()
 
         ServiceMocks(
@@ -343,7 +343,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             utbetalingService = utbetalingServiceMock,
-            vedtakRepo = vedtakRepoMock,
+            vedtakService = vedtakServiceMock,
             revurderingRepo = mock {
                 doNothing().whenever(it).lagre(any(), any())
             },
@@ -379,7 +379,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 utbetalingId = simulertUtbetaling.id,
                 clock = clock,
             )
-            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+            verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                 vedtak = argThat { vedtak ->
                     vedtak.shouldBeEqualToIgnoringFields(
                         expectedVedtak,
@@ -427,7 +427,7 @@ internal class GjenopptakAvYtelseServiceTest {
         val utbetalingService: UtbetalingService = defaultMock(),
         val revurderingRepo: RevurderingRepo = defaultMock(),
         val clock: Clock = fixedClock,
-        val vedtakRepo: VedtakRepo = defaultMock(),
+        val vedtakService: VedtakService = defaultMock(),
         val sakService: SakService = defaultMock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val observer: StatistikkEventObserver = mock(),
@@ -436,7 +436,7 @@ internal class GjenopptakAvYtelseServiceTest {
             utbetalingService = utbetalingService,
             revurderingRepo = revurderingRepo,
             clock = clock,
-            vedtakRepo = vedtakRepo,
+            vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = sessionFactory,
         ).apply { addObserver(observer) }
@@ -444,7 +444,7 @@ internal class GjenopptakAvYtelseServiceTest {
         fun all() = listOf(
             utbetalingService,
             revurderingRepo,
-            vedtakRepo,
+            vedtakService,
             sakService,
         ).toTypedArray()
 

@@ -78,7 +78,6 @@ import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -100,6 +99,7 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -117,7 +117,7 @@ class RevurderingServiceImpl(
     private val personService: PersonService,
     private val brevService: BrevService,
     private val clock: Clock,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
@@ -885,7 +885,7 @@ class RevurderingServiceImpl(
             it.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                lagreVedtak = vedtakRepo::lagreITransaksjon,
+                lagreVedtak = vedtakService::lagreITransaksjon,
                 lagreRevurdering = revurderingRepo::lagre,
                 annullerKontrollsamtale = { sakId, tx ->
                     annullerKontrollsamtaleService.annuller(sakId, tx)

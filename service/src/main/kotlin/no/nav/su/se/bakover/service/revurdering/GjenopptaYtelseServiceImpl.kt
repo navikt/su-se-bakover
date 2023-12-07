@@ -25,10 +25,10 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
@@ -41,7 +41,7 @@ class GjenopptaYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val clock: Clock,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
 ) : GjenopptaYtelseService {
@@ -240,7 +240,7 @@ class GjenopptaYtelseServiceImpl(
                             revurdering = iverksattRevurdering,
                             transactionContext = tx,
                         )
-                        vedtakRepo.lagreITransaksjon(
+                        vedtakService.lagreITransaksjon(
                             vedtak = vedtak,
                             tx = tx,
                         )

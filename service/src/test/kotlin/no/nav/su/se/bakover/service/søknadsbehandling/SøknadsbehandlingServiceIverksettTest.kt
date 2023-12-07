@@ -34,10 +34,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrolls
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -272,7 +272,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 anyOrNull(),
             )
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
-            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+            verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                 argThat { it is VedtakAvslagBeregning },
                 anyOrNull(),
             )
@@ -328,7 +328,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
-                vedtakRepo = mock {
+                vedtakService = mock {
                     doThrow(RuntimeException("kastet fra testen.")).whenever(it).lagreITransaksjon(any(), anyOrNull())
                 },
             )
@@ -427,7 +427,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 søknadsbehandling = argThat { it shouldBe actualSøknadsbehandling },
                 sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+            verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                 vedtak = argThat {
                     it shouldBe actualVedtak
                 },
@@ -468,7 +468,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     utbetaling = any(),
                     transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
+                verify(serviceAndMocks.vedtakService).lagreITransaksjon(
                     vedtak = any(),
                     tx = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
@@ -565,7 +565,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     }.whenever(it).simulerUtbetaling(any())
                 },
                 opprettPlanlagtKontrollsamtaleService = mock {},
-                vedtakRepo = mock {
+                vedtakService = mock {
                     doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
                 },
 
@@ -598,7 +598,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         )
                     }.whenever(it).simulerUtbetaling(any())
                 },
-                vedtakRepo = mock {
+                vedtakService = mock {
                     doThrow(RuntimeException("Mock: utbetaler ikke dersom vi ikke kan lagre vedtaket")).whenever(it)
                         .lagreITransaksjon(any(), anyOrNull())
                 },
@@ -714,7 +714,7 @@ private data class ServiceAndMocks(
     val brevService: BrevService = mock {
         on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
     },
-    val vedtakRepo: VedtakRepo = mock {
+    val vedtakService: VedtakService = mock {
         doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
     },
     val ferdigstillVedtakService: FerdigstillVedtakService = mock { mock ->
@@ -740,7 +740,7 @@ private data class ServiceAndMocks(
         utbetalingService = utbetalingService,
         sessionFactory = sessionFactory,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
-        vedtakRepo = vedtakRepo,
+        vedtakService = vedtakService,
         opprettPlanlagtKontrollsamtaleService = opprettPlanlagtKontrollsamtaleService,
         ferdigstillVedtakService = ferdigstillVedtakService,
         brevService = brevService,
@@ -754,7 +754,7 @@ private data class ServiceAndMocks(
             utbetalingService,
             observer,
             brevService,
-            vedtakRepo,
+            vedtakService,
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
@@ -767,7 +767,7 @@ private data class ServiceAndMocks(
             utbetalingService,
             observer,
             brevService,
-            vedtakRepo,
+            vedtakService,
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,

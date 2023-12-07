@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import satser.domain.SatsFactory
 import java.time.Clock
 
@@ -28,7 +28,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
@@ -66,7 +66,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
             sessionFactory = sessionFactory,
             lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
-            lagreVedtak = vedtakRepo::lagreITransaksjon,
+            lagreVedtak = vedtakService::lagreITransaksjon,
             statistikkObservers = observers,
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
             lagreDokument = brevService::lagreDokument,

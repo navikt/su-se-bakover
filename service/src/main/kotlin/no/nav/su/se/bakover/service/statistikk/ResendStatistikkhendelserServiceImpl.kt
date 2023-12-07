@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
  * Har som ansvar og resende hendelser som ikke har blitt sendt til statistikk.
  */
 class ResendStatistikkhendelserServiceImpl(
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val sakRepo: SakRepo,
     private val statistikkEventObserver: StatistikkEventObserver,
 ) : ResendStatistikkhendelserService {
@@ -38,7 +38,7 @@ class ResendStatistikkhendelserServiceImpl(
         fraOgMedDato: LocalDate,
     ) {
         log.info("Resend statistikk: Starter resend av statistikk for søknadsbehandlingvedtak fra og med $fraOgMedDato.")
-        vedtakRepo.hentSøknadsbehandlingsvedtakFraOgMed(fraOgMedDato).also {
+        vedtakService.hentSøknadsbehandlingsvedtakFraOgMed(fraOgMedDato).also {
             log.info("Resend statistikk: Fant ${it.size} søknadsbehandlingvedtak fra og med $fraOgMedDato som skal resendes.")
         }.forEachIndexed { index, vedtakId ->
             resendStatistikkForVedtak(vedtakId, VedtakIverksattSøknadsbehandling::class).onLeft {

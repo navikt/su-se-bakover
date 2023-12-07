@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -24,14 +23,13 @@ import satser.domain.SatsFactory
 import java.time.Clock
 
 internal data class RevurderingServiceMocks(
-    val vedtakService: VedtakService = defaultMock(),
     val utbetalingService: UtbetalingService = defaultMock(),
     val revurderingRepo: RevurderingRepo = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val personService: PersonService = defaultMock(),
     val identClient: IdentClient = defaultMock(),
     val brevService: BrevService = defaultMock(),
-    val vedtakRepo: VedtakRepo = defaultMock(),
+    val vedtakService: VedtakService = defaultMock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
     val sakService: SakService = defaultMock(),
     val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = defaultMock(),
@@ -48,7 +46,7 @@ internal data class RevurderingServiceMocks(
         personService = personService,
         brevService = brevService,
         clock = clock,
-        vedtakRepo = vedtakRepo,
+        vedtakService = vedtakService,
         annullerKontrollsamtaleService = annullerKontrollsamtaleService,
         sessionFactory = sessionFactory,
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
@@ -65,7 +63,6 @@ internal data class RevurderingServiceMocks(
         personService,
         identClient,
         brevService,
-        vedtakRepo,
         ferdigstillVedtakService,
         sakService,
         annullerKontrollsamtaleService,
