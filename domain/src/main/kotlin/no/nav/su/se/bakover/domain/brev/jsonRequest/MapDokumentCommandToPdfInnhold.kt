@@ -178,6 +178,7 @@ fun fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                attestantNavn = command.attestant?.let { hentNavnMappedLeft(it).bind() },
                 clock = clock,
             )
 

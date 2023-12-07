@@ -19,6 +19,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
      * TODO - her burde vi bare tillate saksbehandler + attestant
      */
     val saksbehandler: NavIdentBruker,
+    val attestant: NavIdentBruker?,
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
 ) : GenererDokumentCommand, SakshendelseCommand {
