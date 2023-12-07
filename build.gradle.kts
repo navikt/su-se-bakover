@@ -72,7 +72,7 @@ subprojects {
         implementation("org.flywaydb:flyway-database-postgresql:10.1.0")
         implementation("com.zaxxer:HikariCP:5.1.0")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
-        implementation("org.postgresql:postgresql:42.7.0")
+        implementation("org.postgresql:postgresql:42.7.1")
 
         implementation(rootProject.libs.ktor.server.netty)
         implementation(rootProject.libs.ktor.server.auth.jwt) {
