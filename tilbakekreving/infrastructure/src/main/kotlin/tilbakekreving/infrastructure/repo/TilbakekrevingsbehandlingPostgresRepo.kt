@@ -32,6 +32,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.iverksett.IverksattHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.avbrutt.mapToTilAvbruttHendelse
@@ -39,6 +40,7 @@ import tilbakekreving.infrastructure.repo.avbrutt.toJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingDbJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.toJson
 import tilbakekreving.infrastructure.repo.iverksatt.mapToTilIverksattHendelse
+import tilbakekreving.infrastructure.repo.iverksatt.toDbJson
 import tilbakekreving.infrastructure.repo.iverksatt.toJson
 import tilbakekreving.infrastructure.repo.notat.mapTilNotatHendelse
 import tilbakekreving.infrastructure.repo.notat.toJson
@@ -80,9 +82,34 @@ class TilbakekrevingsbehandlingPostgresRepo(
     private val oppgaveRepo: OppgaveHendelseRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : TilbakekrevingsbehandlingRepo {
+
     override fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
         meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        lagre(
+            hendelse,
+            meta.toDbJson(),
+            sessionContext,
+        )
+    }
+
+    override fun lagreIverksattTilbakekrevingshendelse(
+        hendelse: IverksattHendelse,
+        meta: IverksattHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        lagre(
+            hendelse,
+            meta.toDbJson(),
+            sessionContext,
+        )
+    }
+
+    private fun lagre(
+        hendelse: TilbakekrevingsbehandlingHendelse,
+        meta: String,
         sessionContext: SessionContext?,
     ) {
         // TODO jah: Kanskje vi bør flytte denne til interfacet?
@@ -102,7 +129,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
             },
             data = hendelse.toJson(),
             sessionContext = sessionContext,
-            meta = meta.toDbJson(),
+            meta = meta,
         )
     }
 

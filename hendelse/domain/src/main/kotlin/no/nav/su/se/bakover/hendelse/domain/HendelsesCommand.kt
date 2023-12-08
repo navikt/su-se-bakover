@@ -8,10 +8,4 @@ interface HendelsesCommand {
     val correlationId: CorrelationId?
     val utførtAv: NavIdentBruker?
     val brukerroller: List<Brukerrolle>
-
-    fun toDefaultHendelsesMetadata(): DefaultHendelseMetadata = DefaultHendelseMetadata(
-        correlationId = correlationId,
-        ident = utførtAv,
-        brukerroller = brukerroller,
-    )
 }

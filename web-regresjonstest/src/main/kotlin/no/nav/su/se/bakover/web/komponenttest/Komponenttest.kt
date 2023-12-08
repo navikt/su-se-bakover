@@ -206,6 +206,9 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
+        tilbakekrevingskomponenter = appComponents.tilbakekrevingskomponenter,
+        dokumentkomponenter = appComponents.dokumentHendelseKomponenter,
+        consumers = appComponents.consumers,
     )
 }
 

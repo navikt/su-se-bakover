@@ -4,15 +4,22 @@ import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.TilbakekrevingbehandlingsSerie
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
+import tilbakekreving.domain.iverksett.IverksattHendelseMetadata
 import java.util.UUID
 
 interface TilbakekrevingsbehandlingRepo {
     fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
         meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext? = null,
+    )
+    fun lagreIverksattTilbakekrevingshendelse(
+        hendelse: IverksattHendelse,
+        meta: IverksattHendelseMetadata,
         sessionContext: SessionContext? = null,
     )
 

@@ -5,15 +5,16 @@ import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 
 internal data class RåTilbakekrevingsvedtakForsendelseDb(
     val requestXml: String,
-    val requestSendt: Tidspunkt,
     val responseXml: String,
+    val tidspunkt: Tidspunkt,
 ) {
     companion object {
         fun fra(tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse): RåTilbakekrevingsvedtakForsendelseDb {
             return RåTilbakekrevingsvedtakForsendelseDb(
-                requestXml = tilbakekrevingsvedtakForsendelse.originalRequest(),
-                requestSendt = tilbakekrevingsvedtakForsendelse.tidspunkt(),
-                responseXml = tilbakekrevingsvedtakForsendelse.originalRespons(),
+                requestXml = tilbakekrevingsvedtakForsendelse.requestXml,
+                responseXml = tilbakekrevingsvedtakForsendelse.responseXml,
+                tidspunkt = tilbakekrevingsvedtakForsendelse.tidspunkt,
+
             )
         }
     }

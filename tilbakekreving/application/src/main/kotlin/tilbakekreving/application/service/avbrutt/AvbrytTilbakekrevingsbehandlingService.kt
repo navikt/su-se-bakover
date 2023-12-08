@@ -48,7 +48,7 @@ class AvbrytTilbakekrevingsbehandlingService(
             utførtAv = command.utførtAv,
             begrunnelse = command.begrunnelse,
         ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.defaultHendelseMetadata())
             it.second.right()
         }
     }

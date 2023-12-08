@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -62,4 +63,8 @@ private fun KunneIkkeIverksette.tilResultat(): Resultat = when (this) {
     is KunneIkkeIverksette.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
     KunneIkkeIverksette.UlikVersjon -> Feilresponser.utdatertVersjon
     KunneIkkeIverksette.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+    KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak -> HttpStatusCode.InternalServerError.errorJson(
+        "Kunne ikke sende tilbakekrevingsvedtaket til oppdrag. Utenfor OS/UR sin åpningstid? Kan kravgrunnlaget eller statusene ha endret seg? F.eks. ved at nye linjer har blitt sendt inn for denne saken. Meld fra til utviklere, da det også kan være en programmeringsfeil/tolkningsfeil.",
+        "kunne_ikke_sende_tilbakekrevingsvedtaket_til_oppdrag",
+    )
 }
