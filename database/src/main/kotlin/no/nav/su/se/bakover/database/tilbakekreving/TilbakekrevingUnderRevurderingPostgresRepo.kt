@@ -201,7 +201,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                 deserialize<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = it.requestXml,
-                        tidspunkt = it.tidspunkt,
+                        tidspunkt = it.requestSendt,
                         responseXml = it.responseXml,
                     )
                 }
