@@ -23,12 +23,27 @@ data class IverksattHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Attestant,
+    val vedtakId: UUID,
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
         return this.versjon.compareTo(other.versjon)
+    }
+
+    fun toVedtak(
+        iverksatt: IverksattTilbakekrevingsbehandling,
+        dokumenttilstand: Dokumenttilstand,
+    ): VedtakTilbakekrevingsbehandling {
+        return VedtakTilbakekrevingsbehandling(
+            id = vedtakId,
+            opprettet = hendelsestidspunkt,
+            saksbehandler = iverksatt.forrigeSteg.sendtTilAttesteringAv,
+            attestant = utførtAv,
+            dokumenttilstand = dokumenttilstand,
+            behandling = iverksatt,
+        )
     }
 
     companion object {
@@ -47,6 +62,7 @@ data class IverksattHendelse(
             id = id,
             tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
+            vedtakId = UUID.randomUUID(),
         )
     }
 
@@ -99,9 +115,14 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
                 // TODO - fint om vi kan abstrahere denne på en bedre måte
                 dokumenttilstand = when (this.vedtaksbrevvalg) {
                     is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> throw IllegalStateException(
+                        "Tilbakekrevingsbehandling ${this.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst",
+                    )
+
                     is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> throw IllegalStateException("Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
+                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> throw IllegalStateException(
+                        "Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst",
+                    )
                 },
                 behandling = iverksattBehandling,
             ),

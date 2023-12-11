@@ -111,9 +111,6 @@ internal class KanUtsetteTilbakekrevingIT {
                                         "saksbehandler":"Z990Lokal",
                                         "utbetalingId":"ignore-me",
                                         "behandlingId":"ignore-me",
-                                        "sakId":"ignore-me",
-                                        "saksnummer":"2021",
-                                        "fnr":"$fnr",
                                         "periode":{
                                           "fraOgMed":"2021-01-01",
                                           "tilOgMed":"2021-01-31"
@@ -130,9 +127,6 @@ internal class KanUtsetteTilbakekrevingIT {
                                         "saksbehandler":"Z990Lokal",
                                         "utbetalingId":"ignore-me",
                                         "behandlingId":"ignore-me",
-                                        "sakId":"ignore-me",
-                                        "saksnummer":"2021",
-                                        "fnr":"$fnr",
                                         "periode":{
                                           "fraOgMed":"2021-01-01",
                                           "tilOgMed":"2021-01-31"

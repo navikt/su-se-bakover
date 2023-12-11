@@ -171,12 +171,19 @@ internal fun AppComponents.verifiserDokumentHendelser(
     antallJournalførteDokumenter: Int,
     antallDistribuerteDokumenter: Int,
 ) {
-    val dokumenter = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId))
-    dokumenter.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
+    val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).let {
+        if (antallGenererteDokumenter > 0) {
+            it.serier.size shouldBe 1
+            it.serier[0]
+        } else {
+            emptyList()
+        }
+    }
+    dokumentHendelser.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
 
-    dokumenter.filterIsInstance<GenerertDokumentHendelse>().size shouldBe antallGenererteDokumenter
-    dokumenter.filterIsInstance<JournalførtDokumentHendelse>().size shouldBe antallJournalførteDokumenter
-    dokumenter.filterIsInstance<DistribuertDokumentHendelse>().size shouldBe antallDistribuerteDokumenter
+    dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().size shouldBe antallGenererteDokumenter
+    dokumentHendelser.filterIsInstance<JournalførtDokumentHendelse>().size shouldBe antallJournalførteDokumenter
+    dokumentHendelser.filterIsInstance<DistribuertDokumentHendelse>().size shouldBe antallDistribuerteDokumenter
 }
 
 internal fun AppComponents.verifiserOppgaveHendelser(

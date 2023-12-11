@@ -358,6 +358,7 @@ internal class SakPostgresRepo(
     private fun Row.toSak(sessionContext: SessionContext): Sak {
         return sessionContext.withSession { session ->
             val sakId = UUID.fromString(string("id"))
+            val tilbakekrevingsbehandlingHendelser = tilbakekrevingRepo.hentForSak(sakId, sessionContext)
             Sak(
                 id = sakId,
                 saksnummer = Saksnummer(long("saksnummer")),
@@ -369,10 +370,11 @@ internal class SakPostgresRepo(
                     revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                     reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                     klager = klageRepo.hentKlager(sakId, sessionContext),
-                    tilbakekrevinger = tilbakekrevingRepo.hentForSak(sakId, sessionContext).currentState,
+                    tilbakekrevinger = tilbakekrevingsbehandlingHendelser.currentState,
                 ),
                 utbetalinger = Utbetalinger(UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session)),
-                vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
+                vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session) +
+                    tilbakekrevingsbehandlingHendelser.currentStateVedtak,
                 type = Sakstype.from(string("type")),
                 utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).currentState,
                 // Siden vi ikke har migrert SAK_OPPRETTET-hendelser, vil vi ikke alltid ha en hendelse knyttet til denne saken. Vi reserverer da den aller første hendelsesversjonen til SAK_OPPRETTET.

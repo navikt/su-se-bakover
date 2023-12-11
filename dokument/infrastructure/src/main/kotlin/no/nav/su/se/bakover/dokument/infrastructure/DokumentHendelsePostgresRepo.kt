@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.dokument.infrastructure
 
+import dokument.domain.DokumentHendelser
 import dokument.domain.hendelser.DistribuertDokument
 import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
@@ -92,7 +93,7 @@ class DokumentHendelsePostgresRepo(
         }
     }
 
-    override fun hentForSak(sakId: UUID, sessionContext: SessionContext?): List<DokumentHendelse> {
+    override fun hentForSak(sakId: UUID, sessionContext: SessionContext?): DokumentHendelser {
         return (hendelseRepo as HendelsePostgresRepo).let { repo ->
             listOf(
                 GenerertDokument,
@@ -104,6 +105,8 @@ class DokumentHendelsePostgresRepo(
                     type = it,
                     sessionContext = sessionContext,
                 ).map { it.toDokumentHendelse() }
+            }.let {
+                DokumentHendelser.create(sakId = sakId, dokumenter = it)
             }
         }
     }

@@ -1,5 +1,6 @@
 package dokument.domain.hendelser
 
+import dokument.domain.DokumentHendelser
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -20,7 +21,7 @@ interface DokumentHendelseRepo {
     )
 
     fun lagre(hendelse: DokumentHendelse, meta: DefaultHendelseMetadata, sessionContext: SessionContext? = null)
-    fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): List<DokumentHendelse>
+    fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): DokumentHendelser
     fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?
     fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>

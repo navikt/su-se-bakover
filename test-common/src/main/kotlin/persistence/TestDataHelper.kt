@@ -7,6 +7,7 @@ import arrow.core.Tuple6
 import arrow.core.Tuple8
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.DokumentHendelser
 import io.kotest.matchers.shouldBe
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -1871,7 +1872,7 @@ class TestDataHelper(
                     clock = fixedClock,
                     kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(listOf(it.sixth)),
                     oppgaveHendelser = listOf(it.eighth),
-                    dokumentHendelser = listOf(),
+                    dokumentHendelser = DokumentHendelser.empty(it.first.id),
                 ),
             )
         }

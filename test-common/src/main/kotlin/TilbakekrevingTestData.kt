@@ -335,6 +335,7 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    vedtakId: UUID = UUID.randomUUID(),
 ): IverksattHendelse = IverksattHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
@@ -343,6 +344,7 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
+    vedtakId = vedtakId,
 )
 
 fun nyAvbruttTilbakekrevingsbehandlingHendelse(

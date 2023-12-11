@@ -226,6 +226,7 @@ internal class TilbakekrevingsbehandlingIT {
             val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterIverksetting)
             appComponents.verifiserLukketOppgaveKonsument()
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
+            // TODO vedtaksbrev - kjør konsument (generering, journalføring, distribuering) + verifisering
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser

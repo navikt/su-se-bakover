@@ -1,6 +1,7 @@
 package tilbakekreving.infrastructure.repo
 
 import arrow.core.Tuple5
+import dokument.domain.DokumentHendelser
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -176,9 +177,11 @@ class TilbakekrevingsbehandlingPostgresRepo(
                         tilbakekrevingsHendelser.any { oppgaveHendelse.relaterteHendelser.contains(it.hendelseId) }
                     }.sorted(),
                     dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
-                        .filter { dokumentHendelse ->
-                            tilbakekrevingsHendelser.any { dokumentHendelse.relatertHendelse == it.hendelseId }
-                        }.sorted(),
+                        .filter { dokumentHendelseSerie ->
+                            tilbakekrevingsHendelser.any { dokumentHendelseSerie.relatertHendelse == it.hendelseId }
+                        }.let {
+                            DokumentHendelser(sakId = sakId, serier = it)
+                        },
                 )
             }
         }

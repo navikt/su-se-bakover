@@ -13,6 +13,7 @@ import java.util.UUID
 private data class IverksattHendelseDbJson(
     val behandlingsId: UUID,
     val utførtAv: String,
+    val vedtakId: UUID,
 )
 
 internal fun mapToTilIverksattHendelse(
@@ -33,6 +34,7 @@ internal fun mapToTilIverksattHendelse(
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
         tidligereHendelseId = tidligereHendelseId,
+        vedtakId = deserialized.vedtakId,
     )
 }
 
@@ -40,6 +42,7 @@ internal fun IverksattHendelse.toJson(): String {
     return IverksattHendelseDbJson(
         behandlingsId = this.id.value,
         utførtAv = this.utførtAv.navIdent,
+        vedtakId = this.vedtakId,
     ).let {
         serialize(it)
     }

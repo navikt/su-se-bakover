@@ -80,11 +80,10 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         val sakId = sak.id
 
         tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
-            if (it.isNotEmpty()) {
-                val ider = it.map { it.hendelseId }
+            if (it != null) {
                 return Unit.also {
                     hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
-                    log.error("Feil under generering av forhåndsvarseldokument: Fant dokumenter knyttet til hendelsen. Dor sak $sakId og hendelse $hendelseId og dokumenthendelser $ider")
+                    log.error("Feil under generering av forhåndsvarseldokument: Fant dokumenter knyttet til hendelsen. Dor sak $sakId og hendelse $hendelseId")
                 }
             }
         }

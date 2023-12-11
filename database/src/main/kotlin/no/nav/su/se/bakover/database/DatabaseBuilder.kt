@@ -284,6 +284,11 @@ data object DatabaseBuilder {
                 sessionFactory,
             ),
         )
+        val dokumentHendelseRepo = DokumentHendelsePostgresRepo(
+            hendelseRepo = hendelseRepo,
+            hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
+            sessionFactory = sessionFactory,
+        )
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(sessionFactory, dbMetrics),
@@ -313,7 +318,7 @@ data object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = personhendelseRepo,
-            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock),
+            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock, dokumentHendelseRepo),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
@@ -329,11 +334,7 @@ data object DatabaseBuilder {
             institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(dbMetrics, hendelseRepo),
             oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(dbMetrics, hendelseRepo, sessionFactory),
             hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory),
-            dokumentHendelseRepo = DokumentHendelsePostgresRepo(
-                hendelseRepo = hendelseRepo,
-                hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
-                sessionFactory = sessionFactory,
-            ),
+            dokumentHendelseRepo = dokumentHendelseRepo,
         )
     }
 }

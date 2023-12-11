@@ -5,9 +5,11 @@ import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.hendelser.DokumentHendelseRepo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -27,6 +29,7 @@ class DokumentPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : DokumentRepo {
 
     private val joinDokumentOgDistribusjonQuery =
@@ -85,13 +88,23 @@ class DokumentPostgresRepo(
 
     override fun hentForSak(id: UUID): List<Dokument.MedMetadata> {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
-            sessionFactory.withSession { session ->
-                """
+            sessionFactory.withSessionContext { ct ->
+                val genererte = dokumentHendelseRepo.hentForSak(id, ct).hentGenererte()
+                val dokumenterFraHendelser = genererte.map {
+                    val fil = dokumentHendelseRepo.hentFilFor(it.hendelseId, ct)!!
+                    it.dokumentUtenFil.toDokumentMedMetadata(fil.fil)
+                }
+
+                (
+                    ct.withSession {
+                        """
                 $joinDokumentOgDistribusjonQuery and sakId = :id
-                """.trimIndent()
-                    .hentListe(mapOf("id" to id), session) {
-                        it.toDokumentMedStatus()
-                    }
+                        """.trimIndent()
+                            .hentListe(mapOf("id" to id), it) {
+                                it.toDokumentMedStatus()
+                            }
+                    } + dokumenterFraHendelser
+                    ).sortedBy { it.opprettet.instant }
             }
         }
     }
@@ -196,7 +209,8 @@ class DokumentPostgresRepo(
                 where journalpostId is null
                 order by opprettet asc
                 limit :limit
-                """.trimIndent().hentListe(mapOf("limit" to antallSomSkalHentes), session) { it.toDokumentdistribusjon(session) }
+                """.trimIndent()
+                    .hentListe(mapOf("limit" to antallSomSkalHentes), session) { it.toDokumentdistribusjon(session) }
             }
         }
     }

@@ -77,11 +77,10 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
         nesteVersjon: Hendelsesversjon,
     ) {
         tilbakekrevingsbehandlingRepo.hentForSak(sak.id).hentDokumenterForHendelseId(hendelseId).let {
-            if (it.isNotEmpty()) {
-                val ider = it.map { it.hendelseId }
+            if (it != null) {
                 return Unit.also {
                     hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
-                    log.error("Feil under generering av vedtaksbrev for tilbakekreving: Fant dokumenter knyttet til hendelsen. For sak ${sak.id} og hendelse $hendelseId og dokumenthendelser $ider. Denne hendelsen blir lagret i konsumenten")
+                    log.error("Feil under generering av vedtaksbrev for tilbakekreving: Fant dokumenter knyttet til hendelsen. For sak ${sak.id} og hendelse $hendelseId. Denne hendelsen blir lagret i konsumenten")
                 }
             }
         }
@@ -156,8 +155,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             .leggTilMetadata(
                 Dokument.Metadata(
                     sakId = sakInfo.sakId,
-                    // TODO - må ha vedtaket
-                    vedtakId = null,
+                    vedtakId = iverksattHendelse.vedtakId,
                 ),
             )
 
