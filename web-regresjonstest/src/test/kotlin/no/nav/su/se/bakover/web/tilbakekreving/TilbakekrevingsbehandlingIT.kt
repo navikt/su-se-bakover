@@ -227,7 +227,23 @@ internal class TilbakekrevingsbehandlingIT {
             appComponents.verifiserLukketOppgaveKonsument()
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
             // TODO vedtaksbrev - kjør konsument (generering, journalføring, distribuering) + verifisering
-            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
+
+            val versjonEtterGenereringAvVedtaksbrev = appComponents.genererDokumenterForVedtaksbrev(versjonEtterLukking)
+            appComponents.verifiserDokumentHendelser(
+                sakId = sakId,
+                antallGenererteDokumenter = 2,
+                antallJournalførteDokumenter = 1,
+                antallDistribuerteDokumenter = 1,
+            )
+            appComponents.verifiserGenererDokumentForVedtaksbrevKonsument()
+            val versjonEtterJournalføringAvVedtaksbrev =
+                appComponents.journalførDokumenter(versjonEtterGenereringAvVedtaksbrev)
+            appComponents.verifiserJournalførDokumenterKonsument(2)
+            val versjonEtterDistribusjonAvVedtaksbrev =
+                appComponents.distribuerDokumenter(versjonEtterJournalføringAvVedtaksbrev)
+            appComponents.verifiserDistribuerteDokumenterKonsument(2)
+
+            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterDistribusjonAvVedtaksbrev.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
             appComponents.kjøreAlleTilbakekrevingskonsumenter()
@@ -237,8 +253,9 @@ internal class TilbakekrevingsbehandlingIT {
                 antallOppdatertOppgaveHendelser = 4,
                 antallLukketOppgaver = 1,
                 antallGenererteForhåndsvarsler = 1,
-                antallJournalførteDokumenter = 1,
-                antallDistribuertDokumenter = 1,
+                antallGenererteVedtaksbrev = 1,
+                antallJournalførteDokumenter = 2,
+                antallDistribuertDokumenter = 2,
             )
         }
     }
@@ -324,6 +341,7 @@ internal class TilbakekrevingsbehandlingIT {
                 antallOpprettetOppgaver = 1,
                 antallOppdatertOppgaveHendelser = 0,
                 antallLukketOppgaver = 1,
+                antallGenererteVedtaksbrev = 0,
                 antallGenererteForhåndsvarsler = 0,
                 antallJournalførteDokumenter = 0,
                 antallDistribuertDokumenter = 0,

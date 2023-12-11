@@ -34,6 +34,7 @@ internal fun AppComponents.kjøreAlleTilbakekrevingskonsumenter() {
 
     // --- dokumenter ---
     this.genererDokumenterForForhåndsvarsel(1)
+    this.genererDokumenterForVedtaksbrev(1)
     this.journalførDokumenter(1)
     this.distribuerDokumenter(1)
 }
@@ -47,6 +48,7 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     antallOppdatertOppgaveHendelser: Int = 0,
     antallLukketOppgaver: Int = 0,
     antallGenererteForhåndsvarsler: Int = 0,
+    antallGenererteVedtaksbrev: Int = 0,
     antallJournalførteDokumenter: Int = 0,
     antallDistribuertDokumenter: Int = 0,
 ) {
@@ -60,11 +62,12 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     )
 
     this.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenererteForhåndsvarsler)
+    this.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenererteVedtaksbrev)
     this.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter)
     this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter)
     this.verifiserDokumentHendelser(
         sakId = sakId,
-        antallGenererteDokumenter = antallGenererteForhåndsvarsler,
+        antallGenererteDokumenter = antallGenererteForhåndsvarsler + antallGenererteVedtaksbrev,
         antallJournalførteDokumenter = antallJournalførteDokumenter,
         antallDistribuerteDokumenter = antallDistribuertDokumenter,
     )
@@ -112,6 +115,13 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
  */
 internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
+        correlationId = CorrelationId.generate(),
+    )
+    return saksversjon + 1
+}
+
+internal fun AppComponents.genererDokumenterForVedtaksbrev(saksversjon: Long): Long {
+    this.tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument.genererVedtaksbrev(
         correlationId = CorrelationId.generate(),
     )
     return saksversjon + 1
@@ -172,12 +182,7 @@ internal fun AppComponents.verifiserDokumentHendelser(
     antallDistribuerteDokumenter: Int,
 ) {
     val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).let {
-        if (antallGenererteDokumenter > 0) {
-            it.serier.size shouldBe 1
-            it.serier[0]
-        } else {
-            emptyList()
-        }
+        it.flatMap { it.dokumenter }
     }
     dokumentHendelser.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
 
@@ -300,6 +305,17 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(a
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
+            """.trimIndent().hentListe(emptyMap(), it) {
+                it.string("hendelseId")
+            }.size shouldBe antallGenerert
+        }
+    }
+}
+internal fun AppComponents.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenerert: Int = 1) {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                select * from hendelse_konsument where konsumentId = 'GenererVedtaksbrevTilbakekrevingKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.size shouldBe antallGenerert

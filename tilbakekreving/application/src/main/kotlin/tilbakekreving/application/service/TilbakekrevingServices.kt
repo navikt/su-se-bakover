@@ -12,6 +12,7 @@ import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
+import tilbakekreving.application.service.consumer.GenererVedtaksbrevTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
@@ -61,6 +62,7 @@ class TilbakekrevingServices(
     val oppdaterOppgaveForTilbakekrevingshendelserKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument,
     val oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
     val notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService,
+    val vedtaksbrevTilbakekrevingKonsument: GenererVedtaksbrevTilbakekrevingKonsument,
 ) {
     companion object {
         fun create(
@@ -210,6 +212,15 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    clock = clock,
+                ),
+                vedtaksbrevTilbakekrevingKonsument = GenererVedtaksbrevTilbakekrevingKonsument(
+                    sakService = sakService,
+                    brevService = brevService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    dokumentHendelseRepo = dokumentHendelseRepo,
+                    hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
                     clock = clock,
                 ),
             )
