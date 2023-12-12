@@ -7,17 +7,25 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
+import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsekonsumenterPostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
+import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
+import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import java.util.UUID
 
 internal fun AppComponents.runAllConsumers(saksversjon: Long): Long {
     // --- oppgaver ---
-    val opprett = this.opprettOppgave(saksversjon)
-    val oppdater = this.oppdaterOppgave(opprett)
+    this.kjørOpprettOppgaveKonsument()
+    // TODO tilbakekreving: Hent ut saksversjon fra saken.
+    val oppdater = this.oppdaterOppgave(saksversjon + 1)
     val lukk = this.lukkOppgave(oppdater)
 
     // --- dokumenter ---
@@ -55,13 +63,22 @@ internal fun AppComponents.runAllVerifiseringer(
     )
 }
 
-internal fun AppComponents.opprettOppgave(saksversjon: Long): Long {
+/**
+ * Kjører [OpprettOppgaveForTilbakekrevingshendelserKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
+internal fun AppComponents.kjørOpprettOppgaveKonsument() {
     this.tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument.opprettOppgaver(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
+/**
+ * Kjører [OppdaterOppgaveForTilbakekrevingshendelserKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
 internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument.oppdaterOppgaver(
         correlationId = CorrelationId.generate(),
@@ -69,6 +86,11 @@ internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
     return saksversjon + 1
 }
 
+/**
+ * Kjører [LukkOppgaveForTilbakekrevingshendelserKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
 internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument.lukkOppgaver(
         correlationId = CorrelationId.generate(),
@@ -76,6 +98,11 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
     return saksversjon + 1
 }
 
+/**
+ * Kjører [GenererDokumentForForhåndsvarselTilbakekrevingKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
 internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
         correlationId = CorrelationId.generate(),
@@ -83,6 +110,11 @@ internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long
     return saksversjon + 1
 }
 
+/**
+ * Kjører [JournalførDokumentHendelserKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
 internal fun AppComponents.journalførDokumenter(saksversjon: Long): Long {
     this.dokumentHendelseKomponenter.services.journalførtDokumentHendelserKonsument.journalførDokumenter(
         correlationId = CorrelationId.generate(),
@@ -90,6 +122,11 @@ internal fun AppComponents.journalførDokumenter(saksversjon: Long): Long {
     return saksversjon + 1
 }
 
+/**
+ * Kjører [DistribuerDokumentHendelserKonsument].
+ *
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ */
 internal fun AppComponents.distribuerDokumenter(saksversjon: Long): Long {
     this.dokumentHendelseKomponenter.services.distribuerDokumentHendelserKonsument.distribuer(
         correlationId = CorrelationId.generate(),
@@ -158,6 +195,27 @@ internal fun AppComponents.verifiserOpprettetOppgaveKonsument(antallOpprettetOpp
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.size shouldBe antallOpprettetOppgaver
+
+            """
+                select * from hendelse where type = 'OPPRETTET_TILBAKEKREVINGSBEHANDLING'
+            """.trimIndent().hentListe(emptyMap(), it) {
+                it.string("hendelseId")
+            }.size shouldBe antallOpprettetOppgaver
+        }
+    }
+}
+
+/**
+ * Sletter ikke selve hendelsen, men kun verifikasjonen på at vi har kjørt konsumenten.
+ * Dette for å verifisere at vi ikke oppretter oppgaver på nytt selvom dette skjer.
+ * Siden vi skal ha en dedup. på hendelsene så vi oppretter oppgaver på nytt.
+ */
+internal fun AppComponents.slettOpprettetOppgaveKonsumentJobb() {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                delete * from hendelse_konsument where konsumentId = 'OpprettOppgaveForTilbakekrevingsbehandlingHendelser'
+            """.trimIndent().oppdatering(emptyMap(), it)
         }
     }
 }
@@ -174,6 +232,21 @@ internal fun AppComponents.verifiserOppdatertOppgaveKonsument(antallOppdatertHen
     }
 }
 
+/**
+ * Sletter ikke selve hendelsen, men kun verifikasjonen på at vi har kjørt konsumenten.
+ * Dette for å verifisere at vi ikke oppretter oppgaver på nytt selvom dette skjer.
+ * Siden vi skal ha en dedup. på hendelsene så vi oppretter oppgaver på nytt.
+ */
+internal fun AppComponents.slettOppdatertOppgaveKonsumentJobb() {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                delete * from hendelse_konsument where konsumentId = 'OppdaterOppgaveForTilbakekrevingsbehandlingHendelser'
+            """.trimIndent().oppdatering(emptyMap(), it)
+        }
+    }
+}
+
 internal fun AppComponents.verifiserLukketOppgaveKonsument(antallLukketOppgaver: Int = 1) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
@@ -186,6 +259,21 @@ internal fun AppComponents.verifiserLukketOppgaveKonsument(antallLukketOppgaver:
     }
 }
 
+/**
+ * Sletter ikke selve hendelsen, men kun verifikasjonen på at vi har kjørt konsumenten.
+ * Dette for å verifisere at vi ikke oppretter oppgaver på nytt selvom dette skjer.
+ * Siden vi skal ha en dedup. på hendelsene så vi oppretter oppgaver på nytt.
+ */
+internal fun AppComponents.slettLukketOppgaveKonsumentJobb() {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                delete * from hendelse_konsument where konsumentId = 'LukkOppgaveForTilbakekrevingsbehandlingHendelser'
+            """.trimIndent().oppdatering(emptyMap(), it)
+        }
+    }
+}
+
 internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenerert: Int = 1) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
@@ -194,6 +282,21 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(a
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.size shouldBe antallGenerert
+        }
+    }
+}
+
+/**
+ * Sletter ikke selve hendelsen, men kun verifikasjonen på at vi har kjørt konsumenten.
+ * Dette for å verifisere at vi ikke oppretter oppgaver på nytt selvom dette skjer.
+ * Siden vi skal ha en dedup. på hendelsene så vi oppretter oppgaver på nytt.
+ */
+internal fun AppComponents.slettGenererDokumentForForhåndsvarselKonsumentJobb() {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                delete * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
+            """.trimIndent().oppdatering(emptyMap(), it)
         }
     }
 }

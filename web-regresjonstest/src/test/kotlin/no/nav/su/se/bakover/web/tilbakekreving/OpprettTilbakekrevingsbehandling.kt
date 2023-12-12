@@ -11,6 +11,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -21,15 +23,17 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
  * Oppretter en tilbakekrevingsbehandling for en gitt sak.
  * Kjører også konsumenten som lytter på disse hendelsene for å opprette en oppgave.
  */
-fun opprettTilbakekrevingsbehandling(
+internal fun AppComponents.opprettTilbakekrevingsbehandling(
     sakId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
-    saksversjon: Long,
+    saksversjonFør: Long,
+    utførSideeffekter: Boolean = true,
     expectedOpprettet: String = "2021-02-01T01:03:32.456789Z",
     expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
-): Pair<String, Long> {
+): OpprettetTilbakekrevingsbehandling {
+    val appComponents = this
     return runBlocking {
         val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
@@ -38,23 +42,49 @@ fun opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+        ) { setBody("""{"versjon":$saksversjonFør}""") }.apply {
             withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let { responseJson ->
+            if (utførSideeffekter) {
+                appComponents.kjørOpprettOppgaveKonsument()
+                appComponents.verifiserOpprettetOppgaveKonsument()
+            }
+            val sakJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakJson).getLong("versjon")
             if (verifiserRespons) {
                 verifiserOpprettetTilbakekrevingsbehandlingRespons(
-                    actual = it,
+                    actual = responseJson,
                     sakId = sakId,
-                    expectedVersjon = saksversjon + 1,
+                    expectedVersjon = saksversjonFør + 1,
+                    expectedOpprettet = expectedOpprettet,
+                    expectedKontrollfelt = expectedKontrollfelt,
+                )
+                val tilbakekreving =
+                    JSONObject(sakJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
+                verifiserOpprettetTilbakekrevingsbehandlingRespons(
+                    actual = tilbakekreving,
+                    sakId = sakId,
+                    expectedVersjon = saksversjonFør + 1,
                     expectedOpprettet = expectedOpprettet,
                     expectedKontrollfelt = expectedKontrollfelt,
                 )
             }
-        } to saksversjon + 1
+            OpprettetTilbakekrevingsbehandling(
+                tilbakekrevingsbehandlingId = hentTilbakekrevingsbehandlingId(responseJson),
+                saksversjon = saksversjonEtter,
+                responseJson = responseJson,
+            )
+        }
     }
 }
+
+internal data class OpprettetTilbakekrevingsbehandling(
+    val tilbakekrevingsbehandlingId: String,
+    val saksversjon: Long,
+    val responseJson: String,
+)
 
 fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,

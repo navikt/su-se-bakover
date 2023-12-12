@@ -1,4 +1,4 @@
-package infrastructure.repo
+package tilbakekreving.infrastructure.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.februar

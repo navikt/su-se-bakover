@@ -51,26 +51,22 @@ internal class TilbakekrevingsbehandlingIT {
             }
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
-            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = opprettTilbakekrevingsbehandling(
+            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 2,
+                saksversjonFør = 2,
                 client = this.client,
-            ).let {
-                hentTilbakekrevingsbehandlingId(it.first) to it.second
-            }
-            val versjonEtterOpprettelseAvOppgave = appComponents.opprettOppgave(saksversjonEtterOpprettelseAvBehandling)
-            appComponents.verifiserOpprettetOppgaveKonsument()
+            )
             forhåndsvisForhåndsvarselTilbakekreving(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOpprettelseAvOppgave,
+                saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
             )
             val (forhåndsvarselDokumenter, versjonEtterForhåndsvarsel) = forhåndsvarsleTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOpprettelseAvOppgave,
+                saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
             ).let {
                 hentForhåndsvarselDokumenter(it.first) to it.second
@@ -298,15 +294,11 @@ internal class TilbakekrevingsbehandlingIT {
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
-            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = opprettTilbakekrevingsbehandling(
+            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
-                saksversjon = 2,
+                saksversjonFør = 2,
                 client = this.client,
-            ).let {
-                hentTilbakekrevingsbehandlingId(it.first) to it.second
-            }
-            val versjonEtterOpprettelseAvOppgave = appComponents.opprettOppgave(saksversjonEtterOpprettelseAvBehandling)
-            appComponents.verifiserOpprettetOppgaveKonsument()
+            )
 
             opprettIverksattRevurdering(
                 sakid = sakId,
@@ -327,7 +319,7 @@ internal class TilbakekrevingsbehandlingIT {
                 },
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            val versjonEtterNyttKravgrunnlag = versjonEtterOpprettelseAvOppgave + 1
+            val versjonEtterNyttKravgrunnlag = saksversjonEtterOpprettelseAvBehandling + 1
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterNyttKravgrunnlag.toInt())
             val (_, versjonEtterOppdateringAvKravgrunnlag) = oppdaterKravgrunnlag(
                 sakId = sakId,

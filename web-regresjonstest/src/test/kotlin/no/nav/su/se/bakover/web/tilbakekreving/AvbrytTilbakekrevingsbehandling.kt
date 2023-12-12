@@ -64,7 +64,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.04.36.456789",
+    "kontrollfelt":"2021-02-01-02.04.37.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -97,7 +97,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:41.456789Z",
+  "avsluttetTidspunkt": "2021-02-01T01:04:42.456789Z",
   "notat": null,
 }"""
     JSONAssert.assertEquals(

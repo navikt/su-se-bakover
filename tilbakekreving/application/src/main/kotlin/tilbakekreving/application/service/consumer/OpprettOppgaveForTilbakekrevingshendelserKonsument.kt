@@ -73,12 +73,14 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 }
             }
 
-            opprettOppgaveHendelse(
+            val nesteVersjon = sak.versjon.inc(idx)
+            opprettEksternOppgaveOgLagHendelse(
                 relaterteHendelse = relatertHendelse.hendelseId,
-                nesteVersjon = sak.versjon.inc(idx),
+                // TODO tilbakekreving jah: Kanskje vi heller skal gå tilbake til å hente versjonen per iterasjon? Vi øker risikoen for å opprette en oppgave, men ikke klare lagre hendelsen.
+                nesteVersjon = nesteVersjon,
                 sakInfo = sak.info(),
                 correlationId = correlationId,
-                // TODO jah: Sjekk om vi skal tilordne ressurs her.
+                // TODO tilbakekreving jah: Sjekk om vi skal tilordne ressurs her.
                 tilordnetRessurs = relatertHendelse.utførtAv as NavIdentBruker.Saksbehandler,
             ).map {
                 sessionFactory.withTransactionContext { context ->
@@ -91,7 +93,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         }
     }
 
-    private fun opprettOppgaveHendelse(
+    private fun opprettEksternOppgaveOgLagHendelse(
         relaterteHendelse: HendelseId,
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,

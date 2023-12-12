@@ -40,20 +40,31 @@ class Tilbakekrevingsjobber(
             listOf(
                 runCheckFactory.leaderPod(),
             ).shouldRun().ifTrue {
-                Either.catch {
-                    withCorrelationId { correlationId ->
-                        knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(
-                            correlationId = correlationId,
-                        )
-                        opprettOppgaveKonsument.opprettOppgaver(correlationId)
-                        genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
-                        lukkOppgaveKonsument.lukkOppgaver(correlationId)
-                        oppdaterOppgaveKonsument.oppdaterOppgaver(correlationId)
-                    }
-                }.mapLeft {
-                    log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
-                }
+                kjørTilbakekrevingsjobber()
             }
+        }
+    }
+
+    /**
+     * Kjører alle asynkrone jobber tilknyttet tilbakekrevingsbehandling:
+     * - kravgrunnlag
+     * - oppgaver
+     * - generering av dokumenter
+     *
+     * Journalføring og distribuering utføres av dokument-modulen.
+     */
+    fun kjørTilbakekrevingsjobber() {
+        Either.catch {
+            withCorrelationId { correlationId ->
+                knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(correlationId)
+                opprettOppgaveKonsument.opprettOppgaver(correlationId)
+                genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
+                lukkOppgaveKonsument.lukkOppgaver(correlationId)
+                oppdaterOppgaveKonsument.oppdaterOppgaver(correlationId)
+            }
+        }.mapLeft {
+            // Dette er bare en guard - hver jobb skal håndtere feil selv (og ingen skal kaste videre hit).
+            log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
         }
     }
 }

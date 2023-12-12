@@ -1,4 +1,4 @@
-package infrastructure.repo
+package tilbakekreving.infrastructure.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.februar
@@ -11,15 +11,15 @@ import org.junit.jupiter.api.Test
 /**
  * Disse testene dekker også hentForSak og hent(hendelseId)
  */
-class ForhåndsvarsleTilbakekrevingsbehandlingRepoTest {
+class IverksettTilbakekrevingsbehandlingRepoTest {
 
     @Test
-    fun `kan forhåndsvarsle tilbakekrevingsbehandling`() {
+    fun `kan sende tilbakekrevingsbehandling til attestering`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak, _, _, _, hendelser) = testDataHelper.persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse()
+            val (sak, _, _, _, hendelser) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
 
             val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak.id).also {

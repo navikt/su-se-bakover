@@ -55,15 +55,15 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
             }
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
-            val eksternVedtakId = opprettTilbakekrevingsbehandling(
+            val eksternVedtakId = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 2,
+                saksversjonFør = 2,
                 client = this.client,
                 expectedOpprettet = "2021-02-01T01:03:33.456789Z",
                 expectedKontrollfelt = "2021-02-01-02.03.29.456789",
             ).let {
-                JSONObject(it.first).getJSONObject("kravgrunnlag").getString("eksternVedtakId")
+                JSONObject(it.responseJson).getJSONObject("kravgrunnlag").getString("eksternVedtakId")
             }
             appComponents.emulerViMottarKravgrunnlagstatusendring(
                 saksnummer = saksnummer,
