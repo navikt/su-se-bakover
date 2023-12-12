@@ -10,14 +10,11 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 /**
  * Oppretter en tilbakekrevingsbehandling for en gitt sak.
@@ -28,12 +25,12 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
-    saksversjonFør: Long,
+    saksversjon: Long,
     utførSideeffekter: Boolean = true,
-    expectedOpprettet: String = "2021-02-01T01:03:32.456789Z",
     expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
-): OpprettetTilbakekrevingsbehandling {
+): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
+    val sakFørKallJson = hentSak(sakId, client)
     return runBlocking {
         val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
@@ -42,36 +39,44 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"versjon":$saksversjonFør}""") }.apply {
+        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
             withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().let { responseJson ->
             if (utførSideeffekter) {
-                appComponents.kjørOpprettOppgaveKonsument()
-                appComponents.verifiserOpprettetOppgaveKonsument()
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleVerifiseringer(
+                    sakId = sakId,
+                    antallOpprettetOppgaver = 1,
+                )
             }
-            val sakJson = hentSak(sakId, client)
-            val saksversjonEtter = JSONObject(sakJson).getLong("versjon")
+            val sakEtterKallJson = hentSak(sakId, client)
+            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
+                if (utførSideeffekter) {
+                    // oppgavehendelse
+                    saksversjonEtter shouldBe saksversjon + 2
+                } else {
+                    saksversjonEtter shouldBe saksversjon + 1
+                }
                 verifiserOpprettetTilbakekrevingsbehandlingRespons(
                     actual = responseJson,
                     sakId = sakId,
-                    expectedVersjon = saksversjonFør + 1,
-                    expectedOpprettet = expectedOpprettet,
+                    expectedVersjon = saksversjon + 1,
                     expectedKontrollfelt = expectedKontrollfelt,
                 )
                 val tilbakekreving =
-                    JSONObject(sakJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
                 verifiserOpprettetTilbakekrevingsbehandlingRespons(
                     actual = tilbakekreving,
                     sakId = sakId,
-                    expectedVersjon = saksversjonFør + 1,
-                    expectedOpprettet = expectedOpprettet,
+                    expectedVersjon = saksversjon + 1,
                     expectedKontrollfelt = expectedKontrollfelt,
                 )
             }
-            OpprettetTilbakekrevingsbehandling(
+            OpprettetTilbakekrevingsbehandlingRespons(
                 tilbakekrevingsbehandlingId = hentTilbakekrevingsbehandlingId(responseJson),
                 saksversjon = saksversjonEtter,
                 responseJson = responseJson,
@@ -80,7 +85,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     }
 }
 
-internal data class OpprettetTilbakekrevingsbehandling(
+internal data class OpprettetTilbakekrevingsbehandlingRespons(
     val tilbakekrevingsbehandlingId: String,
     val saksversjon: Long,
     val responseJson: String,
@@ -90,14 +95,13 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     expectedVersjon: Long,
-    expectedOpprettet: String = "2021-02-01T01:03:32.456789Z",
     expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
 ) {
     val expected = """
 {
   "id":"ignoreres-siden-denne-opprettes-av-tjenesten",
   "sakId":"$sakId",
-  "opprettet":"$expectedOpprettet",
+  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
@@ -138,14 +142,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": null,
 }"""
-    JSONAssert.assertEquals(
-        expected,
-        actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization("id") { _, _ -> true },
-            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
-        ),
-    )
+    actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "opprettet")
     JSONObject(actual).has("id") shouldBe true
+    JSONObject(actual).has("opprettet") shouldBe true
 }

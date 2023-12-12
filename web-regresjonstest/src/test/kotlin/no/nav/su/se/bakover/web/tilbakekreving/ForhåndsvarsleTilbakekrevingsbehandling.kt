@@ -10,23 +10,24 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
-fun forhåndsvarsleTilbakekrevingsbehandling(
+internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    utførSideeffekter: Boolean = true,
     saksversjon: Long,
     fritekst: String = "Regresjonstest: Fritekst til forhåndsvarsel under tilbakekrevingsbehandling.",
-): Pair<String, Long> {
-    val expectedVersjon = saksversjon + 1
+): ForhåndsvarsletTilbakekrevingRespons {
+    val sakFørKallJson = hentSak(sakId, client)
+    val appComponents = this
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -37,18 +38,57 @@ fun forhåndsvarsleTilbakekrevingsbehandling(
             withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let {
+            if (utførSideeffekter) {
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleVerifiseringer(
+                    sakId = sakId,
+                    antallOpprettetOppgaver = 1,
+                    antallOppdatertOppgaveHendelser = 1,
+                    antallGenererteForhåndsvarsler = 1,
+                    antallJournalførteDokumenter = 1,
+                    antallDistribuertDokumenter = 1,
+                )
+            }
+            val sakEtterKallJson = hentSak(sakId, client)
+            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+
             if (verifiserRespons) {
+                if (utførSideeffekter) {
+                    saksversjonEtter shouldBe saksversjon + 5 // hendelse + oppdatert oppgave + generering av brev + journalført + distribuert
+                } else {
+                    saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
+                }
                 verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = expectedVersjon,
+                    expectedVersjon = saksversjon + 1,
+                )
+                val tilbakekreving =
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
+                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
+                    actual = tilbakekreving,
+                    sakId = sakId,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    expectedVersjon = saksversjon + 1,
                 )
             }
-        } to expectedVersjon
+            ForhåndsvarsletTilbakekrevingRespons(
+                forhåndsvarselInfo = hentForhåndsvarselDokumenter(it),
+                saksversjon = saksversjonEtter,
+                responseJson = it,
+            )
+        }
     }
 }
+
+internal data class ForhåndsvarsletTilbakekrevingRespons(
+    val forhåndsvarselInfo: String,
+    val saksversjon: Long,
+    val responseJson: String,
+)
 
 fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
     actual: String,
@@ -60,7 +100,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
 {
   "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:32.456789Z",
+  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
@@ -106,14 +146,6 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": null,
 }"""
-    JSONAssert.assertEquals(
-        expected,
-        actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization("forhåndsvarselsInfo") { _, _ -> true },
-            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
-        ),
-    )
+    actual.shouldBeSimilarJsonTo(expected, "forhåndsvarselsInfo", "kravgrunnlag.hendelseId", "opprettet")
     JSONObject(actual).getJSONArray("forhåndsvarselsInfo").shouldHaveSize(1)
 }

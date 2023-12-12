@@ -9,11 +9,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 
 fun underkjennTilbakekrevingsbehandling(
@@ -85,7 +82,7 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
 {
   "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:32.456789Z",
+  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
@@ -107,7 +104,7 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
         "skattFeilutbetaling":"6192"
       }
     ],
-        "summertBetaltSkattForYtelsesgruppen": "6192",
+    "summertBetaltSkattForYtelsesgruppen": "6192",
     "summertBruttoTidligereUtbetalt": 20946,
     "summertBruttoNyUtbetaling": 8563,
     "summertBruttoFeilutbetaling": 12383,
@@ -128,19 +125,12 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
         "grunn": "$expectedGrunn",
         "kommentar": "$expectedKommentar"
       },
-    "opprettet": "2021-02-01T01:03:58.456789Z"
+      "opprettet": "ignore-me"
     }
   ],
   "erKravgrunnlagUtdatert": false,
   "avsluttetTidspunkt": null,
   "notat": "notatet"
 }"""
-    JSONAssert.assertEquals(
-        expected,
-        actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
-        ),
-    )
+    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "attesteringer[*].opprettet")
 }

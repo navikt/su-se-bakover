@@ -124,7 +124,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
 {
   "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:32.456789Z",
+  "opprettet":"2021-02-01T01:03:33.456789Z",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",

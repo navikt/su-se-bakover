@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.tilbakekreving
 import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.CorrelationId
@@ -21,27 +22,33 @@ import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrev
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import java.util.UUID
 
-internal fun AppComponents.runAllConsumers(saksversjon: Long): Long {
+/**
+ *
+ */
+internal fun AppComponents.kjøreAlleTilbakekrevingskonsumenter() {
     // --- oppgaver ---
     this.kjørOpprettOppgaveKonsument()
-    // TODO tilbakekreving: Hent ut saksversjon fra saken.
-    val oppdater = this.oppdaterOppgave(saksversjon + 1)
-    val lukk = this.lukkOppgave(oppdater)
+    // TODO tilbakekreving jah: Fjern versjonsgreiene fra verifiseringa.
+    this.oppdaterOppgave(1)
+    this.lukkOppgave(1)
 
     // --- dokumenter ---
-    val forhåndsvarsel = this.genererDokumenterForForhåndsvarsel(lukk)
-    val journalført = this.journalførDokumenter(forhåndsvarsel)
-    return this.distribuerDokumenter(journalført)
+    this.genererDokumenterForForhåndsvarsel(1)
+    this.journalførDokumenter(1)
+    this.distribuerDokumenter(1)
 }
 
-internal fun AppComponents.runAllVerifiseringer(
+/**
+ * Merk at dette er totalen, så du må ta høyde for alle steg.
+ */
+internal fun AppComponents.kjøreAlleVerifiseringer(
     sakId: String,
-    antallOpprettetOppgaver: Int,
-    antallOppdatertOppgaveHendelser: Int,
-    antallLukketOppgaver: Int,
-    antallGenererteForhåndsvarsler: Int,
-    antallJournalførteDokumenter: Int,
-    antallDistribuertDokumenter: Int,
+    antallOpprettetOppgaver: Int = 0,
+    antallOppdatertOppgaveHendelser: Int = 0,
+    antallLukketOppgaver: Int = 0,
+    antallGenererteForhåndsvarsler: Int = 0,
+    antallJournalførteDokumenter: Int = 0,
+    antallDistribuertDokumenter: Int = 0,
 ) {
     this.verifiserOpprettetOppgaveKonsument(antallOpprettetOppgaver)
     this.verifiserOppdatertOppgaveKonsument(antallOppdatertOppgaveHendelser)
@@ -194,13 +201,20 @@ internal fun AppComponents.verifiserOpprettetOppgaveKonsument(antallOpprettetOpp
                 select * from hendelse_konsument where konsumentId = 'OpprettOppgaveForTilbakekrevingsbehandlingHendelser'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
-            }.size shouldBe antallOpprettetOppgaver
-
+            }.size.also {
+                withClue("Forventet $antallOpprettetOppgaver rader med konsumentId OpprettOppgaveForTilbakekrevingsbehandlingHendelser, men var $it") {
+                    it shouldBe antallOpprettetOppgaver
+                }
+            }
             """
                 select * from hendelse where type = 'OPPRETTET_TILBAKEKREVINGSBEHANDLING'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
-            }.size shouldBe antallOpprettetOppgaver
+            }.size.let {
+                withClue("Forventet $antallOpprettetOppgaver hendelser med type OPPRETTET_TILBAKEKREVINGSBEHANDLING, men var $it") {
+                    it shouldBe antallOpprettetOppgaver
+                }
+            }
         }
     }
 }

@@ -9,11 +9,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 fun avbrytTilbakekrevingsbehandling(
     sakId: String,
@@ -59,12 +56,12 @@ fun verifiserAvbrytTilbakekrevingRespons(
 {
   "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:32.456789Z",
+  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.04.37.456789",
+    "kontrollfelt":"ignore-me",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -97,15 +94,8 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:42.456789Z",
+  "avsluttetTidspunkt": "2021-02-01T01:04:43.456789Z",
   "notat": null,
 }"""
-    JSONAssert.assertEquals(
-        expected,
-        actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
-        ),
-    )
+    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "kravgrunnlag.kontrollfelt")
 }

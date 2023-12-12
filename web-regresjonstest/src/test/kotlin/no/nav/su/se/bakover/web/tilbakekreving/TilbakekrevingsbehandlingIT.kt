@@ -54,7 +54,7 @@ internal class TilbakekrevingsbehandlingIT {
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjonFør = 2,
+                saksversjon = 2,
                 client = this.client,
             )
             forhåndsvisForhåndsvarselTilbakekreving(
@@ -63,38 +63,16 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
             )
-            val (forhåndsvarselDokumenter, versjonEtterForhåndsvarsel) = forhåndsvarsleTilbakekrevingsbehandling(
+            val (forhåndsvarselDokumenter, versjonEtterForhåndsvarsel) = appComponents.forhåndsvarsleTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
-            ).let {
-                hentForhåndsvarselDokumenter(it.first) to it.second
-            }
-            val versjonEtterOppdateringAvForhåndsvarselsOppgave =
-                appComponents.oppdaterOppgave(versjonEtterForhåndsvarsel)
-            appComponents.verifiserOppdatertOppgaveKonsument(1)
-            val versjonEtterGenereringAvForhåndsvarselsDokument =
-                appComponents.genererDokumenterForForhåndsvarsel(versjonEtterOppdateringAvForhåndsvarselsOppgave)
-            appComponents.verifiserDokumentHendelser(
-                sakId = sakId,
-                antallGenererteDokumenter = 1,
-                antallJournalførteDokumenter = 0,
-                antallDistribuerteDokumenter = 0,
             )
-            appComponents.verifiserGenererDokumentForForhåndsvarselKonsument()
-            val versjonEtterJournalføringAvForhåndsvarsel =
-                appComponents.journalførDokumenter(versjonEtterGenereringAvForhåndsvarselsDokument)
-            appComponents.verifiserJournalførDokumenterKonsument(1)
-
-            val versjonEtterDistribusjonAvForhåndsvarsel =
-                appComponents.distribuerDokumenter(versjonEtterJournalføringAvForhåndsvarsel)
-            appComponents.verifiserDistribuerteDokumenterKonsument(1)
-
             val (vurderinger, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterDistribusjonAvForhåndsvarsel,
+                saksversjon = versjonEtterForhåndsvarsel,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
             ).let {
@@ -251,8 +229,8 @@ internal class TilbakekrevingsbehandlingIT {
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.runAllConsumers(versjonEtterLukking)
-            appComponents.runAllVerifiseringer(
+            appComponents.kjøreAlleTilbakekrevingskonsumenter()
+            appComponents.kjøreAlleVerifiseringer(
                 sakId = sakId,
                 antallOpprettetOppgaver = 1,
                 antallOppdatertOppgaveHendelser = 4,
@@ -296,7 +274,7 @@ internal class TilbakekrevingsbehandlingIT {
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
-                saksversjonFør = 2,
+                saksversjon = 2,
                 client = this.client,
             )
 
@@ -335,12 +313,12 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = versjonEtterOppdateringAvKravgrunnlag,
             )
 
-            val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterAvbrytelse)
+            appComponents.lukkOppgave(versjonEtterAvbrytelse)
             appComponents.verifiserLukketOppgaveKonsument()
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.runAllConsumers(versjonEtterLukking)
-            appComponents.runAllVerifiseringer(
+            appComponents.kjøreAlleTilbakekrevingskonsumenter()
+            appComponents.kjøreAlleVerifiseringer(
                 sakId = sakId,
                 antallOpprettetOppgaver = 1,
                 antallOppdatertOppgaveHendelser = 0,
