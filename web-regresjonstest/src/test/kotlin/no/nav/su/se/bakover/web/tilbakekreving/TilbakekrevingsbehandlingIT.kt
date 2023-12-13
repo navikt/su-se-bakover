@@ -213,7 +213,7 @@ internal class TilbakekrevingsbehandlingIT {
             val versjonEtterOppdateringAvOppgaveAndreAttestering =
                 appComponents.oppdaterOppgave(versjonEtterAndreSendingTilAttestering)
             appComponents.verifiserOppdatertOppgaveKonsument(4)
-            val (_, versjonEtterIverksetting) = iverksettTilbakekrevingsbehandling(
+            val (_, versjonEtterIverksetting) = appComponents.iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = versjonEtterOppdateringAvOppgaveAndreAttestering,
@@ -223,27 +223,11 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterIverksetting)
+            appComponents.lukkOppgave(versjonEtterIverksetting)
             appComponents.verifiserLukketOppgaveKonsument()
+            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterIverksetting.toInt())
+
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            // TODO vedtaksbrev - kjør konsument (generering, journalføring, distribuering) + verifisering
-
-            val versjonEtterGenereringAvVedtaksbrev = appComponents.genererDokumenterForVedtaksbrev(versjonEtterLukking)
-            appComponents.verifiserDokumentHendelser(
-                sakId = sakId,
-                antallGenererteDokumenter = 2,
-                antallJournalførteDokumenter = 1,
-                antallDistribuerteDokumenter = 1,
-            )
-            appComponents.verifiserGenererDokumentForVedtaksbrevKonsument()
-            val versjonEtterJournalføringAvVedtaksbrev =
-                appComponents.journalførDokumenter(versjonEtterGenereringAvVedtaksbrev)
-            appComponents.verifiserJournalførDokumenterKonsument(2)
-            val versjonEtterDistribusjonAvVedtaksbrev =
-                appComponents.distribuerDokumenter(versjonEtterJournalføringAvVedtaksbrev)
-            appComponents.verifiserDistribuerteDokumenterKonsument(2)
-
-            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterDistribusjonAvVedtaksbrev.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
             appComponents.kjøreAlleTilbakekrevingskonsumenter()

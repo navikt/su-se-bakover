@@ -99,7 +99,7 @@ internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
 /**
  * Kjører [LukkOppgaveForTilbakekrevingshendelserKonsument].
  *
- * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk lukker en oppgave eller ikke.
  */
 internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument.lukkOppgaver(

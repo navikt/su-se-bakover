@@ -12,13 +12,18 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONArray
+import org.json.JSONObject
 
-fun iverksettTilbakekrevingsbehandling(
+fun AppComponents.iverksettTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    utførSideeffekter: Boolean = true,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("AttestantLokal"),
     saksversjon: Long,
     verifiserForhåndsvarselDokumenter: String,
@@ -26,7 +31,8 @@ fun iverksettTilbakekrevingsbehandling(
     verifiserFritekst: String,
     tidligereAttesteringer: String? = null,
 ): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+    val sakFørKallJson = hentSak(sakId, client)
+    val appComponents = this
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -35,24 +41,82 @@ fun iverksettTilbakekrevingsbehandling(
             client = client,
             navIdent = attestant.toString(),
         ) { setBody("""{"versjon":$saksversjon}""") }.apply {
-            withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
+            withClue("Kunne ikke iverksette tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let {
+            if (utførSideeffekter) {
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleVerifiseringer(
+                    sakId = sakId,
+                    antallOpprettetOppgaver = 1,
+                    antallOppdatertOppgaveHendelser = 4,
+                    antallLukketOppgaver = 1,
+                    antallGenererteForhåndsvarsler = 1,
+                    antallGenererteVedtaksbrev = 1,
+                    antallJournalførteDokumenter = 2,
+                    antallDistribuertDokumenter = 2,
+                )
+            }
+            val sakEtterKallJson = hentSak(sakId, client)
+            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger", "vedtak")
+            verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId, JSONObject(sakEtterKallJson).getJSONArray("vedtak"))
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+
             if (verifiserRespons) {
+                if (utførSideeffekter) {
+                    saksversjonEtter shouldBe saksversjon + 5 // hendelse + lukket oppgave + generering av brev + journalført + distribuert
+                } else {
+                    saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
+                }
                 verifiserIverksattTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    expectedVersjon = saksversjon + 1,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
                     vurderinger = verifiserVurderinger,
                     fritekst = verifiserFritekst,
-                    expectedVersjon = expectedVersjon,
+                    tidligereAttesteringer = tidligereAttesteringer,
+                )
+
+                val tilbakekreving =
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
+                verifiserIverksattTilbakekrevingsbehandlingRespons(
+                    actual = tilbakekreving,
+                    sakId = sakId,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                    expectedVersjon = saksversjon + 1,
+                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                    vurderinger = verifiserVurderinger,
+                    fritekst = verifiserFritekst,
                     tidligereAttesteringer = tidligereAttesteringer,
                 )
             }
-        } to expectedVersjon
+            it to saksversjonEtter
+        }
     }
+}
+
+private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, vedtakJson: JSONArray) {
+    vedtakJson.length() shouldBe 3
+    val tilbakekrevingsvedtak = vedtakJson.getJSONObject(2)
+    val expected = """
+                {
+                    "id":"ignore-me",
+                    "opprettet":"2021-02-01T01:04:07.456789Z",
+                    "beregning":null,
+                    "simulering":null,
+                    "attestant":"AttestantLokal",
+                    "saksbehandler":"Z990Lokal",
+                    "utbetalingId":null,
+                    "behandlingId":$tilbakekrevingsbehandlingId,
+                    "periode":null,
+                    "type":"TILBAKEKREVING",
+                    "dokumenttilstand":"SENDT"
+                }
+    """.trimIndent()
+    tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id")
 }
 
 fun verifiserIverksattTilbakekrevingsbehandlingRespons(
