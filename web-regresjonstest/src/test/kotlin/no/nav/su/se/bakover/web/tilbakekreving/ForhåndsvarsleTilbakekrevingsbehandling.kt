@@ -40,6 +40,21 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
             }
         }.bodyAsText().let {
             if (utførSideeffekter) {
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleVerifiseringer(
+                    sakId = sakId,
+                    antallOpprettetOppgaver = 1,
+                    antallOppdatertOppgaveHendelser = 1,
+                    antallGenererteForhåndsvarsler = 1,
+                    antallJournalførteDokumenter = 1,
+                    antallDistribuertDokumenter = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettOppdatertOppgaveKonsumentJobb()
+                appComponents.slettGenererDokumentForForhåndsvarselKonsumentJobb()
+                // Ikke denne testen sitt ansvar og verifisere journalføring og distribusjon av dokumenter, så vi sletter ikke de.
                 appComponents.kjøreAlleTilbakekrevingskonsumenter()
                 appComponents.kjøreAlleVerifiseringer(
                     sakId = sakId,
