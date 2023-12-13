@@ -104,7 +104,7 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
     val expected = """
                 {
                     "id":"ignore-me",
-                    "opprettet":"2021-02-01T01:04:07.456789Z",
+                    "opprettet":"2021-02-01T01:04:11.456789Z",
                     "beregning":null,
                     "simulering":null,
                     "attestant":"AttestantLokal",
