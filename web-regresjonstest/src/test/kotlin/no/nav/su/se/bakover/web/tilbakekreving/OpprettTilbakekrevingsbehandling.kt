@@ -45,6 +45,15 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             }
         }.bodyAsText().let { responseJson ->
             if (utførSideeffekter) {
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleTilbakekrevingskonsumenter()
+                appComponents.kjøreAlleVerifiseringer(
+                    sakId = sakId,
+                    antallOpprettetOppgaver = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettOpprettetOppgaveKonsumentJobb()
                 appComponents.kjøreAlleTilbakekrevingskonsumenter()
                 appComponents.kjøreAlleVerifiseringer(
                     sakId = sakId,
@@ -52,7 +61,6 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                 )
             }
             val sakEtterKallJson = hentSak(sakId, client)
-            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
                 if (utførSideeffekter) {
@@ -61,6 +69,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                 } else {
                     saksversjonEtter shouldBe saksversjon + 1
                 }
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
                 verifiserOpprettetTilbakekrevingsbehandlingRespons(
                     actual = responseJson,
                     sakId = sakId,
@@ -145,4 +154,5 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "opprettet")
     JSONObject(actual).has("id") shouldBe true
     JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

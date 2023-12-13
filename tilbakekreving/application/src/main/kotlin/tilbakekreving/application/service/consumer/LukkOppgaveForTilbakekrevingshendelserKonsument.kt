@@ -44,16 +44,30 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun lukkOppgaver(correlationId: CorrelationId) {
-        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = AvbruttTilbakekrevingsbehandlingHendelsestype,
-        ).forEach { (sakId, hendelsesIder) ->
-            prosesserSak(sakId, hendelsesIder, correlationId)
+        Either.catch {
+            lukkOppgaverForAvbrutt(correlationId)
+            lukkOppgaverForIverksatt(correlationId)
+        }.mapLeft {
+            log.error(
+                "Kunne ikke lukke oppgave(r) for tilbakekrevingsbehandling: Det ble kastet en exception for konsument $konsumentId",
+                it,
+            )
         }
+    }
 
+    private fun lukkOppgaverForIverksatt(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = IverksattTilbakekrevingsbehandlingHendelsestype,
+        ).forEach { (sakId, hendelsesIder) ->
+            prosesserSak(sakId, hendelsesIder, correlationId)
+        }
+    }
+
+    private fun lukkOppgaverForAvbrutt(correlationId: CorrelationId) {
+        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+            konsumentId = konsumentId,
+            hendelsestype = AvbruttTilbakekrevingsbehandlingHendelsestype,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSak(sakId, hendelsesIder, correlationId)
         }

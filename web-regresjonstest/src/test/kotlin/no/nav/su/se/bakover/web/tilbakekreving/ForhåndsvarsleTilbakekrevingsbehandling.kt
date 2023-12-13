@@ -51,7 +51,6 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                 )
             }
             val sakEtterKallJson = hentSak(sakId, client)
-            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
 
             if (verifiserRespons) {
@@ -60,6 +59,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                 } else {
                     saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
                 }
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
                 verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
@@ -148,4 +148,6 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
 }"""
     actual.shouldBeSimilarJsonTo(expected, "forhåndsvarselsInfo", "kravgrunnlag.hendelseId", "opprettet")
     JSONObject(actual).getJSONArray("forhåndsvarselsInfo").shouldHaveSize(1)
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

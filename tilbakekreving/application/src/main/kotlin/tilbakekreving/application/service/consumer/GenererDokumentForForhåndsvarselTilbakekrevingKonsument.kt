@@ -50,10 +50,17 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun genererDokumenter(correlationId: CorrelationId) {
-        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
-        ).forEach { (sakId, hendelsesIder) -> genererDokumenterForSak(sakId, hendelsesIder, correlationId) }
+        Either.catch {
+            hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+                konsumentId = konsumentId,
+                hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+            ).forEach { (sakId, hendelsesIder) -> genererDokumenterForSak(sakId, hendelsesIder, correlationId) }
+        }.mapLeft {
+            log.error(
+                "Kunne ikke generere dokument for forhåndsvarsel av tilbakekrevingsbehandling: Det ble kastet en exception for konsument $konsumentId",
+                it,
+            )
+        }
     }
 
     private fun genererDokumenterForSak(

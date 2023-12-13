@@ -44,11 +44,18 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun opprettOppgaver(correlationId: CorrelationId) {
-        hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = OpprettetTilbakekrevingsbehandlingHendelsestype,
-        ).forEach { (sakId, hendelsesIder) ->
-            prosesserSak(sakId, hendelsesIder, correlationId)
+        Either.catch {
+            hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+                konsumentId = konsumentId,
+                hendelsestype = OpprettetTilbakekrevingsbehandlingHendelsestype,
+            ).forEach { (sakId, hendelsesIder) ->
+                prosesserSak(sakId, hendelsesIder, correlationId)
+            }
+        }.mapLeft {
+            log.error(
+                "Kunne ikke opprette oppgave(r) for tilbakekrevingsbehandling: Det ble kastet en exception for konsument $konsumentId",
+                it,
+            )
         }
     }
 
@@ -57,7 +64,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
     ) {
-        log.info("starter opprettelse av oppgaver for opprettetTilbakekrevingsbehandling-hendelser på sak $sakId")
+        log.info("Starter opprettelse av oppgaver for opprettetTilbakekrevingsbehandling-hendelser på sak $sakId. Hendelsesider: $hendelsesIder")
 
         val sak = sakService.hentSak(sakId)
             .getOrElse { throw IllegalStateException("Kunne ikke hente sakInfo $sakId for å opprette oppgave for OpprettetTilbakekrevingshendelse") }

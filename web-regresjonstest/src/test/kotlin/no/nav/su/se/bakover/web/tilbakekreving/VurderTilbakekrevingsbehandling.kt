@@ -9,13 +9,12 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 
-fun vurderTilbakekrevingsbehandling(
+internal fun vurderTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
@@ -67,8 +66,8 @@ fun vurderTilbakekrevingsbehandling(
     expectedFritekst: String? = null,
     expectedAttesteringer: String = "[]",
     expectedNotat: String? = null,
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): VurderTilbakekrevingsbehandlingRespons {
+    val sakFørKallJson = hentSak(sakId, client)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -88,24 +87,40 @@ fun vurderTilbakekrevingsbehandling(
             withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let {
+            // Dette kallet har ingen side-effekter.
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+                saksversjonEtter shouldBe saksversjon + 1
                 verifiserVurdertTilbakekrevingsbehandlingRespons(
                     actual = it,
                     sakId = sakId,
                     status = tilstand,
                     tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                     forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = expectedVersjon,
+                    expectedVersjon = saksversjon + 1,
                     expectedFritekst = expectedFritekst,
                     expectedAttesteringer = expectedAttesteringer,
                     expectedVurderinger = expectedVurderinger,
                     expectedNotat = expectedNotat,
                 )
             }
-        } to expectedVersjon
+            VurderTilbakekrevingsbehandlingRespons(
+                saksversjon = saksversjonEtter,
+                vurderinger = hentVurderinger(it),
+                responseJson = it,
+            )
+        }
     }
 }
+
+internal data class VurderTilbakekrevingsbehandlingRespons(
+    val vurderinger: String,
+    val saksversjon: Long,
+    val responseJson: String,
+)
 
 fun verifiserVurdertTilbakekrevingsbehandlingRespons(
     actual: String,
@@ -124,7 +139,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
 {
   "id":"$tilbakekrevingsbehandlingId",
   "sakId":"$sakId",
-  "opprettet":"2021-02-01T01:03:33.456789Z",
+  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
   "opprettetAv":"Z990Lokal",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
@@ -165,12 +180,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": ${expectedNotat?.let { "\"$it\"" }}
 }"""
-    JSONAssert.assertEquals(
-        expected,
-        actual,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization("kravgrunnlag.hendelseId") { _, _ -> true },
-        ),
-    )
+    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

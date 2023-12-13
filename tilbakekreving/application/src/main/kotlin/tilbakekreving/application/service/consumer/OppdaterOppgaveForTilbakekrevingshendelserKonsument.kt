@@ -45,17 +45,36 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun oppdaterOppgaver(correlationId: CorrelationId) {
+        Either.catch {
+            oppdaterOppgaveEtterForhåndsvarsel(correlationId)
+            oppdaterOppgaveEtterSendtTilAttestering(correlationId)
+            oppdaterOppgaveEtterUnderkjennelse(correlationId)
+        }.mapLeft {
+            log.error(
+                "Kunne ikke oppdatere oppgave(r) for tilbakekrevingsbehandling: Det ble kastet en exception for konsument $konsumentId",
+                it,
+            )
+        }
+    }
+
+    private fun oppdaterOppgaveEtterUnderkjennelse(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
+            hendelsestype = UnderkjentTilbakekrevingsbehandlingHendelsestype,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSak(
                 sakId,
                 hendelsesIder,
                 correlationId,
-                OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er opprettet"),
+                OppdaterOppgaveInfo(
+                    beskrivelse = "Behandlingen er sendt tilbake for vurdering",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                ),
             )
         }
+    }
+
+    private fun oppdaterOppgaveEtterSendtTilAttestering(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
             hendelsestype = TilbakekrevingsbehandlingTilAttesteringHendelsestype,
@@ -70,18 +89,18 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                 ),
             )
         }
+    }
+
+    private fun oppdaterOppgaveEtterForhåndsvarsel(correlationId: CorrelationId) {
         hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
             konsumentId = konsumentId,
-            hendelsestype = UnderkjentTilbakekrevingsbehandlingHendelsestype,
+            hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
         ).forEach { (sakId, hendelsesIder) ->
             prosesserSak(
                 sakId,
                 hendelsesIder,
                 correlationId,
-                OppdaterOppgaveInfo(
-                    beskrivelse = "Behandlingen er sendt tilbake for vurdering",
-                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                ),
+                OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er opprettet"),
             )
         }
     }

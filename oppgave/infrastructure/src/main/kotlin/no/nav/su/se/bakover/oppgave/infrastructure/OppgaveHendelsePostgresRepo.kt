@@ -50,17 +50,19 @@ class OppgaveHendelsePostgresRepo(
         sakId: UUID,
         sessionContext: SessionContext?,
     ): OppgaveHendelse? {
-        return sessionContext.withOptionalSession(sessionFactory) {
-            """
-                SELECT *
+        return dbMetrics.timeQuery("hentHendelseForRelatert") {
+            sessionContext.withOptionalSession(sessionFactory) {
+                """
+                SELECT data,hendelsestidspunkt,versjon,type,sakId,hendelseId,tidligereHendelseId,entitetId
                 FROM hendelse
                 WHERE
                     type = 'OPPGAVE' AND 
                     sakId = :sakId AND
-                    :relatertHendelseId = ANY (ARRAY(SELECT * from jsonb_array_elements(data->'relaterteHendelser'))::text[])
-            """.trimIndent().hent(mapOf("relatertHendelseId" to relatertHendelseId.toString(), "sakId" to sakId), it) {
-                HendelsePostgresRepo.toPersistertHendelse(it)
-            }?.toOppgaveHendelse()
+                    :relatertHendelseId = ANY (ARRAY(SELECT * from jsonb_array_elements_text(data->'relaterteHendelser'))::text[])
+                """.trimIndent().hent(mapOf("relatertHendelseId" to relatertHendelseId.toString(), "sakId" to sakId), it) {
+                    HendelsePostgresRepo.toPersistertHendelse(it)
+                }?.toOppgaveHendelse()
+            }
         }
     }
 }

@@ -55,6 +55,7 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     this.verifiserLukketOppgaveKonsument(antallLukketOppgaver)
     this.verifiserOppgaveHendelser(
         sakId = sakId,
+        antallOpprettetOppgaver = antallOpprettetOppgaver,
         antallOppdaterteOppgaver = antallOppdatertOppgaveHendelser,
         antallLukketOppgaver = antallLukketOppgaver,
     )
@@ -181,15 +182,15 @@ internal fun AppComponents.verifiserDokumentHendelser(
 
 internal fun AppComponents.verifiserOppgaveHendelser(
     sakId: String,
+    antallOpprettetOppgaver: Int,
     antallOppdaterteOppgaver: Int,
     antallLukketOppgaver: Int,
 ) {
     val oppgaveHendelser = this.databaseRepos.oppgaveHendelseRepo.hentForSak(UUID.fromString(sakId))
-    // nr 1 er opprettet
-    oppgaveHendelser.size shouldBe 1 + antallOppdaterteOppgaver + antallLukketOppgaver
 
-    // en serie med tilbakekreving vil bare ha kun 1 opprettet oppgave
-    oppgaveHendelser.filterIsInstance<OppgaveHendelse.Opprettet>().single()
+    oppgaveHendelser.size shouldBe antallOpprettetOppgaver + antallOppdaterteOppgaver + antallLukketOppgaver
+
+    oppgaveHendelser.filterIsInstance<OppgaveHendelse.Opprettet>().size shouldBe antallOpprettetOppgaver
     oppgaveHendelser.filterIsInstance<OppgaveHendelse.Oppdatert>().size shouldBe antallOppdaterteOppgaver
     oppgaveHendelser.filterIsInstance<OppgaveHendelse.Lukket>().size shouldBe antallLukketOppgaver
 }
@@ -228,7 +229,7 @@ internal fun AppComponents.slettOpprettetOppgaveKonsumentJobb() {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
-                delete * from hendelse_konsument where konsumentId = 'OpprettOppgaveForTilbakekrevingsbehandlingHendelser'
+                delete from hendelse_konsument where konsumentId = 'OpprettOppgaveForTilbakekrevingsbehandlingHendelser'
             """.trimIndent().oppdatering(emptyMap(), it)
         }
     }
@@ -255,7 +256,7 @@ internal fun AppComponents.slettOppdatertOppgaveKonsumentJobb() {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
-                delete * from hendelse_konsument where konsumentId = 'OppdaterOppgaveForTilbakekrevingsbehandlingHendelser'
+                delete from hendelse_konsument where konsumentId = 'OppdaterOppgaveForTilbakekrevingsbehandlingHendelser'
             """.trimIndent().oppdatering(emptyMap(), it)
         }
     }
@@ -282,7 +283,7 @@ internal fun AppComponents.slettLukketOppgaveKonsumentJobb() {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
-                delete * from hendelse_konsument where konsumentId = 'LukkOppgaveForTilbakekrevingsbehandlingHendelser'
+                delete from hendelse_konsument where konsumentId = 'LukkOppgaveForTilbakekrevingsbehandlingHendelser'
             """.trimIndent().oppdatering(emptyMap(), it)
         }
     }
@@ -309,7 +310,7 @@ internal fun AppComponents.slettGenererDokumentForForhåndsvarselKonsumentJobb()
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
-                delete * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
+                delete from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
             """.trimIndent().oppdatering(emptyMap(), it)
         }
     }

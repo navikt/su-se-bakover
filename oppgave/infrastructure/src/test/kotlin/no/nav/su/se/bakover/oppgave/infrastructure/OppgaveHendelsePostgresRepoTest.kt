@@ -18,4 +18,16 @@ class OppgaveHendelsePostgresRepoTest {
             }
         }
     }
+
+    @Test
+    fun testHentHendelseForRelatert() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val expected = testDataHelper.persisterOppgaveHendelse()
+
+            testDataHelper.sessionFactory.withSessionContext {
+                testDataHelper.oppgaveHendelseRepo.hentHendelseForRelatert(expected.relaterteHendelser.single(), expected.sakId) shouldBe expected
+            }
+        }
+    }
 }

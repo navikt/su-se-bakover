@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONArray
 import org.junit.jupiter.api.Test
@@ -35,20 +34,16 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
                 appComponents = appComponents,
             )
-
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
-            @Suppress("UNUSED_VARIABLE")
-            val revurderingId = opprettIverksattRevurdering(
+            opprettIverksattRevurdering(
                 sakid = sakId,
                 fraogmed = 1.januar(2021).toString(),
                 tilogmed = 31.januar(2021).toString(),
                 client = this.client,
                 appComponents = appComponents,
                 skalUtsetteTilbakekreving = true,
-            ).let {
-                RevurderingJson.hentRevurderingId(it)
-            }
+            )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
@@ -75,9 +70,7 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = versjonEtterForhåndsvarsel,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-            ).let {
-                hentVurderinger(it.first) to it.second
-            }
+            )
 
             val (fritekst, versjonEtterOppdateringAvVedtaksbrev) = oppdaterVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
@@ -197,9 +190,7 @@ internal class TilbakekrevingsbehandlingIT {
               }
                 """.trimIndent(),
                 expectedNotat = notat,
-            ).let {
-                hentVurderinger(it.first) to it.second
-            }
+            )
             val (_, versjonEtterAndreSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
