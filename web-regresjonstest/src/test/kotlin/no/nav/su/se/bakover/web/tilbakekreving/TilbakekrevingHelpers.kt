@@ -20,30 +20,60 @@ import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsva
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.IverksattHendelse
 import java.util.UUID
 
-/**
- *
- */
-internal fun AppComponents.kjøreAlleTilbakekrevingskonsumenter() {
+internal fun AppComponents.hentUtførteSideeffekter(sakId: String): UtførteSideeffekter {
+    val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).flatMap {
+        it.dokumenter
+    }
+    val oppgaveHendelser = this.databaseRepos.oppgaveHendelseRepo.hentForSak(UUID.fromString(sakId))
+    return UtførteSideeffekter(
+        antallOpprettetOppgaver = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Opprettet>().size,
+        antallOppdatertOppgaveHendelser = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Oppdatert>().size,
+        antallLukketOppgaver = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Lukket>().size,
+        // TODO jah: Denne/disse er generell og vil kræsje med vedtaksbrevet.
+        antallGenererteForhåndsvarsler = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
+            this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
+        }.filterIsInstance<ForhåndsvarsleTilbakekrevingsbehandlingHendelse>().size,
+        antallGenererteVedtaksbrev = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
+            this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
+        }.filterIsInstance<IverksattHendelse>().size,
+        antallJournalførteDokumenter = dokumentHendelser.filterIsInstance<JournalførtDokumentHendelse>().size,
+        antallDistribuertDokumenter = dokumentHendelser.filterIsInstance<DistribuertDokumentHendelse>().size,
+    )
+}
+
+internal data class UtførteSideeffekter(
+    val antallOpprettetOppgaver: Int,
+    val antallOppdatertOppgaveHendelser: Int,
+    val antallLukketOppgaver: Int,
+    val antallGenererteForhåndsvarsler: Int,
+    val antallGenererteVedtaksbrev: Int,
+    val antallJournalførteDokumenter: Int,
+    val antallDistribuertDokumenter: Int,
+)
+
+internal fun AppComponents.kjørAlleTilbakekrevingskonsumenter() {
     // --- oppgaver ---
     this.kjørOpprettOppgaveKonsument()
-    // TODO tilbakekreving jah: Fjern versjonsgreiene fra verifiseringa.
-    this.oppdaterOppgave(1)
-    this.lukkOppgave(1)
+    this.oppdaterOppgave()
+    this.lukkOppgave()
 
     // --- dokumenter ---
-    this.genererDokumenterForForhåndsvarsel(1)
-    this.genererDokumenterForVedtaksbrev(1)
-    this.journalførDokumenter(1)
-    this.distribuerDokumenter(1)
+    this.genererDokumenterForForhåndsvarsel()
+    this.genererDokumenterForVedtaksbrev()
+    this.journalførDokumenter()
+    this.distribuerDokumenter()
 }
 
 /**
- * Merk at dette er totalen, så du må ta høyde for alle steg.
+ * Siden man sender inn [tidligereUtførteSideeffekter], oppgir man kun de nye sideeffektene som har skjedd.
  */
-internal fun AppComponents.kjøreAlleVerifiseringer(
+internal fun AppComponents.kjørAlleVerifiseringer(
     sakId: String,
+    tidligereUtførteSideeffekter: UtførteSideeffekter,
     antallOpprettetOppgaver: Int = 0,
     antallOppdatertOppgaveHendelser: Int = 0,
     antallLukketOppgaver: Int = 0,
@@ -52,25 +82,25 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     antallJournalførteDokumenter: Int = 0,
     antallDistribuertDokumenter: Int = 0,
 ) {
-    this.verifiserOpprettetOppgaveKonsument(antallOpprettetOppgaver)
-    this.verifiserOppdatertOppgaveKonsument(antallOppdatertOppgaveHendelser)
-    this.verifiserLukketOppgaveKonsument(antallLukketOppgaver)
+    this.verifiserOpprettetOppgaveKonsument(antallOpprettetOppgaver + tidligereUtførteSideeffekter.antallOpprettetOppgaver)
+    this.verifiserOppdatertOppgaveKonsument(antallOppdatertOppgaveHendelser + tidligereUtførteSideeffekter.antallOppdatertOppgaveHendelser)
+    this.verifiserLukketOppgaveKonsument(antallLukketOppgaver + tidligereUtførteSideeffekter.antallLukketOppgaver)
     this.verifiserOppgaveHendelser(
         sakId = sakId,
-        antallOpprettetOppgaver = antallOpprettetOppgaver,
-        antallOppdaterteOppgaver = antallOppdatertOppgaveHendelser,
-        antallLukketOppgaver = antallLukketOppgaver,
+        antallOpprettetOppgaver = antallOpprettetOppgaver + tidligereUtførteSideeffekter.antallOpprettetOppgaver,
+        antallOppdaterteOppgaver = antallOppdatertOppgaveHendelser + tidligereUtførteSideeffekter.antallOppdatertOppgaveHendelser,
+        antallLukketOppgaver = antallLukketOppgaver + tidligereUtførteSideeffekter.antallLukketOppgaver,
     )
 
-    this.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenererteForhåndsvarsler)
-    this.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenererteVedtaksbrev)
-    this.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter)
-    this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter)
+    this.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenererteForhåndsvarsler + tidligereUtførteSideeffekter.antallGenererteForhåndsvarsler)
+    this.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenererteVedtaksbrev + tidligereUtførteSideeffekter.antallGenererteVedtaksbrev)
+    this.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter + tidligereUtførteSideeffekter.antallJournalførteDokumenter)
+    this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter + tidligereUtførteSideeffekter.antallDistribuertDokumenter)
     this.verifiserDokumentHendelser(
         sakId = sakId,
-        antallGenererteDokumenter = antallGenererteForhåndsvarsler + antallGenererteVedtaksbrev,
-        antallJournalførteDokumenter = antallJournalførteDokumenter,
-        antallDistribuerteDokumenter = antallDistribuertDokumenter,
+        antallGenererteDokumenter = antallGenererteForhåndsvarsler + antallGenererteVedtaksbrev + tidligereUtførteSideeffekter.antallGenererteForhåndsvarsler + tidligereUtførteSideeffekter.antallGenererteVedtaksbrev,
+        antallJournalførteDokumenter = antallJournalførteDokumenter + tidligereUtførteSideeffekter.antallJournalførteDokumenter,
+        antallDistribuerteDokumenter = antallDistribuertDokumenter + tidligereUtførteSideeffekter.antallDistribuertDokumenter,
     )
 }
 
@@ -90,11 +120,10 @@ internal fun AppComponents.kjørOpprettOppgaveKonsument() {
  *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
-internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
+internal fun AppComponents.oppdaterOppgave() {
     this.tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument.oppdaterOppgaver(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
 /**
@@ -102,11 +131,10 @@ internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
  *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk lukker en oppgave eller ikke.
  */
-internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
+internal fun AppComponents.lukkOppgave() {
     this.tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument.lukkOppgaver(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
 /**
@@ -114,18 +142,16 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
  *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
-internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
+internal fun AppComponents.genererDokumenterForForhåndsvarsel() {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
-internal fun AppComponents.genererDokumenterForVedtaksbrev(saksversjon: Long): Long {
+internal fun AppComponents.genererDokumenterForVedtaksbrev() {
     this.tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument.genererVedtaksbrev(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
 /**
@@ -133,11 +159,10 @@ internal fun AppComponents.genererDokumenterForVedtaksbrev(saksversjon: Long): L
  *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
-internal fun AppComponents.journalførDokumenter(saksversjon: Long): Long {
+internal fun AppComponents.journalførDokumenter() {
     this.dokumentHendelseKomponenter.services.journalførtDokumentHendelserKonsument.journalførDokumenter(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
 /**
@@ -145,11 +170,10 @@ internal fun AppComponents.journalførDokumenter(saksversjon: Long): Long {
  *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
-internal fun AppComponents.distribuerDokumenter(saksversjon: Long): Long {
+internal fun AppComponents.distribuerDokumenter() {
     this.dokumentHendelseKomponenter.services.distribuerDokumentHendelserKonsument.distribuer(
         correlationId = CorrelationId.generate(),
     )
-    return saksversjon + 1
 }
 
 internal fun AppComponents.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter: Int) {
@@ -207,7 +231,7 @@ internal fun AppComponents.verifiserOppgaveHendelser(
     oppgaveHendelser.filterIsInstance<OppgaveHendelse.Lukket>().size shouldBe antallLukketOppgaver
 }
 
-internal fun AppComponents.verifiserOpprettetOppgaveKonsument(antallOpprettetOppgaver: Int = 1) {
+private fun AppComponents.verifiserOpprettetOppgaveKonsument(antallOpprettetOppgaver: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
@@ -247,7 +271,7 @@ internal fun AppComponents.slettOpprettetOppgaveKonsumentJobb() {
     }
 }
 
-internal fun AppComponents.verifiserOppdatertOppgaveKonsument(antallOppdatertHendelser: Int) {
+private fun AppComponents.verifiserOppdatertOppgaveKonsument(antallOppdatertHendelser: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
@@ -274,7 +298,7 @@ internal fun AppComponents.slettOppdatertOppgaveKonsumentJobb() {
     }
 }
 
-internal fun AppComponents.verifiserLukketOppgaveKonsument(antallLukketOppgaver: Int = 1) {
+private fun AppComponents.verifiserLukketOppgaveKonsument(antallLukketOppgaver: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
@@ -301,7 +325,7 @@ internal fun AppComponents.slettLukketOppgaveKonsumentJobb() {
     }
 }
 
-internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenerert: Int = 1) {
+private fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenerert: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
@@ -312,7 +336,8 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(a
         }
     }
 }
-internal fun AppComponents.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenerert: Int = 1) {
+
+private fun AppComponents.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenerert: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """

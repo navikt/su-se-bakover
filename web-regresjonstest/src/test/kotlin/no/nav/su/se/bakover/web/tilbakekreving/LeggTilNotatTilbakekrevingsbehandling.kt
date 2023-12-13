@@ -11,8 +11,10 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 
-fun leggTilNotatTilbakekrevingsbehandling(
+internal fun leggTilNotatTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
@@ -22,8 +24,9 @@ fun leggTilNotatTilbakekrevingsbehandling(
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
     verifiserFritekst: String = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): LeggTilNotatTilbakekrevingsbehandlingRespons {
+    // Muterer databasen, men ingen eksterne systemer.
+    val sakFørKallJson = hentSak(sakId, client)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -36,21 +39,38 @@ fun leggTilNotatTilbakekrevingsbehandling(
             withClue("Kunne ikke legge til notat til tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let { responseJson ->
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
-                verifiserLeggTilNotatTilbakekrevingRespons(
-                    actual = it,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    vurderinger = verifiserVurderinger,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = expectedVersjon,
-                    fritekst = verifiserFritekst,
-                )
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserLeggTilNotatTilbakekrevingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        vurderinger = verifiserVurderinger,
+                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                        expectedVersjon = saksversjon + 1,
+                        fritekst = verifiserFritekst,
+                    )
+                }
             }
-        } to expectedVersjon
+            LeggTilNotatTilbakekrevingsbehandlingRespons(
+                notat = hentNotat(responseJson),
+                saksversjon = saksversjonEtter,
+            )
+        }
     }
 }
+
+internal data class LeggTilNotatTilbakekrevingsbehandlingRespons(
+    val notat: String,
+    val saksversjon: Long,
+)
 
 fun verifiserLeggTilNotatTilbakekrevingRespons(
     actual: String,
@@ -107,4 +127,6 @@ fun verifiserLeggTilNotatTilbakekrevingRespons(
   "notat": "notatet",
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

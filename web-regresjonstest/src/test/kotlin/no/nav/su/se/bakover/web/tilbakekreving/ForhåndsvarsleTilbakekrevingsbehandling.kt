@@ -27,6 +27,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
     fritekst: String = "Regresjonstest: Fritekst til forhåndsvarsel under tilbakekrevingsbehandling.",
 ): ForhåndsvarsletTilbakekrevingRespons {
     val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     val appComponents = this
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
@@ -38,14 +39,14 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
             withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().let {
+        }.bodyAsText().let { responseJson ->
             if (utførSideeffekter) {
                 // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleVerifiseringer(
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    antallOpprettetOppgaver = 1,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOppdatertOppgaveHendelser = 1,
                     antallGenererteForhåndsvarsler = 1,
                     antallJournalførteDokumenter = 1,
@@ -55,10 +56,10 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                 appComponents.slettOppdatertOppgaveKonsumentJobb()
                 appComponents.slettGenererDokumentForForhåndsvarselKonsumentJobb()
                 // Ikke denne testen sitt ansvar og verifisere journalføring og distribusjon av dokumenter, så vi sletter ikke de.
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleVerifiseringer(
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    antallOpprettetOppgaver = 1,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOppdatertOppgaveHendelser = 1,
                     antallGenererteForhåndsvarsler = 1,
                     antallJournalførteDokumenter = 1,
@@ -75,25 +76,22 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                     saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
                 }
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
-                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
-                    actual = it,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = saksversjon + 1,
-                )
-                val tilbakekreving =
-                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
-                verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
-                    actual = tilbakekreving,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = saksversjon + 1,
-                )
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        expectedVersjon = saksversjon + 1,
+                    )
+                }
             }
             ForhåndsvarsletTilbakekrevingRespons(
-                forhåndsvarselInfo = hentForhåndsvarselDokumenter(it),
+                forhåndsvarselInfo = hentForhåndsvarselDokumenter(responseJson),
                 saksversjon = saksversjonEtter,
-                responseJson = it,
+                responseJson = responseJson,
             )
         }
     }

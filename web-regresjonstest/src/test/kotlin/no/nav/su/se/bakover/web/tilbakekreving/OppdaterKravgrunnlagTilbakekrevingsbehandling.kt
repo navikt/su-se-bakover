@@ -11,16 +11,19 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 
-fun oppdaterKravgrunnlag(
+internal fun oppdaterKravgrunnlag(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): OppdaterKravgrunnlagTilbakekrevingsbehandlingRespons {
+    // Dette kallet fører ikke til sideeffekter
+    val sakFørKallJson = hentSak(sakId, client)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -35,18 +38,40 @@ fun oppdaterKravgrunnlag(
             withClue("Kunne ikke oppdatere kravgrunnlag på tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
+        }.bodyAsText().let { responseJson ->
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
-                verifiserOppdatertKravgrunnlagRespons(
-                    actual = it,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = expectedVersjon,
-                )
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+                val tilbakekrevingerResponseFromSak = JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").let {
+                    it.length() shouldBe 1
+                    it.getJSONObject(0).toString()
+                }
+                responseJson.shouldBeSimilarJsonTo(tilbakekrevingerResponseFromSak)
+                listOf(
+                    responseJson,
+                    tilbakekrevingerResponseFromSak,
+                ).forEach {
+                    verifiserOppdatertKravgrunnlagRespons(
+                        actual = it,
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        expectedVersjon = saksversjon + 1,
+                    )
+                }
             }
-        } to expectedVersjon
+            OppdaterKravgrunnlagTilbakekrevingsbehandlingRespons(
+                responsJson = responseJson,
+                saksversjon = saksversjonEtter,
+            )
+        }
     }
 }
+
+internal data class OppdaterKravgrunnlagTilbakekrevingsbehandlingRespons(
+    val responsJson: String,
+    val saksversjon: Long,
+)
 
 fun verifiserOppdatertKravgrunnlagRespons(
     actual: String,
@@ -54,6 +79,7 @@ fun verifiserOppdatertKravgrunnlagRespons(
     sakId: String,
     expectedVersjon: Long,
 ) {
+    // TODO tilbakekreving jah: Emulering av simuleringen vil være feil her. Den antar at vi tar stilling til feilutbetalingen per revurdering, men det er ikke tilfelle lenger. Vi må endre simuleringstub til å ta høyde for dette.
     val expected = """
 {
   "id":"$tilbakekrevingsbehandlingId",
@@ -63,7 +89,7 @@ fun verifiserOppdatertKravgrunnlagRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.28.456789",
+    "kontrollfelt":"2021-02-01-02.04.38.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -71,21 +97,21 @@ fun verifiserOppdatertKravgrunnlagRespons(
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "betaltSkattForYtelsesgruppen":"6192",
-        "bruttoTidligereUtbetalt":"20946",
-        "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"12383",
-        "nettoFeilutbetaling": "6191",
+        "betaltSkattForYtelsesgruppen":"3025",
+        "bruttoTidligereUtbetalt":"8563",
+        "bruttoNyUtbetaling":"2513",
+        "bruttoFeilutbetaling":"6050",
+        "nettoFeilutbetaling": "3025",
         "skatteProsent":"50",
-        "skattFeilutbetaling":"6192"
+        "skattFeilutbetaling":"3025"
       }
     ],
-        "summertBetaltSkattForYtelsesgruppen": "6192",
-    "summertBruttoTidligereUtbetalt": 20946,
-    "summertBruttoNyUtbetaling": 8563,
-    "summertBruttoFeilutbetaling": 12383,
-    "summertNettoFeilutbetaling": 6191,
-    "summertSkattFeilutbetaling": 6192,
+    "summertBetaltSkattForYtelsesgruppen": "3025",
+    "summertBruttoTidligereUtbetalt": 8563,
+    "summertBruttoNyUtbetaling": 2513,
+    "summertBruttoFeilutbetaling": 6050,
+    "summertNettoFeilutbetaling": 3025,
+    "summertSkattFeilutbetaling": 3025,
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"FORHÅNDSVARSLET",
@@ -100,4 +126,6 @@ fun verifiserOppdatertKravgrunnlagRespons(
   "notat": null,
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

@@ -11,20 +11,26 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 
-fun sendTilbakekrevingsbehandlingTilAttestering(
+internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    utførSideeffekter: Boolean = true,
     saksversjon: Long,
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
     verifiserFritekst: String,
     expectedAttesteringer: String = "[]",
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): SendTilbakekrevingsbehandlingTilAttesteringRespons {
+    val appComponents = this
+    val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -35,22 +41,63 @@ fun sendTilbakekrevingsbehandlingTilAttestering(
             withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
-            if (verifiserRespons) {
-                verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
-                    actual = it,
+        }.bodyAsText().let { responseJson ->
+            if (utførSideeffekter) {
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    vurderinger = verifiserVurderinger,
-                    fritekst = verifiserFritekst,
-                    expectedVersjon = expectedVersjon,
-                    expectedAttesteringer = expectedAttesteringer,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallOppdatertOppgaveHendelser = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettOppdatertOppgaveKonsumentJobb()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
+                    sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallOppdatertOppgaveHendelser = 1,
                 )
             }
-        } to expectedVersjon
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            if (verifiserRespons) {
+                if (utførSideeffekter) {
+                    // oppgavehendelse
+                    saksversjonEtter shouldBe saksversjon + 2
+                } else {
+                    saksversjonEtter shouldBe saksversjon + 1
+                }
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
+                        actual = it,
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                        vurderinger = verifiserVurderinger,
+                        fritekst = verifiserFritekst,
+                        expectedVersjon = saksversjon + 1,
+                        expectedAttesteringer = expectedAttesteringer,
+                    )
+                }
+            }
+            SendTilbakekrevingsbehandlingTilAttesteringRespons(
+                jsonRespons = responseJson,
+                saksversjon = saksversjonEtter,
+            )
+        }
     }
 }
+
+internal data class SendTilbakekrevingsbehandlingTilAttesteringRespons(
+    val jsonRespons: String,
+    val saksversjon: Long,
+)
 
 fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
     actual: String,
@@ -108,4 +155,6 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
   "notat": "notatet",
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

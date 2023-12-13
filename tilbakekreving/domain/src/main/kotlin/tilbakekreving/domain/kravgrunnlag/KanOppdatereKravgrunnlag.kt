@@ -33,6 +33,6 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
             utførtAv = command.oppdatertAv,
             kravgrunnlagPåSakHendelseId = nyttKravgrunnlag.hendelseId,
         )
-        return hendelse to hendelse.applyToState(this, kravgrunnlag)
+        return hendelse to hendelse.applyToState(this, nyttKravgrunnlag)
     }
 }

@@ -11,22 +11,28 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
 
-fun underkjennTilbakekrevingsbehandling(
+internal fun AppComponents.underkjennTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    utførSideeffekter: Boolean = true,
     saksversjon: Long,
     brevtekst: String?,
     verifiserForhåndsvarselDokumenter: String,
     verifiserVurderinger: String,
     kommentar: String = "Underkjent av underkjennTilbakekrevingsbehandling() - TilbakekrevingsbehandlingIT",
     grunn: UnderkjennAttesteringsgrunnTilbakekreving = UnderkjennAttesteringsgrunnTilbakekreving.VURDERINGEN_ER_FEIL,
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): UnderkjennTilbakekrevingsbehandlingRespons {
+    val appComponents = this
+    val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -48,23 +54,66 @@ fun underkjennTilbakekrevingsbehandling(
             withClue("Kunne ikke underkjenne tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
-            if (verifiserRespons) {
-                verifiserUnderkjentTilbakekrevingsbehandlingRespons(
-                    actual = it,
+        }.bodyAsText().let { responseJson ->
+            if (utførSideeffekter) {
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    vurderinger = verifiserVurderinger,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = expectedVersjon,
-                    brevtekst = brevtekst,
-                    expectedGrunn = grunn.toString(),
-                    expectedKommentar = kommentar,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallOppdatertOppgaveHendelser = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettOppdatertOppgaveKonsumentJobb()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
+                    sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallOppdatertOppgaveHendelser = 1,
                 )
             }
-        } to expectedVersjon
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            if (utførSideeffekter) {
+                // oppgavehendelse
+                saksversjonEtter shouldBe saksversjon + 2
+            } else {
+                saksversjonEtter shouldBe saksversjon + 1
+            }
+            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+            if (verifiserRespons) {
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserUnderkjentTilbakekrevingsbehandlingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        vurderinger = verifiserVurderinger,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                        expectedVersjon = saksversjon + 1,
+                        brevtekst = brevtekst,
+                        expectedGrunn = grunn.toString(),
+                        expectedKommentar = kommentar,
+                    )
+                }
+            }
+            UnderkjennTilbakekrevingsbehandlingRespons(
+                underkjentAttestering = hentAttesteringer(responseJson),
+                saksversjon = saksversjonEtter,
+                responseJson = responseJson,
+            )
+        }
     }
 }
+
+internal data class UnderkjennTilbakekrevingsbehandlingRespons(
+    val underkjentAttestering: String,
+    val saksversjon: Long,
+    val responseJson: String,
+)
 
 fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
     actual: String,
@@ -133,4 +182,9 @@ fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
   "notat": "notatet"
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "attesteringer[*].opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
+    JSONObject(actual).getJSONArray("attesteringer").all {
+        (it as JSONObject).has("opprettet")
+    } shouldBe true
 }

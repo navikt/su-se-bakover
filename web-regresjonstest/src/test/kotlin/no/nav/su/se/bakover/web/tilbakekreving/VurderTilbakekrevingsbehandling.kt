@@ -87,30 +87,35 @@ internal fun vurderTilbakekrevingsbehandling(
             withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().let {
+        }.bodyAsText().let { responseJson ->
             // Dette kallet har ingen side-effekter.
             val sakEtterKallJson = hentSak(sakId, client)
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
             if (verifiserRespons) {
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
                 saksversjonEtter shouldBe saksversjon + 1
-                verifiserVurdertTilbakekrevingsbehandlingRespons(
-                    actual = it,
-                    sakId = sakId,
-                    status = tilstand,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    expectedVersjon = saksversjon + 1,
-                    expectedFritekst = expectedFritekst,
-                    expectedAttesteringer = expectedAttesteringer,
-                    expectedVurderinger = expectedVurderinger,
-                    expectedNotat = expectedNotat,
-                )
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserVurdertTilbakekrevingsbehandlingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        status = tilstand,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                        expectedVersjon = saksversjon + 1,
+                        expectedFritekst = expectedFritekst,
+                        expectedAttesteringer = expectedAttesteringer,
+                        expectedVurderinger = expectedVurderinger,
+                        expectedNotat = expectedNotat,
+                    )
+                }
             }
             VurderTilbakekrevingsbehandlingRespons(
                 saksversjon = saksversjonEtter,
-                vurderinger = hentVurderinger(it),
-                responseJson = it,
+                vurderinger = hentVurderinger(responseJson),
+                responseJson = responseJson,
             )
         }
     }
