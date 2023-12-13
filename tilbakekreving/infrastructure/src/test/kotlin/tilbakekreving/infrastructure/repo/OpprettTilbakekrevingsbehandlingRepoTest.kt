@@ -1,5 +1,6 @@
 package tilbakekreving.infrastructure.repo
 
+import dokument.domain.DokumentHendelser
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -35,7 +36,7 @@ class OpprettTilbakekrevingsbehandlingRepoTest {
                 hendelser = listOf(hendelse),
                 kravgrunnlagPåSak = actualKravgrunnlag,
                 oppgaveHendelser = listOf(oppgaveHendelse),
-                dokumentHendelser = listOf(),
+                dokumentHendelser = DokumentHendelser.empty(sak.id),
             )
         }
     }

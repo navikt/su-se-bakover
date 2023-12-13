@@ -65,7 +65,14 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 saksnummer = sak.saksnummer,
                 correlationId = command.correlationId,
                 sakId = sak.id,
-                saksbehandler = command.utførtAv,
+                saksbehandler = when (behandling) {
+                    is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
+                    else -> command.utførtAv
+                },
+                attestant = when (behandling) {
+                    is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
+                    else -> null
+                },
                 fritekst = fritekst,
                 vurderingerMedKrav = vurderingMedKrav,
             ),

@@ -204,7 +204,7 @@ internal class TilbakekrevingsbehandlingIT {
             val versjonEtterOppdateringAvOppgaveAndreAttestering =
                 appComponents.oppdaterOppgave(versjonEtterAndreSendingTilAttestering)
             appComponents.verifiserOppdatertOppgaveKonsument(4)
-            val (_, versjonEtterIverksetting) = iverksettTilbakekrevingsbehandling(
+            val (_, versjonEtterIverksetting) = appComponents.iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = versjonEtterOppdateringAvOppgaveAndreAttestering,
@@ -214,10 +214,11 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            val versjonEtterLukking = appComponents.lukkOppgave(versjonEtterIverksetting)
+            appComponents.lukkOppgave(versjonEtterIverksetting)
             appComponents.verifiserLukketOppgaveKonsument()
+            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterIverksetting.toInt())
+
             // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterLukking.toInt())
 
             // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
             appComponents.kjøreAlleTilbakekrevingskonsumenter()
@@ -227,8 +228,9 @@ internal class TilbakekrevingsbehandlingIT {
                 antallOppdatertOppgaveHendelser = 4,
                 antallLukketOppgaver = 1,
                 antallGenererteForhåndsvarsler = 1,
-                antallJournalførteDokumenter = 1,
-                antallDistribuertDokumenter = 1,
+                antallGenererteVedtaksbrev = 1,
+                antallJournalførteDokumenter = 2,
+                antallDistribuertDokumenter = 2,
             )
         }
     }
@@ -314,6 +316,7 @@ internal class TilbakekrevingsbehandlingIT {
                 antallOpprettetOppgaver = 1,
                 antallOppdatertOppgaveHendelser = 0,
                 antallLukketOppgaver = 1,
+                antallGenererteVedtaksbrev = 0,
                 antallGenererteForhåndsvarsler = 0,
                 antallJournalførteDokumenter = 0,
                 antallDistribuertDokumenter = 0,

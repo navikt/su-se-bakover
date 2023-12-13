@@ -58,27 +58,23 @@ class IverksettTilbakekrevingService(
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
         }
 
-        val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
-            vurderingerMedKrav = behandling.vurderingerMedKrav,
-            attestertAv = command.utførtAv,
-        ).getOrElse {
-            return KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak.left()
-        }
-        return behandling.iverksett(
+        val iverksettelse = behandling.iverksett(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
-        ).let {
-            /**
-             * TODO
-             *  send til oppdrag og verifiser at det er ok
-             *      Dersom det ikke er ok - stopp her
-             *      Dersom det er ok - fortsett
-             *  Fortsett -
-             *      lagre respons fra oppdrag
-             *      lagre vedtak
-             *      lag, journalfør og distribuer vedtaksbrev
-             */
+        )
+
+        /**
+         * TODO: det kan være slik at sending av vedtak til oppdrag får fint, men ting feiler under iverksetting
+         *  hos oss.
+         */
+        return iverksettelse.let {
+            val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
+                vurderingerMedKrav = behandling.vurderingerMedKrav,
+                attestertAv = command.utførtAv,
+            ).getOrElse {
+                return KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak.left()
+            }
             // ved lagring av iverksett hendelsen, skal en jobb starte brev løpet
             tilbakekrevingsbehandlingRepo.lagreIverksattTilbakekrevingshendelse(
                 it.first,

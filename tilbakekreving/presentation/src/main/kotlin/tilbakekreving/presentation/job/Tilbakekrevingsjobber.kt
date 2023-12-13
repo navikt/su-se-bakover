@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
+import tilbakekreving.application.service.consumer.GenererVedtaksbrevTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
@@ -23,6 +24,7 @@ class Tilbakekrevingsjobber(
     private val lukkOppgaveKonsument: LukkOppgaveForTilbakekrevingshendelserKonsument,
     private val oppdaterOppgaveKonsument: OppdaterOppgaveForTilbakekrevingshendelserKonsument,
     private val genererDokumenterForForhåndsvarselKonsument: GenererDokumentForForhåndsvarselTilbakekrevingKonsument,
+    private val genererVedtaksbrevTilbakekrevingKonsument: GenererVedtaksbrevTilbakekrevingKonsument,
     private val initialDelay: Duration,
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,
@@ -61,6 +63,7 @@ class Tilbakekrevingsjobber(
                 genererDokumenterForForhåndsvarselKonsument.genererDokumenter(correlationId)
                 lukkOppgaveKonsument.lukkOppgaver(correlationId)
                 oppdaterOppgaveKonsument.oppdaterOppgaver(correlationId)
+                genererVedtaksbrevTilbakekrevingKonsument.genererVedtaksbrev(correlationId)
             }
         }.mapLeft {
             // Dette er bare en guard - hver jobb skal håndtere feil selv (og ingen skal kaste videre hit).

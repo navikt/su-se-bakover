@@ -34,6 +34,7 @@ internal fun AppComponents.kjøreAlleTilbakekrevingskonsumenter() {
 
     // --- dokumenter ---
     this.genererDokumenterForForhåndsvarsel(1)
+    this.genererDokumenterForVedtaksbrev(1)
     this.journalførDokumenter(1)
     this.distribuerDokumenter(1)
 }
@@ -47,6 +48,7 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     antallOppdatertOppgaveHendelser: Int = 0,
     antallLukketOppgaver: Int = 0,
     antallGenererteForhåndsvarsler: Int = 0,
+    antallGenererteVedtaksbrev: Int = 0,
     antallJournalførteDokumenter: Int = 0,
     antallDistribuertDokumenter: Int = 0,
 ) {
@@ -61,11 +63,12 @@ internal fun AppComponents.kjøreAlleVerifiseringer(
     )
 
     this.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenererteForhåndsvarsler)
+    this.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenererteVedtaksbrev)
     this.verifiserJournalførDokumenterKonsument(antallJournalførteDokumenter)
     this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter)
     this.verifiserDokumentHendelser(
         sakId = sakId,
-        antallGenererteDokumenter = antallGenererteForhåndsvarsler,
+        antallGenererteDokumenter = antallGenererteForhåndsvarsler + antallGenererteVedtaksbrev,
         antallJournalførteDokumenter = antallJournalførteDokumenter,
         antallDistribuerteDokumenter = antallDistribuertDokumenter,
     )
@@ -97,7 +100,7 @@ internal fun AppComponents.oppdaterOppgave(saksversjon: Long): Long {
 /**
  * Kjører [LukkOppgaveForTilbakekrevingshendelserKonsument].
  *
- * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
+ * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk lukker en oppgave eller ikke.
  */
 internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument.lukkOppgaver(
@@ -113,6 +116,13 @@ internal fun AppComponents.lukkOppgave(saksversjon: Long): Long {
  */
 internal fun AppComponents.genererDokumenterForForhåndsvarsel(saksversjon: Long): Long {
     this.tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument.genererDokumenter(
+        correlationId = CorrelationId.generate(),
+    )
+    return saksversjon + 1
+}
+
+internal fun AppComponents.genererDokumenterForVedtaksbrev(saksversjon: Long): Long {
+    this.tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument.genererVedtaksbrev(
         correlationId = CorrelationId.generate(),
     )
     return saksversjon + 1
@@ -172,12 +182,14 @@ internal fun AppComponents.verifiserDokumentHendelser(
     antallJournalførteDokumenter: Int,
     antallDistribuerteDokumenter: Int,
 ) {
-    val dokumenter = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId))
-    dokumenter.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
+    val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).let {
+        it.flatMap { it.dokumenter }
+    }
+    dokumentHendelser.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
 
-    dokumenter.filterIsInstance<GenerertDokumentHendelse>().size shouldBe antallGenererteDokumenter
-    dokumenter.filterIsInstance<JournalførtDokumentHendelse>().size shouldBe antallJournalførteDokumenter
-    dokumenter.filterIsInstance<DistribuertDokumentHendelse>().size shouldBe antallDistribuerteDokumenter
+    dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().size shouldBe antallGenererteDokumenter
+    dokumentHendelser.filterIsInstance<JournalførtDokumentHendelse>().size shouldBe antallJournalførteDokumenter
+    dokumentHendelser.filterIsInstance<DistribuertDokumentHendelse>().size shouldBe antallDistribuerteDokumenter
 }
 
 internal fun AppComponents.verifiserOppgaveHendelser(
@@ -294,6 +306,17 @@ internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(a
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
+            """.trimIndent().hentListe(emptyMap(), it) {
+                it.string("hendelseId")
+            }.size shouldBe antallGenerert
+        }
+    }
+}
+internal fun AppComponents.verifiserGenererDokumentForVedtaksbrevKonsument(antallGenerert: Int = 1) {
+    this.databaseRepos.hendelsekonsumenterRepo.let {
+        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+            """
+                select * from hendelse_konsument where konsumentId = 'GenererVedtaksbrevTilbakekrevingKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
             }.size shouldBe antallGenerert

@@ -1,11 +1,14 @@
 package tilbakekreving.domain
 
-import dokument.domain.hendelser.DokumentHendelse
+import dokument.domain.DokumentHendelseSerie
+import dokument.domain.DokumentHendelser
+import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.pickByCondition
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import tilbakekreving.domain.iverksett.VedtakTilbakekrevingsbehandling
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import java.time.Clock
 import java.util.UUID
@@ -19,7 +22,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
     private val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
     private val tilhørendeOgSorterteOppgaveHendelser: List<OppgaveHendelse>,
-    private val tilhørendeOgSorterteDokumentHendelser: List<DokumentHendelse>,
+    private val tilhørendeOgSorterteDokumentHendelser: DokumentHendelser,
     private val clock: Clock,
 ) : List<TilbakekrevingsbehandlingHendelse> by sorterteHendelser {
     init {
@@ -151,6 +154,31 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
     }
 
+    val currentStateVedtak: List<VedtakTilbakekrevingsbehandling> by lazy {
+        if (sorterteHendelser.isEmpty()) {
+            emptyList()
+        } else {
+            toCurrentStateVedtak()
+        }
+    }
+
+    private fun toCurrentStateVedtak(): List<VedtakTilbakekrevingsbehandling> {
+        return toCurrentState()
+            .behandlinger
+            .filterIsInstance<IverksattTilbakekrevingsbehandling>()
+            .map { iverksatt ->
+                val dokumenttilstand: Dokumenttilstand =
+                    tilhørendeOgSorterteDokumentHendelser
+                        .hentSerieForRelatertHendelse(iverksatt.hendelseId)
+                        ?.dokumenttilstand()
+                        ?: iverksatt.vedtaksbrevvalg.tilDokumenttilstand()
+
+                sorterteHendelser.single { it.hendelseId == iverksatt.hendelseId }.let {
+                    it as IverksattHendelse
+                }.toVedtak(iverksatt = iverksatt, dokumenttilstand = dokumenttilstand)
+            }
+    }
+
     fun hentOppgaveIdForBehandling(id: TilbakekrevingsbehandlingId): Pair<OppgaveHendelse, OppgaveId>? {
         val hendelsesIderForBehandling = sorterteHendelser.filter { it.id == id }.map { it.hendelseId }
 
@@ -174,8 +202,8 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         )
     }
 
-    fun hentDokumenterForHendelseId(hendelseId: HendelseId): List<DokumentHendelse> {
-        return tilhørendeOgSorterteDokumentHendelser.filter { it.relatertHendelse == hendelseId }
+    fun hentDokumenterForHendelseId(hendelseId: HendelseId): DokumentHendelseSerie? {
+        return tilhørendeOgSorterteDokumentHendelser.hentSerieForRelatertHendelse(hendelseId)
     }
 
     fun hentSerieFor(behandlingsid: TilbakekrevingsbehandlingId): TilbakekrevingbehandlingsSerie =
@@ -194,7 +222,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sorterteHendelser = emptyList(),
                 kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(emptyList()),
                 tilhørendeOgSorterteOppgaveHendelser = emptyList(),
-                tilhørendeOgSorterteDokumentHendelser = emptyList(),
+                tilhørendeOgSorterteDokumentHendelser = DokumentHendelser.empty(sakId),
             )
         }
 
@@ -204,7 +232,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
             kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
             oppgaveHendelser: List<OppgaveHendelse>,
-            dokumentHendelser: List<DokumentHendelse>,
+            dokumentHendelser: DokumentHendelser,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
@@ -212,7 +240,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sorterteHendelser = hendelser.sorted(),
                 kravgrunnlagPåSak = kravgrunnlagPåSak,
                 tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
-                tilhørendeOgSorterteDokumentHendelser = dokumentHendelser.sorted(),
+                tilhørendeOgSorterteDokumentHendelser = dokumentHendelser,
             )
         }
     }
