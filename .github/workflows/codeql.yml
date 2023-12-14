@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-java
       - name: CodeQL Init
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: kotlin
           queries: security-and-quality
@@ -36,6 +36,6 @@ jobs:
           # The documentation wants us to disable cache: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/no-source-code-seen-during-build
           cache-disabled: true
       - name: CodeQL Analyze
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:kotlin"
