@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun AppComponents.iverksettTilbakekrevingsbehandling(
+internal fun AppComponents.iverksettTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
@@ -30,9 +30,10 @@ fun AppComponents.iverksettTilbakekrevingsbehandling(
     verifiserVurderinger: String,
     verifiserFritekst: String,
     tidligereAttesteringer: String? = null,
-): Pair<String, Long> {
-    val sakFørKallJson = hentSak(sakId, client)
+): IverksettTilbakekrevingsbehandlingRespons {
     val appComponents = this
+    val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -44,59 +45,76 @@ fun AppComponents.iverksettTilbakekrevingsbehandling(
             withClue("Kunne ikke iverksette tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().let {
+        }.bodyAsText().let { responseJson ->
             if (utførSideeffekter) {
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleVerifiseringer(
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    antallOpprettetOppgaver = 1,
-                    antallOppdatertOppgaveHendelser = 4,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallLukketOppgaver = 1,
-                    antallGenererteForhåndsvarsler = 1,
                     antallGenererteVedtaksbrev = 1,
-                    antallJournalførteDokumenter = 2,
-                    antallDistribuertDokumenter = 2,
+                    antallJournalførteDokumenter = 1,
+                    antallDistribuertDokumenter = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettLukketOppgaveKonsumentJobb()
+                appComponents.slettGenererDokumentForForhåndsvarselKonsumentJobb()
+                // Ikke denne testen sitt ansvar og verifisere journalføring og distribusjon av dokumenter, så vi sletter ikke de.
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
+                    sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallLukketOppgaver = 1,
+                    antallGenererteVedtaksbrev = 1,
+                    antallJournalførteDokumenter = 1,
+                    antallDistribuertDokumenter = 1,
                 )
             }
             val sakEtterKallJson = hentSak(sakId, client)
-            sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger", "vedtak")
-            verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId, JSONObject(sakEtterKallJson).getJSONArray("vedtak"))
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
-
             if (verifiserRespons) {
                 if (utførSideeffekter) {
-                    saksversjonEtter shouldBe saksversjon + 5 // hendelse + lukket oppgave + generering av brev + journalført + distribuert
+                    // hendelse + lukket oppgave + generering av brev + journalført + distribuert
+                    saksversjonEtter shouldBe saksversjon + 5
                 } else {
-                    saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
+                    // kun hendelsen
+                    saksversjonEtter shouldBe saksversjon + 1
                 }
-                verifiserIverksattTilbakekrevingsbehandlingRespons(
-                    actual = it,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = saksversjon + 1,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    vurderinger = verifiserVurderinger,
-                    fritekst = verifiserFritekst,
-                    tidligereAttesteringer = tidligereAttesteringer,
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger", "vedtak")
+                verifiserTilbakekrevingsVedtak(
+                    tilbakekrevingsbehandlingId,
+                    JSONObject(sakEtterKallJson).getJSONArray("vedtak"),
                 )
-
-                val tilbakekreving =
-                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
-                verifiserIverksattTilbakekrevingsbehandlingRespons(
-                    actual = tilbakekreving,
-                    sakId = sakId,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                    expectedVersjon = saksversjon + 1,
-                    forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                    vurderinger = verifiserVurderinger,
-                    fritekst = verifiserFritekst,
-                    tidligereAttesteringer = tidligereAttesteringer,
-                )
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserIverksattTilbakekrevingsbehandlingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
+                        vurderinger = verifiserVurderinger,
+                        fritekst = verifiserFritekst,
+                        expectedVersjon = saksversjon + 1,
+                        tidligereAttesteringer = tidligereAttesteringer,
+                    )
+                }
             }
-            it to saksversjonEtter
+            IverksettTilbakekrevingsbehandlingRespons(
+                saksversjon = saksversjonEtter,
+                responseJson = responseJson,
+            )
         }
     }
 }
+
+internal data class IverksettTilbakekrevingsbehandlingRespons(
+    val responseJson: String,
+    val saksversjon: Long,
+)
 
 private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, vedtakJson: JSONArray) {
     vedtakJson.length() shouldBe 3
@@ -104,7 +122,7 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
     val expected = """
                 {
                     "id":"ignore-me",
-                    "opprettet":"2021-02-01T01:04:11.456789Z",
+                    "opprettet":"ignore-me",
                     "beregning":null,
                     "simulering":null,
                     "attestant":"AttestantLokal",
@@ -116,7 +134,9 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
                     "dokumenttilstand":"SENDT"
                 }
     """.trimIndent()
-    tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id")
+    tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id", "opprettet")
+    tilbakekrevingsvedtak.has("id") shouldBe true
+    tilbakekrevingsvedtak.has("opprettet") shouldBe true
 }
 
 fun verifiserIverksattTilbakekrevingsbehandlingRespons(
@@ -183,6 +203,11 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "notat": "notatet"
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "attesteringer[*].opprettet")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
+    JSONObject(actual).getJSONArray("attesteringer").all {
+        (it as JSONObject).has("opprettet")
+    } shouldBe true
 }
 
 fun String.removeFirstAndLastCharacter(): String {

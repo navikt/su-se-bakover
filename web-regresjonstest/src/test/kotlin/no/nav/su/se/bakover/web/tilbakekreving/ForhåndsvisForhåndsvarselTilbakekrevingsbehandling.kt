@@ -21,6 +21,7 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
     saksversjon: Long,
     fritekst: String? = "Regresjonstest: Fritekst til forhåndsvarsel under tilbakekrevingsbehandling.",
 ): String {
+    // Dette kallet muterer ikke.
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,

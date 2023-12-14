@@ -13,14 +13,14 @@ fun String.shouldBeSimilarJsonTo(expectedJson: String, vararg ignoredPaths: Stri
     }
     if (customizations.isEmpty()) {
         JSONAssert.assertEquals(
-            this,
             expectedJson,
+            this,
             JSONCompareMode.STRICT,
         )
     } else {
         JSONAssert.assertEquals(
-            this,
             expectedJson,
+            this,
             CustomComparator(
                 JSONCompareMode.STRICT,
                 *customizations.toTypedArray(),

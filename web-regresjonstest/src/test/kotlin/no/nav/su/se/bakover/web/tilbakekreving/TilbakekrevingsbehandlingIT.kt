@@ -79,9 +79,7 @@ internal class TilbakekrevingsbehandlingIT {
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
-            ).let {
-                hentFritekst(it.first) to it.second
-            }
+            )
             forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
@@ -96,11 +94,8 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
                 verifiserFritekst = fritekst,
-            ).let {
-                hentNotat(it.first) to it.second
-            }
-
-            val (_, versjonEtterFørsteSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
+            )
+            val (_, versjonEtterFørsteSendingTilAttestering) = appComponents.sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = versjonEtterNotat,
@@ -109,41 +104,30 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserVurderinger = vurderinger,
                 verifiserFritekst = fritekst,
             )
-            val versjonEtterOppdateringAvOppgaveFørsteAttestering =
-                appComponents.oppdaterOppgave(versjonEtterFørsteSendingTilAttestering)
-            appComponents.verifiserOppdatertOppgaveKonsument(2)
-
             visUtsendtForhåndsvarselDokument(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 dokumentId = JSONArray(forhåndsvarselDokumenter).getJSONObject(0).getString("id"),
                 client = this.client,
             )
-
             forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 client = this.client,
             )
-
-            val (underkjentAttestering, versjonEtterUnderkjenning) = underkjennTilbakekrevingsbehandling(
+            val (underkjentAttestering, versjonEtterUnderkjenning) = appComponents.underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOppdateringAvOppgaveFørsteAttestering,
+                saksversjon = versjonEtterFørsteSendingTilAttestering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderinger,
                 brevtekst = fritekst,
-            ).let {
-                hentAttesteringer(it.first) to it.second
-            }
-            val versjonEtterOppdateringAvOppgaveUnderkjenning = appComponents.oppdaterOppgave(versjonEtterUnderkjenning)
-            appComponents.verifiserOppdatertOppgaveKonsument(3)
-
+            )
             val (vurderingerEtterUnderkjenning, versjonEtterVurderingEtterUnderkjenning) = vurderTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOppdateringAvOppgaveUnderkjenning,
+                saksversjon = versjonEtterUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 vurderingerRequest = """
@@ -191,7 +175,7 @@ internal class TilbakekrevingsbehandlingIT {
                 """.trimIndent(),
                 expectedNotat = notat,
             )
-            val (_, versjonEtterAndreSendingTilAttestering) = sendTilbakekrevingsbehandlingTilAttestering(
+            val (_, versjonEtterAndreSendingTilAttestering) = appComponents.sendTilbakekrevingsbehandlingTilAttestering(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = versjonEtterVurderingEtterUnderkjenning,
@@ -201,37 +185,18 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserFritekst = fritekst,
                 expectedAttesteringer = underkjentAttestering,
             )
-            val versjonEtterOppdateringAvOppgaveAndreAttestering =
-                appComponents.oppdaterOppgave(versjonEtterAndreSendingTilAttestering)
-            appComponents.verifiserOppdatertOppgaveKonsument(4)
             val (_, versjonEtterIverksetting) = appComponents.iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                saksversjon = versjonEtterOppdateringAvOppgaveAndreAttestering,
+                saksversjon = versjonEtterAndreSendingTilAttestering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
                 verifiserVurderinger = vurderingerEtterUnderkjenning,
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            appComponents.lukkOppgave(versjonEtterIverksetting)
-            appComponents.verifiserLukketOppgaveKonsument()
+            // TODO tilbakekreving jah: Denne skal snues til false. Vi forventer ikke kravgrunnlaget etter vi har iverksatt tilbakekrevingsbehandlingen.
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterIverksetting.toInt())
-
-            // TODO jah: sende tilbakekrevingsvedtaket til oppdrag + sende brev hvis det er valgt.
-
-            // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.kjøreAlleTilbakekrevingskonsumenter()
-            appComponents.kjøreAlleVerifiseringer(
-                sakId = sakId,
-                antallOpprettetOppgaver = 1,
-                antallOppdatertOppgaveHendelser = 4,
-                antallLukketOppgaver = 1,
-                antallGenererteForhåndsvarsler = 1,
-                antallGenererteVedtaksbrev = 1,
-                antallJournalførteDokumenter = 2,
-                antallDistribuertDokumenter = 2,
-            )
         }
     }
 
@@ -298,28 +263,11 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = versjonEtterNyttKravgrunnlag,
                 client = this.client,
             )
-
-            val (_, versjonEtterAvbrytelse) = avbrytTilbakekrevingsbehandling(
+            appComponents.avbrytTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 client = this.client,
                 saksversjon = versjonEtterOppdateringAvKravgrunnlag,
-            )
-
-            appComponents.lukkOppgave(versjonEtterAvbrytelse)
-            appComponents.verifiserLukketOppgaveKonsument()
-
-            // kjører konsumenter en gang til på slutten for å verifisere at dette ikke vil føre til flere hendelser
-            appComponents.kjøreAlleTilbakekrevingskonsumenter()
-            appComponents.kjøreAlleVerifiseringer(
-                sakId = sakId,
-                antallOpprettetOppgaver = 1,
-                antallOppdatertOppgaveHendelser = 0,
-                antallLukketOppgaver = 1,
-                antallGenererteVedtaksbrev = 0,
-                antallGenererteForhåndsvarsler = 0,
-                antallJournalførteDokumenter = 0,
-                antallDistribuertDokumenter = 0,
             )
         }
     }

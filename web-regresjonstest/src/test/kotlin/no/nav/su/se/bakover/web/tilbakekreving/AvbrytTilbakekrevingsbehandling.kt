@@ -11,16 +11,22 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
 
-fun avbrytTilbakekrevingsbehandling(
+internal fun AppComponents.avbrytTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
+    utførSideeffekter: Boolean = true,
     saksversjon: Long,
-): Pair<String, Long> {
-    val expectedVersjon: Long = saksversjon + 1
+): AvbrytTilbakekrevingRespons {
+    val appComponents = this
+    val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Post,
@@ -33,18 +39,59 @@ fun avbrytTilbakekrevingsbehandling(
             withClue("Kunne ikke avbryte tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
-        }.bodyAsText().also {
-            if (verifiserRespons) {
-                verifiserAvbrytTilbakekrevingRespons(
-                    actual = it,
-                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+        }.bodyAsText().let { responseJson ->
+            if (utførSideeffekter) {
+                // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
-                    expectedVersjon = expectedVersjon,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallLukketOppgaver = 1,
+                )
+                // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
+                appComponents.slettLukketOppgaveKonsumentJobb()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
+                    sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
+                    antallLukketOppgaver = 1,
                 )
             }
-        } to expectedVersjon
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            if (verifiserRespons) {
+                if (utførSideeffekter) {
+                    // oppgavehendelse
+                    saksversjonEtter shouldBe saksversjon + 2
+                } else {
+                    saksversjonEtter shouldBe saksversjon + 1
+                }
+                sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserAvbrytTilbakekrevingRespons(
+                        actual = it,
+                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                        sakId = sakId,
+                        expectedVersjon = saksversjon + 1,
+                    )
+                }
+            }
+            AvbrytTilbakekrevingRespons(
+                responseJson = responseJson,
+                saksversjon = saksversjonEtter,
+            )
+        }
     }
 }
+
+internal data class AvbrytTilbakekrevingRespons(
+    val responseJson: String,
+    val saksversjon: Long,
+)
 
 fun verifiserAvbrytTilbakekrevingRespons(
     actual: String,
@@ -94,8 +141,11 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:43.456789Z",
+  "avsluttetTidspunkt": "2021-02-01T01:04:46.456789Z",
   "notat": null,
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "kravgrunnlag.kontrollfelt")
+    JSONObject(actual).has("opprettet") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
+    JSONObject(actual).getJSONObject("kravgrunnlag").has("kontrollfelt") shouldBe true
 }

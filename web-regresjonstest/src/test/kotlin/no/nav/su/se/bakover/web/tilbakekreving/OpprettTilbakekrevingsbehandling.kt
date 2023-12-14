@@ -25,12 +25,13 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
-    saksversjon: Long,
     utførSideeffekter: Boolean = true,
+    saksversjon: Long,
     expectedKontrollfelt: String = "2021-02-01-02.03.28.456789",
 ): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
+    val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         val correlationId = CorrelationId.generate()
         SharedRegressionTestData.defaultRequest(
@@ -46,17 +47,19 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
         }.bodyAsText().let { responseJson ->
             if (utførSideeffekter) {
                 // Vi kjører konsumentene 2 ganger, for å se at vi ikke oppretter duplikate oppgaver.
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleVerifiseringer(
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOpprettetOppgaver = 1,
                 )
                 // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
                 appComponents.slettOpprettetOppgaveKonsumentJobb()
-                appComponents.kjøreAlleTilbakekrevingskonsumenter()
-                appComponents.kjøreAlleVerifiseringer(
+                appComponents.kjørAlleTilbakekrevingskonsumenter()
+                appComponents.kjørAlleVerifiseringer(
                     sakId = sakId,
+                    tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOpprettetOppgaver = 1,
                 )
             }
@@ -70,20 +73,17 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                     saksversjonEtter shouldBe saksversjon + 1
                 }
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(
-                    actual = responseJson,
-                    sakId = sakId,
-                    expectedVersjon = saksversjon + 1,
-                    expectedKontrollfelt = expectedKontrollfelt,
-                )
-                val tilbakekreving =
-                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()
-                verifiserOpprettetTilbakekrevingsbehandlingRespons(
-                    actual = tilbakekreving,
-                    sakId = sakId,
-                    expectedVersjon = saksversjon + 1,
-                    expectedKontrollfelt = expectedKontrollfelt,
-                )
+                listOf(
+                    responseJson,
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).forEach {
+                    verifiserOpprettetTilbakekrevingsbehandlingRespons(
+                        actual = it,
+                        sakId = sakId,
+                        expectedVersjon = saksversjon + 1,
+                        expectedKontrollfelt = expectedKontrollfelt,
+                    )
+                }
             }
             OpprettetTilbakekrevingsbehandlingRespons(
                 tilbakekrevingsbehandlingId = hentTilbakekrevingsbehandlingId(responseJson),

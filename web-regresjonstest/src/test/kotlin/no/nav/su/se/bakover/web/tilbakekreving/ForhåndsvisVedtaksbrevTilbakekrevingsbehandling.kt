@@ -18,6 +18,7 @@ fun forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
     client: HttpClient,
     verifiserRespons: Boolean = true,
 ): String {
+    // Dette kallet muterer ikke.
     return runBlocking {
         SharedRegressionTestData.defaultRequest(
             HttpMethod.Get,
