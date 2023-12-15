@@ -133,7 +133,7 @@ internal fun withKomptestApplication(
             sakService = services.sak,
             oppgaveService = services.oppgave,
             oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-            mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
+            mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
             hendelseRepo = databaseRepos.hendelseRepo,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             brevService = services.brev,
@@ -206,7 +206,9 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
-        tilbakekrevingskomponenter = appComponents.tilbakekrevingskomponenter,
+        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ ->
+            appComponents.tilbakekrevingskomponenter
+        },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,
         consumers = appComponents.consumers,
     )

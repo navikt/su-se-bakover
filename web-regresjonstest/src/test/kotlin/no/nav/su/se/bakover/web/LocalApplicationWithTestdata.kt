@@ -4,8 +4,8 @@ import ch.qos.logback.classic.ClassicConstants
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import org.slf4j.bridge.SLF4JBridgeHandler
-import java.lang.IllegalStateException
 
 fun main() {
     if (!ApplicationConfig.isRunningLocally()) {
@@ -15,7 +15,31 @@ fun main() {
     // https://www.slf4j.org/api/org/slf4j/bridge/SLF4JBridgeHandler.html
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
-    embeddedServer(factory = Netty, port = 8080, module = {
-        susebakover { this.testDataRoutes() }
-    }).start(true)
+    embeddedServer(
+        factory = Netty,
+        port = 8080,
+        module = {
+            susebakover(
+                tilbakekrevingskomponenter = { clock, sessionFactory, personRepo, personService, hendelsekonsumenterRepo, tilbakekrevingUnderRevurderingService, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, _ ->
+                    tilbakekrevingskomponenterMedClientStubs(
+                        clock = clock,
+                        sessionFactory = sessionFactory,
+                        personRepo = personRepo,
+                        personService = personService,
+                        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                        tilbakekrevingUnderRevurderingService = tilbakekrevingUnderRevurderingService,
+                        sakService = sak,
+                        oppgaveService = oppgave,
+                        oppgaveHendelseRepo = oppgaveHendelseRepo,
+                        mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
+                        hendelseRepo = hendelseRepo,
+                        dokumentHendelseRepo = dokumentHendelseRepo,
+                        brevService = brevService,
+                    )
+                },
+            ) {
+                this.testDataRoutes()
+            }
+        },
+    ).start(true)
 }

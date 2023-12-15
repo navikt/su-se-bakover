@@ -194,7 +194,7 @@ data object SharedRegressionTestData {
                         sakService = services.sak,
                         oppgaveService = services.oppgave,
                         oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-                        mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
+                        mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
                         hendelseRepo = databaseRepos.hendelseRepo,
                         dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
                         brevService = services.brev,

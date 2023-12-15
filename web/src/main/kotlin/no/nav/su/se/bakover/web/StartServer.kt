@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web
 
+import dokument.domain.brev.BrevService
+import dokument.domain.hendelser.DokumentHendelseRepo
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -7,9 +9,11 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.application.DokumentServices
@@ -18,7 +22,13 @@ import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
@@ -26,8 +36,11 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
+import person.domain.PersonRepo
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
@@ -99,22 +112,39 @@ fun Application.susebakover(
             dbMetrics = dbMetrics,
         )
     },
-    tilbakekrevingskomponenter: Tilbakekrevingskomponenter = Tilbakekrevingskomponenter.create(
-        clock = clock,
-        sessionFactory = databaseRepos.sessionFactory,
-        personRepo = databaseRepos.person,
-        personService = services.person,
-        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-        tilbakekrevingUnderRevurderingService = services.tilbakekrevingUnderRevurderingService,
-        sakService = services.sak,
-        oppgaveService = services.oppgave,
-        oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-        mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
-        hendelseRepo = databaseRepos.hendelseRepo,
-        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
-        brevService = services.brev,
-        tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
-    ),
+    tilbakekrevingskomponenter: (
+        clock: Clock,
+        sessionFactory: SessionFactory,
+        personRepo: PersonRepo,
+        personService: PersonService,
+        hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+        tilbakekrevingUnderRevurderingService: TilbakekrevingUnderRevurderingService,
+        sakService: SakService,
+        oppgaveService: OppgaveService,
+        oppgaveHendelseRepo: OppgaveHendelseRepo,
+        mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
+        hendelseRepo: HendelseRepo,
+        dokumentHendelseRepo: DokumentHendelseRepo,
+        brevService: BrevService,
+        tilbakekrevingConfig: TilbakekrevingConfig,
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personRepo, personService, hendelsekonsumenterRepo, tilbakekrevingUnderRevurderingService, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
+        Tilbakekrevingskomponenter.create(
+            clock = clockFunParam,
+            sessionFactory = sessionFactory,
+            personRepo = personRepo,
+            personService = personService,
+            hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+            tilbakekrevingUnderRevurderingService = tilbakekrevingUnderRevurderingService,
+            sakService = sak,
+            oppgaveService = oppgave,
+            oppgaveHendelseRepo = oppgaveHendelseRepo,
+            mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
+            hendelseRepo = hendelseRepo,
+            dokumentHendelseRepo = dokumentHendelseRepo,
+            brevService = brevService,
+            tilbakekrevingConfig = tilbakekrevingConfig,
+        )
+    },
     dokumentkomponenter: Dokumentkomponenter = run {
         val dokumentRepos = DokumentRepos(
             clock = clock,
@@ -152,27 +182,44 @@ fun Application.susebakover(
     ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
-    setupKtor(
-        services = services,
-        clock = clock,
-        applicationConfig = applicationConfig,
-        accessCheckProxy = accessCheckProxy,
-        clients = clients,
-        formuegrenserFactoryIDag = formuegrenserFactoryIDag,
-        databaseRepos = databaseRepos,
-        extraRoutes = extraRoutes,
-        tilbakekrevingskomponenter = tilbakekrevingskomponenter,
-    )
-    startJobberOgConsumers(
-        services = services,
-        clients = clients,
-        databaseRepos = databaseRepos,
-        applicationConfig = applicationConfig,
-        jmsConfig = jmsConfig,
-        clock = clock,
-        consumers = consumers,
-        dbMetrics = dbMetrics,
-        tilbakekrevingskomponenter = tilbakekrevingskomponenter,
-        dokumentKomponenter = dokumentkomponenter,
-    )
+    tilbakekrevingskomponenter(
+        clock,
+        databaseRepos.sessionFactory,
+        databaseRepos.person,
+        services.person,
+        databaseRepos.hendelsekonsumenterRepo,
+        services.tilbakekrevingUnderRevurderingService,
+        services.sak,
+        services.oppgave,
+        databaseRepos.oppgaveHendelseRepo,
+        mapRåttKravgrunnlagPåSakHendelse,
+        databaseRepos.hendelseRepo,
+        databaseRepos.dokumentHendelseRepo,
+        services.brev,
+        applicationConfig.oppdrag.tilbakekreving,
+    ).also {
+        setupKtor(
+            services = services,
+            clock = clock,
+            applicationConfig = applicationConfig,
+            accessCheckProxy = accessCheckProxy,
+            clients = clients,
+            formuegrenserFactoryIDag = formuegrenserFactoryIDag,
+            databaseRepos = databaseRepos,
+            extraRoutes = extraRoutes,
+            tilbakekrevingskomponenter = it,
+        )
+        startJobberOgConsumers(
+            services = services,
+            clients = clients,
+            databaseRepos = databaseRepos,
+            applicationConfig = applicationConfig,
+            jmsConfig = jmsConfig,
+            clock = clock,
+            consumers = consumers,
+            dbMetrics = dbMetrics,
+            tilbakekrevingskomponenter = it,
+            dokumentKomponenter = dokumentkomponenter,
+        )
+    }
 }
