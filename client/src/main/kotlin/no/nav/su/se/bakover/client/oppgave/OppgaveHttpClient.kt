@@ -65,11 +65,15 @@ internal class OppgaveHttpClient(
         hentOppgave = this::hentOppgave,
     )
 
-    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprettOppgaveMedSystembruker(
+        config: OppgaveConfig,
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token().value)
     }
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprettOppgave(
+        config: OppgaveConfig,
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { OppgaveFeil.KunneIkkeOppretteOppgave }
             .flatMap { opprettOppgave(config, it) }
@@ -94,13 +98,15 @@ internal class OppgaveHttpClient(
             .flatMap { oppdaterOppgaveHttpClient.oppdaterBeskrivelse(oppgaveId, it, beskrivelse) }
     }
 
-    override fun oppdaterOppgave(
+    override fun oppdaterOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        return onBehalfOfToken()
-            .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
-            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo) }
+        return oppdaterOppgaveHttpClient.oppdaterOppgave(
+            oppgaveId = oppgaveId,
+            token = tokenoppslagForSystembruker.token().value,
+            data = oppdatertOppgaveInfo,
+        )
     }
 
     override fun hentOppgave(

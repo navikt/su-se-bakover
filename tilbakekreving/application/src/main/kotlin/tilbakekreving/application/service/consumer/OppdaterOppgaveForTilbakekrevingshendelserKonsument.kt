@@ -184,7 +184,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         correlationId: CorrelationId,
         oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
-        return oppgaveService.oppdaterOppgave(
+        return oppgaveService.oppdaterOppgaveMedSystembruker(
             oppgaveId = tidligereOppgaveHendelse.oppgaveId,
             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
         )

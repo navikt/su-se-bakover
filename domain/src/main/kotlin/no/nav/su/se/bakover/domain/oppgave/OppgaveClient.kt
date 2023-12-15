@@ -22,8 +22,15 @@ interface OppgaveClient {
     fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
     fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
     fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
-    fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
-    fun oppdaterOppgave(oppgaveId: OppgaveId, oppdatertOppgaveInfo: OppdaterOppgaveInfo): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
+    fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        beskrivelse: String,
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
+
+    fun oppdaterOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
     fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>
     fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>

@@ -508,7 +508,7 @@ open class AccessCheckProxy(
                     beskrivelse: String,
                 ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = kastKanKunKallesFraAnnenService()
 
-                override fun oppdaterOppgave(
+                override fun oppdaterOppgaveMedSystembruker(
                     oppgaveId: OppgaveId,
                     oppdaterOppgaveInfo: OppdaterOppgaveInfo,
                 ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = kastKanKunKallesFraAnnenService()

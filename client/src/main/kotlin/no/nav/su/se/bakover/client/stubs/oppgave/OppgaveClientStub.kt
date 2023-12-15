@@ -66,7 +66,7 @@ data object OppgaveClientStub : OppgaveClient {
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
     ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: $beskrivelse") }
 
-    override fun oppdaterOppgave(
+    override fun oppdaterOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(

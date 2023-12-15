@@ -16,11 +16,15 @@ class OppgaveServiceImpl(
     private val oppgaveClient: OppgaveClient,
 ) : OppgaveService {
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprettOppgave(
+        config: OppgaveConfig,
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.opprettOppgave(config)
     }
 
-    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprettOppgaveMedSystembruker(
+        config: OppgaveConfig,
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.opprettOppgaveMedSystembruker(config)
     }
 
@@ -28,16 +32,24 @@ class OppgaveServiceImpl(
         return oppgaveClient.lukkOppgave(oppgaveId)
     }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
+    override fun lukkOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.lukkOppgaveMedSystembruker(oppgaveId)
     }
 
-    override fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
+    override fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        beskrivelse: String,
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.oppdaterOppgave(oppgaveId, beskrivelse)
     }
 
-    override fun oppdaterOppgave(oppgaveId: OppgaveId, oppdaterOppgaveInfo: OppdaterOppgaveInfo): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        return oppgaveClient.oppdaterOppgave(oppgaveId, oppdaterOppgaveInfo)
+    override fun oppdaterOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+        oppdaterOppgaveInfo: OppdaterOppgaveInfo,
+    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
+        return oppgaveClient.oppdaterOppgaveMedSystembruker(oppgaveId, oppdaterOppgaveInfo)
     }
 
     override fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
