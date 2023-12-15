@@ -3,6 +3,8 @@ package tilbakekreving.application.service.consumer
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
@@ -187,12 +189,39 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
         return oppgaveService.oppdaterOppgaveMedSystembruker(
             oppgaveId = tidligereOppgaveHendelse.oppgaveId,
             oppdaterOppgaveInfo = oppdaterOppgaveInfo,
-        )
-            .mapLeft {
-                // TODO - her må returnere lukket manuelt dersom den er blitt ferdigstilt
-                KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave
-            }
-            .map {
+        ).fold(
+            {
+                when (it) {
+                    no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave ->
+                        KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave(it).left()
+
+                    no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave.FeilVedHentingAvToken ->
+                        KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave(it).left()
+
+                    no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave.FeilVedRequest ->
+                        KunneIkkeOppdatereOppgave.FeilVedLukkingAvOppgave(it).left()
+
+                    is no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> Pair(
+                        OppgaveHendelse.Lukket.Manuelt(
+                            hendelsestidspunkt = Tidspunkt.now(clock),
+                            oppgaveId = tidligereOppgaveHendelse.oppgaveId,
+                            versjon = nesteVersjon,
+                            sakId = sakInfo.sakId,
+                            relaterteHendelser = listOf(relaterteHendelse),
+                            tidligereHendelseId = tidligereOppgaveHendelse.hendelseId,
+                            ferdigstiltAv = it.ferdigstiltAv,
+                        ),
+                        OppgaveHendelseMetadata(
+                            correlationId = correlationId,
+                            ident = null,
+                            brukerroller = listOf(),
+                            request = it.jsonRequest,
+                            response = it.jsonResponse,
+                        ),
+                    ).right()
+                }
+            },
+            {
                 Pair(
                     OppgaveHendelse.Oppdatert(
                         hendelsestidspunkt = Tidspunkt.now(clock),
@@ -211,7 +240,8 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                         request = it.request,
                         response = it.response,
                     ),
-                )
-            }
+                ).right()
+            },
+        )
     }
 }
