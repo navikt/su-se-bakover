@@ -169,7 +169,12 @@ class JournalførDokumentHendelserKonsument(
         JournalførBrevCommand(
             fnr = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
-            dokument = relatertHendelse.dokumentUtenFil.toDokumentMedMetadata(relatertFil.fil),
+            dokument = relatertHendelse.dokumentUtenFil.toDokumentMedMetadata(
+                pdf = relatertFil.fil,
+                // Vi har ikke/skal ikke journalføre/sende brev på dette tidspunktet.
+                journalpostId = null,
+                brevbestillingId = null,
+            ),
             sakstype = sakInfo.type,
             navn = navn,
         ),

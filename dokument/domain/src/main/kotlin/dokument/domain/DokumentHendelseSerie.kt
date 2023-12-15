@@ -1,10 +1,14 @@
 package dokument.domain
 
 import arrow.core.NonEmptyList
+import dokument.domain.brev.BrevbestillingId
 import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
+import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.hendelse.domain.HendelseFil
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
 
 data class DokumentHendelseSerie(
@@ -31,6 +35,41 @@ data class DokumentHendelseSerie(
             is JournalførtDokumentHendelse -> Dokumenttilstand.JOURNALFØRT
             is DistribuertDokumentHendelse -> Dokumenttilstand.SENDT
         }
+    }
+
+    fun tilDokumentMedMetadata(
+        hentDokumentForHendelseId: (HendelseId) -> HendelseFil?,
+    ): Dokument.MedMetadata {
+        val generertDokumentHendelse = generertDokument()
+        val fil = hentDokumentForHendelseId(generertDokumentHendelse.hendelseId)!!
+        return generertDokumentHendelse.dokumentUtenFil.toDokumentMedMetadata(
+            pdf = fil.fil,
+            journalpostId = journalpostIdOrNull(),
+            brevbestillingId = brevbestillingIdOrNull(),
+        )
+    }
+
+    fun generertDokument(): GenerertDokumentHendelse {
+        // init garanterer element 0 er GenerertDokumentHendelse
+        return dokumenter.first() as GenerertDokumentHendelse
+    }
+
+    fun journalpostIdOrNull(): JournalpostId? {
+        return journalpostHendelseOrNull()?.journalpostId
+    }
+
+    fun journalpostHendelseOrNull(): JournalførtDokumentHendelse? {
+        // init garanterer at et evt. element 1 er JournalførtDokumentHendelse
+        return dokumenter.getOrNull(1) as JournalførtDokumentHendelse?
+    }
+
+    fun brevbestillingIdOrNull(): BrevbestillingId? {
+        return distribuertDokumentHendelse()?.brevbestillingId
+    }
+
+    fun distribuertDokumentHendelse(): DistribuertDokumentHendelse? {
+        // init garanterer at et evt. element 2 er DistribuertDokumentHendelse
+        return dokumenter.getOrNull(2) as DistribuertDokumentHendelse?
     }
 
     init {

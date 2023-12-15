@@ -31,7 +31,7 @@ class DokumentMedMetadataUtenFilTest {
         val pdf = PdfA("content".toByteArray())
 
         dokumentUtenFil().let {
-            it.toDokumentMedMetadata(pdf) shouldBe
+            it.toDokumentMedMetadata(pdf, null, null) shouldBe
                 Dokument.MedMetadata.Vedtak(
                     utenMetadata = Dokument.UtenMetadata.Vedtak(
                         id = it.id,
@@ -47,7 +47,7 @@ class DokumentMedMetadataUtenFilTest {
         dokumentUtenFil(
             distribusjonstype = Distribusjonstype.VIKTIG,
         ).let {
-            it.toDokumentMedMetadata(pdf) shouldBe
+            it.toDokumentMedMetadata(pdf, null, null) shouldBe
                 Dokument.MedMetadata.Informasjon.Viktig(
                     utenMetadata = Dokument.UtenMetadata.Informasjon.Viktig(
                         id = it.id,
@@ -63,7 +63,7 @@ class DokumentMedMetadataUtenFilTest {
         dokumentUtenFil(
             distribusjonstype = Distribusjonstype.ANNET,
         ).let {
-            it.toDokumentMedMetadata(pdf) shouldBe
+            it.toDokumentMedMetadata(pdf, null, null) shouldBe
                 Dokument.MedMetadata.Informasjon.Annet(
                     utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
                         id = it.id,

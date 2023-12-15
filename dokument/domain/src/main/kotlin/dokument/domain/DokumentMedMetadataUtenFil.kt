@@ -1,6 +1,8 @@
 package dokument.domain
 
+import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
@@ -21,24 +23,41 @@ data class DokumentMedMetadataUtenFil(
     val generertDokumentJson: String,
 ) {
 
-    fun toDokumentMedMetadata(pdf: PdfA): Dokument.MedMetadata = when (distribusjonstype) {
-        Distribusjonstype.VEDTAK -> Dokument.MedMetadata.Vedtak(
-            utenMetadata = toDokumentUtenMetadata(pdf),
-            metadata = metadata,
-        )
+    fun toDokumentMedMetadata(
+        pdf: PdfA,
+        journalpostId: JournalpostId?,
+        brevbestillingId: BrevbestillingId?,
+    ): Dokument.MedMetadata {
+        return when (distribusjonstype) {
+            Distribusjonstype.VEDTAK -> Dokument.MedMetadata.Vedtak(
+                utenMetadata = toDokumentUtenMetadata(pdf),
+                metadata = metadata.copy(
+                    journalpostId = journalpostId?.toString(),
+                    brevbestillingId = brevbestillingId?.toString(),
+                ),
+            )
 
-        Distribusjonstype.VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
-            utenMetadata = toDokumentUtenMetadata(pdf),
-            metadata = metadata,
-        )
+            Distribusjonstype.VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
+                utenMetadata = toDokumentUtenMetadata(pdf),
+                metadata = metadata.copy(
+                    journalpostId = journalpostId?.toString(),
+                    brevbestillingId = brevbestillingId?.toString(),
+                ),
+            )
 
-        Distribusjonstype.ANNET -> Dokument.MedMetadata.Informasjon.Annet(
-            utenMetadata = toDokumentUtenMetadata(pdf),
-            metadata = metadata,
-        )
+            Distribusjonstype.ANNET -> Dokument.MedMetadata.Informasjon.Annet(
+                utenMetadata = toDokumentUtenMetadata(pdf),
+                metadata = metadata.copy(
+                    journalpostId = journalpostId?.toString(),
+                    brevbestillingId = brevbestillingId?.toString(),
+                ),
+            )
+        }
     }
 
-    private fun toDokumentUtenMetadata(pdf: PdfA): Dokument.UtenMetadata = when (distribusjonstype) {
+    private fun toDokumentUtenMetadata(
+        pdf: PdfA,
+    ): Dokument.UtenMetadata = when (distribusjonstype) {
         Distribusjonstype.VEDTAK -> Dokument.UtenMetadata.Vedtak(
             id = id,
             opprettet = opprettet,
