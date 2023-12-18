@@ -1871,7 +1871,6 @@ class TestDataHelper(
                     ),
                     clock = fixedClock,
                     kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(listOf(it.sixth)),
-                    oppgaveHendelser = listOf(it.eighth),
                     dokumentHendelser = DokumentHendelser.empty(it.first.id),
                 ),
             )

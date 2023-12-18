@@ -22,7 +22,7 @@ class OpprettTilbakekrevingsbehandlingRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak, _, _, _, _, _, hendelse, oppgaveHendelse) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            val (sak, _, _, _, _, _, hendelse) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
 
             val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             val actualKravgrunnlag =
@@ -35,7 +35,6 @@ class OpprettTilbakekrevingsbehandlingRepoTest {
                 clock = fixedClock,
                 hendelser = listOf(hendelse),
                 kravgrunnlagPåSak = actualKravgrunnlag,
-                oppgaveHendelser = listOf(oppgaveHendelse),
                 dokumentHendelser = DokumentHendelser.empty(sak.id),
             )
         }

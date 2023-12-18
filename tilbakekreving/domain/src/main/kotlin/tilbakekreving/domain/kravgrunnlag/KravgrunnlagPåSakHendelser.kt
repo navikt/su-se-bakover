@@ -17,10 +17,24 @@ data class KravgrunnlagPåSakHendelser(
         .filterIsInstance<KravgrunnlagStatusendringPåSakHendelse>()
         .sortedBy { it.eksternTidspunkt.instant }
 
+    fun hentSisteKravgrunnagforEksternVedtakId(eksternVedtakId: String): Kravgrunnlag? {
+        return detaljerSortert
+            .filter { it.kravgrunnlag.eksternVedtakId == eksternVedtakId }
+            .map { it.kravgrunnlag }
+            .maxByOrNull { it.eksternTidspunkt.instant }
+            ?.let { kravgrunnlag ->
+                hentSisteStatusEtterTidspunkt(kravgrunnlag)?.let {
+                    kravgrunnlag.copy(status = it)
+                } ?: kravgrunnlag
+            }
+    }
+
     /**
-     * TODO - må ta stilling til om den er svart på
+     * Henter det siste kravgrunnlaget vi har mottatt og siste status.
+     *
+     * Merk at vi ikke filtrerer bort kravgrunnlag som allerede er behandlet.
      */
-    fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
+    fun hentSisteKravgrunnlag(): Kravgrunnlag? {
         return detaljerSortert
             .map { it.kravgrunnlag }
             .maxByOrNull { it.eksternTidspunkt.instant }
@@ -31,7 +45,7 @@ data class KravgrunnlagPåSakHendelser(
             }
     }
 
-    fun hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(
+    fun hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(
         kravgrunnlagPåSakHendelseId: HendelseId,
     ): KravgrunnlagDetaljerPåSakHendelse? {
         return detaljerSortert

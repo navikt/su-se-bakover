@@ -173,9 +173,6 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     hendelser = tilbakekrevingsHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
-                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId, openSessionContext).filter { oppgaveHendelse ->
-                        tilbakekrevingsHendelser.any { oppgaveHendelse.relaterteHendelser.contains(it.hendelseId) }
-                    }.sorted(),
                     dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
                         .filter { dokumentHendelseSerie ->
                             tilbakekrevingsHendelser.any { dokumentHendelseSerie.relatertHendelse == it.hendelseId }

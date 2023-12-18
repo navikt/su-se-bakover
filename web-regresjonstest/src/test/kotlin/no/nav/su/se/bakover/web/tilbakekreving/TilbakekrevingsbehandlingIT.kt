@@ -196,8 +196,7 @@ internal class TilbakekrevingsbehandlingIT {
                 verifiserFritekst = fritekst,
                 tidligereAttesteringer = underkjentAttestering,
             )
-            // TODO tilbakekreving jah: Denne skal snues til false. Vi forventer ikke kravgrunnlaget etter vi har iverksatt tilbakekrevingsbehandlingen.
-            verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterIverksetting.toInt())
+            verifiserKravgrunnlagPåSak(sakId, client, false, versjonEtterIverksetting.toInt())
         }
     }
 
@@ -272,4 +271,6 @@ internal class TilbakekrevingsbehandlingIT {
             )
         }
     }
+
+    // TODO tilbakekreving jah: Skriv en test som sjekker at vi ikke kan åpne en tilbakekreving på en sak som har en tilbakekreving som er til behandling. Men dersom behandlingen avsluttes, kan vi åpne en ny tilbakekreving.
 }

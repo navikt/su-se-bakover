@@ -12,4 +12,14 @@ data class IverksattTilbakekrevingsbehandling(
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     override val attesteringer: Attesteringshistorikk,
-) : ErUtfylt by forrigeSteg
+) : ErUtfylt by forrigeSteg {
+    init {
+        require(attesteringer.hentSisteIverksatteAttesteringOrNull() != null) {
+            "Kan ikke opprette en iverksatt tilbakekrevingsbehandling uten en iverksatt attestering"
+        }
+        require(!erKravgrunnlagUtdatert) {
+            // Nye kravgrunnlag etter dette vil få en annen eksternVedtakId og eksternKravgrunnlagId og skal ikke knyttes til denne behandlingen.
+            "En iverksatt tilbakekrevingsbehandling sitt kravgrunnlag kan ikke være utdatert"
+        }
+    }
+}

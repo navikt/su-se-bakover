@@ -3,25 +3,20 @@ package tilbakekreving.domain
 import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentHendelser
 import dokument.domain.Dokumenttilstand
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.pickByCondition
-import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import tilbakekreving.domain.iverksett.VedtakTilbakekrevingsbehandling
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
 import java.time.Clock
 import java.util.UUID
 
 /**
- * @param tilhørendeOgSorterteOppgaveHendelser - oppgavehendelsene må ha en tilbakekrevingshendelse i sin relaterteHendelser
  * @param tilhørendeOgSorterteDokumentHendelser - Dokumenthendelsen må ha en tilbakekrevingshendelse i sin relaterteHendelser
  */
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
     private val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
-    private val tilhørendeOgSorterteOppgaveHendelser: List<OppgaveHendelse>,
     private val tilhørendeOgSorterteDokumentHendelser: DokumentHendelser,
     private val clock: Clock,
 ) : List<TilbakekrevingsbehandlingHendelse> by sorterteHendelser {
@@ -64,18 +59,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sorterteHendelser.map { it.entitetId }.distinct()
             }"
         }
-        require(tilhørendeOgSorterteOppgaveHendelser.sorted() == tilhørendeOgSorterteOppgaveHendelser) {
-            "tilhørendeOgSorterteOppgaveHendelser må være sortert etter stigende versjon."
-        }
-
-        require(
-            tilhørendeOgSorterteOppgaveHendelser.all { oppgaveHendelse ->
-                sorterteHendelser.any { opprettetHendelse ->
-                    oppgaveHendelse.relaterteHendelser.contains(opprettetHendelse.hendelseId)
-                }
-            },
-        ) { "Oppgavehendelsene må være relatert til minst 1 tilbakekrevingsbehandlingHendelse" }
-
         require(
             tilhørendeOgSorterteDokumentHendelser.all { dokumentHendelse ->
                 sorterteHendelser.any { opprettetHendelse ->
@@ -89,7 +72,13 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         if (sorterteHendelser.isEmpty()) {
             Tilbakekrevingsbehandlinger.empty(sakId)
         } else {
-            toCurrentState()
+            toCurrentState().also {
+                it.behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>().let {
+                    if (it.size > 1) {
+                        throw IllegalStateException("Kun én iverksatt tilbakekrevingsbehandling kan referere til ett kravgrunnlag, men fant disse IDene: ${it.map { it.id }}")
+                    }
+                }
+            }
         }
     }
 
@@ -97,15 +86,14 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         return this.fold(mapOf<HendelseId, Tilbakekrevingsbehandling>()) { acc, hendelse ->
             val hendelseId = hendelse.hendelseId
             when (hendelse) {
-                // Dette gjelder kun første hendelsen og er et spesialtilfelle.
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
                     val kravgrunnlagsDetaljer =
-                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!
-
+                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(hendelse.kravgrunnlagPåSakHendelseId)!!
+                    // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
                     acc.plus(
                         hendelseId to hendelse.toDomain(
                             kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentUteståendeKravgrunnlag() != kravgrunnlagsDetaljer.kravgrunnlag,
+                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag() != kravgrunnlagsDetaljer.kravgrunnlag,
                         ),
                     )
                 }
@@ -144,8 +132,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
                 is OppdatertKravgrunnlagPåTilbakekrevingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(
-                        acc[hendelse.tidligereHendelseId]!!,
-                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForEksternKravgrunnlagId(hendelse.kravgrunnlagPåSakHendelseId)!!.kravgrunnlag,
+                        behandling = acc[hendelse.tidligereHendelseId]!!,
+                        kravgrunnlag = this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(
+                            hendelse.kravgrunnlagPåSakHendelseId,
+                        )!!.kravgrunnlag,
                     ),
                 ).minus(hendelse.tidligereHendelseId)
             }
@@ -179,20 +169,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             }
     }
 
-    fun hentOppgaveIdForBehandling(id: TilbakekrevingsbehandlingId): Pair<OppgaveHendelse, OppgaveId>? {
-        val hendelsesIderForBehandling = sorterteHendelser.filter { it.id == id }.map { it.hendelseId }
-
-        val oppgaveHendelserForBehandling =
-            tilhørendeOgSorterteOppgaveHendelser.pickByCondition(hendelsesIderForBehandling) { oppgaveHendelse, hendelseId ->
-                oppgaveHendelse.relaterteHendelser.contains(hendelseId)
-            }
-
-        return oppgaveHendelserForBehandling.whenever(
-            isEmpty = { null },
-            isNotEmpty = { it.max() to it.distinctBy { it.oppgaveId }.single().oppgaveId },
-        )
-    }
-
     /**
      * @throws IllegalArgumentException dersom et av init-kravene feiler.
      */
@@ -213,6 +189,26 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             hendelser = sorterteHendelser.filter { it.id == behandlingsid },
         )
 
+    /**
+     * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet.
+     * Det er kun det siste mottatte kravgrunnlaget som kan være utestående.
+     * Et kravgrunnlag er avsluttet dersom vi har iverksatt en tilbakekrevingsbehandling eller kravgrunnlaget har blitt annullert på annen måte (statuser fra oppdrag).
+     * Merk at et kravgrunnlag vil være utestående helt til behandlingen er iverksatt eller det er overskrevet av et nyere kravgrunnlag.
+     *
+     * @return null dersom det ikke finnet et kravgrunnlag eller kravgrunnlaget ikke er utestående.
+     */
+    fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
+        val sisteKravgrunnlag = kravgrunnlagPåSak.hentSisteKravgrunnlag() ?: return null
+        if (this.currentState.behandlinger
+                .filterIsInstance<IverksattTilbakekrevingsbehandling>()
+                .any { it.kravgrunnlag == sisteKravgrunnlag }
+        ) {
+            return null
+        }
+        return sisteKravgrunnlag
+        // TODO jah: Vi må ta høyde for statusene. Det finnes noen statuser som betyr at kravgrunnlaget er avsluttet eksternt. Kan f.eks. være vi har revurdert på nytt.
+    }
+
     companion object {
 
         fun empty(sakId: UUID, clock: Clock): TilbakekrevingsbehandlingHendelser {
@@ -221,7 +217,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 clock = clock,
                 sorterteHendelser = emptyList(),
                 kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(emptyList()),
-                tilhørendeOgSorterteOppgaveHendelser = emptyList(),
                 tilhørendeOgSorterteDokumentHendelser = DokumentHendelser.empty(sakId),
             )
         }
@@ -231,7 +226,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             clock: Clock,
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
             kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
-            oppgaveHendelser: List<OppgaveHendelse>,
             dokumentHendelser: DokumentHendelser,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
@@ -239,7 +233,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 clock = clock,
                 sorterteHendelser = hendelser.sorted(),
                 kravgrunnlagPåSak = kravgrunnlagPåSak,
-                tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
                 tilhørendeOgSorterteDokumentHendelser = dokumentHendelser,
             )
         }

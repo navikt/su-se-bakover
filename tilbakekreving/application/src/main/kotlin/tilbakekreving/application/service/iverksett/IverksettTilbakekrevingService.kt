@@ -65,8 +65,8 @@ class IverksettTilbakekrevingService(
         )
 
         /**
-         * TODO: det kan være slik at sending av vedtak til oppdrag får fint, men ting feiler under iverksetting
-         *  hos oss.
+         * TODO tilbakekreving: At least once idempotency - det kan være slik at sending av vedtak til oppdrag går fint, men vi får ikke persistert hendelsen.
+         *   Vi må finne ut hva slags feilmelding oppdrag sender oss når vi sender samme vedtak to ganger og persistere hendelsen når dette skjer.
          */
         return iverksettelse.let {
             val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
