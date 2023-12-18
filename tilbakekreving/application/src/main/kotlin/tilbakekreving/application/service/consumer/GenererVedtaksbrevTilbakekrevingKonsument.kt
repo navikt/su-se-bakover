@@ -119,7 +119,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
                 },
                 {
                     sessionFactory.withTransactionContext { context ->
-                        dokumentHendelseRepo.lagre(
+                        dokumentHendelseRepo.lagreGenerertDokumentHendelse(
                             hendelse = it.first,
                             hendelseFil = it.second,
                             meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
@@ -156,6 +156,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
                 Dokument.Metadata(
                     sakId = sakInfo.sakId,
                     vedtakId = iverksattHendelse.vedtakId,
+                    tilbakekrevingsbehandlingId = iverksattHendelse.id.value,
                 ),
             )
 

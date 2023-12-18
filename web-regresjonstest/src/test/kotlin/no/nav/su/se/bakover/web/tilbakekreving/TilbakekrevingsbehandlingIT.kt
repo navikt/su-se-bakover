@@ -188,6 +188,7 @@ internal class TilbakekrevingsbehandlingIT {
             val (_, versjonEtterIverksetting) = appComponents.iverksettTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                fnr = fnr,
                 saksversjon = versjonEtterAndreSendingTilAttestering,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,

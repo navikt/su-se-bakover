@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
@@ -32,55 +33,65 @@ class DokumentHendelsePostgresRepo(
     private val sessionFactory: SessionFactory,
 ) : DokumentHendelseRepo {
 
-    override fun lagre(
-        hendelse: DokumentHendelse,
-        meta: DefaultHendelseMetadata,
-        sessionContext: SessionContext?,
-    ) {
-        lagreHendelse(
-            hendelse = hendelse,
-            meta = meta,
-            null,
-            sessionContext = sessionContext,
-        )
-    }
-
-    override fun lagre(
-        hendelse: DokumentHendelse,
-        meta: DefaultHendelseMetadata,
+    override fun lagreGenerertDokumentHendelse(
+        hendelse: GenerertDokumentHendelse,
         hendelseFil: HendelseFil,
+        meta: DefaultHendelseMetadata,
         sessionContext: SessionContext?,
     ) {
-        lagreHendelse(
+        return lagreHendelse(
             hendelse = hendelse,
             meta = meta,
             hendelseFil = hendelseFil,
             sessionContext = sessionContext,
+            type = GenerertDokument,
+            data = hendelse.dokumentUtenFil.toDbJson(
+                hendelse.relatertHendelse,
+                hendelse.skalSendeBrev,
+            ),
+        )
+    }
+
+    override fun lagreJournalførtDokumentHendelse(
+        hendelse: JournalførtDokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        return lagreHendelse(
+            hendelse = hendelse,
+            meta = meta,
+            sessionContext = sessionContext,
+            type = JournalførtDokument,
+            data = hendelse.dataDbJson(hendelse.relatertHendelse),
+        )
+    }
+
+    override fun lagreDistribuertDokumentHendelse(
+        hendelse: DistribuertDokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        return lagreHendelse(
+            hendelse = hendelse,
+            meta = meta,
+            sessionContext = sessionContext,
+            type = DistribuertDokument,
+            data = hendelse.dataDbJson(hendelse.relatertHendelse),
         )
     }
 
     private fun lagreHendelse(
         hendelse: DokumentHendelse,
+        hendelseFil: HendelseFil? = null,
         meta: DefaultHendelseMetadata,
-        hendelseFil: HendelseFil?,
         sessionContext: SessionContext?,
+        type: Hendelsestype,
+        data: String,
     ) {
         (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
             hendelse = hendelse,
-            type = when (hendelse) {
-                is GenerertDokumentHendelse -> GenerertDokument
-                is JournalførtDokumentHendelse -> JournalførtDokument
-                is DistribuertDokumentHendelse -> DistribuertDokument
-            },
-            data = when (hendelse) {
-                is JournalførtDokumentHendelse -> hendelse.dataDbJson(hendelse.relatertHendelse)
-                is GenerertDokumentHendelse -> hendelse.dokumentUtenFil.toDbJson(
-                    hendelse.relatertHendelse,
-                    hendelse.skalSendeBrev,
-                )
-
-                is DistribuertDokumentHendelse -> hendelse.dataDbJson(hendelse.relatertHendelse)
-            },
+            type = type,
+            data = data,
             sessionContext = sessionContext,
             meta = meta.toDbJson(),
         )

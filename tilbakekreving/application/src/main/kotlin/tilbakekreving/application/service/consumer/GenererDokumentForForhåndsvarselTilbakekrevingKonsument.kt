@@ -117,7 +117,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             correlationId = correlationId,
         ).map {
             sessionFactory.withTransactionContext { context ->
-                dokumentHendelseRepo.lagre(
+                dokumentHendelseRepo.lagreGenerertDokumentHendelse(
                     hendelse = it.first,
                     hendelseFil = it.second,
                     meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),

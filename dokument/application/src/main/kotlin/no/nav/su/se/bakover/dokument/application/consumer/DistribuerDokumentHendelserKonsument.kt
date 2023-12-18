@@ -105,7 +105,7 @@ class DistribuerDokumentHendelserKonsument(
                             brevbestillingId = it,
                         ).let { distribuertDokumentHendelse ->
                             sessionFactory.withSessionContext { tx ->
-                                dokumentHendelseRepo.lagre(
+                                dokumentHendelseRepo.lagreDistribuertDokumentHendelse(
                                     hendelse = distribuertDokumentHendelse,
                                     meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                                     sessionContext = tx,

@@ -106,7 +106,7 @@ class JournalførDokumentHendelserKonsument(
             return
         }.let { journalførtDokumentHendelse ->
             sessionFactory.withSessionContext {
-                dokumentHendelseRepo.lagre(
+                dokumentHendelseRepo.lagreJournalførtDokumentHendelse(
                     hendelse = journalførtDokumentHendelse,
                     meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                     sessionContext = it,

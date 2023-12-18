@@ -13,14 +13,25 @@ val JournalførtDokument = Hendelsestype("JOURNALTFØRT_DOKUMENT")
 val DistribuertDokument = Hendelsestype("DISTRIBUERT_DOKUMENT")
 
 interface DokumentHendelseRepo {
-    fun lagre(
-        hendelse: DokumentHendelse,
-        meta: DefaultHendelseMetadata,
+    fun lagreGenerertDokumentHendelse(
+        hendelse: GenerertDokumentHendelse,
         hendelseFil: HendelseFil,
+        meta: DefaultHendelseMetadata,
         sessionContext: SessionContext? = null,
     )
 
-    fun lagre(hendelse: DokumentHendelse, meta: DefaultHendelseMetadata, sessionContext: SessionContext? = null)
+    fun lagreJournalførtDokumentHendelse(
+        hendelse: JournalførtDokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext? = null,
+    )
+
+    fun lagreDistribuertDokumentHendelse(
+        hendelse: DistribuertDokumentHendelse,
+        meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext? = null,
+    )
+
     fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): DokumentHendelser
     fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?

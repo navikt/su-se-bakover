@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
+import dokument.domain.Dokument
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -9,17 +10,22 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jsonAssertEquals
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.SharedRegressionTestData.pdf
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 internal fun AppComponents.iverksettTilbakekrevingsbehandling(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
+    fnr: String,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     client: HttpClient,
     verifiserRespons: Boolean = true,
@@ -78,6 +84,7 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
                 if (utførSideeffekter) {
                     // hendelse + lukket oppgave + generering av brev + journalført + distribuert
                     saksversjonEtter shouldBe saksversjon + 5
+                    verifiserDokumenterPåSak(sakId, tilbakekrevingsbehandlingId, fnr)
                 } else {
                     // kun hendelsen
                     saksversjonEtter shouldBe saksversjon + 1
@@ -137,6 +144,70 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
     tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id", "opprettet")
     tilbakekrevingsvedtak.has("id") shouldBe true
     tilbakekrevingsvedtak.has("opprettet") shouldBe true
+}
+
+private fun AppComponents.verifiserDokumenterPåSak(
+    sakId: String,
+    tilbakekrevingsbehandlingId: String,
+    fnr: String,
+) {
+    val sakIdSomUUID = UUID.fromString(sakId)
+    this.databaseRepos.dokumentRepo.hentForSak(sakIdSomUUID).filterIsInstance<Dokument.MedMetadata.Vedtak>()
+        .single { it.tittel == "Tilbakekreving av Supplerende stønad" }.let {
+            jsonAssertEquals(
+                expected = """
+                        {
+                          "personalia":{
+                            "dato":"01.02.2021",
+                            "fødselsnummer":"$fnr",
+                            "fornavn":"Tore",
+                            "etternavn":"Strømøy",
+                            "saksnummer":2021
+                          },
+                          "saksbehandlerNavn":"Testbruker, Lokal",
+                          "attestantNavn":"Testbruker, Lokal",
+                          "fritekst":"Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
+                          "dato":"1. februar 2021",
+                          "månedsoversiktMedSum":{
+                            "sorterteMåneder":[
+                              {
+                                "periode":"01.01.2021 - 31.01.2021",
+                                "vurdering":"SkalIkkeTilbakekreve",
+                                "bruttoSkalTilbakekreve":0,
+                                "nettoSkalTilbakekreve":0
+                              }
+                            ],
+                            "sumBruttoSkalTilbakekreve":0,
+                            "sumNettoSkalTilbakekreve":0
+                          },
+                          "sakstype":"UFØRE",
+                          "erAldersbrev":false
+                        }
+                """.trimIndent(),
+                actual = it.generertDokumentJson,
+            )
+            it shouldBe Dokument.MedMetadata.Vedtak(
+                utenMetadata = Dokument.UtenMetadata.Vedtak(
+                    // Denne blir generert når vi lager IverksattHendelse
+                    id = it.id,
+                    opprettet = it.opprettet,
+                    tittel = "Tilbakekreving av Supplerende stønad",
+                    generertDokument = PdfA(pdf.toByteArray()),
+                    // Verifiserer denne for seg selv
+                    generertDokumentJson = it.generertDokumentJson,
+                ),
+                metadata = Dokument.Metadata(
+                    sakId = sakIdSomUUID,
+                    søknadId = null,
+                    vedtakId = null,
+                    revurderingId = null,
+                    klageId = null,
+                    tilbakekrevingsbehandlingId = UUID.fromString(tilbakekrevingsbehandlingId),
+                    journalpostId = it.metadata.journalpostId!!,
+                    brevbestillingId = it.metadata.brevbestillingId!!,
+                ),
+            )
+        }
 }
 
 fun verifiserIverksattTilbakekrevingsbehandlingRespons(

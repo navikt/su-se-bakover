@@ -37,6 +37,9 @@ data class DokumentHendelseSerie(
         }
     }
 
+    /**
+     * Legger på journalpostId og brevbestillingId dersom disse finnes.
+     */
     fun tilDokumentMedMetadata(
         hentDokumentForHendelseId: (HendelseId) -> HendelseFil?,
     ): Dokument.MedMetadata {
