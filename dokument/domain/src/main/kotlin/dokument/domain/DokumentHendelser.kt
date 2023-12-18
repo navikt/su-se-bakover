@@ -5,6 +5,7 @@ import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
+import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
 
@@ -34,6 +35,16 @@ data class DokumentHendelser(
 
     fun hentGenererte(): List<GenerertDokumentHendelse> {
         return serier.flatMap { it.dokumenter }.filterIsInstance<GenerertDokumentHendelse>()
+    }
+
+    fun tilDokumenterMedMetadata(
+        hentDokumentForHendelseId: (HendelseId) -> HendelseFil?,
+    ): List<Dokument.MedMetadata> {
+        return serier.map {
+            it.tilDokumentMedMetadata(
+                hentDokumentForHendelseId = hentDokumentForHendelseId,
+            )
+        }
     }
 
     companion object {

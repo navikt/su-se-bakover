@@ -89,12 +89,11 @@ class DokumentPostgresRepo(
     override fun hentForSak(id: UUID): List<Dokument.MedMetadata> {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
             sessionFactory.withSessionContext { ct ->
-                val genererte = dokumentHendelseRepo.hentForSak(id, ct).hentGenererte()
-                val dokumenterFraHendelser = genererte.map {
-                    val fil = dokumentHendelseRepo.hentFilFor(it.hendelseId, ct)!!
-                    it.dokumentUtenFil.toDokumentMedMetadata(fil.fil)
-                }
-
+                val dokumenterFraHendelser = dokumentHendelseRepo.hentForSak(id, ct).tilDokumenterMedMetadata(
+                    hentDokumentForHendelseId = { hendelseId ->
+                        dokumentHendelseRepo.hentFilFor(hendelseId, ct)
+                    },
+                )
                 (
                     ct.withSession {
                         """
