@@ -139,12 +139,6 @@ subprojects {
                     require("1.70")
                 }
             }
-            implementation("com.squareup.okio:okio") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/6 https://github.com/advisories/GHSA-w33c-445m-f8w7")
-                version {
-                    require("3.5.0")
-                }
-            }
             implementation("io.netty:netty-handler") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/3 https://github.com/advisories/GHSA-6mjq-h674-j845")
                 version {
@@ -163,6 +157,25 @@ subprojects {
                     require("2.8")
                 }
             }
+            implementation("org.apache.santuario:xmlsec") {
+                because("https://github.com/navikt/su-se-bakover/security/dependabot/17 https://github.com/advisories/GHSA-xfrj-6vvc-3xm2")
+                version {
+                    require("2.3.4")
+                }
+            }
+            implementation("com.squareup.okio:okio") {
+                because("https://github.com/navikt/su-se-bakover/security/dependabot/19 https://github.com/advisories/GHSA-w33c-445m-f8w7")
+                version {
+                    require("3.4.0")
+                }
+            }
+            implementation("com.squareup.okio:okio-jvm") {
+                because("https://github.com/navikt/su-se-bakover/security/dependabot/20 https://github.com/advisories/GHSA-w33c-445m-f8w7")
+                version {
+                    require("3.4.0")
+                }
+            }
+
         }
     }
 
