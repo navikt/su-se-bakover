@@ -19,9 +19,9 @@ jobs:
     name: Build and push Docker container
     runs-on: ubuntu-latest
     permissions:
-      packages: 'write'
-      contents: 'read'
-      id-token: 'write'
+      packages: write
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - name: Build and test
@@ -39,6 +39,9 @@ jobs:
 
   deploy_to_dev:
     name: Deploy to dev
+    permissions:
+      contents: read
+      id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
@@ -50,6 +53,9 @@ jobs:
 
   deploy_to_prod:
     name: Deploy to prod
+    permissions:
+      contents: read
+      id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
