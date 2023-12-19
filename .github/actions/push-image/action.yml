@@ -36,4 +36,3 @@ runs:
         project_id: ${{ inputs.project_id }}
         dockerfile: ${{ inputs.dockerfile }}
         image_suffix: ${{ inputs.image_suffix }}
-

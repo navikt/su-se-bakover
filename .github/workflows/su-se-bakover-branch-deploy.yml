@@ -53,5 +53,3 @@ jobs:
     with:
       nav-environment: dev
       tag: ${{ github.sha }}
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}

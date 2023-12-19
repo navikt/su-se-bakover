@@ -58,8 +58,7 @@ jobs:
       cluster: dev-fss
       vars: nais-dev.json
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+
   draft-release:
     name: Draft release
     permissions:

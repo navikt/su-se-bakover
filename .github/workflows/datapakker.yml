@@ -46,8 +46,7 @@ jobs:
       cluster: dev-fss
       vars: datapakker/soknad/nais-dev.json
       resource: datapakker/soknad/nais.yml
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+
 
   deploy_to_prod:
     name: Deploy to prod
@@ -58,5 +57,3 @@ jobs:
       cluster: prod-fss
       vars: datapakker/soknad/nais-prod.json
       resource: datapakker/soknad/nais.yml
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}

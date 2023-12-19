@@ -17,8 +17,6 @@ jobs:
       var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729
       cluster: dev-fss
       resource: alerts.yml
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
   deploy_to_prod:
     name: Deploy to prod
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
@@ -26,5 +24,3 @@ jobs:
       var: SLACK_ALERTS_CHANNEL=#su_alerts,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
       cluster: prod-fss
       resource: alerts.yml
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}

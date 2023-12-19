@@ -2,9 +2,6 @@ name: 'Deploy'
 description: 'Deploy'
 
 inputs:
-  NAIS_DEPLOY_APIKEY:
-    required: true
-    description: 'secrets.NAIS_DEPLOY_APIKEY'
   cluster:
     required: true
     description: 'dev-fss/prod-fss'
@@ -26,9 +23,8 @@ runs:
 
   steps:
     - uses: actions/checkout@v3
-    - uses: nais/deploy/actions/deploy@v1
+    - uses: nais/deploy/actions/deploy@v2
       env:
-        APIKEY: ${{ inputs.NAIS_DEPLOY_APIKEY }}
         CLUSTER: ${{ inputs.cluster }}
         RESOURCE: ${{ inputs.resource }}
         VARS: ${{ inputs.vars }}
