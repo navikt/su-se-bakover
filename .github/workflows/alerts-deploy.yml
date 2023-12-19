@@ -12,6 +12,9 @@ permissions: { }
 jobs:
   deploy_to_dev:
     name: Deploy to dev
+    permissions:
+      contents: read
+      id-token: write # needed for push-image
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
       var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729
