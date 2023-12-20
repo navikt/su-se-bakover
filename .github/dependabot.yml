@@ -19,6 +19,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+  # Default it only picks up .github/workflows, but we put custom actions in .github/actions
+  - package-ecosystem: "github-actions"
+    directory: ".github/actions"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
