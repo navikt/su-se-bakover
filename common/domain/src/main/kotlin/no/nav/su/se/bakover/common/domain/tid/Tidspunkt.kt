@@ -60,8 +60,12 @@ constructor(
         else -> false
     }
 
-    operator fun compareTo(tidspunkt: Tidspunkt): Int {
-        return compareTo(tidspunkt.instant)
+    override fun compareTo(other: Instant): Int {
+        return this.instant.compareTo(other)
+    }
+
+    operator fun compareTo(other: Tidspunkt): Int {
+        return this.instant.compareTo(other.instant)
     }
 
     override fun hashCode() = instant.hashCode()
@@ -75,3 +79,7 @@ constructor(
 fun Instant.toTidspunkt() = Tidspunkt(this)
 fun LocalDateTime.toTidspunkt(zoneId: ZoneId) = this.atZone(zoneId).toTidspunkt()
 fun ZonedDateTime.toTidspunkt() = this.toInstant().toTidspunkt()
+
+operator fun Instant.compareTo(tidspunkt: Tidspunkt): Int {
+    return this.compareTo(tidspunkt.instant)
+}
