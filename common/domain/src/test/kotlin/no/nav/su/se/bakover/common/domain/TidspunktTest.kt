@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.compareTo
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -131,6 +132,68 @@ internal class TidspunktTest {
     @Test
     fun `plusser på tid`() {
         Tidspunkt(instant).plus(1, ChronoUnit.DAYS).toString() shouldBe "1970-01-02T01:01:01.123456Z"
+    }
+
+    @Test
+    fun `compare against self and instant`() {
+        val tidligere = Instant.parse("2021-01-01T01:01:01.123456Z")
+        val tidligereTidspunkt = Tidspunkt(tidligere)
+        val senere = Instant.parse("2021-01-02T01:01:01.123456Z")
+        val senereTidspunkt = Tidspunkt(senere)
+
+        (tidligereTidspunkt > tidligereTidspunkt) shouldBe false
+        (tidligereTidspunkt >= tidligereTidspunkt) shouldBe true
+        (tidligereTidspunkt > tidligere) shouldBe false
+        (tidligereTidspunkt >= tidligere) shouldBe true
+
+        (tidligereTidspunkt < tidligereTidspunkt) shouldBe false
+        (tidligereTidspunkt <= tidligereTidspunkt) shouldBe true
+        (tidligereTidspunkt < tidligere) shouldBe false
+        (tidligereTidspunkt <= tidligere) shouldBe true
+
+        (tidligere > tidligereTidspunkt) shouldBe false
+        (tidligere >= tidligereTidspunkt) shouldBe true
+        (tidligere > tidligere) shouldBe false
+        (tidligere >= tidligere) shouldBe true
+
+        (tidligere < tidligereTidspunkt) shouldBe false
+        (tidligere <= tidligereTidspunkt) shouldBe true
+        (tidligere < tidligere) shouldBe false
+        (tidligere <= tidligere) shouldBe true
+
+        tidligereTidspunkt.compareTo(tidligereTidspunkt) shouldBe 0
+        tidligereTidspunkt.compareTo(tidligere) shouldBe 0
+        tidligere.compareTo(tidligereTidspunkt) shouldBe 0
+        tidligere.compareTo(tidligere) shouldBe 0
+
+        (tidligereTidspunkt > senereTidspunkt) shouldBe false
+        (tidligereTidspunkt >= senereTidspunkt) shouldBe false
+        (tidligereTidspunkt > senere) shouldBe false
+        (tidligereTidspunkt >= senere) shouldBe false
+
+        (tidligereTidspunkt < senereTidspunkt) shouldBe true
+        (tidligereTidspunkt <= senereTidspunkt) shouldBe true
+        (tidligereTidspunkt < senere) shouldBe true
+        (tidligereTidspunkt <= senere) shouldBe true
+
+        (tidligere > senereTidspunkt) shouldBe false
+        (tidligere >= senereTidspunkt) shouldBe false
+        (tidligere > senere) shouldBe false
+        (tidligere >= senere) shouldBe false
+
+        (tidligere < senereTidspunkt) shouldBe true
+        (tidligere <= senereTidspunkt) shouldBe true
+        (tidligere < senere) shouldBe true
+        (tidligere <= senere) shouldBe true
+
+        tidligereTidspunkt.compareTo(senereTidspunkt) shouldBe -1
+        tidligereTidspunkt.compareTo(senere) shouldBe -1
+        tidligere.compareTo(senereTidspunkt) shouldBe -1
+        tidligere.compareTo(senere) shouldBe -1
+        senereTidspunkt.compareTo(tidligereTidspunkt) shouldBe 1
+        senereTidspunkt.compareTo(tidligere) shouldBe 1
+        senere.compareTo(tidligereTidspunkt) shouldBe 1
+        senere.compareTo(tidligere) shouldBe 1
     }
 
     data class NestedSerialization(
