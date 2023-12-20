@@ -15,16 +15,37 @@ updates:
           - 6.2.1-ccs
           - 7.0.0-ce
           - 7.0.0-ccs
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
   # Default it only picks up .github/workflows, but we put custom actions in .github/actions
   - package-ecosystem: "github-actions"
-    directory: "/.github/actions"
+    directory: "/.github/actions/build-and-test"
     schedule:
       interval: "daily"
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/deploy"
     schedule:
       interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/draft-release"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/push-image"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/setup-java"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/submit-dependency-graph"
+    schedule:
+      interval: "daily"
+
