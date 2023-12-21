@@ -115,7 +115,7 @@ internal fun KravgrunnlagRootDto.toDomain(
                         skatteProsent = BigDecimal(tilbakekrevingsbeløpForYtelse.skattProsent),
                     )
                 },
-                eksternTidspunkt = Tidspunkt(kontrollfeltFormatter.parse(kravgrunnlagDto.kontrollfelt, Instant::from)),
+                eksternTidspunkt = Tidspunkt.create(kontrollfeltFormatter.parse(kravgrunnlagDto.kontrollfelt, Instant::from)),
                 hendelseId = hendelseId,
             )
         }

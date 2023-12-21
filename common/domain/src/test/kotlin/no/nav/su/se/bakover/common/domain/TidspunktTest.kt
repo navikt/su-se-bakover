@@ -57,9 +57,9 @@ internal class TidspunktTest {
         val instant = instant.plusNanos(515)
         val tidspunkt = instant.toTidspunkt()
         instant shouldNotBe tidspunkt.instant
-        instant.truncatedTo(Tidspunkt.unit) shouldBe tidspunkt.instant
+        instant.truncatedTo(ChronoUnit.MICROS) shouldBe tidspunkt.instant
         tidspunkt shouldBe instant
-        tidspunkt shouldBe instant.truncatedTo(Tidspunkt.unit)
+        tidspunkt shouldBe instant.truncatedTo(ChronoUnit.MICROS)
         val othertidspunkt = instant.toTidspunkt()
         tidspunkt shouldBe othertidspunkt
         tidspunkt shouldBe tidspunkt
@@ -131,15 +131,15 @@ internal class TidspunktTest {
 
     @Test
     fun `plusser på tid`() {
-        Tidspunkt(instant).plus(1, ChronoUnit.DAYS).toString() shouldBe "1970-01-02T01:01:01.123456Z"
+        Tidspunkt.create(instant).plus(1, ChronoUnit.DAYS).toString() shouldBe "1970-01-02T01:01:01.123456Z"
     }
 
     @Test
     fun `compare against self and instant`() {
         val tidligere = Instant.parse("2021-01-01T01:01:01.123456Z")
-        val tidligereTidspunkt = Tidspunkt(tidligere)
+        val tidligereTidspunkt = Tidspunkt.create(tidligere)
         val senere = Instant.parse("2021-01-02T01:01:01.123456Z")
-        val senereTidspunkt = Tidspunkt(senere)
+        val senereTidspunkt = Tidspunkt.create(senere)
 
         (tidligereTidspunkt > tidligereTidspunkt) shouldBe false
         (tidligereTidspunkt >= tidligereTidspunkt) shouldBe true

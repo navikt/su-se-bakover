@@ -63,7 +63,7 @@ internal class StatistikkKlageTest {
             resultatBeskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
             resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
             beslutter = "attestant",
-            funksjonellTid = Tidspunkt(Instant.parse("2021-02-01T01:02:04.456789Z")),
+            funksjonellTid = Tidspunkt.create(Instant.parse("2021-02-01T01:02:04.456789Z")),
         )
     }
 

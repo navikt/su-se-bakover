@@ -15,17 +15,7 @@ import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalUnit
 import java.util.Date
 
-/**
- * TODO jah: Bør lage en Json-versjon, domenetyper skal ikke serialiseres/deserialiseres direkte.
- */
-abstract class TruncatedInstant(
-    @JsonValue val instant: Instant,
-) : Temporal by instant, TemporalAdjuster by instant, Comparable<Instant> by instant, Serializable by instant {
-
-    val nano = instant.nano
-    fun toEpochMilli() = instant.toEpochMilli()
-    override fun toString() = instant.toString()
-}
+private val tidspunktPresisjon: ChronoUnit = ChronoUnit.MICROS
 
 /**
  * Wraps Instants and truncates them to microsecond-precision (postgres precision).
@@ -38,17 +28,31 @@ abstract class TruncatedInstant(
  */
 class Tidspunkt
 @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-constructor(
-    instant: Instant,
-) : TruncatedInstant(instant.truncatedTo(unit)) {
+private constructor(
+    @JsonValue
+    val instant: Instant,
+) : Temporal by instant, TemporalAdjuster by instant, Comparable<Instant> by instant, Serializable by instant {
+
+    init {
+        val maxNanoPrecision = when (tidspunktPresisjon) {
+            ChronoUnit.MICROS -> 1000
+            else -> throw IllegalArgumentException("Unsupported ChronoUnit: $tidspunktPresisjon")
+        }
+        require(instant.nano % maxNanoPrecision == 0) {
+            "Siden postgressql ikke støttet eller støtter nanosekunder, er vår høyeste oppløsning mikrosekunder, forventet instant.nano < 1000000, men var: ${instant.nano}"
+        }
+    }
 
     companion object {
-        val unit: ChronoUnit = ChronoUnit.MICROS
         val EPOCH: Tidspunkt get() = Instant.EPOCH.toTidspunkt()
         val MIN: Tidspunkt get() = Instant.MIN.toTidspunkt()
-        fun now(clock: Clock = Clock.systemUTC()) = Tidspunkt(Instant.now(clock))
-        fun parse(text: String) = Tidspunkt(Instant.parse(text))
+        fun now(clock: Clock = Clock.systemUTC()) = Tidspunkt(Instant.now(clock).truncatedTo(tidspunktPresisjon))
+        fun parse(text: String) = Tidspunkt(Instant.parse(text).truncatedTo(tidspunktPresisjon))
+        fun create(instant: Instant) = Tidspunkt(instant.truncatedTo(tidspunktPresisjon))
+        fun ofEpochMilli(value: Long): Tidspunkt = create(Instant.ofEpochMilli(value))
     }
+
+    override fun toString() = instant.toString()
 
     /**
      * Only supports one-way equality check against Instants ("this equals someInstant").
@@ -56,30 +60,32 @@ constructor(
      */
     override fun equals(other: Any?) = when (other) {
         is Tidspunkt -> instant == other.instant
-        is Instant -> instant == other.truncatedTo(unit)
+        is Instant -> instant == other.truncatedTo(tidspunktPresisjon)
         else -> false
     }
 
     override fun compareTo(other: Instant): Int {
-        return this.instant.compareTo(other)
+        return this.instant.compareTo(other.truncatedTo(tidspunktPresisjon))
     }
 
     operator fun compareTo(other: Tidspunkt): Int {
-        return this.instant.compareTo(other.instant)
+        return this.instant.compareTo(other.instant.truncatedTo(tidspunktPresisjon))
     }
 
     override fun hashCode() = instant.hashCode()
     override fun plus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.plus(amount, unit).toTidspunkt()
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
-    fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), unit)
+    fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), tidspunktPresisjon)
+    val nano = instant.nano
+
     fun toDate(): Date = Date.from(instant)
 }
 
-fun Instant.toTidspunkt() = Tidspunkt(this)
+fun Instant.toTidspunkt() = Tidspunkt.create(this)
 fun LocalDateTime.toTidspunkt(zoneId: ZoneId) = this.atZone(zoneId).toTidspunkt()
 fun ZonedDateTime.toTidspunkt() = this.toInstant().toTidspunkt()
 
 operator fun Instant.compareTo(tidspunkt: Tidspunkt): Int {
-    return this.compareTo(tidspunkt.instant)
+    return this.truncatedTo(tidspunktPresisjon).compareTo(tidspunkt.instant)
 }

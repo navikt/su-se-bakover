@@ -27,7 +27,7 @@ class TikkendeKlokke(
         return nextInstant
     }
 
-    fun nextTidspunkt() = Tidspunkt(instant())
+    fun nextTidspunkt() = Tidspunkt.create(instant())
 
     fun spolTil(dato: LocalDate): Instant {
         require(dato.startOfDay(zone) > nextInstant) { "Kan bare spole fremover i tid" }

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import java.time.Clock
-import java.time.Instant
 
 private val log: Logger = LoggerFactory.getLogger("KravgrunnlagStatusendringDtoMapper.toHendelse")
 
@@ -41,7 +40,7 @@ internal fun KravgrunnlagStatusendringRootDto.toHendelse(
                 eksternVedtakId = it.vedtakId,
                 status = it.kodeStatusKrav.toKravgrunnlagstatus(),
                 eksternTidspunkt = metaTilHendelsen.jmsTimestamp?.let {
-                    Tidspunkt(Instant.ofEpochMilli(it))
+                    Tidspunkt.ofEpochMilli(it)
                 } ?: hendelsestidspunkt.also {
                     log.error("Kunne ikke finne jmsTimestamp for kravgrunnlag, bruker hendelsestidspunkt istedet. Dersom hendelsene har kommet inn i feil rekkefølge, vil dette kunne påvirke sorteringen. RåttKravgrunnlagHendelse $tidligereHendelseId og sak ${sak.id}")
                 },
