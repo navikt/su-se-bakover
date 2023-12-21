@@ -6,15 +6,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 
 data class ForskjellerMellomUtbetalingOgSimulering(
     val feil: NonEmptyList<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode>,
-) : List<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode> by feil {
-    init {
-        require(feil.sorted() == feil) {
-            "Feil må være sortert etter prioritet"
-        }
-    }
-}
+) : List<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode> by feil
 
-sealed class ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(val prioritet: Int) : Comparable<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode> {
+sealed interface ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode {
     /**
      * TODO jah: I neste PR gå over simulertType / tidslinjeType. Og se på mulighet for ikke å ha en egen case av "oppdrag ga tom respons", siden det ikke er vårt domene.
      *
@@ -28,7 +22,7 @@ sealed class ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(val prioritet
     data class UtbetalingslinjeVarIkke0(
         val periode: Periode,
         val beløp: Int,
-    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(prioritet = 2)
+    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 
     /**
      *
@@ -38,7 +32,7 @@ sealed class ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(val prioritet
         val periode: Periode,
         val simulertBeløp: Int,
         val utbetalingsbeløp: Int,
-    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(prioritet = 2)
+    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 
     /**
      * @param utbetalingsperiode Dette er kun utbetalingens periode, ikke simuleringens periode. Så denne vil være månedsbasert, men en periode kan ha flere perioder.
@@ -48,9 +42,5 @@ sealed class ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(val prioritet
         val simuleringsperiode: DatoIntervall?,
         val simulertBeløp: Int,
         val utbetalingsbeløp: Int,
-    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode(prioritet = 2)
-
-    override fun compareTo(other: ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode): Int {
-        return this.prioritet.compareTo(other.prioritet)
-    }
+    ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 }
