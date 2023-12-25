@@ -19,7 +19,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val kotestVersion = "5.8.0"
-    val jacksonVersion = "2.16.0"
+    val jacksonVersion = "2.16.1"
     val confluentVersion = "7.3.1"
     dependencies {
         implementation(rootProject.libs.kotlin.reflect)
