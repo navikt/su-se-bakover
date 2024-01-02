@@ -1,6 +1,6 @@
 package dokument.domain.pdf
 
-// TODO jah: Flytt disse til de respektive plassene.
+// TODO jah: Flytt disse til de respektive plassene (må fjerne sealed). Bytt til interface.
 sealed class PdfTemplateMedDokumentNavn(
     private val pdfTemplate: PdfTemplate,
     /**
@@ -53,6 +53,9 @@ sealed class PdfTemplateMedDokumentNavn(
         dokumentNavn = "Varsel om at vi vil ta opp stønaden din til ny vurdering",
     )
 
+    /**
+     * Knyttet til tilbakekreving under revurdering. Skal utfases.
+     */
     data object ForhåndsvarselTilbakekreving : PdfTemplateMedDokumentNavn(
         pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekreving,
         dokumentNavn = "Varsel om mulig tilbakekreving",

@@ -24,8 +24,10 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfIn
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.iverksett.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(

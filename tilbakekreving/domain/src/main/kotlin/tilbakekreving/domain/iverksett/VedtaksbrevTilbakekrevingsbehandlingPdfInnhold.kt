@@ -1,17 +1,17 @@
-package no.nav.su.se.bakover.domain.brev.jsonRequest
+package tilbakekreving.domain.iverksett
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.extensions.toBrevformat
-import no.nav.su.se.bakover.domain.brev.jsonRequest.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
 import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.iverksett.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
 import tilbakekreving.domain.vurdert.PeriodevurderingMedKrav
 import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.time.Clock
 import java.time.LocalDate
 
-internal data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val attestantNavn: String?,
@@ -43,7 +43,7 @@ internal data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     }
 }
 
-internal data class MånedsoversiktMedSum private constructor(
+data class MånedsoversiktMedSum private constructor(
     val sorterteMåneder: List<EnkeltMånedsoversikt>,
     val sumBruttoSkalTilbakekreve: Int,
     val sumNettoSkalTilbakekreve: Int,
@@ -69,12 +69,12 @@ internal data class MånedsoversiktMedSum private constructor(
     }
 }
 
-internal enum class Vurdering {
+enum class Vurdering {
     SkalTilbakekreve,
     SkalIkkeTilbakekreve,
 }
 
-internal data class EnkeltMånedsoversikt(
+data class EnkeltMånedsoversikt(
     val periode: String,
     val vurdering: Vurdering,
     val bruttoSkalTilbakekreve: Int,

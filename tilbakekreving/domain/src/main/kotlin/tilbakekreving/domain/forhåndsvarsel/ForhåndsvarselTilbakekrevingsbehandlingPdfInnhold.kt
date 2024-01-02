@@ -1,14 +1,13 @@
-package no.nav.su.se.bakover.domain.brev.jsonRequest
+package tilbakekreving.domain.forhåndsvarsel
 
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.extensions.toBrevformat
-import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
 import java.time.LocalDate
 
-internal data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
+data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String?,
@@ -44,7 +43,7 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     }
 }
 
-internal data class BeregningFeilutbetaltBeløp(
+data class BeregningFeilutbetaltBeløp(
     val periode: String,
     val bruttoSkalTilbakekreve: Int,
 )

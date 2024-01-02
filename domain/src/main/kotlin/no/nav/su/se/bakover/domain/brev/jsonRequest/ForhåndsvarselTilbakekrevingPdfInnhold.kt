@@ -11,6 +11,9 @@ import java.text.NumberFormat
 import java.time.Clock
 import java.time.LocalDate
 
+/**
+ * Denne er knyttet til forhåndsvarsel under revurdering. Skal utfases.
+ */
 data class ForhåndsvarselTilbakekrevingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,

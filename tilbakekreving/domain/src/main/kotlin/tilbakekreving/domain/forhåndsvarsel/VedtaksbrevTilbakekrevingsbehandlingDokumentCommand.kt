@@ -10,14 +10,14 @@ import no.nav.su.se.bakover.hendelse.domain.SakshendelseCommand
 import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.util.UUID
 
+/**
+ * @property attestant er null når saksbehandler skal forhåndsvise brevet.
+ */
 data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     override val fødselsnummer: Fnr,
     override val saksnummer: Saksnummer,
     override val correlationId: CorrelationId?,
     override val sakId: UUID,
-    /**
-     * TODO - her burde vi bare tillate saksbehandler + attestant
-     */
     val saksbehandler: NavIdentBruker,
     val attestant: NavIdentBruker?,
     val fritekst: String?,
