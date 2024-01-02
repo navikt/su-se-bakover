@@ -187,7 +187,6 @@ data object SharedRegressionTestData {
                     tilbakekrevingskomponenterMedClientStubs(
                         clock = clock,
                         sessionFactory = databaseRepos.sessionFactory,
-                        personRepo = databaseRepos.person,
                         personService = services.person,
                         hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
                         tilbakekrevingUnderRevurderingService = services.tilbakekrevingUnderRevurderingService,

@@ -54,7 +54,10 @@ data object ServiceBuilder {
         applicationConfig: ApplicationConfig,
         dbMetrics: DbMetrics,
     ): Services {
-        val personService = PersonServiceImpl(clients.personOppslag)
+        val personService = PersonServiceImpl(
+            personOppslag = clients.personOppslag,
+            personRepo = databaseRepos.person,
+        )
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,

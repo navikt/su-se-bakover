@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
-import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.infrastructure.client.TilbakekrevingClients
@@ -24,7 +23,6 @@ import java.time.Clock
 fun tilbakekrevingskomponenterMedClientStubs(
     clock: Clock,
     sessionFactory: SessionFactory,
-    personRepo: PersonRepo,
     personService: PersonService,
     hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     tilbakekrevingUnderRevurderingService: TilbakekrevingUnderRevurderingService,
@@ -54,7 +52,6 @@ fun tilbakekrevingskomponenterMedClientStubs(
         services = TilbakekrevingServices.create(
             clock = clock,
             sessionFactory = sessionFactory,
-            personRepo = personRepo,
             personService = personService,
             kravgrunnlagRepo = repos.kravgrunnlagRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,

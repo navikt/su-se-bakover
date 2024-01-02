@@ -16,10 +16,11 @@ internal class PersonPostgresRepo(
     override fun hentFnrForSak(sakId: UUID): List<Fnr> {
         return dbMetrics.timeQuery("hentFnrForSak") {
             sessionFactory.withSession { session ->
+                // TODO jah: Regulering har potensielt mulighet for å registrere grunnlag på ny eps.
                 """
                   SELECT
                     s.fnr søkersFnr,
-                    eps_fnr epsFnr
+                    gb.eps_fnr epsFnr
                   FROM sak s
                     LEFT JOIN behandling b ON b.sakid = s.id
                     LEFT JOIN revurdering r ON r.sakid = s.id
@@ -35,6 +36,7 @@ internal class PersonPostgresRepo(
                     }
                     .flatten()
                     .distinct()
+                    .sorted()
                     .map { Fnr(it) }
             }
         }

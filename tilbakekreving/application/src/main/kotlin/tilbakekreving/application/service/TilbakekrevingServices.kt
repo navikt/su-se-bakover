@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
-import person.domain.PersonRepo
 import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
@@ -68,7 +67,6 @@ class TilbakekrevingServices(
         fun create(
             clock: Clock,
             sessionFactory: SessionFactory,
-            personRepo: PersonRepo,
             personService: PersonService,
             kravgrunnlagRepo: KravgrunnlagRepo,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
@@ -83,7 +81,6 @@ class TilbakekrevingServices(
             tilbakekrevingsklient: Tilbakekrevingsklient,
         ): TilbakekrevingServices {
             val tilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
-                personRepo = personRepo,
                 personService = personService,
             )
             return TilbakekrevingServices(

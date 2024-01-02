@@ -96,11 +96,14 @@ internal class AccessCheckProxyTest {
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
                     },
                 ),
             ).proxy()
 
-            shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr, Sakstype.UFØRE) }
+            shouldThrow<Tilgangssjekkfeil>
+            { proxied.sak.hentSak(fnr, Sakstype.UFØRE) }
         }
 
         @Test
@@ -121,6 +124,8 @@ internal class AccessCheckProxyTest {
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
                     },
                 ),
             ).proxy()
@@ -146,6 +151,8 @@ internal class AccessCheckProxyTest {
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
                     },
                 ),
             ).proxy()
@@ -171,6 +178,8 @@ internal class AccessCheckProxyTest {
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
                     },
                 ),
             ).proxy()

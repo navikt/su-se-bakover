@@ -533,6 +533,8 @@ open class AccessCheckProxy(
                 override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
                     return services.person.sjekkTilgangTilPerson(fnr)
                 }
+
+                override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()
             },
             søknadsbehandling = SøknadsbehandlingServices(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {

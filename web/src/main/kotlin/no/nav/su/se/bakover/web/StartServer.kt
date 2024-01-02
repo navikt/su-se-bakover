@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import person.domain.PersonRepo
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
@@ -115,7 +114,6 @@ fun Application.susebakover(
     tilbakekrevingskomponenter: (
         clock: Clock,
         sessionFactory: SessionFactory,
-        personRepo: PersonRepo,
         personService: PersonService,
         hendelsekonsumenterRepo: HendelsekonsumenterRepo,
         tilbakekrevingUnderRevurderingService: TilbakekrevingUnderRevurderingService,
@@ -127,11 +125,10 @@ fun Application.susebakover(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personRepo, personService, hendelsekonsumenterRepo, tilbakekrevingUnderRevurderingService, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, tilbakekrevingUnderRevurderingService, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
-            personRepo = personRepo,
             personService = personService,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             tilbakekrevingUnderRevurderingService = tilbakekrevingUnderRevurderingService,
@@ -185,7 +182,6 @@ fun Application.susebakover(
     tilbakekrevingskomponenter(
         clock,
         databaseRepos.sessionFactory,
-        databaseRepos.person,
         services.person,
         databaseRepos.hendelsekonsumenterRepo,
         services.tilbakekrevingUnderRevurderingService,

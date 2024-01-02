@@ -8,9 +8,7 @@ import java.util.UUID
  * Metodene her returnerer en liste fordi de kan inneholde fnr for både søker og søkers EPS
  */
 interface PersonRepo {
-    /**
-     * Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS.
-     */
+    /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
     fun hentFnrForSak(sakId: UUID): List<Fnr>
     fun hentFnrForSøknad(søknadId: UUID): List<Fnr>
     fun hentFnrForBehandling(behandlingId: UUID): List<Fnr>
