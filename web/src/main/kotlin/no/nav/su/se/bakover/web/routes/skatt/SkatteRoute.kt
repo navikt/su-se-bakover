@@ -160,7 +160,6 @@ internal fun KunneIkkeHenteSkattemelding.tilResultat(): Resultat = when (this) {
     KunneIkkeHenteSkattemelding.FinnesIkke -> this.tilErrorJson().tilResultat(HttpStatusCode.NotFound)
     KunneIkkeHenteSkattemelding.ManglerRettigheter -> this.tilErrorJson().tilResultat(HttpStatusCode.Forbidden)
     KunneIkkeHenteSkattemelding.Nettverksfeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
-    KunneIkkeHenteSkattemelding.PersonFeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
     KunneIkkeHenteSkattemelding.UkjentFeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
     KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> this.tilErrorJson()
         .tilResultat(HttpStatusCode.BadRequest)
@@ -180,11 +179,6 @@ internal fun KunneIkkeHenteSkattemelding.tilErrorJson(): ErrorJson = when (this)
     KunneIkkeHenteSkattemelding.Nettverksfeil -> ErrorJson(
         "Får ikke kontakt med Sigrun/Skatteetaten. Prøv igjen senere.",
         "nettverksfeil_skatt",
-    )
-
-    KunneIkkeHenteSkattemelding.PersonFeil -> ErrorJson(
-        "Personfeil ved oppslag",
-        "feil_ved_oppslag_person",
     )
 
     KunneIkkeHenteSkattemelding.UkjentFeil -> ErrorJson(

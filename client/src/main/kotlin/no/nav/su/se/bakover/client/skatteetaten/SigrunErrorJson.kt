@@ -53,7 +53,19 @@ private data class SigrunErrorJson(
     ) {
         fun tilSkatteoppslagFeil(år: Year): SkatteoppslagFeil {
             return when (kode) {
+                // Feil i forbindelse med autentisering. Feil i forbindelse med autorisering. Feil i forbindelse med samtykketoken.
+                "SSG-004", "BSA-005", "SSG-010" -> SkatteoppslagFeil.ManglerRettigheter
+
+                // Feil i forbindelse med validering av inputdata.
+                // Kan oppstå dersom vi sender inn et inntektsår de ikke støtter enda. Oppdaget 2023-01-01, da vi sendte inn 2023. Kan også skje dersom vi sender inn et for tidlig år.
+                "SSG-006" -> if (melding?.contains("inntektsår") == true) {
+                    SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år)
+                } else {
+                    SkatteoppslagFeil.OppslagetInneholderUgyldigData
+                }
+                // Ikke treff på oppgitt personidentifikator. Ingen spesifisert summert skattegrunnlag funnet for oppgitt identifikator og inntektsår.
                 "SSG-007", "SSG-008" -> SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år)
+                // TODO jah: Vi kommer nok til å støte på SSG-011 (Skattegrunnlag finnes ikke lenger.) på et tidspunkt. Vi bør sannsynligvis formidle det til saksbehandler. Må gjøres manuelt vha. loggene i dag.
                 else -> SkatteoppslagFeil.UkjentFeil(RuntimeException("Uforventet feilmelding fra Sigrun. Se sikkerlogg for detaljer."))
             }
         }
@@ -84,7 +96,10 @@ internal fun håndterSigrunFeil(
     val log = LoggerFactory.getLogger("SigrunErrorJson.kt")
 
     fun logError(throwable: Throwable? = RuntimeException("Genererer en stacktrace.")) {
-        log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode $statusCode. Se sikkerlogg for detaljer.")
+        log.error(
+            "Kall mot Sigrun/skatteetatens api feilet med statuskode $statusCode. Se sikkerlogg for detaljer.",
+            RuntimeException("Genererer stacktrace for enklere debugging."),
+        )
 
         sikkerLogg.error(
             "Kall mot Sigrun/skatteetatens api feilet med statuskode $statusCode, Fnr: $fnr, Inntektsår: $inntektsår, Stadie: $stadie og følgende feil: $body. " +
@@ -93,38 +108,37 @@ internal fun håndterSigrunFeil(
         )
     }
 
-    return when (statusCode) {
-        400 -> SkatteoppslagFeil.OppslagetInneholderUgyldigData.also {
-            if (inntektsår.value < 2020) {
-                log.error("Prøvde å gjøre et skatteoppslag for et år som er før 2020")
-            }
+    return when (val feil = body.tilSkatteoppslagFeil(inntektsår)) {
+        is SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr -> feil
+        is SkatteoppslagFeil.Nettverksfeil -> {
+            logError(feil.throwable)
+            feil
         }
 
-        403 -> SkatteoppslagFeil.ManglerRettigheter.also {
-            // Vi forventer ikke se denne, så vi logger som error inntil den blir plagsom.
-            logError()
-        }
-
-        503 -> SkatteoppslagFeil.Nettverksfeil(RuntimeException("Fikk 503 fra Sigrun. Prøv igjen senere."))
-            .also {
-                // Dersom denne kommer ofte, bør vi legge inn noe mer logikk. Melding til saksbehandler om at de kan prøve igjen? Retry? Bytte til warning?
-                logError(it.throwable)
-            }
-
-        404 -> {
-            body.tilSkatteoppslagFeil(inntektsår).also {
-                if (it is SkatteoppslagFeil.UkjentFeil) {
-                    logError(it.throwable)
-                } else {
-                    // Trenger denne bare i oppstartsfasen for å raskere kunne debugge.
-                    sikkerLogg.debug("Fant ikke skattegrunnlag for person $fnr og år $inntektsår. Feilmelding: $body")
+        is SkatteoppslagFeil.UkjentFeil -> {
+            if (statusCode == 403) {
+                SkatteoppslagFeil.ManglerRettigheter.also {
+                    // Vi forventer ikke se denne, så vi logger som error inntil den blir plagsom.
+                    logError()
                 }
             }
+            if (statusCode == 503) {
+                SkatteoppslagFeil.Nettverksfeil(RuntimeException("Fikk 503 fra Sigrun. Prøv igjen senere."))
+                    .also {
+                        // Dersom denne kommer ofte, bør vi legge inn noe mer logikk. Melding til saksbehandler om at de kan prøve igjen? Retry? Bytte til warning?
+                        logError(it.throwable)
+                    }
+            } else {
+                logError(feil.throwable)
+                feil
+            }
         }
 
-        else -> SkatteoppslagFeil.UkjentFeil(RuntimeException("Fikk uforventet feil fra Sigrun $statusCode"))
-            .also {
-                logError(it.throwable)
-            }
+        is SkatteoppslagFeil.ManglerRettigheter,
+        is SkatteoppslagFeil.OppslagetInneholderUgyldigData,
+        -> {
+            logError()
+            feil
+        }
     }
 }

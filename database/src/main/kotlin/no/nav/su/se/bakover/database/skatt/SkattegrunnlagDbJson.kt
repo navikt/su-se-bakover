@@ -123,7 +123,6 @@ data class ÅrsgrunnlagDbJson(
     JsonSubTypes.Type(value = StadieJson.FinnesIkke::class, name = "FinnesIkke"),
     JsonSubTypes.Type(value = StadieJson.ManglerRettigheter::class, name = "ManglerRettigheter"),
     JsonSubTypes.Type(value = StadieJson.Nettverksfeil::class, name = "Nettverksfeil"),
-    JsonSubTypes.Type(value = StadieJson.Personfeil::class, name = "Personfeil"),
     JsonSubTypes.Type(value = StadieJson.UkjentFeil::class, name = "UkjentFeil"),
 )
 sealed interface StadieJson {
@@ -131,7 +130,6 @@ sealed interface StadieJson {
     data object FinnesIkke : StadieJson
     data object ManglerRettigheter : StadieJson
     data object Nettverksfeil : StadieJson
-    data object Personfeil : StadieJson
     data object UkjentFeil : StadieJson
     data object OppsalgetInneholdtUgyldigData : StadieJson
 
@@ -153,7 +151,6 @@ sealed interface StadieJson {
 
             is ManglerRettigheter -> KunneIkkeHenteSkattemelding.ManglerRettigheter.left()
             is Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil.left()
-            is Personfeil -> KunneIkkeHenteSkattemelding.PersonFeil.left()
             is UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil.left()
             OppsalgetInneholdtUgyldigData -> KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData.left()
         }

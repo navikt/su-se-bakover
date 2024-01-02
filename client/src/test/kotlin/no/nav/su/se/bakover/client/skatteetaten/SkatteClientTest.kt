@@ -159,6 +159,49 @@ internal class SkatteClientTest {
     }
 
     @Test
+    fun `SSG-006 Oppgitt inntektsår er ikke støttet`() {
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withStatus(404)
+                            .withResponseBody(
+                                Body(
+                                    """
+                                {
+                                  "ske-message": {
+                                    "kode": "SSG-006",
+                                    "melding": "Oppgitt inntektsår er ikke støttet.",
+                                    "korrelasjonsid": "5e22adf0-6144-8ea2-69f0-e68b6b746ce7"
+                                  }
+                                }
+                                    """.trimIndent(),
+                                ),
+                            ),
+                    ),
+            )
+
+            val år = Year.of(2021)
+            client(baseUrl()).hentSamletSkattegrunnlag(
+                fnr = fnr,
+                år = år,
+            ) shouldBe SamletSkattegrunnlagForÅr(
+                utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                    inntektsår = år,
+                ),
+                oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                    inntektsår = år,
+                ),
+                år = år,
+            )
+        }
+    }
+
+    @Test
     fun `feil i mapping håndteres (dato kan ikke parses)`() {
         startedWireMockServerWithCorrelationId {
             stubFor(

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.skatteetaten
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import person.domain.KunneIkkeHentePerson
 import java.time.Year
 
 /**
@@ -15,7 +14,6 @@ internal sealed interface SkatteoppslagFeil {
         is FantIkkeSkattegrunnlagForPersonOgÅr -> KunneIkkeHenteSkattemelding.FinnesIkke
         ManglerRettigheter -> KunneIkkeHenteSkattemelding.ManglerRettigheter
         is Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil
-        is PersonFeil -> KunneIkkeHenteSkattemelding.PersonFeil
         is UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil
         OppslagetInneholderUgyldigData -> KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData
     }
@@ -35,7 +33,6 @@ internal sealed interface SkatteoppslagFeil {
 
     data class UkjentFeil(val throwable: Throwable) : SkatteoppslagFeil
     data object ManglerRettigheter : SkatteoppslagFeil
-    data class PersonFeil(val feil: KunneIkkeHentePerson) : SkatteoppslagFeil
 
     data object OppslagetInneholderUgyldigData : SkatteoppslagFeil
 }

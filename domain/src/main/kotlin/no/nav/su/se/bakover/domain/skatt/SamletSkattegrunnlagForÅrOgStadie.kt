@@ -32,7 +32,6 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
                 is KunneIkkeHenteSkattemelding.FinnesIkke -> Resultat.FinnesIkke
                 KunneIkkeHenteSkattemelding.ManglerRettigheter,
                 KunneIkkeHenteSkattemelding.Nettverksfeil,
-                KunneIkkeHenteSkattemelding.PersonFeil,
                 KunneIkkeHenteSkattemelding.UkjentFeil,
                 KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData,
                 -> Resultat.Feil(this.oppslag.value)
@@ -51,7 +50,6 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
                 is KunneIkkeHenteSkattemelding.FinnesIkke -> Resultat.FinnesIkke
                 KunneIkkeHenteSkattemelding.ManglerRettigheter,
                 KunneIkkeHenteSkattemelding.Nettverksfeil,
-                KunneIkkeHenteSkattemelding.PersonFeil,
                 KunneIkkeHenteSkattemelding.UkjentFeil,
                 KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData,
                 -> Resultat.Feil(this.oppslag.value)

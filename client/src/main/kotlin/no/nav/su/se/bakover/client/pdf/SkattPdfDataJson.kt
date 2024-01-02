@@ -73,7 +73,6 @@ sealed interface SamletÅrsgrunnlagPdfJson {
             FINNES_IKKE,
             UKJENT_FEIL,
             MANGLER_RETTIGHETER,
-            PERSON_FEIL,
             OPPSLAGET_INNEHOLDT_UGYLDIG_DATA,
             ;
 
@@ -82,7 +81,6 @@ sealed interface SamletÅrsgrunnlagPdfJson {
                     KunneIkkeHenteSkattemelding.FinnesIkke -> FINNES_IKKE
                     KunneIkkeHenteSkattemelding.ManglerRettigheter -> MANGLER_RETTIGHETER
                     KunneIkkeHenteSkattemelding.Nettverksfeil -> NETTVERKSFEIL
-                    KunneIkkeHenteSkattemelding.PersonFeil -> PERSON_FEIL
                     KunneIkkeHenteSkattemelding.UkjentFeil -> UKJENT_FEIL
                     KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> OPPSLAGET_INNEHOLDT_UGYLDIG_DATA
                 }
