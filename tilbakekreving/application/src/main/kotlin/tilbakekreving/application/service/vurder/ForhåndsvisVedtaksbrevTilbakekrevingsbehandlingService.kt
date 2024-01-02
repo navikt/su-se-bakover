@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.ErUtfylt
+import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vurdert.ForhåndsvisVedtaksbrevCommand
@@ -67,10 +68,12 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 sakId = sak.id,
                 saksbehandler = when (behandling) {
                     is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
+                    is IverksattTilbakekrevingsbehandling -> behandling.forrigeSteg.sendtTilAttesteringAv
                     else -> command.utførtAv
                 },
                 attestant = when (behandling) {
                     is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
+                    is IverksattTilbakekrevingsbehandling -> behandling.attesteringer.hentSisteIverksatteAttesteringOrNull()!!.attestant
                     else -> null
                 },
                 fritekst = fritekst,
