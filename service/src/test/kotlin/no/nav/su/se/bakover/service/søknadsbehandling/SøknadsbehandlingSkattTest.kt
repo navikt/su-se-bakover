@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -18,7 +18,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Year
@@ -47,7 +46,7 @@ class SøknadsbehandlingSkattTest {
         verify(skatteServiceMock).hentSamletSkattegrunnlagForÅr(
             argThat { it shouldBe søknadsbehandling.fnr },
             argThat { it shouldBe saksbehandler },
-            argThat { it shouldBe Year.of(2020).toRange() },
+            argThat { it shouldBe YearRange(Year.of(2019), Year.of(2021)) },
         )
 
         verify(søknadsbehandlingRepoMock).lagre(

@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 
 interface SkatteService {
+    /**
+     * Ikke i bruk. TODO jah: Slett?
+     */
     fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -19,6 +22,9 @@ interface SkatteService {
         yearRange: YearRange,
     ): Skattegrunnlag
 
+    /**
+     * Brukes for frioppslag på skattemelding.
+     */
     fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA>
     fun hentLagOgJournalførSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA>
 }

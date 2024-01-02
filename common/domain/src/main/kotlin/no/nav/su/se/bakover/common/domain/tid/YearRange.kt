@@ -70,7 +70,27 @@ fun YearRange.krympTilØvreGrense(øvreGrense: Year): YearRange {
     }
 }
 
+/**
+ * Utivder nedre grense hvis nedre grense er før start.
+ */
+fun YearRange.utvidNedreGrense(nedreGrense: Year): YearRange {
+    return if (nedreGrense >= start) {
+        this
+    } else {
+        YearRange(nedreGrense, endInclusive)
+    }
+}
+
+fun YearRange.krymptTilNedreGrense(nedreGrense: Year): YearRange {
+    return if (nedreGrense > endInclusive) {
+        YearRange(nedreGrense, nedreGrense)
+    } else {
+        YearRange(max(start, nedreGrense), endInclusive)
+    }
+}
+
 fun min(y1: Year, y2: Year): Year = if (y1.value <= y2.value) y1 else y2
+fun max(y1: Year, y2: Year): Year = if (y1.value > y2.value) y1 else y2
 
 fun min(a: YearRange, b: YearRange): YearRange = when {
     a.start < b.start -> a
