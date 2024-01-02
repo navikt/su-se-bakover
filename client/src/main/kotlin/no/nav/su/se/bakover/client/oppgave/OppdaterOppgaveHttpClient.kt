@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -41,7 +41,7 @@ internal class OppdaterOppgaveHttpClient(
     private val hentOppgave: (
         oppgaveId: OppgaveId,
         token: String,
-    ) -> Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata>,
+    ) -> Either<KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata>,
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 

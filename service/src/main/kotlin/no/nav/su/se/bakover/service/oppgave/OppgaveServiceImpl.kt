@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.service.oppgave
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
@@ -18,13 +19,13 @@ class OppgaveServiceImpl(
 
     override fun opprettOppgave(
         config: OppgaveConfig,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.opprettOppgave(config)
     }
 
     override fun opprettOppgaveMedSystembruker(
         config: OppgaveConfig,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return oppgaveClient.opprettOppgaveMedSystembruker(config)
     }
 
@@ -52,7 +53,7 @@ class OppgaveServiceImpl(
         return oppgaveClient.oppdaterOppgaveMedSystembruker(oppgaveId, oppdaterOppgaveInfo)
     }
 
-    override fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+    override fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return oppgaveClient.hentOppgave(oppgaveId)
     }
 }

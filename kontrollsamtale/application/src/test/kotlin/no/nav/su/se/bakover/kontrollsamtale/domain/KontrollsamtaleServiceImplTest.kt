@@ -9,8 +9,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -119,7 +119,7 @@ internal class KontrollsamtaleServiceImplTest {
     @Test
     fun `feiler dersom vi ikke klarer å lage oppgave`() {
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
 
         ServiceOgMocks(

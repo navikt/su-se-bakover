@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.client.stubs.oppgave
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
@@ -19,7 +20,7 @@ data object OppgaveClientStub : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
+    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
             request = "stubbedRequestBody",
@@ -28,7 +29,7 @@ data object OppgaveClientStub : OppgaveClient {
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
         ).right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }
 
-    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
             oppgaveId = OppgaveId("stubbedOppgaveId"),
             request = "stubbedRequestBody",
@@ -79,7 +80,7 @@ data object OppgaveClientStub : OppgaveClient {
 
     override fun hentOppgave(
         oppgaveId: OppgaveId,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+    ): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return Oppgave(
             id = oppgaveId,
             versjon = 1,
@@ -89,7 +90,7 @@ data object OppgaveClientStub : OppgaveClient {
 
     override fun hentOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+    ): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return Oppgave(
             id = oppgaveId,
             versjon = 1,

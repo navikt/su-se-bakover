@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -152,7 +152,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke opprette oppgave`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(OppgaveFeil.KunneIkkeOppretteOppgave),
+            error = KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(KunneIkkeOppretteOppgave),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

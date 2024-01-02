@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
@@ -196,7 +196,7 @@ internal class PersonhendelseServiceTest {
             on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()

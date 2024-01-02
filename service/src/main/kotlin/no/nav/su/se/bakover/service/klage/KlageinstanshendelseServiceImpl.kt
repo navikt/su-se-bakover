@@ -166,8 +166,7 @@ class KlageinstanshendelseServiceImpl(
             .flatMap {
                 oppgaveService.opprettOppgaveMedSystembruker(it).map {
                     it.oppgaveId
-                }
-                    .mapLeft { feil -> Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave(feil) }
+                }.mapLeft { Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
             }
     }
 }

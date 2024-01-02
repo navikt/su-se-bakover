@@ -33,9 +33,9 @@ import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottat
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
@@ -461,7 +461,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 oppgaveClient = object : OppgaveClient by clients.oppgaveClient {
                     override fun opprettOppgaveMedSystembruker(
                         config: OppgaveConfig,
-                    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+                    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
                         val underTest =
                             mockData.kontrollsamtaler.first { config.saksreferanse == it.saksnummer.toString() }
                         return if (config !is OppgaveConfig.Kontrollsamtale) {
@@ -474,7 +474,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                             ).right()
                         } else {
                             if (underTest.erOppgavefeil(mockData.nåværendeKjøring)) {
-                                OppgaveFeil.KunneIkkeOppretteOppgave.left()
+                                KunneIkkeOppretteOppgave.left()
                             } else {
                                 OppgaveHttpKallResponse(
                                     oppgaveId = OppgaveId(underTest.oppgaveId),

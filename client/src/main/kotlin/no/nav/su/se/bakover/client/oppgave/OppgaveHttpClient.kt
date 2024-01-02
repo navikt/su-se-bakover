@@ -18,10 +18,11 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgave
@@ -67,15 +68,15 @@ internal class OppgaveHttpClient(
 
     override fun opprettOppgaveMedSystembruker(
         config: OppgaveConfig,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token().value)
     }
 
     override fun opprettOppgave(
         config: OppgaveConfig,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
-            .mapLeft { OppgaveFeil.KunneIkkeOppretteOppgave }
+            .mapLeft { KunneIkkeOppretteOppgave }
             .flatMap { opprettOppgave(config, it) }
     }
 
@@ -111,9 +112,9 @@ internal class OppgaveHttpClient(
 
     override fun hentOppgave(
         oppgaveId: OppgaveId,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+    ): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return onBehalfOfToken().mapLeft {
-            OppgaveFeil.KunneIkkeSøkeEtterOppgave
+            KunneIkkeSøkeEtterOppgave
         }.flatMap { token ->
             hentOppgave(oppgaveId, token)
         }.map {
@@ -123,7 +124,7 @@ internal class OppgaveHttpClient(
 
     override fun hentOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+    ): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return tokenoppslagForSystembruker.token().value.let {
             hentOppgave(oppgaveId, it)
         }.map {
@@ -131,7 +132,7 @@ internal class OppgaveHttpClient(
         }
     }
 
-    private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {
+    private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.catch {
             exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
         }.mapLeft { throwable ->
@@ -139,16 +140,16 @@ internal class OppgaveHttpClient(
                 "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}",
                 throwable,
             )
-            OppgaveFeil.KunneIkkeLageToken
-        }.map {
-            it
+            KunneIkkeLageToken
         }
     }
+
+    private data object KunneIkkeLageToken
 
     private fun opprettOppgave(
         config: OppgaveConfig,
         token: String,
-    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         val beskrivelse = when (config) {
             is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.Søknad ->
                 "--- ${
@@ -254,19 +255,19 @@ internal class OppgaveHttpClient(
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
                     sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
-                    OppgaveFeil.KunneIkkeOppretteOppgave.left()
+                    KunneIkkeOppretteOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Feil i kallet mot oppgave for sak ${config.saksreferanse}", throwable)
-            OppgaveFeil.KunneIkkeOppretteOppgave
+            KunneIkkeOppretteOppgave
         }.flatten()
     }
 
     private fun hentOppgave(
         oppgaveId: OppgaveId,
         token: String,
-    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata> {
+    ): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponseMedMetadata> {
         return Either.catch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/$oppgaveId"))
@@ -290,12 +291,12 @@ internal class OppgaveHttpClient(
                         "Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
-                    OppgaveFeil.KunneIkkeSøkeEtterOppgave.left()
+                    KunneIkkeSøkeEtterOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Feil i kallet mot oppgave.", throwable)
-            OppgaveFeil.KunneIkkeSøkeEtterOppgave
+            KunneIkkeSøkeEtterOppgave
         }.flatten()
     }
 

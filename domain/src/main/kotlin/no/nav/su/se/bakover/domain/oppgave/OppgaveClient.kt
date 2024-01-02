@@ -18,8 +18,8 @@ data class OppdaterOppgaveInfo(
 )
 
 interface OppgaveClient {
-    fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
-    fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
     fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
     fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
     fun oppdaterOppgave(
@@ -32,15 +32,6 @@ interface OppgaveClient {
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
-    fun hentOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>
-    fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave>
-}
-
-// TODO jah: Høres usannsynlig ut at alt dette kan skje i hver av funksjonene.
-sealed interface OppgaveFeil {
-    data object KunneIkkeOppretteOppgave : OppgaveFeil
-    data class KunneIkkeLukkeOppgave(val oppgaveId: OppgaveId) : OppgaveFeil
-    data object KunneIkkeOppdatereOppgave : OppgaveFeil
-    data object KunneIkkeSøkeEtterOppgave : OppgaveFeil
-    data object KunneIkkeLageToken : OppgaveFeil
+    fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
+    fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
 }

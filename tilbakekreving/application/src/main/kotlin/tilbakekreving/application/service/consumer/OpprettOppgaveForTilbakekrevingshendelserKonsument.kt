@@ -119,7 +119,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 clock = clock,
             ),
         ).getOrElse {
-            // TODO må sjekke på at hendelsen ikke er blitt lukket manuelt
             return KunneIkkeOppretteOppgave.FeilVedOpprettelseAvOppgave.left()
         }
 
