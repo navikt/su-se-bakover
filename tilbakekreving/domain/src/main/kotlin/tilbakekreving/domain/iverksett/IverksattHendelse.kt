@@ -4,7 +4,6 @@
 package tilbakekreving.domain
 
 import dokument.domain.Dokumenttilstand
-import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -112,18 +111,7 @@ fun TilbakekrevingsbehandlingTilAttestering.iverksett(
                 opprettet = Tidspunkt.now(clock),
                 saksbehandler = this.sendtTilAttesteringAv,
                 attestant = utførtAv,
-                // TODO - fint om vi kan abstrahere denne på en bedre måte
-                dokumenttilstand = when (this.vedtaksbrevvalg) {
-                    is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> throw IllegalStateException(
-                        "Tilbakekrevingsbehandling ${this.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst",
-                    )
-
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                    is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> throw IllegalStateException(
-                        "Tilbakekrevingsbehandling ${this.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst",
-                    )
-                },
+                dokumenttilstand = this.vedtaksbrevvalg.tilDokumenttilstand(),
                 behandling = iverksattBehandling,
             ),
         )

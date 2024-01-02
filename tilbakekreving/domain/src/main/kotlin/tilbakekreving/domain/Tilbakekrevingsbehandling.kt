@@ -28,6 +28,8 @@ sealed interface Tilbakekrevingsbehandling {
     val kravgrunnlag: Kravgrunnlag
     val erKravgrunnlagUtdatert: Boolean
     val vurderingerMedKrav: VurderingerMedKrav?
+
+    // TODO jah: Brevvalg.SaksbehandlersValg er for generell. Vi trenger en mer spesifikk type for tilbakekreving.
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon
