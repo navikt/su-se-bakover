@@ -86,8 +86,8 @@ enum class KravgrunnlagStatusJson {
 
     companion object {
         fun Kravgrunnlagstatus.toJson(): KravgrunnlagStatusJson = when (this) {
-            Kravgrunnlagstatus.Annulert -> ANNU
-            Kravgrunnlagstatus.AnnulertVedOmg -> ANOM
+            Kravgrunnlagstatus.Annullert -> ANNU
+            Kravgrunnlagstatus.AnnullertVedOmg -> ANOM
             Kravgrunnlagstatus.Avsluttet -> AVSL
             Kravgrunnlagstatus.Ferdigbehandlet -> BEHA
             Kravgrunnlagstatus.Endret -> ENDR

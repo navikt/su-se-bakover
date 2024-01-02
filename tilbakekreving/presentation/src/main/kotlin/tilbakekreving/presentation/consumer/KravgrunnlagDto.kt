@@ -275,8 +275,8 @@ val kontrollfeltFormatter: DateTimeFormatter = DateTimeFormatter
 
 internal fun String.toKravgrunnlagstatus(): Kravgrunnlagstatus {
     return when (this) {
-        "ANNU" -> Kravgrunnlagstatus.Annulert
-        "ANOM" -> Kravgrunnlagstatus.AnnulertVedOmg
+        "ANNU" -> Kravgrunnlagstatus.Annullert
+        "ANOM" -> Kravgrunnlagstatus.AnnullertVedOmg
         "AVSL" -> Kravgrunnlagstatus.Avsluttet
         "BEHA" -> Kravgrunnlagstatus.Ferdigbehandlet
         "ENDR" -> Kravgrunnlagstatus.Endret

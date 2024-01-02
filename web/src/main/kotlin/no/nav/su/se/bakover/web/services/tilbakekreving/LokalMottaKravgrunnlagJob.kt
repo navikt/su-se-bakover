@@ -227,8 +227,8 @@ fun genererKravgrunnlagFraSimulering(
 }
 
 private fun Kravgrunnlagstatus.toDtoStatus(): String = when (this) {
-    Kravgrunnlagstatus.Annulert -> "ANNU"
-    Kravgrunnlagstatus.AnnulertVedOmg -> "ANOM"
+    Kravgrunnlagstatus.Annullert -> "ANNU"
+    Kravgrunnlagstatus.AnnullertVedOmg -> "ANOM"
     Kravgrunnlagstatus.Avsluttet -> "AVSL"
     Kravgrunnlagstatus.Ferdigbehandlet -> "BEGA"
     Kravgrunnlagstatus.Endret -> "ENDR"

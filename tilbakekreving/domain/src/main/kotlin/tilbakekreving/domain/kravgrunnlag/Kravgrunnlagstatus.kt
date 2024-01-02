@@ -1,10 +1,10 @@
 package tilbakekreving.domain.kravgrunnlag
 
 enum class Kravgrunnlagstatus {
-    Annulert,
+    Annullert,
 
     /** Kommentar jah: Gjetter på omg står for omgjøring. */
-    AnnulertVedOmg,
+    AnnullertVedOmg,
     Avsluttet,
     Ferdigbehandlet,
     Endret,
@@ -16,7 +16,21 @@ enum class Kravgrunnlagstatus {
     Sperret,
     ;
 
+    /**
+     * Dersom kravgrunnlaget er nytt eller endret.
+     *
+     * Sperret inngår verken i åpen eller avsluttet.
+     */
     fun erÅpen(): Boolean {
         return this in listOf(Nytt, Endret)
+    }
+
+    /**
+     * Dersom kravgrunnlaget er avsluttet, ferdigbehandlet, annullert, feil eller manuell.
+     *
+     * Sperret inngår verken i åpen eller avsluttet.
+     */
+    fun erAvsluttet(): Boolean {
+        return this in listOf(Avsluttet, Ferdigbehandlet, Annullert, AnnullertVedOmg, Feil, Manuell)
     }
 }

@@ -51,6 +51,14 @@ data class Kravgrunnlag(
         }
     }
 
+    fun erÅpen(): Boolean {
+        return status.erÅpen()
+    }
+
+    fun erAvsluttet(): Boolean {
+        return status.erAvsluttet()
+    }
+
     fun forPeriode(periode: DatoIntervall): Grunnlagsperiode? {
         return grunnlagsperioder.find { it.periode == periode }
     }

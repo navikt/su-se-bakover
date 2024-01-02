@@ -192,21 +192,24 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     /**
      * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet.
      * Det er kun det siste mottatte kravgrunnlaget som kan være utestående.
-     * Et kravgrunnlag er avsluttet dersom vi har iverksatt en tilbakekrevingsbehandling eller kravgrunnlaget har blitt annullert på annen måte (statuser fra oppdrag).
-     * Merk at et kravgrunnlag vil være utestående helt til behandlingen er iverksatt eller det er overskrevet av et nyere kravgrunnlag.
+     * Et kravgrunnlag er avsluttet dersom vi har iverksatt en tilbakekrevingsbehandling eller kravgrunnlaget har blitt avsluttet på annen måte (statuser fra oppdrag).
+     * Merk at et kravgrunnlag vil være utestående helt til behandlingen er iverksatt eller det er overskrevet av en nyere status eller et nyere kravgrunnlag.
      *
      * @return null dersom det ikke finnet et kravgrunnlag eller kravgrunnlaget ikke er utestående.
      */
     fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
         val sisteKravgrunnlag = kravgrunnlagPåSak.hentSisteKravgrunnlag() ?: return null
+
+        if (sisteKravgrunnlag.erAvsluttet()) return null
+
         if (this.currentState.behandlinger
                 .filterIsInstance<IverksattTilbakekrevingsbehandling>()
                 .any { it.kravgrunnlag == sisteKravgrunnlag }
         ) {
             return null
         }
+
         return sisteKravgrunnlag
-        // TODO jah: Vi må ta høyde for statusene. Det finnes noen statuser som betyr at kravgrunnlaget er avsluttet eksternt. Kan f.eks. være vi har revurdert på nytt.
     }
 
     companion object {
