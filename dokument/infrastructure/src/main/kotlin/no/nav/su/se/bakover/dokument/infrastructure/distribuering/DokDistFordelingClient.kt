@@ -53,11 +53,19 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             },
             {
                 val response = it.response
-                log.error(
-                    "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
-                    it,
-                )
-                KunneIkkeBestilleDistribusjon.left()
+
+                // 409 conflict. journalposten har allerede fått bestilt distribusjon -
+                if (response.statusCode == 409) {
+                    val bestillingsId = JSONObject(String(response.data)).optString("bestillingsId")
+                    log.info("Journalpost $journalPostId har allerede fått bestilt distribusjon med id $bestillingsId", it)
+                    BrevbestillingId(bestillingsId).right()
+                } else {
+                    log.error(
+                        "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
+                        it,
+                    )
+                    KunneIkkeBestilleDistribusjon.left()
+                }
             },
         )
     }

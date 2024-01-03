@@ -43,6 +43,28 @@ internal class DokDistFordelingClientTest {
         }
     }
 
+    @Test
+    fun `returnerer brevbestillingsId'en dersom responsen er en 409`() {
+        startedWireMockServerWithCorrelationId {
+            val client = DokDistFordelingClient(baseUrl(), TokenOppslagStub)
+            val journalpostId = JournalpostId("1")
+            val distribusjonstype = Distribusjonstype.VEDTAK
+            val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
+            val requestBody = client.byggDistribusjonPostJson(journalpostId, distribusjonstype, distribusjonstidspunkt)
+            stubFor(
+                wiremockBuilder
+                    .withRequestBody(WireMock.equalToJson(requestBody))
+                    .willReturn(WireMock.jsonResponse("""{"bestillingsId": "123-456"}""", 409)),
+            )
+
+            client.bestillDistribusjon(
+                journalpostId,
+                distribusjonstype,
+                distribusjonstidspunkt,
+            ) shouldBe BrevbestillingId("123-456").right()
+        }
+    }
+
     private val wiremockBuilder: MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(DOK_DIST_FORDELING_PATH))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
