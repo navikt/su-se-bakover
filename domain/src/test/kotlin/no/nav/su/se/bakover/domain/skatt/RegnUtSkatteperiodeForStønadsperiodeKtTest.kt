@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.skatt
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -18,7 +19,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     @Test
     fun `stønadsperiode null`() {
         null.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2024)),
+            YearRange(Year.of(2022), Year.of(2023)),
         )
     }
 
@@ -26,7 +27,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 21`() {
         val stønadsperiode = Stønadsperiode.create(januar(2021)..desember(2021))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2021), Year.of(2021)),
+            YearRange(Year.of(2020), Year.of(2021)),
         )
     }
 
@@ -34,7 +35,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 21 og 22`() {
         val stønadsperiode = Stønadsperiode.create(juli(2021)..juni(2022))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2021), Year.of(2022)),
+            YearRange(Year.of(2020), Year.of(2022)),
         )
     }
 
@@ -42,7 +43,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 22`() {
         val stønadsperiode = Stønadsperiode.create(januar(2022)..desember(2022))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2022)),
+            YearRange(Year.of(2021), Year.of(2022)),
         )
     }
 
@@ -50,7 +51,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 22 og 23`() {
         val stønadsperiode = Stønadsperiode.create(juli(2022)..juni(2023))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2023)),
+            YearRange(Year.of(2021), Year.of(2023)),
         )
     }
 
@@ -66,7 +67,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 23 og 24`() {
         val stønadsperiode = Stønadsperiode.create(juli(2023)..juni(2024))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2024)),
+            YearRange(Year.of(2022), Year.of(2023)),
         )
     }
 
@@ -74,7 +75,15 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
     fun `stønadsperiode 24`() {
         val stønadsperiode = Stønadsperiode.create(januar(2024)..desember(2024))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2024)),
+            YearRange(Year.of(2022), Year.of(2023)),
+        )
+    }
+
+    @Test
+    fun `stønadsperiode 24 etter 7 mars`() {
+        val stønadsperiode = Stønadsperiode.create(januar(2024)..desember(2024))
+        stønadsperiode.regnUtSkatteperiodeForStønadsperiode(fixedClockAt(7.mars(2024))).shouldBe(
+            YearRange(Year.of(2022), Year.of(2023)),
         )
     }
 
@@ -83,7 +92,7 @@ internal class RegnUtSkatteperiodeForStønadsperiodeKtTest {
         // Kun tenkt eksempel fram i tid (merk at dette skjer i jan 24). Dette skal ikke skje i praksis.
         val stønadsperiode = Stønadsperiode.create(januar(2025)..desember(2025))
         stønadsperiode.regnUtSkatteperiodeForStønadsperiode(jan24).shouldBe(
-            YearRange(Year.of(2022), Year.of(2024)),
+            YearRange(Year.of(2022), Year.of(2023)),
         )
     }
 }

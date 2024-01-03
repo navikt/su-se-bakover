@@ -170,18 +170,10 @@ private fun generateExpectedSkattegrunnlag(expectedFnr: String): String {
                 "code": "ingen_skattegrunnlag_for_gitt_fnr_og_år",
                 "message": "Ingen summert skattegrunnlag funnet på oppgitt fødselsnummer og inntektsår"
               }
-            },
-            {
-              "inntektsår": 2021,
-              "type": "Feil",
-              "error": {
-                "code": "ingen_skattegrunnlag_for_gitt_fnr_og_år",
-                "message": "Ingen summert skattegrunnlag funnet på oppgitt fødselsnummer og inntektsår"
             }
-          }
           ],
           "saksbehandler":"Z990Lokal",
-          "årSpurtFor":{"fra":2019, "til":2021}
+          "årSpurtFor":{"fra":2019, "til":2020}
        }
     """.trimIndent()
 }

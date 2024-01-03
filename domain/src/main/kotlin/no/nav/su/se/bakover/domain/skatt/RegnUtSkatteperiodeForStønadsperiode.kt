@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.skatt
 
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.krympTilØvreGrense
+import no.nav.su.se.bakover.common.tid.min
 import no.nav.su.se.bakover.common.tid.utvidNedreGrense
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import java.time.Clock
@@ -12,13 +13,14 @@ import java.time.Year
  */
 fun Stønadsperiode?.regnUtSkatteperiodeForStønadsperiode(clock: Clock): YearRange {
     val iÅr = Year.now(clock)
+    val iFjor = iÅr.minusYears(1)
     val iForFjor = iÅr.minusYears(2)
     if (this == null) {
-        return YearRange(iForFjor, iÅr)
+        return YearRange(iForFjor, iFjor)
     }
 
-    return this
-        .toYearRange()
-        .krympTilØvreGrense(iÅr)
-        .utvidNedreGrense(iForFjor)
+    val stønadsår = this.toYearRange()
+    return stønadsår
+        .krympTilØvreGrense(iFjor)
+        .utvidNedreGrense(min(iForFjor, stønadsår.start.minusYears(1)))
 }

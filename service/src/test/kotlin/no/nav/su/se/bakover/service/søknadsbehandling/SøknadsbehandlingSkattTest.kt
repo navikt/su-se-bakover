@@ -46,7 +46,7 @@ class SøknadsbehandlingSkattTest {
         verify(skatteServiceMock).hentSamletSkattegrunnlagForÅr(
             argThat { it shouldBe søknadsbehandling.fnr },
             argThat { it shouldBe saksbehandler },
-            argThat { it shouldBe YearRange(Year.of(2019), Year.of(2021)) },
+            argThat { it shouldBe YearRange(Year.of(2019), Year.of(2020)) },
         )
 
         verify(søknadsbehandlingRepoMock).lagre(
