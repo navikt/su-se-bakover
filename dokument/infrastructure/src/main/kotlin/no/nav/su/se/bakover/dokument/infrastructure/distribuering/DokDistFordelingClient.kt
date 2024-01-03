@@ -39,26 +39,12 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             .body(body).responseString()
 
         return result.fold(
-            { json ->
-                JSONObject(json).let {
-                    val eksternId: String? = it.optString("bestillingsId", null)
-
-                    if (eksternId == null) {
-                        log.error("Bestilt distribusjon, men bestillingsId manglet i responsen. Dette må følges opp manuelt.")
-                    } else {
-                        log.info("Bestilt distribusjon med bestillingsId $eksternId")
-                    }
-                    BrevbestillingId(eksternId ?: "ikke_mottatt_fra_ekstern_tjeneste").right()
-                }
-            },
+            { hentBrevbestillingsId(it, journalPostId).right() },
             {
                 val response = it.response
-
                 // 409 conflict. journalposten har allerede fått bestilt distribusjon -
                 if (response.statusCode == 409) {
-                    val bestillingsId = JSONObject(String(response.data)).optString("bestillingsId")
-                    log.info("Journalpost $journalPostId har allerede fått bestilt distribusjon med id $bestillingsId", it)
-                    BrevbestillingId(bestillingsId).right()
+                    hentBrevbestillingsId(String(response.data), journalPostId).right()
                 } else {
                     log.error(
                         "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
@@ -68,6 +54,19 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
                 }
             },
         )
+    }
+
+    private fun hentBrevbestillingsId(
+        json: String,
+        journalPostId: JournalpostId,
+    ): BrevbestillingId {
+        val brevbestillingsId: String? = JSONObject(json).optString("bestillingsId", null)
+        if (brevbestillingsId == null) {
+            log.error("Bestilt distribusjon, men bestillingsId manglet i responsen for journalpost $journalPostId. Denne må fikses manuelt")
+        } else {
+            log.info("Bestilt distribusjon med bestillingsId $brevbestillingsId")
+        }
+        return BrevbestillingId(brevbestillingsId ?: "ikke_mottatt_fra_ekstern_tjeneste")
     }
 
     internal fun byggDistribusjonPostJson(
