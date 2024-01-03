@@ -1,17 +1,23 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.YearRange
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import java.time.Clock
+import java.time.LocalDate
 import java.time.Year
 
-class SkatteClientStub() : Skatteoppslag {
+class SkatteClientStub(private val clock: Clock) : Skatteoppslag {
+
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         år: Year,
@@ -50,17 +56,27 @@ class SkatteClientStub() : Skatteoppslag {
 //        }
     }
 
-    private fun samletYear(år: Year) = SamletSkattegrunnlagForÅr(
-        år = år,
-        utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
-            oppslag = årsgrunnlag().right(),
-            inntektsår = år,
-        ),
-        oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-            oppslag = årsgrunnlag().right(),
-            inntektsår = år,
-        ),
-    )
+    private fun samletYear(år: Year): SamletSkattegrunnlagForÅr {
+        val currentYear = Year.now(clock)
+        val grenseverdi = 7.mars(currentYear.value)
+        val nå = LocalDate.now(clock)
+        val oppslag = when {
+            år < currentYear.minusYears(1) -> årsgrunnlag().right()
+            år < currentYear && nå >= grenseverdi -> årsgrunnlag().right()
+            else -> KunneIkkeHenteSkattemelding.FinnesIkke.left()
+        }
+        return SamletSkattegrunnlagForÅr(
+            år = år,
+            utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                oppslag = oppslag,
+                inntektsår = år,
+            ),
+            oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                oppslag = oppslag,
+                inntektsår = år,
+            ),
+        )
+    }
 
     private fun årsgrunnlag() = Skattegrunnlag.SkattegrunnlagForÅr(
         oppgjørsdato = null,

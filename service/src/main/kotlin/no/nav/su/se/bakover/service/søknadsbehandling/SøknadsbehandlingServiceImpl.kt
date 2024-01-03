@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.YearRange
-import no.nav.su.se.bakover.common.tid.krympTilØvreGrense
-import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
@@ -29,6 +27,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.regnUtSkatteperiodeForStønadsperiode
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -98,7 +97,6 @@ import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
-import java.time.Year
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -787,7 +785,8 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
         clock: Clock,
-    ): Skattegrunnlag = samletSkattegrunnlag(fnr, saksbehandler, getYearRangeForSkatt(clock))
+    ): Skattegrunnlag =
+        samletSkattegrunnlag(fnr, saksbehandler, stønadsperiode.regnUtSkatteperiodeForStønadsperiode(clock))
 
     private fun Søknadsbehandling.hentSkattegrunnlagForEps(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -797,15 +796,9 @@ class SøknadsbehandlingServiceImpl(
         samletSkattegrunnlag(
             grunnlagsdata.bosituasjon.singleFullstendigEpsOrNull()!!.fnr,
             saksbehandler,
-            getYearRangeForSkatt(clock),
+            stønadsperiode.regnUtSkatteperiodeForStønadsperiode(clock),
         )
     } else {
         null
-    }
-
-    private fun Søknadsbehandling.getYearRangeForSkatt(clock: Clock): YearRange {
-        return Year.now(clock).minusYears(1).let {
-            stønadsperiode?.toYearRange()?.krympTilØvreGrense(it) ?: it.toRange()
-        }
     }
 }
