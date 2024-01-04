@@ -75,7 +75,7 @@ sealed interface UnderBehandling :
 
         init {
             // TODO jah: Kan vi type oss ut av dette?
-            require(forrigeSteg is OpprettetTilbakekrevingsbehandling || forrigeSteg is Påbegynt)
+            require(forrigeSteg is OpprettetTilbakekrevingsbehandling || forrigeSteg is Påbegynt || forrigeSteg is KanOppdatereKravgrunnlag)
         }
 
         fun erVurdert(): Boolean = vurderingerMedKrav != null

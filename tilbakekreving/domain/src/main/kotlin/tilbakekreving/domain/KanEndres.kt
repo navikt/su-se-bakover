@@ -5,6 +5,8 @@ package tilbakekreving.domain
  * - forhåndsvarsle
  * - vurdere
  * - oppdatere vedtaksbrev
+ * - oppdatere notat
+ * - oppdatere kravgrunnlag
  */
 sealed interface KanEndres : Tilbakekrevingsbehandling {
     override fun erÅpen() = true

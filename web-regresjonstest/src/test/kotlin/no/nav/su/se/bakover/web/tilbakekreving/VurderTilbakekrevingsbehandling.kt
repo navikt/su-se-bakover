@@ -21,7 +21,7 @@ internal fun vurderTilbakekrevingsbehandling(
     client: HttpClient,
     verifiserRespons: Boolean = true,
     saksversjon: Long,
-    verifiserForhåndsvarselDokumenter: String,
+    verifiserForhåndsvarselDokumenter: String = "[]",
     tilstand: String = "VURDERT",
     vurderingerRequest: String = """
         [

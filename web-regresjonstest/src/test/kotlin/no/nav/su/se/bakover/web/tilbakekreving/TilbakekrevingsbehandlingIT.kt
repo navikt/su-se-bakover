@@ -235,7 +235,12 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = 2,
                 client = this.client,
             )
-
+            val (_, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = saksversjonEtterOpprettelseAvBehandling,
+                client = this.client,
+            )
             opprettIverksattRevurdering(
                 sakid = sakId,
                 fraogmed = 1.januar(2021).toString(),
@@ -255,7 +260,7 @@ internal class TilbakekrevingsbehandlingIT {
                 },
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            val versjonEtterNyttKravgrunnlag = saksversjonEtterOpprettelseAvBehandling + 1
+            val versjonEtterNyttKravgrunnlag = versjonEtterVurdering + 1
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterNyttKravgrunnlag.toInt())
             val (_, versjonEtterOppdateringAvKravgrunnlag) = oppdaterKravgrunnlag(
                 sakId = sakId,
