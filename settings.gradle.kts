@@ -50,6 +50,7 @@ include("oppgave:infrastructure")
 include("økonomi:domain")
 include("økonomi:infrastructure")
 include("økonomi:application")
+include("økonomi:presentation")
 
 include("tilbakekreving:presentation")
 include("tilbakekreving:application")

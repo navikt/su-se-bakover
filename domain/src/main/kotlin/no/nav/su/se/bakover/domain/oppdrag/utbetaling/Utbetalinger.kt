@@ -75,7 +75,11 @@ data class Utbetalinger(
     data object FantIkkeGjeldendeUtbetaling
 
     fun sisteUtbetalingslinje(): Utbetalingslinje? {
-        return utbetalinger.lastOrNull()?.sisteUtbetalingslinje()
+        return sisteUtbetaling()?.sisteUtbetalingslinje()
+    }
+
+    fun sisteUtbetaling(): Utbetaling? {
+        return utbetalinger.lastOrNull()
     }
 
     fun sisteUtbetalingslinjeId(): UUID30? {

@@ -32,7 +32,9 @@ dependencies {
     implementation(project(":oppgave:infrastructure"))
     implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":økonomi:application"))
     implementation(project(":økonomi:infrastructure"))
+    implementation(project(":økonomi:presentation"))
 
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:infrastructure"))

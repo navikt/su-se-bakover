@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.sak
 
 import arrow.core.NonEmptyList
 import kotliquery.Row
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -143,6 +144,17 @@ internal class SakPostgresRepo(
                     .hent(mapOf("revurderingid" to revurderingId), session) { it.toSak(sessionContext) }
             }
         }!!
+    }
+
+    override fun hentSakForUtbetalingId(utbetalingId: UUID30, sessionContext: SessionContext?): Sak? {
+        return dbMetrics.timeQuery("hentSakForUtbetalingId") {
+            sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select s.* from sak s join utbetaling u on u.sakid = s.id where u.id = :utbetalingId"
+                        .hent(mapOf("utbetalingId" to utbetalingId), session) { it.toSak(sessionContext) }
+                }
+            }
+        }
     }
 
     override fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak {

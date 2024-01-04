@@ -9,6 +9,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -83,6 +84,10 @@ class SakServiceImpl(
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSakForUtbetalingId(utbetalingId: UUID30): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSakForUtbetalingId(utbetalingId)?.right() ?: FantIkkeSak.left()
     }
 
     override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {

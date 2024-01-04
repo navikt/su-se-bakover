@@ -89,14 +89,18 @@ class UtbetalingServiceImpl(
             .map { utbetalingForSimulering.toSimulertUtbetaling(it) }
     }
 
-    private fun sendUtbetalingTilOS(utbetalingsRequest: Utbetalingsrequest): Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest> {
+    private fun sendUtbetalingTilOS(
+        utbetalingsRequest: Utbetalingsrequest,
+    ): Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest> {
         return utbetalingPublisher.publishRequest(utbetalingsRequest)
             .mapLeft {
                 UtbetalingFeilet.Protokollfeil
             }
     }
 
-    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(
+        transactionContext: TransactionContext,
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
             utbetalingRepo.opprettUtbetaling(
                 utbetaling = it,
