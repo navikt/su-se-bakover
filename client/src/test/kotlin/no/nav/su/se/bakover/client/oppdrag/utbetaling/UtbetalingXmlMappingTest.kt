@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -27,7 +28,10 @@ class UtbetalingXmlMappingTest {
 
     @Test
     fun `mapper utbetaling til xml request`() {
-        xmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)) shouldBeSimilarXmlTo expected
+        xmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)).let {
+            it.shouldBeSimilarXmlTo(expected, strict = true)
+            it.filterNot { it.isWhitespace() } shouldBe expected.filterNot { it.isWhitespace() }
+        }
     }
 
     private val clock = TikkendeKlokke()
