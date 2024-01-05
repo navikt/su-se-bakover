@@ -30,7 +30,7 @@ fun Route.økonomiRoutes(
                     .map { UUID30.fromString(it) }
             }
 
-            data class ResponseError(val utbetalingId: String)
+            data class ResponseError(val utbetalingId: String, val feilmelding: String)
             data class ResponseSuccess(val utbetalingId: String)
             data class Response(val success: List<ResponseSuccess>, val failed: List<ResponseError>)
 
@@ -39,7 +39,7 @@ fun Route.økonomiRoutes(
                     it.map {
                         ResponseSuccess(it.toString())
                     }.mapLeft {
-                        ResponseError(it.utbetalingId.toString())
+                        ResponseError(it.utbetalingId.toString(), it.feilMelding())
                     }
                 }.let {
                     Response(

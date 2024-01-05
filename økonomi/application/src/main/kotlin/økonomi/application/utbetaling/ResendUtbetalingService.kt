@@ -86,19 +86,20 @@ class ResendUtbetalingService(
                 log.error("Resend utbetaling: Fant ikke utbetaling på sak ${sak.id} for utbetalingId $utbetalingId")
             }
 
+        // Utfører denne før vi leter etter vedtaket siden det da er en sannsynlighet for at denne er sendt på nytt før og da har vi mistet knytningen til vedtaket.
+        if (sak.utbetalinger.sisteUtbetaling() != utbetaling) {
+            return KunneIkkeSendeUtbetalingPåNytt.IkkeSisteUtbetaling(utbetalingId, sak.id).left().also {
+                // TODO jah: Denne oppstår dersom man sender samme utbetalingId flere ganger. Trenger ikke error på sikt, men er greit å få med seg de første gangene
+                log.error("Resend utbetaling: Utbetalingen er ikke siste utbetaling på sak ${sak.id} for utbetalingId $utbetalingId")
+            }
+        }
+
         val vedtak =
             sak.vedtakListe.filterIsInstance<VedtakEndringIYtelse>().singleOrNull { it.utbetalingId == utbetalingId }
                 ?: return KunneIkkeSendeUtbetalingPåNytt.FantIkkeVedtakKnyttetTilUtbetaling(utbetalingId, sak.id).left()
                     .also {
                         log.error("Resend utbetaling: Fant ikke vedtak på sak ${sak.id} for utbetalingId $utbetalingId")
                     }
-
-        if (sak.utbetalinger.sisteUtbetaling() != utbetaling) {
-            return KunneIkkeSendeUtbetalingPåNytt.IkkeSisteUtbetaling(utbetalingId, sak.id, vedtak.id).left().also {
-                // TODO jah: Denne oppstår dersom man sender samme utbetalingId flere ganger. Trenger ikke error på sikt, men er greit å få med seg de første gangene
-                log.error("Resend utbetaling: Utbetalingen er ikke siste utbetaling på sak ${sak.id} for utbetalingId $utbetalingId og vedtakId ${vedtak.id}")
-            }
-        }
 
         val nyUtbetaling: Utbetaling.UtbetalingForSimulering = lagNyUtbetaling(vedtak, utbetalingId, sak)
             .getOrElse { return it.left() }
@@ -209,60 +210,84 @@ class ResendUtbetalingService(
 sealed interface KunneIkkeSendeUtbetalingPåNytt {
     val utbetalingId: UUID30
 
+    fun feilMelding(): String
+
     data class FantIkkeSak(
         override val utbetalingId: UUID30,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Fant ikke sak"
+    }
 
     data class FantIkkeUtbetalingPåSak(
         override val utbetalingId: UUID30,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Fant ikke utbetaling på sak"
+    }
 
     data class FantIkkeVedtakKnyttetTilUtbetaling(
         override val utbetalingId: UUID30,
         val sakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Fant ikke vedtak knyttet til utbetaling på sak $sakId"
+    }
 
     data class UtbetalingErIkkeKvittert(
         override val utbetalingId: UUID30,
         val sakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Utbetalingen er ikke kvittert for sak $sakId"
+    }
 
     /** Det finnes en utbetaling etter denne utbetalingen. */
     data class IkkeSisteUtbetaling(
         override val utbetalingId: UUID30,
         val sakId: UUID,
-        val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Utbetalingen er ikke siste utbetaling på sak $sakId"
+    }
 
     data class KunneIkkeSimulere(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() =
+            "$utbetalingId - Kunne ikke simulere utbetalingen for sak $sakId og vedtakId $vedtakId"
+    }
 
     data class KunneIkkeKlargjøreUtbetaling(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() =
+            "$utbetalingId - Kunne ikke klargjøre utbetalingen for sak $sakId og vedtakId $vedtakId"
+    }
 
     data class KunneIkkeSendeUtbetalingTilOppdrag(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() =
+            "$utbetalingId - Kunne ikke sende utbetalingen for sak $sakId og vedtakId $vedtakId"
+    }
 
     data class IkkeStøtteForRegulering(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Regulering er ikke støttet. Sak $sakId og vedtakId $vedtakId"
+    }
 
     data class IkkeStøtteForStans(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Stans av ytelse er ikke støttet. Sak $sakId og vedtakId $vedtakId"
+    }
 
     /**
      * TODO jah: Dette må vi støtte snarest, men vi fikser søknadsbehandlingene+revurderingene først.
@@ -272,9 +297,14 @@ sealed interface KunneIkkeSendeUtbetalingPåNytt {
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() =
+            "$utbetalingId - Gjenopptak av ytelse er ikke støttet. Sak $sakId og vedtakId $vedtakId"
+    }
 
     data class UkjentFeil(
         override val utbetalingId: UUID30,
-    ) : KunneIkkeSendeUtbetalingPåNytt
+    ) : KunneIkkeSendeUtbetalingPåNytt {
+        override fun feilMelding() = "$utbetalingId - Ukjent feil"
+    }
 }
