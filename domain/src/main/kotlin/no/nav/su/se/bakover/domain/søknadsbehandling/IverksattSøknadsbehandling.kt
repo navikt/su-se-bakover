@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.left
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -23,6 +26,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -69,6 +73,25 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
+        }
+
+        /**
+         * @return null dersom man kaller denne for en alderssak.
+         * @throws IllegalStateException Dersom søknadsbehandlingen mangler uføregrunnlag. Dette skal ikke skje. Initen skal også verifisere dette.
+         *
+         * Se også tilsvarende implementasjon for revurdering: [no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering.Innvilget.hentUføregrunnlag]
+         */
+        fun hentUføregrunnlag(): NonEmptyList<Uføregrunnlag>? {
+            return when (this.sakstype) {
+                Sakstype.ALDER -> null
+
+                Sakstype.UFØRE -> {
+                    this.vilkårsvurderinger.uføreVilkår()
+                        .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: ${this.id} mangler uføregrunnlag") }
+                        .grunnlag
+                        .toNonEmptyList()
+                }
+            }
         }
     }
 

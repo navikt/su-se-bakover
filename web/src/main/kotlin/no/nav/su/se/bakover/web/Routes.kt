@@ -37,6 +37,8 @@ import no.nav.su.se.bakover.web.services.Services
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.api.tilbakekrevingRoutes
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.application.utbetaling.ResendUtbetalingService
+import økonomi.presentation.api.økonomiRoutes
 import java.time.Clock
 
 internal fun Application.setupKtorRoutes(
@@ -148,6 +150,17 @@ internal fun Application.setupKtorRoutes(
                         avbrytTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.avbrytTilbakekrevingsbehandlingService,
                         oppdaterKravgrunnlagService = tilbakekrevingskomponenter.services.oppdaterKravgrunnlagService,
                         notatTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.notatTilbakekrevingsbehandlingService,
+                    )
+                    økonomiRoutes(
+                        ResendUtbetalingService(
+                            utbetalingService = services.utbetaling,
+                            vedtakRepo = databaseRepos.vedtakRepo,
+                            sakService = services.sak,
+                            sessionFactory = databaseRepos.sessionFactory,
+                            clock = clock,
+                            serviceUser = applicationConfig.serviceUser.username,
+
+                        ),
                     )
                 }
             }

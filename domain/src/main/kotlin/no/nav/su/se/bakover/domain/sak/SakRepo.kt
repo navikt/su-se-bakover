@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -29,7 +30,7 @@ interface SakRepo {
     fun hentSakForRevurdering(revurderingId: UUID): Sak
 
     fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak
-
+    fun hentSakForUtbetalingId(utbetalingId: UUID30, sessionContext: SessionContext? = null): Sak?
     fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
     fun hentSakForVedtak(vedtakId: UUID): Sak?

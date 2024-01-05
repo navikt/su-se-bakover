@@ -1,28 +1,23 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import org.slf4j.LoggerFactory
-import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
@@ -63,7 +58,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         beregning = iverksattBehandling.beregning,
         clock = clock,
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = hentUføregrunnlag(iverksattBehandling),
+        uføregrunnlag = iverksattBehandling.hentUføregrunnlag(),
     ).let {
         kontrollsimuler(
             utbetalingForSimulering = it,
@@ -100,22 +95,6 @@ private fun Sak.validerGjeldendeVedtak(
 ): Either<KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode, Unit> {
     return this.validerOverlappendeStønadsperioder(søknadsbehandling.periode).mapLeft {
         KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode(it)
-    }
-}
-
-private fun hentUføregrunnlag(
-    iverksattBehandling: IverksattSøknadsbehandling.Innvilget,
-): NonEmptyList<Uføregrunnlag>? {
-    return when (iverksattBehandling.sakstype) {
-        Sakstype.ALDER -> {
-            null
-        }
-
-        Sakstype.UFØRE -> {
-            iverksattBehandling.vilkårsvurderinger.uføreVilkår().getOrElse {
-                throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag")
-            }.grunnlag.toNonEmptyList()
-        }
     }
 }
 

@@ -2,10 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.left
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
@@ -47,18 +44,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
             beregning = iverksattRevurdering.beregning,
             clock = clock,
             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-            uføregrunnlag = when (iverksattRevurdering.sakstype) {
-                Sakstype.ALDER -> {
-                    null
-                }
-
-                Sakstype.UFØRE -> {
-                    iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
-                        .getOrElse { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
-                        .grunnlag
-                        .toNonEmptyList()
-                }
-            },
+            uføregrunnlag = iverksattRevurdering.hentUføregrunnlag(),
         ).let {
             kontrollsimuler(
                 utbetalingForSimulering = it,

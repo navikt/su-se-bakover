@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -16,9 +17,11 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSessi
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30OrNull
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -193,6 +196,19 @@ internal class VedtakPostgresRepo(
                     is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
                 }
             }
+        }
+    }
+
+    override fun oppdaterUtbetalingId(
+        vedtakId: UUID,
+        utbetalingId: UUID30,
+        sessionContext: SessionContext?,
+    ) {
+        sessionContext.withOptionalSession(sessionFactory) { session ->
+            """
+                update vedtak set utbetalingId = :utbetalingId where id = :vedtakId
+            """.trimIndent()
+                .oppdatering(mapOf("utbetalingId" to utbetalingId, "vedtakId" to vedtakId), session)
         }
     }
 

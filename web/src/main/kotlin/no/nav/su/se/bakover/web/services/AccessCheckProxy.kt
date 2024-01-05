@@ -323,6 +323,8 @@ open class AccessCheckProxy(
                     }
                 }
 
+                override fun hentSakForUtbetalingId(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+
                 override fun hentGjeldendeVedtaksdata(
                     sakId: UUID,
                     periode: Periode,

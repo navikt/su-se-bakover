@@ -10,6 +10,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -43,7 +44,11 @@ class UtbetalingKvitteringConsumer(
 
             val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
             if (!kvittering.erKvittertOk()) {
-                log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
+                log.error(
+                    "Mottok en kvittering fra oppdragssystemet som ikke var OK: ${kvittering.utbetalingsstatus}, dette bør følges opp! Se sikkerlogg for mer context.",
+                    RuntimeException("Trigger en stacktrace for enklere debugging."),
+                )
+                sikkerLogg.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering")
             }
 
             log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")

@@ -5,6 +5,8 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":domain"))
     implementation(project(":oppgave:domain"))
+    implementation(project(":vedtak:domain"))
+    implementation(project(":beregning"))
 }
 
 tasks.named<Jar>("jar") {

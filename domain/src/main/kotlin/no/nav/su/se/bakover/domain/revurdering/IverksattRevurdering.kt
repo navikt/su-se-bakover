@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -17,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMå
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.time.LocalDate
@@ -69,6 +74,25 @@ sealed class IverksattRevurdering : Revurdering() {
         override val erOpphørt = false
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
+
+        /**
+         * @return null dersom man kaller denne for en alderssak.
+         * @throws IllegalStateException Dersom søknadsbehandlingen mangler uføregrunnlag. Dette skal ikke skje. Initen skal også verifisere dette.
+         *
+         * Se også tilsvarende implementasjon for søknadsbehandling: [no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling.Innvilget.hentUføregrunnlag]
+         */
+        fun hentUføregrunnlag(): NonEmptyList<Uføregrunnlag>? {
+            return when (this.sakstype) {
+                Sakstype.ALDER -> null
+
+                Sakstype.UFØRE -> {
+                    this.vilkårsvurderinger.uføreVilkår()
+                        .getOrElse { throw IllegalStateException("Revurdering uføre: ${this.id} mangler uføregrunnlag") }
+                        .grunnlag
+                        .toNonEmptyList()
+                }
+            }
+        }
     }
 
     data class Opphørt(
