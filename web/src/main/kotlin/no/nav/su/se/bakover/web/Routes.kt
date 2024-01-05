@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
@@ -50,10 +49,10 @@ internal fun Application.setupKtorRoutes(
     extraRoutes: Route.(services: Services) -> Unit,
     azureGroupMapper: AzureGroupMapper,
     formuegrenserFactoryIDag: FormuegrenserFactory,
-    beregningStrategyFactory: BeregningStrategyFactory,
     databaseRepos: DatabaseRepos,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clients: Clients,
+    resendUtbetalingService: ResendUtbetalingService,
 ) {
     routing {
         authenticate("frikort") {
@@ -153,17 +152,7 @@ internal fun Application.setupKtorRoutes(
                         oppdaterKravgrunnlagService = tilbakekrevingskomponenter.services.oppdaterKravgrunnlagService,
                         notatTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.notatTilbakekrevingsbehandlingService,
                     )
-                    økonomiRoutes(
-                        ResendUtbetalingService(
-                            utbetalingService = services.utbetaling,
-                            vedtakRepo = databaseRepos.vedtakRepo,
-                            sakService = services.sak,
-                            sessionFactory = databaseRepos.sessionFactory,
-                            clock = clock,
-                            serviceUser = applicationConfig.serviceUser.username,
-                            beregningStrategyFactory = beregningStrategyFactory,
-                        ),
-                    )
+                    økonomiRoutes(resendUtbetalingService)
                 }
             }
         }

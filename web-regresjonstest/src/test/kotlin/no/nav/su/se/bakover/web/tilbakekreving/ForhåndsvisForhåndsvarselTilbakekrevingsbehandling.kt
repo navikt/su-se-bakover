@@ -10,7 +10,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.web.SharedRegressionTestData
 
 fun forhåndsvisForhåndsvarselTilbakekreving(
     sakId: String,
@@ -23,7 +22,7 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
 ): String {
     // Dette kallet muterer ikke.
     return runBlocking {
-        SharedRegressionTestData.defaultRequest(
+        no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/forhandsvarsel/forhandsvis",
             listOf(Brukerrolle.Saksbehandler),

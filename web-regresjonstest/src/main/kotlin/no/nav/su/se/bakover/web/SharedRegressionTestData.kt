@@ -1,16 +1,8 @@
 package no.nav.su.se.bakover.web
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.headers
-import io.ktor.client.request.request
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
@@ -32,7 +24,6 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
@@ -49,8 +40,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.jwt.JwtStub
-import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -63,7 +52,6 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
-import org.slf4j.MDC
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
@@ -79,10 +67,7 @@ data object SharedRegressionTestData {
     internal val fnr: String = Fnr.generer().toString()
     internal val epsFnr: String = Fnr.generer().toString()
 
-    private const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
-
     private val applicationConfig = applicationConfig()
-    private val jwtStub = JwtStub(applicationConfig.azure)
 
     internal const val DOKEMENT_DATA =
         "JVBERi0xLjAKICAgICAgICAgICAgICAgIDEgMCBvYmo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PmVuZG9iaiAyIDAgb2JqPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj5lbmRvYmogMyAwIG9iajw8L1R5cGUvUGFnZS9NZWRpYUJveFswIDAgMyAzXT4+ZW5kb2JqCiAgICAgICAgICAgICAgICB4cmVmCiAgICAgICAgICAgICAgICAwIDQKICAgICAgICAgICAgICAgIDAwMDAwMDAwMDAgNjU1MzUgZgogICAgICAgICAgICAgICAgMDAwMDAwMDAxMCAwMDAwMCBuCiAgICAgICAgICAgICAgICAwMDAwMDAwMDUzIDAwMDAwIG4KICAgICAgICAgICAgICAgIDAwMDAwMDAxMDIgMDAwMDAgbgogICAgICAgICAgICAgICAgdHJhaWxlcjw8L1NpemUgNC9Sb290IDEgMCBSPj4KICAgICAgICAgICAgICAgIHN0YXJ0eHJlZgogICAgICAgICAgICAgICAgMTQ5CiAgICAgICAgICAgICAgICAlRU9G"
@@ -289,29 +274,6 @@ data object SharedRegressionTestData {
             services = services,
             accessCheckProxy = accessCheckProxy,
         )
-    }
-
-    fun defaultRequest(
-        method: HttpMethod,
-        uri: String,
-        roller: List<Brukerrolle> = emptyList(),
-        navIdent: String = "Z990Lokal",
-        correlationId: String = DEFAULT_CALL_ID,
-        client: HttpClient,
-        setup: HttpRequestBuilder.() -> Unit = {},
-    ): HttpResponse {
-        return runBlocking {
-            client.request(uri) {
-                val auth: String? = MDC.get("Authorization")
-                val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
-                this.method = method
-                this.headers {
-                    append(HttpHeaders.XCorrelationId, correlationId)
-                    append(HttpHeaders.Authorization, bearerToken)
-                }
-                setup()
-            }
-        }
     }
 }
 

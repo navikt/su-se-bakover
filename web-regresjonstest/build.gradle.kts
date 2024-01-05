@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":kontrollsamtale:infrastructure"))
     implementation(project(":økonomi:infrastructure"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":økonomi:application"))
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:application"))
     implementation(project(":dokument:infrastructure"))

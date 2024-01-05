@@ -11,7 +11,6 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
@@ -30,7 +29,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
     val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     val appComponents = this
     return runBlocking {
-        SharedRegressionTestData.defaultRequest(
+        no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/forhandsvarsel",
             listOf(Brukerrolle.Saksbehandler),

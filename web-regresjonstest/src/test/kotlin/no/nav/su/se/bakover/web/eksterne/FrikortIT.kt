@@ -99,7 +99,7 @@ private fun hentAktiveFnr(
     client: HttpClient,
 ): String {
     return runBlocking {
-        SharedRegressionTestData.defaultRequest(
+        no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Get,
             "/frikort/",
             listOf(brukerrolle),
