@@ -37,7 +37,7 @@ fun Route.økonomiRoutes(
             call.withBody<UtbetalingslinjerBody> { body ->
                 val response = resendUtbetalingService.resendUtbetalinger(body.toUtbetalingslinjer()).map {
                     it.map {
-                        ResponseSuccess(it.id.toString())
+                        ResponseSuccess(it.toString())
                     }.mapLeft {
                         ResponseError(it.utbetalingId.toString())
                     }

@@ -50,7 +50,7 @@ class ResendUtbetalingService(
 
     fun resendUtbetalinger(
         utbetalingsIder: List<UUID30>,
-    ): List<Either<KunneIkkeSendeUtbetalingPåNytt, Utbetaling.OversendtUtbetaling>> {
+    ): List<Either<KunneIkkeSendeUtbetalingPåNytt, UUID30>> {
         return utbetalingsIder.map { utbetalingId ->
             Either.catch {
                 log.info("Resend utbetaling: Resender utbetalingId $utbetalingId")
@@ -71,7 +71,7 @@ class ResendUtbetalingService(
     @Suppress("MemberVisibilityCanBePrivate")
     fun resendUtbetaling(
         utbetalingId: UUID30,
-    ): Either<KunneIkkeSendeUtbetalingPåNytt, Utbetaling.OversendtUtbetaling> {
+    ): Either<KunneIkkeSendeUtbetalingPåNytt, UUID30> {
         val sak = sakService.hentSakForUtbetalingId(utbetalingId).getOrElse {
             return KunneIkkeSendeUtbetalingPåNytt.FantIkkeSak(utbetalingId).left().also {
                 log.error("Resend utbetaling: Fant ikke sak for utbetalingId $utbetalingId")
@@ -123,7 +123,7 @@ class ResendUtbetalingService(
                 vedtakRepo.oppdaterUtbetalingId(vedtak.id, response.utbetaling.id, tx)
                 // Oversender til oppdrag. Dette bør være det siste som skjer i transaksjonen.
                 response.sendUtbetaling()
-                response.utbetaling
+                response.utbetaling.id
             }
         }.mapLeft {
             if (it is KunneIkkeKlaregjøreUtbetaling) {
