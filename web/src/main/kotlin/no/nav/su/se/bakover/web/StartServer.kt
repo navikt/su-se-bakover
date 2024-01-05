@@ -161,7 +161,6 @@ fun Application.susebakover(
             services = DokumentServices(
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
-                personService = services.person,
                 hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
                 sakService = services.sak,
                 dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,

@@ -10,8 +10,7 @@ import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
-import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentPåSakCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
@@ -32,24 +31,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import person.domain.Person
-import person.domain.PersonService
 import java.time.Clock
-import java.time.Year
 import java.util.UUID
 
 class JournalføringServiceTest {
-    val fnr = sakinfo.fnr
-    val person = Person(
-        ident = Ident(
-            fnr = sakinfo.fnr,
-            aktørId = AktørId(aktørId = "123"),
-        ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
-        fødsel = Person.Fødsel.MedFødselsår(
-            år = Year.of(1956),
-        ),
-    )
 
     @Test
     fun `journalfører dokumenter`() {
@@ -58,9 +43,6 @@ class JournalføringServiceTest {
 
         val sakService = mock<SakService> {
             on { hentSakInfo(any()) } doReturn sakinfo.right()
-        }
-        val personService = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val dokumentRepo = mock<DokumentRepo> {
             on { this.hentDokumenterForJournalføring() } doReturn listOf(dokumentDis)
@@ -78,7 +60,6 @@ class JournalføringServiceTest {
 
         val serviceAndMocks = ServiceOgMocks(
             sakService = sakService,
-            personService = personService,
             dokumentRepo = dokumentRepo,
             dokumentSkattRepo = dokumentSkattRepo,
             journalførBrevClient = journalførBrevClient,
@@ -88,7 +69,6 @@ class JournalføringServiceTest {
         verify(dokumentRepo).hentDokumenterForJournalføring()
         verify(dokumentSkattRepo).hentDokumenterForJournalføring()
         verify(sakService, times(2)).hentSakInfo(argThat { it shouldBe sakinfo.sakId })
-        verify(personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
         verify(dokumentRepo).oppdaterDokumentdistribusjon(
             argThat {
                 it shouldBe dokumentDis.copy(
@@ -102,14 +82,24 @@ class JournalføringServiceTest {
         verify(journalførBrevClient).journalførBrev(
             argThat {
                 it shouldBe JournalførBrevCommand(
-                    fnr = fnr,
+                    fnr = sakinfo.fnr,
                     saksnummer = sakinfo.saksnummer,
                     dokument = dokumentDis.dokument,
                     sakstype = sakinfo.type,
-                    navn = person.navn,
                 )
             },
         )
+        verify(journalførSkattedokumentPåSakClient).journalførSkattedokument(
+            argThat {
+                it shouldBe JournalførSkattedokumentPåSakCommand(
+                    saksnummer = sakinfo.saksnummer,
+                    sakstype = sakinfo.type,
+                    fnr = sakinfo.fnr,
+                    dokument = skattDokument,
+                )
+            },
+        )
+        serviceAndMocks.verifyNoMoreInteractions()
     }
 
     private data class ServiceOgMocks(
@@ -118,7 +108,6 @@ class JournalføringServiceTest {
         val dokumentRepo: DokumentRepo = mock(),
         val dokumentSkattRepo: DokumentSkattRepo = mock(),
         val sakService: SakService = mock(),
-        val personService: PersonService = mock(),
         val clock: Clock = mock(),
         val sakInfo: SakInfo = sakinfo,
         val journalførSkattedokumentPåSakClient: JournalførSkattedokumentPåSakClient = mock(),
@@ -129,7 +118,6 @@ class JournalføringServiceTest {
                 journalførBrevClient = journalførBrevClient,
                 dokumentRepo = dokumentRepo,
                 sakService = sakService,
-                personService = personService,
             ),
             journalførSkattDokumentService = JournalførSkattDokumentService(
                 journalførSkattedokumentPåSakClient = journalførSkattedokumentPåSakClient,
@@ -146,8 +134,6 @@ class JournalføringServiceTest {
                 dokumentRepo,
                 dokumentSkattRepo,
                 sakService,
-                personService,
-                sakInfo,
                 journalførSkattedokumentPåSakClient,
                 journalførSkattedokumentUtenforSakClient,
             )

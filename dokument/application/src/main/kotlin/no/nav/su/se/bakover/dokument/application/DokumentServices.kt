@@ -8,13 +8,11 @@ import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHend
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
-import person.domain.PersonService
 import java.time.Clock
 
 class DokumentServices(
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
-    private val personService: PersonService,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sakService: SakService,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
@@ -22,7 +20,6 @@ class DokumentServices(
     private val dokDistFordeling: DokDistFordeling,
     val journalførtDokumentHendelserKonsument: JournalførDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
         sakService = sakService,
-        personService = personService,
         journalførBrevClient = journalførBrevClient,
         dokumentHendelseRepo = dokumentHendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,

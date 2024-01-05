@@ -93,7 +93,6 @@ fun startJobberOgConsumers(
         journalførBrevClient = clients.journalførClients.brev,
         dokumentRepo = databaseRepos.dokumentRepo,
         sakService = services.sak,
-        personService = services.person,
     )
 
     val journalførDokumentSkattService = JournalførSkattDokumentService(

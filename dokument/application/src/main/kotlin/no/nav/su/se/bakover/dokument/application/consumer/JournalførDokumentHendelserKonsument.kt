@@ -29,14 +29,11 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import person.domain.Person
-import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
 class JournalførDokumentHendelserKonsument(
     private val sakService: SakService,
-    private val personService: PersonService,
     private val journalførBrevClient: JournalførBrevClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
@@ -90,14 +87,13 @@ class JournalførDokumentHendelserKonsument(
             return
         }
 
-        val (generertDokumentHendelse, relatertFil, navn) = hentDataForJournalføring(
+        val (generertDokumentHendelse, relatertFil) = hentDataForJournalføring(
             sak.info(),
             hendelseId,
         ).getOrElse { return }
 
         journalførDokument(
             sakInfo = sak.info(),
-            navn = navn,
             generertDokumentHendelse = generertDokumentHendelse,
             relatertFil = relatertFil,
             versjon = nesteVersjon,
@@ -119,31 +115,23 @@ class JournalførDokumentHendelserKonsument(
     private fun hentDataForJournalføring(
         sakInfo: SakInfo,
         relatertHendelsesId: HendelseId,
-    ): Either<Unit, Triple<GenerertDokumentHendelse, HendelseFil, Person.Navn>> {
+    ): Either<Unit, Pair<GenerertDokumentHendelse, HendelseFil>> {
         val (relatertHendelse, relatertFil) = hentLagretDokumentHendelseForJournalføring(
             hendelseId = relatertHendelsesId,
             sakId = sakInfo.sakId,
         ).getOrElse { return Unit.left() }
 
-        val person = personService.hentPersonMedSystembruker(sakInfo.fnr).getOrElse {
-            return Unit.left().also {
-                log.error("Feil under journalføring: Feil ved henting av person for hendelse ${relatertHendelse.hendelseId} og sak ${sakInfo.sakId}")
-            }
-        }
-
-        return Triple(relatertHendelse, relatertFil, person.navn).right()
+        return Pair(relatertHendelse, relatertFil).right()
     }
 
     private fun journalførDokument(
         sakInfo: SakInfo,
-        navn: Person.Navn,
         generertDokumentHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
         versjon: Hendelsesversjon,
         skalSendeBrev: Boolean,
     ): Either<Unit, JournalførtDokumentHendelse> = opprettJournalpost(
         sakInfo = sakInfo,
-        navn = navn,
         relatertHendelse = generertDokumentHendelse,
         relatertFil = relatertFil,
     ).getOrElse {
@@ -162,7 +150,6 @@ class JournalførDokumentHendelserKonsument(
 
     private fun opprettJournalpost(
         sakInfo: SakInfo,
-        navn: Person.Navn,
         relatertHendelse: GenerertDokumentHendelse,
         relatertFil: HendelseFil,
     ): Either<Unit, JournalpostId> = journalførBrevClient.journalførBrev(
@@ -176,7 +163,6 @@ class JournalførDokumentHendelserKonsument(
                 brevbestillingId = null,
             ),
             sakstype = sakInfo.type,
-            navn = navn,
         ),
     ).mapLeft {
         Unit.also {

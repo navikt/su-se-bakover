@@ -13,11 +13,8 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
-import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -31,51 +28,9 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import person.domain.KunneIkkeHentePerson
-import person.domain.Person
-import person.domain.PersonService
-import java.time.Year
 import java.util.UUID
 
 class JournalførDokumentServiceTest {
-    val fnr = sakinfo.fnr
-    val person = Person(
-        ident = Ident(
-            fnr = sakinfo.fnr,
-            aktørId = AktørId(aktørId = "123"),
-        ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
-        fødsel = Person.Fødsel.MedFødselsår(
-            år = Year.of(1956),
-        ),
-    )
-
-    @Test
-    fun `journalfør dokument - finner ikke person`() {
-        val dokumentdistribusjon = dokumentdistribusjon()
-        val personServiceMock =
-            mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
-        val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
-        }
-        val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
-        }
-        ServiceOgMocks(sakService = sakService, personService = personServiceMock, dokumentRepo = dokumentRepo).let {
-            it.journalførDokumentService.journalfør().let {
-                it.size shouldBe 1
-                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
-                it.first().id shouldBe dokumentdistribusjon.id
-                it.first().journalpostId shouldBe null
-                it.first().brevbestillingsId shouldBe null
-                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Journalføring(
-                    KunneIkkeJournalføreDokument.KunneIkkeFinnePerson,
-                )
-            }
-            verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
-        }
-    }
 
     @Test
     fun `journalfør dokument - feil ved journalføring`() {
@@ -83,17 +38,14 @@ class JournalførDokumentServiceTest {
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
         }
-        val personServiceMock =
-            mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn person.right() }
         val journalførBrevClientMock =
             mock<JournalførBrevClient> { on { journalførBrev(any()) } doReturn ClientError(500, "kek").left() }
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, sakinfo.fnr, Sakstype.UFØRE).right()
         }
 
         ServiceOgMocks(
             sakService = sakService,
-            personService = personServiceMock,
             journalførBrevClientMock = journalførBrevClientMock,
             dokumentRepo = dokumentRepo,
         ).let {
@@ -109,7 +61,6 @@ class JournalførDokumentServiceTest {
             }
             verify(dokumentRepo).hentDokumenterForJournalføring()
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(journalførBrevClientMock).journalførBrev(any())
             it.verifyNoMoreInteraction()
         }
@@ -122,14 +73,11 @@ class JournalførDokumentServiceTest {
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, sakinfo.fnr, Sakstype.UFØRE).right()
         }
 
-        ServiceOgMocks(sakService = sakService, personService = personServiceMock, dokumentRepo = dokumentRepo).let {
+        ServiceOgMocks(sakService = sakService, dokumentRepo = dokumentRepo).let {
             it.journalførDokumentService.journalfør().let {
                 it.size shouldBe 1
                 it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
@@ -139,7 +87,6 @@ class JournalførDokumentServiceTest {
             }
             verify(dokumentRepo).hentDokumenterForJournalføring()
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             it.verifyNoMoreInteraction()
         }
     }
@@ -147,19 +94,16 @@ class JournalførDokumentServiceTest {
     private data class ServiceOgMocks(
         val journalførBrevClientMock: JournalførBrevClient = mock(),
         val dokumentRepo: DokumentRepo = mock(),
-        val dokumentSkattRepo: DokumentSkattRepo = mock(),
         val sakService: SakService = mock(),
-        val personService: PersonService = mock(),
     ) {
         val journalførDokumentService = JournalførDokumentService(
             dokumentRepo = dokumentRepo,
             journalførBrevClient = journalførBrevClientMock,
             sakService = sakService,
-            personService = personService,
         )
 
         fun verifyNoMoreInteraction() {
-            verifyNoMoreInteractions(journalførBrevClientMock, dokumentRepo, sakService, personService)
+            verifyNoMoreInteractions(journalførBrevClientMock, dokumentRepo, sakService)
         }
     }
 

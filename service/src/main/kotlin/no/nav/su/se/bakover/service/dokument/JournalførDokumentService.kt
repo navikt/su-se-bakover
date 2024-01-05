@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribuering
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 
 /**
  * journalfører 'vanlige' dokumenter (f.eks vedtak). Ment å bli kallt fra en jobb
@@ -27,7 +25,6 @@ class JournalførDokumentService(
     private val journalførBrevClient: JournalførBrevClient,
     private val dokumentRepo: DokumentRepo,
     private val sakService: SakService,
-    private val personService: PersonService,
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -43,17 +40,13 @@ class JournalførDokumentService(
         val sakInfo = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrElse {
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
         }
-        val person = personService.hentPersonMedSystembruker(sakInfo.fnr)
-            .getOrElse { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
-
         val journalførtDokument = dokumentdistribusjon.journalfør {
             journalfør(
                 command = JournalførBrevCommand(
                     saksnummer = sakInfo.saksnummer,
                     dokument = dokumentdistribusjon.dokument,
                     sakstype = sakInfo.type,
-                    fnr = person.ident.fnr,
-                    navn = person.navn,
+                    fnr = sakInfo.fnr,
                 ),
             ).mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }
         }

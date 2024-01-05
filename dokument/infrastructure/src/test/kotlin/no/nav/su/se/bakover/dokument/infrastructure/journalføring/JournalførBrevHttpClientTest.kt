@@ -18,7 +18,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.Person
 import java.util.UUID
 
 internal class JournalførBrevHttpClientTest {
@@ -55,7 +54,6 @@ internal class JournalførBrevHttpClientTest {
                     metadata = metadata,
                 ),
                 fnr = fnr,
-                navn = Person.Navn(fornavn = "Test", mellomnavn = "T.", etternavn = "Testesen"),
             ),
         ) shouldBe JournalpostId("1").right()
         verify(mock).opprettJournalpost(
