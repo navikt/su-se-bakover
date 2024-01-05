@@ -1,6 +1,7 @@
 package økonomi.application.utbetaling
 
 import arrow.core.Either
+import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -51,7 +52,17 @@ class ResendUtbetalingService(
         utbetalingsIder: List<UUID30>,
     ): List<Either<KunneIkkeSendeUtbetalingPåNytt, Utbetaling.OversendtUtbetaling>> {
         return utbetalingsIder.map { utbetalingId ->
-            resendUtbetaling(utbetalingId)
+            Either.catch {
+                log.info("Resend utbetaling: Resender utbetalingId $utbetalingId")
+                resendUtbetaling(utbetalingId)
+            }.mapLeft {
+                log.error(
+                    "Resend utbetaling: Ukjent feil. Kunne ikke resende utbetalingId $utbetalingId",
+                    RuntimeException("Trigger stacktrace for enklere debugging"),
+                )
+                sikkerLogg.error("Resend utbetaling: Ukjent feil. Kunne ikke resende utbetalingId $utbetalingId", it)
+                KunneIkkeSendeUtbetalingPåNytt.UkjentFeil(utbetalingId)
+            }.flatten()
         }.also {
             log.info("Resend utbetaling: ${it.count { it.isRight() }} av ${utbetalingsIder.size} utbetalinger ble sendt på nytt. $it")
         }
@@ -261,5 +272,9 @@ sealed interface KunneIkkeSendeUtbetalingPåNytt {
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
+    ) : KunneIkkeSendeUtbetalingPåNytt
+
+    data class UkjentFeil(
+        override val utbetalingId: UUID30,
     ) : KunneIkkeSendeUtbetalingPåNytt
 }
