@@ -155,6 +155,9 @@ sealed class Utbetalingsstrategi {
         }
     }
 
+    /**
+     * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
+     */
     data class NyUføreUtbetaling(
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -166,10 +169,15 @@ sealed class Utbetalingsstrategi {
         val clock: Clock,
         val uføregrunnlag: List<Uføregrunnlag>,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
+        val aksepterKvitteringMedFeil: Boolean = false,
     ) : Utbetalingsstrategi() {
 
         init {
-            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            if (!aksepterKvitteringMedFeil) {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            }
         }
 
         fun generate(): Utbetaling.UtbetalingForSimulering {
@@ -268,6 +276,9 @@ sealed class Utbetalingsstrategi {
         }
     }
 
+    /**
+     * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
+     */
     data class NyAldersUtbetaling(
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -278,10 +289,15 @@ sealed class Utbetalingsstrategi {
         val beregning: Beregning,
         val clock: Clock,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
+        val aksepterKvitteringMedFeil: Boolean = false,
     ) : Utbetalingsstrategi() {
 
         init {
-            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            if (!aksepterKvitteringMedFeil) {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            }
         }
 
         fun generate(): Utbetaling.UtbetalingForSimulering {
@@ -336,10 +352,15 @@ sealed class Utbetalingsstrategi {
         override val sakstype: Sakstype,
         val periode: Periode,
         val clock: Clock,
+        val aksepterKvitteringMedFeil: Boolean = false,
     ) : Utbetalingsstrategi() {
 
         init {
-            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            if (!aksepterKvitteringMedFeil) {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            }
         }
 
         fun generate(): Utbetaling.UtbetalingForSimulering {

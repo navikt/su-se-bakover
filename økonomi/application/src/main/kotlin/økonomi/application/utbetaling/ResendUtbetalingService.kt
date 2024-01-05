@@ -174,6 +174,7 @@ class ResendUtbetalingService(
                     clock = clock,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     uføregrunnlag = vedtak.behandling.hentUføregrunnlag(),
+                    aksepterKvitteringMedFeil = true,
                 ).right()
             }
 
@@ -184,6 +185,7 @@ class ResendUtbetalingService(
                     clock = clock,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     uføregrunnlag = vedtak.behandling.hentUføregrunnlag(),
+                    aksepterKvitteringMedFeil = true,
                 ).right()
             }
 
@@ -192,6 +194,7 @@ class ResendUtbetalingService(
                     opphørsperiode = vedtak.behandling.periode,
                     behandler = NavIdentBruker.Attestant(serviceUser),
                     clock = clock,
+                    aksepterKvitteringMedFeil = true,
                 ).right()
             }
 
@@ -208,6 +211,7 @@ class ResendUtbetalingService(
                     clock = clock,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     uføregrunnlag = vedtak.behandling.hentUføregrunnlag(),
+                    aksepterKvitteringMedFeil = true,
                 ).right()
             }
 

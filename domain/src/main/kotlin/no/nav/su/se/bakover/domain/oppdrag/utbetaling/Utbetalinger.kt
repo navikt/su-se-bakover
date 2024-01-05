@@ -57,6 +57,21 @@ data class Utbetalinger(
             }
     }
 
+    fun kastHvisIkkeAlleErKvitterte() {
+        utbetalinger.filterNot { it is Utbetaling.OversendtUtbetaling.MedKvittering }
+            .ifNotEmpty {
+                val sakId = this.first().sakId
+                val saksnummer = this.first().saksnummer
+                val utbetalingsIDer = this.map { it.id }
+                throw IllegalStateException(
+                    "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en kvittering. " +
+                        "Det er kun i stegene fram til vi sender og lagrer at vi har en blanding av utbetalinger som er oversendt og ikke. " +
+                        "Som regel svarer økonomisystemet med en kvittering i løpet av sekunder. Et unntak er feilutbetalinger, da kan det ta dager. " +
+                        "For sakId: $sakId, saksnummer: $saksnummer, utbetalingsIDer: $utbetalingsIDer",
+                )
+            }
+    }
+
     /**
      * Merk at denne svarer med false dersom dersom vi kun har et utbetaling på datoen, men ikke etter.
      */

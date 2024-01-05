@@ -57,6 +57,7 @@ fun Sak.lagUtbetalingForOpphør(
     opphørsperiode: Periode,
     behandler: NavIdentBruker,
     clock: Clock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetalingsstrategi.Opphør(
         sakId = id,
@@ -67,15 +68,20 @@ fun Sak.lagUtbetalingForOpphør(
         periode = opphørsperiode,
         clock = clock,
         sakstype = type,
+        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
     ).generate()
 }
 
+/**
+ * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
+ */
 fun Sak.lagNyUtbetaling(
     saksbehandler: NavIdentBruker,
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
     uføregrunnlag: NonEmptyList<Uføregrunnlag>?,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.ALDER -> {
@@ -84,6 +90,7 @@ fun Sak.lagNyUtbetaling(
                 beregning = beregning,
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
             )
         }
 
@@ -94,16 +101,21 @@ fun Sak.lagNyUtbetaling(
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
                 uføregrunnlag = uføregrunnlag!!,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
             )
         }
     }
 }
 
+/**
+ * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
+ */
 fun Sak.lagNyUtbetalingAlder(
     saksbehandler: NavIdentBruker,
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.ALDER -> {
@@ -117,6 +129,7 @@ fun Sak.lagNyUtbetalingAlder(
                 clock = clock,
                 kjøreplan = utbetalingsinstruksjonForEtterbetaling,
                 sakstype = type,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
             ).generate()
         }
 
@@ -124,12 +137,16 @@ fun Sak.lagNyUtbetalingAlder(
     }
 }
 
+/**
+ * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
+ */
 fun Sak.lagNyUtbetalingUføre(
     saksbehandler: NavIdentBruker,
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
     uføregrunnlag: NonEmptyList<Uføregrunnlag>,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.UFØRE -> {
@@ -144,6 +161,7 @@ fun Sak.lagNyUtbetalingUføre(
                 clock = clock,
                 kjøreplan = utbetalingsinstruksjonForEtterbetaling,
                 sakstype = type,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
             ).generate()
         }
 
