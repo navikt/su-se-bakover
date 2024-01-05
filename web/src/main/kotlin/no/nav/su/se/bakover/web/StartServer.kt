@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -179,6 +180,10 @@ fun Application.susebakover(
     ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
+    val beregningStrategyFactory = BeregningStrategyFactory(
+        clock = clock,
+        satsFactory = satsFactoryIDag,
+    )
     tilbakekrevingskomponenter(
         clock,
         databaseRepos.sessionFactory,
@@ -201,6 +206,7 @@ fun Application.susebakover(
             accessCheckProxy = accessCheckProxy,
             clients = clients,
             formuegrenserFactoryIDag = formuegrenserFactoryIDag,
+            beregningStrategyFactory = beregningStrategyFactory,
             databaseRepos = databaseRepos,
             extraRoutes = extraRoutes,
             tilbakekrevingskomponenter = it,

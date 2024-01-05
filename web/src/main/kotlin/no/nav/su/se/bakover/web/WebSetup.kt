@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -51,6 +52,7 @@ internal fun Application.setupKtor(
     applicationConfig: ApplicationConfig,
     accessCheckProxy: AccessCheckProxy,
     formuegrenserFactoryIDag: FormuegrenserFactory,
+    beregningStrategyFactory: BeregningStrategyFactory,
     databaseRepos: DatabaseRepos,
     clients: Clients,
     extraRoutes: Route.(services: Services) -> Unit,
@@ -80,6 +82,7 @@ internal fun Application.setupKtor(
         extraRoutes = extraRoutes,
         azureGroupMapper = azureGroupMapper,
         formuegrenserFactoryIDag = formuegrenserFactoryIDag,
+        beregningStrategyFactory = beregningStrategyFactory,
         databaseRepos = databaseRepos,
         clients = clients,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,

@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -17,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -162,5 +167,24 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
 
         override val beregning = null
         override fun erÅpen() = false
+
+        /**
+         * @return null dersom man kaller denne for en alderssak.
+         * @throws IllegalStateException Dersom søknadsbehandlingen mangler uføregrunnlag. Dette skal ikke skje. Initen skal også verifisere dette.
+         *
+         * Se også tilsvarende implementasjon for søknadsbehandling: [no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling.Innvilget.hentUføregrunnlag]
+         */
+        fun hentUføregrunnlag(): NonEmptyList<Uføregrunnlag>? {
+            return when (this.sakstype) {
+                Sakstype.ALDER -> null
+
+                Sakstype.UFØRE -> {
+                    this.vilkårsvurderinger.uføreVilkår()
+                        .getOrElse { throw IllegalStateException("Revurdering uføre: ${this.id} mangler uføregrunnlag") }
+                        .grunnlag
+                        .toNonEmptyList()
+                }
+            }
+        }
     }
 }

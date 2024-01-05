@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":vedtak:domain"))
     implementation(project(":beregning"))
+    implementation(project(":satser"))
 }
 
 tasks.named<Jar>("jar") {

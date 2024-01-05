@@ -10,7 +10,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.hentBeregningForGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
@@ -45,6 +47,7 @@ class ResendUtbetalingService(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val serviceUser: String,
+    private val beregningStrategyFactory: BeregningStrategyFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -103,6 +106,18 @@ class ResendUtbetalingService(
 
         val nyUtbetaling: Utbetaling.UtbetalingForSimulering = lagNyUtbetaling(vedtak, utbetalingId, sak)
             .getOrElse { return it.left() }
+
+        if (utbetaling.bruttoBeløp() != nyUtbetaling.bruttoBeløp()) {
+            return KunneIkkeSendeUtbetalingPåNytt.BruttobeløpHarForandretSeg(
+                utbetalingId = utbetalingId,
+                sakId = sak.id,
+                vedtakId = vedtak.id,
+                tidligere = utbetaling.bruttoBeløp(),
+                nå = nyUtbetaling.bruttoBeløp(),
+            ).also {
+                log.error("Resend utbetaling: Bruttobeløp har forandret seg fra ${utbetaling.bruttoBeløp()} til ${nyUtbetaling.bruttoBeløp()}. Sak ${sak.id} og vedtakId ${vedtak.id}")
+            }.left()
+        }
 
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).getOrElse {
             log.error("Resend utbetaling: Kunne ikke simulere utbetalingen for sak ${sak.id} og utbetalingId $utbetalingId. Underliggende grunn: $it")
@@ -180,13 +195,21 @@ class ResendUtbetalingService(
                 ).right()
             }
 
-            is VedtakGjenopptakAvYtelse -> KunneIkkeSendeUtbetalingPåNytt.IkkeStøtteForGjenopptak(
-                utbetalingId,
-                sak.id,
-                vedtak.id,
-            ).also {
-                log.error("Resend utbetaling: Gjenopptak av ytelse er ikke støttet for sak ${sak.id} og utbetalingId $utbetalingId og vedtakId ${vedtak.id}")
-            }.left()
+            is VedtakGjenopptakAvYtelse -> {
+                sak.lagNyUtbetaling(
+                    saksbehandler = NavIdentBruker.Attestant(serviceUser),
+                    // IverksattGjenopptakAvYtelse (behandling) kopierer ikke med seg beregning, her må vi hente vedtaket før stansen.
+                    beregning = sak.hentBeregningForGjenopptakAvYtelse(
+                        vedtakId = vedtak.id,
+                        begrunnelse = "Resendt utbetaling",
+                        beregningStrategyFactory = beregningStrategyFactory,
+                        clock = clock,
+                    ),
+                    clock = clock,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    uføregrunnlag = vedtak.behandling.hentUføregrunnlag(),
+                ).right()
+            }
 
             is VedtakInnvilgetRegulering -> KunneIkkeSendeUtbetalingPåNytt.IkkeStøtteForRegulering(
                 utbetalingId,
@@ -289,17 +312,15 @@ sealed interface KunneIkkeSendeUtbetalingPåNytt {
         override fun feilMelding() = "$utbetalingId - Stans av ytelse er ikke støttet. Sak $sakId og vedtakId $vedtakId"
     }
 
-    /**
-     * TODO jah: Dette må vi støtte snarest, men vi fikser søknadsbehandlingene+revurderingene først.
-     *  Vi har lagt inn en del regler i koden som gjør at vi ikke kan ha 2 gjenopptak på rad. Men vi kan revurdere den.
-     */
-    data class IkkeStøtteForGjenopptak(
+    data class BruttobeløpHarForandretSeg(
         override val utbetalingId: UUID30,
         val sakId: UUID,
         val vedtakId: UUID,
+        val tidligere: Int,
+        val nå: Int,
     ) : KunneIkkeSendeUtbetalingPåNytt {
         override fun feilMelding() =
-            "$utbetalingId - Gjenopptak av ytelse er ikke støttet. Sak $sakId og vedtakId $vedtakId"
+            "$utbetalingId - Bruttobeløp har forandret seg fra $tidligere til $nå. Sak $sakId og vedtakId $vedtakId"
     }
 
     data class UkjentFeil(
