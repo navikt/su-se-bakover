@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførJs
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførendeEnhet
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalpostDokument
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.Kanal
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søkersNavn
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.tilBruker
 
@@ -33,7 +32,7 @@ internal class JournalførSøknadHttpClient(private val client: JournalførHttpC
                 kanal = Kanal.INNSENDT_NAV_ANSATT.value,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.AUTOMATISK.enhet,
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString(), navn = søkersNavn(command.navn)),
+                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()),
                 bruker = command.fnr.tilBruker(),
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(

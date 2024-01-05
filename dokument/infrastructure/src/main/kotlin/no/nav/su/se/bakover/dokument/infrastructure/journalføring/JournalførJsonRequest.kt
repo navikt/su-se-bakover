@@ -53,7 +53,6 @@ data class JournalpostDokument(
 data class AvsenderMottaker(
     val id: String,
     val idType: String = "FNR",
-    val navn: String,
 )
 
 data class Bruker(

@@ -27,8 +27,7 @@ internal class JournalførHttpClientTest {
                       "journalfoerendeEnhet": "journalfoerendeEnhet",
                       "avsenderMottaker": {
                         "id": "id",
-                        "idType": "FNR",
-                        "navn": "navn"
+                        "idType": "FNR"
                       },
                       "bruker": {
                         "id": "id",
@@ -117,7 +116,7 @@ internal class JournalførHttpClientTest {
         kanal = "kanal",
         behandlingstema = "behandlingstema",
         journalfoerendeEnhet = "journalfoerendeEnhet",
-        avsenderMottaker = AvsenderMottaker(id = "id", navn = "navn"),
+        avsenderMottaker = AvsenderMottaker(id = "id"),
         bruker = Bruker(id = "id", idType = "idType"),
         sak = Fagsak(
             fagsakId = "fagsakId",

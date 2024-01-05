@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførHt
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførJsonRequest
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførendeEnhet
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalpostDokument
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søkersNavn
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.journalføring.tilBruker
 
@@ -26,7 +25,7 @@ internal class JournalførBrevHttpClient(private val client: JournalførHttpClie
                 kanal = null,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString(), navn = søkersNavn(command.navn)),
+                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()),
                 bruker = command.fnr.tilBruker(),
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(

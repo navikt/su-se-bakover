@@ -67,7 +67,7 @@ internal class JournalførBrevHttpClientTest {
                     kanal = null,
                     behandlingstema = "ab0431",
                     journalfoerendeEnhet = "4815",
-                    avsenderMottaker = AvsenderMottaker(id = fnr.toString(), navn = "Testesen, Test T."),
+                    avsenderMottaker = AvsenderMottaker(id = fnr.toString()),
                     bruker = Bruker(id = fnr.toString()),
                     sak = Fagsak(saksnummer.toString()),
                     dokumenter = listOf(
