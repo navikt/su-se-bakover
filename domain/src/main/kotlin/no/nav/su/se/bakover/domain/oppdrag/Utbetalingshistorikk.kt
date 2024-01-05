@@ -25,6 +25,7 @@ class Utbetalingshistorikk(
     val eksisterendeUtbetalinger: Utbetalinger,
     private val nesteUtbetalingstidspunkt: () -> Tidspunkt,
     private val rekkefølgeGenerator: RekkefølgeGenerator,
+    val aksepterKvitteringMedFeil: Boolean = false,
 ) {
     private val rekonstruerEtterDato = rekonstruerEksisterendeUtbetalingerEtterDato()
     private val minimumFraOgMedForRekonstruerteLinjer = minumumFraOgMedDatoForRekonstruerteLinjer()
@@ -33,7 +34,11 @@ class Utbetalingshistorikk(
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
         nyeUtbetalingslinjer.sjekkUnikOpprettet()
         nyeUtbetalingslinjer.sjekkSortering()
-        eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        if (aksepterKvitteringMedFeil) {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+        } else {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
     }
 
     fun generer(): List<Utbetalingslinje> {

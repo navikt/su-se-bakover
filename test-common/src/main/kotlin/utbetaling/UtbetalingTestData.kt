@@ -53,6 +53,7 @@ fun nyUtbetalingForSimulering(
     sakOgBehandling: Pair<Sak, Stønadsbehandling>,
     beregning: Beregning,
     clock: Clock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return sakOgBehandling.let { (sak, behandling) ->
         when (sak.type) {
@@ -67,6 +68,7 @@ fun nyUtbetalingForSimulering(
                     beregning = beregning,
                     clock = clock,
                     kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
                 ).generate()
             }
 
@@ -82,6 +84,7 @@ fun nyUtbetalingForSimulering(
                     clock = clock,
                     uføregrunnlag = behandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                     kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
                 ).generate()
             }
         }
@@ -92,12 +95,14 @@ fun nyUtbetalingSimulert(
     sakOgBehandling: Pair<Sak, Stønadsbehandling>,
     beregning: Beregning,
     clock: Clock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.SimulertUtbetaling {
     return sakOgBehandling.let { (sak, _) ->
         nyUtbetalingForSimulering(
             sakOgBehandling = sakOgBehandling,
             beregning = beregning,
             clock = clock,
+            aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
         ).let {
             it.toSimulertUtbetaling(
                 simulerNyUtbetaling(

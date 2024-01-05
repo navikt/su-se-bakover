@@ -390,6 +390,7 @@ fun utbetalingForSimulering(
             forventetInntekt = 0,
         ),
     ),
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetalingsstrategi.NyUføreUtbetaling(
         sakId = sakId,
@@ -402,6 +403,7 @@ fun utbetalingForSimulering(
         uføregrunnlag = uføregrunnlag,
         kjøreplan = kjøreplan,
         sakstype = sakstype,
+        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
     ).generate()
 }
 
@@ -412,6 +414,7 @@ fun simuleringOpphørt(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Simulering {
     return Utbetalingsstrategi.Opphør(
         sakId = sakId,
@@ -423,6 +426,7 @@ fun simuleringOpphørt(
         periode = opphørsperiode,
         // TODO("simulering_utbetaling_alder utled fra sak/behandling")
         sakstype = Sakstype.UFØRE,
+        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
     ).generate().let {
         SimuleringStub(
             // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,

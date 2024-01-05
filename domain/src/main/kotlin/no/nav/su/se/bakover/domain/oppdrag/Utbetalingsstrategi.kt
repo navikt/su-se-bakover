@@ -91,10 +91,15 @@ sealed class Utbetalingsstrategi {
         override val sakstype: Sakstype,
         val stansDato: LocalDate,
         val clock: Clock,
+        val aksepterKvitteringMedFeil: Boolean = false,
     ) : Utbetalingsstrategi() {
 
         init {
-            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            if (aksepterKvitteringMedFeil) {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            }
         }
 
         fun generer(): Either<KunneIkkeGenerereUtbetalingsstrategiForStans, Utbetaling.UtbetalingForSimulering> {
@@ -173,10 +178,10 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
 
         init {
-            if (!aksepterKvitteringMedFeil) {
-                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
-            } else {
+            if (aksepterKvitteringMedFeil) {
                 eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
             }
         }
 
@@ -215,6 +220,7 @@ sealed class Utbetalingsstrategi {
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
+                    aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -293,10 +299,10 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
 
         init {
-            if (!aksepterKvitteringMedFeil) {
-                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
-            } else {
+            if (aksepterKvitteringMedFeil) {
                 eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
             }
         }
 
@@ -330,6 +336,7 @@ sealed class Utbetalingsstrategi {
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
+                    aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
                 ).generer().toNonEmptyList(),
                 fnr = fnr,
                 behandler = behandler,
@@ -356,10 +363,10 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
 
         init {
-            if (!aksepterKvitteringMedFeil) {
-                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
-            } else {
+            if (aksepterKvitteringMedFeil) {
                 eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
             }
         }
 
@@ -389,6 +396,7 @@ sealed class Utbetalingsstrategi {
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
+                    aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -409,10 +417,15 @@ sealed class Utbetalingsstrategi {
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val clock: Clock,
+        val aksepterKvitteringMedFeil: Boolean = false,
     ) : Utbetalingsstrategi() {
 
         init {
-            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            if (aksepterKvitteringMedFeil) {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterte()
+            } else {
+                eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+            }
         }
 
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {

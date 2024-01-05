@@ -22,6 +22,7 @@ fun Sak.lagUtbetalingForStans(
     stansdato: LocalDate,
     behandler: NavIdentBruker,
     clock: Clock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Either<KunneIkkeGenerereUtbetalingsstrategiForStans, Utbetaling.UtbetalingForSimulering> {
     return Utbetalingsstrategi.Stans(
         sakId = id,
@@ -32,12 +33,14 @@ fun Sak.lagUtbetalingForStans(
         stansDato = stansdato,
         clock = clock,
         sakstype = type,
+        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
     ).generer()
 }
 
 fun Sak.lagUtbetalingForGjenopptak(
     saksbehandler: NavIdentBruker,
     clock: Clock,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Either<Utbetalingsstrategi.Gjenoppta.Feil, Utbetaling.UtbetalingForSimulering> {
     return Utbetalingsstrategi.Gjenoppta(
         sakId = id,
@@ -47,6 +50,7 @@ fun Sak.lagUtbetalingForGjenopptak(
         behandler = saksbehandler,
         clock = clock,
         sakstype = type,
+        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
     ).generer()
 }
 

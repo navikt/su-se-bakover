@@ -24,10 +24,17 @@ import java.util.UUID
  */
 fun utbetalinger(
     vararg utbetalinger: Utbetaling,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     return Utbetalinger(
         utbetalinger = utbetalinger.toList(),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
 
 /**
@@ -38,10 +45,20 @@ fun utbetalinger(
     clock: Clock = TikkendeKlokke(),
     utbetalingslinje: Utbetalingslinje,
     vararg utbetalingslinjer: Utbetalingslinje,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     return Utbetalinger(
-        oversendtUtbetalingMedKvittering(clock = clock, utbetalingslinjer = nonEmptyListOf(utbetalingslinje, *utbetalingslinjer)),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+        oversendtUtbetalingMedKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(utbetalingslinje, *utbetalingslinjer),
+        ),
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
 
 /**
@@ -56,6 +73,7 @@ fun utbetalingerNy(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     periode: Periode = år(2021),
     beløp: Int = 5000,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     return Utbetalinger(
         utbetalinger = nonEmptyListOf(
@@ -75,7 +93,13 @@ fun utbetalingerNy(
                 ),
             ),
         ),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
 
 /**
@@ -91,6 +115,7 @@ fun utbetalingerOpphør(
     nyPeriode: Periode = år(2021),
     opphørsperiode: Periode = nyPeriode,
     beløp: Int = 5000,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     val første = utbetalingslinjeNy(
         id = id,
@@ -116,7 +141,13 @@ fun utbetalingerOpphør(
                 ),
             ),
         ),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
 
 /**
@@ -132,6 +163,7 @@ fun utbetalingerStans(
     nyPeriode: Periode = år(2021),
     stansFraOgMed: LocalDate = nyPeriode.fraOgMed,
     beløp: Int = 5000,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     val første = utbetalingslinjeNy(
         id = id,
@@ -157,7 +189,13 @@ fun utbetalingerStans(
                 ),
             ),
         ),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
 
 /**
@@ -174,6 +212,7 @@ fun utbetalingerReaktivering(
     stansFraOgMed: LocalDate = nyPeriode.fraOgMed,
     reaktiveringFraOgMed: LocalDate = stansFraOgMed,
     beløp: Int = 5000,
+    aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetalinger {
     val første = utbetalingslinjeNy(
         id = id,
@@ -206,5 +245,11 @@ fun utbetalingerReaktivering(
                 ),
             ),
         ),
-    ).also { it.kastHvisIkkeAlleErKvitterteUtenFeil() }
+    ).also {
+        if (aksepterKvitteringMedFeil) {
+            it.kastHvisIkkeAlleErKvitterte()
+        } else {
+            it.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+    }
 }
