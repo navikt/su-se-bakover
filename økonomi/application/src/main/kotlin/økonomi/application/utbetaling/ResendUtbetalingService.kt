@@ -109,7 +109,7 @@ class ResendUtbetalingService(
                     throw KunneIkkeKlaregjøreUtbetaling()
                 }
                 // Knytter den nye utbetalingen til det eksisterende vedtaket. Den forrige utbetalingen vil nå bli en stray.
-                vedtakRepo.oppdaterUtbetalingId(vedtak.id, response.utbetaling.id)
+                vedtakRepo.oppdaterUtbetalingId(vedtak.id, response.utbetaling.id, tx)
                 // Oversender til oppdrag. Dette bør være det siste som skjer i transaksjonen.
                 response.sendUtbetaling()
                 response.utbetaling
