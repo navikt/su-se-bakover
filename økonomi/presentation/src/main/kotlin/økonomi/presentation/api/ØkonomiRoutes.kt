@@ -43,8 +43,8 @@ fun Route.økonomiRoutes(
                     }
                 }.let {
                     Response(
-                        success = it.filterIsInstance<Either.Left<ResponseSuccess>>().map { it.value },
-                        failed = it.filterIsInstance<Either.Right<ResponseError>>().map { it.value },
+                        success = it.filterIsInstance<Either.Right<ResponseSuccess>>().map { it.value },
+                        failed = it.filterIsInstance<Either.Left<ResponseError>>().map { it.value },
                     )
                 }
                 call.svar(
