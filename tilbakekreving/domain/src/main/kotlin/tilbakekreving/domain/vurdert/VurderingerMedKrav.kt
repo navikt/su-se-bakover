@@ -1,6 +1,9 @@
 package tilbakekreving.domain.vurdert
 
+import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
@@ -43,7 +46,14 @@ data class VurderingerMedKrav private constructor(
         fun utledFra(
             vurderinger: Vurderinger,
             kravgrunnlag: Kravgrunnlag,
-        ): VurderingerMedKrav {
+        ): Either<KunneIkkeVurdereTilbakekrevingsbehandling, VurderingerMedKrav> {
+            val perioderIKragrunnlaget = kravgrunnlag.grunnlagsperioder.map { it.periode }
+            val perioderIVurderingene = vurderinger.perioder.map { it.periode }
+
+            if (perioderIKragrunnlaget != perioderIVurderingene) {
+                return KunneIkkeVurdereTilbakekrevingsbehandling.VurderingeneStemmerIkkeOverensMedKravgrunnlaget.left()
+            }
+
             val perioder: Nel<PeriodevurderingMedKrav> = vurderinger.map {
                 val kravgrunnlagsperiode = kravgrunnlag.forPeriode(it.periode)!!
                 when (it.vurdering) {
@@ -82,8 +92,7 @@ data class VurderingerMedKrav private constructor(
                 betaltSkattForYtelsesgruppenSummert = perioder.sumOf { it.betaltSkattForYtelsesgruppen },
                 bruttoNyUtbetalingSummert = perioder.sumOf { it.bruttoNyUtbetaling },
                 bruttoTidligereUtbetaltSummert = perioder.sumOf { it.bruttoTidligereUtbetalt },
-
-            )
+            ).right()
         }
 
         /**

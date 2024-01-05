@@ -23,3 +23,8 @@ internal val kravgrunnlagetHarEndretSeg = HttpStatusCode.BadRequest.errorJson(
     "Kravgrunnlaget har endret seg siden behandlingen ble opprettet. Kravgrunnlaget må oppdateres på behandlingen.",
     "kravgrunnlaget_har_endret_seg",
 )
+
+internal val periodeneIKravgrunnlagetSamsvarerIkkeMedVurderingene = HttpStatusCode.BadRequest.errorJson(
+    "Periodene i kravgrunnlaget samsvarer ikke med periodene i vurderingene",
+    "kravgrunnlag_samsvarer_ikke_med_vurderinger",
+)

@@ -35,6 +35,7 @@ import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Comp
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.kravgrunnlagetHarEndretSeg
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
+import tilbakekreving.presentation.api.common.periodeneIKravgrunnlagetSamsvarerIkkeMedVurderingene
 import java.util.UUID
 
 private data class Body(
@@ -133,4 +134,5 @@ private fun KunneIkkeVurdereTilbakekrevingsbehandling.tilResultat(): Resultat = 
     is KunneIkkeVurdereTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeVurdereTilbakekrevingsbehandling.UlikVersjon -> Feilresponser.utdatertVersjon
     KunneIkkeVurdereTilbakekrevingsbehandling.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
+    KunneIkkeVurdereTilbakekrevingsbehandling.VurderingeneStemmerIkkeOverensMedKravgrunnlaget -> periodeneIKravgrunnlagetSamsvarerIkkeMedVurderingene
 }

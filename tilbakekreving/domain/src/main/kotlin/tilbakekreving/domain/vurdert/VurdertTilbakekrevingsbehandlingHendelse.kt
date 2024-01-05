@@ -3,11 +3,16 @@
 
 package tilbakekreving.domain
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdert.VurderCommand
 import tilbakekreving.domain.vurdert.VurderingerMedKrav
 import java.time.Clock
@@ -36,6 +41,7 @@ data class VurdertTilbakekrevingsbehandlingHendelse(
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
             )
+
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             is TilbakekrevingsbehandlingTilAttestering,
@@ -49,7 +55,7 @@ fun KanVurdere.leggTilVurdering(
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-): Pair<VurdertTilbakekrevingsbehandlingHendelse, UnderBehandling> {
+): Either<KunneIkkeVurdereTilbakekrevingsbehandling, Pair<VurdertTilbakekrevingsbehandlingHendelse, UnderBehandling>> {
     val hendelse = VurdertTilbakekrevingsbehandlingHendelse(
         hendelseId = HendelseId.generer(),
         sakId = command.sakId,
@@ -58,7 +64,8 @@ fun KanVurdere.leggTilVurdering(
         tidligereHendelseId = tidligereHendelsesId,
         id = command.behandlingsId,
         utførtAv = command.utførtAv,
-        vurderingerMedKrav = VurderingerMedKrav.utledFra(command.vurderinger, this.kravgrunnlag),
+        vurderingerMedKrav = VurderingerMedKrav.utledFra(command.vurderinger, this.kravgrunnlag)
+            .getOrElse { return it.left() },
     )
-    return hendelse to hendelse.applyToState(this)
+    return (hendelse to hendelse.applyToState(this)).right()
 }

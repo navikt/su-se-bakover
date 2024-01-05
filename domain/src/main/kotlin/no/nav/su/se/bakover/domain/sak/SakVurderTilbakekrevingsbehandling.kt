@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
@@ -37,7 +36,7 @@ fun Sak.vurderTilbakekrevingsbehandling(
         tidligereHendelsesId = behandling.hendelseId,
         nesteVersjon = this.versjon.inc(),
         clock = clock,
-    ).right()
+    )
 }
 
 fun Sak.oppdaterVedtaksbrev(

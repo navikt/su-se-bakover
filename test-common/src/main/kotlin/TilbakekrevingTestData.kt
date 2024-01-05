@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
@@ -157,18 +158,11 @@ fun nyVurdertTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         behandler = utførtAv.toString(),
     ),
-    vurderinger: Vurderinger = Vurderinger(
-        nonEmptyListOf(
-            Vurderinger.Periodevurdering(
-                periode = januar(2021),
-                vurdering = Vurdering.SkalTilbakekreve,
-            ),
-        ),
-    ),
+    vurderinger: Vurderinger = nyVurderinger(),
     vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
         vurderinger,
         kravgrunnlag,
-    ),
+    ).getOrFail(),
 ): VurdertTilbakekrevingsbehandlingHendelse = VurdertTilbakekrevingsbehandlingHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
@@ -197,18 +191,11 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         behandler = utførtAv.toString(),
     ),
-    vurderinger: Vurderinger = Vurderinger(
-        nonEmptyListOf(
-            Vurderinger.Periodevurdering(
-                periode = januar(2021),
-                vurdering = Vurdering.SkalTilbakekreve,
-            ),
-        ),
-    ),
+    vurderinger: Vurderinger = nyVurderinger(),
     vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
         vurderinger,
         kravgrunnlag,
-    ),
+    ).getOrFail(),
     forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
         sakId = sakId,
         behandlingId = behandlingId,
@@ -252,18 +239,11 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         behandler = utførtAv.toString(),
     ),
-    vurderinger: Vurderinger = Vurderinger(
-        nonEmptyListOf(
-            Vurderinger.Periodevurdering(
-                periode = januar(2021),
-                vurdering = Vurdering.SkalTilbakekreve,
-            ),
-        ),
-    ),
+    vurderinger: Vurderinger = nyVurderinger(),
     vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
         vurderinger,
         kravgrunnlag,
-    ),
+    ).getOrFail(),
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
@@ -307,18 +287,11 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
         behandler = utførtAv.toString(),
     ),
-    vurderinger: Vurderinger = Vurderinger(
-        nonEmptyListOf(
-            Vurderinger.Periodevurdering(
-                periode = januar(2021),
-                vurdering = Vurdering.SkalTilbakekreve,
-            ),
-        ),
-    ),
+    vurderinger: Vurderinger = nyVurderinger(),
     vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
         vurderinger,
         kravgrunnlag,
-    ),
+    ).getOrFail(),
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
         fritekst = "fritekst",
     ),
@@ -366,3 +339,12 @@ fun nyAvbruttTilbakekrevingsbehandlingHendelse(
     utførtAv = utførtAv,
     begrunnelse = "Avbrutt av TilbakekrevingTestData.kt",
 )
+
+fun nyVurderinger(
+    perioderVurderinger: Nel<Vurderinger.Periodevurdering> = nonEmptyListOf(
+        Vurderinger.Periodevurdering(
+            periode = januar(2021),
+            vurdering = Vurdering.SkalTilbakekreve,
+        ),
+    ),
+): Vurderinger = Vurderinger(perioderVurderinger)

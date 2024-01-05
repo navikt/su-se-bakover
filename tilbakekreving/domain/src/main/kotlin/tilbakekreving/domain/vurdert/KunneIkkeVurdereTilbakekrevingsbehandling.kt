@@ -11,4 +11,6 @@ sealed interface KunneIkkeVurdereTilbakekrevingsbehandling {
      * Saksbehandler må da oppdatere kravgrunnlaget.
      */
     data object KravgrunnlagetHarEndretSeg : KunneIkkeVurdereTilbakekrevingsbehandling
+
+    data object VurderingeneStemmerIkkeOverensMedKravgrunnlaget : KunneIkkeVurdereTilbakekrevingsbehandling
 }
