@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -33,7 +34,6 @@ import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
 import java.util.UUID
 
-// TODO jah: Vi må ta stilling til om vi skal sende brev eller ikke.
 private data class BrevtekstBody(
     val versjon: Long,
     val brevtekst: String?,
@@ -48,16 +48,24 @@ private data class BrevtekstBody(
         val validatedBrukerroller = Either.catch { brukerroller.toNonEmptyList() }.getOrElse {
             return manglerBrukkerroller.left()
         }
-
+        val brevvalg = when (brevtekst) {
+            null -> Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev()
+            else -> {
+                if (brevtekst.isBlank()) {
+                    return HttpStatusCode.BadRequest.errorJson(
+                        message = "Må fylle ut minst et tegn i fritekstfeltet",
+                        code = "mangler_fritekst",
+                    ).left()
+                }
+                Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+                    fritekst = brevtekst,
+                )
+            }
+        }
         return OppdaterVedtaksbrevCommand(
             sakId = sakId,
             behandlingId = TilbakekrevingsbehandlingId(value = behandlingsId),
-            brevvalg = when (brevtekst) {
-                null -> Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev()
-                else -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
-                    fritekst = brevtekst,
-                )
-            },
+            brevvalg = brevvalg,
             utførtAv = utførtAv,
             correlationId = correlationId,
             brukerroller = validatedBrukerroller,

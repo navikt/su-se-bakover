@@ -13,7 +13,6 @@ internal val manglerBrukkerroller = HttpStatusCode.InternalServerError.errorJson
     code = "mangler_brukerroller",
 )
 
-// TODO jah: flytt til person infra/presentation
 internal val ikkeTilgangTilSak = HttpStatusCode.Forbidden.errorJson(
     "Ikke tilgang til sak",
     "ikke_tilgang_til_sak",
