@@ -100,7 +100,7 @@ data class KravgrunnlagDto(
     /**
      * 6 - Dato-vedtak-fagsystem - X(08) - Dette er fagsystemets vedtak for vedtaket
      *
-     * TODO jah: Finn ut om dette feltet inngår i meldingen.
+     * Vi har ikke sett dette feltet i prod eller preprod på NYTT/ENDR/SPER/AVSL-meldinger. Antageligvis dukker ikke denne opp før vi har sendt vedtaket til tilbakekrevingskomponenten. Vi mottar ingen hendelse på at vi har vedtatt (annet enn svaret fra SOAP-kallet).
      */
     @field:JsonProperty(value = "datoVedtakFagsystem")
     val datoVedtakFagsystem: String?,
@@ -148,7 +148,7 @@ data class KravgrunnlagDto(
     /**
      * 12 - Kode-hjemmel - X(20) - Lovhjemmel for tilbakekrevingsvedtaket
      *
-     * TODO jah: Finn ut om dette feltet inngår i meldingen.
+     * Vi har ikke sett dette feltet i prod eller preprod på NYTT/ENDR/SPER/AVSL-meldinger.
      */
     @field:JsonProperty(value = "kodeHjemmel")
     val kodeHjemmel: String?,
@@ -156,7 +156,7 @@ data class KravgrunnlagDto(
     /**
      * 13 - Renter-beregnes - X(01) - 'J' dersom det skal beregnes renter på kravet (red. anm.: antar det er 'N' i de andre tilfellene)
      *
-     * TODO jah: Finn ut om dette feltet inngår i meldingen.
+     * Vi har ikke sett dette feltet i prod eller preprod på NYTT/ENDR/SPER/AVSL-meldinger.
      */
     @field:JsonProperty(value = "renterBeregnes")
     val renterBeregnes: String?,
