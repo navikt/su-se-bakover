@@ -7,8 +7,8 @@ import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.Tilbakekrevingsbelo
 import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.TilbakekrevingsperiodeDto
 import no.nav.tilbakekreving.tilbakekrevingsvedtak.vedtak.v1.TilbakekrevingsvedtakDto
 import no.nav.tilbakekreving.typer.v1.PeriodeDto
-import tilbakekreving.domain.vurdert.PeriodevurderingMedKrav
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.xml.datatype.DatatypeFactory

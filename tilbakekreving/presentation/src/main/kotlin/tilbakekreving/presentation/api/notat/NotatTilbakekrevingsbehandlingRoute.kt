@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.notat.KunneIkkeLagreNotat
+import tilbakekreving.domain.notat.KunneIkkeOppdatereNotat
 import tilbakekreving.domain.notat.OppdaterNotatCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
@@ -57,6 +57,6 @@ internal fun Route.notatTilbakekrevingsbehandlingRoute(
     }
 }
 
-internal fun KunneIkkeLagreNotat.tilResultat(): Resultat = when (this) {
-    is KunneIkkeLagreNotat.IkkeTilgang -> ikkeTilgangTilSak
+internal fun KunneIkkeOppdatereNotat.tilResultat(): Resultat = when (this) {
+    is KunneIkkeOppdatereNotat.IkkeTilgang -> ikkeTilgangTilSak
 }

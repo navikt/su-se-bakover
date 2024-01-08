@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.vurderTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderBehandling
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.VurderCommand
+import tilbakekreving.domain.vurdering.KunneIkkeVurdereTilbakekrevingsbehandling
+import tilbakekreving.domain.vurdering.VurderCommand
 import java.time.Clock
 
 class MånedsvurderingerTilbakekrevingsbehandlingService(

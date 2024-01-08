@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.iverksett.KunneIkkeSendeTilbakekrevingsvedtak
-import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
 import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vedtak.KunneIkkeSendeTilbakekrevingsvedtak
+import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.time.Clock
 
 class TilbakekrevingSoapClient(

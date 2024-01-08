@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.vurdert.ForhåndsvisVedtaksbrevCommand
-import tilbakekreving.domain.vurdert.KunneIkkeForhåndsviseVedtaksbrev
+import tilbakekreving.domain.vedtaksbrev.ForhåndsvisVedtaksbrevCommand
+import tilbakekreving.domain.vedtaksbrev.KunneIkkeForhåndsviseVedtaksbrev
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 

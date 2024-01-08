@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.underkjent.KunneIkkeUnderkjenne
-import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
-import tilbakekreving.domain.underkjent.UnderkjennTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.underkjennelse.KunneIkkeUnderkjenne
+import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
+import tilbakekreving.domain.underkjennelse.UnderkjennTilbakekrevingsbehandlingCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak

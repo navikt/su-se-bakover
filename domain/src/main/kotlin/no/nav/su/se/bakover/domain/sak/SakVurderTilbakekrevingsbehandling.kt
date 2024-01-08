@@ -5,7 +5,7 @@ import arrow.core.left
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.KanLeggeTilBrev
+import tilbakekreving.domain.KanOppdatereVedtaksbrev
 import tilbakekreving.domain.KanVurdere
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
@@ -13,9 +13,9 @@ import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.leggTilBrevtekst
 import tilbakekreving.domain.leggTilVurdering
-import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
-import tilbakekreving.domain.vurdert.VurderCommand
+import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
+import tilbakekreving.domain.vurdering.KunneIkkeVurdereTilbakekrevingsbehandling
+import tilbakekreving.domain.vurdering.VurderCommand
 import java.time.Clock
 
 private val log = LoggerFactory.getLogger("SakVurderTilbakekrevingsbehandling.kt")
@@ -40,10 +40,10 @@ fun Sak.vurderTilbakekrevingsbehandling(
 }
 
 fun Sak.oppdaterVedtaksbrev(
-    command: OppdaterBrevtekstCommand,
+    command: OppdaterVedtaksbrevCommand,
     clock: Clock,
 ): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {
-    return (this.hentTilbakekrevingsbehandling(command.behandlingId) as? KanLeggeTilBrev)?.let { behandling ->
+    return (this.hentTilbakekrevingsbehandling(command.behandlingId) as? KanOppdatereVedtaksbrev)?.let { behandling ->
         behandling.leggTilBrevtekst(
             command = command,
             tidligereHendelsesId = behandling.hendelseId,

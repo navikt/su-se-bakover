@@ -7,9 +7,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.tilAttestering
 import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
 import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttesteringCommand

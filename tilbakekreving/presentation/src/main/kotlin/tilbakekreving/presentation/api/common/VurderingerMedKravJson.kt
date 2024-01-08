@@ -1,6 +1,6 @@
 package tilbakekreving.presentation.api.common
 
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 
 data class VurderingerMedKravJson(
     val perioder: List<VurderingMedKravForPeriodeJson>,

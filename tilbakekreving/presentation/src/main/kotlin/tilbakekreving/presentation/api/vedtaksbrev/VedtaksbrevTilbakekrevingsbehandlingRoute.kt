@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst
-import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
+import tilbakekreving.domain.vedtaksbrev.KunneIkkeOppdatereVedtaksbrev
+import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
@@ -44,12 +44,12 @@ private data class BrevtekstBody(
         utførtAv: NavIdentBruker.Saksbehandler,
         correlationId: CorrelationId,
         brukerroller: List<Brukerrolle>,
-    ): Either<Resultat, OppdaterBrevtekstCommand> {
+    ): Either<Resultat, OppdaterVedtaksbrevCommand> {
         val validatedBrukerroller = Either.catch { brukerroller.toNonEmptyList() }.getOrElse {
             return manglerBrukkerroller.left()
         }
 
-        return OppdaterBrevtekstCommand(
+        return OppdaterVedtaksbrevCommand(
             sakId = sakId,
             behandlingId = TilbakekrevingsbehandlingId(value = behandlingsId),
             brevvalg = when (brevtekst) {
@@ -97,7 +97,7 @@ internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
     }
 }
 
-internal fun KunneIkkeLagreBrevtekst.tilResultat(): Resultat = when (this) {
-    is KunneIkkeLagreBrevtekst.IkkeTilgang -> ikkeTilgangTilSak
-    KunneIkkeLagreBrevtekst.UlikVersjon -> Feilresponser.utdatertVersjon
+internal fun KunneIkkeOppdatereVedtaksbrev.tilResultat(): Resultat = when (this) {
+    is KunneIkkeOppdatereVedtaksbrev.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeOppdatereVedtaksbrev.UlikVersjon -> Feilresponser.utdatertVersjon
 }

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
-import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
+import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
 import java.util.UUID
 
 private data class UnderkjennHendelseDbJsonHendelseDbJson(

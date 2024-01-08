@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanEndres
-import tilbakekreving.domain.avbrutt.AvbrytTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.avbrutt.KunneIkkeAvbryte
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.avbrudd.AvbrytTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.avbrudd.KunneIkkeAvbryte
 import tilbakekreving.domain.avbryt
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 
 class AvbrytTilbakekrevingsbehandlingService(

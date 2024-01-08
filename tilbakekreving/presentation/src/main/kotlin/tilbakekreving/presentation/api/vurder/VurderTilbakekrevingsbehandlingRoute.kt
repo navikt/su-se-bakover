@@ -26,10 +26,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.VurderCommand
-import tilbakekreving.domain.vurdert.Vurdering
-import tilbakekreving.domain.vurdert.Vurderinger
+import tilbakekreving.domain.vurdering.KunneIkkeVurdereTilbakekrevingsbehandling
+import tilbakekreving.domain.vurdering.VurderCommand
+import tilbakekreving.domain.vurdering.Vurdering
+import tilbakekreving.domain.vurdering.Vurderinger
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak

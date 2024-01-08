@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 internal class ÅpneBehandlingerRepo(

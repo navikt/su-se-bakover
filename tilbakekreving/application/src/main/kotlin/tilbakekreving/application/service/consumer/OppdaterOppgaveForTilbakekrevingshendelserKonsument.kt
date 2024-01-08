@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingTilAttesteringHendelsestype
 import tilbakekreving.infrastructure.repo.UnderkjentTilbakekrevingsbehandlingHendelsestype

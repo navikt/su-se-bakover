@@ -7,12 +7,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
-import tilbakekreving.domain.KanLeggeTilNotat
+import tilbakekreving.domain.KanOppdatereNotat
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.leggTilNotat
-import tilbakekreving.domain.notat.KunneIkkeLagreNotat
+import tilbakekreving.domain.notat.KunneIkkeOppdatereNotat
 import tilbakekreving.domain.notat.OppdaterNotatCommand
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 
 class NotatTilbakekrevingsbehandlingService(
@@ -23,9 +23,9 @@ class NotatTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun lagreNotat(command: OppdaterNotatCommand): Either<KunneIkkeLagreNotat, UnderBehandling> {
+    fun lagreNotat(command: OppdaterNotatCommand): Either<KunneIkkeOppdatereNotat, UnderBehandling> {
         tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
-            return KunneIkkeLagreNotat.IkkeTilgang(it).left()
+            return KunneIkkeOppdatereNotat.IkkeTilgang(it).left()
         }
         val sak = sakService.hentSak(command.sakId).getOrElse {
             throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling ${command.behandlingId}, fant ikke sak ${command.sakId}")
@@ -38,7 +38,7 @@ class NotatTilbakekrevingsbehandlingService(
             sak.behandlinger.tilbakekrevinger.hent(command.behandlingId)
                 ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling (${command.behandlingId}). Fant ikke Tilbakekrevingsbehandling, sak ${command.sakId}")
             ).let {
-            it as? KanLeggeTilNotat
+            it as? KanOppdatereNotat
                 ?: throw IllegalStateException("Kunne ikke lagre notat for tilbakekrevingsbehandling (${command.behandlingId}), behandlingen er ikke i riktig tilstand. sak ${command.sakId}")
         }
 

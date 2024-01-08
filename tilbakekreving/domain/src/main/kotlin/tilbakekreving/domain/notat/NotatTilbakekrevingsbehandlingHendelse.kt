@@ -34,11 +34,9 @@ data class NotatTilbakekrevingsbehandlingHendelse(
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            // TODO jah: Opprettet kan godt implemente KanLeggeTilNotat
-            is OpprettetTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [TilAttestering, Avbrutt, Iverksatt,] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is KanLeggeTilNotat -> behandling.oppdaterNotat(
+            is KanOppdatereNotat -> behandling.oppdaterNotat(
                 notat = this.notat,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
@@ -47,7 +45,7 @@ data class NotatTilbakekrevingsbehandlingHendelse(
     }
 }
 
-fun KanLeggeTilNotat.leggTilNotat(
+fun KanOppdatereNotat.leggTilNotat(
     command: OppdaterNotatCommand,
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,

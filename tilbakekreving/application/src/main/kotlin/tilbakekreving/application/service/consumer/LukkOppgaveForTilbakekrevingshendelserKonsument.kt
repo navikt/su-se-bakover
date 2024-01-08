@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.AvbruttTilbakekrevingsbehandlingHendelsestype
 import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock

@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.vurdert.PeriodevurderingMedKrav
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID

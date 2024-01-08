@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
@@ -87,7 +87,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 nesteVersjon = nesteVersjon,
                 sakInfo = sak.info(),
                 correlationId = correlationId,
-                // TODO tilbakekreving jah: Sjekk om vi skal tilordne ressurs her.
                 tilordnetRessurs = relatertHendelse.utførtAv as NavIdentBruker.Saksbehandler,
             ).map {
                 sessionFactory.withTransactionContext { context ->

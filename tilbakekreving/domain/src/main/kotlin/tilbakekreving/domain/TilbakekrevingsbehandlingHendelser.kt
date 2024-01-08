@@ -4,9 +4,9 @@ import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentHendelser
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import tilbakekreving.domain.iverksett.VedtakTilbakekrevingsbehandling
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
+import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
 import java.time.Clock
 import java.util.UUID
 

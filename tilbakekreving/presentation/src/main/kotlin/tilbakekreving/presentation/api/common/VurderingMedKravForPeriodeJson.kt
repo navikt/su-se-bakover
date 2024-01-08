@@ -1,7 +1,7 @@
 package tilbakekreving.presentation.api.common
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import tilbakekreving.domain.vurdert.PeriodevurderingMedKrav
+import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
 
 data class VurderingMedKravForPeriodeJson(
     val periode: PeriodeJson,

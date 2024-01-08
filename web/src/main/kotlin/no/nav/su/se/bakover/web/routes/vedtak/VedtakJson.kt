@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
-import tilbakekreving.domain.iverksett.VedtakTilbakekrevingsbehandling
+import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 

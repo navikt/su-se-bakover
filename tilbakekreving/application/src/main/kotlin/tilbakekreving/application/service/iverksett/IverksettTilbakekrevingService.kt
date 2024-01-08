@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.iverksett
-import tilbakekreving.domain.iverksett.IverksattHendelseMetadata
-import tilbakekreving.domain.iverksett.IverksettTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.iverksett.KunneIkkeIverksette
-import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.iverksettelse.IverksattHendelseMetadata
+import tilbakekreving.domain.iverksettelse.IverksettTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.iverksettelse.KunneIkkeIverksette
+import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import java.time.Clock
 
 class IverksettTilbakekrevingService(

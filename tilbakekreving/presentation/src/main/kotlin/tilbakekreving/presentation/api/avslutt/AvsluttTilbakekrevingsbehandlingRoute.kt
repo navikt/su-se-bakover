@@ -22,8 +22,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.avbrutt.AvbrytTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.avbrutt.KunneIkkeAvbryte
+import tilbakekreving.domain.avbrudd.AvbrytTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.avbrudd.KunneIkkeAvbryte
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak

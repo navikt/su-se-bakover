@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.KanForhåndsvarsle
 import tilbakekreving.domain.Tilbakekrevingsbehandling
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
 import tilbakekreving.domain.leggTilForhåndsvarsel
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 
 class ForhåndsvarsleTilbakekrevingsbehandlingService(

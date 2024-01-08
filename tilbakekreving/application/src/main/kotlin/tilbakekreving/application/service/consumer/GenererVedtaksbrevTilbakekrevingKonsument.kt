@@ -29,8 +29,8 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
-import tilbakekreving.domain.forhåndsvarsel.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID

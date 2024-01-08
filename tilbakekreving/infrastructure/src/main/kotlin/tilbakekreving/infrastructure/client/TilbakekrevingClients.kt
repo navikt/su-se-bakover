@@ -1,7 +1,7 @@
 package tilbakekreving.infrastructure.client
 
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
-import tilbakekreving.domain.iverksett.Tilbakekrevingsklient
+import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import java.time.Clock
 
 class TilbakekrevingClients(

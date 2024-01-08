@@ -7,12 +7,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.underkjenn
-import tilbakekreving.domain.underkjent.KunneIkkeUnderkjenne
-import tilbakekreving.domain.underkjent.UnderkjennTilbakekrevingsbehandlingCommand
+import tilbakekreving.domain.underkjennelse.KunneIkkeUnderkjenne
+import tilbakekreving.domain.underkjennelse.UnderkjennTilbakekrevingsbehandlingCommand
 import java.time.Clock
 
 class UnderkjennTilbakekrevingsbehandlingService(

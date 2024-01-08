@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.util.UUID
 
 /**

@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
-import tilbakekreving.domain.underkjent.UnderkjennAttesteringsgrunnTilbakekreving
+import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
 
 internal fun AppComponents.underkjennTilbakekrevingsbehandling(
     sakId: String,

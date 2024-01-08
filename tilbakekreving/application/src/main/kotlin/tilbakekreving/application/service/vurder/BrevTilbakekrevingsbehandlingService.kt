@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterVedtaksbrev
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderBehandling
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst
-import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
+import tilbakekreving.domain.vedtaksbrev.KunneIkkeOppdatereVedtaksbrev
+import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
 import java.time.Clock
 
 class BrevTilbakekrevingsbehandlingService(
@@ -23,11 +23,11 @@ class BrevTilbakekrevingsbehandlingService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun lagreBrevtekst(
-        command: OppdaterBrevtekstCommand,
-    ): Either<KunneIkkeLagreBrevtekst, UnderBehandling.Utfylt> {
+        command: OppdaterVedtaksbrevCommand,
+    ): Either<KunneIkkeOppdatereVedtaksbrev, UnderBehandling.Utfylt> {
         val sakId = command.sakId
         tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
-            return KunneIkkeLagreBrevtekst.IkkeTilgang(it).left()
+            return KunneIkkeOppdatereVedtaksbrev.IkkeTilgang(it).left()
         }
 
         val sak = sakService.hentSak(sakId).getOrElse {

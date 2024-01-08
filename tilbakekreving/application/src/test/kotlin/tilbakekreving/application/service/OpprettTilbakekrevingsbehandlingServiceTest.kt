@@ -29,8 +29,8 @@ import person.domain.PersonService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.opprettelse.OpprettTilbakekrevingsbehandlingCommand
 import java.time.Clock
 import java.util.UUID
 

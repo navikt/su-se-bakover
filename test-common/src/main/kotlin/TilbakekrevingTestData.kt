@@ -23,9 +23,9 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.vurdert.Vurdering
-import tilbakekreving.domain.vurdert.Vurderinger
-import tilbakekreving.domain.vurdert.VurderingerMedKrav
+import tilbakekreving.domain.vurdering.Vurdering
+import tilbakekreving.domain.vurdering.Vurderinger
+import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
