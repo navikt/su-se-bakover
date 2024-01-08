@@ -117,7 +117,7 @@ internal class OpprettRevurderingServiceTest {
                             it shouldBe OppgaveConfig.Revurderingsbehandling(
                                 saksnummer = saksnummer,
                                 aktørId = aktørId,
-                                tilordnetRessurs = null,
+                                tilordnetRessurs = saksbehandler,
                                 clock = mock.clock,
                             )
                         },
@@ -293,7 +293,7 @@ internal class OpprettRevurderingServiceTest {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = sak.saksnummer,
                         aktørId = aktørId,
-                        tilordnetRessurs = null,
+                        tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
                     )
                 },
@@ -366,7 +366,7 @@ internal class OpprettRevurderingServiceTest {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
-                        tilordnetRessurs = null,
+                        tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
                     )
                 },

@@ -113,7 +113,7 @@ class KlageServiceImpl(
                 saksnummer = sak.saksnummer,
                 aktørId = aktørId,
                 journalpostId = request.journalpostId,
-                tilordnetRessurs = null,
+                tilordnetRessurs = request.saksbehandler,
                 clock = clock,
             ),
         ).getOrElse {

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
@@ -194,7 +195,7 @@ internal class OpprettKlageTest {
         val request = NyKlageRequest(
             sakId = sakId,
             journalpostId = JournalpostId("j2"),
-            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
             clock = fixedClock,
         )
@@ -211,7 +212,7 @@ internal class OpprettKlageTest {
                     saksnummer = sak.saksnummer,
                     aktørId = AktørId("aktørId"),
                     journalpostId = JournalpostId(value = "j2"),
-                    tilordnetRessurs = null,
+                    tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
                 )
             },
@@ -263,7 +264,7 @@ internal class OpprettKlageTest {
         val request = NyKlageRequest(
             sakId = sak.id,
             journalpostId = JournalpostId("1"),
-            saksbehandler = NavIdentBruker.Saksbehandler("2"),
+            saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
             clock = fixedClock,
         )
@@ -277,9 +278,7 @@ internal class OpprettKlageTest {
                 fnr = sak.fnr,
                 journalpostId = JournalpostId(value = "1"),
                 oppgaveId = OppgaveId("123"),
-                saksbehandler = NavIdentBruker.Saksbehandler(
-                    navIdent = "2",
-                ),
+                saksbehandler = saksbehandler,
                 datoKlageMottatt = 1.januar(2021),
             )
             it shouldBe expectedKlage
@@ -306,7 +305,7 @@ internal class OpprettKlageTest {
                     saksnummer = sak.saksnummer,
                     aktørId = AktørId("aktørId"),
                     journalpostId = JournalpostId(value = "1"),
-                    tilordnetRessurs = null,
+                    tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
                 )
             },

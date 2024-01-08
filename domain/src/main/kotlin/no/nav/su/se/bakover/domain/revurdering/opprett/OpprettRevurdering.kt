@@ -44,7 +44,7 @@ fun Sak.opprettRevurdering(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = saksnummer,
                 aktørId = it,
-                tilordnetRessurs = null,
+                tilordnetRessurs = command.saksbehandler,
                 clock = clock,
             )
         },

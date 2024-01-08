@@ -17,7 +17,7 @@ import java.util.UUID
 
 data class NyKlageRequest(
     val sakId: UUID,
-    private val saksbehandler: NavIdentBruker.Saksbehandler,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
     val journalpostId: JournalpostId,
     private val datoKlageMottatt: LocalDate,
     private val clock: Clock,
