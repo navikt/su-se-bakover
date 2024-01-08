@@ -134,8 +134,9 @@ sealed interface UnderBehandling :
     /**
      * Når vi først er utfylt, kan vi ikke gå tilbake til påbegynt.
      * Lovelige overganger er:
-     *   *  [AvbruttTilbakekrevingsbehandling]
+     *   * [AvbruttTilbakekrevingsbehandling]
      *   * [TilbakekrevingsbehandlingTilAttestering]
+     *   * [UnderBehandling.Påbegynt] (dersom kravgrunnlaget oppdateres og vi må vurdere på nytt)
      *
      *   @param forhåndsvarselsInfo Vi støtter og legge til nye forhåndsvarslinger selvom tilstanden er [Utfylt]
      *   @property erUnderkjent Dersom denne har vært til attestering, vil den implisitt være underkjent nå.
