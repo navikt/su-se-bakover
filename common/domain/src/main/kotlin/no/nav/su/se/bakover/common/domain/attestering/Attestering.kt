@@ -50,6 +50,8 @@ data class Attesteringshistorikk private constructor(
     fun hentSisteIverksatteAttesteringOrNull(): Attestering.Iverksatt? {
         return this.filterIsInstance<Attestering.Iverksatt>().singleOrNull()
     }
+
+    fun erUnderkjent(): Boolean = this.any { it is Attestering.Underkjent }
 }
 
 sealed interface Attestering {

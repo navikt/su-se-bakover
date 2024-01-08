@@ -32,6 +32,7 @@ data class Tilbakekrevingsbehandlinger(
         return when {
             behandling.isEmpty() -> null
             behandling.size == 1 -> behandling[0]
+            // Dette er også garantert av init
             else -> throw IllegalStateException("Mer enn 1 tilbakekrevingsbehandling for unik id: $id")
         }
     }

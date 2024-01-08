@@ -31,6 +31,7 @@ data class BrevTilbakekrevingsbehandlingHendelse(
 
     init {
         when (brevvalg) {
+            // TODO jah: Dette tyder på at vi bør ha en egen brevvalg-type for tilbakekreving som ikke åpner for dette valget.
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst ->
                 throw IllegalStateException("Ved tilbakekreving for sak $sakId, må brevet være av typen Vedtaksbrev. Tidligere hendelse var $tidligereHendelseId")
 

@@ -37,16 +37,6 @@ sealed interface UnderBehandling :
 
     override fun erÅpen() = true
 
-    override fun oppdaterNotat(
-        notat: NonBlankString?,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-    ): UnderBehandling =
-        when (this) {
-            is Påbegynt -> this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
-            is Utfylt -> this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
-        }
-
     /**
      * Kan kun gå fra [OpprettetTilbakekrevingsbehandling] til [Påbegynt], men ikke tilbake til [OpprettetTilbakekrevingsbehandling].
      * Lovelige overganger til:
@@ -54,7 +44,7 @@ sealed interface UnderBehandling :
      *  * [Påbegynt]
      *  * [Utfylt]
      *
-     *  Forrige steg, kan bare være [OpprettetTilbakekrevingsbehandling] eller [Påbegynt]
+     *  Forrige steg, kan bare være [OpprettetTilbakekrevingsbehandling] eller [UnderBehandling]
      */
     data class Påbegynt(
         val forrigeSteg: KanEndres,
@@ -67,22 +57,24 @@ sealed interface UnderBehandling :
         override val erKravgrunnlagUtdatert: Boolean,
         override val notat: NonBlankString?,
     ) : UnderBehandling, KanEndres by forrigeSteg {
+
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
-        // Behandlingen må være utfylt før man kan attestere/underkjenne.
-        override val erUnderkjent = false
-        override fun erÅpen(): Boolean = true
+        override val erUnderkjent = attesteringer.erUnderkjent()
 
-        init {
-            // TODO jah: Kan vi type oss ut av dette?
-            require(forrigeSteg is OpprettetTilbakekrevingsbehandling || forrigeSteg is Påbegynt || forrigeSteg is KanOppdatereKravgrunnlag)
-        }
+        override fun erÅpen(): Boolean = true
 
         fun erVurdert(): Boolean = vurderingerMedKrav != null
 
+        override fun oppdaterNotat(
+            notat: NonBlankString?,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+        ): UnderBehandling = this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
+
         /**
          * Siden vedtaksbrevet er avhengig av månedsperiodene krever vi at månedsvurderingene er utfylt først.
-         * Kan vurdere å gjøre Påbegynt til sealed og dele den opp i med og uten brev.
+         * @throws IllegalStateException Dersom [vurderingerMedKrav] ikke er utfylt.
          */
         override fun oppdaterVedtaksbrev(
             vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
@@ -90,7 +82,9 @@ sealed interface UnderBehandling :
             versjon: Hendelsesversjon,
         ): Utfylt {
             return if (vurderingerMedKrav == null) {
-                throw IllegalArgumentException("Må gjøre månedsvurderingene før man tar stilling til vedtaksbrev")
+                // TODO jah: Kan vurdere å gjøre Påbegynt til sealed og dele den opp i med og uten brev.
+                //  Alternativt kan denne returnere UnderBehandling også aksepterer vi at vi at vi kan oppdatere vedtaksbrevinnholdet uten [vurderingerMedKrav]?
+                throw IllegalStateException("Må gjøre månedsvurderingene før man tar stilling til vedtaksbrev")
             } else {
                 Utfylt(
                     forrigeSteg = this,
@@ -147,9 +141,9 @@ sealed interface UnderBehandling :
         override val versjon: Hendelsesversjon,
         override val vurderingerMedKrav: VurderingerMedKrav,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
-        override val attesteringer: Attesteringshistorikk,
-        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
-        override val notat: NonBlankString?,
+        override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
+        override val notat: NonBlankString? = forrigeSteg.notat,
     ) : UnderBehandling, KanEndres, UnderBehandlingEllerTilAttestering by forrigeSteg, ErUtfylt {
 
         constructor(
@@ -162,12 +156,16 @@ sealed interface UnderBehandling :
             versjon = versjon,
             vurderingerMedKrav = forrigeSteg.vurderingerMedKrav,
             vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
-            attesteringer = forrigeSteg.attesteringer,
-            forhåndsvarselsInfo = forrigeSteg.forhåndsvarselsInfo,
-            notat = forrigeSteg.notat,
         )
 
-        override val erUnderkjent = attesteringer.isNotEmpty()
+        override val erUnderkjent = attesteringer.erUnderkjent()
+
+        override fun oppdaterNotat(
+            notat: NonBlankString?,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+        ): UnderBehandling = this.copy(hendelseId = hendelseId, versjon = versjon, notat = notat)
+
         override fun leggTilVurderinger(
             månedsvurderinger: VurderingerMedKrav,
             hendelseId: HendelseId,
