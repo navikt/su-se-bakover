@@ -5,7 +5,7 @@ echo "skiv inn passord fra vault"
 read -r passord
 echo "Det vil sannsynligvis bli logget en del pg_restore errors - disse kan ignoreres"
 export PGPASSWORD="$passord"
-pg_dump -U "$username" -h b27dbvl009.preprod.local -p 5432 -F c supstonad-db-dev > data.dump
+pg_dump -U "$username" -h b27dbvl030.preprod.local -p 5432 -F c supstonad-db-15-dev > data.dump
 
 # user er username, og pwd er passord for den lokalt databasen
 export PGPASSWORD="pwd"

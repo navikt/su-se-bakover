@@ -101,7 +101,7 @@ subprojects {
             // select version() i preprod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
             // select version() i prod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
             // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
-            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.15.0"),
+            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
         )
         testImplementation("io.zonky.test:embedded-postgres:2.0.6")
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
