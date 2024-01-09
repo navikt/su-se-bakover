@@ -31,7 +31,7 @@ kjøre `./resetdb.sh`
 2. Legg inn følgende:
     ```
     # NAV POSTGRES PREPROD URL
-    10.183.160.87 b27dbvl009.preprod.local
+    10.183.160.87 b27dbvl030.preprod.local
     # NAV POSTGRES PROD URL
     10.53.20.112 A01DBVL011.adeo.no
     ```
@@ -49,7 +49,7 @@ Backup
     - eksempel for lokalt `pg_dump -U user -h localhost -p 5432 -F c supstonad-db-local > filnavn.dump`
         - password `pwd`
     - eksempel for
-      test `pg_dump -U brukernavnFraVault -h b27dbvl009.preprod.local -p 5432 -F c supstonad-db-dev > filnavn.dump`
+      test `pg_dump -U brukernavnFraVault -h b27dbvl030.preprod.local -p 5432 -F c supstonad-db-15-dev > filnavn.dump`
 
 Import
 
@@ -279,9 +279,9 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 2. Finner settings i `nais-dev.json` og `nais-prod.json`.
 3. Hent brukernavn/passord på https://vault.adeo.no/ui/vault/secrets (login med oidc). Åpne konsollen og velg ønsket
    rolle:
-    1. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-readonly`
-    2. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-user`
-    3. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-admin`
+    1. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-readonly`
+    2. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-user`
+    3. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-admin`
     4. `vault read postgresql/prod-fss/creds/supstonad-db-prod-readonly`
     5. `vault read postgresql/prod-fss/creds/supstonad-db-prod-user`
     6. `vault read postgresql/prod-fss/creds/supstonad-db-prod-admin`

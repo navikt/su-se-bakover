@@ -4,7 +4,7 @@
   "env": {
     "GCP_PROJECT": "supstonad-dev-0e48",
     "VAULT_MOUNTPATH": "postgresql/preprod-fss/",
-    "DATABASE_NAME": "supstonad-db-dev",
-    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev"
+    "DATABASE_NAME": "supstonad-db-15-dev",
+    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev"
   }
 }
