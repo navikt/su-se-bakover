@@ -51,22 +51,12 @@ internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
 
 internal fun KunneIkkeForhåndsviseVedtaksbrev.tilResultat(): Resultat = when (this) {
     is KunneIkkeForhåndsviseVedtaksbrev.IkkeTilgang -> ikkeTilgangTilSak
-    KunneIkkeForhåndsviseVedtaksbrev.BrevetMåVæreVedtaksbrevMedFritekst -> HttpStatusCode.InternalServerError.errorJson(
-        "Brevet må være av typen [Vedtaksbrev.MedFritekst]",
-        "brevet_må_være_av_typen_vedtaksbrev_med_fritekst",
-    )
 
     KunneIkkeForhåndsviseVedtaksbrev.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-    KunneIkkeForhåndsviseVedtaksbrev.IkkeTattStillingTilBrevvalg -> HttpStatusCode.BadRequest.errorJson(
-        "Det er ikke tatt stilling til brevvalg for å vise vedtaksbrev",
-        "ikke_tatt_stilling_til_brevvalg",
-    )
-
-    KunneIkkeForhåndsviseVedtaksbrev.SkalIkkeSendeBrevForÅViseVedtaksbrev -> HttpStatusCode.BadRequest.errorJson(
-        "Det er valg at brev ikke skal sendes. Brevet kan dermed ikke vises",
-        "valg_å_ikke_sende_brev",
-    )
 
     KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument -> Feilresponser.feilVedGenereringAvDokument
-    KunneIkkeForhåndsviseVedtaksbrev.UgyldigTilstand -> Feilresponser.ugyldigTilstand
+    KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen -> HttpStatusCode.BadRequest.errorJson(
+        "Kravgrunnlagsvurderingene finnes ikke på behandlingen",
+        "vurderinger_finnes_ikke_på_behandlingen",
+    )
 }

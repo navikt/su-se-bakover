@@ -4,14 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.brev.BrevService
-import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
-import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.vedtaksbrev.ForhåndsvisVedtaksbrevCommand
 import tilbakekreving.domain.vedtaksbrev.KunneIkkeForhåndsviseVedtaksbrev
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
@@ -37,29 +35,6 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseVedtaksbrev.FantIkkeBehandling.left()
 
-        // TODO jah: Flytt domenelogikk til domenet. Gjelder hele klassen.
-        val vurderingMedKrav = when (behandling) {
-            is TilbakekrevingsbehandlingTilAttestering -> behandling.vurderingerMedKrav
-            is UnderBehandling.Utfylt -> behandling.vurderingerMedKrav
-            else -> return KunneIkkeForhåndsviseVedtaksbrev.UgyldigTilstand.left()
-        }
-
-        val fritekst = when (val x = behandling.vedtaksbrevvalg) {
-            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> return KunneIkkeForhåndsviseVedtaksbrev.SkalIkkeSendeBrevForÅViseVedtaksbrev.left()
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> return KunneIkkeForhåndsviseVedtaksbrev.BrevetMåVæreVedtaksbrevMedFritekst.left()
-                .also {
-                    log.error("Tilbakekrevingsbehandling ${behandling.id} har brevvalg for InformasjonsbrevMedFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
-                }
-
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> x.fritekst
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> return KunneIkkeForhåndsviseVedtaksbrev.BrevetMåVæreVedtaksbrevMedFritekst.left()
-                .also {
-                    log.error("Tilbakekrevingsbehandling ${behandling.id} har brevvalg for VedtaksbrevUtenFritekst. Det skal bare være mulig å ikke sende brev, eller VedtaksbrevMedFritekst")
-                }
-
-            null -> return KunneIkkeForhåndsviseVedtaksbrev.IkkeTattStillingTilBrevvalg.left()
-        }
-
         return brevService.lagDokument(
             VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
                 fødselsnummer = sak.fnr,
@@ -74,8 +49,8 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                     is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
                     else -> null
                 },
-                fritekst = fritekst,
-                vurderingerMedKrav = vurderingMedKrav,
+                fritekst = behandling.vedtaksbrevvalg?.fritekst,
+                vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
             ),
         )
             .map { it.generertDokument }
