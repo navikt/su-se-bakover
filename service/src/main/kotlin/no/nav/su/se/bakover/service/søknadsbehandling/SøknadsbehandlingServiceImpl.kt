@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
@@ -27,7 +26,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.regnUtSkatteperiodeForStønadsperiode
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -59,6 +57,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingSkattCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -736,24 +735,23 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilEksternSkattegrunnlag(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(behandlingId)
-            ?: throw IllegalStateException("Fant ikke behandling $behandlingId")
+        val søknadsbehandling = søknadsbehandlingRepo.hent(command.behandlingId)
+            ?: throw IllegalStateException("Fant ikke behandling ${command.behandlingId}")
 
         return søknadsbehandling.leggTilSkatt(
             EksterneGrunnlagSkatt.Hentet(
                 søkers = søknadsbehandling.hentSkattegrunnlagForSøker(
-                    saksbehandler,
-                    skatteService::hentSamletSkattegrunnlagForÅr,
-                    clock,
-                ),
+                    command.saksbehandler,
+                ) { fnr, saksbehandler ->
+                    skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, command.yearRange)
+                },
                 eps = søknadsbehandling.hentSkattegrunnlagForEps(
-                    saksbehandler,
-                    skatteService::hentSamletSkattegrunnlagForÅr,
-                    clock,
-                ),
+                    command.saksbehandler,
+                ) { fnr, saksbehandler ->
+                    skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, command.yearRange)
+                },
             ),
         ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
@@ -783,21 +781,14 @@ class SøknadsbehandlingServiceImpl(
 
     private fun Søknadsbehandling.hentSkattegrunnlagForSøker(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
-        clock: Clock,
-    ): Skattegrunnlag =
-        samletSkattegrunnlag(fnr, saksbehandler, stønadsperiode.regnUtSkatteperiodeForStønadsperiode(clock))
+        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler) -> Skattegrunnlag,
+    ): Skattegrunnlag = samletSkattegrunnlag(fnr, saksbehandler)
 
     private fun Søknadsbehandling.hentSkattegrunnlagForEps(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
-        clock: Clock,
+        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler) -> Skattegrunnlag,
     ): Skattegrunnlag? = if (grunnlagsdata.bosituasjon.harEPS()) {
-        samletSkattegrunnlag(
-            grunnlagsdata.bosituasjon.singleFullstendigEpsOrNull()!!.fnr,
-            saksbehandler,
-            stønadsperiode.regnUtSkatteperiodeForStønadsperiode(clock),
-        )
+        samletSkattegrunnlag(grunnlagsdata.bosituasjon.singleFullstendigEpsOrNull()!!.fnr, saksbehandler)
     } else {
         null
     }

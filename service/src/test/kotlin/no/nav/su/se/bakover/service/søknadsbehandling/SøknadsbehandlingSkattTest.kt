@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingSkattCommand
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -39,7 +40,13 @@ class SøknadsbehandlingSkattTest {
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
-        ).leggTilEksternSkattegrunnlag(søknadsbehandling.id, saksbehandler)
+        ).leggTilEksternSkattegrunnlag(
+            SøknadsbehandlingSkattCommand(
+                søknadsbehandling.id,
+                saksbehandler,
+                YearRange(Year.of(2019), Year.of(2020)),
+            ),
+        )
 
         actual.shouldBeRight()
 
@@ -76,7 +83,9 @@ class SøknadsbehandlingSkattTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
-        ).leggTilEksternSkattegrunnlag(søknadsbehandling.id, saksbehandler).shouldBeLeft()
+        ).leggTilEksternSkattegrunnlag(
+            SøknadsbehandlingSkattCommand(søknadsbehandling.id, saksbehandler, YearRange(Year.of(2019), Year.of(2020))),
+        ).shouldBeLeft()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe søknadsbehandling.id })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
