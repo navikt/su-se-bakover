@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -42,6 +41,7 @@ import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.application.utbetaling.ResendUtbetalingService
 import java.time.Clock
 import java.time.format.DateTimeParseException
 
@@ -52,10 +52,10 @@ internal fun Application.setupKtor(
     applicationConfig: ApplicationConfig,
     accessCheckProxy: AccessCheckProxy,
     formuegrenserFactoryIDag: FormuegrenserFactory,
-    beregningStrategyFactory: BeregningStrategyFactory,
     databaseRepos: DatabaseRepos,
     clients: Clients,
     extraRoutes: Route.(services: Services) -> Unit,
+    resendUtbetalingService: ResendUtbetalingService,
 ) {
     setupKtorExceptionHandling()
 
@@ -82,10 +82,10 @@ internal fun Application.setupKtor(
         extraRoutes = extraRoutes,
         azureGroupMapper = azureGroupMapper,
         formuegrenserFactoryIDag = formuegrenserFactoryIDag,
-        beregningStrategyFactory = beregningStrategyFactory,
         databaseRepos = databaseRepos,
         clients = clients,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+        resendUtbetalingService = resendUtbetalingService,
     )
 }
 

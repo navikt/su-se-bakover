@@ -12,9 +12,9 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode

@@ -4,6 +4,7 @@ dependencies {
 
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:application"))
+    testImplementation(project(":test-common"))
 }
 
 tasks.named<Jar>("jar") {

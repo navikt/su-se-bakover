@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.test
 
-import io.kotest.assertions.fail
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
@@ -23,7 +19,6 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
-import kotlin.concurrent.getOrSet
 
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
 val fixedClock: Clock = Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
@@ -114,56 +109,3 @@ fun attesteringUnderkjent(
     kommentar = "attesteringUnderkjent",
     opprettet = Tidspunkt.now(clock),
 )
-
-class TestSessionFactory : SessionFactory {
-
-    companion object {
-        // Gjør det enklere å verifisere i testene.
-        val sessionContext = object : SessionContext {
-            override fun isClosed() = false
-        }
-        val transactionContext = object : TransactionContext {
-            override fun isClosed() = false
-        }
-    }
-
-    override fun <T> withSessionContext(action: (SessionContext) -> T): T =
-        SessionCounter().withCountSessions { action(sessionContext) }
-
-    override fun <T> withSessionContext(sessionContext: SessionContext?, action: (SessionContext) -> T): T {
-        return SessionCounter().withCountSessions { action(sessionContext ?: TestSessionFactory.sessionContext) }
-    }
-
-    override fun <T> withTransactionContext(action: (TransactionContext) -> T): T =
-        SessionCounter().withCountSessions { action(transactionContext) }
-
-    override fun <T> withTransactionContext(transactionContext: TransactionContext?, action: (TransactionContext) -> T): T {
-        return SessionCounter().withCountSessions { action(transactionContext ?: TestSessionFactory.transactionContext) }
-    }
-
-    override fun <T> use(transactionContext: TransactionContext, action: (TransactionContext) -> T): T {
-        return SessionCounter().withCountSessions { action(transactionContext) }
-    }
-
-    override fun newSessionContext() = sessionContext
-    override fun newTransactionContext() = transactionContext
-
-    // TODO jah: Denne er duplikat med den som ligger i database siden test-common ikke har en referanse til database-modulen.
-    private class SessionCounter {
-        private val activeSessionsPerThread: ThreadLocal<Int> = ThreadLocal()
-
-        fun <T> withCountSessions(action: () -> T): T {
-            return activeSessionsPerThread.getOrSet { 0 }.inc().let {
-                if (it > 1) {
-                    fail("Database sessions were over the threshold while running test.")
-                }
-                activeSessionsPerThread.set(it)
-                try {
-                    action()
-                } finally {
-                    activeSessionsPerThread.set(activeSessionsPerThread.getOrSet { 1 }.dec())
-                }
-            }
-        }
-    }
-}

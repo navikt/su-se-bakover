@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jsonAssertEquals
-import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.pdf
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -41,7 +40,7 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
     val sakFørKallJson = hentSak(sakId, client)
     val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
-        SharedRegressionTestData.defaultRequest(
+        no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/iverksett",
             listOf(Brukerrolle.Attestant),

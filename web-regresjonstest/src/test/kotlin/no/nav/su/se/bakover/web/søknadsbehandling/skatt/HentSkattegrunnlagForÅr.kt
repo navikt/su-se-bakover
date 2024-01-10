@@ -10,7 +10,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.web.SharedRegressionTestData
 
 fun hentSkattegrunnlagForÅr(
     behandlingId: String,
@@ -20,7 +19,7 @@ fun hentSkattegrunnlagForÅr(
     client: HttpClient,
 ): String {
     return runBlocking {
-        SharedRegressionTestData.defaultRequest(
+        no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Get,
             url,
             listOf(brukerrolle),

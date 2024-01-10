@@ -9,7 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
+import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringForUtbetalingFraØkonomi
 import java.util.UUID

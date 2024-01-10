@@ -44,6 +44,7 @@ import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHe
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.application.utbetaling.ResendUtbetalingService
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -63,6 +64,10 @@ fun startServer() {
 
 val mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag
 val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagPåSakHendelse
+
+/**
+ * @param disableConsumersAndJobs Kun for testene.
+ */
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -177,12 +182,22 @@ fun Application.susebakover(
             clock = clock,
         ),
     ),
-    extraRoutes: Route.(services: Services) -> Unit = {},
-) {
-    val beregningStrategyFactory = BeregningStrategyFactory(
+    beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
         clock = clock,
         satsFactory = satsFactoryIDag,
-    )
+    ),
+    resendUtbetalingService: ResendUtbetalingService = ResendUtbetalingService(
+        utbetalingService = services.utbetaling,
+        vedtakRepo = databaseRepos.vedtakRepo,
+        sakService = services.sak,
+        sessionFactory = databaseRepos.sessionFactory,
+        clock = clock,
+        serviceUser = applicationConfig.serviceUser.username,
+        beregningStrategyFactory = beregningStrategyFactory,
+    ),
+    disableConsumersAndJobs: Boolean = false,
+    extraRoutes: Route.(services: Services) -> Unit = {},
+) {
     tilbakekrevingskomponenter(
         clock,
         databaseRepos.sessionFactory,
@@ -205,22 +220,24 @@ fun Application.susebakover(
             accessCheckProxy = accessCheckProxy,
             clients = clients,
             formuegrenserFactoryIDag = formuegrenserFactoryIDag,
-            beregningStrategyFactory = beregningStrategyFactory,
             databaseRepos = databaseRepos,
             extraRoutes = extraRoutes,
             tilbakekrevingskomponenter = it,
+            resendUtbetalingService = resendUtbetalingService,
         )
-        startJobberOgConsumers(
-            services = services,
-            clients = clients,
-            databaseRepos = databaseRepos,
-            applicationConfig = applicationConfig,
-            jmsConfig = jmsConfig,
-            clock = clock,
-            consumers = consumers,
-            dbMetrics = dbMetrics,
-            tilbakekrevingskomponenter = it,
-            dokumentKomponenter = dokumentkomponenter,
-        )
+        if (!disableConsumersAndJobs) {
+            startJobberOgConsumers(
+                services = services,
+                clients = clients,
+                databaseRepos = databaseRepos,
+                applicationConfig = applicationConfig,
+                jmsConfig = jmsConfig,
+                clock = clock,
+                consumers = consumers,
+                dbMetrics = dbMetrics,
+                tilbakekrevingskomponenter = it,
+                dokumentKomponenter = dokumentkomponenter,
+            )
+        }
     }
 }
