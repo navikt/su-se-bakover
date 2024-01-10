@@ -31,9 +31,9 @@ kjøre `./resetdb.sh`
 2. Legg inn følgende:
     ```
     # NAV POSTGRES PREPROD URL
-    10.183.160.87 b27dbvl030.preprod.local
+    10.53.17.46 b27dbvl030.preprod.local
     # NAV POSTGRES PROD URL
-    10.53.20.112 A01DBVL011.adeo.no
+    10.53.15.186 A01DBVL036.adeo.no
     ```
 3. lagre
 
@@ -282,9 +282,9 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
     1. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-readonly`
     2. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-user`
     3. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-admin`
-    4. `vault read postgresql/prod-fss/creds/supstonad-db-prod-readonly`
-    5. `vault read postgresql/prod-fss/creds/supstonad-db-prod-user`
-    6. `vault read postgresql/prod-fss/creds/supstonad-db-prod-admin`
+    4. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-readonly`
+    5. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-user`
+    6. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-admin`
 
 ## Migrerte data fra Infotrygd
 
