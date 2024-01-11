@@ -228,7 +228,7 @@ data class ApplicationConfig(
                 dokDistUrl = getEnvironmentVariableOrThrow("DOKDIST_URL"),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
-                kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.team-rocket"),
+                kodeverkUrl = getEnvironmentVariableOrThrow("KODEVERK_URL"),
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
                     "http://security-token-service.default.svc.nais.local",

@@ -106,7 +106,7 @@ class ApplicationConfigTest {
             dokDistUrl = "dokDistUrl",
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
             dokarkivUrl = "dokarkivUrl",
-            kodeverkUrl = "http://kodeverk.team-rocket",
+            kodeverkUrl = "kodeverkUrl",
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
@@ -206,6 +206,7 @@ class ApplicationConfigTest {
                 "SKATTEETATEN_URL" to "skatteetatenUrl",
                 "SKATT_CLIENT_ID" to "skattClientId",
                 "INSTITUSJONSOPPHOLD_TOPIC" to "INSTITUSJONSOPPHOLD_TOPIC",
+                "KODEVERK_URL" to "kodeverkUrl",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig

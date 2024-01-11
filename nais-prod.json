@@ -40,6 +40,7 @@
     "SKATT_CLIENT_ID": "api://prod-fss.team-inntekt.sigrun",
     "KRR_URL": "https://digdir-krr-proxy.intern.nav.no",
     "KRR_APP_ID": "api://prod-gcp.team-rocket.digdir-krr-proxy",
-    "INSTITUSJONSOPPHOLD_TOPIC": "team-rocket.institusjon-opphold-hendelser"
+    "INSTITUSJONSOPPHOLD_TOPIC": "team-rocket.institusjon-opphold-hendelser",
+    "KODEVERK_URL": "http://kodeverk.team-rocket"
   }
 }
