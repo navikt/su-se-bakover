@@ -41,6 +41,6 @@
     "KRR_URL": "https://digdir-krr-proxy.intern.dev.nav.no",
     "KRR_APP_ID": "api://dev-gcp.team-rocket.digdir-krr-proxy",
     "INSTITUSJONSOPPHOLD_TOPIC": "team-rocket.institusjon-opphold-hendelser-q2",
-    "KODEVERK_URL": "http://kodeverk-dev.team-rocket"
+    "KODEVERK_URL": "http://kodeverk.team-rocket.svc.nais.local"
   }
 }
