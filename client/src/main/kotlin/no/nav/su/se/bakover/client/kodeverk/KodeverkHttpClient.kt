@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.kodeverk
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpGet
@@ -37,8 +38,13 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
 
         return result.fold(
             { json ->
-                deserialize<KodeverkResponse>(json).betydninger.getOrDefault(value, emptyList())
-                    .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
+                Either.catch {
+                    deserialize<KodeverkResponse>(json).betydninger.getOrDefault(value, emptyList())
+                        .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
+                }.getOrElse {
+                    log.error("Feil i deserialisering av kodeverksresponse. response body={}", json, it)
+                    return CouldNotGetKode.left()
+                }
             },
             {
                 log.error(
