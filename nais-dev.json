@@ -5,6 +5,7 @@
   "cluster": "preprod",
   "tenant": "trygdeetaten.no",
   "kafka-pool": "nav-dev",
+  "kodeverk-application": "kodeverk-dev",
   "env": {
     "AZURE_GROUP_ATTESTANT": "d75164fa-39e6-4149-956e-8404bc9080b6",
     "AZURE_GROUP_VEILEDER": "062d4814-8538-4f3a-bcb9-32821af7909a",

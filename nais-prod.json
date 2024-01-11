@@ -5,6 +5,7 @@
   "cluster": "prod",
   "tenant": "nav.no",
   "kafka-pool": "nav-prod",
+  "kodeverk-application": "kodeverk",
   "env": {
     "AZURE_GROUP_ATTESTANT": "b64af061-f7c4-4d05-907f-b457e23da339",
     "AZURE_GROUP_VEILEDER": "4b1ccffd-b1e1-41a7-9f3a-d4acb6d53b05",

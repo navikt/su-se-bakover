@@ -14,6 +14,11 @@ import org.slf4j.LoggerFactory
 internal const val KODEVERK_POSTSTED_PATH = "/api/v1/kodeverk/Postnummer/koder/betydninger"
 internal const val KODEVERK_KOMMUNENAVN_PATH = "/api/v1/kodeverk/Kommuner/koder/betydninger"
 
+/**
+ * Dokumentasjon: https://navikt.github.io/felleskodeverk/
+ * Swagger: https://kodeverk.dev.intern.nav.no/swagger-ui/index.html#/kodeverk/betydning
+ * Eksternt repo: https://github.com/navikt/felleskodeverk
+ */
 class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : Kodeverk {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)

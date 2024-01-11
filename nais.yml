@@ -22,6 +22,10 @@ spec:
     inbound:
       rules:
         - application: su-se-framover
+    outbound:
+      rules:
+        - application: {{ kodeverk-application }}
+          namespace: team-rocket
   image: {{ image }}
   liveness:
     path: /isalive
