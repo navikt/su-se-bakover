@@ -106,7 +106,7 @@ class ApplicationConfigTest {
             dokDistUrl = "dokDistUrl",
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
             dokarkivUrl = "dokarkivUrl",
-            kodeverkUrl = "http://kodeverk.default.svc.nais.local",
+            kodeverkUrl = "http://kodeverk.team-rocket",
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
