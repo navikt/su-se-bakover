@@ -4,7 +4,7 @@ En naisjobb (cronjobb) vil starte en ny pod hver gang den eksekverer.
 ## kubernetes kommandoer
 Slette alle cronjobber, jobber og podder med app=navn.
 
-Våre app navn
+Våre app navn:
 ```
 su-datapakke-soknad
 ```
