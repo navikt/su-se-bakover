@@ -10,14 +10,15 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import vilkår.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import java.util.UUID
 
 internal class BosituasjonTest {

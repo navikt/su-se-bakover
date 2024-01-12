@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.statistikk
 
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon
 
 /**
  * Brukes på tvers av stønadsstatistikk og behandlingsstatistikk.

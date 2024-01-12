@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -61,6 +60,7 @@ import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.util.UUID

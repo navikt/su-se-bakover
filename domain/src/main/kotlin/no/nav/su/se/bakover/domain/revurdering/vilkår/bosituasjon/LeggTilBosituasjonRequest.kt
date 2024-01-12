@@ -7,10 +7,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import vilkår.domain.grunnlag.Bosituasjon
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

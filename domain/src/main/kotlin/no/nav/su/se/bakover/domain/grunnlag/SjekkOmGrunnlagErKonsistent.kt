@@ -5,19 +5,19 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.common.tid.periode.inneholder
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import vilkår.domain.grunnlag.Bosituasjon.Companion.harOverlappende
+import vilkår.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import vilkår.uføre.domain.Uføregrunnlag
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
     private val uføregrunnlag: List<Uføregrunnlag>,
-    private val bosituasjongrunnlag: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Fullstendig>,
+    private val bosituasjongrunnlag: List<vilkår.domain.grunnlag.Bosituasjon.Fullstendig>,
     private val fradragsgrunnlag: List<Fradragsgrunnlag>,
 ) {
     constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
@@ -63,16 +63,16 @@ data class SjekkOmGrunnlagErKonsistent(
     }
 
     data class Bosituasjon(
-        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
+        val bosituasjon: List<vilkår.domain.grunnlag.Bosituasjon>,
     ) {
         val resultat: Either<Set<Konsistensproblem.Bosituasjon>, Unit> = bosituasjon(bosituasjon)
 
-        private fun bosituasjon(bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
+        private fun bosituasjon(bosituasjon: List<vilkår.domain.grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
             mutableSetOf<Konsistensproblem.Bosituasjon>().apply {
                 if (bosituasjon.isEmpty()) {
                     add(Konsistensproblem.Bosituasjon.Mangler)
                 }
-                if (bosituasjon.any { it is no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Ufullstendig }) {
+                if (bosituasjon.any { it is vilkår.domain.grunnlag.Bosituasjon.Ufullstendig }) {
                     add(Konsistensproblem.Bosituasjon.Ufullstendig)
                 }
                 if (bosituasjon.harOverlappende()) {
@@ -106,7 +106,7 @@ data class SjekkOmGrunnlagErKonsistent(
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har fradrag.
      */
     data class BosituasjonOgFradrag(
-        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
+        val bosituasjon: List<vilkår.domain.grunnlag.Bosituasjon>,
         val fradrag: List<Fradragsgrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> = bosituasjonOgFradrag()
@@ -142,7 +142,7 @@ data class SjekkOmGrunnlagErKonsistent(
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har formue.
      */
     data class BosituasjonOgFormue(
-        val bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Bosituasjon>,
+        val bosituasjon: List<vilkår.domain.grunnlag.Bosituasjon>,
         val formue: List<Formuegrunnlag>,
     ) {
         val resultat: Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> = bosituasjonOgFormue()
@@ -191,7 +191,7 @@ sealed interface Konsistensproblem {
      * 1. Gyldige tilstander som vi ikke støtter å revurdere enda.
      * 1. Ugyldige tilstander som kan oppstå på grunn av svak typing/domenemodell/validering
      */
-    abstract fun erGyldigTilstand(): Boolean
+    fun erGyldigTilstand(): Boolean
 
     sealed interface Uføre : Konsistensproblem {
         /** Da er ikke vilkåret for Uføre innfridd. Dette vil føre til avslag eller opphør. */

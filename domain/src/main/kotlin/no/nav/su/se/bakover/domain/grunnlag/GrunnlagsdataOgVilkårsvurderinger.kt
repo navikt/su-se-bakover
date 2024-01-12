@@ -10,9 +10,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
@@ -21,6 +18,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID

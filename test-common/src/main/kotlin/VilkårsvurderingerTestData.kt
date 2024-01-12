@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
+import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.personligOppmøtevilkårAvslag
 import vilkår.personligOppmøtevilkårInnvilget
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget

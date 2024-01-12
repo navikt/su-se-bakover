@@ -1,116 +1,14 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import arrow.core.getOrElse
-import beregning.domain.Beregning
 import beregning.domain.fradrag.Fradrag
 import beregning.domain.fradrag.FradragForMåned
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
-import java.time.Clock
-
-data class Beregningsperiode(
-    private val periode: Periode,
-    private val strategy: BeregningStrategy,
-) {
-    fun periode(): Periode {
-        return periode
-    }
-
-    fun månedsoversikt(): Map<Måned, BeregningStrategy> {
-        return periode.måneder().associateWith { strategy }
-    }
-}
-
-class BeregningStrategyFactory(
-    val clock: Clock,
-    val satsFactory: SatsFactory,
-) {
-    fun beregn(revurdering: Revurdering): Beregning {
-        return beregn(
-            grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = null,
-            sakstype = revurdering.sakstype,
-        )
-    }
-
-    fun beregn(regulering: Regulering, begrunnelse: String?): Beregning {
-        return beregn(
-            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
-            sakstype = regulering.sakstype,
-        )
-    }
-
-    fun beregn(
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
-        begrunnelse: String?,
-        sakstype: Sakstype,
-    ): Beregning {
-        val totalBeregningsperiode = grunnlagsdataOgVilkårsvurderinger.periode()!!
-
-        require(grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.isNotEmpty()) { "Bosituasjon er påkrevet for å kunne beregne." }
-
-        val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
-            Beregningsperiode(
-                periode = it.periode,
-                strategy = (it as Bosituasjon.Fullstendig).utledBeregningsstrategi(satsFactory, sakstype),
-            )
-        }
-
-        val fradrag = when (sakstype) {
-            Sakstype.ALDER -> {
-                grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag
-            }
-            Sakstype.UFØRE -> {
-                Beregningsgrunnlag.tryCreate(
-                    beregningsperiode = totalBeregningsperiode,
-                    uføregrunnlag = when (
-                        val vilkårsvurderinger =
-                            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
-                    ) {
-                        is Vilkårsvurderinger.Revurdering.Uføre -> {
-                            vilkårsvurderinger.uføre.grunnlag
-                        }
-
-                        is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
-                            vilkårsvurderinger.uføre.grunnlag
-                        }
-
-                        is Vilkårsvurderinger.Revurdering.Alder -> {
-                            throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
-                        }
-
-                        is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
-                            throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
-                        }
-                    },
-                    fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
-                ).getOrElse {
-                    // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
-                    throw IllegalArgumentException(it.toString())
-                }.fradrag
-            }
-        }
-
-        require(totalBeregningsperiode.fullstendigOverlapp(delperioder.map { it.periode() }))
-
-        return BeregningFactory(clock).ny(
-            fradrag = fradrag,
-            begrunnelse = begrunnelse,
-            beregningsperioder = delperioder,
-        )
-    }
-}
+import vilkår.domain.grunnlag.Bosituasjon
 
 sealed class BeregningStrategy {
     protected abstract val satsFactory: SatsFactory

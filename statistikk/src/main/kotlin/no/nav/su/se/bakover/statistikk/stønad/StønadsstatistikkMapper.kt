@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
+import vilkår.domain.grunnlag.Bosituasjon
 import java.time.Clock
 import kotlin.math.roundToInt
 

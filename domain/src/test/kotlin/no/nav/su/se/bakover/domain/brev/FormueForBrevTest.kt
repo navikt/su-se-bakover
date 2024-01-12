@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain.brev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormueForBrevTest {

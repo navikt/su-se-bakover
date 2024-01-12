@@ -10,10 +10,6 @@ import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.september
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
@@ -26,6 +22,10 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import java.util.UUID
 
 class LeggTilBosituasjonTest {

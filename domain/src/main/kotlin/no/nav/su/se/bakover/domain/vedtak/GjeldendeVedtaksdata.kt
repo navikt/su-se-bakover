@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import vilkår.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import java.time.Clock
 import java.time.LocalDate
 

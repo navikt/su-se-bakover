@@ -174,7 +174,11 @@ data class OpprettetRegulering(
             BeregningStrategyFactory(
                 clock = clock,
                 satsFactory = satsFactory,
-            ).beregn(this, begrunnelse)
+            ).beregn(
+                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger,
+                begrunnelse = begrunnelse,
+                sakstype = this.sakstype,
+            )
         }.mapLeft {
             KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
         }

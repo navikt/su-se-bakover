@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormuegrunnlagTest {

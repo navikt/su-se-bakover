@@ -4,12 +4,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class BosituasjongrunnlagPostgresRepoTest {

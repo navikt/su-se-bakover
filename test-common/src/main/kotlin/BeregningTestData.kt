@@ -17,10 +17,10 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
+import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.uføre.domain.Uføregrunnlag
 
 /**

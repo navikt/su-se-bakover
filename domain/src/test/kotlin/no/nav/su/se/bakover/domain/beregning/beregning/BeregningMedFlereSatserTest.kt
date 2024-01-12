@@ -38,7 +38,11 @@ internal class BeregningMedFlereSatserTest {
         BeregningStrategyFactory(
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-        ).beregn(revurdering).let { beregning ->
+        ).beregn(
+            grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = null,
+            sakstype = revurdering.sakstype,
+        ).let { beregning ->
             beregning.getMånedsberegninger().groupBy { it.getSats() }.let { satsMånedMap ->
                 satsMånedMap shouldHaveSize 2
                 satsMånedMap[Satskategori.HØY]!!.let { månedsberegninger ->

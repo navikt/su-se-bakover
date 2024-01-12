@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon
 
 enum class Satsgrunn {
     ENSLIG,

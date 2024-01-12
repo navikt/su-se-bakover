@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerTest {

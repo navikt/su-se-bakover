@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 fun fradragsgrunnlagArbeidsinntekt1000(

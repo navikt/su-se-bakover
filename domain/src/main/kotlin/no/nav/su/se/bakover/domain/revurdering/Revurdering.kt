@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -58,6 +56,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import satser.domain.SatsFactory
+import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

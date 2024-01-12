@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import vilkår.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

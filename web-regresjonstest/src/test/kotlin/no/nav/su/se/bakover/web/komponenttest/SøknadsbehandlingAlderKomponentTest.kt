@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
@@ -50,6 +49,7 @@ import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
+import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
 

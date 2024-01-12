@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import vilkår.domain.grunnlag.fullstendigOrThrow
 
 /**
  * Representerer et vedtak plassert på en tidslinje utledet fra vedtakenes temporale gyldighet.

@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
+import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.fullstendigOrThrow
 import java.time.LocalDate
 
 /**

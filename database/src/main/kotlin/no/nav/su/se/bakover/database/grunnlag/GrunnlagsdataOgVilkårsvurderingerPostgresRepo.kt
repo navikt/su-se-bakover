@@ -4,11 +4,11 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(

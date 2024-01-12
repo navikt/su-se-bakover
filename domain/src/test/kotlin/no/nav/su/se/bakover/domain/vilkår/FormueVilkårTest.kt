@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormueVilkårTest {

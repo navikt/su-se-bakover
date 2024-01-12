@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 fun ufullstendigEnslig(periode: Periode): Bosituasjon.Ufullstendig.HarIkkeEps {

@@ -4,10 +4,10 @@ import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import satser.domain.SatsFactory
+import vilkår.domain.grunnlag.Bosituasjon.Companion.harEPS
 import java.lang.IllegalArgumentException
 
 /**

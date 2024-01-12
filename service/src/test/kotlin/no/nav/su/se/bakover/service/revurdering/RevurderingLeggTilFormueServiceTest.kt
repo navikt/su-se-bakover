@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -48,6 +47,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class RevurderingLeggTilFormueServiceTest {

@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
+import vilkår.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepoTest {

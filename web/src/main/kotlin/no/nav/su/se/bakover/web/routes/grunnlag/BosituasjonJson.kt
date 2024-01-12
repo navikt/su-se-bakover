@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
+import vilkår.domain.grunnlag.Bosituasjon
 
 internal data class BosituasjonJson(
     val type: String,

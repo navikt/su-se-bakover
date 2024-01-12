@@ -7,13 +7,13 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
