@@ -10,6 +10,9 @@ import no.nav.su.se.bakover.common.tid.toYearRange
 import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * TODO - min år vi får skattedata fra sigrunn er 2020. Dette har vi ikke noe sjekker for
+ */
 data class Skattegrunnlag(
     val id: UUID,
     val fnr: Fnr,

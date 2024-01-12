@@ -6,13 +6,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.fastOppholdVilkårRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.flyktningVilkårRoutes
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.hentSamletSkattegrunnlagRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.institusjonsoppholdRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilFamiliegjenforeningRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilFormueForSøknadsbehandlingRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilGrunnlagBosituasjonRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilGrunnlagFradrag
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilUføregrunnlagRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.oppdaterSkattegrunnlagRoute
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.pensjonsVilkårRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.personligOppmøteVilkårRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
@@ -60,5 +60,5 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
         clock,
         applicationConfig,
     )
-    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
+    oppdaterSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 }

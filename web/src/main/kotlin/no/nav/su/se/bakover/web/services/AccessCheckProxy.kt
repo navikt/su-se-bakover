@@ -134,6 +134,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingSkattCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -704,12 +705,11 @@ open class AccessCheckProxy(
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
 
-                    override fun leggTilEksternSkattegrunnlag(
-                        behandlingId: UUID,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    override fun oppdaterSkattegrunnlag(
+                        command: SøknadsbehandlingSkattCommand,
                     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(behandlingId)
-                        return service.leggTilEksternSkattegrunnlag(behandlingId, saksbehandler)
+                        assertHarTilgangTilBehandling(command.behandlingId)
+                        return service.oppdaterSkattegrunnlag(command)
                     }
                 },
             ),

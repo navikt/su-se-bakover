@@ -124,9 +124,8 @@ interface SøknadsbehandlingService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling>
 
-    fun leggTilEksternSkattegrunnlag(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+    fun oppdaterSkattegrunnlag(
+        command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(

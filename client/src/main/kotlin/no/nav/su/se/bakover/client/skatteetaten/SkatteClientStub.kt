@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.YearRange
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import java.time.Clock
-import java.time.LocalDate
 import java.time.Year
 
 class SkatteClientStub(private val clock: Clock) : Skatteoppslag {
@@ -57,12 +55,8 @@ class SkatteClientStub(private val clock: Clock) : Skatteoppslag {
     }
 
     private fun samletYear(år: Year): SamletSkattegrunnlagForÅr {
-        val currentYear = Year.now(clock)
-        val grenseverdi = 7.mars(currentYear.value)
-        val nå = LocalDate.now(clock)
         val oppslag = when {
-            år < currentYear.minusYears(1) -> årsgrunnlag().right()
-            år < currentYear && nå >= grenseverdi -> årsgrunnlag().right()
+            år <= Year.now(clock).minusYears(1) -> årsgrunnlag().right()
             else -> KunneIkkeHenteSkattemelding.FinnesIkke.left()
         }
         return SamletSkattegrunnlagForÅr(
