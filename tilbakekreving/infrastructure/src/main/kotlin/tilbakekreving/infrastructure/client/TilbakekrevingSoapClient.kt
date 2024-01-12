@@ -1,7 +1,7 @@
 package tilbakekreving.infrastructure.client
 
 import arrow.core.Either
-import arrow.core.flatMap
+import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -34,6 +34,7 @@ class TilbakekrevingSoapClient(
         vurderingerMedKrav: VurderingerMedKrav,
         attestertAv: NavIdentBruker.Attestant,
     ): Either<KunneIkkeSendeTilbakekrevingsvedtak, RåTilbakekrevingsvedtakForsendelse> {
+        val saksnummer = vurderingerMedKrav.saksnummer
         return Either.catch {
             val request = mapToTilbakekrevingsvedtakRequest(
                 vurderingerMedKrav = vurderingerMedKrav,
@@ -41,33 +42,34 @@ class TilbakekrevingSoapClient(
             )
             val response = tilbakekrevingPortType.tilbakekrevingsvedtak(request)
 
-            kontrollerResponse(response, vurderingerMedKrav.saksnummer)
-                .mapLeft {
-                    it
-                }
+            val requestXmlString = TilbakekrevingSoapClientMapper.toXml(request)
+            val responseXmlString = mapErrorResponseTilXmlString(response)
+            kontrollerResponse(response, saksnummer)
                 .map {
-                    sikkerLogg.info(
-                        "SOAP kall mot tilbakekrevingskomponenten OK. Response-mmel: ${response.mmel}, Response-dto: ${response.tilbakekrevingsvedtak}",
+                    log.info(
+                        "SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.",
                     )
+                    sikkerLogg.info(
+                        "SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Request: $requestXmlString. Response: $responseXmlString",
+                    )
+
                     RåTilbakekrevingsvedtakForsendelse(
-                        requestXml = TilbakekrevingSoapClientMapper.toXml(request),
+                        requestXml = requestXmlString,
                         tidspunkt = Tidspunkt.now(clock),
-                        responseXml = mapErrorResponseTilXmlString(response),
+                        responseXml = responseXmlString,
                     )
                 }
         }.mapLeft { throwable ->
             log.error(
-                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer ${vurderingerMedKrav.saksnummer} og eksternKravgrunnlagId ${vurderingerMedKrav.eksternKravgrunnlagId}. Se sikkerlogg for detaljer.",
+                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${vurderingerMedKrav.eksternKravgrunnlagId}. Se sikkerlogg for detaljer.",
                 RuntimeException("Legger på stacktrace for enklere debug"),
             )
             sikkerLogg.error(
-                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer ${vurderingerMedKrav.saksnummer} og eksternKravgrunnlagId ${vurderingerMedKrav.eksternKravgrunnlagId}. Se vanlig logg for stacktrace.",
+                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${vurderingerMedKrav.eksternKravgrunnlagId}. Se vanlig logg for stacktrace.",
                 throwable,
             )
             KunneIkkeSendeTilbakekrevingsvedtak
-        }.flatMap {
-            it
-        }
+        }.flatten()
     }
 
     private fun kontrollerResponse(
@@ -77,9 +79,7 @@ class TilbakekrevingSoapClient(
         return response.let {
             Alvorlighetsgrad.fromString(it.mmel.alvorlighetsgrad).let { alvorlighetsgrad ->
                 when (alvorlighetsgrad) {
-                    Alvorlighetsgrad.OK -> {
-                        Unit.right()
-                    }
+                    Alvorlighetsgrad.OK -> Unit.right()
 
                     Alvorlighetsgrad.OK_MED_VARSEL,
                     -> {

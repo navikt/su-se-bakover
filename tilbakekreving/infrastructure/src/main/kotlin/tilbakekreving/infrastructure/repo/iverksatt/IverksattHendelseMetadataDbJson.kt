@@ -13,9 +13,9 @@ data class IverksattHendelseMetadataDbJson(
     val tilbakekrevingsvedtakForsendelse: TilbakekrevingsvedtakForsendelseDbJson,
 ) {
     data class TilbakekrevingsvedtakForsendelseDbJson(
-        private val requestXml: String,
-        private val tidspunkt: Tidspunkt,
-        private val responseXml: String,
+        val requestXml: String,
+        val tidspunkt: Tidspunkt,
+        val responseXml: String,
     )
 }
 
