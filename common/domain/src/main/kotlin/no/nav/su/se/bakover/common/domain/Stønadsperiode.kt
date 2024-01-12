@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
+package no.nav.su.se.bakover.common.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.fastopphold.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse

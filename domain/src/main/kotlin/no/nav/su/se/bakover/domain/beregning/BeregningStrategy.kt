@@ -5,8 +5,8 @@ import beregning.domain.fradrag.FradragForMåned
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import satser.domain.SatsFactory
+import satser.domain.Satsgrunn
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.domain.grunnlag.Bosituasjon
 

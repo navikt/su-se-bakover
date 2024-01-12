@@ -4,11 +4,11 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minus
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import vilkår.domain.Inngangsvilkår
 import vilkår.uføre.domain.Uføregrunnlag

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.tid.periode.august

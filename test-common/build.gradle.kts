@@ -29,6 +29,7 @@ dependencies {
     api(project(":vedtak:domain"))
     api(project(":vedtak:domain"))
     api(project(":vilkår:domain"))
+    api(project(":vilkår:fastopphold:domain"))
     api(project(":vilkår:formue:domain"))
     api(project(":vilkår:institusjonsopphold:domain"))
     api(project(":vilkår:institusjonsopphold:presentation"))

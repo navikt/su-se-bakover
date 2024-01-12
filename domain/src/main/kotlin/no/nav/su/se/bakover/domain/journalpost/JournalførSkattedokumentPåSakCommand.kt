@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.journalpost
 
 import dokument.domain.journalføring.søknad.JournalførCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 
 /**
