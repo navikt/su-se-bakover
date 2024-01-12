@@ -24,7 +24,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Year
 import java.util.UUID
 
-private data class HentSamletSkattegrunnlagBody(
+private data class OppdaterSkattegrunnlagBody(
     val fra: String,
     val til: String,
 ) {
@@ -35,15 +35,15 @@ private data class HentSamletSkattegrunnlagBody(
     )
 }
 
-internal fun Route.hentSamletSkattegrunnlagRoute(
+internal fun Route.oppdaterSkattegrunnlagRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/samletSkattegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<HentSamletSkattegrunnlagBody> { body ->
-                    søknadsbehandlingService.leggTilEksternSkattegrunnlag(
+                call.withBody<OppdaterSkattegrunnlagBody> { body ->
+                    søknadsbehandlingService.oppdaterSkattegrunnlag(
                         body.toCommand(behandlingId, call.suUserContext.saksbehandler),
                     ).fold(
                         { call.svar(it.tilResultat()) },

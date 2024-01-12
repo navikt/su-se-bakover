@@ -25,8 +25,8 @@ fun hentSkattegrunnlagForÅr(
             url,
             listOf(brukerrolle),
             client = client,
-        ){
-            setBody("""{"fra":"2019","til":"2020"}""")
+        ) {
+            setBody("""{"fra":"2020","til":"2021"}""")
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK

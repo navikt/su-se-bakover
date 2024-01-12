@@ -40,7 +40,7 @@ class SøknadsbehandlingSkattTest {
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
-        ).leggTilEksternSkattegrunnlag(
+        ).oppdaterSkattegrunnlag(
             SøknadsbehandlingSkattCommand(
                 søknadsbehandling.id,
                 saksbehandler,
@@ -83,7 +83,7 @@ class SøknadsbehandlingSkattTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
-        ).leggTilEksternSkattegrunnlag(
+        ).oppdaterSkattegrunnlag(
             SøknadsbehandlingSkattCommand(søknadsbehandling.id, saksbehandler, YearRange(Year.of(2019), Year.of(2020))),
         ).shouldBeLeft()
 

@@ -734,7 +734,7 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilEksternSkattegrunnlag(
+    override fun oppdaterSkattegrunnlag(
         command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(command.behandlingId)

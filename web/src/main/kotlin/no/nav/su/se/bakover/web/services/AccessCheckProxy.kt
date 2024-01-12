@@ -705,11 +705,11 @@ open class AccessCheckProxy(
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
 
-                    override fun leggTilEksternSkattegrunnlag(
+                    override fun oppdaterSkattegrunnlag(
                         command: SøknadsbehandlingSkattCommand,
                     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
                         assertHarTilgangTilBehandling(command.behandlingId)
-                        return service.leggTilEksternSkattegrunnlag(command)
+                        return service.oppdaterSkattegrunnlag(command)
                     }
                 },
             ),

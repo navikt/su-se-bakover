@@ -124,7 +124,7 @@ interface SøknadsbehandlingService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling>
 
-    fun leggTilEksternSkattegrunnlag(
+    fun oppdaterSkattegrunnlag(
         command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
