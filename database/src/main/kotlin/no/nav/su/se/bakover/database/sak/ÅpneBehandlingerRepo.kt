@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import java.util.UUID
 
 internal class ÅpneBehandlingerRepo(
     private val dbMetrics: DbMetrics,
@@ -43,19 +42,19 @@ internal class ÅpneBehandlingerRepo(
                 from sak
             ),
                  behandlinger as (
-                     select sak.sakId, sak.saksnummer, b.id, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
+                     select sak.sakId, sak.saksnummer, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
                               join behandling b on b.sakid = sak.sakId
                      where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
-                     select sak.sakId, sak.saksnummer, r.id, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
+                     select sak.sakId, sak.saksnummer, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
                  klage as (
-                     select sak.sakId, sak.saksnummer, k.id, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
+                     select sak.sakId, sak.saksnummer, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
                      where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
@@ -64,7 +63,6 @@ internal class ÅpneBehandlingerRepo(
                      select
                         sak.sakId,
                         sak.saksnummer,
-                        s.id,
                         null::timestamp as opprettet,
                         'NY_SØKNAD' as status,
                         'SØKNAD' as type,
@@ -101,7 +99,6 @@ internal class ÅpneBehandlingerRepo(
 
         return Behandlingssammendrag(
             saksnummer = Saksnummer(long("saksnummer")),
-            behandlingsId = UUID.fromString(string("id")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentÅpenBehandlingStatus(behandlingstype),
             behandlingStartet = tidspunktOrNull("opprettet"),

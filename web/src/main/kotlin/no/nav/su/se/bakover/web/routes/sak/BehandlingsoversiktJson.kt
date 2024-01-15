@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 
 internal data class BehandlingsoversiktJson(
     val saksnummer: String,
-    val behandlingId: String,
     val typeBehandling: String,
     val periode: PeriodeJson?,
     val status: String?,
@@ -16,7 +15,6 @@ internal data class BehandlingsoversiktJson(
         fun List<Behandlingssammendrag>.toJson() = this.map {
             BehandlingsoversiktJson(
                 saksnummer = it.saksnummer.toString(),
-                behandlingId = it.behandlingsId.toString(),
                 typeBehandling = it.behandlingstype.toString(),
                 status = it.status?.toString(),
                 behandlingStartet = it.behandlingStartet?.toString(),

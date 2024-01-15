@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import java.util.UUID
 
 internal class FerdigeBehandlingerRepo(
     private val dbMetrics: DbMetrics,
@@ -49,7 +48,6 @@ internal class FerdigeBehandlingerRepo(
                  behandlinger as (
                      select sak.sakId,
                             sak.saksnummer,
-                            b.id,
                             b.status            as status,
                             'SØKNADSBEHANDLING' as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -61,7 +59,6 @@ internal class FerdigeBehandlingerRepo(
                  revurderinger as (
                      select sak.sakId,
                             sak.saksnummer,
-                            r.id,
                             r.revurderingstype                                         as status,
                             'REVURDERING'                                              as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -73,7 +70,6 @@ internal class FerdigeBehandlingerRepo(
                  klage as (
                      select sak.sakId,
                             sak.saksnummer,
-                            k.id,
                             k.type                                                     as status,
                             'KLAGE'                                                    as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -107,7 +103,6 @@ internal class FerdigeBehandlingerRepo(
 
         return Behandlingssammendrag(
             saksnummer = Saksnummer(long("saksnummer")),
-            behandlingsId = UUID.fromString(string("id")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentStatus(behandlingstype),
             behandlingStartet = tidspunkt("iverksattOpprettet"),

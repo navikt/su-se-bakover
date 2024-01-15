@@ -398,7 +398,6 @@ fun List<Tuple5<Long, Hendelsestype, Saksnummer, TilbakekrevingsbehandlingId, Ti
     this.map {
         Behandlingssammendrag(
             saksnummer = it.third,
-            behandlingsId = it.fourth.value,
             periode = null,
             behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
             behandlingStartet = it.fifth,

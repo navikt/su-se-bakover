@@ -810,7 +810,7 @@ class TestDataHelper(
     /**
      * Baseres på [persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling] og [persisterRevurderingOpprettet]
      */
-    fun persisterRevurderingAvsluttet(): AvsluttetRevurdering {
+    fun persisterRevurderingAvsluttet(): Pair<Sak, AvsluttetRevurdering> {
         val (sak, vedtak, _) = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
         return persisterRevurderingOpprettet(
             sakOgVedtak = sak to vedtak,
@@ -821,6 +821,11 @@ class TestDataHelper(
                 tidspunktAvsluttet = Tidspunkt.now(clock),
                 avsluttetAv = saksbehandler,
             ).getOrFail().also { databaseRepos.revurderingRepo.lagre(it) }
+        }.let {
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                (persistertSak!!.revurderinger.single { it.id == it.id } as AvsluttetRevurdering) shouldBe it
+                persistertSak to it
+            }
         }
     }
 

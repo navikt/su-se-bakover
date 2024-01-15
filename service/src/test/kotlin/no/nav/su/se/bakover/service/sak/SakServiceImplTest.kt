@@ -91,7 +91,6 @@ internal class SakServiceImplTest {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2021),
-                    behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
@@ -106,7 +105,6 @@ internal class SakServiceImplTest {
         sakMedÅpenSøknad shouldBe listOf(
             Behandlingssammendrag(
                 saksnummer = Saksnummer(nummer = 2021),
-                behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                 status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                 behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
@@ -128,7 +126,6 @@ internal class SakServiceImplTest {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingssammendrag(
                     saksnummer = saksnr1,
-                    behandlingsId = uavklartSøkandsbehandling.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = uavklartSøkandsbehandling.opprettet,
@@ -136,7 +133,6 @@ internal class SakServiceImplTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = saksnr1,
-                    behandlingsId = underkjentSøknadsbehandling.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentSøknadsbehandling.opprettet,
@@ -144,7 +140,6 @@ internal class SakServiceImplTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = saksnr2,
-                    behandlingsId = tilAttesteringSøknadsbehandling.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
@@ -159,7 +154,6 @@ internal class SakServiceImplTest {
         sakerMedÅpneBehandlinger shouldBe listOf(
             Behandlingssammendrag(
                 saksnummer = saksnr1,
-                behandlingsId = uavklartSøkandsbehandling.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = uavklartSøkandsbehandling.opprettet,
@@ -167,7 +161,6 @@ internal class SakServiceImplTest {
             ),
             Behandlingssammendrag(
                 saksnummer = saksnr1,
-                behandlingsId = underkjentSøknadsbehandling.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                 status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentSøknadsbehandling.opprettet,
@@ -175,7 +168,6 @@ internal class SakServiceImplTest {
             ),
             Behandlingssammendrag(
                 saksnummer = saksnr2,
-                behandlingsId = tilAttesteringSøknadsbehandling.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                 status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
@@ -215,7 +207,6 @@ internal class SakServiceImplTest {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingssammendrag(
                     saksnummer = saknr1,
-                    behandlingsId = opprettetRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
@@ -223,7 +214,6 @@ internal class SakServiceImplTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr1,
-                    behandlingsId = simulertRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = simulertRevurdering.opprettet,
@@ -231,7 +221,6 @@ internal class SakServiceImplTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr2,
-                    behandlingsId = underkjentInnvilgetRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
@@ -239,7 +228,6 @@ internal class SakServiceImplTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr2,
-                    behandlingsId = tilAttesteringRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
@@ -254,7 +242,6 @@ internal class SakServiceImplTest {
         sakerMedÅpneRevurderinger shouldBe listOf(
             Behandlingssammendrag(
                 saksnummer = saknr1,
-                behandlingsId = opprettetRevurdering.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = opprettetRevurdering.opprettet,
@@ -262,7 +249,6 @@ internal class SakServiceImplTest {
             ),
             Behandlingssammendrag(
                 saksnummer = saknr1,
-                behandlingsId = simulertRevurdering.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = simulertRevurdering.opprettet,
@@ -270,7 +256,6 @@ internal class SakServiceImplTest {
             ),
             Behandlingssammendrag(
                 saksnummer = saknr2,
-                behandlingsId = underkjentInnvilgetRevurdering.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                 status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
@@ -278,7 +263,6 @@ internal class SakServiceImplTest {
             ),
             Behandlingssammendrag(
                 saksnummer = saknr2,
-                behandlingsId = tilAttesteringRevurdering.id,
                 behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                 status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringRevurdering.opprettet,

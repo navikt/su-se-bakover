@@ -117,7 +117,6 @@ internal class SakPostgresRepoTest {
             åpneBehandlinger shouldBe listOf(
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
-                    behandlingsId = sak.søknad.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = null,
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
@@ -160,7 +159,6 @@ internal class SakPostgresRepoTest {
             alleRestanser shouldContainExactlyInAnyOrder listOf(
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2021),
-                    behandlingsId = sak.søknad.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = null,
@@ -168,7 +166,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2022),
-                    behandlingsId = søknadsbehandling.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = søknadsbehandling.opprettet,
@@ -176,7 +173,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2023),
-                    behandlingsId = underkjent.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjent.opprettet,
@@ -184,7 +180,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2024),
-                    behandlingsId = tilAttestering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttestering.opprettet,
@@ -194,7 +189,6 @@ internal class SakPostgresRepoTest {
                 // hjelpe funksjoner
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2026),
-                    behandlingsId = opprettetRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
@@ -202,7 +196,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2027),
-                    behandlingsId = tilAttesteringRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
@@ -210,7 +203,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2028),
-                    behandlingsId = underkjentRevurdering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
@@ -218,7 +210,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2030),
-                    behandlingsId = opprettetKlage.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetKlage.opprettet,
@@ -226,7 +217,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2031),
-                    behandlingsId = vurdertKlage.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = vurdertKlage.opprettet,
@@ -234,7 +224,6 @@ internal class SakPostgresRepoTest {
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2032),
-                    behandlingsId = klageTilAttestering.id,
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = klageTilAttestering.opprettet,
