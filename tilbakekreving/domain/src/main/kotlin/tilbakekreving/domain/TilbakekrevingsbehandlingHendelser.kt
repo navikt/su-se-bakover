@@ -16,7 +16,7 @@ import java.util.UUID
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
-    private val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
+    val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
     private val tilhørendeOgSorterteDokumentHendelser: DokumentHendelser,
     private val clock: Clock,
 ) : List<TilbakekrevingsbehandlingHendelse> by sorterteHendelser {

@@ -5,6 +5,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 
 /**
+ * Brukes for å se åpne og ferdige behandlinger i saksoversikten.
+ * Per tidspunkt: søknader, søknadsbehandlinger, revurderinger, klager, tilbakekrevinger og kravgrunnlag.
+ *
  * @param behandlingStartet Dette skulle egentlig vært sistEndret
  */
 data class Behandlingssammendrag(
@@ -20,6 +23,7 @@ data class Behandlingssammendrag(
         REVURDERING,
         KLAGE,
         TILBAKEKREVING,
+        KRAVGRUNNLAG,
     }
 
     enum class Behandlingsstatus {
@@ -34,5 +38,7 @@ data class Behandlingssammendrag(
         GJENOPPTAK,
         OVERSENDT,
         IVERKSATT,
+        AVSLUTTET,
+        ÅPEN,
     }
 }

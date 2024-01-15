@@ -42,8 +42,7 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
             val saksnummer = hentSaksnummer(hentSak(sakId, client))
 
-            @Suppress("UNUSED_VARIABLE")
-            val revurderingId = opprettIverksattRevurdering(
+            opprettIverksattRevurdering(
                 sakid = sakId,
                 fraogmed = 1.januar(2021).toString(),
                 tilogmed = 31.januar(2021).toString(),

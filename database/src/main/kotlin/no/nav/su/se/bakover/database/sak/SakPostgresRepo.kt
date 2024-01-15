@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagRepo
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -54,7 +54,7 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
-    private val kravgrunnlagRepo: KravgrunnlagRepo,
+    behandlingssammendragKravgrunnlagRepo: BehandlingssammendragKravgrunnlagRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -67,6 +67,7 @@ internal class SakPostgresRepo(
         dbMetrics = dbMetrics,
         tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
         sessionFactory = sessionFactory,
+        behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
     )
 
     override fun hentSak(sakId: UUID): Sak? {

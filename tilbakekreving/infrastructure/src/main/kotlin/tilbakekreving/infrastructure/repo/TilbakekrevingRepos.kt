@@ -17,7 +17,7 @@ import java.time.Clock
 class TilbakekrevingRepos(
     val kravgrunnlagRepo: KravgrunnlagRepo,
     val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo,
+    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: BehandlingssammendragKravgrunnlagPostgresRepo,
 ) {
     companion object {
         fun create(
@@ -41,7 +41,7 @@ class TilbakekrevingRepos(
                     kravgrunnlagRepo = kravgrunnlagRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                 ),
-                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo(
+                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = BehandlingssammendragKravgrunnlagPostgresRepo(
                     dbMetrics = dbMetrics,
                     sessionFactory = sessionFactory,
                 ),

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -160,3 +161,18 @@ infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
 
 infix fun List<DatoIntervall>.inneholder(other: DatoIntervall): Boolean =
     this.minsteAntallSammenhengendePerioder().any { it inneholder other }
+
+fun NonEmptyList<DatoIntervall>.minAndMaxOf(): DatoIntervall {
+    return DatoIntervall(
+        fraOgMed = this.minOf { it.fraOgMed },
+        tilOgMed = this.maxOf { it.tilOgMed },
+    )
+}
+
+fun List<DatoIntervall>.minAndMaxOfOrNull(): DatoIntervall? {
+    if (this.isEmpty()) return null
+    return DatoIntervall(
+        fraOgMed = this.minOf { it.fraOgMed },
+        tilOgMed = this.maxOf { it.tilOgMed },
+    )
+}
