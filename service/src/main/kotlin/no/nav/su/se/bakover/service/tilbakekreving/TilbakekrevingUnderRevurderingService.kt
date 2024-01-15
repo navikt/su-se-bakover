@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 import java.util.UUID
 

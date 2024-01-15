@@ -3,6 +3,7 @@ package tilbakekreving.presentation
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -40,14 +41,15 @@ class Tilbakekrevingskomponenter(
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
             tilbakekrevingConfig: TilbakekrevingConfig,
+            dbMetrics: DbMetrics,
         ): Tilbakekrevingskomponenter {
             val repos = TilbakekrevingRepos.create(
                 clock = clock,
                 sessionFactory = sessionFactory,
                 hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-                oppgaveHendelseRepo = oppgaveHendelseRepo,
                 dokumentHendelseRepo = dokumentHendelseRepo,
+                dbMetrics = dbMetrics,
             )
             val clients = TilbakekrevingClients.create(
                 tilbakekrevingConfig = tilbakekrevingConfig,

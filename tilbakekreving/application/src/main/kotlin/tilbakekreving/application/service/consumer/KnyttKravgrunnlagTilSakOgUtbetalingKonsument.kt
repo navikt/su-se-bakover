@@ -23,9 +23,9 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import java.time.Clock
 

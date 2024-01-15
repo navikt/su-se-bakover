@@ -1,12 +1,12 @@
 package tilbakekreving.infrastructure.repo
 
 import dokument.domain.hendelser.DokumentHendelseRepo
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import java.time.Clock
 
@@ -17,6 +17,7 @@ import java.time.Clock
 class TilbakekrevingRepos(
     val kravgrunnlagRepo: KravgrunnlagRepo,
     val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo,
 ) {
     companion object {
         fun create(
@@ -24,8 +25,8 @@ class TilbakekrevingRepos(
             sessionFactory: SessionFactory,
             hendelseRepo: HendelseRepo,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-            oppgaveHendelseRepo: OppgaveHendelseRepo,
             dokumentHendelseRepo: DokumentHendelseRepo,
+            dbMetrics: DbMetrics,
         ): TilbakekrevingRepos {
             val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
                 hendelseRepo = hendelseRepo,
@@ -38,8 +39,11 @@ class TilbakekrevingRepos(
                     hendelseRepo = hendelseRepo,
                     clock = clock,
                     kravgrunnlagRepo = kravgrunnlagRepo,
-                    oppgaveRepo = oppgaveHendelseRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
+                ),
+                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo(
+                    dbMetrics = dbMetrics,
+                    sessionFactory = sessionFactory,
                 ),
             )
         }

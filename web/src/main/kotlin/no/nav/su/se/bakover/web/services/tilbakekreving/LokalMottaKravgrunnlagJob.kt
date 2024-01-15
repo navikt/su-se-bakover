@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto

@@ -265,11 +265,6 @@ data object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         )
-        val oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(
-            dbMetrics = dbMetrics,
-            hendelseRepo = hendelseRepo,
-            sessionFactory = sessionFactory,
-        )
 
         // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
         val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
@@ -277,7 +272,6 @@ data object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             clock = clock,
             kravgrunnlagRepo = kravgrunnlagRepo,
-            oppgaveRepo = oppgaveHendelseRepo,
             dokumentHendelseRepo = DokumentHendelsePostgresRepo(
                 hendelseRepo = hendelseRepo,
                 hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),

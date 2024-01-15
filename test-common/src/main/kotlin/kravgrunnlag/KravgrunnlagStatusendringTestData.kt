@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test.kravgrunnlag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.fixedClock
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.time.Clock
 
 fun kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(

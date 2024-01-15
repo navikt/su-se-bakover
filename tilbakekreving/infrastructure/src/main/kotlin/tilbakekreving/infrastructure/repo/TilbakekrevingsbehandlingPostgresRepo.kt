@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
@@ -35,7 +34,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.iverksettelse.IverksattHendelseMetadata
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.avbrutt.mapToTilAvbruttHendelse
 import tilbakekreving.infrastructure.repo.avbrutt.toJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingDbJson
@@ -80,7 +79,6 @@ class TilbakekrevingsbehandlingPostgresRepo(
     private val hendelseRepo: HendelseRepo,
     private val clock: Clock,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
-    private val oppgaveRepo: OppgaveHendelseRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : TilbakekrevingsbehandlingRepo {
 
@@ -292,14 +290,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
-        IverksattTilbakekrevingsbehandlingHendelsestype -> mapToTilIverksattHendelse(
-            data = this.data,
-            hendelseId = this.hendelseId,
-            sakId = this.sakId!!,
-            hendelsestidspunkt = this.hendelsestidspunkt,
-            versjon = this.versjon,
-            tidligereHendelseId = this.tidligereHendelseId!!,
-        )
+        IverksattTilbakekrevingsbehandlingHendelsestype -> this.mapToTilIverksattHendelse()
 
         AvbruttTilbakekrevingsbehandlingHendelsestype -> mapToTilAvbruttHendelse(
             data = this.data,

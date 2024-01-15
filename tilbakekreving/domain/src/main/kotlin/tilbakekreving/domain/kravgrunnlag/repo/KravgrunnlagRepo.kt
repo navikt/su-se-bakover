@@ -1,10 +1,13 @@
-package tilbakekreving.domain.kravgrunnlag
+package tilbakekreving.domain.kravgrunnlag.repo
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.util.UUID
 
 interface KravgrunnlagRepo {

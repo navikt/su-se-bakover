@@ -1,10 +1,11 @@
-package tilbakekreving.domain.kravgrunnlag
+package tilbakekreving.domain.kravgrunnlag.påsak
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import java.util.UUID
 
 /**

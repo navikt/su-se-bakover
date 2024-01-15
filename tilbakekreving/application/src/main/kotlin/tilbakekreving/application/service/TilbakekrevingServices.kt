@@ -31,7 +31,7 @@ import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingSe
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import java.time.Clock

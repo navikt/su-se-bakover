@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.services.tilbakekreving.lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 
 /**
  * @param overstyrUtbetalingId er ment for å trigge mismatch mellom kravgrunnlag og utbetaling. Dersom det er flere som mangler kravgrunnlag, vil alle få samme utbetalingId.

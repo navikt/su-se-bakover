@@ -1,9 +1,11 @@
-package tilbakekreving.domain.kravgrunnlag
+package tilbakekreving.domain.kravgrunnlag.påsak
 
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 
 data class KravgrunnlagPåSakHendelser(
-    private val hendelser: List<KravgrunnlagPåSakHendelse>,
+    val hendelser: List<KravgrunnlagPåSakHendelse>,
 ) : List<KravgrunnlagPåSakHendelse> by hendelser {
 
     val detaljerSortert = hendelser

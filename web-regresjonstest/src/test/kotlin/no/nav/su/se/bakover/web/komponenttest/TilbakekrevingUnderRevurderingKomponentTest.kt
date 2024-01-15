@@ -56,7 +56,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import økonomi.domain.utbetaling.Utbetaling
 import java.util.UUID
 

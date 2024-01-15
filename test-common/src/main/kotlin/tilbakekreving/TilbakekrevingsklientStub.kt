@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.vedtak.KunneIkkeSendeTilbakekrevingsvedtak
 import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import tilbakekreving.domain.vurdering.VurderingerMedKrav

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 class IverksettTilbakekrevingsbehandlingRepoTest {
 
     @Test
-    fun `kan sende tilbakekrevingsbehandling til attestering`() {
+    fun `kan iverksette tilbakekrevingsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)

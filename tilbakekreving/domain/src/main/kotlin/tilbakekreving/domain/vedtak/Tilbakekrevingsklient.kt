@@ -2,7 +2,7 @@ package tilbakekreving.domain.vedtak
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 
 /**

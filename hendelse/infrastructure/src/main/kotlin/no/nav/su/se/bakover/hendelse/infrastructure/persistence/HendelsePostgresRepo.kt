@@ -108,31 +108,6 @@ class HendelsePostgresRepo(
         }
     }
 
-    /**
-     * Kun ment brukt for hendelser uten sakId (vi sjekker at sakId er null)
-     */
-    fun hentHendelserForType(
-        type: Hendelsestype,
-        sessionContext: SessionContext? = null,
-        limit: Int = 10,
-    ): List<PersistertHendelse> {
-        return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
-            sessionContext.withOptionalSession(sessionFactory) { session ->
-                """
-                    select * from hendelse
-                    where sakId is null and type = :type
-                    order by versjon
-                    limit $limit
-                """.trimIndent().hentListe(
-                    params = mapOf(
-                        "type" to type.toString(),
-                    ),
-                    session = session,
-                ) { toPersistertHendelse(it) }
-            }
-        }
-    }
-
     fun hentHendelserForSakIdOgType(
         sakId: UUID,
         type: Hendelsestype,
@@ -141,7 +116,8 @@ class HendelsePostgresRepo(
         return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 """
-                    select * from hendelse
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    from hendelse
                     where sakId = :sakId and type = :type
                     order by versjon
                 """.trimIndent().hentListe(
@@ -209,7 +185,9 @@ class HendelsePostgresRepo(
         return dbMetrics.timeQuery("hentHendelserForSak") {
             sessionFactory.withSession { session ->
                 """
-                    select * from hendelse where sakId = :sakId
+                    select hendelseId, data, hendelsestidspunkt, versjon, entitetId
+                    from hendelse
+                    where sakId = :sakId
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
@@ -218,12 +196,11 @@ class HendelsePostgresRepo(
                 ) {
                     SakOpprettetHendelseJson.toDomain(
                         hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
-                        sakId = it.uuid("sakId"),
+                        sakId = sakId,
                         json = it.string("data"),
                         entitetId = it.uuid("entitetId"),
                         versjon = it.long("versjon"),
                         hendelsestidspunkt = it.tidspunkt("hendelsestidspunkt"),
-
                     )
                 }.single()
             }
@@ -235,7 +212,9 @@ class HendelsePostgresRepo(
             sessionFactory.withSessionContext(sessionContext) { sessionContext ->
                 sessionContext.withSession { session ->
                     """
-                    select max(versjon) from hendelse where entitetId = :entitetId
+                    select max(versjon)
+                    from hendelse
+                    where entitetId = :entitetId
                     """.trimIndent().hent(
                         params = mapOf(
                             "entitetId" to entitetId,

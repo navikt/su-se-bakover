@@ -3,9 +3,7 @@ package tilbakekreving.infrastructure.repo.iverksatt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
@@ -16,24 +14,17 @@ private data class IverksattHendelseDbJson(
     val vedtakId: UUID,
 )
 
-internal fun mapToTilIverksattHendelse(
-    data: String,
-    hendelseId: HendelseId,
-    sakId: UUID,
-    hendelsestidspunkt: Tidspunkt,
-    versjon: Hendelsesversjon,
-    tidligereHendelseId: HendelseId,
-): IverksattHendelse {
+internal fun PersistertHendelse.mapToTilIverksattHendelse(): IverksattHendelse {
     val deserialized = deserialize<IverksattHendelseDbJson>(data)
 
     return IverksattHendelse(
         hendelseId = hendelseId,
-        sakId = sakId,
+        sakId = sakId!!,
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
-        tidligereHendelseId = tidligereHendelseId,
+        tidligereHendelseId = tidligereHendelseId!!,
         vedtakId = deserialized.vedtakId,
     )
 }

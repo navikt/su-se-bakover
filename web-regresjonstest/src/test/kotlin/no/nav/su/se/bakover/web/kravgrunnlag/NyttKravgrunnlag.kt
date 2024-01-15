@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.kravgrunnlag
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 
 /**
  * Emulerer at vi mottar et kravgrunnlag på IBM-køen til oppdrag.

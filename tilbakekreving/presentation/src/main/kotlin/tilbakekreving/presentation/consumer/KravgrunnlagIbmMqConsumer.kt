@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import java.lang.RuntimeException
 import javax.jms.JMSContext
 import javax.jms.Session

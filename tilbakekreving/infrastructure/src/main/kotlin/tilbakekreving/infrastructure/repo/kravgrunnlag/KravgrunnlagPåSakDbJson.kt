@@ -1,9 +1,9 @@
 package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
 
 fun KravgrunnlagPåSakHendelse.toDbJson(): String {
     return when (this) {

@@ -25,10 +25,10 @@ import no.nav.su.se.bakover.test.getFileSourceContent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate

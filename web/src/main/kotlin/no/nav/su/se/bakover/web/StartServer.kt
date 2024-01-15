@@ -146,6 +146,7 @@ fun Application.susebakover(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             tilbakekrevingConfig = tilbakekrevingConfig,
+            dbMetrics = dbMetrics,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {

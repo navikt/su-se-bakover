@@ -1,4 +1,4 @@
-package tilbakekreving.domain.kravgrunnlag
+package tilbakekreving.domain.kravgrunnlag.rått
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 

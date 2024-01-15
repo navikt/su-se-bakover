@@ -15,9 +15,9 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.time.Clock
 
 /**

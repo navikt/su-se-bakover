@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagOpphørXml
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.math.RoundingMode
 

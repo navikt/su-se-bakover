@@ -174,9 +174,10 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
+import tilbakekreving.infrastructure.repo.KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
@@ -238,9 +239,13 @@ class TestDataHelper(
         hendelseRepo = hendelseRepo,
         clock = fixedClock,
         kravgrunnlagRepo = kravgrunnlagPostgresRepo,
-        oppgaveRepo = oppgaveHendelseRepo,
         dokumentHendelseRepo = dokumentHendelseRepo,
     )
+    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo =
+        KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo(
+            dbMetrics = dbMetrics,
+            sessionFactory = sessionFactory,
+        )
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.

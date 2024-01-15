@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringSomRåttK
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import no.nav.su.se.bakover.test.nySakUføre
 import org.junit.jupiter.api.Test
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
 
 internal class KravgrunnlagStatusendringDtoMapperTest {
     @Test

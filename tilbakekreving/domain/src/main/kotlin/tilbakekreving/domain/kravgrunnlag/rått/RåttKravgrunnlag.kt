@@ -1,4 +1,4 @@
-package tilbakekreving.domain.kravgrunnlag
+package tilbakekreving.domain.kravgrunnlag.rått
 
 @JvmInline
 value class RåttKravgrunnlag private constructor(

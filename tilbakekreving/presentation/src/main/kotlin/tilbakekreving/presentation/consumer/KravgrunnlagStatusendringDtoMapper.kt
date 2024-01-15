@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagStatusendringPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.time.Clock
 
 private val log: Logger = LoggerFactory.getLogger("KravgrunnlagStatusendringDtoMapper.toHendelse")

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsvedtakUnderRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
-import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 
 internal class TilbakekrevingSoapClientTest {
 

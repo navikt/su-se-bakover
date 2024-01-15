@@ -137,6 +137,7 @@ internal fun withKomptestApplication(
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             brevService = services.brev,
             tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
+            dbMetrics = dbMetricsStub,
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->

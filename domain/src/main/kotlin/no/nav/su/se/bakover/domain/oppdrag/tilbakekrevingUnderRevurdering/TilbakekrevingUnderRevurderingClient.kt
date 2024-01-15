@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering
 
 import arrow.core.Either
-import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 
 interface TilbakekrevingClient {
     fun sendTilbakekrevingsvedtakForRevurdering(

@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelser
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
+import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.RåttKravgrunnlagDbJson.Companion.toJson
 import tilbakekreving.infrastructure.repo.kravgrunnlag.RåttKravgrunnlagDbJson.Companion.toRåttKravgrunnlagHendelse
 import java.util.UUID
