@@ -206,7 +206,10 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         verify(oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Institusjonsopphold(
-                    sak.saksnummer, sak.type, person.ident.aktørId, fixedClock,
+                    sak.saksnummer,
+                    sak.type,
+                    person.ident.aktørId,
+                    fixedClock,
                 )
             },
         )

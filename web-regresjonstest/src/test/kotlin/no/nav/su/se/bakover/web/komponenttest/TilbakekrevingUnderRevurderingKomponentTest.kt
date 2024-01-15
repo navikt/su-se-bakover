@@ -95,7 +95,8 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     vedtak.simulering.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(
-                                periode = januar(2021), beløp = Beløp(18308),
+                                periode = januar(2021),
+                                beløp = Beløp(18308),
                             ),
                         ),
                     )
@@ -115,7 +116,8 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     vedtak.simulering.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(
-                                periode = januar(2021), beløp = Beløp(2638),
+                                periode = januar(2021),
+                                beløp = Beløp(2638),
                             ),
 
                         ) + (februar(2021)..desember(2021))
@@ -130,7 +132,8 @@ class TilbakekrevingUnderRevurderingKomponentTest {
                     vedtak.simulering.hentUtbetalteBeløp() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(
-                                periode = januar(2021), beløp = Beløp(20946),
+                                periode = januar(2021),
+                                beløp = Beløp(20946),
                             ),
                         ),
                     )
