@@ -2,16 +2,14 @@ package no.nav.su.se.bakover.common.domain.sak
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 
 /**
- * TODO - Vi burde på sikt ha en sak modul, og denne burde være der
- *
  * @param behandlingStartet Dette skulle egentlig vært sistEndret
  */
 data class Behandlingssammendrag(
     val saksnummer: Saksnummer,
-    val periode: Periode?,
+    val periode: DatoIntervall?,
     val behandlingstype: Behandlingstype,
     val behandlingStartet: Tidspunkt?,
     val status: Behandlingsstatus?,
@@ -31,7 +29,6 @@ data class Behandlingssammendrag(
         TIL_ATTESTERING,
         OPPHØR,
         AVSLAG,
-        INGEN_ENDRING,
         INNVILGET,
         STANS,
         GJENOPPTAK,
