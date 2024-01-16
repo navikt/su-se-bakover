@@ -15,16 +15,20 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
+import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagRepo
 
 internal class ÅpneBehandlingerRepo(
     private val dbMetrics: DbMetrics,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val behandlingssammendragKravgrunnlagRepo: BehandlingssammendragKravgrunnlagRepo,
     private val sessionFactory: SessionFactory,
 ) {
     fun hentÅpneBehandlinger(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
         return sessionContext.withOptionalSession(sessionFactory) {
             åpneBehandlingerUtenTilbakekreving(sessionContext).plus(
                 tilbakekrevingsbehandlingRepo.hentÅpneBehandlingssammendrag(sessionContext),
+            ).plus(
+                behandlingssammendragKravgrunnlagRepo.hentFerdige(sessionContext),
             )
         }
     }

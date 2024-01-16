@@ -60,6 +60,7 @@ internal class SakPostgresRepo(
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
         dbMetrics = dbMetrics,
         tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+        behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
         sessionFactory = sessionFactory,
     )
 

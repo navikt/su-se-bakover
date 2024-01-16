@@ -32,7 +32,7 @@ internal class FerdigeBehandlingerRepo(
             hentFerdigeBehandlingerUtenTilbakekreving(sessionContext).plus(
                 tilbakekrevingsbehandlingRepo.hentFerdigeBehandlingssamendrag(sessionContext),
             ).plus(
-                behandlingssammendragKravgrunnlagRepo.hentBehandlingssammendrag(sessionContext),
+                behandlingssammendragKravgrunnlagRepo.hentFerdige(sessionContext),
             )
         }
     }

@@ -20,7 +20,23 @@ class BehandlingssammendragKravgrunnlagPostgresRepo(
     val sessionFactory: SessionFactory,
 ) : BehandlingssammendragKravgrunnlagRepo {
 
-    override fun hentBehandlingssammendrag(
+    override fun hentÅpne(
+        sessionContext: SessionContext?,
+    ): List<Behandlingssammendrag> {
+        return hentBehandlingssammendrag(
+            sessionContext = sessionContext,
+        ).filter { it.status == Behandlingssammendrag.Behandlingsstatus.ÅPEN }
+    }
+
+    override fun hentFerdige(
+        sessionContext: SessionContext?,
+    ): List<Behandlingssammendrag> {
+        return hentBehandlingssammendrag(
+            sessionContext = sessionContext,
+        ).filterNot { it.status == Behandlingssammendrag.Behandlingsstatus.ÅPEN }
+    }
+
+    private fun hentBehandlingssammendrag(
         sessionContext: SessionContext?,
     ): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentKravgrunnlagOgIverksatteTilbakekrevinger") {
@@ -114,7 +130,8 @@ class BehandlingssammendragKravgrunnlagPostgresRepo(
                             tilOgMed = LocalDate.parse(row.string("tilOgMed")),
                         ),
                         behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
-                        behandlingStartet = row.tidspunktOrNull("statusTidspunkt") ?: row.tidspunkt("kravgrunnlagTidspunkt"),
+                        behandlingStartet = row.tidspunktOrNull("statusTidspunkt")
+                            ?: row.tidspunkt("kravgrunnlagTidspunkt"),
                         status = row.string("status").toKravgrunnlagStatus().let {
                             if (it.erAvsluttet()) {
                                 Behandlingssammendrag.Behandlingsstatus.AVSLUTTET
