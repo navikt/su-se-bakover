@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import tilbakekreving.infrastructure.repo.BehandlingssammendragKravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
@@ -278,6 +279,11 @@ data object DatabaseBuilder {
                 sessionFactory,
             ),
         )
+        // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
+        val behandlingssammendragKravgrunnlagRepo = BehandlingssammendragKravgrunnlagPostgresRepo(
+            sessionFactory = sessionFactory,
+            dbMetrics = dbMetrics,
+        )
         val dokumentHendelseRepo = DokumentHendelsePostgresRepo(
             hendelseRepo = hendelseRepo,
             hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
@@ -305,7 +311,7 @@ data object DatabaseBuilder {
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
                 tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
-                kravgrunnlagRepo = kravgrunnlagRepo,
+                behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
             ),
             person = PersonPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             søknadsbehandling = søknadsbehandlingRepo,

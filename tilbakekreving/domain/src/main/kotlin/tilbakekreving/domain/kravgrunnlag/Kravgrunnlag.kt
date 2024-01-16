@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.math.BigDecimal
 
@@ -63,6 +64,7 @@ data class Kravgrunnlag(
         return grunnlagsperioder.find { it.periode == periode }
     }
 
+    val periode: DatoIntervall? = grunnlagsperioder.map { it.periode }.minAndMaxOfOrNull()
     val summertBetaltSkattForYtelsesgruppen by lazy { grunnlagsperioder.sumOf { it.betaltSkattForYtelsesgruppen } }
     val summertBruttoTidligereUtbetalt by lazy { grunnlagsperioder.sumOf { it.bruttoTidligereUtbetalt } }
     val summertBruttoNyUtbetaling by lazy { grunnlagsperioder.sumOf { it.bruttoNyUtbetaling } }

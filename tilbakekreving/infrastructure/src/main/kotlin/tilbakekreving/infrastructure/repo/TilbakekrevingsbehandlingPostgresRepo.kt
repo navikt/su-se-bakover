@@ -46,7 +46,7 @@ import tilbakekreving.infrastructure.repo.notat.mapTilNotatHendelse
 import tilbakekreving.infrastructure.repo.notat.toJson
 import tilbakekreving.infrastructure.repo.oppdatertKravgrunnlag.mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.infrastructure.repo.oppdatertKravgrunnlag.toJson
-import tilbakekreving.infrastructure.repo.opprettet.OpprettTilbakekrevingsbehandlingHendelseDbJson
+import tilbakekreving.infrastructure.repo.opprettet.mapToOpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.infrastructure.repo.opprettet.toJson
 import tilbakekreving.infrastructure.repo.tilAttestering.mapToTilAttesteringHendelse
 import tilbakekreving.infrastructure.repo.tilAttestering.toJson
@@ -253,13 +253,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
 
 private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
     when (this.type) {
-        OpprettetTilbakekrevingsbehandlingHendelsestype -> OpprettTilbakekrevingsbehandlingHendelseDbJson.toDomain(
-            data = this.data,
-            hendelseId = this.hendelseId,
-            sakId = this.sakId!!,
-            hendelsestidspunkt = this.hendelsestidspunkt,
-            versjon = this.versjon,
-        )
+        OpprettetTilbakekrevingsbehandlingHendelsestype -> this.mapToOpprettetTilbakekrevingsbehandlingHendelse()
 
         ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
             data = this.data,
@@ -310,14 +304,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             tidligereHendelseId = this.tidligereHendelseId!!,
         )
 
-        OppdatertKravgrunnlagPåTilbakekrevingHendelse -> mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(
-            data = this.data,
-            hendelseId = this.hendelseId,
-            sakId = this.sakId!!,
-            hendelsestidspunkt = this.hendelsestidspunkt,
-            versjon = this.versjon,
-            tidligereHendelsesId = this.tidligereHendelseId!!,
-        )
+        OppdatertKravgrunnlagPåTilbakekrevingHendelse -> this.mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse()
 
         NotatTilbakekrevingsbehandlingHendelsestype -> mapTilNotatHendelse(
             data = this.data,

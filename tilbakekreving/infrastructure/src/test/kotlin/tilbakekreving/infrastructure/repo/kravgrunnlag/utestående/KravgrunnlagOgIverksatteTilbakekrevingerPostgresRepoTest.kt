@@ -1,13 +1,13 @@
 package tilbakekreving.infrastructure.repo.kravgrunnlag.utestående
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
-import tilbakekreving.domain.IverksattHendelse
 
 internal class KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepoTest {
 
@@ -18,19 +18,52 @@ internal class KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak1, _, _, _, hendelser1) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            val (sak2, _, _, _, hendelser2) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak1, _, _, _, _) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak2, _, _, _, _) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (_, _, _, _, _, krav3, _, _) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            val (_, _, _, _, _, krav4, _, _) = testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
-            val kravgrunnlagPåSakHendelser1 =
-                testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak1.id)
-            val kravgrunnlagPåSakHendelser2 =
-                testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak2.id)
-            testDataHelper.kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo.hentKravgrunnlagOgIverksatteTilbakekrevinger(
-                null,
-            ) shouldBe Pair(
-                kravgrunnlagPåSakHendelser1.hendelser + kravgrunnlagPåSakHendelser2.hendelser,
-                (hendelser1 + hendelser2).filterIsInstance<IverksattHendelse>(),
-            )
+            val krav1 =
+                testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak1.id).detaljerSortert.single()
+
+            val krav2 =
+                testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak2.id).detaljerSortert.single()
+
+            val actual =
+                testDataHelper.kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo.hentBehandlingssammendrag(
+                    null,
+                ).sortedBy { it.saksnummer.nummer }
+            actual shouldBe
+                listOf(
+                    Behandlingssammendrag(
+                        saksnummer = krav1.saksnummer,
+                        periode = krav1.kravgrunnlag.periode,
+                        behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
+                        behandlingStartet = krav1.eksternTidspunkt,
+                        status = Behandlingssammendrag.Behandlingsstatus.IVERKSATT,
+                    ),
+                    Behandlingssammendrag(
+                        saksnummer = krav2.saksnummer,
+                        periode = krav2.kravgrunnlag.periode,
+                        behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
+                        behandlingStartet = krav2.eksternTidspunkt,
+                        status = Behandlingssammendrag.Behandlingsstatus.IVERKSATT,
+                    ),
+                    Behandlingssammendrag(
+                        saksnummer = krav3.saksnummer,
+                        periode = krav3.kravgrunnlag.periode,
+                        behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
+                        behandlingStartet = krav3.eksternTidspunkt,
+                        status = Behandlingssammendrag.Behandlingsstatus.ÅPEN,
+                    ),
+                    Behandlingssammendrag(
+                        saksnummer = krav4.saksnummer,
+                        periode = krav4.kravgrunnlag.periode,
+                        behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
+                        behandlingStartet = krav4.eksternTidspunkt,
+                        status = Behandlingssammendrag.Behandlingsstatus.ÅPEN,
+                    ),
+                ).sortedBy { it.saksnummer.nummer }
         }
     }
 }
