@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
@@ -119,7 +119,7 @@ fun nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
     fritekst: String = "",
     dokumentId: UUID = UUID.randomUUID(),
-): ForhåndsvarsleTilbakekrevingsbehandlingHendelse = ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+): ForhåndsvarsletTilbakekrevingsbehandlingHendelse = ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     hendelseId = hendelseId,
     sakId = forrigeHendelse.sakId,
     hendelsestidspunkt = hendelsesTidspunkt,

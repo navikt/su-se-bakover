@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.KanForhåndsvarsle
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
@@ -34,7 +34,7 @@ import java.time.Clock
 import java.util.UUID
 
 /**
- * @see ForhåndsvarsleTilbakekrevingsbehandlingHendelse hendelsen som trigget konsumenten.
+ * @see ForhåndsvarsletTilbakekrevingsbehandlingHendelse hendelsen som trigget konsumenten.
  */
 class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     private val sakService: SakService,
@@ -96,7 +96,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         }
 
         val forhåndsvarsleHendelse =
-            (tilbakekrevingsbehandlingRepo.hentHendelse(hendelseId) as? ForhåndsvarsleTilbakekrevingsbehandlingHendelse)
+            (tilbakekrevingsbehandlingRepo.hentHendelse(hendelseId) as? ForhåndsvarsletTilbakekrevingsbehandlingHendelse)
                 ?: return Unit.also {
                     log.error("Feil under generering av forhåndsvarseldokument: hendelsen var ikke av type ForhåndsvarsleTilbakekrevingsbehandlingHendelse for sak $sakId og hendelse $hendelseId")
                 }
@@ -131,7 +131,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     }
 
     private fun opprettDokumentForForhåndsvarsel(
-        forhåndsvarsleHendelse: ForhåndsvarsleTilbakekrevingsbehandlingHendelse,
+        forhåndsvarsleHendelse: ForhåndsvarsletTilbakekrevingsbehandlingHendelse,
         behandling: KanForhåndsvarsle,
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,

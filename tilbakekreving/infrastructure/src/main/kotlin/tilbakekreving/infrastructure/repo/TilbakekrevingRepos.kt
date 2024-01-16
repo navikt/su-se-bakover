@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagPostgresRepo
 import java.time.Clock
 
 /**

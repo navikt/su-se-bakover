@@ -18,7 +18,7 @@ import java.util.UUID
  *
  * @see tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument den asynkrone genereringen.
  */
-data class ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+data class ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -60,8 +60,8 @@ fun KanForhåndsvarsle.leggTilForhåndsvarsel(
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-): Pair<ForhåndsvarsleTilbakekrevingsbehandlingHendelse, UnderBehandling> =
-    ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+): Pair<ForhåndsvarsletTilbakekrevingsbehandlingHendelse, UnderBehandling> =
+    ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
         hendelseId = HendelseId.generer(),
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),

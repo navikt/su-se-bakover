@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure.repo
+package tilbakekreving.infrastructure.repo.sammendrag
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagRepo
+import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
+import tilbakekreving.infrastructure.repo.OppdatertKravgrunnlagPåTilbakekrevingHendelse
+import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KnyttetKravgrunnlagTilSakHendelsestype
 import tilbakekreving.infrastructure.repo.kravgrunnlag.toKravgrunnlagStatus
 import java.time.LocalDate
@@ -39,7 +42,7 @@ class BehandlingssammendragKravgrunnlagPostgresRepo(
     private fun hentBehandlingssammendrag(
         sessionContext: SessionContext?,
     ): List<Behandlingssammendrag> {
-        return dbMetrics.timeQuery("hentKravgrunnlagOgIverksatteTilbakekrevinger") {
+        return dbMetrics.timeQuery("hentBehandlingssammendrag") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 """
                 WITH SisteKravgrunnlag AS (
@@ -48,9 +51,9 @@ class BehandlingssammendragKravgrunnlagPostgresRepo(
                     (h.data->'kravgrunnlag'->>'eksternTidspunkt')::timestamptz AS kravgrunnlagTidspunkt,
                     (h.data->'kravgrunnlag'->>'status') AS status,
                     h.hendelseId,
-                     (SELECT MIN((elements->>'fraOgMed')::date) 
+                     (SELECT MIN((elements->>'fraOgMed')::date)
                      FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS fraOgMed,
-                    (SELECT MAX((elements->>'tilOgMed')::date) 
+                    (SELECT MAX((elements->>'tilOgMed')::date)
                      FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS tilOgMed
                 FROM
                     hendelse h

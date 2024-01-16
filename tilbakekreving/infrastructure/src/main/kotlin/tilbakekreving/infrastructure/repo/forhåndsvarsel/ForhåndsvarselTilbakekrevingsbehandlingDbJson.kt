@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import java.util.UUID
 
@@ -24,10 +24,10 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
             tidligereHendelsesId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-        ): ForhåndsvarsleTilbakekrevingsbehandlingHendelse {
+        ): ForhåndsvarsletTilbakekrevingsbehandlingHendelse {
             val deserialized = deserialize<ForhåndsvarselTilbakekrevingsbehandlingDbJson>(data)
 
-            return ForhåndsvarsleTilbakekrevingsbehandlingHendelse(
+            return ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
                 hendelseId = hendelseId,
                 sakId = sakId,
                 hendelsestidspunkt = hendelsestidspunkt,
@@ -42,7 +42,7 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
     }
 }
 
-internal fun ForhåndsvarsleTilbakekrevingsbehandlingHendelse.toJson(): String =
+internal fun ForhåndsvarsletTilbakekrevingsbehandlingHendelse.toJson(): String =
     ForhåndsvarselTilbakekrevingsbehandlingDbJson(
         fritekst = this.fritekst,
         behandlingsId = this.id.value,

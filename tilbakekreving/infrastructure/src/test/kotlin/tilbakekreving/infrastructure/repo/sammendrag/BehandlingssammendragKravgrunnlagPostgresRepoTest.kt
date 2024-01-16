@@ -1,4 +1,4 @@
-package tilbakekreving.infrastructure.repo.kravgrunnlag.utestående
+package tilbakekreving.infrastructure.repo.sammendrag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 
-internal class KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepoTest {
+internal class BehandlingssammendragKravgrunnlagPostgresRepoTest {
 
     @Test
     fun `hent ferdige`() {
@@ -31,7 +31,7 @@ internal class KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepoTest {
                 testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak2.id).detaljerSortert.single()
 
             val actual =
-                testDataHelper.kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo.hentFerdige(
+                testDataHelper.behandlingssammendragKravgrunnlagPostgresRepo.hentFerdige(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe
@@ -67,7 +67,7 @@ internal class KravgrunnlagOgIverksatteTilbakekrevingerPostgresRepoTest {
             val (_, _, _, _, _, krav4, _, _) = testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
             val actual =
-                testDataHelper.kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo.hentÅpne(
+                testDataHelper.behandlingssammendragKravgrunnlagPostgresRepo.hentÅpne(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe

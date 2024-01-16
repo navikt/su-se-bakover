@@ -106,7 +106,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)
 
-                is ForhåndsvarsleTilbakekrevingsbehandlingHendelse -> acc.plus(
+                is ForhåndsvarsletTilbakekrevingsbehandlingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)
 

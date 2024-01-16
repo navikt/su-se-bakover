@@ -20,7 +20,7 @@ import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsva
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
-import tilbakekreving.domain.ForhåndsvarsleTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
 import java.util.UUID
 
@@ -36,7 +36,7 @@ internal fun AppComponents.hentUtførteSideeffekter(sakId: String): UtførteSide
         // TODO jah: Denne/disse er generell og vil kræsje med vedtaksbrevet.
         antallGenererteForhåndsvarsler = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
             this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
-        }.filterIsInstance<ForhåndsvarsleTilbakekrevingsbehandlingHendelse>().size,
+        }.filterIsInstance<ForhåndsvarsletTilbakekrevingsbehandlingHendelse>().size,
         antallGenererteVedtaksbrev = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
             this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
         }.filterIsInstance<IverksattHendelse>().size,

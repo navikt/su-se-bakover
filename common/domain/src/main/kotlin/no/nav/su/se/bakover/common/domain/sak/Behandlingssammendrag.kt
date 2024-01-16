@@ -40,5 +40,6 @@ data class Behandlingssammendrag(
         IVERKSATT,
         AVSLUTTET,
         ÅPEN,
+        AVBRUTT,
     }
 }

@@ -1,6 +1,5 @@
 package tilbakekreving.domain
 
-import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -13,6 +12,7 @@ interface TilbakekrevingsbehandlingRepo {
         meta: DefaultHendelseMetadata,
         sessionContext: SessionContext? = null,
     )
+
     fun lagreIverksattTilbakekrevingshendelse(
         hendelse: IverksattHendelse,
         meta: IverksattHendelseMetadata,
@@ -30,7 +30,4 @@ interface TilbakekrevingsbehandlingRepo {
         hendelse: TilbakekrevingsbehandlingHendelse,
         sessionContext: SessionContext? = null,
     ): TilbakekrevingbehandlingsSerie
-
-    fun hentÅpneBehandlingssammendrag(sessionContext: SessionContext? = null): List<Behandlingssammendrag>
-    fun hentFerdigeBehandlingssamendrag(sessionContext: SessionContext? = null): List<Behandlingssammendrag>
 }

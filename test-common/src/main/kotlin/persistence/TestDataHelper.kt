@@ -177,10 +177,11 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
-import tilbakekreving.infrastructure.repo.BehandlingssammendragKravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
+import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragTilbakekrevingPostgresRepo
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.avstemming.Avstemmingsnøkkel
@@ -241,11 +242,16 @@ class TestDataHelper(
         kravgrunnlagRepo = kravgrunnlagPostgresRepo,
         dokumentHendelseRepo = dokumentHendelseRepo,
     )
-    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo =
+    val behandlingssammendragKravgrunnlagPostgresRepo =
         BehandlingssammendragKravgrunnlagPostgresRepo(
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
         )
+
+    val behandlingssammendragTilbakekrevingPostgresRepo = BehandlingssammendragTilbakekrevingPostgresRepo(
+        dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory,
+    )
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
