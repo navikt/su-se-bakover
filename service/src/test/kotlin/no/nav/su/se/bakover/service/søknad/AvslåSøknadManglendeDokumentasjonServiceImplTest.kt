@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurd
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -44,6 +46,8 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -97,6 +101,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
@@ -244,6 +251,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId).left()
             },
         ).let { serviceAndMocks ->
 
@@ -412,6 +422,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
         val utbetalingService: UtbetalingService = mock(),
         val brevService: BrevService = mock(),
+        val oppgaveService: OppgaveService = mock(),
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
@@ -421,6 +432,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
             utbetalingService = utbetalingService,
             brevService = brevService,
+            oppgaveService = oppgaveService,
         )
 
         fun verifyNoMoreInteractions() {

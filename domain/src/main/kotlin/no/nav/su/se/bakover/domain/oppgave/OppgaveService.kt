@@ -21,7 +21,7 @@ interface OppgaveService {
 
     fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        beskrivelse: String,
+        oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
     /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */

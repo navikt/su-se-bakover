@@ -15,6 +15,7 @@ data class OppdaterOppgaveInfo(
     val beskrivelse: String,
     val oppgavetype: Oppgavetype? = null,
     val status: String? = null,
+    val tilordnetRessurs: String? = null,
 )
 
 interface OppgaveClient {
@@ -24,7 +25,7 @@ interface OppgaveClient {
     fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
     fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        beskrivelse: String,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
     fun oppdaterOppgaveMedSystembruker(

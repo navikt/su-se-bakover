@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.auth.AccessToken
 import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -206,9 +207,15 @@ internal class OppdaterHttpClientTest {
                 clock = fixedClock,
             )
 
-            val actual =
-                client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse")
-                    .getOrFail()
+            val actual = client.oppdaterOppgave(
+                oppgaveId = OppgaveId(oppgaveId.toString()),
+                oppdatertOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "en beskrivelse",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    status = null,
+                    tilordnetRessurs = null,
+                ),
+            ).getOrFail()
 
             val expectedBody = createJsonPatchRequestedBody(
                 """--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen""",

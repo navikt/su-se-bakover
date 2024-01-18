@@ -6,18 +6,17 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -86,6 +85,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
@@ -128,7 +128,7 @@ class SøknadsbehandlingServiceImpl(
      * Sideeffekter:
      * - søknadsbehandlingen persisteres.
      * - det sendes statistikk
-     *
+     * - oppgave oppdateres med tildordnet ressurs (best effort)
      * @param hentSak Mulighet for å sende med en funksjon som henter en sak, default er null, som gjør at saken hentes på nytt fra persisteringslaget basert på request.sakId.
      */
     override fun opprett(
@@ -145,6 +145,17 @@ class SøknadsbehandlingServiceImpl(
             søknadId = request.søknadId,
             clock = clock,
             saksbehandler = request.saksbehandler,
+            oppdaterOppgave = { oppgaveId, saksbehandler ->
+                oppgaveService.oppdaterOppgave(
+                    oppgaveId = oppgaveId,
+                    oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                        beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
+                        tilordnetRessurs = saksbehandler.navIdent,
+                    ),
+                ).mapLeft {
+                    log.error("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
+                }
+            },
         ).map { (sak, nySøknadsbehandling, uavklartSøknadsbehandling, statistikk) ->
             søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
             observers.notify(statistikk)
@@ -229,52 +240,29 @@ class SøknadsbehandlingServiceImpl(
             fritekstTilBrev = request.fritekstTilBrev,
             clock = clock,
         ).map { søknadsbehandlingTilAttestering ->
-            val aktørId = personService.hentAktørId(søknadsbehandlingTilAttestering.fnr).getOrElse {
-                log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling $behandlingId. Avbryter handlingen.")
-                return KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeFinneAktørId.left()
-            }
-            val eksisterendeOppgaveId: OppgaveId = søknadsbehandlingTilAttestering.oppgaveId
-
-            val tilordnetRessurs: NavIdentBruker.Attestant? =
-                søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant
-
-            val oppgaveResponse = oppgaveService.opprettOppgave(
-                OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadsbehandlingTilAttestering.søknad.id,
-                    aktørId = aktørId,
-                    tilordnetRessurs = tilordnetRessurs,
-                    clock = clock,
+            oppgaveService.oppdaterOppgave(
+                oppgaveId = søknadsbehandlingTilAttestering.oppgaveId,
+                oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "Sendt til attestering",
+                    oppgavetype = Oppgavetype.ATTESTERING,
+                    tilordnetRessurs = søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant?.navIdent,
                 ),
-            ).getOrElse {
-                log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling $behandlingId. Avbryter handlingen.")
-                return KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
-            }
-            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
-                søknadsbehandlingTilAttestering.nyOppgaveId(oppgaveResponse.oppgaveId)
-
-            søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
-
-            oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
-                behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
-            }.mapLeft {
-                log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave $eksisterendeOppgaveId for søknadsbehandling $behandlingId. Dette er kun best-effort og oppgaven må lukkes manuelt.")
+            ).mapLeft {
+                // gjør en best effort på å oppdatere oppgaven
+                log.error("Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId. Feilen var $it")
             }
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
-            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-            when (søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev) {
+            søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering)
+            when (søknadsbehandlingTilAttestering) {
                 is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(
-                        søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
-                    ),
+                    StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
                 )
 
                 is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(
-                        søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
-                    ),
+                    StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
                 )
             }
-            return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.right()
+            return søknadsbehandlingTilAttestering.right()
         }
     }
 
@@ -290,57 +278,33 @@ class SøknadsbehandlingServiceImpl(
             ).left()
         }
         return søknadsbehandling.tilUnderkjent(request.attestering).map { underkjent ->
-            val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
-                log.error("Fant ikke aktør-id for sak: ${underkjent.id}")
-                return KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeAktørId.left()
-            }
-
-            val journalpostId: JournalpostId = underkjent.søknad.journalpostId
-            val eksisterendeOppgaveId = underkjent.oppgaveId
-
-            val oppgaveResponse = oppgaveService.opprettOppgave(
-                OppgaveConfig.Søknad(
-                    journalpostId = journalpostId,
-                    søknadId = underkjent.søknad.id,
-                    aktørId = aktørId,
-                    tilordnetRessurs = underkjent.saksbehandler,
-                    clock = clock,
-                    sakstype = underkjent.søknad.søknadInnhold.type(),
+            oppgaveService.oppdaterOppgave(
+                underkjent.oppgaveId,
+                oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "Behandling har blitt underkjent",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = underkjent.saksbehandler.navIdent,
                 ),
-            ).getOrElse {
-                log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-                return@underkjenn KunneIkkeUnderkjenneSøknadsbehandling.KunneIkkeOppretteOppgave.left()
-            }.also {
-                behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
+            ).map {
+                log.info("Behandling ${underkjent.id} ble underkjent. Oppgave ${underkjent.oppgaveId} ble oppdatert. Se sikkerlogg for response")
+                sikkerLogg.info("Behandling ${underkjent.id} ble underkjent. Oppgave ${underkjent.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
+            }.mapLeft {
+                // gjør en best effort på å oppdatere oppgaven
+                log.error("Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}. Feilen var $it")
             }
-
-            val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(oppgaveResponse.oppgaveId)
-
-            søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
             behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
-            log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $oppgaveResponse")
-
-            oppgaveService.lukkOppgave(eksisterendeOppgaveId).mapLeft {
-                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
-            }.map {
-                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
-                behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
-            }
-            when (søknadsbehandlingMedNyOppgaveId) {
+            søknadsbehandlingRepo.lagre(underkjent)
+            when (underkjent) {
                 is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(
-                        søknadsbehandlingMedNyOppgaveId,
-                    ),
+                    StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
                 )
 
                 is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(
-                        søknadsbehandlingMedNyOppgaveId,
-                    ),
+                    StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
                 )
             }
-            søknadsbehandlingMedNyOppgaveId
+            underkjent
         }
     }
 

@@ -92,11 +92,11 @@ internal class OppgaveHttpClient(
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        beskrivelse: String,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
-            .flatMap { oppdaterOppgaveHttpClient.oppdaterBeskrivelse(oppgaveId, it, beskrivelse) }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo) }
     }
 
     override fun oppdaterOppgaveMedSystembruker(

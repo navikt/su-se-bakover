@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
@@ -21,7 +23,11 @@ internal class OpprettNySøknadsbehandlingTest {
     @Test
     fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
         val (sak, søknad) = nySakUføre()
-        sak.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeRight()
+        sak.opprettNySøknadsbehandling(
+            søknad.id,
+            fixedClock,
+            saksbehandler,
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
     }
 
     @Test
@@ -31,7 +37,7 @@ internal class OpprettNySøknadsbehandlingTest {
             søknadsbehandling.søknad.id,
             fixedClock,
             saksbehandler,
-        ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
     }
 
     @Test
@@ -43,7 +49,7 @@ internal class OpprettNySøknadsbehandlingTest {
             søknad.id,
             fixedClock,
             saksbehandler,
-        ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
 
     @Test
@@ -57,7 +63,7 @@ internal class OpprettNySøknadsbehandlingTest {
             søknadId = søknad.id,
             clock = clock,
             saksbehandler = saksbehandler,
-        ).shouldBeRight()
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
     }
 
     @Test
@@ -74,6 +80,6 @@ internal class OpprettNySøknadsbehandlingTest {
             søknadId = søknad.id,
             clock = clock,
             saksbehandler = saksbehandler,
-        ).shouldBeRight()
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
     }
 }

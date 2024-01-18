@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -661,7 +662,7 @@ class RevurderingServiceImpl(
     ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            beskrivelse = "Forhåndsvarsel er sendt.",
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er sendt."),
         ).onLeft {
             log.error("Kunne ikke oppdatere oppgave $oppgaveId for revurdering $revurderingId med informasjon om at forhåndsvarsel er sendt")
         }.onRight {
