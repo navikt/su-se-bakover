@@ -12,21 +12,43 @@ infix fun String.shouldBeSimilarXmlTo(expectedXml: String) {
 
 fun String.shouldBeSimilarXmlTo(expectedXml: String, strict: Boolean = false) {
     val diff = this.compareXmlWith(expectedXml, strict)
-    if (diff.hasDifferences()) {
-        val differences = diff.differences.joinToString("\n") { it.toString() }
+
+    // sjekker at innholdet i XML'en er lik, og gir en brukbar feilmelding, dersom det er feil
+    if (diff.first.hasDifferences()) {
+        val differences = diff.first.differences.joinToString("\n") { it.toString() }
+        throw AssertionError("Expected XMLs to be similar, but found differences:\n$differences")
+    }
+
+    // sjekker at strukturen i XML'en er lik
+    if (diff.second.hasDifferences()) {
+        val differences = diff.second.differences.joinToString("\n") { it.toString() }
         throw AssertionError("Expected XMLs to be similar, but found differences:\n$differences")
     }
 }
 
-private fun String.compareXmlWith(expectedXml: String, strict: Boolean): Diff {
-    val diffBuilder = DiffBuilder.compare(this).withTest(expectedXml)
+/**
+ * Dersom innholdet (selve daten) i XML'en er feil, vil builderen med node-matcher gi en feilmelding som ikke er til hjelp.
+ * Derfor lager vi en builder uten node-matcher, som kan brukes for data-sjekk
+ * og en med node-matcher som kan brukes for å sjekke at strukturen er lik.
+ *
+ * Kan si at builderen med node-matcher vil reagere på hvis dataen er feil - men builderen uten node matcher gir ikke feil om strukturen er feil
+ */
+private fun String.compareXmlWith(expectedXml: String, strict: Boolean): Pair<Diff, Diff> {
+    val diffBuilderWithoutNodeMatcher = DiffBuilder.compare(this).withTest(expectedXml)
+        .ignoreWhitespace()
+        .withComparisonController(ComparisonControllers.StopWhenDifferent)
+
+    val diffBuilderWithNodeMatcher = DiffBuilder.compare(this).withTest(expectedXml)
         .ignoreWhitespace()
         .withNodeMatcher(DefaultNodeMatcher(ElementSelectors.byNameAndText))
         .withComparisonController(ComparisonControllers.StopWhenDifferent)
 
     if (strict) {
-        diffBuilder.withNodeMatcher(DefaultNodeMatcher(ElementSelectors.Default))
+        diffBuilderWithNodeMatcher.withNodeMatcher(DefaultNodeMatcher(ElementSelectors.Default))
     }
 
-    return diffBuilder.checkForSimilar().build()
+    return Pair(
+        diffBuilderWithoutNodeMatcher.checkForSimilar().build(),
+        diffBuilderWithNodeMatcher.checkForSimilar().build(),
+    )
 }
