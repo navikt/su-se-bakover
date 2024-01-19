@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.brev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juli
@@ -151,10 +150,7 @@ class BrevForTilbakekrevingTest {
             val utførtAv = NavIdentBruker.Saksbehandler("utførtAv")
             val fritekst = "underkjentBrevMedTilbakekrevingFritekst"
             innvilgetTilbakekrevingTilAttestering(clock = clock).let { (sak, revurdering) ->
-                sak to revurdering.underkjenn(
-                    attestering = attesteringUnderkjent(clock),
-                    oppgaveId = OppgaveId("underkjentAttesteringOppgave"),
-                )
+                sak to revurdering.underkjenn(attestering = attesteringUnderkjent(clock))
             }.let { (_, revurdering) ->
                 revurdering.lagForhåndsvarsel(
                     utførtAv = utførtAv,
@@ -218,7 +214,6 @@ class BrevForTilbakekrevingTest {
                 clock = clock,
             ).let { (sak, revurdering) ->
                 sak to revurdering.tilAttestering(
-                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomSendteTilAttestering"),
                 ).getOrFail()
             }.let { (sak, revurdering) ->
@@ -275,7 +270,6 @@ class BrevForTilbakekrevingTest {
                 clock = clock,
             ).let { (sak, revurdering) ->
                 sak to revurdering.tilAttestering(
-                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomSendteTilAttestering"),
                 ).getOrFail()
             }.let { (sak, revurdering) ->
@@ -296,12 +290,8 @@ class BrevForTilbakekrevingTest {
             val clock = TikkendeKlokke(1.august(2021).fixedClock())
             simulertOpphørTilbakekreving(clock = clock).let { (sak, revurdering) ->
                 sak to revurdering.tilAttestering(
-                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomSendteTilAttestering"),
-                ).getOrFail().underkjenn(
-                    attestering = attesteringUnderkjent(clock),
-                    oppgaveId = OppgaveId("underkjentAttesteringOppgave"),
-                )
+                ).getOrFail().underkjenn(attestering = attesteringUnderkjent(clock))
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, UnderkjentRevurdering.Opphørt>>(sak to revurdering)
                 val expectedTilbakekreving = expectedTilbakekrevingForOpphør()
@@ -334,7 +324,6 @@ class BrevForTilbakekrevingTest {
             val attestantSomIverksatte = NavIdentBruker.Attestant(navIdent = "attestantSomIverksatte")
             simulertOpphørTilbakekreving(clock = clock).let { (sak, revurdering) ->
                 sak to revurdering.tilAttestering(
-                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomSendteTilAttestering"),
                 ).getOrFail().tilIverksatt(
                     attestant = attestantSomIverksatte,

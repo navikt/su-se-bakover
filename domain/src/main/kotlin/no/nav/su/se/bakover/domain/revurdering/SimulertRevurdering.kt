@@ -190,7 +190,6 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         fun tilAttestering(
-            attesteringsoppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeSendeInnvilgetRevurderingTilAttestering, RevurderingTilAttestering.Innvilget> {
             val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
@@ -220,7 +219,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 simulering = simulering,
-                oppgaveId = attesteringsoppgaveId,
+                oppgaveId = oppgaveId,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -293,7 +292,6 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         }
 
         fun tilAttestering(
-            attesteringsoppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KanIkkeSendeOpphørtRevurderingTilAttestering, RevurderingTilAttestering.Opphørt> {
             if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
@@ -327,7 +325,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 simulering = simulering,
-                oppgaveId = attesteringsoppgaveId,
+                oppgaveId = oppgaveId,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,

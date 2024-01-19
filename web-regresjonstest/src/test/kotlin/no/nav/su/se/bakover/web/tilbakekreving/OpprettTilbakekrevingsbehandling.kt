@@ -26,7 +26,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     verifiserRespons: Boolean = true,
     utførSideeffekter: Boolean = true,
     saksversjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.27.456789",
+    expectedKontrollfelt: String = "2021-02-01-02.03.26.456789",
 ): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
@@ -103,7 +103,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     expectedVersjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.27.456789",
+    expectedKontrollfelt: String = "2021-02-01-02.03.26.456789",
 ) {
     val expected = """
 {

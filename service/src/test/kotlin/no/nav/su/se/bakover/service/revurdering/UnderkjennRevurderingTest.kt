@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
@@ -30,7 +30,7 @@ internal class UnderkjennRevurderingTest {
     @Test
     fun `underkjenn - underkjenner en revurdering`() {
         val clock = TikkendeKlokke()
-        val (sak, tilAttestering) = revurderingTilAttestering(
+        val (_, tilAttestering) = revurderingTilAttestering(
             clock = clock,
         )
 
@@ -41,18 +41,12 @@ internal class UnderkjennRevurderingTest {
             opprettet = Tidspunkt.now(clock),
         )
 
-        val nyOppgaveId = OppgaveId("123")
-
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn tilAttestering
             },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = mock(),
         ).also { mocks ->
@@ -61,27 +55,22 @@ internal class UnderkjennRevurderingTest {
                 attestering = attestering,
             ).getOrFail()
 
-            actual shouldBe tilAttestering.underkjenn(
-                attestering,
-                nyOppgaveId,
-            )
+            actual shouldBe tilAttestering.underkjenn(attestering)
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
-                verify(mocks.oppgaveService).opprettOppgave(
+                verify(mocks.revurderingRepo).defaultTransactionContext()
+                verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.oppgaveService).oppdaterOppgave(
+                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
                     argThat {
-                        it shouldBe OppgaveConfig.Revurderingsbehandling(
-                            saksnummer = sak.saksnummer,
-                            aktørId = aktørId,
-                            tilordnetRessurs = saksbehandler,
-                            clock = mocks.clock,
+                        it shouldBe OppdaterOppgaveInfo(
+                            "Revurderingen er blitt underkjent",
+                            oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                            tilordnetRessurs = saksbehandler.navIdent,
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
-                verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-                verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
 
                 verify(mocks.observer).handle(
                     argThat {

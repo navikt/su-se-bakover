@@ -51,12 +51,11 @@ internal class RevurderingPostgresRepoTest {
 
                         tdh.revurderingRepo.lagre(
                             simulert.tilAttestering(
-                                attesteringsoppgaveId = OppgaveId("attesteringsoppgave id"),
                                 saksbehandler = Saksbehandler("DenAndreSaksbehandleren"),
                             ).getOrFail(),
                         )
                         tdh.revurderingRepo.hent(simulert.id)!!.shouldBeType<RevurderingTilAttestering.Innvilget>().also {
-                            it.oppgaveId shouldBe OppgaveId("attesteringsoppgave id")
+                            it.oppgaveId shouldBe OppgaveId("oppgaveIdRevurdering")
                             it.saksbehandler shouldBe Saksbehandler("DenAndreSaksbehandleren")
                         }
                     }

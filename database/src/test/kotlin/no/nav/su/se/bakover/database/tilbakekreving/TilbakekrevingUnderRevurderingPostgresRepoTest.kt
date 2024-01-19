@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
@@ -120,7 +119,6 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
             tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
             val iverksatt = revurdering.tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
                 saksbehandler = saksbehandler,
             ).getOrFail().tilIverksatt(
                 attestant = attestant,
