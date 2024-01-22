@@ -10,7 +10,6 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.oppgaveIdKlage
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -30,7 +29,6 @@ internal class DokumentPostgresRepoTest {
             val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget().second
             val klage = testDataHelper.persisterKlageOversendt(
                 vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-                oppgaveId = oppgaveIdKlage,
             )
 
             // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.

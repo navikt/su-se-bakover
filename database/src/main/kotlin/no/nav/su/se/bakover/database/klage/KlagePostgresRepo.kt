@@ -435,13 +435,11 @@ internal class KlagePostgresRepo(
 
         fun avvistKlageTilAttestering() = KlageTilAttestering.Avvist(
             forrigeSteg = avvistKlage(),
-            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
             forrigeSteg = bekreftetVurdertKlage(),
-            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
         )
 

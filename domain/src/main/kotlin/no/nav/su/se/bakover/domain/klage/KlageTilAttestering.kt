@@ -21,7 +21,6 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
     data class Avvist(
         private val forrigeSteg: AvvistKlage,
-        override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : KlageTilAttestering, AvvistKlageFelter by forrigeSteg {
 
@@ -57,18 +56,14 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-            opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
         ): Either<KunneIkkeUnderkjenneKlage, AvvistKlage> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return opprettOppgave().map { oppgaveId ->
-                // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
-                forrigeSteg.copy(
-                    oppgaveId = oppgaveId,
-                    attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                )
-            }
+            return forrigeSteg.copy(
+                oppgaveId = oppgaveId,
+                attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
+            ).right()
         }
 
         override fun kanAvsluttes() = false
@@ -82,7 +77,6 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
     data class Vurdert(
         private val forrigeSteg: VurdertKlage.Bekreftet,
-        override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : KlageTilAttestering, VurdertKlage.UtfyltFelter by forrigeSteg {
         /**
@@ -113,18 +107,14 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-            opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
         ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.Bekreftet> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return opprettOppgave().map { oppgaveId ->
-                // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
-                this.forrigeSteg.copy(
-                    oppgaveId = oppgaveId,
-                    attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                )
-            }
+            return this.forrigeSteg.copy(
+                oppgaveId = oppgaveId,
+                attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
+            ).right()
         }
 
         fun oversend(

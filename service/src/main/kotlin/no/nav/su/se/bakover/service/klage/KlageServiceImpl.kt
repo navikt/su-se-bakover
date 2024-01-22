@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -50,6 +51,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -234,40 +236,23 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeKlageTilAttestering.FantIkkeKlage.left()
-        val oppgaveIdSomSkalLukkes = klage.oppgaveId
-        return klage.sendTilAttestering(saksbehandler) {
-            personService.hentAktørId(klage.fnr).flatMap { aktørId ->
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.Klage.Attestering(
-                        saksnummer = klage.saksnummer,
-                        aktørId = aktørId,
-                        journalpostId = klage.journalpostId,
-                        tilordnetRessurs = when (klage) {
-                            is VurdertKlage -> klage.attesteringer.map { it.attestant }
-                                .lastOrNull()
-
-                            is AvvistKlage -> klage.attesteringer.map { it.attestant }
-                                .lastOrNull()
-
-                            else -> null
-                        },
-                        clock = clock,
-                    ),
-                ).map {
-                    it.oppgaveId
-                }
-            }.mapLeft {
-                KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave
-            }
-        }.onRight {
+        return klage.sendTilAttestering(saksbehandler).onRight {
             klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
+            oppgaveService.oppdaterOppgave(
+                oppgaveId = klage.oppgaveId,
+                oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "Sendt klagen til attestering",
+                    oppgavetype = Oppgavetype.ATTESTERING,
+                    tilordnetRessurs = klage.attesteringer.prøvHentSisteAttestering()?.attestant?.navIdent,
+                ),
+            ).mapLeft {
+                log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
+            }
         }
     }
 
     override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage> {
         val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenneKlage.FantIkkeKlage.left()
-        val oppgaveIdSomSkalLukkes = klage.oppgaveId
         return klage.underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = request.attestant,
@@ -275,25 +260,18 @@ class KlageServiceImpl(
                 grunn = request.grunn,
                 kommentar = request.kommentar,
             ),
-        ) {
-            personService.hentAktørId(klage.fnr).flatMap {
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.Klage.Saksbehandler(
-                        saksnummer = klage.saksnummer,
-                        aktørId = it,
-                        journalpostId = klage.journalpostId,
-                        tilordnetRessurs = klage.saksbehandler,
-                        clock = clock,
-                    ),
-                )
-            }.mapLeft {
-                KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave
-            }.map {
-                it.oppgaveId
-            }
-        }.onRight {
+        ).onRight {
             klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
+            oppgaveService.oppdaterOppgave(
+                oppgaveId = klage.oppgaveId,
+                oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "Klagen er blitt underkjent",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = klage.saksbehandler.navIdent,
+                ),
+            ).mapLeft {
+                log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
+            }
         }
     }
 
