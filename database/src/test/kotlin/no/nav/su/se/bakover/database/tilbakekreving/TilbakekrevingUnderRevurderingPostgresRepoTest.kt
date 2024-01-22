@@ -56,7 +56,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = ikkeAvgjort))
 
-            val tilbakekrevingRepo = testDataHelper.tilbakekrevingRepo as TilbakekrevingUnderRevurderingPostgresRepo
+            val tilbakekrevingRepo = testDataHelper.tilbakekreving.tilbakekrevingRepo as TilbakekrevingUnderRevurderingPostgresRepo
             testDataHelper.sessionFactory.withSession { session ->
                 tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurderingId = revurdering.id,

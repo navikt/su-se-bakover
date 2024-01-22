@@ -22,9 +22,9 @@ class OpprettTilbakekrevingsbehandlingRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak, _, _, _, _, _, hendelse) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            val (sak, _, _, _, _, _, hendelse) = testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
 
-            val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
+            val actual = testDataHelper.tilbakekreving.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             val actualKravgrunnlag =
                 testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak.id).also {
                     it.size shouldBe 1

@@ -19,9 +19,9 @@ class IverksettTilbakekrevingsbehandlingRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak, _, _, _, hendelser) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak, _, _, _, hendelser) = testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
 
-            val actual = testDataHelper.tilbakekrevingHendelseRepo.hentForSak(sak.id)
+            val actual = testDataHelper.tilbakekreving.tilbakekrevingHendelseRepo.hentForSak(sak.id)
             testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak.id).also {
                 it.size shouldBe 1
                 it.detaljerSortert.first().kravgrunnlag shouldBe sak.uteståendeKravgrunnlag

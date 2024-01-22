@@ -23,17 +23,17 @@ internal class BehandlingssammendragTilbakekrevingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak1, _, _, _, h1) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            val (sak2, _, _, _, h2) = testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterTilbakekrevingsbehandlingTilAttesteringHendelse()
-            testDataHelper.persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterVedtaksbrevTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterVurdertTilbakekrevingsbehandlingHendelse()
+            val (sak1, _, _, _, h1) = testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak2, _, _, _, h2) = testDataHelper.tilbakekreving.persisterAvbruttTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterTilbakekrevingsbehandlingTilAttesteringHendelse()
+            testDataHelper.tilbakekreving.persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterVedtaksbrevTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterVurdertTilbakekrevingsbehandlingHendelse()
             // TODO jah: Bør ha en for underkjent og oppdatert kravgrunnlag
 
             val actual =
-                testDataHelper.behandlingssammendragTilbakekrevingPostgresRepo.hentFerdige(
+                testDataHelper.tilbakekreving.behandlingssammendragTilbakekrevingPostgresRepo.hentFerdige(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe
@@ -63,17 +63,17 @@ internal class BehandlingssammendragTilbakekrevingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak1, _, _, _, h1) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
-            val (sak2, _, _, _, h2) = testDataHelper.persisterTilbakekrevingsbehandlingTilAttesteringHendelse()
-            val (sak3, _, _, _, h3) = testDataHelper.persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse()
-            val (sak4, _, _, _, h4) = testDataHelper.persisterVedtaksbrevTilbakekrevingsbehandlingHendelse()
-            val (sak5, _, _, _, h5) = testDataHelper.persisterVurdertTilbakekrevingsbehandlingHendelse()
+            val (sak1, _, _, _, h1) = testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            val (sak2, _, _, _, h2) = testDataHelper.tilbakekreving.persisterTilbakekrevingsbehandlingTilAttesteringHendelse()
+            val (sak3, _, _, _, h3) = testDataHelper.tilbakekreving.persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse()
+            val (sak4, _, _, _, h4) = testDataHelper.tilbakekreving.persisterVedtaksbrevTilbakekrevingsbehandlingHendelse()
+            val (sak5, _, _, _, h5) = testDataHelper.tilbakekreving.persisterVurdertTilbakekrevingsbehandlingHendelse()
             // TODO jah: Bør ha en for underkjent og oppdatert kravgrunnlag
-            testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
             val actual =
-                testDataHelper.behandlingssammendragTilbakekrevingPostgresRepo.hentÅpne(
+                testDataHelper.tilbakekreving.behandlingssammendragTilbakekrevingPostgresRepo.hentÅpne(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe

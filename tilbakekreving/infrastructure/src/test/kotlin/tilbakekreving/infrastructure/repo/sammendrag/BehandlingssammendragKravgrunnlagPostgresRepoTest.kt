@@ -18,11 +18,11 @@ internal class BehandlingssammendragKravgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            val (sak1, _, _, _, _) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            val (sak2, _, _, _, _) = testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak1, _, _, _, _) = testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (sak2, _, _, _, _) = testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
             // Siden ingen av disse har sendt kravgrunnlaget til oppdrag, er de per definisjon ikke ferdige.
-            testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
             val krav1 =
                 testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak1.id).detaljerSortert.single()
@@ -31,7 +31,7 @@ internal class BehandlingssammendragKravgrunnlagPostgresRepoTest {
                 testDataHelper.kravgrunnlagPostgresRepo.hentKravgrunnlagPåSakHendelser(sak2.id).detaljerSortert.single()
 
             val actual =
-                testDataHelper.behandlingssammendragKravgrunnlagPostgresRepo.hentFerdige(
+                testDataHelper.tilbakekreving.behandlingssammendragKravgrunnlagPostgresRepo.hentFerdige(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe
@@ -61,13 +61,13 @@ internal class BehandlingssammendragKravgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
-            testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            testDataHelper.persisterIverksattTilbakekrevingsbehandlingHendelse()
-            val (_, _, _, _, _, krav3, _, _) = testDataHelper.persisterOpprettetTilbakekrevingsbehandlingHendelse()
-            val (_, _, _, _, _, krav4, _, _) = testDataHelper.persisterAvbruttTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            testDataHelper.tilbakekreving.persisterIverksattTilbakekrevingsbehandlingHendelse()
+            val (_, _, _, _, _, krav3, _, _) = testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+            val (_, _, _, _, _, krav4, _, _) = testDataHelper.tilbakekreving.persisterAvbruttTilbakekrevingsbehandlingHendelse()
 
             val actual =
-                testDataHelper.behandlingssammendragKravgrunnlagPostgresRepo.hentÅpne(
+                testDataHelper.tilbakekreving.behandlingssammendragKravgrunnlagPostgresRepo.hentÅpne(
                     null,
                 ).sortedBy { it.saksnummer.nummer }
             actual shouldBe
