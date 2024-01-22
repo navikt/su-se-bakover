@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.nyIverksattTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyTilbakekrevingsbehandlingTilAttesteringHendelse
+import no.nav.su.se.bakover.test.nyUnderkjentTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyVurdertTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import tilbakekreving.domain.AvbruttHendelse
@@ -62,6 +63,28 @@ class PersistertTilbakekrevingTestData(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
+
+    fun persisterUnderkjentTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyUnderkjentTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
 
     fun persisterTilbakekrevingsbehandlingTilAttesteringHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
         return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {

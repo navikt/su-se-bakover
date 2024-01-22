@@ -20,9 +20,11 @@ import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
+import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
 import tilbakekreving.domain.vurdering.Vurdering
 import tilbakekreving.domain.vurdering.Vurderinger
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
@@ -267,6 +269,59 @@ fun nyTilbakekrevingsbehandlingTilAttesteringHendelse(
     id = forrigeHendelse.id,
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param brevvalg Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyUnderkjentTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagPåSakHendelseId: HendelseId,
+    dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Attestant = attestant,
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
+    vurderinger: Vurderinger = nyVurderinger(),
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ).getOrFail(),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+        fritekst = "fritekst",
+    ),
+    sendtTilAttesteringUtførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        dokumentId = dokumentId,
+        vurderingerMedKrav = vurderingerMedKrav,
+        utførtAv = sendtTilAttesteringUtførtAv,
+        brevvalg = brevvalg,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    underkjentGrunn: UnderkjennAttesteringsgrunnTilbakekreving = UnderkjennAttesteringsgrunnTilbakekreving.ANDRE_FORHOLD,
+    underkjentBegrunnelse: String = "underkjentBegrunnelse",
+): UnderkjentHendelse = UnderkjentHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    id = forrigeHendelse.id,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    utførtAv = utførtAv,
+    grunn = underkjentGrunn,
+    begrunnelse = underkjentBegrunnelse,
 )
 
 /**
