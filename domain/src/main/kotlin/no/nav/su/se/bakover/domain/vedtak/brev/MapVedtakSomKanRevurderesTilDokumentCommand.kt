@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak.brev
 
 import dokument.domain.GenererDokumentCommand
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -25,10 +26,19 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
             satsFactory = satsFactory,
         )
 
-        is VedtakInnvilgetRevurdering -> this.behandling.lagDokumentKommando(
-            satsFactory = satsFactory,
-            clock = clock,
-        )
+        is VedtakInnvilgetRevurdering -> {
+            /**
+             * Vi har ikke et så godt skille mellom det som er forhåndsvisning av vedtaket, og det som faktisk er utsendingen.
+             * Ved forhåndsvisning krever vi ikke noe fritekst, men vi gjør det når brevet skal sendes ut.
+             */
+            require(this.behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.SendBrev && this.behandling.brevvalgRevurdering.fritekst != null) {
+                "Generering av dokument for vedtaket forutsetter at vi skal sende brev, og at friteksten er satt"
+            }
+            this.behandling.lagDokumentKommando(
+                satsFactory = satsFactory,
+                clock = clock,
+            )
+        }
 
         is VedtakInnvilgetSøknadsbehandling -> this.behandling.lagBrevCommand(
             satsFactory = satsFactory,

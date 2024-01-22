@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt
 
-import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -8,7 +7,6 @@ import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import satser.domain.SatsFactory
 import vilkår.domain.grunnlag.Bosituasjon.Companion.harEPS
-import java.lang.IllegalArgumentException
 
 /**
  * Ment for internt bruk innenfor revurdering/brev pakken.
@@ -26,14 +24,7 @@ internal fun lagRevurderingInntektDokumentKommando(
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.hentAttestantSomIverksatte(),
         beregning = beregning,
-        fritekst = if (revurdering.skalSendeVedtaksbrev()) {
-            revurdering.brevvalgRevurdering.skalSendeBrev()
-                .getOrElse {
-                    throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}")
-                }.fritekst ?: ""
-        } else {
-            throw java.lang.IllegalStateException("Bedt om å generere brev for en revurdering som ikke skal sende brev. Saksnummer: ${revurdering.saksnummer} med revurderingid: ${revurdering.id}")
-        },
+        fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
         // TODO("flere_satser denne må endres til å støtte flere")
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
         forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()

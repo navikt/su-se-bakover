@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
-import no.nav.su.se.bakover.web.routes.revurdering.leggTilBrevvalgRevurderingRoute
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
@@ -132,10 +131,6 @@ internal fun Application.setupKtorRoutes(
                             auditLogger = CefAuditLogger,
                             personService = services.person,
                         ),
-                    )
-                    leggTilBrevvalgRevurderingRoute(
-                        revurderingService = accessProtectedServices.revurdering,
-                        formuegrenserFactory = formuegrenserFactoryIDag,
                     )
                     tilbakekrevingRoutes(
                         opprettTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.opprettTilbakekrevingsbehandlingService,

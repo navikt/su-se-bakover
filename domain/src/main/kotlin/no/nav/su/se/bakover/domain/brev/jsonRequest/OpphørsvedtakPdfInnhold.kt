@@ -22,7 +22,7 @@ data class OpphørsvedtakPdfInnhold(
     val beregningsperioder: List<Beregningsperiode>,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
-    val fritekst: String,
+    val fritekst: String?,
     val forventetInntektStørreEnn0: Boolean,
     val halvGrunnbeløp: Int?,
     val opphørsperiode: BrevPeriode,

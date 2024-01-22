@@ -41,6 +41,11 @@ internal fun Route.revurderingRoutes(
 
     brevutkastForRevurdering(revurderingService)
 
+    leggTilBrevvalgRevurderingRoute(
+        revurderingService = revurderingService,
+        formuegrenserFactory = formuegrenserFactory,
+    )
+
     leggTilGrunnlagRevurderingRoutes(revurderingService, formuegrenserFactory)
 
     leggTilUtlandsoppholdRoute(revurderingService, formuegrenserFactory)

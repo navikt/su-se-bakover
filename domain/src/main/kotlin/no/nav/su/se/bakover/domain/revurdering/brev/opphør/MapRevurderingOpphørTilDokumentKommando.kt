@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering.brev.opphør
 
-import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -30,13 +29,7 @@ internal fun lagRevurderingOpphørtDokumentKommando(
         saksnummer = revurdering.saksnummer,
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
         beregning = beregning,
-        fritekst = if (revurdering.skalSendeVedtaksbrev()) {
-            revurdering.brevvalgRevurdering.skalSendeBrev()
-                .getOrElse { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
-                ?: ""
-        } else {
-            throw java.lang.IllegalStateException("Bedt om å generere brev for en revurdering som ikke skal sende brev. Saksnummer: ${revurdering.saksnummer} med revurderingid: ${revurdering.id}")
-        },
+        fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.prøvHentSisteAttestant(),
         forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
