@@ -83,7 +83,6 @@ sealed interface Klage : Klagefelter {
     /** @return [KlageTilAttestering] */
     fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        opprettOppgave: () -> Either<KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
         return KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(this::class).left()
     }
@@ -91,7 +90,6 @@ sealed interface Klage : Klagefelter {
     /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
-        opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeUnderkjenneKlage, Klage> {
         // TODO jah: Man kan også underkjenne til Avvist, så til vil variere basert på nåværende tilstand.
         return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()

@@ -8,6 +8,7 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -21,6 +22,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.Iverksatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.simulering.SimuleringFeilet
@@ -37,6 +40,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     formuegrenserFactory: FormuegrenserFactory,
     genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>,
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
@@ -45,6 +49,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 søknadId = command.søknadId,
                 clock = clock,
                 saksbehandler = command.saksbehandler,
+                oppdaterOppgave = null,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
                 Pair(it.first, it.third)
             }
@@ -82,6 +87,8 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 clock = clock,
                 satsFactory = satsFactory,
             ).map {
+                // best effort for å lukke oppgaven
+                lukkOppgave(it.søknadsbehandling.oppgaveId)
                 it as IverksattAvslåttSøknadsbehandlingResponse
             }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
         }

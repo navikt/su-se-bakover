@@ -252,15 +252,11 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
 
         override fun sendTilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            opprettOppgave: () -> Either<KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
         ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
-            return opprettOppgave().map { oppgaveId ->
-                KlageTilAttestering.Vurdert(
-                    forrigeSteg = this,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                )
-            }
+            return KlageTilAttestering.Vurdert(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+            ).right()
         }
 
         override fun kanAvsluttes() = klageinstanshendelser.isEmpty()

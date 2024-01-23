@@ -188,7 +188,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     fun underkjenn(
         attestering: Attestering.Underkjent,
-        oppgaveId: OppgaveId,
     ): UnderkjentRevurdering {
         return when (this) {
             is Innvilget -> UnderkjentRevurdering.Innvilget(

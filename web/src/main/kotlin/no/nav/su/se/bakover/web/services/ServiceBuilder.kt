@@ -295,6 +295,7 @@ data object ServiceBuilder {
                 iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
                 utbetalingService = utbetalingService,
                 brevService = brevService,
+                oppgaveService = oppgaveService,
             ),
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,

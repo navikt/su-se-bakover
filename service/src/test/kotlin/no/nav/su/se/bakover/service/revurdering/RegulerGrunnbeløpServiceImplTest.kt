@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.extensions.august
@@ -20,11 +19,9 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
@@ -189,13 +186,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
-            },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
@@ -213,9 +203,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
                 verify(it.revurderingRepo).hent(simulertRevurdering.id)
-                verify(it.personService).hentAktørId(argThat { it shouldBe sak.fnr })
-                verify(it.oppgaveService).opprettOppgave(any())
-                verify(it.oppgaveService).lukkOppgave(any())
             }
             verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
         }

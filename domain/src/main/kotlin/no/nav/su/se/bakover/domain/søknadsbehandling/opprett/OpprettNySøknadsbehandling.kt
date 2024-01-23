@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Tuple4
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import java.time.Clock
 import java.util.UUID
 
@@ -21,11 +23,14 @@ import java.util.UUID
  * - Kun én åpen søknadsbehandling om gangen.
  *
  * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
+ *
+ * @param oppdaterOppgave - Ved opprettelse av behandlingen, vil man i noen tilfeller gjøre noe med oppgaven
  */
 fun Sak.opprettNySøknadsbehandling(
     søknadId: UUID,
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler,
+    oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
 ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     if (harÅpenSøknadsbehandling()) {
         // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Kan være lurt og sjekke for overlappende søknadsbehandlinger ved oppdaterStønadsperiode.
@@ -47,6 +52,9 @@ fun Sak.opprettNySøknadsbehandling(
             it
         },
     )
+
+    // gjør en best effort for å oppdatere oppgaven. logging av left gjøres i oppdaterTilordnetRessurs
+    oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
 
     return NySøknadsbehandling(
         id = UUID.randomUUID(),

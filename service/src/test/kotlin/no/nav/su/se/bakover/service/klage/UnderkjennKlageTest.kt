@@ -3,25 +3,25 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
@@ -37,9 +37,9 @@ import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class UnderkjennKlageTest {
@@ -66,68 +66,40 @@ internal class UnderkjennKlageTest {
     }
 
     @Test
-    fun `kunne ikke hente aktør id`() {
+    fun `skal kunne underkjenne selv om oppgave feiler`() {
         val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
-            },
-        )
-
-        val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.underkjenn(
-            UnderkjennKlageRequest(
-                klageId = klage.id,
-                attestant = attestant,
-                grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
-                kommentar = "",
-            ),
-        ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `kunne ikke opprette oppgave`() {
-        val klage = vurdertKlageTilAttestering().second
-        val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+                on { oppdaterOppgave(any(), any()) } doReturn KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave.left()
             },
         )
 
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.underkjenn(
+        val actual = mocks.service.underkjenn(
             UnderkjennKlageRequest(
                 klageId = klage.id,
                 attestant = attestant,
                 grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "",
             ),
-        ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
+        )
+        actual.shouldBeRight()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.oppgaveService).opprettOppgave(
+        verify(mocks.klageRepoMock).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.oppgaveService).oppdaterOppgave(
+            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
-                    saksnummer = klage.saksnummer,
-                    aktørId = AktørId("aktørId"),
-                    journalpostId = klage.journalpostId,
-                    tilordnetRessurs = klage.saksbehandler,
-                    clock = fixedClock,
+                it shouldBe OppdaterOppgaveInfo(
+                    beskrivelse = "Klagen er blitt underkjent",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = klage.saksbehandler.navIdent,
                 )
             },
         )
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -266,11 +238,8 @@ internal class UnderkjennKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
-            },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         )
 
@@ -285,8 +254,11 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
             expectedKlage = VurdertKlage.Bekreftet(
-                forrigeSteg = utfyltVurdertKlage(fnr = klage.fnr, id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
-                oppgaveId = OppgaveId("123"),
+                forrigeSteg = utfyltVurdertKlage(
+                    fnr = klage.fnr,
+                    id = klage.id,
+                    vedtakId = klage.vilkårsvurderinger.vedtakId,
+                ).second,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
@@ -307,19 +279,16 @@ internal class UnderkjennKlageTest {
             argThat { it shouldBe expectedKlage },
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(mocks.oppgaveService).opprettOppgave(
+        verify(mocks.oppgaveService).oppdaterOppgave(
+            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
-                    saksnummer = klage.saksnummer,
-                    aktørId = AktørId("aktørId"),
-                    journalpostId = klage.journalpostId,
-                    tilordnetRessurs = klage.saksbehandler,
-                    clock = fixedClock,
+                it shouldBe OppdaterOppgaveInfo(
+                    beskrivelse = "Klagen er blitt underkjent",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = klage.saksbehandler.navIdent,
                 )
             },
         )
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
-        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
         mocks.verifyNoMoreInteractions()
     }
 
@@ -331,11 +300,8 @@ internal class UnderkjennKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
-            },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         )
 
@@ -354,19 +320,16 @@ internal class UnderkjennKlageTest {
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
-        verify(mocks.oppgaveService).opprettOppgave(
+        verify(mocks.oppgaveService).oppdaterOppgave(
+            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
-                    saksnummer = klage.saksnummer,
-                    aktørId = AktørId("aktørId"),
-                    journalpostId = klage.journalpostId,
-                    tilordnetRessurs = klage.saksbehandler,
-                    clock = fixedClock,
+                it shouldBe OppdaterOppgaveInfo(
+                    beskrivelse = "Klagen er blitt underkjent",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = klage.saksbehandler.navIdent,
                 )
             },
         )
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
-        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
         mocks.verifyNoMoreInteractions()
     }
 }

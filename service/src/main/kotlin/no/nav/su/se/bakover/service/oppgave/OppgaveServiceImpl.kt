@@ -41,9 +41,9 @@ class OppgaveServiceImpl(
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        beskrivelse: String,
+        oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        return oppgaveClient.oppdaterOppgave(oppgaveId, beskrivelse)
+        return oppgaveClient.oppdaterOppgave(oppgaveId, oppdaterOppgaveInfo)
     }
 
     override fun oppdaterOppgaveMedSystembruker(

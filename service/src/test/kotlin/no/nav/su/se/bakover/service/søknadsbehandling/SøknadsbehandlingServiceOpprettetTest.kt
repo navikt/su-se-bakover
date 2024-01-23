@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -25,6 +26,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -32,6 +35,7 @@ import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
@@ -179,6 +183,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
+            oppgaveService = mock {
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -218,6 +225,15 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             VilkårsvurdertSøknadsbehandling.Uavklart::periode,
         )
         verify(serviceAndMocks.sakService).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(serviceAndMocks.oppgaveService).oppdaterOppgave(
+            argThat { it shouldBe oppgaveIdSøknad },
+            argThat {
+                it shouldBe OppdaterOppgaveInfo(
+                    beskrivelse = "Tilordnet oppgave til saksbehandler",
+                    tilordnetRessurs = saksbehandler.navIdent,
+                )
+            },
+        )
         verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(
             argThat {
                 it shouldBe NySøknadsbehandling(

@@ -1544,11 +1544,9 @@ class TestDataHelper(
 
     fun persisterKlageTilAttesteringVurdert(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): KlageTilAttestering.Vurdert {
         return persisterKlageVurdertBekreftet(vedtak = vedtak).sendTilAttestering(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
-            opprettOppgave = { oppgaveId.right() },
         ).getOrFail().let {
             if (it !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering). fikk ${it::class} ved opprettelse av test-data")
             it
@@ -1559,13 +1557,11 @@ class TestDataHelper(
 
     fun persisterKlageTilAttesteringAvvist(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerAvvistKlageTilAttestering"),
         fritekstTilBrev: String = "en god, og lang fritekst",
     ): KlageTilAttestering.Avvist {
         return persisterKlageAvvist(vedtak, saksbehandler, fritekstTilBrev).sendTilAttestering(
             saksbehandler = saksbehandler,
-            opprettOppgave = { oppgaveId.right() },
         ).getOrFail().also {
             databaseRepos.klageRepo.lagre(it)
         }
@@ -1573,41 +1569,38 @@ class TestDataHelper(
 
     fun persisterKlageUnderkjentVurdert(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): VurdertKlage.Bekreftet {
-        return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
+        return persisterKlageTilAttesteringVurdert(vedtak = vedtak).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = Tidspunkt.now(clock),
                 grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.getOrFail().also {
+        ).getOrFail().also {
             databaseRepos.klageRepo.lagre(it)
         }
     }
 
     fun persisterKlageUnderkjentAvvist(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): AvvistKlage {
-        return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).underkjenn(
+        return persisterKlageTilAttesteringAvvist(vedtak).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = Tidspunkt.now(clock),
                 grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.getOrFail().also {
+        ).getOrFail().also {
             databaseRepos.klageRepo.lagre(it)
         }
     }
 
     fun persisterKlageOversendt(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): OversendtKlage {
-        return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
+        return persisterKlageTilAttesteringVurdert(vedtak = vedtak).oversend(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
                 opprettet = Tidspunkt.now(clock),
@@ -1619,9 +1612,8 @@ class TestDataHelper(
 
     fun persisterKlageIverksattAvvist(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattAvvistKlage {
-        return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).iverksett(
+        return persisterKlageTilAttesteringAvvist(vedtak).iverksett(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattAvvistKlage"),
                 opprettet = Tidspunkt.now(clock),

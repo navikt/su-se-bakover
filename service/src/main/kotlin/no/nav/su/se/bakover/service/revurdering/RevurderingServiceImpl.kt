@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -96,6 +96,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -661,7 +662,7 @@ class RevurderingServiceImpl(
     ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            beskrivelse = "Forhåndsvarsel er sendt.",
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er sendt."),
         ).onLeft {
             log.error("Kunne ikke oppdatere oppgave $oppgaveId for revurdering $revurderingId med informasjon om at forhåndsvarsel er sendt")
         }.onRight {
@@ -719,63 +720,26 @@ class RevurderingServiceImpl(
             return it.left()
         }
 
-        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
-            log.error("Fant ikke aktør-id")
-            return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
-        }
-
-        val tilordnetRessurs = revurdering.attesteringer.lastOrNull()?.attestant
-
-        val oppgaveResponse = oppgaveService.opprettOppgave(
-            OppgaveConfig.AttesterRevurdering(
-                saksnummer = revurdering.saksnummer,
-                aktørId = aktørId,
-                // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                tilordnetRessurs = tilordnetRessurs,
-                clock = clock,
-            ),
-        ).getOrElse {
-            log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
-            return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
-        }
-
-        oppgaveService.lukkOppgave(revurdering.oppgaveId).mapLeft {
-            log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
-        }
-
-        // TODO endre rekkefølge slik at vi ikke lager/lukker oppgaver før vi har vært innom domenemodellen
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
-            is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
-                oppgaveResponse.oppgaveId,
-                saksbehandler,
-            ).getOrElse {
+            is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(saksbehandler).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
             }
 
-            is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(
-                oppgaveResponse.oppgaveId,
-                saksbehandler,
-            ).getOrElse {
+            is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(saksbehandler).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(it))
             }
 
-            is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
-                oppgaveResponse.oppgaveId,
-                saksbehandler,
-            ).getOrElse {
+            is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(saksbehandler).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(it))
             }
 
-            is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
-                oppgaveResponse.oppgaveId,
-                saksbehandler,
-            ).let {
+            is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(saksbehandler).let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
             }
 
@@ -783,6 +747,18 @@ class RevurderingServiceImpl(
                 revurdering::class,
                 RevurderingTilAttestering::class,
             ).left()
+        }
+
+        // best effort for å oppdatere oppgave
+        oppgaveService.oppdaterOppgave(
+            oppgaveId = tilAttestering.oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Sendt revurdering til attestering",
+                oppgavetype = Oppgavetype.ATTESTERING,
+                tilordnetRessurs = revurdering.attesteringer.lastOrNull()?.attestant?.navIdent,
+            ),
+        ).mapLeft {
+            log.error("Kunne ikke oppdatere oppgave ${tilAttestering.oppgaveId} for revurdering ${tilAttestering.id} med informasjon om at den er sendt til attestering. Feilen var $it")
         }
 
         revurderingRepo.lagre(tilAttestering)
@@ -914,33 +890,19 @@ class RevurderingServiceImpl(
             return KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
-        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
-            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
-            return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
-        }
-
-        val oppgaveResponse = oppgaveService.opprettOppgave(
-            OppgaveConfig.Revurderingsbehandling(
-                saksnummer = revurdering.saksnummer,
-                aktørId = aktørId,
-                tilordnetRessurs = revurdering.saksbehandler,
-                clock = clock,
-            ),
-        ).getOrElse {
-            log.error("revurdering ${revurdering.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-            return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
-        }
-
-        val underkjent = revurdering.underkjenn(attestering, oppgaveResponse.oppgaveId)
-
+        val underkjent = revurdering.underkjenn(attestering)
         revurderingRepo.lagre(underkjent)
 
-        val eksisterendeOppgaveId = revurdering.oppgaveId
-
-        oppgaveService.lukkOppgave(eksisterendeOppgaveId).mapLeft {
-            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering $revurderingId. Dette må gjøres manuelt.")
-        }.map {
-            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering $revurderingId")
+        // best effort for å oppdatere oppgave
+        oppgaveService.oppdaterOppgave(
+            underkjent.oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Revurderingen er blitt underkjent",
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                tilordnetRessurs = revurdering.saksbehandler.navIdent,
+            ),
+        ).mapLeft {
+            log.error("Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for revurdering ${underkjent.id} med informasjon om at den er underkjent. Feilen var $it")
         }
 
         when (underkjent) {

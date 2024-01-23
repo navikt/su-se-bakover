@@ -58,14 +58,14 @@ data object OppgaveClientStub : OppgaveClient {
 
     override fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        beskrivelse: String,
+        oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(
         oppgaveId = OppgaveId("stubbedOppgaveId"),
         request = "stubbedRequest",
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
-    ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: $beskrivelse") }
+    ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: ${oppdatertOppgaveInfo.beskrivelse}") }
 
     override fun oppdaterOppgaveMedSystembruker(
         oppgaveId: OppgaveId,

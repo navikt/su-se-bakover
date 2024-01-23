@@ -347,7 +347,6 @@ fun revurderingTilAttestering(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalUtsetteTilbakekreving: Boolean = false,
@@ -370,17 +369,11 @@ fun revurderingTilAttestering(
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
-                simulert.tilAttestering(
-                    attesteringsoppgaveId = attesteringsoppgaveId,
-                    saksbehandler = saksbehandler,
-                ).getOrFail()
+                simulert.tilAttestering(saksbehandler = saksbehandler).getOrFail()
             }
 
             is SimulertRevurdering.Opphørt -> {
-                simulert.tilAttestering(
-                    attesteringsoppgaveId = attesteringsoppgaveId,
-                    saksbehandler = saksbehandler,
-                ).getOrFail()
+                simulert.tilAttestering(saksbehandler = saksbehandler).getOrFail()
             }
         }
         sak.oppdaterRevurdering(tilAttestering) to tilAttestering
@@ -416,10 +409,7 @@ fun revurderingUnderkjent(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, tilAttestering) ->
-        val underkjent = tilAttestering.underkjenn(
-            attestering = attestering,
-            oppgaveId = OppgaveId("underkjentOppgaveId"),
-        )
+        val underkjent = tilAttestering.underkjenn(attestering = attestering)
         sak.oppdaterRevurdering(underkjent) to underkjent
     }
 }
@@ -484,7 +474,6 @@ fun iverksattRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalUtsetteTilbakekreving: Boolean = false,
@@ -503,7 +492,6 @@ fun iverksattRevurdering(
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         saksbehandler = saksbehandler,
-        attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
         skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,

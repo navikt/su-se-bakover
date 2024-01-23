@@ -162,7 +162,6 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         }
 
         fun tilAttestering(
-            oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ) = RevurderingTilAttestering.Innvilget(
             id = id,
@@ -293,7 +292,6 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         data object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
         fun tilAttestering(
-            oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KanIkkeSendeEnOpphørtGReguleringTilAttestering, RevurderingTilAttestering.Opphørt> {
             if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
