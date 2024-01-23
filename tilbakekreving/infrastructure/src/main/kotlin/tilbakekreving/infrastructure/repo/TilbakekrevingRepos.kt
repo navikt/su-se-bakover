@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
-import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo
 import java.time.Clock
 
 /**
@@ -18,7 +18,7 @@ import java.time.Clock
 class TilbakekrevingRepos(
     val kravgrunnlagRepo: KravgrunnlagRepo,
     val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: BehandlingssammendragKravgrunnlagPostgresRepo,
+    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo,
 ) {
     companion object {
         fun create(
@@ -42,7 +42,7 @@ class TilbakekrevingRepos(
                     kravgrunnlagRepo = kravgrunnlagRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                 ),
-                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = BehandlingssammendragKravgrunnlagPostgresRepo(
+                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     dbMetrics = dbMetrics,
                     sessionFactory = sessionFactory,
                 ),

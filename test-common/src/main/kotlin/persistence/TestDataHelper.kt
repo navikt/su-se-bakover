@@ -96,8 +96,10 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
@@ -161,11 +163,15 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import vilkår.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
@@ -392,10 +398,12 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        stønadsperiode: Stønadsperiode = stønadsperiode2021,
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
                 sakOgSøknad = sak to søknad,
+                stønadsperiode = stønadsperiode,
             )
         },
     ): Triple<Sak, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
@@ -600,17 +608,31 @@ class TestDataHelper(
     /**
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
      * @param skalUtsetteTilbakekreving Ignoreres dersom [sakOgRevurdering] sendes inn.
+     * @param stønadsperiode Ignoreres dersom [sakOgVedtak] sendes inn.
+     * @param revurderingsperiode Ignoreres dersom [sakOgRevurdering] sendes inn.
+     * @param sakOgVedtak Dersom denne sendes inn, bør også [revurderingsperiode] sendes inn, hvis ikke defaulter den til 2021.
+     * @param grunnlagsdataOverrides Gjelder kun for revurdering. Ignoreres dersom [sakOgRevurdering] sendes inn.
      */
     fun persisterIverksattRevurdering(
         skalUtsetteTilbakekreving: Boolean = false,
-        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        stønadsperiode: Stønadsperiode = stønadsperiode2021,
+        revurderingsperiode: Periode = stønadsperiode.periode,
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode,
+        ).let { (sak, vedtak, _) ->
             sak to vedtak
         },
+        nesteKravgrunnlagVersjon: Hendelsesversjon = Hendelsesversjon.ny(),
+        grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+        vilkårOverrides: List<Vilkår> = emptyList(),
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
             iverksattRevurdering(
                 clock = clock,
                 sakOgVedtakSomKanRevurderes = it,
                 skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
+                revurderingsperiode = revurderingsperiode,
+                grunnlagsdataOverrides = grunnlagsdataOverrides,
+                vilkårOverrides = vilkårOverrides,
             )
         },
     ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
@@ -619,19 +641,10 @@ class TestDataHelper(
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
             databaseRepos.vedtakRepo.lagre(vedtak)
             val (råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) = sak.uteståendeKravgrunnlag?.let {
-                // XMLen her er tom, men det går bra siden vi lagrer knytt kravgrunnlag mot sak hendelsen selv.
-                val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse()
-                kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse, jmsHendelseMetadata())
-                val kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse(
-                    kravgrunnlag = it,
-                    sakId = sak.id,
-                    tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
-                    // Siden vi genererer en ny hendelseId på kravgrunnlaget som ligger på saken, må vi bruke den her.
-                    hendelseId = it.hendelseId,
-                )
-                kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
-                    hendelse = kravgrunnlagPåSakHendelse,
-                    meta = defaultHendelseMetadata(),
+                val (råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) = persisterRåttKravgrunnlagOgKravgrunnlagKnyttetTilSak(
+                    it,
+                    sak,
+                    nesteKravgrunnlagVersjon,
                 )
                 råttKravgrunnlagHendelse to kravgrunnlagPåSakHendelse
             } ?: Pair(null, null)
@@ -649,6 +662,60 @@ class TestDataHelper(
                 )
             }
         }
+    }
+
+    fun emulerViMottarKravgrunnlagstatusendring(
+        sak: Sak,
+        status: Kravgrunnlagstatus = Kravgrunnlagstatus.Sperret,
+    ): Pair<RåttKravgrunnlagHendelse, KravgrunnlagStatusendringPåSakHendelse> {
+        val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse(
+            clock = clock,
+        )
+        kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse, jmsHendelseMetadata())
+        val eksternTidspunkt = Tidspunkt.now(clock)
+        val hendelsestidspunkt = Tidspunkt.now(clock)
+        val kravgrunnlagPåSakHendelse = KravgrunnlagStatusendringPåSakHendelse(
+            hendelseId = HendelseId.generer(),
+            versjon = sak.versjon.inc(),
+            sakId = sak.id,
+            hendelsestidspunkt = hendelsestidspunkt,
+            tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
+            saksnummer = sak.saksnummer,
+            eksternVedtakId = sak.uteståendeKravgrunnlag!!.eksternVedtakId,
+            status = status,
+            eksternTidspunkt = eksternTidspunkt,
+        )
+        kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
+            hendelse = kravgrunnlagPåSakHendelse,
+            meta = defaultHendelseMetadata(),
+        )
+        return råttKravgrunnlagHendelse to kravgrunnlagPåSakHendelse
+    }
+
+    private fun persisterRåttKravgrunnlagOgKravgrunnlagKnyttetTilSak(
+        kravgrunnlag: Kravgrunnlag,
+        sak: Sak,
+        nesteKravgrunnlagVersjon: Hendelsesversjon,
+    ): Pair<RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse> {
+        // XMLen her er tom, men det går bra siden vi lagrer knytt kravgrunnlag mot sak hendelsen selv.
+        val råttKravgrunnlagHendelse = råttKravgrunnlagHendelse(
+            clock = clock,
+        )
+        kravgrunnlagPostgresRepo.lagreRåttKravgrunnlagHendelse(råttKravgrunnlagHendelse, jmsHendelseMetadata())
+        val kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse(
+            kravgrunnlag = kravgrunnlag,
+            sakId = sak.id,
+            tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
+            // Siden vi genererer en ny hendelseId på kravgrunnlaget som ligger på saken, må vi bruke den her.
+            hendelseId = kravgrunnlag.hendelseId,
+            versjon = nesteKravgrunnlagVersjon,
+            clock = clock,
+        )
+        kravgrunnlagPostgresRepo.lagreKravgrunnlagPåSakHendelse(
+            hendelse = kravgrunnlagPåSakHendelse,
+            meta = defaultHendelseMetadata(),
+        )
+        return Pair(råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse)
     }
 
     private fun persisterUnderkjentRevurdering(
@@ -762,19 +829,26 @@ class TestDataHelper(
 
     fun persisterRevurderingIverksattOpphørt(
         skalUtsetteTilbakekreving: Boolean = false,
-        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        stønadsperiode: Stønadsperiode = stønadsperiode2021,
+        periode: Periode = stønadsperiode2021.periode,
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode,
+        ).let { (sak, vedtak, _) ->
             sak to vedtak
         },
+        nesteKravgrunnlagVersjon: Hendelsesversjon = Hendelsesversjon.ny(),
     ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
         return persisterIverksattRevurdering(
             sakOgVedtak = sakOgVedtak,
             skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
+            nesteKravgrunnlagVersjon = nesteKravgrunnlagVersjon,
         ) { (sak, vedtak) ->
             iverksattRevurdering(
                 clock = clock,
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = periode)),
                 skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
+                revurderingsperiode = periode,
             )
         }
     }

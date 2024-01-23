@@ -64,7 +64,7 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
-import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo
 import java.time.Clock
 import javax.sql.DataSource
 
@@ -280,7 +280,7 @@ data object DatabaseBuilder {
             ),
         )
         // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
-        val behandlingssammendragKravgrunnlagRepo = BehandlingssammendragKravgrunnlagPostgresRepo(
+        val behandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo = BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
         )
@@ -311,7 +311,7 @@ data object DatabaseBuilder {
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
                 tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
-                behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
+                behandlingssammendragKravgrunnlagOgTilbakekrevingRepo = behandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo,
             ),
             person = PersonPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             søknadsbehandling = søknadsbehandlingRepo,

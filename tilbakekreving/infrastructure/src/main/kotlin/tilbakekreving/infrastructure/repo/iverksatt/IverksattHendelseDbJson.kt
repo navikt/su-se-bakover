@@ -6,13 +6,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 private data class IverksattHendelseDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val vedtakId: UUID,
-)
+) : TilbakekrevingDbJson
 
 internal fun PersistertHendelse.mapToTilIverksattHendelse(): IverksattHendelse {
     val deserialized = deserialize<IverksattHendelseDbJson>(data)

@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagRepo
+import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -54,19 +54,19 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
-    behandlingssammendragKravgrunnlagRepo: BehandlingssammendragKravgrunnlagRepo,
+    behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
         dbMetrics = dbMetrics,
-        behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
+        behandlingssammendragKravgrunnlagOgTilbakekrevingRepo = behandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
         sessionFactory = sessionFactory,
     )
 
     private val ferdigeBehandlingerRepo = FerdigeBehandlingerRepo(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        behandlingssammendragKravgrunnlagRepo = behandlingssammendragKravgrunnlagRepo,
+        behandlingssammendragKravgrunnlagOgTilbakekrevingRepo = behandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
     )
 
     override fun hentSak(sakId: UUID): Sak? {

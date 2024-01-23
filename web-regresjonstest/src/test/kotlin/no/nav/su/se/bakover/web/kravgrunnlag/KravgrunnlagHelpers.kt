@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.services.tilbakekreving.lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
+import tilbakekreving.presentation.Tilbakekrevingskomponenter
 
 /**
  * @param overstyrUtbetalingId er ment for å trigge mismatch mellom kravgrunnlag og utbetaling. Dersom det er flere som mangler kravgrunnlag, vil alle få samme utbetalingId.
@@ -31,20 +32,36 @@ internal fun AppComponents.emulerViMottarKravgrunnlagstatusendring(
     saksnummer: String,
     fnr: String,
     eksternVedtakId: String,
+    status: String = "SPER",
+) {
+    return this.tilbakekrevingskomponenter.emulerViMottarKravgrunnlagstatusendring(
+        saksnummer = saksnummer,
+        fnr = fnr,
+        eksternVedtakId = eksternVedtakId,
+        status = status,
+    )
+}
+
+internal fun Tilbakekrevingskomponenter.emulerViMottarKravgrunnlagstatusendring(
+    saksnummer: String,
+    fnr: String,
+    eksternVedtakId: String,
+    status: String = "SPER",
 ) {
     // Emulerer at det kommer en statusendring på køen som matcher revurderingen sin simulering.
-    this.tilbakekrevingskomponenter.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
+    this.services.råttKravgrunnlagService.lagreRåttkravgrunnlagshendelse(
         råttKravgrunnlag = RåttKravgrunnlag(
             xmlMelding = kravgrunnlagStatusendringXml(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 vedtakId = eksternVedtakId,
+                status = status,
             ),
         ),
         meta = JMSHendelseMetadata.fromCorrelationId(CorrelationId.generate()),
     )
     // Siden vi ikke kjører jobbene i test-miljøet må vi også kjøre denne konsumenten.
-    this.tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(
+    this.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(
         correlationId = CorrelationId.generate(),
     )
 }

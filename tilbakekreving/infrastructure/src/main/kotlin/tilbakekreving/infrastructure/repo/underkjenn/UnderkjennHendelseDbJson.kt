@@ -9,14 +9,15 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 private data class UnderkjennHendelseDbJsonHendelseDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val kommentar: String,
     val grunn: String,
-)
+) : TilbakekrevingDbJson
 
 internal fun mapToTilUnderkjentHendelse(
     data: String,

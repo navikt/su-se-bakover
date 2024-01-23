@@ -324,6 +324,6 @@ internal fun Hendelsestype.toBehandlingssamendragStatus(): Behandlingssammendrag
     TilbakekrevingsbehandlingTilAttesteringHendelsestype -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING
     UnderkjentTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.UNDERKJENT
     IverksattTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
-    AvbruttTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
+    AvbruttTilbakekrevingsbehandlingHendelsestype -> Behandlingssammendrag.Behandlingsstatus.AVBRUTT
     else -> throw IllegalStateException("Ukjent hendelsestype for tilbakekreving - fikk $this")
 }

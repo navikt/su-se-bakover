@@ -8,13 +8,14 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 private data class AvbruttHendelseDbJsonHendelseDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val begrunnelse: String,
-)
+) : TilbakekrevingDbJson
 
 internal fun mapToTilAvbruttHendelse(
     data: String,
