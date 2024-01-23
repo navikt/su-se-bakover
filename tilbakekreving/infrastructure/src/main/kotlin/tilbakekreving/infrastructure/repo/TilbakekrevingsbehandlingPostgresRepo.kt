@@ -59,13 +59,13 @@ val VurdertTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("VURDERT_TILBAKEKREVINGSBEHANDLING")
 val OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING")
+val NotatTilbakekrevingsbehandlingHendelsestype = Hendelsestype("NOTAT_TILBAKEKREVINGSBEHANDLING")
+val OppdatertKravgrunnlagPåTilbakekrevingHendelse = Hendelsestype("OPPDATERT_KRAVGRUNNLAG")
 val TilbakekrevingsbehandlingTilAttesteringHendelsestype =
     Hendelsestype("TILBAKEKREVINGSBEHANDLING_TIL_ATTESTERING")
 val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT_TILBAKEKREVINGSBEHANDLING")
 val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
 val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
-val OppdatertKravgrunnlagPåTilbakekrevingHendelse = Hendelsestype("OPPDATERT_KRAVGRUNNLAG")
-val NotatTilbakekrevingsbehandlingHendelsestype = Hendelsestype("NOTAT_TILBAKEKREVINGSBEHANDLING")
 
 val alleTilbakekrevingsbehandlingHendelser = listOf(
     OpprettetTilbakekrevingsbehandlingHendelsestype,

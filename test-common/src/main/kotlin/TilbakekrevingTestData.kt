@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -16,6 +17,8 @@ import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
+import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
@@ -221,6 +224,97 @@ fun nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
     brevvalg = brevvalg,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param kravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
+ */
+fun nyOppdatertNotatTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    kravgrunnlagPåSakHendelseId: HendelseId,
+    dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
+    vurderinger: Vurderinger = nyVurderinger(),
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        kravgrunnlag,
+    ).getOrFail(),
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlagPåSakHendelseId,
+        dokumentId = dokumentId,
+        vurderingerMedKrav = vurderingerMedKrav,
+        utførtAv = utførtAv,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    notat: NonBlankString? = NonBlankString.create("notat"),
+): NotatTilbakekrevingsbehandlingHendelse = NotatTilbakekrevingsbehandlingHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    notat = notat,
+)
+
+/**
+ * @param sakId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param behandlingId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param førsteKravgrunnlagPåSakHendelseId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param dokumentId Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param vurderingerMedKrav Ignoreres desom [forrigeHendelse] sendes inn.
+ * @param oppdatertKravgrunnlagPåSakHendelseId Dersom denne ikke sendes inn, vil det ikke finnes et oppdatert kravgrunnlag, kun en referanseløs id.
+ */
+fun nyOppdatertKravgrunnlagTilbakekrevingsbehandlingHendelse(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    førsteKravgrunnlagPåSakHendelseId: HendelseId,
+    dokumentId: UUID = UUID.randomUUID(),
+    utførtAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    førsteKravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = førsteKravgrunnlagPåSakHendelseId,
+        behandler = utførtAv.toString(),
+    ),
+    vurderinger: Vurderinger = nyVurderinger(),
+    vurderingerMedKrav: VurderingerMedKrav = VurderingerMedKrav.utledFra(
+        vurderinger,
+        førsteKravgrunnlag,
+    ).getOrFail(),
+    forrigeHendelse: TilbakekrevingsbehandlingHendelse = nyVurdertTilbakekrevingsbehandlingHendelse(
+        sakId = sakId,
+        behandlingId = behandlingId,
+        kravgrunnlagPåSakHendelseId = førsteKravgrunnlagPåSakHendelseId,
+        dokumentId = dokumentId,
+        vurderingerMedKrav = vurderingerMedKrav,
+        utførtAv = utførtAv,
+    ),
+    hendelseId: HendelseId = HendelseId.generer(),
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = forrigeHendelse.versjon.inc(),
+    oppdatertKravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
+): OppdatertKravgrunnlagPåTilbakekrevingHendelse = OppdatertKravgrunnlagPåTilbakekrevingHendelse(
+    hendelseId = hendelseId,
+    sakId = forrigeHendelse.sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    id = forrigeHendelse.id,
+    utførtAv = utførtAv,
+    tidligereHendelseId = forrigeHendelse.hendelseId,
+    kravgrunnlagPåSakHendelseId = oppdatertKravgrunnlagPåSakHendelseId,
 )
 
 /**

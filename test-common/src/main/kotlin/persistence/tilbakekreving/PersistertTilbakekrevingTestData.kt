@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.test.nyAvbruttTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyIverksattTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse
+import no.nav.su.se.bakover.test.nyOppdatertKravgrunnlagTilbakekrevingsbehandlingHendelse
+import no.nav.su.se.bakover.test.nyOppdatertNotatTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nyTilbakekrevingsbehandlingTilAttesteringHendelse
 import no.nav.su.se.bakover.test.nyUnderkjentTilbakekrevingsbehandlingHendelse
@@ -64,37 +66,74 @@ class PersistertTilbakekrevingTestData(
         sessionFactory = sessionFactory,
     )
 
-    fun persisterUnderkjentTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
-        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+    /**
+     * Oppretter en søknadsbehandling for 2021 og opphører samme perioden.
+     * Setter skalUtsetteTilbakekreving til true (dvs.) vi ikke gjør noen tilbakekrevingsbehandling i revurderinga.
+     * Setter klokka fram i tid, hvis ikke vil ikke søknadsbehandlingene bli utbetalt.
+     */
+    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
+        return testDataHelper.persisterRevurderingIverksattOpphørt(
+            skalUtsetteTilbakekreving = true,
+        ).let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) ->
+            nyOpprettetTilbakekrevingsbehandlingHendelse(
+                sakId = sak.id,
+                kravgrunnlagPåSakHendelseId = sak.uteståendeKravgrunnlag!!.hendelseId,
+                versjon = sak.versjon.inc(),
+            ).let { opprettetHendelse ->
+                tilbakekrevingHendelseRepo.lagre(opprettetHendelse, defaultHendelseMetadata())
+                val oppgaveHendelse = testDataHelper.persisterOppgaveHendelseFraRelatertHendelse { opprettetHendelse }
+                Tuple8(
+                    first = sak,
+                    second = revurdering,
+                    third = utbetaling,
+                    fourth = vedtak,
+                    fifth = råttKravgrunnlagHendelse!!,
+                    sixth = kravgrunnlagPåSakHendelse!!,
+                    seventh = opprettetHendelse,
+                    eighth = oppgaveHendelse,
+                )
+            }
+        }
+    }
+
+    fun persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterOpprettetTilbakekrevingsbehandlingHendelse().let {
             Tuple5(
                 first = it.first,
                 second = it.second,
                 third = it.third,
                 fourth = it.fourth,
-                fifth = it.fifth.let { hendelser ->
-                    nyUnderkjentTilbakekrevingsbehandlingHendelse(
-                        forrigeHendelse = hendelser.last(),
-                        versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
-                    ).let {
-                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
-                        // Ingen asynke hendelser trigger av denne hendelsen.
-                        hendelser.leggTil(it)
-                    }
-                },
+                fifth = TilbakekrevingsbehandlingHendelser.create(
+                    sakId = it.first.id,
+                    hendelser = listOf(
+                        it.seventh,
+                        nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
+                            forrigeHendelse = it.seventh,
+                            // Oppgaven blir lagret etter.
+                            versjon = it.eighth.versjon.inc(),
+                            kravgrunnlagPåSakHendelseId = it.sixth.kravgrunnlag.hendelseId,
+                        ).also {
+                            tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
+                            // TODO jah: Utføres en asynk oppgave+dokumenthendelse etter dette.
+                        },
+                    ),
+                    clock = fixedClock,
+                    kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(listOf(it.sixth)),
+                    dokumentHendelser = DokumentHendelser.empty(it.first.id),
+                ),
             )
         }
     }
 
-    fun persisterTilbakekrevingsbehandlingTilAttesteringHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
-        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+    fun persisterVurdertTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse().let {
             Tuple5(
                 first = it.first,
                 second = it.second,
                 third = it.third,
                 fourth = it.fourth,
                 fifth = it.fifth.let { hendelser ->
-                    nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+                    nyVurdertTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
@@ -130,15 +169,18 @@ class PersistertTilbakekrevingTestData(
         }
     }
 
-    fun persisterVurdertTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
-        return persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse().let {
+    /**
+     * Saksbehandler kan skrive et notat før/etter fritekst til vedtaksbrev. Ofte samtidig.
+     */
+    fun persisterNotatTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
             Tuple5(
                 first = it.first,
                 second = it.second,
                 third = it.third,
                 fourth = it.fourth,
                 fifth = it.fifth.let { hendelser ->
-                    nyVurdertTilbakekrevingsbehandlingHendelse(
+                    nyOppdatertNotatTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
                         kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
@@ -152,63 +194,35 @@ class PersistertTilbakekrevingTestData(
         }
     }
 
-    fun persisterForhåndsvarsletTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
-        return persisterOpprettetTilbakekrevingsbehandlingHendelse().let {
+    /**
+     * Saksbehandler kan skrive et notat før/etter fritekst til vedtaksbrev. Ofte samtidig.
+     */
+    fun persisterOppdatertKravgrunnlagPåTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+            val sak = it.first
             Tuple5(
-                first = it.first,
+                first = sak,
                 second = it.second,
                 third = it.third,
                 fourth = it.fourth,
-                fifth = TilbakekrevingsbehandlingHendelser.create(
-                    sakId = it.first.id,
-                    hendelser = listOf(
-                        it.seventh,
-                        nyForhåndsvarsletTilbakekrevingsbehandlingHendelse(
-                            forrigeHendelse = it.seventh,
-                            // Oppgaven blir lagret etter.
-                            versjon = it.eighth.versjon.inc(),
-                            kravgrunnlagPåSakHendelseId = it.sixth.kravgrunnlag.hendelseId,
-                        ).also {
-                            tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
-                            // TODO jah: Utføres en asynk oppgave+dokumenthendelse etter dette.
-                        },
-                    ),
-                    clock = fixedClock,
-                    kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(listOf(it.sixth)),
-                    dokumentHendelser = DokumentHendelser.empty(it.first.id),
-                ),
-            )
-        }
-    }
+                fifth = it.fifth.let { hendelser ->
+                    val (_, _, _, _, _, oppdatertKravgrunnlag: KravgrunnlagDetaljerPåSakHendelse?) = testDataHelper.persisterRevurderingIverksattOpphørt(
+                        skalUtsetteTilbakekreving = true,
+                        sakOgVedtak = sak to it.fourth,
+                    )
 
-    /**
-     * Oppretter en søknadsbehandling for 2021 og opphører samme perioden.
-     * Setter skalUtsetteTilbakekreving til true (dvs.) vi ikke gjør noen tilbakekrevingsbehandling i revurderinga.
-     * Må passe på og sette klokka fram i tid, hvis ikke vil ikke søknadsbehandlingene bli utbetalt.
-     *
-     */
-    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
-        return testDataHelper.persisterRevurderingIverksattOpphørt(
-            skalUtsetteTilbakekreving = true,
-        ).let { (sak, revurdering, utbetaling, vedtak, råttKravgrunnlagHendelse, kravgrunnlagPåSakHendelse) ->
-            nyOpprettetTilbakekrevingsbehandlingHendelse(
-                sakId = sak.id,
-                kravgrunnlagPåSakHendelseId = sak.uteståendeKravgrunnlag!!.hendelseId,
-                versjon = sak.versjon.inc(),
-            ).let { opprettetHendelse ->
-                tilbakekrevingHendelseRepo.lagre(opprettetHendelse, defaultHendelseMetadata())
-                val oppgaveHendelse = testDataHelper.persisterOppgaveHendelseFraRelatertHendelse { opprettetHendelse }
-                Tuple8(
-                    first = sak,
-                    second = revurdering,
-                    third = utbetaling,
-                    fourth = vedtak,
-                    fifth = råttKravgrunnlagHendelse!!,
-                    sixth = kravgrunnlagPåSakHendelse!!,
-                    seventh = opprettetHendelse,
-                    eighth = oppgaveHendelse,
-                )
-            }
+                    nyOppdatertKravgrunnlagTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                        førsteKravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        oppdatertKravgrunnlagPåSakHendelseId = oppdatertKravgrunnlag!!.hendelseId,
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
         }
     }
 
@@ -234,6 +248,50 @@ class PersistertTilbakekrevingTestData(
                     eighth = oppgaveHendelse,
                 )
             }
+        }
+    }
+
+    fun persisterTilbakekrevingsbehandlingTilAttesteringHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyTilbakekrevingsbehandlingTilAttesteringHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
+        }
+    }
+
+    fun persisterUnderkjentTilbakekrevingsbehandlingHendelse(): Tuple5<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, TilbakekrevingsbehandlingHendelser> {
+        return persisterVedtaksbrevTilbakekrevingsbehandlingHendelse().let {
+            Tuple5(
+                first = it.first,
+                second = it.second,
+                third = it.third,
+                fourth = it.fourth,
+                fifth = it.fifth.let { hendelser ->
+                    nyUnderkjentTilbakekrevingsbehandlingHendelse(
+                        forrigeHendelse = hendelser.last(),
+                        versjon = hendelser.last().versjon.inc(),
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                    ).let {
+                        tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
+                        // Ingen asynke hendelser trigger av denne hendelsen.
+                        hendelser.leggTil(it)
+                    }
+                },
+            )
         }
     }
 
