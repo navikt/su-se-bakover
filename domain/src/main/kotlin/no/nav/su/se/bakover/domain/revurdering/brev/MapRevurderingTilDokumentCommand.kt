@@ -21,9 +21,6 @@ fun Revurdering.lagDokumentKommando(
     satsFactory: SatsFactory,
     clock: Clock,
 ): GenererDokumentCommand {
-    if (!this.skalSendeVedtaksbrev()) {
-        throw IllegalArgumentException("Kan ikke lage brevutkast for revurdering ${this.id} siden brevvalget tilsier at det ikke skal sendes brev.")
-    }
     return when (this) {
         is OpprettetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for opprettet revurdering ${this.id}")
         is BeregnetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for beregnet revurdering ${this.id}")
@@ -35,17 +32,12 @@ fun Revurdering.lagDokumentKommando(
         is IverksattRevurdering.Opphørt -> opphør(satsFactory, clock)
         is UnderkjentRevurdering.Innvilget -> inntektMedEllerUtenTilbakekreving(satsFactory)
         is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock)
-        is AvsluttetRevurdering -> {
-            if (!this.brevvalg.skalSendeBrev()) {
-                throw IllegalArgumentException("Kan ikke lage brev for avsluttet revurdering ${this.id} siden brevvalget tilsier at det ikke skal sendes brev.")
-            }
-            AvsluttRevurderingDokumentCommand(
-                fødselsnummer = this.fnr,
-                saksnummer = this.saksnummer,
-                saksbehandler = saksbehandler,
-                fritekst = this.brevvalg.fritekst,
-            )
-        }
+        is AvsluttetRevurdering -> AvsluttRevurderingDokumentCommand(
+            fødselsnummer = this.fnr,
+            saksnummer = this.saksnummer,
+            saksbehandler = saksbehandler,
+            fritekst = this.brevvalg.fritekst,
+        )
     }
 }
 

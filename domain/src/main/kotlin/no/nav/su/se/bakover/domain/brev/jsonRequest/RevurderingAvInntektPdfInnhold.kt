@@ -15,7 +15,7 @@ data class RevurderingAvInntektPdfInnhold(
     val saksbehandlerNavn: String,
     val attestantNavn: String,
     val beregningsperioder: List<Beregningsperiode>,
-    val fritekst: String,
+    val fritekst: String?,
     val harEktefelle: Boolean,
     val forventetInntektStørreEnn0: Boolean,
     val satsoversikt: Satsoversikt,

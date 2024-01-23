@@ -16,7 +16,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant?
     val beregning: Beregning
-    val fritekst: String
+    val fritekst: String?
     val harEktefelle: Boolean
     val forventetInntektStørreEnn0: Boolean
 
@@ -30,7 +30,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant?,
         override val beregning: Beregning,
-        override val fritekst: String,
+        override val fritekst: String?,
         override val harEktefelle: Boolean,
         override val forventetInntektStørreEnn0: Boolean,
         // TODO jah: Satsoversikt er en Dto og bør ikke ligge i domenet. Vi bør heller ha en egen klasse for å representere dette i domenet.
@@ -60,7 +60,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         override val harEktefelle: Boolean,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant?,
-        override val fritekst: String,
+        override val fritekst: String?,
         val opphørsgrunner: List<Opphørsgrunn>,
         val opphørsperiode: Periode,
         val satsoversikt: Satsoversikt,
