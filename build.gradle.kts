@@ -44,7 +44,7 @@ subprojects {
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
         implementation("com.networknt:json-schema-validator:1.2.0")
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.4.1")
-        implementation("org.apache.kafka:kafka-clients:3.6.1") {
+        implementation("org.apache.kafka:kafka-clients:7.5.3-ce") {
             exclude("org.apache.kafka", "kafka-raft")
             exclude("org.apache.kafka", "kafka-server-common")
             exclude("org.apache.kafka", "kafka-storage")
