@@ -28,7 +28,7 @@ jobs:
           setup-python-dependencies: false
           ram: 5000
           threads: 8
-          config-file: codeql-config.yml
+          config-file: ./.github/codeql/codeql-config.yml
       - name: Gradle build
         uses: gradle/gradle-build-action@v2.12.0
         with:
