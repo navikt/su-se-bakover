@@ -11,12 +11,8 @@ updates:
       # We want to stay on the apache versions instead of confluent's (dependabot does not support regex in versions yet.)
       - dependency-name: org.apache.kafka:kafka-clients
         versions:
-          - 6.2.1-ce
-          - 6.2.1-ccs
-          - 7.0.0-ce
-          - 7.0.0-ccs
-          - 7.5.3-ce
-          - 7.5.3-ccs
+          - "*-ce"
+          - "*-ccs"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
