@@ -6,6 +6,7 @@ import vilkår.domain.Vilkår
 import vilkår.domain.Vurdering
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.uføre.domain.UføreVilkår
 
 /**

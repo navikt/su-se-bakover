@@ -71,3 +71,7 @@ include("vilkår:flyktning")
 findProject(":vilkår:flyktning")?.name = "flyktning"
 include("vilkår:flyktning:domain")
 findProject(":vilkår:flyktning:domain")?.name = "domain"
+include("vilkår:lovligopphold")
+findProject(":vilkår:lovligopphold")?.name = "lovligopphold"
+include("vilkår:lovligopphold:domain")
+findProject(":vilkår:lovligopphold:domain")?.name = "domain"

@@ -1,11 +1,10 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.lovligopphold.domain
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import vilkår.domain.Vurdering
 import vilkår.domain.Vurderingsperiode
 import vilkår.domain.grunnlag.Grunnlag
@@ -40,6 +39,8 @@ data class VurderingsperiodeLovligOpphold private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode) =

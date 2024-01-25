@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.lovligopphold.domain
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
@@ -28,6 +28,8 @@ data class LovligOppholdGrunnlag(
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(id = UUID.randomUUID(), periode = args.periode)
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Grunnlag): Boolean {

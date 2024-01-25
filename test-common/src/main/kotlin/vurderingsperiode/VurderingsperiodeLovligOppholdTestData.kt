@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.test.vurderingsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import vilkår.domain.Vurdering
+import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 import java.util.UUID
 
 fun vurderingsperiodeLovligOppholdInnvilget(

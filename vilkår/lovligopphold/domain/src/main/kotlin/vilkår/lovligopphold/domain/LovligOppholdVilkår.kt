@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.lovligopphold.domain
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidsl
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import vilkår.domain.IkkeVurdertVilkår
 import vilkår.domain.Inngangsvilkår
 import vilkår.domain.Vilkår

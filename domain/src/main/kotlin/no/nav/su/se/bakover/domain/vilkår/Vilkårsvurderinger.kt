@@ -14,6 +14,7 @@ import vilkår.domain.erLik
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 
