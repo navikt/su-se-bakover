@@ -1,0 +1,1 @@
+Holder Kafka/Avro til en egen modul, da den har en del avhengigheter som sannsynligvis ikke er nødvendig for alle.

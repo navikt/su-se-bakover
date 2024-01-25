@@ -18,7 +18,6 @@
     <logger name="org.apache.kafka" level="OFF"/>
     <logger name="org.apache.zookeeper" level="OFF"/>
     <logger name="org.eclipse" level="ERROR"/>
-    <logger name="io.confluent" level="OFF"/>
     <logger name="kafka" level="OFF"/>
     <logger name="state.change.logger" level="WARN"/>
     <logger name="io.micrometer" level="ERROR"/>

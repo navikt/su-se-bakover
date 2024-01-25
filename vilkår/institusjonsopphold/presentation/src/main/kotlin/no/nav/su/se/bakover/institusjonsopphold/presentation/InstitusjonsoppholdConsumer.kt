@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -32,7 +33,7 @@ class InstitusjonsoppholdConsumer private constructor(
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(InstitusjonsoppholdConsumer::class.java),
     private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
-    private val consumer: KafkaConsumer<String, String> = KafkaConsumer(config.kafkaConfig),
+    private val consumer: KafkaConsumer<String, String> = KafkaConsumer(config.kafkaConfig, StringDeserializer(), StringDeserializer()),
 ) {
     constructor(
         config: ApplicationConfig.InstitusjonsoppholdKafkaConfig,

@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":client"))
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
+    implementation(project(":common:infrastructure:kafka"))
     implementation(project(":common:presentation"))
     implementation(project(":database"))
     implementation(project(":dokument:application"))

@@ -16,11 +16,9 @@ subprojects {
         mavenCentral()
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
-        maven("https://packages.confluent.io/maven/")
     }
     val kotestVersion = "5.8.0"
     val jacksonVersion = "2.16.1"
-    val confluentVersion = "7.5.3"
     dependencies {
         implementation(rootProject.libs.kotlin.reflect)
         implementation(rootProject.libs.kotlin.script.runtime)
@@ -50,18 +48,6 @@ subprojects {
             exclude("org.apache.kafka", "kafka-storage")
             exclude("org.apache.kafka", "kafka-storage-api")
             exclude("org.apache.kafka", "kafka-streams")
-        }
-        implementation("io.confluent:kafka-avro-serializer:$confluentVersion") {
-            exclude("org.apache.kafka", "kafka-clients")
-            exclude("io.confluent", "common-utils")
-            exclude("io.confluent", "logredactor")
-            exclude("org.apache.avro", "avro")
-            exclude("org.apache.commons", "commons-compress")
-            exclude("com.google.errorprone")
-            exclude("org.checkerframework")
-            exclude("com.google.j2objc")
-            exclude("com.google.code.findbugs")
-            exclude("io.swagger.core.v3")
         }
         implementation("org.apache.avro:avro:1.11.3")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")

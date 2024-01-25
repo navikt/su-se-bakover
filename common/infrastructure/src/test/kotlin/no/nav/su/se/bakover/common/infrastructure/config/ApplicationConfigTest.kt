@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.common.infrastructure.config
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -8,8 +7,6 @@ import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -36,8 +33,6 @@ class ApplicationConfigTest {
         "client.id" to "hostname",
         "enable.auto.commit" to "false",
         "auto.offset.reset" to "earliest",
-        "key.deserializer" to StringDeserializer::class.java,
-        "value.deserializer" to StringDeserializer::class.java,
         "max.poll.records" to 100,
     )
 
@@ -133,19 +128,11 @@ class ApplicationConfigTest {
                     "bootstrap.servers" to "brokers",
                     "security.protocol" to "SSL",
                     "acks" to "all",
-                    "key.serializer" to StringSerializer::class.java,
-                    "value.serializer" to StringSerializer::class.java,
                 ),
                 retryTaskInterval = Duration.ofSeconds(15),
             ),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
-                kafkaConfig + mapOf(
-                    "value.deserializer" to KafkaAvroDeserializer::class.java,
-                    "specific.avro.reader" to true,
-                    "schema.registry.url" to "some-schema-url",
-                    "basic.auth.credentials.source" to "USER_INFO",
-                    "basic.auth.user.info" to "usr:pwd",
-                ),
+                kafkaConfig,
             ),
         ),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(

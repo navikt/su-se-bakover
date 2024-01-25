@@ -44,7 +44,7 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
      * inneholde nøyaktig 1 utbetalingslinje av typen stans. [Utbetalingslinje.Endring.virkningsperiode] for en stans
      * skal alltid gjelde fra angitt stansdato til og med seneste til og med dato for sakens utbetalinger.
      *
-     * @see Utbetalingsstrategi.Stans
+     * @see no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi.Stans
      * @see no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
      */
     fun erStans() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Stans }
@@ -55,7 +55,7 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
      * Forholdet mellom en stans og en reaktivering er 1-1 i den forstand at en reaktivering ikke kan gjennomføres med
      * mindre den siste oversendte utbetalingen til OS er en [erStans].
      *
-     * @see Utbetalingsstrategi.Gjenoppta
+     * @see no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi.Gjenoppta
      * @see no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
      */
     fun erReaktivering() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Reaktivering }

@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.common.infrastructure.config
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
@@ -15,8 +13,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalTime
@@ -382,22 +378,12 @@ data class ApplicationConfig(
                 producerCfg = ProducerCfg(
                     kafkaConfig = CommonAivenKafkaConfig().configure() + mapOf(
                         ProducerConfig.ACKS_CONFIG to "all",
-                        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
                     CommonAivenKafkaConfig().configure() +
                         commonConsumerConfig(
-                            keyDeserializer = StringDeserializer::class.java,
-                            valueDeserializer = KafkaAvroDeserializer::class.java,
                             clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
-                        ) +
-                        mapOf(
-                            KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-                            KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
-                            KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
-                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow("KAFKA_SCHEMA_REGISTRY"),
                         ),
                 ),
             )
@@ -417,6 +403,8 @@ data class ApplicationConfig(
             val kafkaConfig: Map<String, Any>,
         ) {
             companion object {
+                // TODO jah: Trenger vi denne?
+                @Suppress("unused")
                 fun getUserInfoConfig() = "${
                     getEnvironmentVariableOrDefault(
                         "KAFKA_SCHEMA_REGISTRY_USER",
@@ -523,8 +511,6 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables() = KabalKafkaConfig(
                 kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
                     commonConsumerConfig(
-                        keyDeserializer = StringDeserializer::class.java,
-                        valueDeserializer = StringDeserializer::class.java,
                         clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
                     ),
             )
@@ -543,8 +529,6 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables() = InstitusjonsoppholdKafkaConfig(
                 kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
                     commonConsumerConfig(
-                        keyDeserializer = StringDeserializer::class.java,
-                        valueDeserializer = StringDeserializer::class.java,
                         clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
                     ),
                 topicName = getEnvironmentVariableOrThrow("INSTITUSJONSOPPHOLD_TOPIC"),
@@ -564,8 +548,6 @@ fun commonConsumerConfig(
     enableAutoCommitConfig: Boolean = false,
     clientIdConfig: String,
     autoOffsetResetConfig: String = "earliest",
-    keyDeserializer: Class<*>,
-    valueDeserializer: Class<*>,
 ): Map<String, Any> {
     return mapOf(
         ConsumerConfig.GROUP_ID_CONFIG to groupIdConfig,
@@ -573,7 +555,5 @@ fun commonConsumerConfig(
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to enableAutoCommitConfig.toString(),
         ConsumerConfig.CLIENT_ID_CONFIG to clientIdConfig,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to autoOffsetResetConfig,
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to keyDeserializer,
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to valueDeserializer,
     )
 }

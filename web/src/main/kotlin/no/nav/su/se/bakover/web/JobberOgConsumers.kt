@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web
 
+import common.infrastructure.kafka.AvroDeserializer
+import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.august
@@ -45,6 +47,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.serialization.StringDeserializer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
 import tilbakekreving.presentation.job.Tilbakekrevingsjobber
@@ -134,11 +137,21 @@ fun startJobberOgConsumers(
             kvitteringConsumer = consumers.utbetalingKvitteringConsumer,
         )
         PersonhendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
+            consumer = KafkaConsumer(
+                applicationConfig.kafkaConfig.consumerCfg.kafkaConfig,
+                StringDeserializer(),
+                AvroDeserializer {
+                    Personhendelse.getDecoder().decode(it)
+                },
+            ),
             personhendelseService = personhendelseService,
         )
         KlageinstanshendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
+            consumer = KafkaConsumer(
+                applicationConfig.kabalKafkaConfig.kafkaConfig,
+                StringDeserializer(),
+                StringDeserializer(),
+            ),
             klageinstanshendelseService = services.klageinstanshendelseService,
             clock = clock,
         )
