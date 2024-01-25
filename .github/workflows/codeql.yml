@@ -30,7 +30,7 @@ jobs:
           threads: 8
           config-file: codeql-config.yml
       - name: Gradle build
-        uses: gradle/gradle-build-action@v2.11.1
+        uses: gradle/gradle-build-action@v2.12.0
         with:
           gradle-version: wrapper
           arguments: clean assemble testClasses --no-build-cache
