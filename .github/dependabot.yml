@@ -16,6 +16,7 @@ updates:
           - 7.0.0-ce
           - 7.0.0-ccs
           - 7.5.3-ce
+          - 7.5.3-ccs
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
