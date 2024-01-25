@@ -6,12 +6,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.domain.Vilkår
 import vilkår.domain.Vurdering
 import vilkår.domain.erLik
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.uføre.domain.UføreVilkår

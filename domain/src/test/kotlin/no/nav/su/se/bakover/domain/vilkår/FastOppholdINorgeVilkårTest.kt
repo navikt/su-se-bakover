@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import vilkår.domain.Vurdering
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.util.UUID
 
 internal class FastOppholdINorgeVilkårTest {
