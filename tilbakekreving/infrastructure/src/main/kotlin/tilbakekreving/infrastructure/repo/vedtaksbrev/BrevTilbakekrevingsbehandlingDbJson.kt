@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 internal fun mapToBrevTilbakekrevingsbehandlingHendelse(
@@ -36,10 +37,10 @@ internal fun mapToBrevTilbakekrevingsbehandlingHendelse(
 }
 
 private data class BrevTilbakekrevingsbehandlingDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val brevvalg: BrevvalgDbJson,
-)
+) : TilbakekrevingDbJson
 
 internal fun BrevTilbakekrevingsbehandlingHendelse.toJson(): String = BrevTilbakekrevingsbehandlingDbJson(
     behandlingsId = this.id.value,

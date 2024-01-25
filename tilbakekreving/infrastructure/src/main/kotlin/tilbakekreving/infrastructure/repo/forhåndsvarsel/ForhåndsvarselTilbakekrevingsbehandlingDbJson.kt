@@ -8,14 +8,15 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val fritekst: String,
     val dokumentId: UUID,
-) {
+) : TilbakekrevingDbJson {
     companion object {
         fun toDomain(
             data: String,

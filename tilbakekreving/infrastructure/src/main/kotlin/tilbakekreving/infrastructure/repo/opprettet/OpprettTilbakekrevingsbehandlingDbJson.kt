@@ -7,13 +7,14 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(
-    val behandlingsId: UUID,
-    val opprettetAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val kravgrunnlagPåSakHendelseId: String,
-)
+) : TilbakekrevingDbJson
 
 internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingHendelse(): OpprettetTilbakekrevingsbehandlingHendelse {
     val deserialized = deserialize<OpprettTilbakekrevingsbehandlingHendelseDbJson>(data)
@@ -24,7 +25,7 @@ internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingHendelse(
         hendelsestidspunkt = hendelsestidspunkt,
         versjon = versjon,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
-        opprettetAv = NavIdentBruker.Saksbehandler(deserialized.opprettetAv),
+        opprettetAv = NavIdentBruker.Saksbehandler(deserialized.utførtAv),
         kravgrunnlagPåSakHendelseId = HendelseId.fromString(deserialized.kravgrunnlagPåSakHendelseId),
     )
 }
@@ -32,7 +33,7 @@ internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingHendelse(
 internal fun OpprettetTilbakekrevingsbehandlingHendelse.toJson(): String {
     return OpprettTilbakekrevingsbehandlingHendelseDbJson(
         behandlingsId = this.id.value,
-        opprettetAv = this.opprettetAv.navIdent,
+        utførtAv = this.opprettetAv.navIdent,
         kravgrunnlagPåSakHendelseId = this.kravgrunnlagPåSakHendelseId.toString(),
     ).let {
         serialize(it)

@@ -8,12 +8,13 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 private data class TilAttesteringHendelseDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
-)
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
+) : TilbakekrevingDbJson
 
 internal fun mapToTilAttesteringHendelse(
     data: String,

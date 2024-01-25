@@ -7,13 +7,14 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
 private data class OppdatertKravgrunnlagHendelseDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val kravgrunnlagPåSakHendelseId: String,
-)
+) : TilbakekrevingDbJson
 
 internal fun PersistertHendelse.mapTilOppdatertKravgrunnlagPåTilbakekrevingHendelse(): OppdatertKravgrunnlagPåTilbakekrevingHendelse {
     val deserialized = deserialize<OppdatertKravgrunnlagHendelseDbJson>(data)

@@ -12,6 +12,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
+import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
@@ -32,14 +33,14 @@ internal fun PersistertHendelse.mapToVurdertTilbakekrevingsbehandlingHendelse():
 }
 
 private data class MånedsvurderingTilbakekrevingsbehandlingDbJson(
-    val behandlingsId: UUID,
-    val utførtAv: String,
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
     val vurderinger: List<PeriodevurderingMedKravDbJson>,
     val saksnummer: String,
     val eksternKravgrunnlagId: String,
     val eksternVedtakId: String,
     val eksternKontrollfelt: String,
-) {
+) : TilbakekrevingDbJson {
     fun toDomain(): VurderingerMedKrav {
         return VurderingerMedKrav.fraPersistert(
             perioder = vurderinger.map { it.toDomain() }.toNonEmptyList(),
