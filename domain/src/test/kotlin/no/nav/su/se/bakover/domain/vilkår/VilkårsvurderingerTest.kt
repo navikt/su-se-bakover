@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.domain.Vurdering

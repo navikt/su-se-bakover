@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.domain.Vilkår
 import vilkår.domain.Vurdering

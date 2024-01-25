@@ -46,10 +46,10 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder

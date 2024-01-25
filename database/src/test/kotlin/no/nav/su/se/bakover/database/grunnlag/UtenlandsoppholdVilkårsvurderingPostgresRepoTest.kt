@@ -7,9 +7,6 @@ import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -17,6 +14,9 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import vilkår.domain.Vurdering
 import java.util.UUID

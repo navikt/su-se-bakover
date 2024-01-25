@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
@@ -46,6 +45,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori

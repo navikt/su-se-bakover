@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import org.junit.jupiter.api.Test

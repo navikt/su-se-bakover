@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtak
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.uføre.domain.UføreVilkår

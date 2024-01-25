@@ -6,9 +6,10 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import vilkår.domain.Vurdering
 import java.util.UUID

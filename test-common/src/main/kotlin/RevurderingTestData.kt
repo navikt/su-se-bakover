@@ -54,13 +54,13 @@ import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.domain.Vilkår
 import vilkår.domain.Vurdering
 import vilkår.domain.grunnlag.Bosituasjon

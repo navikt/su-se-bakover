@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår

@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
@@ -64,6 +63,7 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person

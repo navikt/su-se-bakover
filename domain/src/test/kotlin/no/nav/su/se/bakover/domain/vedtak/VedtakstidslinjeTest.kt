@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -56,6 +55,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import vilkår.domain.Vurdering
 import vilkår.domain.grunnlag.Bosituasjon

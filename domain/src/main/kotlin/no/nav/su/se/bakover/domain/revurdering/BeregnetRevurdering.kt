@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår

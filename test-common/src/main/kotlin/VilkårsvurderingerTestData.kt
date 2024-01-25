@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår

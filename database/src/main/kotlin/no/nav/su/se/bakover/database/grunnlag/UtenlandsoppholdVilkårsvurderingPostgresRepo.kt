@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.periode
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 
 internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(

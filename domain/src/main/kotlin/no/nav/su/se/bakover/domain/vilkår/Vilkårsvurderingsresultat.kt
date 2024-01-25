@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.domain.Inngangsvilkår
 import vilkår.domain.Vilkår
 import vilkår.domain.Vurdering
