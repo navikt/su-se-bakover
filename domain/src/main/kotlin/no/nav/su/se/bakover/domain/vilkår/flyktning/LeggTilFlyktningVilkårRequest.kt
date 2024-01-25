@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår.flyktning
 
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
 import java.util.UUID
 
 data class LeggTilFlyktningVilkårRequest(

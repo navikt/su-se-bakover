@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDupl
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import vilkår.domain.Vilkår
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS

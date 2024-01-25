@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -10,7 +10,7 @@ import java.util.UUID
  * Hver vurderingsperiode har en definert [Periode] og [Vurdering], men trenger ikke å ha et grunnlag knyttet til seg.
  * I de fleste tilfeller er vurderingen gjort av en saksbehandler, men det finnes unntak, som [FormueVilkår] hvor systemet avgjør [Vurdering] basert på grunnlagene.
  */
-sealed interface Vurderingsperiode {
+interface Vurderingsperiode {
     val id: UUID
     val opprettet: Tidspunkt
     val vurdering: Vurdering

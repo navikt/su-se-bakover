@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.domain.Vurdering
+import vilkår.domain.Vurderingsperiode
 import vilkår.domain.grunnlag.Grunnlag
 import java.util.UUID
 

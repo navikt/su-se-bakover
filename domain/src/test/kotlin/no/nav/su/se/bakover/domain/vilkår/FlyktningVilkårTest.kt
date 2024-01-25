@@ -12,6 +12,9 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.util.UUID
 
 internal class FlyktningVilkårTest {

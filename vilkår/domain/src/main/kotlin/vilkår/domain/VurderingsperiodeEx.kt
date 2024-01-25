@@ -1,13 +1,13 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 
 fun Nel<Vurderingsperiode>.minsteAntallSammenhengendePerioder() =
     this.map { it.periode }.minsteAntallSammenhengendePerioder()

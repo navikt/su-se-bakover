@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInstitusjonsoppholdJson.Companion.toJson
+import vilkår.domain.Vurdering
 import java.time.Clock
 
 internal data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(
@@ -46,20 +47,20 @@ enum class VurderingInstitusjonsoppholdJson {
     Uavklart,
     ;
 
-    fun toDomain(): no.nav.su.se.bakover.domain.vilkår.Vurdering {
+    fun toDomain(): Vurdering {
         return when (this) {
-            VilkårOppfylt -> no.nav.su.se.bakover.domain.vilkår.Vurdering.Innvilget
-            VilkårIkkeOppfylt -> no.nav.su.se.bakover.domain.vilkår.Vurdering.Avslag
-            Uavklart -> no.nav.su.se.bakover.domain.vilkår.Vurdering.Uavklart
+            VilkårOppfylt -> Vurdering.Innvilget
+            VilkårIkkeOppfylt -> Vurdering.Avslag
+            Uavklart -> Vurdering.Uavklart
         }
     }
 
     companion object {
-        fun no.nav.su.se.bakover.domain.vilkår.Vurdering.toJson(): VurderingInstitusjonsoppholdJson {
+        fun Vurdering.toJson(): VurderingInstitusjonsoppholdJson {
             return when (this) {
-                no.nav.su.se.bakover.domain.vilkår.Vurdering.Innvilget -> VilkårOppfylt
-                no.nav.su.se.bakover.domain.vilkår.Vurdering.Avslag -> VilkårIkkeOppfylt
-                no.nav.su.se.bakover.domain.vilkår.Vurdering.Uavklart -> Uavklart
+                Vurdering.Innvilget -> VilkårOppfylt
+                Vurdering.Avslag -> VilkårIkkeOppfylt
+                Vurdering.Uavklart -> Uavklart
             }
         }
     }

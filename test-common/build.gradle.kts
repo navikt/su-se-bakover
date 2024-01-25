@@ -34,6 +34,7 @@ dependencies {
     api(project(":vilkår:institusjonsopphold:domain"))
     api(project(":vilkår:institusjonsopphold:presentation"))
     api(project(":vilkår:uføre:domain"))
+    api(project(":vilkår:flyktning:domain"))
     api(project(":vilkår:utenlandsopphold:domain"))
     api(project(":web"))
     api(project(":økonomi:application"))

@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":vilkår:domain"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
+    implementation(project(":vilkår:flyktning:domain"))
 
     implementation(project(":oppgave:infrastructure"))
     implementation(project(":oppgave:domain"))

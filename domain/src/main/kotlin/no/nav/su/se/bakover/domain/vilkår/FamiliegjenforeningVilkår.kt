@@ -5,11 +5,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.IkkeVurdertVilkår
 import vilkår.domain.Inngangsvilkår
+import vilkår.domain.Vilkår
+import vilkår.domain.VurdertVilkår
+import vilkår.domain.erLik
+import vilkår.domain.kastHvisPerioderErUsortertEllerHarDuplikater
+import vilkår.domain.slåSammenLikePerioder
 
 sealed interface FamiliegjenforeningVilkår : Vilkår {
     override val vilkår: Inngangsvilkår get() = Inngangsvilkår.Familiegjenforening

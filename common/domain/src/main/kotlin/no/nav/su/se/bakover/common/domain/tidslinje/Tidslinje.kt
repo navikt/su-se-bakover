@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.domain.tidslinje
+package no.nav.su.se.bakover.common.domain.tidslinje
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.CopyArgs
-import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import no.nav.su.se.bakover.common.extensions.between
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
-import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import java.time.LocalDate
 
 /**
@@ -158,20 +156,21 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             }
         }
 
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(elementer: List<T>): String {
-            return elementer.joinToString(prefix = "[", postfix = "]") { elementLog(it) }
-        }
-
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(element: T): String {
-            val periode = element.periode
-            val opprettet = element.opprettet
-            val type = element::class.simpleName
-            val id = when (element) {
-                is VedtakPåTidslinje -> element.originaltVedtak.id
-                // Legg til flere typer her etterhvert som '?' dukker opp i loggene.
-                else -> "?"
-            }
-            return "{\"type\":\"$type\", \"periode\":\"$periode\", \"opprettet\":\"$opprettet\", \"id\":\"$id\"}"
-        }
+        // TODO - disse var ikke i bruk noe sted. Er disse bare for debugging?
+//        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(elementer: List<T>): String {
+//            return elementer.joinToString(prefix = "[", postfix = "]") { elementLog(it) }
+//        }
+//
+//        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(element: T): String {
+//            val periode = element.periode
+//            val opprettet = element.opprettet
+//            val type = element::class.simpleName
+//            val id = when (element) {
+//                is VedtakPåTidslinje -> element.originaltVedtak.id
+//                // Legg til flere typer her etterhvert som '?' dukker opp i loggene.
+//                else -> "?"
+//            }
+//            return "{\"type\":\"$type\", \"periode\":\"$periode\", \"opprettet\":\"$opprettet\", \"id\":\"$id\"}"
+//        }
     }
 }

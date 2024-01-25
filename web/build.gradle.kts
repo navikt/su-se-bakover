@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":vilkår:institusjonsopphold:infrastructure"))
     implementation(project(":vilkår:institusjonsopphold:presentation"))
     implementation(project(":vilkår:uføre:domain"))
+    implementation(project(":vilkår:flyktning:domain"))
     implementation(project(":vilkår:utenlandsopphold:application"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:infrastructure"))

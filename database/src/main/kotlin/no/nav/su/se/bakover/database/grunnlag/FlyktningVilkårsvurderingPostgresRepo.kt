@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.util.UUID
 
 internal class FlyktningVilkårsvurderingPostgresRepo(

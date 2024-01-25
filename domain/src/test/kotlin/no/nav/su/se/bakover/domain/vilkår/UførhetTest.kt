@@ -23,8 +23,12 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
+import vilkår.domain.slåSammenLikePerioder
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 internal class UførhetTest {

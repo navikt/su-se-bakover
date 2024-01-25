@@ -18,9 +18,6 @@ import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
@@ -34,6 +31,9 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
+import vilkår.domain.Vurdering
+import vilkår.uføre.domain.UføreVilkår
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID

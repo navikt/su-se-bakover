@@ -1,21 +1,23 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.flyktning.domain
 
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.IkkeVurdertVilkår
 import vilkår.domain.Inngangsvilkår
-import vilkår.domain.grunnlag.Grunnlag
-import java.util.UUID
+import vilkår.domain.Vilkår
+import vilkår.domain.VurdertVilkår
+import vilkår.domain.erLik
+import vilkår.domain.kastHvisPerioderErUsortertEllerHarDuplikater
+import vilkår.domain.kronologisk
+import vilkår.domain.slåSammenLikePerioder
 
 sealed interface FlyktningVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Flyktning
@@ -77,59 +79,6 @@ sealed interface FlyktningVilkår : Vilkår {
 
         sealed interface UgyldigFlyktningVilkår {
             data object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår
-        }
-    }
-}
-
-data class VurderingsperiodeFlyktning private constructor(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Tidspunkt,
-    override val vurdering: Vurdering,
-    override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
-    override val grunnlag: Grunnlag? = null
-
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFlyktning {
-        return create(
-            id = id,
-            opprettet = opprettet,
-            vurdering = vurdering,
-            periode = stønadsperiode.periode,
-        )
-    }
-
-    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeFlyktning = when (args) {
-        CopyArgs.Tidslinje.Full -> {
-            copy(
-                id = UUID.randomUUID(),
-            )
-        }
-
-        is CopyArgs.Tidslinje.NyPeriode -> {
-            copy(
-                id = UUID.randomUUID(),
-                periode = args.periode,
-            )
-        }
-    }
-
-    override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodeFlyktning && vurdering == other.vurdering
-    }
-
-    companion object {
-        fun create(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            vurdering: Vurdering,
-            periode: Periode,
-        ): VurderingsperiodeFlyktning {
-            return VurderingsperiodeFlyktning(
-                id = id,
-                opprettet = opprettet,
-                vurdering = vurdering,
-                periode = periode,
-            )
         }
     }
 }

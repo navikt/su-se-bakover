@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.uføre.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -9,7 +9,8 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.domain.Vurdering
+import vilkår.domain.Vurderingsperiode
 import java.util.UUID
 
 data class VurderingsperiodeUføre private constructor(
@@ -41,6 +42,8 @@ data class VurderingsperiodeUføre private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     /**

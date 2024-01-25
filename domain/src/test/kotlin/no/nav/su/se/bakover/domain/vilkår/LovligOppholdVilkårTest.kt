@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
 import java.util.UUID
 
 internal class LovligOppholdVilkårTest {

@@ -26,8 +26,12 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 internal class VilkårsvurderingerTest {

@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate
 
-sealed interface IkkeVurdertVilkår : Vilkår {
+interface IkkeVurdertVilkår : Vilkår {
     override val vurdering: Vurdering.Uavklart get() = Vurdering.Uavklart
     override val erAvslag: Boolean get() = false
     override val erInnvilget: Boolean get() = false

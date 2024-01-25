@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
 import java.util.UUID
 
 internal class FastOppholdINorgeVilkårTest {

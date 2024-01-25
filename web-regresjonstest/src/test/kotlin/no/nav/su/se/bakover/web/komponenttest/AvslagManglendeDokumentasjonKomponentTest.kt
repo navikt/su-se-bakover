@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
+import vilkår.uføre.domain.UføreVilkår
 import java.time.LocalDate
 import java.util.UUID
 

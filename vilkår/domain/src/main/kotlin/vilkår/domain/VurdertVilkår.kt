@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.tid.periode.erSortert
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
-sealed interface VurdertVilkår : Vilkår {
+interface VurdertVilkår : Vilkår {
     val vurderingsperioder: Nel<Vurderingsperiode>
 
     override val erInnvilget: Boolean get() = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }

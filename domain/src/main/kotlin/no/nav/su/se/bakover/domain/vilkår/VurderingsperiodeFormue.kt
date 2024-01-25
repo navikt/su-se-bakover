@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
 import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -15,7 +16,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import vilkår.domain.Vurdering
+import vilkår.domain.Vurderingsperiode
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 

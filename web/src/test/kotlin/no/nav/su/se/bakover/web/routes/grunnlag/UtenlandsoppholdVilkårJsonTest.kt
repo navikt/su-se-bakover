@@ -10,12 +10,12 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.domain.Vurdering
 import java.util.UUID
 
 internal class UtenlandsoppholdVilkårJsonTest {

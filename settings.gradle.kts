@@ -4,6 +4,9 @@ pluginManagement {
         mavenCentral()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+}
 rootProject.name = "su-se-bakover"
 
 include("application")
@@ -64,3 +67,7 @@ include("økonomi:application")
 include("økonomi:domain")
 include("økonomi:infrastructure")
 include("økonomi:presentation")
+include("vilkår:flyktning")
+findProject(":vilkår:flyktning")?.name = "flyktning"
+include("vilkår:flyktning:domain")
+findProject(":vilkår:flyktning:domain")?.name = "domain"

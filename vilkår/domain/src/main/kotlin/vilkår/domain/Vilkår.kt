@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.domain.Inngangsvilkår
 import java.time.LocalDate
 
 /**
@@ -11,7 +10,7 @@ import java.time.LocalDate
  * - [no.nav.su.se.bakover.domain.revurdering.Revurdering] og [no.nav.su.se.bakover.domain.regulering.Regulering]: Kan gå på tvers av stønadsperioder og kan da bestå av flere enn et resultat og kan ha hull i periodene.
  * Revurdering/Regulering kan ha strengere regler enn dette i sine respektive implementasjoner.
  */
-sealed interface Vilkår {
+interface Vilkår {
     val vurdering: Vurdering
     val erAvslag: Boolean
     val erInnvilget: Boolean

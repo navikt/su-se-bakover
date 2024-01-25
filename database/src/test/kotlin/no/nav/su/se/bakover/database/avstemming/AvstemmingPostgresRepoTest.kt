@@ -26,9 +26,6 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -38,7 +35,10 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import økonomi.domain.Fagområde
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import java.time.ZoneOffset

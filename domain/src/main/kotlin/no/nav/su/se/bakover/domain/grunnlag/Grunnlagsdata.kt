@@ -4,11 +4,11 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode

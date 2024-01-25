@@ -2,6 +2,10 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import vilkår.domain.Inngangsvilkår
+import vilkår.domain.Vilkår
+import vilkår.domain.Vurdering
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.uføre.domain.UføreVilkår
 
 /**
  * vilkårsvurderinger - inneholder vilkårsvurdering av alle grunnlagstyper
@@ -55,6 +59,8 @@ sealed interface Vilkårsvurderingsresultat {
                         this.grunnlag.find { it.pensjonsopplysninger.søktAndreNorskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER },
                     )
                 }
+
+                else -> throw IllegalStateException("Ukjent vilkår: $this ved mapping til avslagsgrunn")
             }
         }
 

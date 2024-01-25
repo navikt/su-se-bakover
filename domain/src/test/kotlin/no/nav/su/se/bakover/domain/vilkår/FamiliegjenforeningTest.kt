@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
+import vilkår.domain.Vurderingsperiode
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class FamiliegjenforeningTest {

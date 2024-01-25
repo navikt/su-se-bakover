@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import vilkår.domain.Vurdering
 import java.util.UUID
 
 internal class VurderingsperiodeInstitusjonsoppholdTest {
