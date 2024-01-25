@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.vedtak.application
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNyBehandling
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import java.time.LocalDate
 import java.util.UUID
@@ -30,4 +33,9 @@ interface VedtakService {
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
     fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
+
+    /**
+     * Per nå, så kan bare vedtak som er blitt avslått av §18 (manglende dokumentasjon) åpne en ny behandling.
+     */
+    fun startNyBehandlingFor(vedtakId: UUID): Either<KunneIkkeStarteNyBehandling, Søknadsbehandling>
 }

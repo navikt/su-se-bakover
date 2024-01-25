@@ -25,4 +25,7 @@ interface Vedtak : Avsluttet {
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant
     val dokumenttilstand: Dokumenttilstand
+
+
+    fun kanStarteNyBehandling(): Boolean
 }
