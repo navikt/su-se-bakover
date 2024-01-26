@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrElse
 import arrow.core.left
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -21,6 +19,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal class LeggTilFradragsgrunnlagTest {
 

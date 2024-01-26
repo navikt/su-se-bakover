@@ -4,14 +4,14 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import org.jetbrains.annotations.TestOnly
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrunnlag
 
 data class Beregningsgrunnlag private constructor(

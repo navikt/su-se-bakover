@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
 
 data class FormueForBrev(
     val søkersFormue: FormueVerdierForBrev,
@@ -26,7 +27,7 @@ fun Formuegrunnlag.tilFormueForBrev(): FormueForBrev {
     )
 }
 
-fun Formuegrunnlag.Verdier.tilFormueVerdierForBrev(): FormueVerdierForBrev {
+fun Verdier.tilFormueVerdierForBrev(): FormueVerdierForBrev {
     return FormueVerdierForBrev(
         verdiSekundærBoliger = this.verdiEiendommer + this.verdiIkkePrimærbolig,
         verdiSekundærKjøretøyer = this.verdiKjøretøy,

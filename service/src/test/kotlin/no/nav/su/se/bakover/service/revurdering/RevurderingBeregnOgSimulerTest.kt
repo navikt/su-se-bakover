@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -37,6 +36,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 

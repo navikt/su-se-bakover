@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import beregning.domain.Månedsberegning
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
 
 /**
  * Join equivalent månedsberegninger to form distinct periods of ytelse and fradrag.

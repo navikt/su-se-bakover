@@ -1,9 +1,9 @@
 package beregning.domain
 
 import arrow.core.NonEmptyList
-import beregning.domain.fradrag.Fradrag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.inntekt.domain.grunnlag.Fradrag
 import java.util.UUID
 
 /**

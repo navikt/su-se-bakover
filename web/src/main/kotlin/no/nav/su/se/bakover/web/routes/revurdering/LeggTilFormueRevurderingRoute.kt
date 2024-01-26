@@ -27,8 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -37,6 +35,8 @@ import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.KunneIkkeLageFormueVerdier
+import vilkår.formue.domain.Verdier
 import java.time.Clock
 import java.util.UUID
 
@@ -49,7 +49,7 @@ private data class FormueBody(
 
     companion object {
         private fun lagFormuegrunnlag(json: FormuegrunnlagJson.VerdierJson) =
-            Formuegrunnlag.Verdier.tryCreate(
+            Verdier.tryCreate(
                 verdiIkkePrimærbolig = json.verdiIkkePrimærbolig,
                 verdiEiendommer = json.verdiEiendommer,
                 verdiKjøretøy = json.verdiKjøretøy,

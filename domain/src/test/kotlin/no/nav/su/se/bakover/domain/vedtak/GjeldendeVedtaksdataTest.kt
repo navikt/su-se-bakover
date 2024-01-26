@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
-import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.extensions.april
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
 internal class GjeldendeVedtaksdataTest {
     @Test

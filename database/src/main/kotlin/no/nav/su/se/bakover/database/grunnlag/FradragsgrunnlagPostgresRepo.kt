@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.getOrElse
-import beregning.domain.fradrag.FradragForPeriode
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -15,7 +12,10 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.FradragForPeriode
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 internal class FradragsgrunnlagPostgresRepo(

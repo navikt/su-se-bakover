@@ -21,7 +21,7 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEller
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import java.util.UUID
 
-internal class BosituasjonTest {
+internal class BosituasjonKonsistensProblemTest {
 
     @Test
     fun `viser om søker har ektefelle eller ikke`() {

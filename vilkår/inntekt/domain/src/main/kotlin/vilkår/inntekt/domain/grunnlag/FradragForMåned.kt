@@ -1,4 +1,4 @@
-package beregning.domain.fradrag
+package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Måned

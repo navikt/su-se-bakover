@@ -1,9 +1,5 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.UtenlandskInntekt
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.april
@@ -19,6 +15,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
 internal class LagBrevinnholdForBeregningTest {
 

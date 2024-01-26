@@ -1,7 +1,5 @@
 package beregning.domain
 
-import beregning.domain.fradrag.Fradragstype
-
 sealed class Merknader {
 
     class Beregningsmerknad(

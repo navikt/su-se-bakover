@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.UføreVilkår
 
 /**

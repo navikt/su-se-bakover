@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
@@ -28,7 +26,6 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -59,6 +56,10 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilk
 import org.junit.jupiter.api.Test
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
@@ -288,17 +289,15 @@ internal class VedtakstidslinjeTest {
                     opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = januar(2021)..juni(2021),
                     epsFormue = null,
-                    søkersFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 1000),
-                    bosituasjon = b1,
+                    søkersFormue = Verdier.empty().copy(verdiEiendommer = 1000),
                     behandlingsPeriode = periode,
                 ),
                 Formuegrunnlag.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = juli(2021)..desember(2021),
-                    epsFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15000),
-                    søkersFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 1000),
-                    bosituasjon = b2,
+                    epsFormue = Verdier.empty().copy(verdiEiendommer = 15000),
+                    søkersFormue = Verdier.empty().copy(verdiEiendommer = 1000),
                     behandlingsPeriode = periode,
                 ),
             ),
@@ -380,7 +379,7 @@ internal class VedtakstidslinjeTest {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id
                                                 it.periode shouldBe Periode.create(1.mai(2021), 30.juni(2021))
                                                 it.epsFormue shouldBe null
-                                                it.søkersFormue shouldBe Formuegrunnlag.Verdier.empty()
+                                                it.søkersFormue shouldBe Verdier.empty()
                                                     .copy(verdiEiendommer = 1000)
                                             }
                                         }
@@ -396,9 +395,9 @@ internal class VedtakstidslinjeTest {
                                             vurderingsperiodecopy.grunnlag.let {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id
                                                 it.periode shouldBe Periode.create(1.juli(2021), 31.juli(2021))
-                                                it.epsFormue shouldBe Formuegrunnlag.Verdier.empty()
+                                                it.epsFormue shouldBe Verdier.empty()
                                                     .copy(verdiEiendommer = 15000)
-                                                it.søkersFormue shouldBe Formuegrunnlag.Verdier.empty()
+                                                it.søkersFormue shouldBe Verdier.empty()
                                                     .copy(verdiEiendommer = 1000)
                                             }
                                         }

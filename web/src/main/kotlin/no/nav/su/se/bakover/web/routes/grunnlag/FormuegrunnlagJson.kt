@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import vilkår.formue.domain.Formuegrunnlag
 
 // Bruk FormuevilkårJson e.l. for å legge på utledede verdier som 0.5G, hva 0.5G tilsvarer i kroner og om vilkår er oppfylt.
 data class FormuegrunnlagJson(

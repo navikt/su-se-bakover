@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.Vurderingsperiode
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.Formuegrunnlag
 import java.util.UUID
 
 /**
@@ -75,6 +75,8 @@ data class VurderingsperiodeFormue private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {

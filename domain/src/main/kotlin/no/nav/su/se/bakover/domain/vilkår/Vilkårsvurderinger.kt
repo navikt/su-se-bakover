@@ -42,6 +42,15 @@ sealed interface Vilkårsvurderinger {
         }
     }
 
+    fun uføreVilkårKastHvisAlder(): UføreVilkår {
+        return when (this) {
+            is Revurdering.Uføre -> uføre
+            is Søknadsbehandling.Uføre -> uføre
+            is Revurdering.Alder -> TODO("vilkårsvurdering_alder konsistenssjekk for alder")
+            is Søknadsbehandling.Alder -> TODO("vilkårsvurdering_alder konsistenssjekk for alder")
+        }
+    }
+
     fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår> {
         return when (this) {
             is Revurdering.Alder -> VilkårEksistererIkke.left()

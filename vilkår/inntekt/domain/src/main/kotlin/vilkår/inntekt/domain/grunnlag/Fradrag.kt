@@ -1,8 +1,11 @@
-package beregning.domain.fradrag
+package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.KopierbarForSnitt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 
+/**
+ * TODO: Dette burde egentlig vært et beregningsfradrag
+ */
 interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype
     val månedsbeløp: Double

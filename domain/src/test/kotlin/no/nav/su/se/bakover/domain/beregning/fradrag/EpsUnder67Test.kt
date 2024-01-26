@@ -1,16 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import beregning.domain.fradrag.FradragStrategy
-import beregning.domain.fradrag.FradragTilhører.BRUKER
-import beregning.domain.fradrag.FradragTilhører.EPS
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.Fradragstype.Arbeidsinntekt
-import beregning.domain.fradrag.Fradragstype.BeregnetFradragEPS
-import beregning.domain.fradrag.Fradragstype.ForventetInntekt
-import beregning.domain.fradrag.Fradragstype.Kapitalinntekt
-import beregning.domain.fradrag.Fradragstype.Kontantstøtte
-import beregning.domain.fradrag.Fradragstype.NAVytelserTilLivsopphold
-import beregning.domain.fradrag.Fradragstype.PrivatPensjon
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
@@ -21,6 +11,16 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører.BRUKER
+import vilkår.inntekt.domain.grunnlag.FradragTilhører.EPS
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Arbeidsinntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.BeregnetFradragEPS
+import vilkår.inntekt.domain.grunnlag.Fradragstype.ForventetInntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Kapitalinntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Kontantstøtte
+import vilkår.inntekt.domain.grunnlag.Fradragstype.NAVytelserTilLivsopphold
+import vilkår.inntekt.domain.grunnlag.Fradragstype.PrivatPensjon
 
 internal class EpsUnder67Test {
     @Test

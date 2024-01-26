@@ -5,11 +5,9 @@ import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.create
@@ -17,8 +15,9 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
 import java.util.UUID
 
 internal class FormuevilkårJsonTest {
@@ -28,17 +27,6 @@ internal class FormuevilkårJsonTest {
         val janDes = år(2021)
         val janJun = Periode.create(1.januar(2021), 30.juni(2021))
         val julDes = Periode.create(1.juli(2021), 31.desember(2021))
-        val bosituasjonJanJun = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-            id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
-            opprettet = fixedTidspunkt,
-            periode = janDes,
-            fnr = Fnr("12312312345"),
-        )
-        val bosituasjonJulDes = Bosituasjon.Fullstendig.Enslig(
-            id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95790"),
-            opprettet = fixedTidspunkt,
-            periode = janDes,
-        )
         val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
             nonEmptyListOf(
                 VurderingsperiodeFormue.create(
@@ -49,7 +37,7 @@ internal class FormuevilkårJsonTest {
                         id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
                         opprettet = fixedTidspunkt,
                         periode = janJun,
-                        epsFormue = Formuegrunnlag.Verdier.create(
+                        epsFormue = Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,
@@ -59,7 +47,7 @@ internal class FormuevilkårJsonTest {
                             kontanter = 7,
                             depositumskonto = 2,
                         ),
-                        søkersFormue = Formuegrunnlag.Verdier.create(
+                        søkersFormue = Verdier.create(
                             verdiIkkePrimærbolig = 9,
                             verdiEiendommer = 10,
                             verdiKjøretøy = 11,
@@ -69,7 +57,6 @@ internal class FormuevilkårJsonTest {
                             kontanter = 15,
                             depositumskonto = 2,
                         ),
-                        bosituasjon = bosituasjonJanJun,
                         behandlingsPeriode = janDes,
                     ),
                     periode = janJun,
@@ -83,7 +70,7 @@ internal class FormuevilkårJsonTest {
                         opprettet = fixedTidspunkt,
                         periode = julDes,
                         epsFormue = null,
-                        søkersFormue = Formuegrunnlag.Verdier.create(
+                        søkersFormue = Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,
@@ -93,7 +80,6 @@ internal class FormuevilkårJsonTest {
                             kontanter = 7,
                             depositumskonto = 2,
                         ),
-                        bosituasjon = bosituasjonJulDes,
                         behandlingsPeriode = janDes,
                     ),
                     periode = julDes,

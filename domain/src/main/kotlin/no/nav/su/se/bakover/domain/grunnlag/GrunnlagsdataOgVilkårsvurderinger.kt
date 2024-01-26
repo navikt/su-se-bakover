@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -23,6 +22,10 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import vilkår.common.domain.Vilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.vurderinger.domain.BosituasjonOgFormue
+import vilkår.vurderinger.domain.Konsistensproblem
 import java.time.Clock
 import java.util.UUID
 
@@ -219,7 +222,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.
             //  felles sjekker bør gjøres i init og tryCreate, konsistenssjekkene bør gjøres i denne fila for det som går på tvers av grunnlagsdata og vilkårsvurderinger.
             //  Mens behandlingene bør sjekke mot sin periode og evt. andre ting som kun angår de.
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+            BosituasjonOgFormue(
                 bosituasjon = grunnlagsdata.bosituasjon,
                 formue = vilkår.grunnlag,
             ).resultat.onLeft { alleFeil ->

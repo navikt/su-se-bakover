@@ -29,7 +29,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 
-class GrunnlagBosituasjonRoutesTest {
+class GrunnlagBosituasjonRoutesTestKonsistentProblem {
 
     private val services = TestServicesBuilder.services()
     private val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second

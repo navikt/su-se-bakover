@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperi
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -280,9 +279,6 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             grunnlagsdataOverrides = listOf(
                 formueGrunnlagUtenEpsAvslått(
                     periode = Periode.create(1.august(2021), 31.desember(2021)),
-                    bosituasjon = bosituasjongrunnlagEnslig(
-                        periode = Periode.create(1.august(2021), 31.desember(2021)),
-                    ),
                 ),
             ),
         )

@@ -1,4 +1,4 @@
-package beregning.domain.fradrag
+package vilkår.inntekt.domain.grunnlag
 
 import arrow.core.Either
 import arrow.core.getOrElse

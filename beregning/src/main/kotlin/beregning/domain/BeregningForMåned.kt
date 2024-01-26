@@ -1,9 +1,9 @@
 package beregning.domain
 
-import beregning.domain.fradrag.FradragForMåned
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
 
 /**
  * Gjelder for kun 1 måned.

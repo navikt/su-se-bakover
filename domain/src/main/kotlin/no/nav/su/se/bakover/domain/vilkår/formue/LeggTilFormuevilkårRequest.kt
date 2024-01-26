@@ -7,14 +7,14 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.KunneIkkeLageFormueGrunnlag
+import vilkår.formue.domain.Verdier
+import vilkår.vurderinger.domain.Konsistensproblem
 import java.util.UUID
 
 data class LeggTilFormuevilkårRequest(
@@ -24,27 +24,22 @@ data class LeggTilFormuevilkårRequest(
     val tidspunkt: Tidspunkt,
 ) {
     fun toDomain(
-        bosituasjon: List<Bosituasjon>,
         behandlingsperiode: Periode,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
         return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
+                // TODO: Denne bør sende commanden til grunnlagsdataOgVilkårsvurderinger som utfører bosituasjonsverifiseringen.
                 element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
                     opprettet = tidspunkt,
                     periode = element.periode,
                     epsFormue = element.epsFormue,
                     søkersFormue = element.søkersFormue,
-                    bosituasjon = bosituasjon,
                     behandlingsPeriode = behandlingsperiode,
                 ).getOrElse {
                     return when (it) {
                         KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> {
                             KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden
-                        }
-
-                        is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
-                            KunneIkkeMappeTilDomenet.Konsistenssjekk(it.feil)
                         }
                     }.left()
                 }
@@ -63,41 +58,6 @@ data class LeggTilFormuevilkårRequest(
         data object IkkeLovMedOverlappendePerioder : KunneIkkeMappeTilDomenet
     }
 
-    @JvmName("toDomainFullstendig")
-    fun toDomain(
-        bosituasjon: List<Bosituasjon.Fullstendig>,
-        behandlingsperiode: Periode,
-        formuegrenserFactory: FormuegrenserFactory,
-    ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
-        return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
-            grunnlag = formuegrunnlag.map { element ->
-                element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
-                    opprettet = tidspunkt,
-                    periode = element.periode,
-                    epsFormue = element.epsFormue,
-                    søkersFormue = element.søkersFormue,
-                    bosituasjon = bosituasjon,
-                    behandlingsPeriode = behandlingsperiode,
-                ).getOrElse {
-                    return when (it) {
-                        KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> {
-                            KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden
-                        }
-
-                        is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
-                            KunneIkkeMappeTilDomenet.Konsistenssjekk(it.feil)
-                        }
-                    }.left()
-                }
-            },
-            formuegrenserFactory = formuegrenserFactory,
-        ).mapLeft {
-            when (it) {
-                FormueVilkår.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
-            }
-        }
-    }
-
     fun handling(tidspunkt: Tidspunkt): Søknadsbehandlingshendelse {
         return Søknadsbehandlingshendelse(
             tidspunkt = tidspunkt,
@@ -108,23 +68,23 @@ data class LeggTilFormuevilkårRequest(
 
     sealed interface Grunnlag {
         val periode: Periode
-        val epsFormue: Formuegrunnlag.Verdier?
-        val søkersFormue: Formuegrunnlag.Verdier
+        val epsFormue: Verdier?
+        val søkersFormue: Verdier
         val begrunnelse: String?
         val måInnhenteMerInformasjon: Boolean
 
         data class Søknadsbehandling(
             override val periode: Periode,
-            override val epsFormue: Formuegrunnlag.Verdier?,
-            override val søkersFormue: Formuegrunnlag.Verdier,
+            override val epsFormue: Verdier?,
+            override val søkersFormue: Verdier,
             override val begrunnelse: String?,
             override val måInnhenteMerInformasjon: Boolean,
         ) : Grunnlag
 
         data class Revurdering(
             override val periode: Periode,
-            override val epsFormue: Formuegrunnlag.Verdier?,
-            override val søkersFormue: Formuegrunnlag.Verdier,
+            override val epsFormue: Verdier?,
+            override val søkersFormue: Verdier,
             override val begrunnelse: String?,
 
         ) : Grunnlag {

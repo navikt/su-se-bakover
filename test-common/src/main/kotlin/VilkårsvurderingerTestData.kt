@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -170,14 +169,10 @@ fun vilkårsvurderingerRevurderingInnvilget(
 fun vilkårsvurderingerAvslåttAlleRevurdering(
     periode: Periode = år(2021),
     uføre: UføreVilkår = avslåttUførevilkårUtenGrunnlag(periode = periode),
-    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
         nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode)),
     ),
-    formue: FormueVilkår = formuevilkårAvslåttPgaBrukersformue(
-        periode = periode,
-        bosituasjon = bosituasjon.toList().toNonEmptyList(),
-    ),
+    formue: FormueVilkår = formuevilkårAvslåttPgaBrukersformue(periode = periode),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
     flyktningVilkår: FlyktningVilkår = flyktningVilkårAvslått(periode = periode),
@@ -213,14 +208,9 @@ fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = år(2021),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre(
-        uføre = avslåttUførevilkårUtenGrunnlag(
-            periode = periode,
-        ),
+        uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
         utenlandsopphold = utenlandsoppholdAvslag(periode = periode),
-        formue = formuevilkårAvslåttPgaBrukersformue(
-            periode = periode,
-            bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
-        ),
+        formue = formuevilkårAvslåttPgaBrukersformue(periode = periode),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
         lovligOpphold = lovligOppholdVilkårAvslag(),
         fastOpphold = fastOppholdVilkårAvslag(periode = periode),

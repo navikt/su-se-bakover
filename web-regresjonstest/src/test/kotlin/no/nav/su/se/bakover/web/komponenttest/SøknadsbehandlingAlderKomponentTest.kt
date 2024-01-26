@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -32,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -50,6 +49,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.formue.domain.Verdier
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
 
@@ -180,7 +181,6 @@ internal class SøknadsbehandlingAlderKomponentTest {
                                 epsFnr = null,
                                 delerBolig = false,
                                 ektemakeEllerSamboerUførFlyktning = null,
-
                             ),
                         ),
                     ),
@@ -210,16 +210,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                             LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                                 periode = stønadsperiode2022.periode,
                                 epsFormue = null,
-                                søkersFormue = Formuegrunnlag.Verdier.create(
-                                    verdiIkkePrimærbolig = 0,
-                                    verdiEiendommer = 0,
-                                    verdiKjøretøy = 0,
-                                    innskudd = 0,
-                                    verdipapir = 0,
-                                    pengerSkyldt = 0,
-                                    kontanter = 0,
-                                    depositumskonto = 0,
-                                ),
+                                søkersFormue = Verdier.empty(),
                                 begrunnelse = null,
                                 måInnhenteMerInformasjon = false,
                             ),

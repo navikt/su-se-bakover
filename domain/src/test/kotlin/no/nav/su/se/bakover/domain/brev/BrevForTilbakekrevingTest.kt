@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringUnderkjent
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.requireType
@@ -345,14 +344,7 @@ class BrevForTilbakekrevingTest {
         private fun simulertOpphørTilbakekreving(
             clock: Clock = TikkendeKlokke(1.august(2021).fixedClock()),
         ): Pair<Sak, SimulertRevurdering.Opphørt> = simulertRevurdering(
-            vilkårOverrides = listOf(
-                formuevilkårAvslåttPgaBrukersformue(
-                    periode = år(2021),
-                    bosituasjon = bosituasjongrunnlagEnslig(
-                        periode = år(2021),
-                    ),
-                ),
-            ),
+            vilkårOverrides = listOf(formuevilkårAvslåttPgaBrukersformue(periode = år(2021))),
             clock = clock,
             utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let { (sak, revurdering) ->

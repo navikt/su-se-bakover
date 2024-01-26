@@ -106,7 +106,6 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, VilkårsvurdertSøknadsbehandling> {
         // Valideringen gjøres i toDomain(...)
         val vilkår = request.toDomain(
-            bosituasjon = grunnlagsdata.bosituasjon,
             behandlingsperiode = stønadsperiode?.periode
                 ?: throw IllegalStateException("Burde ha hatt en stønadsperiode på dette tidspunktet. id $id"),
             formuegrenserFactory = formuegrenserFactory,

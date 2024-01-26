@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.inntekt.domain.grunnlag
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -6,9 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
@@ -184,5 +181,7 @@ data class Fradragsgrunnlag private constructor(
              */
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
+
+        else -> TODO("fjern meg senere")
     }
 }

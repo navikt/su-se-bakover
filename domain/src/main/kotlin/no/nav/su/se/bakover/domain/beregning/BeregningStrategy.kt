@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragForMåned
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -9,6 +7,8 @@ import satser.domain.SatsFactory
 import satser.domain.Satsgrunn
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
 
 sealed class BeregningStrategy {
     protected abstract val satsFactory: SatsFactory

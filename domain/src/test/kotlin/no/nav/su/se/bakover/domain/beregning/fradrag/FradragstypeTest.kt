@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.left
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal class FradragstypeTest {
     @Test

@@ -1,14 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import beregning.domain.fradrag.FradragStrategy
-import beregning.domain.fradrag.FradragTilhører.BRUKER
-import beregning.domain.fradrag.FradragTilhører.EPS
-import beregning.domain.fradrag.Fradragstype.Arbeidsinntekt
-import beregning.domain.fradrag.Fradragstype.BeregnetFradragEPS
-import beregning.domain.fradrag.Fradragstype.ForventetInntekt
-import beregning.domain.fradrag.Fradragstype.Kapitalinntekt
-import beregning.domain.fradrag.Fradragstype.PrivatPensjon
-import beregning.domain.fradrag.Fradragstype.Sosialstønad
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -23,6 +15,14 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører.BRUKER
+import vilkår.inntekt.domain.grunnlag.FradragTilhører.EPS
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Arbeidsinntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.BeregnetFradragEPS
+import vilkår.inntekt.domain.grunnlag.Fradragstype.ForventetInntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Kapitalinntekt
+import vilkår.inntekt.domain.grunnlag.Fradragstype.PrivatPensjon
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Sosialstønad
 
 /**
  * Garantipensjon 1.jan = 176099 -> pr.mnd = 14674.9166666

@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
-import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
+import no.nav.su.se.bakover.domain.grunnlag.sjekkOmGrunnlagOgVilkårErKonsistent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.vurderinger.domain.erGyldigTilstand
 import java.time.Clock
 import java.util.UUID
 
@@ -43,22 +43,23 @@ sealed interface Regulering : Reguleringsfelter {
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
-            val reguleringstype = SjekkOmGrunnlagErKonsistent(gjeldendeVedtaksdata).resultat.fold(
-                { konsistensproblemer ->
-                    val message =
-                        "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-                            " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-                    if (konsistensproblemer.erGyldigTilstand()) {
-                        log.info(message)
-                    } else {
-                        log.error(message)
-                    }
-                    return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
-                },
-                {
-                    gjeldendeVedtaksdata.utledReguleringstype()
-                },
-            )
+            val reguleringstype =
+                gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
+                    { konsistensproblemer ->
+                        val message =
+                            "Kunne ikke opprette regulering for saksnummer $saksnummer." +
+                                " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
+                        if (konsistensproblemer.erGyldigTilstand()) {
+                            log.info(message)
+                        } else {
+                            log.error(message)
+                        }
+                        return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
+                    },
+                    {
+                        gjeldendeVedtaksdata.utledReguleringstype()
+                    },
+                )
 
             return OpprettetRegulering(
                 id = id,

@@ -1,11 +1,10 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.formue.domain
 
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,7 +27,7 @@ internal class FormuegrunnlagTest {
         @Test
         fun `Formue verdier kan ikke være negative for create`() {
             assertThrows<IllegalArgumentException> {
-                Formuegrunnlag.Verdier.create(
+                Verdier.create(
                     verdiIkkePrimærbolig = -1,
                     verdiEiendommer = -2,
                     verdiKjøretøy = -3,
@@ -44,7 +42,7 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `Formue verdier kan ikke være negative for try create`() {
-            Formuegrunnlag.Verdier.tryCreate(
+            Verdier.tryCreate(
                 verdiIkkePrimærbolig = -1,
                 verdiEiendommer = -2,
                 verdiKjøretøy = -3,
@@ -58,12 +56,12 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `alle verdier som 0 skal bli 0`() {
-            Formuegrunnlag.Verdier.empty().sumVerdier() shouldBe 0
+            Verdier.empty().sumVerdier() shouldBe 0
         }
 
         @Test
         fun `dersom depositum er høyere enn innskud, blir ikke sum negativ`() {
-            Formuegrunnlag.Verdier.empty().copy(
+            Verdier.empty().copy(
                 innskudd = 100,
                 depositumskonto = 200,
             ).sumVerdier() shouldBe 0
@@ -71,7 +69,7 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `Depositum blir trekket fra innskud`() {
-            Formuegrunnlag.Verdier.empty().copy(
+            Verdier.empty().copy(
                 innskudd = 500,
                 depositumskonto = 200,
             ).sumVerdier() shouldBe 300
@@ -79,7 +77,7 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `Innskudd blir ikke trekket fra dersom depositum er 0`() {
-            Formuegrunnlag.Verdier.empty().copy(
+            Verdier.empty().copy(
                 innskudd = 500,
                 depositumskonto = 0,
             ).sumVerdier() shouldBe 500
@@ -100,7 +98,7 @@ internal class FormuegrunnlagTest {
             opprettet = Tidspunkt.EPOCH,
             periode = januar(2021),
             epsFormue = null,
-            søkersFormue = Formuegrunnlag.Verdier.create(
+            søkersFormue = Verdier.create(
                 verdiIkkePrimærbolig = 1,
                 verdiEiendommer = 1,
                 verdiKjøretøy = 1,
@@ -110,7 +108,6 @@ internal class FormuegrunnlagTest {
                 kontanter = 1,
                 depositumskonto = 1,
             ),
-            bosituasjon = enslig,
             behandlingsPeriode = januar(2021),
         )
 
@@ -125,7 +122,7 @@ internal class FormuegrunnlagTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 periode = januar(2021),
-                epsFormue = Formuegrunnlag.Verdier.create(
+                epsFormue = Verdier.create(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,
@@ -135,7 +132,7 @@ internal class FormuegrunnlagTest {
                     kontanter = 1,
                     depositumskonto = 1,
                 ),
-                søkersFormue = Formuegrunnlag.Verdier.create(
+                søkersFormue = Verdier.create(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,
@@ -144,12 +141,6 @@ internal class FormuegrunnlagTest {
                     pengerSkyldt = 1,
                     kontanter = 1,
                     depositumskonto = 1,
-                ),
-                bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                    id = UUID.randomUUID(),
-                    fnr = Fnr.generer(),
-                    opprettet = Tidspunkt.EPOCH,
-                    periode = januar(2021),
                 ),
                 behandlingsPeriode = januar(2021),
             )
@@ -166,31 +157,14 @@ internal class FormuegrunnlagTest {
         }
 
         @Test
-        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor bosituasjon`() {
-            Formuegrunnlag.tryCreate(
-                id = UUID.randomUUID(),
-                periode = år(2021),
-                opprettet = Tidspunkt.EPOCH,
-                epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = listOf(enslig),
-                behandlingsPeriode = år(2021),
-            ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
-                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
-            ).left()
-        }
-
-        @Test
         fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor behandlignsperioden`() {
             val periode = år(2021)
-            val enslig = enslig.copy(periode = periode)
             Formuegrunnlag.tryCreate(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = listOf(enslig),
+                søkersFormue = Verdier.empty(),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
         }
@@ -199,15 +173,13 @@ internal class FormuegrunnlagTest {
         fun `Ok formuegrunnlag `() {
             val id = UUID.randomUUID()
             val periode = år(2021)
-            val enslig = enslig.copy(periode = periode)
 
             val formueTryCreate = Formuegrunnlag.tryCreate(
                 id = id,
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = listOf(enslig),
+                søkersFormue = Verdier.empty(),
                 behandlingsPeriode = år(2021),
             )
 
@@ -216,8 +188,7 @@ internal class FormuegrunnlagTest {
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = enslig,
+                søkersFormue = Verdier.empty(),
                 behandlingsPeriode = år(2021),
             ).right()
         }
@@ -244,7 +215,7 @@ internal class FormuegrunnlagTest {
         val f1 = lagFormuegrunnlag(periodeInnenfor2021 = januar(2021))
         val f2 = lagFormuegrunnlag(
             periodeInnenfor2021 = februar(2021),
-            søkersFormue = Formuegrunnlag.Verdier.empty().copy(
+            søkersFormue = Verdier.empty().copy(
                 verdiEiendommer = 100,
             ),
         )
@@ -254,25 +225,13 @@ internal class FormuegrunnlagTest {
 
     @Test
     fun `2 formue grunnlag som tilstøter, men eps verdier er ulik`() {
-        val bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = år(2021),
-            fnr = Fnr.generer(),
-        )
         val f1 = lagFormuegrunnlag(
             periodeInnenfor2021 = januar(2021),
-            bosiutasjon = bosituasjon,
-            epsFormue = Formuegrunnlag.Verdier.empty().copy(
-                verdiEiendommer = 40,
-            ),
+            epsFormue = Verdier.empty().copy(verdiEiendommer = 40),
         )
         val f2 = lagFormuegrunnlag(
             periodeInnenfor2021 = februar(2021),
-            bosiutasjon = bosituasjon,
-            epsFormue = Formuegrunnlag.Verdier.empty().copy(
-                verdiEiendommer = 100,
-            ),
+            epsFormue = Verdier.empty().copy(verdiEiendommer = 100),
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
@@ -281,20 +240,14 @@ internal class FormuegrunnlagTest {
     private fun lagFormuegrunnlag(
         opprettet: Tidspunkt = fixedTidspunkt,
         periodeInnenfor2021: Periode,
-        søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.empty(),
-        epsFormue: Formuegrunnlag.Verdier? = null,
-        bosiutasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = periodeInnenfor2021,
-        ),
+        søkersFormue: Verdier = Verdier.empty(),
+        epsFormue: Verdier? = null,
     ): Formuegrunnlag {
         return Formuegrunnlag.create(
             opprettet = opprettet,
             periode = periodeInnenfor2021,
             epsFormue = epsFormue,
             søkersFormue = søkersFormue,
-            bosituasjon = bosiutasjon,
             behandlingsPeriode = år(2021),
         )
     }

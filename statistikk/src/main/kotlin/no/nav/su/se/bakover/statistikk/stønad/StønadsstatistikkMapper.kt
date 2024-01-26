@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.statistikk.stønad
 import arrow.core.Either
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.Fradragstype
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
@@ -31,6 +28,9 @@ import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.støn
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import kotlin.math.roundToInt
 

@@ -3,10 +3,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import beregning.domain.Beregning
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -14,6 +10,10 @@ import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import satser.domain.Satskategori
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset

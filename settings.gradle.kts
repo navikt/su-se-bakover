@@ -75,4 +75,3 @@ include("vilkår:utenlandsopphold:infrastructure")
 include("vilkår:formue:domain")
 include("vilkår:inntekt:domain")
 include("vilkår:bosituasjon")
-findProject(":vilkår:bosituasjon")?.name = "bosituasjon"

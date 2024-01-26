@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
@@ -22,6 +20,8 @@ import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.firstOrThrowIfMultipleOrEmpty
 
 sealed interface FormueVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Formue

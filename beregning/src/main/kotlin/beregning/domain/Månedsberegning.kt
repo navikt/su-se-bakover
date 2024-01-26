@@ -3,12 +3,12 @@ package beregning.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import satser.domain.Satskategori
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int

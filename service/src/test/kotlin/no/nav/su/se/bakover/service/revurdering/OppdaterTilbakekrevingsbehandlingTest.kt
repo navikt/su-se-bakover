@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
-import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.util.UUID
 
 internal class OppdaterTilbakekrevingsbehandlingTest {

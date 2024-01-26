@@ -10,7 +10,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
-internal class BosituasjonJsonTest {
+internal class BosituasjonKonsistensProblemJsonTest {
 
     @Test
     fun `serialiserer bosituasjon`() {

@@ -6,9 +6,9 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import beregning.domain.fradrag.Fradrag
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
+import vilkår.inntekt.domain.grunnlag.Fradrag
 import java.util.UUID
 
 interface Beregning : PeriodisertInformasjon {

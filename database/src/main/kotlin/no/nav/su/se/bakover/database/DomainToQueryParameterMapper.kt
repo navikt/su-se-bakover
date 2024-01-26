@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.database
 import arrow.core.Either
 import arrow.core.left
 import beregning.domain.Beregning
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
@@ -12,6 +10,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.database.beregning.serialiser
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.vedtak.VedtakType
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.sql.PreparedStatement
 

@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
@@ -27,9 +26,10 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.slåSammenLikePerioder
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
 import java.util.UUID
 
 internal class FormueVilkårTest {
@@ -38,16 +38,10 @@ internal class FormueVilkårTest {
     fun `slår sammen tilstøtende og like formueperioder`() {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
         val f2 = lagFormueVurderingsperiode(periodeInnenfor2021 = februar(2021))
-        val bosituasjon = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = mars(2021),
-        )
         val f3 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = mars(2021),
             vurdering = Vurdering.Avslag,
-            bosituasjon = bosituasjon,
-            grunnlag = formueGrunnlagUtenEpsAvslått(bosituasjon = bosituasjon, periode = mars(2021)),
+            grunnlag = formueGrunnlagUtenEpsAvslått(periode = mars(2021)),
         )
 
         val actual = nonEmptyListOf(f1, f2, f3).slåSammenLikePerioder()
@@ -84,16 +78,10 @@ internal class FormueVilkårTest {
     @Test
     fun `2 formue-perioder som tilstøter, men resultat er ulik`() {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
-        val bosituasjon = Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = februar(2021),
-        )
         val f2 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = februar(2021),
             vurdering = Vurdering.Avslag,
-            bosituasjon = bosituasjon,
-            grunnlag = formueGrunnlagUtenEpsAvslått(bosituasjon = bosituasjon, periode = februar(2021)),
+            grunnlag = formueGrunnlagUtenEpsAvslått(periode = februar(2021)),
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
@@ -109,13 +97,8 @@ internal class FormueVilkårTest {
                 opprettet = fixedTidspunkt,
                 periode = februar(2021),
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty().copy(
+                søkersFormue = Verdier.empty().copy(
                     verdiEiendommer = 100,
-                ),
-                bosituasjon = Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = februar(2021),
                 ),
                 år(2021),
             ),
@@ -134,12 +117,7 @@ internal class FormueVilkårTest {
                 opprettet = fixedTidspunkt,
                 periode = februar(2021),
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier.empty(),
-                bosituasjon = Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = februar(2021),
-                ),
+                søkersFormue = Verdier.empty(),
                 år(2021),
             ),
         )
@@ -210,9 +188,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
-                nyttVilkår.erLik(opprinneligVilkår)
-            }
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).erLik(opprinneligVilkår)
         }
     }
 
@@ -224,9 +200,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(emptyList()).let {
-                it.erLik(opprinneligVilkår)
-            }
+            opprinneligVilkår.fjernEPSFormue(emptyList()).erLik(opprinneligVilkår)
         }
     }
 
@@ -238,9 +212,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022)))).let {
-                it.erLik(opprinneligVilkår)
-            }
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022)))).erLik(opprinneligVilkår)
         }
     }
 
@@ -274,12 +246,13 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe false
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let {
-                opprinneligVilkår.harEPSFormue() shouldBe false
-                it.grunnlag shouldHaveSize 1
-                !it.grunnlag[0].erLik(opprinneligVilkår.grunnlag.single())
-                it.harEPSFormue() shouldBe true
-            }
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+                .let {
+                    opprinneligVilkår.harEPSFormue() shouldBe false
+                    it.grunnlag shouldHaveSize 1
+                    !it.grunnlag[0].erLik(opprinneligVilkår.grunnlag.single())
+                    it.harEPSFormue() shouldBe true
+                }
         }
     }
 
@@ -292,10 +265,11 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe true
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let {
-                opprinneligVilkår.harEPSFormue() shouldBe true
-                it.erLik(opprinneligVilkår) shouldBe true
-            }
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+                .let {
+                    opprinneligVilkår.harEPSFormue() shouldBe true
+                    it.erLik(opprinneligVilkår) shouldBe true
+                }
         }
     }
 
@@ -304,20 +278,14 @@ internal class FormueVilkårTest {
         tidspunkt: Tidspunkt = fixedTidspunkt,
         vurdering: Vurdering = Vurdering.Innvilget,
         periodeInnenfor2021: Periode,
-        bosituasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.Enslig(
-            id = id,
-            opprettet = tidspunkt,
-            periode = periodeInnenfor2021,
-        ),
         grunnlagsId: UUID = id,
         grunnlag: Formuegrunnlag = Formuegrunnlag.create(
             id = grunnlagsId,
             periode = periodeInnenfor2021,
             opprettet = tidspunkt,
             epsFormue = null,
-            søkersFormue = Formuegrunnlag.Verdier.empty(),
+            søkersFormue = Verdier.empty(),
             behandlingsPeriode = år(2021),
-            bosituasjon = bosituasjon,
         ),
     ): VurderingsperiodeFormue {
         require(år(2021).inneholder(periodeInnenfor2021))

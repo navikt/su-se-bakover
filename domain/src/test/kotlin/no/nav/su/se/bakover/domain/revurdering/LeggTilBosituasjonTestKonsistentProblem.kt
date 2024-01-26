@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.desember
@@ -10,9 +8,9 @@ import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.september
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -26,9 +24,12 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import vilkår.formue.domain.Verdier
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
-class LeggTilBosituasjonTest {
+class LeggTilBosituasjonTestKonsistentProblem {
     @Test
     fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituasjon endres til å være enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
@@ -136,15 +137,8 @@ class LeggTilBosituasjonTest {
     fun `legger til tom formue for EPS dersom bosituasjon endres til å ha EPS`() {
         val bosituasjon = fullstendigUtenEPS(år(2021))
         opprettetRevurdering(
-            vilkårOverrides = listOf(
-                innvilgetFormueVilkår(
-                    periode = år(2021),
-                    bosituasjon = bosituasjon,
-                ),
-            ),
-            grunnlagsdataOverrides = listOf(
-                bosituasjon,
-            ),
+            vilkårOverrides = listOf(innvilgetFormueVilkår(periode = år(2021), bosituasjon = bosituasjon)),
+            grunnlagsdataOverrides = listOf(bosituasjon),
         ).let { (_, revurdering) ->
             revurdering.grunnlagsdata.bosituasjon.harEPS() shouldBe false
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe false
@@ -155,16 +149,7 @@ class LeggTilBosituasjonTest {
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true
                 oppdatert.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
-                oppdatert.vilkårsvurderinger.formue.grunnlag.single().epsFormue shouldBe Formuegrunnlag.Verdier.create(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                )
+                oppdatert.vilkårsvurderinger.formue.grunnlag.single().epsFormue shouldBe Verdier.empty()
             }
         }
     }

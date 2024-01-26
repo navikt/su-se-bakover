@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import beregning.domain.BeregningForMåned
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.sum
 import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.extensions.positiveOrZero
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.sum
 import kotlin.math.roundToInt
 
 data object MånedsberegningFactory {

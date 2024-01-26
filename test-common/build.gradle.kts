@@ -38,6 +38,7 @@ dependencies {
     api(project(":vilkår:lovligopphold:domain"))
     api(project(":vilkår:utenlandsopphold:domain"))
     api(project(":vilkår:pensjon:domain"))
+    api(project(":vilkår:inntekt:domain"))
     api(project(":vilkår:bosituasjon"))
     api(project(":web"))
     api(project(":økonomi:application"))

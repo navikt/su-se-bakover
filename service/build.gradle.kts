@@ -22,7 +22,9 @@ dependencies {
     implementation(project(":vilkår:institusjonsopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":vilkår:pensjon:domain"))
+    implementation(project(":vilkår:inntekt:domain"))
     implementation(project(":vilkår:bosituasjon"))
+    implementation(project(":vilkår:vurderinger"))
     implementation(project(":beregning"))
 
     testImplementation(project(":vilkår:utenlandsopphold:domain"))

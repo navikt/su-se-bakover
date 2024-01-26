@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.vilkår.formue
 
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import vilkår.vurderinger.domain.Konsistensproblem
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {

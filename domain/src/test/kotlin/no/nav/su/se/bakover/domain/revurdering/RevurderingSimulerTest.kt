@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import beregning.domain.fradrag.FradragTilhører
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.tid.periode.mars
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
 class RevurderingSimulerTest {
 

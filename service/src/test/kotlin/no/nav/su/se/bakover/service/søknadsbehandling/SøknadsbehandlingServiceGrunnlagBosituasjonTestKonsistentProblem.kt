@@ -39,7 +39,7 @@ import person.domain.PersonService
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
-internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
+internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem {
 
     private val behandlingId = UUID.randomUUID()
     private val stønadsperiode = Stønadsperiode.create(år(2021))
