@@ -21,6 +21,7 @@ import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.VurderingsperiodeFormue
 import vilkår.formue.domain.firstOrThrowIfMultipleOrEmpty
 
 sealed interface FormueVilkår : Vilkår {

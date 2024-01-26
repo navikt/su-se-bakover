@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -21,6 +20,7 @@ import vilkår.common.domain.Vurdering
 import vilkår.common.domain.grunnlag.periode
 import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 fun formuevilkårIkkeVurdert(): FormueVilkår {

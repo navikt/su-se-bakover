@@ -30,6 +30,7 @@ import vilkår.common.domain.Vurdering
 import vilkår.common.domain.slåSammenLikePerioder
 import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 internal class FormueVilkårTest {

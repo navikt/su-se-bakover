@@ -31,6 +31,8 @@ data class FastOppholdINorgeGrunnlag(
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(id = UUID.randomUUID(), periode = args.periode)
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Grunnlag): Boolean {

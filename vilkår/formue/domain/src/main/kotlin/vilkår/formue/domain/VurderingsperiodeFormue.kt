@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.Vurderingsperiode
-import vilkår.formue.domain.FormuegrenserFactory
-import vilkår.formue.domain.Formuegrunnlag
 import java.util.UUID
 
 /**
