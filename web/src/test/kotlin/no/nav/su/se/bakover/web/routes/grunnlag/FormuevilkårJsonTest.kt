@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.Verdier
 import vilkår.formue.domain.VurderingsperiodeFormue

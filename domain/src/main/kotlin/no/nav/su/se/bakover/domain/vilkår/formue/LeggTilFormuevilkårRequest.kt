@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.KunneIkkeLageFormueGrunnlag

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidsl
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
@@ -19,10 +18,6 @@ import vilkår.common.domain.erLik
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
-import vilkår.formue.domain.FormuegrenserFactory
-import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.VurderingsperiodeFormue
-import vilkår.formue.domain.firstOrThrowIfMultipleOrEmpty
 
 sealed interface FormueVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Formue
@@ -155,15 +150,5 @@ sealed interface FormueVilkår : Vilkår {
         sealed interface UgyldigFormuevilkår {
             data object OverlappendeVurderingsperioder : UgyldigFormuevilkår
         }
-    }
-}
-
-fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(
-    avslagsgrunner: List<Avslagsgrunn>,
-): Formuegrunnlag? {
-    return when (this) {
-        is FormueVilkår.IkkeVurdert -> null
-        // TODO(satsfactory_formue) jah: jeg har ikke endret funksjonaliteten i Sats-omskrivningsrunden, men hvorfor sjekker vi avslagsgrunn for å avgjøre dette? De burde jo uansett henge sammen.
-        is FormueVilkår.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
     }
 }

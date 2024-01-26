@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.empty
@@ -46,6 +45,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Verdier
 import vilkår.vurderinger.domain.Konsistensproblem
 import java.util.UUID
