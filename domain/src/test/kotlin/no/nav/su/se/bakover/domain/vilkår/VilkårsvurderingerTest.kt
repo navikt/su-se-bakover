@@ -31,6 +31,7 @@ import vilkår.common.domain.Vurdering
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

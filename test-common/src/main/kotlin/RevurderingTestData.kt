@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
@@ -68,6 +67,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.uføre.domain.UføreVilkår
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling

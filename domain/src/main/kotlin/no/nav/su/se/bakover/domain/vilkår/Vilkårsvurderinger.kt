@@ -17,6 +17,7 @@ import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag

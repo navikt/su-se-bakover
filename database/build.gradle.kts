@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":vilkår:fastopphold:domain"))
     implementation(project(":vilkår:pensjon:domain"))
     implementation(project(":vilkår:inntekt:domain"))
+    implementation(project(":vilkår:opplysningsplikt:domain"))
     implementation(project(":vilkår:bosituasjon"))
 
     implementation(project(":oppgave:infrastructure"))

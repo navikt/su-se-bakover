@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
+import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
 import java.util.UUID
 

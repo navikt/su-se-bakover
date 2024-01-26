@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
@@ -36,6 +35,7 @@ import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag

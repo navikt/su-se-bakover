@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
@@ -19,6 +18,7 @@ import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.uføre.domain.UføreVilkår
 
 /**

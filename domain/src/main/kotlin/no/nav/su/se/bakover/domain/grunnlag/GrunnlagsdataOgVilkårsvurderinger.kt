@@ -11,11 +11,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -25,6 +22,11 @@ import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
 import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
 import vilkår.vurderinger.domain.BosituasjonOgFradrag

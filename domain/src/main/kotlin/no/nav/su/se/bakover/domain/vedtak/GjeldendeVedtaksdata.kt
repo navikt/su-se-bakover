@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
@@ -22,6 +21,7 @@ import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.uføre.domain.UføreVilkår
 import java.time.Clock

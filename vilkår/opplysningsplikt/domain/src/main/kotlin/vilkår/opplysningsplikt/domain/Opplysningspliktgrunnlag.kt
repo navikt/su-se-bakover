@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.opplysningsplikt.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse

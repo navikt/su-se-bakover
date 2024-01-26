@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.opplysningsplikt.domain
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
@@ -131,6 +129,8 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
@@ -169,16 +169,9 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
             ).right()
         }
 
-        private fun resultatFraBeskrivelse(grunnlag: Opplysningspliktgrunnlag): Vurdering {
-            return when (grunnlag.beskrivelse) {
-                OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> {
-                    Vurdering.Avslag
-                }
-
-                OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> {
-                    Vurdering.Innvilget
-                }
-            }
+        private fun resultatFraBeskrivelse(grunnlag: Opplysningspliktgrunnlag): Vurdering = when (grunnlag.beskrivelse) {
+            OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> Vurdering.Avslag
+            OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> Vurdering.Innvilget
         }
     }
 }
