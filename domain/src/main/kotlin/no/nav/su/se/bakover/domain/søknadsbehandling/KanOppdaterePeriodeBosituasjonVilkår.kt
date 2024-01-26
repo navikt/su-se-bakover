@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.grunnlag.avslåPgaOpplysningsplikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.VilkårsfeilVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.VurdertVilkår
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormuegrenserFactory

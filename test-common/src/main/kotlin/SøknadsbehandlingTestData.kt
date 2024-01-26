@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -65,6 +64,7 @@ import person.domain.Person
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.Vurderingsperiode
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class FamiliegjenforeningTest {

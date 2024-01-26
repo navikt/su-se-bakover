@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.routes.vilkår
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson.Companion.toJson
 import vilkår.common.domain.Vurdering
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.familiegjenforening.domain.VurderingsperiodeFamiliegjenforening
 
 data class FamiliegjenforeningVilkårJson(
     val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,

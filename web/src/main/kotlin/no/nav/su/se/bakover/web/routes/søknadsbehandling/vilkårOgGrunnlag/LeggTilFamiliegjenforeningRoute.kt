@@ -17,12 +17,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 

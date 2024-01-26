@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.erLik
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår

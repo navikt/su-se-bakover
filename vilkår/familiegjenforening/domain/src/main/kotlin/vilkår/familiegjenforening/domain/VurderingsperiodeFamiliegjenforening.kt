@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.familiegjenforening.domain
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -22,6 +22,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
         return when (args) {
             CopyArgs.Tidslinje.Full -> copy(id = UUID.randomUUID())
             is CopyArgs.Tidslinje.NyPeriode -> copy(id = UUID.randomUUID(), periode = args.periode)
+            else -> TODO("fjern meg senere")
         }
     }
 

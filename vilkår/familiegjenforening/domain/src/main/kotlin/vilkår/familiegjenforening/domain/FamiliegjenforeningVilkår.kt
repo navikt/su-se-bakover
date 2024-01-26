@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.familiegjenforening.domain
 
 import arrow.core.Nel
 import arrow.core.getOrElse

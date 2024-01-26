@@ -3,10 +3,10 @@ package vurderingsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.familiegjenforening.domain.VurderingsperiodeFamiliegjenforening
 import java.util.UUID
 
 fun vurderingsperiodeFamiliegjenforeningInnvilget(
