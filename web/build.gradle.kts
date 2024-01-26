@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":vilkår:flyktning:domain"))
     implementation(project(":vilkår:fastopphold:domain"))
     implementation(project(":vilkår:lovligopphold:domain"))
+    implementation(project(":vilkår:pensjon:domain"))
     implementation(project(":vilkår:utenlandsopphold:application"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:infrastructure"))

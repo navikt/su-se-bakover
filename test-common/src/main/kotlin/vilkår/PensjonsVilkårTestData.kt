@@ -4,11 +4,11 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.pensjon.domain.Pensjonsgrunnlag
+import vilkår.pensjon.domain.Pensjonsopplysninger
+import vilkår.pensjon.domain.VurderingsperiodePensjon
 import java.util.UUID
 
 fun pensjonsVilkårInnvilget(

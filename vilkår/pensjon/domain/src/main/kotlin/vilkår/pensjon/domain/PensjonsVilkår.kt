@@ -1,30 +1,24 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.pensjon.domain
 
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
-import vilkår.common.domain.Vurdering
 import vilkår.common.domain.Vurderingsperiode
 import vilkår.common.domain.VurdertVilkår
 import vilkår.common.domain.erLik
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
-import java.util.UUID
 
 sealed interface PensjonsVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Pensjon
@@ -103,79 +97,6 @@ sealed interface PensjonsVilkår : Vilkår {
 
         sealed interface UgyldigPensjonsVilkår {
             data object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår
-        }
-    }
-}
-
-data class VurderingsperiodePensjon private constructor(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Tidspunkt,
-    override val vurdering: Vurdering,
-    override val grunnlag: Pensjonsgrunnlag,
-    override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
-
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePensjon {
-        return create(
-            id = id,
-            opprettet = opprettet,
-            periode = stønadsperiode.periode,
-            grunnlag = grunnlag,
-        )
-    }
-
-    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodePensjon = when (args) {
-        CopyArgs.Tidslinje.Full -> {
-            copy(
-                id = UUID.randomUUID(),
-                grunnlag = grunnlag.copy(args),
-            )
-        }
-
-        is CopyArgs.Tidslinje.NyPeriode -> {
-            copy(
-                id = UUID.randomUUID(),
-                periode = args.periode,
-                grunnlag = grunnlag.copy(args),
-            )
-        }
-    }
-
-    override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodePensjon &&
-            vurdering == other.vurdering &&
-            grunnlag.erLik(other.grunnlag)
-    }
-
-    companion object {
-        fun create(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            periode: Periode,
-            grunnlag: Pensjonsgrunnlag,
-        ): VurderingsperiodePensjon {
-            return tryCreate(id, opprettet, periode, grunnlag).getOrElse {
-                throw IllegalArgumentException(it.toString())
-            }
-        }
-
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            vurderingsperiode: Periode,
-            grunnlag: Pensjonsgrunnlag,
-        ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
-            grunnlag.let {
-                if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
-            return VurderingsperiodePensjon(
-                id = id,
-                opprettet = opprettet,
-                vurdering = grunnlag.tilResultat(),
-                grunnlag = grunnlag,
-                periode = vurderingsperiode,
-            ).right()
         }
     }
 }

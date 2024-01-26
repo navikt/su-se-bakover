@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.pensjon.domain.Pensjonsopplysninger
 
 internal class PensjonsgrunnlagPostgresRepoTest {
 

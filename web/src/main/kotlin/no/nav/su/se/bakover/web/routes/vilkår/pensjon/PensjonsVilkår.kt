@@ -9,16 +9,16 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import vilkår.common.domain.Vurdering
+import vilkår.pensjon.domain.KunneIkkeLagePensjonsVilkår
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.pensjon.domain.Pensjonsgrunnlag
+import vilkår.pensjon.domain.Pensjonsopplysninger
+import vilkår.pensjon.domain.VurderingsperiodePensjon
 import java.time.Clock
 import java.util.UUID
 

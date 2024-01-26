@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":vilkår:flyktning:domain"))
     implementation(project(":vilkår:lovligopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
+    implementation(project(":vilkår:pensjon:domain"))
     implementation(project(":vilkår:vurderinger"))
     implementation(project(":økonomi:domain"))
 
