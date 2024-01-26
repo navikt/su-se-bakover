@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.lovligopphold.domain.KunneIkkeLageLovligOppholdVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold

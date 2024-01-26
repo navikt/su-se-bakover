@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import satser.domain.SatsFactory
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre

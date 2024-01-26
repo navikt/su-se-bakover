@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":beregning"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:uføre:domain"))
 
     testImplementation(project(":økonomi:domain"))

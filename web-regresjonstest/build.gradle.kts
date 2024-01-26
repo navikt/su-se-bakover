@@ -36,7 +36,7 @@ dependencies {
     implementation(project(":behandling:domain"))
     implementation(project(":grunnbeløp"))
     implementation(project(":satser"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":beregning"))

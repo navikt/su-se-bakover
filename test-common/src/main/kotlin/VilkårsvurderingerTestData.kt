@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForve
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår

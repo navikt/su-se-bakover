@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

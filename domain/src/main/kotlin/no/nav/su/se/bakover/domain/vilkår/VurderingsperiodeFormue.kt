@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import vilkår.domain.Vurdering
-import vilkår.domain.Vurderingsperiode
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 

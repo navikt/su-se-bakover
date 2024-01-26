@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import vilkår.domain.Vurdering
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 fun vurderingsperiodeFamiliegjenforeningInnvilget(

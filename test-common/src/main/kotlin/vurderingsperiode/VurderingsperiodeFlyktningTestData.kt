@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.util.UUID
 

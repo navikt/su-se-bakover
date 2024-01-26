@@ -1,4 +1,4 @@
-package vilkår.domain
+package vilkår.common.domain
 
 /**
  * En [Vurderingsperiode] og et [Vilkår] har en [Vurdering] som er basert på grunnlagene (automatisk/maskinell vurdering) eller den/de manuelle vurderingene som er gjort tilknyttet dette [Vilkår].

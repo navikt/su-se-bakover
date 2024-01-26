@@ -67,9 +67,9 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilk
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import vilkår.domain.IkkeVurdertVilkår
-import vilkår.domain.Vilkår
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.IkkeVurdertVilkår
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår

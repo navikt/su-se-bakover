@@ -38,8 +38,8 @@ import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
-import vilkår.domain.Vilkår
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Grunnlag
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock

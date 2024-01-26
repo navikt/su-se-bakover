@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeFlyktning
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
-import vilkår.domain.Vurderingsperiode
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class VurderingsperiodeFamiliegjenforeningTest {

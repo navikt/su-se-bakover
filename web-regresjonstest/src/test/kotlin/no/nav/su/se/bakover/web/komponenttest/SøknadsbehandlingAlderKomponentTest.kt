@@ -49,7 +49,7 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
 

@@ -4,5 +4,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("vilkår-domain")
+    archiveBaseName.set("vilkår-common")
 }

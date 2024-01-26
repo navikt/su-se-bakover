@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.time.Clock

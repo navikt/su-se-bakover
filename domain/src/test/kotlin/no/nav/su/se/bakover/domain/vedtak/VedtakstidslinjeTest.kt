@@ -57,8 +57,8 @@ import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

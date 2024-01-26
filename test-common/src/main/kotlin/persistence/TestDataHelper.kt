@@ -170,8 +170,8 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
-import vilkår.domain.Vilkår
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering

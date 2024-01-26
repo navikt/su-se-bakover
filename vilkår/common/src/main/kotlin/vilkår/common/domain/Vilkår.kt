@@ -1,4 +1,4 @@
-package vilkår.domain
+package vilkår.common.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate

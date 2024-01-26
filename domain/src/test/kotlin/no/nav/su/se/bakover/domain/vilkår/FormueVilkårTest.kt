@@ -27,9 +27,9 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.slåSammenLikePerioder
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.slåSammenLikePerioder
 import java.util.UUID
 
 internal class FormueVilkårTest {

@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.VurderingsperiodeLovligOppholdJson.Companion.toJson
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 

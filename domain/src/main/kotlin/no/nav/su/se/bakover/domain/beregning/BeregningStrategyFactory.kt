@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.time.Clock
 
 class BeregningStrategyFactory(

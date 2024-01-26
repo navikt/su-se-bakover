@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.time.Clock
 import java.util.UUID
 

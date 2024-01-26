@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.util.UUID
 
 fun utenlandsoppholdInnvilget(

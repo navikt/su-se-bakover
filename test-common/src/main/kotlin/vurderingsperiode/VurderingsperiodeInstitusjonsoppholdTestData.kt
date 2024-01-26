@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.util.UUID
 
 fun vurderingsperiodeInstitusjonsoppholdInnvilget(

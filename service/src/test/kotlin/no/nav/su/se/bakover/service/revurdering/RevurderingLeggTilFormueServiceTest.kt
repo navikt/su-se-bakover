@@ -46,8 +46,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import vilkår.domain.Vurdering
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class RevurderingLeggTilFormueServiceTest {

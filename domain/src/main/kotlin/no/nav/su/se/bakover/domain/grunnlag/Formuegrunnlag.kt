@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 data class Formuegrunnlag private constructor(

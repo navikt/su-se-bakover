@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class BosituasjongrunnlagPostgresRepoTest {

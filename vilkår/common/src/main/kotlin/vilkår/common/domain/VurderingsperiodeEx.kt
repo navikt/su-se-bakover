@@ -1,4 +1,4 @@
-package vilkår.domain
+package vilkår.common.domain
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList

@@ -105,7 +105,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock

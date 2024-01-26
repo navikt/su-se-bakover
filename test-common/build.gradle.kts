@@ -28,7 +28,7 @@ dependencies {
     api(project(":vedtak:application"))
     api(project(":vedtak:domain"))
     api(project(":vedtak:domain"))
-    api(project(":vilkår:domain"))
+    api(project(":vilkår:common"))
     api(project(":vilkår:fastopphold:domain"))
     api(project(":vilkår:formue:domain"))
     api(project(":vilkår:institusjonsopphold:domain"))

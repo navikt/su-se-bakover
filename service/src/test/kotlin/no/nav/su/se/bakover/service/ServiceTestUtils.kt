@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal fun formuegrunnlag(

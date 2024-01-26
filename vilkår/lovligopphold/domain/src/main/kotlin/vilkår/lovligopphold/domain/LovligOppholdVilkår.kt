@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidsl
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import vilkår.domain.IkkeVurdertVilkår
-import vilkår.domain.Inngangsvilkår
-import vilkår.domain.Vilkår
-import vilkår.domain.VurdertVilkår
-import vilkår.domain.erLik
-import vilkår.domain.kastHvisPerioderErUsortertEllerHarDuplikater
-import vilkår.domain.kronologisk
-import vilkår.domain.slåSammenLikePerioder
+import vilkår.common.domain.IkkeVurdertVilkår
+import vilkår.common.domain.Inngangsvilkår
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.VurdertVilkår
+import vilkår.common.domain.erLik
+import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
+import vilkår.common.domain.kronologisk
+import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface LovligOppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.LovligOpphold

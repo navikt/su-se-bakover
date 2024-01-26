@@ -17,11 +17,11 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import vilkår.domain.Vilkår
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
-import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID

@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.VurderingsperiodeUføre

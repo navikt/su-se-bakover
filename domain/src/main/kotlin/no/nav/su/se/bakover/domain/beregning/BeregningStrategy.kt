@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.SatsFactory
 import satser.domain.Satsgrunn
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 
 sealed class BeregningStrategy {
     protected abstract val satsFactory: SatsFactory

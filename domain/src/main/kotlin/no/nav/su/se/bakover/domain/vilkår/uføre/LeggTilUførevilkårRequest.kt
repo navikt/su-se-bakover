@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

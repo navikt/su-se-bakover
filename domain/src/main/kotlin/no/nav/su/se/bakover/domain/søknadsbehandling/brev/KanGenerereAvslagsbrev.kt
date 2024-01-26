@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.harEPS
 
 sealed interface KanGenerereAvslagsbrev : KanGenerereBrev, ErAvslag {
 

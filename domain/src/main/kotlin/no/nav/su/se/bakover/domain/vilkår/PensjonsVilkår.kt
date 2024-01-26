@@ -14,16 +14,16 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
-import vilkår.domain.IkkeVurdertVilkår
-import vilkår.domain.Inngangsvilkår
-import vilkår.domain.Vilkår
-import vilkår.domain.Vurdering
-import vilkår.domain.Vurderingsperiode
-import vilkår.domain.VurdertVilkår
-import vilkår.domain.erLik
-import vilkår.domain.kastHvisPerioderErUsortertEllerHarDuplikater
-import vilkår.domain.kronologisk
-import vilkår.domain.slåSammenLikePerioder
+import vilkår.common.domain.IkkeVurdertVilkår
+import vilkår.common.domain.Inngangsvilkår
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
+import vilkår.common.domain.VurdertVilkår
+import vilkår.common.domain.erLik
+import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
+import vilkår.common.domain.kronologisk
+import vilkår.common.domain.slåSammenLikePerioder
 import java.util.UUID
 
 sealed interface PensjonsVilkår : Vilkår {

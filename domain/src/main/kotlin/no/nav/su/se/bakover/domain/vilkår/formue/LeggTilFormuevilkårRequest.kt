@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 

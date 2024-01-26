@@ -58,8 +58,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.singleFullstendigOrThrow
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.singleFullstendigOrThrow
 import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {

@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":vedtak:domain"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:fastopphold:domain"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:institusjonsopphold:domain"))
@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":vilkår:flyktning:domain"))
     implementation(project(":vilkår:lovligopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
+    implementation(project(":vilkår:vurderinger"))
     implementation(project(":økonomi:domain"))
 
     testImplementation(project(":test-common"))

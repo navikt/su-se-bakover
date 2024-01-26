@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlag
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

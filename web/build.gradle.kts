@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":tilbakekreving:presentation"))
     implementation(project(":vedtak:application"))
     implementation(project(":vedtak:domain"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:institusjonsopphold:application"))
     implementation(project(":vilkår:institusjonsopphold:domain"))

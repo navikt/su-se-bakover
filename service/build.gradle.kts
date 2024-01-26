@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
     implementation(project(":satser"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:flyktning:domain"))

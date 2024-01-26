@@ -1,4 +1,4 @@
-package vilkår.domain
+package vilkår.common.domain
 
 /**
 Et inngangsvilkår er de vilkårene som kan føre til avslag før det beregnes?

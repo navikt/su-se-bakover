@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.time.Clock
 import java.util.UUID
 

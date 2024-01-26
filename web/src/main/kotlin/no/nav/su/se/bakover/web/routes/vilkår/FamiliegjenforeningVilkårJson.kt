@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson.Companion.toJson
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 
 data class FamiliegjenforeningVilkårJson(
     val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,

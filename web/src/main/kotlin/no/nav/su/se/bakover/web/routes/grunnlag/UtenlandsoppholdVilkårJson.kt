@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 
 internal data class UtenlandsoppholdVilkårJson(
     val vurderinger: List<VurderingsperiodeUtenlandsoppholdJson>,

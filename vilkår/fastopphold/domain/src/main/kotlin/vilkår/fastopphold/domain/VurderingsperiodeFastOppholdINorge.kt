@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.domain.Vurdering
-import vilkår.domain.Vurderingsperiode
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
 import java.util.UUID
 
 data class VurderingsperiodeFastOppholdINorge private constructor(

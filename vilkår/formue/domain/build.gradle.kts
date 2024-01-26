@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":common:domain"))
     implementation(project(":grunnbeløp"))
+    implementation(project(":vilkår:common"))
 
     testImplementation(project(":test-common"))
     // TODO jah: pga. FormuegrenserFactoryTest.kt refererer til SatsFactoryForSupplerendeStønad (skal flyttes)

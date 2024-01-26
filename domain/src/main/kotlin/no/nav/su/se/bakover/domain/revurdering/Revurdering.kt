@@ -51,9 +51,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
-import vilkår.domain.inneholderAlle
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import vilkår.common.domain.inneholderAlle
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår

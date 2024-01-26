@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.util.UUID
 

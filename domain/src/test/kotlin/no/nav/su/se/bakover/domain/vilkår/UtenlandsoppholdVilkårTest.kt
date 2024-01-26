@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilk
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.util.UUID
 
 internal class UtenlandsoppholdVilkårTest {

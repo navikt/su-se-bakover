@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":common:domain"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
 
     testImplementation(project(":test-common"))
 }

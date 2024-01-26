@@ -1,8 +1,8 @@
-package vilkår.domain
+package vilkår.common.domain
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 /**

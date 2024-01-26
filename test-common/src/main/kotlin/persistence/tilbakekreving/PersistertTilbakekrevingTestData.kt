@@ -38,7 +38,7 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo
-import vilkår.domain.Vilkår
+import vilkår.common.domain.Vilkår
 import økonomi.domain.utbetaling.Utbetaling
 
 class PersistertTilbakekrevingTestData(

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class BosituasjonJsonTest {

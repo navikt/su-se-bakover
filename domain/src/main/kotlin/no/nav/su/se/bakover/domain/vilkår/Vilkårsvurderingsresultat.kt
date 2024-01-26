@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import vilkår.domain.Inngangsvilkår
-import vilkår.domain.Vilkår
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Inngangsvilkår
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår

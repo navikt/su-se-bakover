@@ -17,9 +17,9 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagMedEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
-import vilkår.domain.Vurdering
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.periode
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.periode
 import java.util.UUID
 
 fun formuevilkårIkkeVurdert(): FormueVilkår {

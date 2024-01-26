@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag

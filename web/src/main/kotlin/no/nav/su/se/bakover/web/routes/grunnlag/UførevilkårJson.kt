@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.format.DateTimeFormatter

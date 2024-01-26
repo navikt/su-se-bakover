@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import org.jetbrains.annotations.TestOnly
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.Clock
 import java.util.UUID
 

@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
+import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 

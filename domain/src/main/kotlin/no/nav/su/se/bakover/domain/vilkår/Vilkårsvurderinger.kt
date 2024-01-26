@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import vilkår.domain.Vilkår
-import vilkår.domain.Vurdering
-import vilkår.domain.erLik
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.erLik
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormuegrenserFactory

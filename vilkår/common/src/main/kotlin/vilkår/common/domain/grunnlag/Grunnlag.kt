@@ -1,4 +1,4 @@
-package vilkår.domain.grunnlag
+package vilkår.common.domain.grunnlag
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode

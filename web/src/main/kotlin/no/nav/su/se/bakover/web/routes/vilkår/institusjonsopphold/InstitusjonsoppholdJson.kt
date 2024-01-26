@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInstitusjonsoppholdJson.Companion.toJson
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.time.Clock
 
 internal data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(

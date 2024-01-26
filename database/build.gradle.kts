@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":vilkår:utenlandsopphold:infrastructure"))
     implementation(project(":vilkår:institusjonsopphold:infrastructure"))
     implementation(project(":vilkår:institusjonsopphold:domain"))
-    implementation(project(":vilkår:domain"))
+    implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:flyktning:domain"))

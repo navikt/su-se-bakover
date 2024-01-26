@@ -5,7 +5,7 @@ import arrow.core.raise.either
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon
 import java.time.Clock
 import java.util.UUID
 

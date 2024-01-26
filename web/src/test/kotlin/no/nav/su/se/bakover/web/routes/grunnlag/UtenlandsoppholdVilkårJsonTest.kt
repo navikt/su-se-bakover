@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrun
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 import java.util.UUID
 
 internal class UtenlandsoppholdVilkårJsonTest {

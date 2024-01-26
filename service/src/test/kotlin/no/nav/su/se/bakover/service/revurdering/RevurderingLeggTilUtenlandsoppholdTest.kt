@@ -26,7 +26,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import vilkår.domain.Vurdering
+import vilkår.common.domain.Vurdering
 
 internal class RevurderingLeggTilUtenlandsoppholdTest {
 

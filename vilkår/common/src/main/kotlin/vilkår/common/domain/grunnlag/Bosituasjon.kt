@@ -1,4 +1,4 @@
-package vilkår.domain.grunnlag
+package vilkår.common.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje

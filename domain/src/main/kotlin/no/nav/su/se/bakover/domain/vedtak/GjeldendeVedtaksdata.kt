@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import vilkår.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
+import vilkår.common.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
