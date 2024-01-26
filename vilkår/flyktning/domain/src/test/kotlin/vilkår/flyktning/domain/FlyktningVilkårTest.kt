@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.flyktning.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -13,31 +13,30 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
-import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
-import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.util.UUID
 
-internal class FastOppholdINorgeVilkårTest {
+internal class FlyktningVilkårTest {
+
     @Test
     fun `oppdaterer periode på vurderingsperioder og grunnlag`() {
-        FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        FlyktningVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeFastOppholdINorge.tryCreate(
+                VurderingsperiodeFlyktning.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
+                    periode = år(2021),
+                ),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
-            FastOppholdINorgeVilkår.Vurdert.tryCreate(
+            FlyktningVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeFastOppholdINorge.tryCreate(
+                    VurderingsperiodeFlyktning.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         vurdering = Vurdering.Innvilget,
-                        vurderingsperiode = juli(2021),
-                    ).getOrFail(),
+                        periode = juli(2021),
+                    ),
                 ),
             ).getOrFail(),
         )
@@ -45,56 +44,56 @@ internal class FastOppholdINorgeVilkårTest {
 
     @Test
     fun `godtar ikke overlappende vurderingsperioder`() {
-        FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        FlyktningVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeFastOppholdINorge.tryCreate(
+                VurderingsperiodeFlyktning.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
-                VurderingsperiodeFastOppholdINorge.tryCreate(
+                    periode = år(2021),
+                ),
+                VurderingsperiodeFlyktning.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
+                    periode = år(2021),
+                ),
             ),
-        ) shouldBe FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder.left()
+        ) shouldBe FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår.OverlappendeVurderingsperioder.left()
     }
 
     @Test
     fun `lager tidslinje for vilkår, vurderingsperioder og grunnlag`() {
-        val v1 = VurderingsperiodeFastOppholdINorge.tryCreate(
+        val v1 = VurderingsperiodeFlyktning.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,
-            vurderingsperiode = mai(2021),
-        ).getOrFail()
+            periode = mai(2021),
+        )
 
-        val v2 = VurderingsperiodeFastOppholdINorge.tryCreate(
+        val v2 = VurderingsperiodeFlyktning.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,
-            vurderingsperiode = juni(2021),
-        ).getOrFail()
+            periode = juni(2021),
+        )
 
-        FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        FlyktningVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(mai(2021))
-            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
+            .erLik(FlyktningVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
 
-        FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        FlyktningVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(juni(2021))
-            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
+            .erLik(FlyktningVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
 
-        FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        FlyktningVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(år(2021))
-            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+            .erLik(FlyktningVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
     }
 }

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.lovligopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -15,9 +15,6 @@ import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
-import vilkår.lovligopphold.domain.KunneIkkeLageLovligOppholdVilkår
-import vilkår.lovligopphold.domain.LovligOppholdVilkår
-import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 import java.util.UUID
 
 internal class LovligOppholdVilkårTest {

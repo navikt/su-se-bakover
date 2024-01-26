@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package no.nav.su.se.bakover.institusjonsopphold.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering

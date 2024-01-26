@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.lovligopphold.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs

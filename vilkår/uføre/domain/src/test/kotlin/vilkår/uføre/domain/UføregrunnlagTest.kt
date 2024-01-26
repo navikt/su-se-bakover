@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.uføre.domain
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -16,8 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
-import vilkår.uføre.domain.Uføregrad
-import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import java.util.UUID
 

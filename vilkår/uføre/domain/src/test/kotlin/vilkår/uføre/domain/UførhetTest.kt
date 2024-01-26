@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.uføre.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -25,10 +25,6 @@ import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.slåSammenLikePerioder
-import vilkår.uføre.domain.UføreVilkår
-import vilkår.uføre.domain.Uføregrad
-import vilkår.uføre.domain.Uføregrunnlag
-import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 internal class UførhetTest {

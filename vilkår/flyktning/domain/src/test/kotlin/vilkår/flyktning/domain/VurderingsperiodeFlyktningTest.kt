@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.flyktning.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
-import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.util.UUID
 
 internal class VurderingsperiodeFlyktningTest {

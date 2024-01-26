@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.familiegjenforening.domain
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.Vurderingsperiode
-import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class FamiliegjenforeningTest {

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.vurderinger
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.februar

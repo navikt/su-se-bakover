@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.formue.domain
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldHaveSize
@@ -28,9 +28,6 @@ import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.slåSammenLikePerioder
-import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
-import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 internal class FormueVilkårTest {

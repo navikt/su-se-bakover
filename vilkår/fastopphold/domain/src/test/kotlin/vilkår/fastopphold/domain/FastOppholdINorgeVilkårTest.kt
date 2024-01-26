@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.fastopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -11,43 +11,29 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
 
-internal class UtenlandsoppholdVilkårTest {
-
+internal class FastOppholdINorgeVilkårTest {
     @Test
     fun `oppdaterer periode på vurderingsperioder og grunnlag`() {
-        UtenlandsoppholdVilkår.Vurdert.tryCreate(
+        FastOppholdINorgeVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeUtenlandsopphold.tryCreate(
+                VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        periode = år(2021),
-                    ),
                     vurderingsperiode = år(2021),
                 ).getOrFail(),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
-            UtenlandsoppholdVilkår.Vurdert.tryCreate(
+            FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeUtenlandsopphold.tryCreate(
+                    VurderingsperiodeFastOppholdINorge.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         vurdering = Vurdering.Innvilget,
-                        grunnlag = Utenlandsoppholdgrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock),
-                            periode = juli(2021),
-                        ),
                         vurderingsperiode = juli(2021),
                     ).getOrFail(),
                 ),
@@ -57,76 +43,56 @@ internal class UtenlandsoppholdVilkårTest {
 
     @Test
     fun `godtar ikke overlappende vurderingsperioder`() {
-        UtenlandsoppholdVilkår.Vurdert.tryCreate(
+        FastOppholdINorgeVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeUtenlandsopphold.tryCreate(
+                VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        periode = år(2021),
-                    ),
                     vurderingsperiode = år(2021),
                 ).getOrFail(),
-                VurderingsperiodeUtenlandsopphold.tryCreate(
+                VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        periode = år(2021),
-                    ),
                     vurderingsperiode = år(2021),
                 ).getOrFail(),
             ),
-        ) shouldBe UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
+        ) shouldBe FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder.left()
     }
 
     @Test
     fun `lager tidslinje for vilkår, vurderingsperioder og grunnlag`() {
-        val v1 = VurderingsperiodeUtenlandsopphold.tryCreate(
+        val v1 = VurderingsperiodeFastOppholdINorge.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
-                periode = mai(2021),
-            ),
             vurderingsperiode = mai(2021),
         ).getOrFail()
 
-        val v2 = VurderingsperiodeUtenlandsopphold.tryCreate(
+        val v2 = VurderingsperiodeFastOppholdINorge.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
-                periode = juni(2021),
-            ),
             vurderingsperiode = juni(2021),
         ).getOrFail()
 
-        UtenlandsoppholdVilkår.Vurdert.tryCreate(
+        FastOppholdINorgeVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(mai(2021))
-            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
+            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
 
-        UtenlandsoppholdVilkår.Vurdert.tryCreate(
+        FastOppholdINorgeVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(juni(2021))
-            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
+            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
 
-        UtenlandsoppholdVilkår.Vurdert.tryCreate(
+        FastOppholdINorgeVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(år(2021))
-            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+            .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
     }
 }

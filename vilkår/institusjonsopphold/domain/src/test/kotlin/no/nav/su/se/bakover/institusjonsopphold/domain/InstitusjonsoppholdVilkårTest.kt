@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package no.nav.su.se.bakover.institusjonsopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test

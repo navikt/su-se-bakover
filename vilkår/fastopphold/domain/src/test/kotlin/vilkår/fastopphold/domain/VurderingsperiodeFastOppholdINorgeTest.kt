@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.fastopphold.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -8,41 +8,30 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
 
-internal class VurderingsperiodeUtenlandsoppholdTest {
+internal class VurderingsperiodeFastOppholdINorgeTest {
+
     private val vilkårId = UUID.randomUUID()
     private val grunnlagId = UUID.randomUUID()
 
     @Test
     fun `oppdaterer periode`() {
-        VurderingsperiodeUtenlandsopphold.tryCreate(
+        VurderingsperiodeFastOppholdINorge.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .let {
                 it.oppdaterStønadsperiode(
                     Stønadsperiode.create(februar(2021)),
-                ) shouldBe VurderingsperiodeUtenlandsopphold.tryCreate(
+                ) shouldBe VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = grunnlagId,
-                        opprettet = fixedTidspunkt,
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail()
             }
@@ -50,30 +39,20 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
 
     @Test
     fun `kopierer korrekte verdier`() {
-        VurderingsperiodeUtenlandsopphold.tryCreate(
+        VurderingsperiodeFastOppholdINorge.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
                 it shouldBe it.copy()
             }
 
-        VurderingsperiodeUtenlandsopphold.tryCreate(
+        VurderingsperiodeFastOppholdINorge.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
@@ -82,52 +61,32 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
 
     @Test
     fun `er lik ser kun på funksjonelle verdier`() {
-        VurderingsperiodeUtenlandsopphold.tryCreate(
+        VurderingsperiodeFastOppholdINorge.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .erLik(
-                VurderingsperiodeUtenlandsopphold.tryCreate(
+                VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
             ) shouldBe true
 
-        VurderingsperiodeUtenlandsopphold.tryCreate(
+        VurderingsperiodeFastOppholdINorge.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = Utenlandsoppholdgrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .erLik(
-                VurderingsperiodeUtenlandsopphold.tryCreate(
+                VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Avslag,
-                    grunnlag = Utenlandsoppholdgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
             ) shouldBe false
