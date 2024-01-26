@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.personligoppmøte.domain
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.CopyArgs
@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
@@ -105,6 +104,8 @@ data class VurderingsperiodePersonligOppmøte(
                 grunnlag = grunnlag.copy(args),
             )
         }
+
+        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {

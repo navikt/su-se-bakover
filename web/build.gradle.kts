@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":vilkår:inntekt:domain"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:opplysningsplikt:domain"))
+    implementation(project(":vilkår:personligoppmøte:domain"))
     implementation(project(":vilkår:bosituasjon"))
     implementation(project(":vilkår:vurderinger"))
     implementation(project(":vilkår:utenlandsopphold:application"))

@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":vilkår:pensjon:domain"))
     implementation(project(":vilkår:inntekt:domain"))
     implementation(project(":vilkår:opplysningsplikt:domain"))
+    implementation(project(":vilkår:personligoppmøte:domain"))
     implementation(project(":vilkår:bosituasjon"))
     implementation(project(":vilkår:vurderinger"))
     implementation(project(":beregning"))

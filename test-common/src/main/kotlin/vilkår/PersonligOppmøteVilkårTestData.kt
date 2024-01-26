@@ -4,11 +4,11 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import vilkår.personligoppmøte.domain.PersonligOppmøteGrunnlag
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteÅrsak
+import vilkår.personligoppmøte.domain.VurderingsperiodePersonligOppmøte
 import java.util.UUID
 
 fun personligOppmøtevilkårInnvilget(

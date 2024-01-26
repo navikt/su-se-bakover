@@ -6,16 +6,16 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import vilkår.common.domain.Vurdering
+import vilkår.personligoppmøte.domain.PersonligOppmøteGrunnlag
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteÅrsak
+import vilkår.personligoppmøte.domain.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.util.UUID
 

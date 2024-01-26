@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.personligoppmøte.domain
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
