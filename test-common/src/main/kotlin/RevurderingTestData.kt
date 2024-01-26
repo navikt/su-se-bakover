@@ -61,9 +61,9 @@ import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
-import vilkår.common.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår

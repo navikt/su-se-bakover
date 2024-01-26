@@ -36,7 +36,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
-import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {

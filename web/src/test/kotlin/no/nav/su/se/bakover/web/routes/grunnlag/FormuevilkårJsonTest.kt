@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
-import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormuevilkårJsonTest {

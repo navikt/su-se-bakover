@@ -22,10 +22,10 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
-import vilkår.common.domain.grunnlag.Bosituasjon
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.harEPS
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import java.util.UUID
 
 class LeggTilBosituasjonTest {

@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
-import vilkår.common.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepoTest {

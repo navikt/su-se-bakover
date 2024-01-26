@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentComm
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import satser.domain.SatsFactory
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 
 /**
  * Ment for internt bruk innenfor revurdering/brev pakken.

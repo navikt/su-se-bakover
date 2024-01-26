@@ -1,4 +1,4 @@
-package vilkår.common.domain.grunnlag
+package vilkår.bosituasjon.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import satser.domain.Satskategori
+import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 /**
@@ -133,6 +134,8 @@ sealed interface Bosituasjon : Grunnlag {
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
                         }
+
+                        else -> TODO("fjern meg senere")
                     }
                 }
 
@@ -160,6 +163,8 @@ sealed interface Bosituasjon : Grunnlag {
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
                         }
+
+                        else -> TODO("fjern meg senere")
                     }
                 }
             }
@@ -188,6 +193,8 @@ sealed interface Bosituasjon : Grunnlag {
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
                     }
+
+                    else -> TODO("fjern meg senere")
                 }
             }
         }
@@ -217,6 +224,8 @@ sealed interface Bosituasjon : Grunnlag {
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     copy(id = UUID.randomUUID(), periode = args.periode)
                 }
+
+                else -> TODO("fjern meg senere")
             }
         }
 
@@ -244,6 +253,8 @@ sealed interface Bosituasjon : Grunnlag {
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     copy(id = UUID.randomUUID(), periode = args.periode)
                 }
+
+                else -> TODO("fjern meg senere")
             }
         }
     }

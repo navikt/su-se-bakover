@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
-import vilkår.common.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.time.Clock
 import kotlin.math.roundToInt
 

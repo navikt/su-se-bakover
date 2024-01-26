@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

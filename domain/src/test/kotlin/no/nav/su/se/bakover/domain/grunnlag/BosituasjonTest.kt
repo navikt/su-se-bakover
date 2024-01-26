@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import vilkår.common.domain.grunnlag.Bosituasjon
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import vilkår.common.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import java.util.UUID
 
 internal class BosituasjonTest {
