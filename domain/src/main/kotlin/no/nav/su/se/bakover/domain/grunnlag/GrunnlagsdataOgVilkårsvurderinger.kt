@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import arrow.core.separateEither
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,8 +25,12 @@ import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
+import vilkår.vurderinger.domain.BosituasjonOgFradrag
+import vilkår.vurderinger.domain.Formue
 import vilkår.vurderinger.domain.Konsistensproblem
+import vilkår.vurderinger.domain.Uføre
 import java.time.Clock
 import java.util.UUID
 
@@ -308,6 +313,25 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Nothing {
             throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
+        }
+    }
+
+    fun sjekkOmGrunnlagOgVilkårErKonsistent(): Either<Set<Konsistensproblem>, Unit> {
+        return setOf(
+            Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat,
+            BosituasjonKonsistensProblem(this.grunnlagsdata.bosituasjonSomFullstendig()).resultat,
+            Formue(this.vilkårsvurderinger.formue.grunnlag).resultat,
+            BosituasjonOgFradrag(
+                this.grunnlagsdata.bosituasjonSomFullstendig(),
+                this.grunnlagsdata.fradragsgrunnlag,
+            ).resultat,
+            BosituasjonOgFormue(
+                this.grunnlagsdata.bosituasjonSomFullstendig(),
+                this.vilkårsvurderinger.formue.grunnlag,
+            ).resultat,
+        ).let {
+            val problemer = it.separateEither().first.flatten().toSet()
+            if (problemer.isEmpty()) Unit.right() else problemer.left()
         }
     }
 }
