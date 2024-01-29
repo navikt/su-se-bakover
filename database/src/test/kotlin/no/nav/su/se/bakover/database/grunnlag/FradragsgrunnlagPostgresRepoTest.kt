@@ -1,9 +1,5 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import beregning.domain.fradrag.FradragForPeriode
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.UtenlandskInntekt
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -12,6 +8,10 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragForPeriode
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
 internal class FradragsgrunnlagPostgresRepoTest {
 

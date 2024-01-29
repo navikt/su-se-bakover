@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import kotlin.math.roundToInt
 
 internal data class BrukerFradragBenyttetIBeregningsperiode(

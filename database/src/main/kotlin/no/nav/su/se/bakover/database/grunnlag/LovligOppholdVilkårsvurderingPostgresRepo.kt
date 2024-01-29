@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 import java.util.UUID
 
 internal class LovligOppholdVilkårsvurderingPostgresRepo(

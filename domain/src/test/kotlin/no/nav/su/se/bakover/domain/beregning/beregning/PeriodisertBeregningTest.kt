@@ -1,9 +1,5 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.desember
@@ -16,6 +12,10 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.lagFradrag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal class PeriodisertBeregningTest {
 

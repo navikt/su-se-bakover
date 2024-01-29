@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
+import vilkår.formue.domain.FormueVilkår
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepo(

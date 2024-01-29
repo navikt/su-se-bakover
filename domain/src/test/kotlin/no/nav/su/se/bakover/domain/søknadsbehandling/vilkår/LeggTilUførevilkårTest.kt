@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -31,6 +29,8 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.uføre.domain.UføreVilkår
 
 internal class LeggTilUførevilkårTest {
 

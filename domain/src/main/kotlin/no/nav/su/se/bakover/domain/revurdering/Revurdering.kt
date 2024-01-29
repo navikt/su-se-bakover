@@ -22,12 +22,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.Normal
@@ -41,23 +38,27 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
-import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import vilkår.common.domain.inneholderAlle
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.formue.domain.FormueVilkår
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
+import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
+import vilkår.vurderinger.domain.BosituasjonOgFormue
+import vilkår.vurderinger.domain.Konsistensproblem
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
@@ -415,7 +416,7 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterFormueInternal(formue: FormueVilkår): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
-        return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+        return BosituasjonOgFormue(
             bosituasjon = grunnlagsdata.bosituasjon,
             formue = formue.grunnlag,
         ).resultat.mapLeft {
@@ -455,7 +456,7 @@ sealed class Revurdering :
         if (!periode.fullstendigOverlapp(bosituasjon.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilBosituasjon.PerioderMangler.left()
         }
-        return SjekkOmGrunnlagErKonsistent.Bosituasjon(bosituasjon).resultat
+        return BosituasjonKonsistensProblem(bosituasjon).resultat
             .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
             .flatMap {
                 grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(bosituasjon).let { grunnlagOgVilkår ->

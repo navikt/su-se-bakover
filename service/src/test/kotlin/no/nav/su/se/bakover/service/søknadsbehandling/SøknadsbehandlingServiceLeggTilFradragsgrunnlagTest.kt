@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.getOrElse
 import arrow.core.left
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -28,6 +26,8 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {

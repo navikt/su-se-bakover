@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.UtenlandskInntekt
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -28,6 +25,9 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingAlder
 import org.junit.jupiter.api.Test
 import satser.domain.Satskategori
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.LocalDate

@@ -8,22 +8,23 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
-import vilkår.domain.grunnlag.Bosituasjon
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurderingsperiode
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.formue.domain.FormueVilkår
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 fun UføreVilkår.Vurdert.Companion.create(
@@ -48,9 +49,8 @@ fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt,
     periode: Periode,
-    epsFormue: Formuegrunnlag.Verdier?,
-    søkersFormue: Formuegrunnlag.Verdier,
-    vararg bosituasjon: Bosituasjon.Fullstendig,
+    epsFormue: Verdier?,
+    søkersFormue: Verdier,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
     id = id,
@@ -58,47 +58,10 @@ fun Formuegrunnlag.Companion.create(
     periode = periode,
     epsFormue = epsFormue,
     søkersFormue = søkersFormue,
-    bosituasjon = listOf(*bosituasjon),
     behandlingsPeriode = behandlingsPeriode,
 ).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
-fun Formuegrunnlag.Companion.create(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt,
-    periode: Periode,
-    epsFormue: Formuegrunnlag.Verdier?,
-    søkersFormue: Formuegrunnlag.Verdier,
-    bosituasjon: Bosituasjon.Fullstendig,
-    behandlingsPeriode: Periode,
-): Formuegrunnlag = tryCreate(
-    id = id,
-    opprettet = opprettet,
-    periode = periode,
-    epsFormue = epsFormue,
-    søkersFormue = søkersFormue,
-    bosituasjon = listOf(bosituasjon),
-    behandlingsPeriode = behandlingsPeriode,
-).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
-
-fun Formuegrunnlag.Companion.create(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt,
-    periode: Periode,
-    epsFormue: Formuegrunnlag.Verdier?,
-    søkersFormue: Formuegrunnlag.Verdier,
-    bosituasjon: List<Bosituasjon.Fullstendig>,
-    behandlingsPeriode: Periode,
-): Formuegrunnlag = tryCreate(
-    id = id,
-    opprettet = opprettet,
-    periode = periode,
-    epsFormue = epsFormue,
-    søkersFormue = søkersFormue,
-    bosituasjon = bosituasjon,
-    behandlingsPeriode = behandlingsPeriode,
-).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
-
-fun Formuegrunnlag.Verdier.Companion.empty() = create(
+fun Verdier.Companion.empty() = create(
     verdiIkkePrimærbolig = 0,
     verdiEiendommer = 0,
     verdiKjøretøy = 0,
@@ -118,6 +81,7 @@ fun FormueVilkår.shouldBeEqualToExceptId(expected: FormueVilkår) {
         is FormueVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is FormueVilkår.Vurdert -> {
             expected.shouldBeTypeOf<FormueVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -136,6 +100,7 @@ fun UføreVilkår.shouldBeEqualToExceptId(expected: UføreVilkår) {
         UføreVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is UføreVilkår.Vurdert -> {
             expected.shouldBeTypeOf<UføreVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -158,6 +123,7 @@ fun FlyktningVilkår.shouldBeEqualToExceptId(expected: FlyktningVilkår) {
         FlyktningVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is FlyktningVilkår.Vurdert -> {
             expected.shouldBeTypeOf<FlyktningVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -180,6 +146,7 @@ fun LovligOppholdVilkår.shouldBeEqualToExceptId(expected: LovligOppholdVilkår)
         LovligOppholdVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is LovligOppholdVilkår.Vurdert -> {
             expected.shouldBeTypeOf<LovligOppholdVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -202,6 +169,7 @@ fun FastOppholdINorgeVilkår.shouldBeEqualToExceptId(expected: FastOppholdINorge
         FastOppholdINorgeVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is FastOppholdINorgeVilkår.Vurdert -> {
             expected.shouldBeTypeOf<FastOppholdINorgeVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -224,6 +192,7 @@ fun InstitusjonsoppholdVilkår.shouldBeEqualToExceptId(expected: Institusjonsopp
         InstitusjonsoppholdVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is InstitusjonsoppholdVilkår.Vurdert -> {
             expected.shouldBeTypeOf<InstitusjonsoppholdVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -246,6 +215,7 @@ fun UtenlandsoppholdVilkår.shouldBeEqualToExceptId(expected: UtenlandsoppholdVi
         UtenlandsoppholdVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is UtenlandsoppholdVilkår.Vurdert -> {
             expected.shouldBeTypeOf<UtenlandsoppholdVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -268,6 +238,7 @@ fun PersonligOppmøteVilkår.shouldBeEqualToExceptId(expected: PersonligOppmøte
         PersonligOppmøteVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is PersonligOppmøteVilkår.Vurdert -> {
             expected.shouldBeTypeOf<PersonligOppmøteVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -285,6 +256,7 @@ fun OpplysningspliktVilkår.shouldBeEqualToExceptId(expected: OpplysningspliktVi
         OpplysningspliktVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
+
         is OpplysningspliktVilkår.Vurdert -> {
             expected.shouldBeTypeOf<OpplysningspliktVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
@@ -332,12 +304,15 @@ fun Vilkårsvurderinger.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
         is Vilkårsvurderinger.Revurdering.Uføre -> {
             this.shouldBeEqualToExceptId(expected)
         }
+
         is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
             this.shouldBeEqualToExceptId(expected)
         }
+
         is Vilkårsvurderinger.Revurdering.Alder -> {
             this.shouldBeEqualToExceptId(expected)
         }
+
         is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
             this.shouldBeEqualToExceptId(expected)
         }

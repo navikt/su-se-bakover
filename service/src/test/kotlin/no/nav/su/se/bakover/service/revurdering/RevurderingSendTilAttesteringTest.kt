@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.extensions.september
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkke
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.aktørId
@@ -40,7 +38,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
@@ -58,8 +55,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.singleFullstendigOrThrow
+import vilkår.formue.domain.FormueVilkår
 import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {
@@ -311,15 +307,9 @@ internal class RevurderingSendTilAttesteringTest {
                     grunnlag = nonEmptyListOf(
                         formueGrunnlagUtenEps0Innvilget(
                             periode = førsteUførevurderingsperiode,
-                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
-                                periode = førsteUførevurderingsperiode,
-                            ).bosituasjon.map { it as Bosituasjon.Fullstendig }.toNonEmptyList(),
                         ),
                         formueGrunnlagUtenEpsAvslått(
                             periode = andreUførevurderingsperiode,
-                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
-                                periode = andreUførevurderingsperiode,
-                            ).bosituasjon.singleFullstendigOrThrow(),
                         ),
                     ),
                 ),

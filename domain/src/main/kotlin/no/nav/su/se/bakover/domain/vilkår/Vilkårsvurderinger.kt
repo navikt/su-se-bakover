@@ -6,11 +6,22 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.erLik
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 
 sealed interface Vilkårsvurderinger {
@@ -32,6 +43,15 @@ sealed interface Vilkårsvurderinger {
             is Søknadsbehandling.Uføre -> uføre.right()
             is Revurdering.Alder -> VilkårEksistererIkke.left()
             is Søknadsbehandling.Alder -> VilkårEksistererIkke.left()
+        }
+    }
+
+    fun uføreVilkårKastHvisAlder(): UføreVilkår {
+        return when (this) {
+            is Revurdering.Uføre -> uføre
+            is Søknadsbehandling.Uføre -> uføre
+            is Revurdering.Alder -> TODO("vilkårsvurdering_alder konsistenssjekk for alder")
+            is Søknadsbehandling.Alder -> TODO("vilkårsvurdering_alder konsistenssjekk for alder")
         }
     }
 
@@ -139,6 +159,8 @@ sealed interface Vilkårsvurderinger {
                     PensjonsVilkår.IkkeVurdert,
                     FamiliegjenforeningVilkår.IkkeVurdert,
                     -> emptyList()
+
+                    else -> throw IllegalStateException("Feil ved mapping av vilkår $this to periode")
                 }
             }.ifNotEmpty { this.minAndMaxOf() }
         }
@@ -241,6 +263,7 @@ sealed interface Vilkårsvurderinger {
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
                     is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre (kun støttet for alder)")
                     is PensjonsVilkår -> throw IllegalArgumentException("Kan ikke legge til Pensjonsvilkår for vilkårvurdering uføre (kun støttet for alder)")
+                    else -> throw IllegalStateException("Ukjent vilkår: $vilkår ved oppdatering av vilkårsvurderinger for uføre (søknadsbehandling)")
                 }
             }
 
@@ -359,6 +382,7 @@ sealed interface Vilkårsvurderinger {
                     is PensjonsVilkår -> copy(pensjon = vilkår)
                     is FlyktningVilkår -> throw IllegalArgumentException("Kan ikke legge til flyktningvilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
                     is UføreVilkår -> throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
+                    else -> throw IllegalStateException("Ukjent vilkår: $vilkår ved oppdatering av vilkårsvurderinger for alder (søknadsbehandling)")
                 }
             }
 
@@ -465,6 +489,7 @@ sealed interface Vilkårsvurderinger {
                     is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
                     is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre (kun støttet for alder)")
                     is PensjonsVilkår -> throw IllegalArgumentException("Kan ikke legge til Pensjonsvilkår for vilkårvurdering uføre (kun støttet for alder)")
+                    else -> throw IllegalStateException("Ukjent vilkår: $vilkår ved oppdatering av vilkårsvurderinger for uføre (revurdering)")
                 }
             }
 
@@ -595,6 +620,7 @@ sealed interface Vilkårsvurderinger {
                     is PensjonsVilkår -> copy(pensjon = vilkår)
                     is FlyktningVilkår -> throw IllegalArgumentException("Kan ikke legge til flyktningvilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
                     is UføreVilkår -> throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
+                    else -> throw IllegalStateException("Ukjent vilkår: $vilkår ved oppdatering av vilkårsvurderinger for alder (revurdering)")
                 }
             }
 

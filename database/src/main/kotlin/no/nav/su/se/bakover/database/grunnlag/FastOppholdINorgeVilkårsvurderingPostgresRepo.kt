@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.util.UUID
 
 internal class FastOppholdINorgeVilkårsvurderingPostgresRepo(

@@ -105,7 +105,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
@@ -367,12 +366,7 @@ class RevurderingServiceImpl(
         val revurdering =
             hent(request.behandlingId).getOrElse { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
-        // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
-        @Suppress("UNCHECKED_CAST")
-        val bosituasjon =
-            revurdering.grunnlagsdata.bosituasjon as List<Bosituasjon.Fullstendig>
-
-        val vilkår = request.toDomain(bosituasjon, revurdering.periode, formuegrenserFactory).getOrElse {
+        val vilkår = request.toDomain(revurdering.periode, formuegrenserFactory).getOrElse {
             return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {

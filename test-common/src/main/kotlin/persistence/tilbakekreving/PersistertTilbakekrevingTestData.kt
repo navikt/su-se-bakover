@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
@@ -39,6 +38,7 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo
+import vilkår.common.domain.Vilkår
 import økonomi.domain.utbetaling.Utbetaling
 
 class PersistertTilbakekrevingTestData(

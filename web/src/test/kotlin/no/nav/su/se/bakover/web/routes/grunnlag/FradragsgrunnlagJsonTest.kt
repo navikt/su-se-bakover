@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
@@ -12,6 +9,9 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRespo
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 class FradragsgrunnlagJsonTest {
 

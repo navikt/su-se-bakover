@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.fullstendigOrThrow
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import java.time.LocalDate
 
 /**

@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.database.beregning
 
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.FradragForPeriode
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
-import beregning.domain.fradrag.UtenlandskInntekt
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragForPeriode
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
 /**
  * Vi bruker samme representasjon i databasen for et fradrag for en spesifikk måned eller for en lengre periode.

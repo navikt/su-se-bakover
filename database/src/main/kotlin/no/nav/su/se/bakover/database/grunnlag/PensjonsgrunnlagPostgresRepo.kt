@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
+import vilkår.pensjon.domain.Pensjonsgrunnlag
+import vilkår.pensjon.domain.Pensjonsopplysninger
 import java.util.UUID
 
 internal class PensjonsgrunnlagPostgresRepo(

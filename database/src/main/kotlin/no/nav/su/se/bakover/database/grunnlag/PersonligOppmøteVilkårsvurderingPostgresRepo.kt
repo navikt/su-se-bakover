@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.personligoppmøte.domain.VurderingsperiodePersonligOppmøte
 import java.util.UUID
 
 internal class PersonligOppmøteVilkårsvurderingPostgresRepo(

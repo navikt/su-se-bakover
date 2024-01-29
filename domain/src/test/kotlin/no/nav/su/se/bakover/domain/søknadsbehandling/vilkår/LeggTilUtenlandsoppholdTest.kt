@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.vilkår
 
 import arrow.core.left
-import beregning.domain.fradrag.FradragTilhører
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
 class LeggTilUtenlandsoppholdTest {
 

@@ -5,10 +5,6 @@ import beregning.domain.Beregning
 import beregning.domain.IngenMerknaderForAvslag
 import beregning.domain.Merknad
 import beregning.domain.finnFørsteMånedMedMerknadForAvslag
-import beregning.domain.fradrag.Fradrag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -32,6 +28,10 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal class VurderAvslagGrunnetBeregningKtTest {
 

@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
@@ -18,6 +16,8 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.formue.domain.FormueVilkår
+import vilkår.uføre.domain.UføreVilkår
 
 internal class SøknadsbehandlingJsonTest {
 

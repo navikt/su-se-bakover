@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.pensjon.domain.VurderingsperiodePensjon
 import java.util.UUID
 
 internal class PensjonVilkårsvurderingPostgresRepo(
@@ -125,6 +125,7 @@ internal class PensjonVilkårsvurderingPostgresRepo(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),
             ),
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = pensjonsgrunnlagPostgresRepo.hent((uuid("grunnlag_id")), session)!!,
         )
     }

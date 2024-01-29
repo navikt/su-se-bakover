@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.tid.periode.mai
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
+import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.vilkår.pensjon
 
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import vilkår.pensjon.domain.KunneIkkeLagePensjonsVilkår
+import vilkår.pensjon.domain.PensjonsVilkår
 import java.util.UUID
 
 data class LeggTilPensjonsVilkårRequest(

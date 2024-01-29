@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import vilkår.common.domain.Vurdering
 
 internal enum class ResultatDto {
     AVSLAG,

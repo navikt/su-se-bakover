@@ -91,8 +91,8 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
-import vilkår.domain.grunnlag.Bosituasjon.Companion.harEPS
-import vilkår.domain.grunnlag.singleFullstendigEpsOrNull
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock

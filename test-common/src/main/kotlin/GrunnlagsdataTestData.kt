@@ -3,15 +3,15 @@ package no.nav.su.se.bakover.test
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 fun fradragsgrunnlagArbeidsinntekt1000(

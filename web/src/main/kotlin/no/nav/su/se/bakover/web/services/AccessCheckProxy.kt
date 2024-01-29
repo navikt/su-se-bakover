@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
@@ -217,6 +216,7 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonRepo
 import person.domain.PersonService
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering

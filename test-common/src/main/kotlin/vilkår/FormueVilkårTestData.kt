@@ -5,10 +5,6 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -18,8 +14,13 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagMedEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.periode
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.grunnlag.periode
+import vilkår.formue.domain.FormueVilkår
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 fun formuevilkårIkkeVurdert(): FormueVilkår {
@@ -50,7 +51,7 @@ fun formuevilkårUtenEps0Innvilget(
     return FormueVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
             VurderingsperiodeFormue.tryCreateFromGrunnlag(
-                grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode, bosituasjon),
+                grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
                 require(it.vurdering == Vurdering.Innvilget)
@@ -73,7 +74,7 @@ fun formuevilkårMedEps0Innvilget(
     return FormueVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
             VurderingsperiodeFormue.tryCreateFromGrunnlag(
-                grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode, bosituasjon),
+                grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
                 require(it.vurdering == Vurdering.Innvilget)
@@ -87,9 +88,6 @@ fun formuevilkårMedEps0Innvilget(
 fun formuevilkårAvslåttPgaBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
-        periode = periode,
-    ),
 ): FormueVilkår.Vurdert {
     return FormueVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
@@ -97,32 +95,8 @@ fun formuevilkårAvslåttPgaBrukersformue(
                 grunnlag = formueGrunnlagUtenEpsAvslått(
                     opprettet = opprettet,
                     periode = periode,
-                    bosituasjon = bosituasjon,
                 ),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
-            ).also {
-                require(it.vurdering == Vurdering.Avslag)
-                require(it.periode == periode)
-                require(it.opprettet == opprettet)
-            },
-        ),
-    )
-}
-
-fun formuevilkårAvslåttPgaBrukersformue(
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig>,
-): FormueVilkår {
-    return FormueVilkår.Vurdert.createFromVilkårsvurderinger(
-        vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeFormue.tryCreateFromGrunnlag(
-                grunnlag = formueGrunnlagUtenEpsAvslått(
-                    opprettet = opprettet,
-                    periode = periode,
-                    bosituasjon = bosituasjon,
-                ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).also {
                 require(it.vurdering == Vurdering.Avslag)
                 require(it.periode == periode)
@@ -149,11 +123,12 @@ fun avslåttFormueVilkår(
     }
     val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
-            Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000) to
-                Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 150_000)
+            Verdier.empty().copy(verdiEiendommer = 15_000) to
+                Verdier.empty().copy(verdiEiendommer = 150_000)
         }
+
         false -> {
-            Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 150_000) to
+            Verdier.empty().copy(verdiEiendommer = 150_000) to
                 null
         }
     }
@@ -165,7 +140,6 @@ fun avslåttFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),
         ),
@@ -201,11 +175,12 @@ private fun innvilgetFormueVilkår(
     }
     val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
-            Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000) to
-                Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000)
+            Verdier.empty().copy(verdiEiendommer = 15_000) to
+                Verdier.empty().copy(verdiEiendommer = 15_000)
         }
+
         false -> {
-            Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000) to
+            Verdier.empty().copy(verdiEiendommer = 15_000) to
                 null
         }
     }
@@ -217,7 +192,6 @@ private fun innvilgetFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),
         ),

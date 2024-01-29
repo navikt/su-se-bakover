@@ -2,9 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
@@ -40,6 +37,9 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeReaktivering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeStans
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

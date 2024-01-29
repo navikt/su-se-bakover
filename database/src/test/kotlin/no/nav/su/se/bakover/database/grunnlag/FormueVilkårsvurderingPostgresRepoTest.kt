@@ -2,18 +2,12 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -21,7 +15,11 @@ import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurdering
+import vilkår.formue.domain.FormueVilkår
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepoTest {
@@ -46,13 +44,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     private fun formuegrunnlag(
         periode: Periode,
-        bosituasjon: Bosituasjon.Fullstendig = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = periode,
-            fnr = Fnr.generer(),
-        ),
-        søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.create(
+        søkersFormue: Verdier = Verdier.create(
             verdiIkkePrimærbolig = 9,
             verdiEiendommer = 10,
             verdiKjøretøy = 11,
@@ -62,7 +54,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             kontanter = 15,
             depositumskonto = 10,
         ),
-        epsFormue: Formuegrunnlag.Verdier? = Formuegrunnlag.Verdier.create(
+        epsFormue: Verdier? = Verdier.create(
             verdiIkkePrimærbolig = 1,
             verdiEiendommer = 2,
             verdiKjøretøy = 3,
@@ -79,7 +71,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             periode = periode,
             epsFormue = epsFormue,
             søkersFormue = søkersFormue,
-            bosituasjon = bosituasjon,
             behandlingsPeriode = periode,
         )
     }
@@ -114,13 +105,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(
-                    formuegrunnlag(
-                        periode = periode,
-                        bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
-                        epsFormue = null,
-                    ),
-                ),
+                grunnlag = nonEmptyListOf(formuegrunnlag(periode = periode, epsFormue = null)),
             )
             dataSource.withTransaction { session ->
                 repo.lagre(behandlingId, vilkår, session)
@@ -145,7 +130,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 grunnlag = nonEmptyListOf(
                     formuegrunnlag(
                         periode = periode,
-                        epsFormue = Formuegrunnlag.Verdier.create(
+                        epsFormue = Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,
@@ -184,11 +169,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                         // TODO(satsfactory_formue) jah: Man kan ikke opprette formuevilkår/vurdering/grunnlag som uavklart lenger. Kan sjekke at det ikke finnes spor av denne i basen og fjerne muligheten?
                         vurdering = Vurdering.Uavklart,
-                        grunnlag = formuegrunnlag(
-                            periode = periode,
-                            bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
-                            epsFormue = null,
-                        ),
+                        grunnlag = formuegrunnlag(periode = periode, epsFormue = null),
                         periode = periode,
                     ),
                 ),
@@ -211,7 +192,8 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetricsStub)
-            val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(formuegrunnlagPostgresRepo, dbMetricsStub)
+            val formueVilkårsvurderingPostgresRepo =
+                FormueVilkårsvurderingPostgresRepo(formuegrunnlagPostgresRepo, dbMetricsStub)
             val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
                 bosituasjon = bosituasjongrunnlagEnslig(periode = år(2021)),
             ).let { it to it.grunnlag }

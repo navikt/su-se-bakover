@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
 
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
+import vilkår.vurderinger.domain.Konsistensproblem
 
 sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
     data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag

@@ -27,8 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -39,6 +37,8 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FormueBody.Companion.toServiceRequest
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.KunneIkkeLageFormueVerdier
+import vilkår.formue.domain.Verdier
 import java.time.Clock
 import java.util.UUID
 
@@ -52,7 +52,7 @@ private data class FormueBody(
 
     companion object {
         private fun lagFormuegrunnlag(json: FormuegrunnlagJson.VerdierJson) =
-            Formuegrunnlag.Verdier.tryCreate(
+            Verdier.tryCreate(
                 verdiIkkePrimærbolig = json.verdiIkkePrimærbolig,
                 verdiEiendommer = json.verdiEiendommer,
                 verdiKjøretøy = json.verdiKjøretøy,
@@ -117,7 +117,12 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                                 .map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
-                                    return@authorize call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
+                                    return@authorize call.svar(
+                                        Resultat.json(
+                                            HttpStatusCode.OK,
+                                            serialize(it.toJson(formuegrenserFactory)),
+                                        ),
+                                    )
                                 }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
                                     return@authorize call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
                                 }

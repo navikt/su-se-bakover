@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
 import java.util.UUID
 
 internal class FormueForBrevTest {
@@ -21,7 +19,7 @@ internal class FormueForBrevTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            epsFormue = Formuegrunnlag.Verdier.create(
+            epsFormue = Verdier.create(
                 verdiIkkePrimærbolig = 10,
                 verdiEiendommer = 10,
                 verdiKjøretøy = 10,
@@ -31,7 +29,7 @@ internal class FormueForBrevTest {
                 kontanter = 10,
                 depositumskonto = 10,
             ),
-            søkersFormue = Formuegrunnlag.Verdier.create(
+            søkersFormue = Verdier.create(
                 verdiIkkePrimærbolig = 10,
                 verdiEiendommer = 10,
                 verdiKjøretøy = 10,
@@ -40,12 +38,6 @@ internal class FormueForBrevTest {
                 pengerSkyldt = 10,
                 kontanter = 10,
                 depositumskonto = 10,
-            ),
-            bosituasjon = Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                fnr = Fnr.generer(),
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
             ),
             behandlingsPeriode = periode,
         )
@@ -75,7 +67,7 @@ internal class FormueForBrevTest {
 
     @Test
     fun `regner ut verdiene av formuen riktig`() {
-        val verdier = Formuegrunnlag.Verdier.create(
+        val verdier = Verdier.create(
             verdiIkkePrimærbolig = 10,
             verdiEiendommer = 10,
             verdiKjøretøy = 10,

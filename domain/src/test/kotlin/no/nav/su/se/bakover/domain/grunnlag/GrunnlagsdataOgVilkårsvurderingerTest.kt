@@ -2,9 +2,6 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
@@ -13,13 +10,7 @@ import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -28,8 +19,18 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerTest {

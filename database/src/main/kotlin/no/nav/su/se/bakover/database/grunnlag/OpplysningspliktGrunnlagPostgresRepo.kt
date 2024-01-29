@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
 import java.util.UUID
 
 internal class OpplysningspliktGrunnlagPostgresRepo(

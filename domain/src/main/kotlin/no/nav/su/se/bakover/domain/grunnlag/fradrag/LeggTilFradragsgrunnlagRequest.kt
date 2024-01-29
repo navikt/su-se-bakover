@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag.fradrag
 
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.util.UUID
 
 data class LeggTilFradragsgrunnlagRequest(

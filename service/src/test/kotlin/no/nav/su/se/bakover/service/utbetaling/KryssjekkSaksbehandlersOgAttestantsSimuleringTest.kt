@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.left
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
@@ -22,6 +20,8 @@ import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
     @Test

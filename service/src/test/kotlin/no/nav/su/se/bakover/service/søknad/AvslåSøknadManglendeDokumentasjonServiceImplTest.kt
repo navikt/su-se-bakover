@@ -19,8 +19,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -35,8 +33,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
@@ -69,6 +65,10 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.time.LocalDate

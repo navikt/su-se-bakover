@@ -12,9 +12,6 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -22,8 +19,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.common.domain.Vurdering
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 internal class LeggTilUførevurderingerRequestTest {

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglend
 
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
 
 sealed interface KunneIkkeAvslåSøknad {
     data class KunneIkkeOppretteSøknadsbehandling(

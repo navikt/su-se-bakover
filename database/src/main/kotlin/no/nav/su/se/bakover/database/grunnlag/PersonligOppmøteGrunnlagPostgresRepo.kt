@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
+import vilkår.personligoppmøte.domain.PersonligOppmøteGrunnlag
+import vilkår.personligoppmøte.domain.PersonligOppmøteÅrsak
 import java.util.UUID
 
 internal class PersonligOppmøteGrunnlagPostgresRepo(

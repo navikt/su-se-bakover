@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.database.regulering
 
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import grunnbeløp.domain.GrunnbeløpForMåned
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
@@ -28,6 +26,8 @@ import org.junit.jupiter.api.Test
 import satser.domain.Satskategori
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {

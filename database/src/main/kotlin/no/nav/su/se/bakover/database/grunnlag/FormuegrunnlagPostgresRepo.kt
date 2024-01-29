@@ -13,7 +13,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Verdier
 import java.util.UUID
 
 internal class FormuegrunnlagPostgresRepo(
@@ -120,8 +121,8 @@ private data class FormueverdierJson(
     val kontanter: Int,
     val depositumskonto: Int,
 ) {
-    fun toDomain(): Formuegrunnlag.Verdier {
-        return Formuegrunnlag.Verdier.tryCreate(
+    fun toDomain(): Verdier {
+        return Verdier.tryCreate(
             verdiIkkePrimærbolig = verdiIkkePrimærbolig,
             verdiEiendommer = verdiEiendommer,
             verdiKjøretøy = verdiKjøretøy,
@@ -136,7 +137,7 @@ private data class FormueverdierJson(
     }
 }
 
-private fun Formuegrunnlag.Verdier.toJson(): FormueverdierJson {
+private fun Verdier.toJson(): FormueverdierJson {
     return FormueverdierJson(
         verdiIkkePrimærbolig = verdiIkkePrimærbolig,
         verdiEiendommer = verdiEiendommer,

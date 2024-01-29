@@ -4,15 +4,18 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.inneholder
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.vurderinger.domain.BosituasjonOgFradrag
+import vilkår.vurderinger.domain.Konsistensproblem
 import java.time.Clock
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
@@ -101,7 +104,7 @@ data class Grunnlagsdata private constructor(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon.Fullstendig>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+            return BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
                 fradrag = fradragsgrunnlag,
             ).resultat.mapLeft {
@@ -135,7 +138,7 @@ data class Grunnlagsdata private constructor(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+            return BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
                 fradrag = fradragsgrunnlag,
             ).resultat.mapLeft { problemer ->

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import beregning.domain.fradrag.FradragTilhører
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
 internal class RevurderingTest {
 

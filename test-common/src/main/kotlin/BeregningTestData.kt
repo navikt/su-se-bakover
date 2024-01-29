@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember
@@ -17,10 +16,11 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrunnlag
 
 /**

@@ -1,15 +1,11 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.beregn
 
 import arrow.core.nonEmptyListOf
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
@@ -38,6 +34,10 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 internal class SøknadsbehandlingBeregnTest {

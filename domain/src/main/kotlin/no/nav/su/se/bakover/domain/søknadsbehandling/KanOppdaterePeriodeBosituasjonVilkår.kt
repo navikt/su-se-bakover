@@ -14,21 +14,21 @@ import no.nav.su.se.bakover.domain.grunnlag.avslåPgaOpplysningsplikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.VilkårsfeilVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurdertVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
-import vilkår.domain.grunnlag.Bosituasjon
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.VurdertVilkår
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
 import java.time.Clock
 
 /**
@@ -106,7 +106,6 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, VilkårsvurdertSøknadsbehandling> {
         // Valideringen gjøres i toDomain(...)
         val vilkår = request.toDomain(
-            bosituasjon = grunnlagsdata.bosituasjon,
             behandlingsperiode = stønadsperiode?.periode
                 ?: throw IllegalStateException("Burde ha hatt en stønadsperiode på dette tidspunktet. id $id"),
             formuegrenserFactory = formuegrenserFactory,

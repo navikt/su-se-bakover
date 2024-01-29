@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.Behandlingsfeilresponser
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {

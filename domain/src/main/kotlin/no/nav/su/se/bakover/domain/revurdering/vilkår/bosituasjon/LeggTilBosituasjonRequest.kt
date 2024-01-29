@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import vilkår.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

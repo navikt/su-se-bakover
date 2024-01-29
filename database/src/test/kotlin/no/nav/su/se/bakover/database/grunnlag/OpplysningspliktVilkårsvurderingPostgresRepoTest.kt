@@ -1,10 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -12,6 +9,8 @@ import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 
 internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
 

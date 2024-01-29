@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.vilkår.bosituasjon
 
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import vilkår.vurderinger.domain.Konsistensproblem
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeLeggeTilBosituasjon {

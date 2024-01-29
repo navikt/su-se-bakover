@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringReq
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
@@ -44,6 +43,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.utbetaling.Utbetaling

@@ -2,24 +2,24 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import beregning.domain.fradrag.Fradragstype
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import vilkår.domain.grunnlag.fullstendigOrThrow
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.formue.domain.FormueVilkår
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
 
 /**
  * Representerer et vedtak plassert på en tidslinje utledet fra vedtakenes temporale gyldighet.

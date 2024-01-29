@@ -5,24 +5,34 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import beregning.domain.fradrag.Fradragstype
+import arrow.core.separateEither
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import vilkår.domain.grunnlag.Bosituasjon
-import vilkår.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
-import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
-import vilkår.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import vilkår.common.domain.Vilkår
+import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
+import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
+import vilkår.vurderinger.domain.BosituasjonOgFormue
+import vilkår.vurderinger.domain.BosituasjonOgFradrag
+import vilkår.vurderinger.domain.Formue
+import vilkår.vurderinger.domain.Konsistensproblem
+import vilkår.vurderinger.domain.Uføre
 import java.time.Clock
 import java.util.UUID
 
@@ -219,7 +229,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.
             //  felles sjekker bør gjøres i init og tryCreate, konsistenssjekkene bør gjøres i denne fila for det som går på tvers av grunnlagsdata og vilkårsvurderinger.
             //  Mens behandlingene bør sjekke mot sin periode og evt. andre ting som kun angår de.
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+            BosituasjonOgFormue(
                 bosituasjon = grunnlagsdata.bosituasjon,
                 formue = vilkår.grunnlag,
             ).resultat.onLeft { alleFeil ->
@@ -305,6 +315,25 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Nothing {
             throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
+        }
+    }
+
+    fun sjekkOmGrunnlagOgVilkårErKonsistent(): Either<Set<Konsistensproblem>, Unit> {
+        return setOf(
+            Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat,
+            BosituasjonKonsistensProblem(this.grunnlagsdata.bosituasjonSomFullstendig()).resultat,
+            Formue(this.vilkårsvurderinger.formue.grunnlag).resultat,
+            BosituasjonOgFradrag(
+                this.grunnlagsdata.bosituasjonSomFullstendig(),
+                this.grunnlagsdata.fradragsgrunnlag,
+            ).resultat,
+            BosituasjonOgFormue(
+                this.grunnlagsdata.bosituasjonSomFullstendig(),
+                this.vilkårsvurderinger.formue.grunnlag,
+            ).resultat,
+        ).let {
+            val problemer = it.separateEither().first.flatten().toSet()
+            if (problemer.isEmpty()) Unit.right() else problemer.left()
         }
     }
 }

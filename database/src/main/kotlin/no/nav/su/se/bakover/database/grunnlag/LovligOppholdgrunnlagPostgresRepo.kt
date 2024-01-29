@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
+import vilkår.lovligopphold.domain.LovligOppholdGrunnlag
 import java.util.UUID
 
 internal class LovligOppholdgrunnlagPostgresRepo(

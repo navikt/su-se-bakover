@@ -24,10 +24,19 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.common.domain.Vurdering
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 
 internal class VilkårsvurderingerTest {

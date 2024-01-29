@@ -6,13 +6,13 @@ import arrow.core.right
 import beregning.domain.Beregning
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
-import beregning.domain.fradrag.Fradragstype
 import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.kronologisk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
 sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {

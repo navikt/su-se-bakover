@@ -7,11 +7,6 @@ import beregning.domain.Merknad
 import beregning.domain.finnFørsteMånedMedMerknadForAvslag
 import beregning.domain.finnMånederMedMerknad
 import beregning.domain.finnMånederMedMerknadForAvslag
-import beregning.domain.fradrag.FradragFactory
-import beregning.domain.fradrag.FradragForMåned
-import beregning.domain.fradrag.FradragForPeriode
-import beregning.domain.fradrag.FradragTilhører
-import beregning.domain.fradrag.Fradragstype
 import beregning.domain.harAlleMånederMerknadForAvslag
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainAll
@@ -46,6 +41,11 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.inntekt.domain.grunnlag.FradragFactory
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragForPeriode
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 

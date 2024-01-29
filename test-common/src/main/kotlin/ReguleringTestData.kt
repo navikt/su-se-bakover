@@ -17,9 +17,9 @@ import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Grunnlag
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock
 import java.util.UUID

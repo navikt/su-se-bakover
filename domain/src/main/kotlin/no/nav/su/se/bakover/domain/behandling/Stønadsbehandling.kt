@@ -46,6 +46,7 @@ interface Stønadsbehandling {
             type = sakstype,
         )
     }
+
     fun skalSendeVedtaksbrev(): Boolean
 }
 
@@ -59,6 +60,7 @@ interface BehandlingMedAttestering : Stønadsbehandling {
     fun hentAttestantSomIverksatte(): NavIdentBruker.Attestant? {
         return this.attesteringer.hentSisteIverksatteAttesteringOrNull()?.attestant
     }
+
     fun prøvHentSisteAttestering(): Attestering? = attesteringer.prøvHentSisteAttestering()
     fun prøvHentSisteAttestant(): NavIdentBruker.Attestant? = prøvHentSisteAttestering()?.attestant
 }

@@ -96,7 +96,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -171,7 +170,8 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
-import vilkår.domain.grunnlag.Grunnlag
+import vilkår.common.domain.Vilkår
+import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering

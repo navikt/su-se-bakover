@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.routes.vilkår.lovligopphold
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.VurderingsperiodeLovligOppholdJson.Companion.toJson
+import vilkår.common.domain.Vurdering
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
+import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 
 data class LovligOppholdVilkårJson(
     val vurderinger: List<VurderingsperiodeLovligOppholdJson>,
