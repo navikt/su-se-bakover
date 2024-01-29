@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.statistikk.behandling.behandlingYtelseDetaljer
 import no.nav.su.se.bakover.statistikk.behandling.mottattDato
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
+import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 
 internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(

@@ -98,7 +98,7 @@ class BrevForTilbakekrevingTest {
     )
 
     @Nested
-    inner class RevurderingUtenOpphør {
+    inner class VilkårsvurderingerRevurderingUtenOpphør {
 
         @Test
         fun `simulert revurdering forhåndsvarsel med tilbakekreving`() {
@@ -233,7 +233,7 @@ class BrevForTilbakekrevingTest {
     }
 
     @Nested
-    inner class RevurderingMedOpphør {
+    inner class VilkårsvurderingerRevurderingMedOpphør {
         @Test
         fun `simulert revurdering brev med tilbakekreving`() {
             val clock = TikkendeKlokke(1.august(2021).fixedClock())

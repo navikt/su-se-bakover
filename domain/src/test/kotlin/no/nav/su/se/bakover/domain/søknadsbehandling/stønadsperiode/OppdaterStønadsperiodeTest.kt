@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.underkjentAvslagVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjentInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkårsvurdertAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkårsvurdertInnvilget
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato

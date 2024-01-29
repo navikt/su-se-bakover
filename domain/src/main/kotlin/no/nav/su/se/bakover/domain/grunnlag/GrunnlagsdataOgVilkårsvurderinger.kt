@@ -11,8 +11,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkårKastHvisAlder
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -33,6 +34,7 @@ import vilkår.vurderinger.domain.BosituasjonOgFradrag
 import vilkår.vurderinger.domain.Formue
 import vilkår.vurderinger.domain.Konsistensproblem
 import vilkår.vurderinger.domain.Uføre
+import vilkår.vurderinger.domain.Vilkårsvurderinger
 import java.time.Clock
 import java.util.UUID
 
@@ -142,7 +144,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling,
         override val eksterneGrunnlag: EksterneGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger {
         override fun oppdaterVilkår(vilkår: Vilkår): Søknadsbehandling {
@@ -155,7 +157,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): Søknadsbehandling {
             // TODO jah: Dersom vi skal slippe cast, må vi utvide GrunnlagsdataOgVilkårsvurderinger med en generisk type for vilkårsvurderinger
-            return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Søknadsbehandling)
+            return copy(vilkårsvurderinger = vilkårsvurderinger as VilkårsvurderingerSøknadsbehandling)
         }
 
         override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Søknadsbehandling {
@@ -268,7 +270,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
     data class Revurdering(
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         override val eksterneGrunnlag: EksterneGrunnlag = StøtterIkkeHentingAvEksternGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger {
         init {
@@ -289,7 +291,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): Revurdering {
             // TODO jah: Dersom vi skal slippe cast, må vi utvide GrunnlagsdataOgVilkårsvurderinger med en generisk type for vilkårsvurderinger
-            return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering)
+            return copy(vilkårsvurderinger = vilkårsvurderinger as VilkårsvurderingerRevurdering)
         }
 
         override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Revurdering {
@@ -360,14 +362,14 @@ inline fun <reified T : GrunnlagsdataOgVilkårsvurderinger> GrunnlagsdataOgVilk�
 }
 
 fun GrunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget() {
-    vilkårsvurderinger.vurdering.also {
-        check(it is Vilkårsvurderingsresultat.Innvilget) { "Ugyldig tilstand, alle vilkår må være innvilget, var: $it" }
+    vilkårsvurderinger.erInnvilget().also {
+        check(it) { "Ugyldig tilstand, alle vilkår må være innvilget, var: $it" }
     }
 }
 
 fun GrunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag() {
-    vilkårsvurderinger.vurdering.also {
-        check(it is Vilkårsvurderingsresultat.Avslag) { "Ugyldig tilstand, minst et vilkår må være avslått, var: $it" }
+    vilkårsvurderinger.erAvslag().also {
+        check(it) { "Ugyldig tilstand, minst et vilkår må være avslått, var: $it" }
     }
 }
 

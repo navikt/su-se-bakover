@@ -10,9 +10,11 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minus
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
 import vilkår.common.domain.VurdertVilkår
 import vilkår.common.domain.erLik
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
@@ -50,6 +52,11 @@ sealed interface UføreVilkår : Vilkår {
 
         override val grunnlag: List<Uføregrunnlag> = vurderingsperioder.mapNotNull {
             it.grunnlag
+        }
+        override val avslagsgrunner: List<Avslagsgrunn> = when (vurdering) {
+            Vurdering.Innvilget -> emptyList()
+            Vurdering.Uavklart -> emptyList()
+            Vurdering.Avslag -> listOf(Avslagsgrunn.UFØRHET)
         }
 
         override fun erLik(other: Vilkår): Boolean {

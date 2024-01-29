@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import økonomi.domain.simulering.Simulering
 
 sealed interface Søknadsbehandling :
@@ -25,7 +25,7 @@ sealed interface Søknadsbehandling :
     val aldersvurdering: Aldersvurdering?
     val stønadsperiode: Stønadsperiode?
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
-    override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+    override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     override val attesteringer: Attesteringshistorikk
 
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk

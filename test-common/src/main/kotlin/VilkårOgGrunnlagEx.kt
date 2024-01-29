@@ -10,7 +10,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurderingsperiode
@@ -25,6 +26,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.vurderinger.domain.Vilkårsvurderinger
 import java.util.UUID
 
 fun UføreVilkår.Vurdert.Companion.create(
@@ -301,26 +303,18 @@ fun Grunnlagsdata.shouldBeEqualToExceptId(expected: Grunnlagsdata) {
 
 fun Vilkårsvurderinger.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
     when (this) {
-        is Vilkårsvurderinger.Revurdering.Uføre -> {
-            this.shouldBeEqualToExceptId(expected)
-        }
+        is VilkårsvurderingerRevurdering.Uføre -> this.shouldBeEqualToExceptId(expected)
 
-        is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
-            this.shouldBeEqualToExceptId(expected)
-        }
+        is VilkårsvurderingerSøknadsbehandling.Uføre -> this.shouldBeEqualToExceptId(expected)
 
-        is Vilkårsvurderinger.Revurdering.Alder -> {
-            this.shouldBeEqualToExceptId(expected)
-        }
+        is VilkårsvurderingerRevurdering.Alder -> this.shouldBeEqualToExceptId(expected)
 
-        is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
-            this.shouldBeEqualToExceptId(expected)
-        }
+        is VilkårsvurderingerSøknadsbehandling.Alder -> this.shouldBeEqualToExceptId(expected)
     }
 }
 
-fun Vilkårsvurderinger.Søknadsbehandling.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected.shouldBeType<Vilkårsvurderinger.Søknadsbehandling.Uføre>().let {
+fun VilkårsvurderingerSøknadsbehandling.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected.shouldBeType<VilkårsvurderingerSøknadsbehandling.Uføre>().let {
         this.uføre.shouldBeEqualToExceptId(it.uføre)
         this.formue.shouldBeEqualToExceptId(it.formue)
         this.flyktning.shouldBeEqualToExceptId(it.flyktning)
@@ -332,8 +326,8 @@ fun Vilkårsvurderinger.Søknadsbehandling.Uføre.shouldBeEqualToExceptId(expect
     }
 }
 
-fun Vilkårsvurderinger.Søknadsbehandling.Alder.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected.shouldBeType<Vilkårsvurderinger.Søknadsbehandling.Alder>().let {
+fun VilkårsvurderingerSøknadsbehandling.Alder.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected.shouldBeType<VilkårsvurderingerSøknadsbehandling.Alder>().let {
         this.formue.shouldBeEqualToExceptId(it.formue)
         this.lovligOpphold.shouldBeEqualToExceptId(it.lovligOpphold)
         this.fastOpphold.shouldBeEqualToExceptId(it.fastOpphold)
@@ -343,8 +337,8 @@ fun Vilkårsvurderinger.Søknadsbehandling.Alder.shouldBeEqualToExceptId(expecte
     }
 }
 
-fun Vilkårsvurderinger.Revurdering.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected.shouldBeType<Vilkårsvurderinger.Revurdering.Uføre>().let {
+fun VilkårsvurderingerRevurdering.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected.shouldBeType<VilkårsvurderingerRevurdering.Uføre>().let {
         this.uføre.shouldBeEqualToExceptId(it.uføre)
         this.formue.shouldBeEqualToExceptId(it.formue)
         this.utenlandsopphold.shouldBeEqualToExceptId(it.utenlandsopphold)
@@ -352,8 +346,8 @@ fun Vilkårsvurderinger.Revurdering.Uføre.shouldBeEqualToExceptId(expected: Vil
     }
 }
 
-fun Vilkårsvurderinger.Revurdering.Alder.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected.shouldBeType<Vilkårsvurderinger.Revurdering.Alder>().let {
+fun VilkårsvurderingerRevurdering.Alder.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected.shouldBeType<VilkårsvurderingerRevurdering.Alder>().let {
         this.formue.shouldBeEqualToExceptId(it.formue)
         this.utenlandsopphold.shouldBeEqualToExceptId(it.utenlandsopphold)
         this.opplysningsplikt.shouldBeEqualToExceptId(it.opplysningsplikt)

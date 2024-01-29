@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.kronologisk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
@@ -20,7 +20,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
     protected abstract fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean
 
     data class UtenBeregning(
-        private val vilkårsvurderinger: Vilkårsvurderinger,
+        private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val periode: Periode,
     ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
@@ -47,7 +47,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
 
     data class MedBeregning(
         private val revurderingsperiode: Periode,
-        private val vilkårsvurderinger: Vilkårsvurderinger,
+        private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val gjeldendeMånedsberegninger: List<Månedsberegning>,
         private val nyBeregning: Beregning,
         private val clock: Clock,

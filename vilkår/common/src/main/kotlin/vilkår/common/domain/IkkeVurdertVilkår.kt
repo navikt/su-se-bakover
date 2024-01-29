@@ -8,6 +8,6 @@ interface IkkeVurdertVilkår : Vilkår {
     override val erAvslag: Boolean get() = false
     override val erInnvilget: Boolean get() = false
     override val perioder: List<Periode> get() = emptyList()
-
+    override val avslagsgrunner: List<Avslagsgrunn> get() = emptyList()
     override fun hentTidligesteDatoForAvslag(): LocalDate? = null
 }

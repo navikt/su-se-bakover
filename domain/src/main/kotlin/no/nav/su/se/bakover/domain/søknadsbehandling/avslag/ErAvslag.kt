@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.avslag
 
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import vilkår.common.domain.Avslagsgrunn
 
 interface ErAvslag {
     val avslagsgrunner: List<Avslagsgrunn>

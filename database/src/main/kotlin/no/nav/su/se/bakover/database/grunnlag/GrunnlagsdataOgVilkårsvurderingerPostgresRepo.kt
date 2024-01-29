@@ -7,7 +7,12 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSessi
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
+import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
@@ -128,7 +133,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             )
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {
-                    Vilkårsvurderinger.Revurdering.Alder(
+                    VilkårsvurderingerRevurdering.Alder(
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -144,7 +149,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 }
 
                 Sakstype.UFØRE -> {
-                    Vilkårsvurderinger.Revurdering.Uføre(
+                    VilkårsvurderingerRevurdering.Uføre(
                         uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -182,7 +187,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
 
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {
-                    Vilkårsvurderinger.Søknadsbehandling.Alder(
+                    VilkårsvurderingerSøknadsbehandling.Alder(
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -202,7 +207,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 }
 
                 Sakstype.UFØRE -> {
-                    Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                    VilkårsvurderingerSøknadsbehandling.Uføre(
                         uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),

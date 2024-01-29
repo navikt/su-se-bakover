@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.behandling.avslag
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import vilkår.common.domain.Avslagsgrunn
 
 internal class AvslagsgrunnTest {
     @Test

@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import vilkår.vurderinger.domain.Vilkårsvurderinger
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 

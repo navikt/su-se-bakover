@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.test.brev.pdfInnholdAvslag
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import vilkår.common.domain.Avslagsgrunn
+import vilkår.common.domain.getDistinkteParagrafer
 
 class AvslagsPdfInnholdTest {
 
@@ -66,7 +66,7 @@ class AvslagsPdfInnholdTest {
             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER to listOf(1, 2, 4),
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON to listOf(12),
             Avslagsgrunn.MANGLENDE_DOKUMENTASJON to listOf(18),
-        ).forEach { (avslagsgrunn, paragrafer) -> avslagsgrunn.getParagrafer() shouldBe paragrafer }
+        ).forEach { (avslagsgrunn, paragrafer) -> avslagsgrunn.paragrafer shouldBe paragrafer }
     }
 
     @Test

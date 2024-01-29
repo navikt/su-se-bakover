@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -23,9 +22,10 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
+import vilkår.common.domain.Avslagsgrunn
+import vilkår.common.domain.Vurdering
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
@@ -77,8 +77,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                     ),
                 )
             }
-            return when (oppdaterteGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering) {
-                is Vilkårsvurderingsresultat.Avslag -> {
+            return when (oppdaterteGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat()) {
+                is Vurdering.Avslag -> {
                     Avslag(
                         forrigeTilstand = forrigeTilstand,
                         aldersvurdering = aldersvurdering,
@@ -89,7 +89,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                     )
                 }
 
-                is Vilkårsvurderingsresultat.Innvilget -> {
+                is Vurdering.Innvilget -> {
                     Innvilget(
                         id = forrigeTilstand.id,
                         opprettet = forrigeTilstand.opprettet,
@@ -108,7 +108,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                     )
                 }
 
-                is Vilkårsvurderingsresultat.Uavklart -> {
+                is Vurdering.Uavklart -> {
                     Uavklart(
                         id = forrigeTilstand.id,
                         opprettet = forrigeTilstand.opprettet,
@@ -202,7 +202,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         Søknadsbehandling by forrigeTilstand,
         ErAvslag {
 
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling =
+        override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling =
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
         override val grunnlagsdata: Grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
         override val eksterneGrunnlag: EksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag
@@ -287,10 +287,10 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-        override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
-            is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
-            is Vilkårsvurderingsresultat.Innvilget -> emptyList()
-            is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+        override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
+            is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
+            is Vurdering.Innvilget -> emptyList()
+            is Vurdering.Uavklart -> emptyList()
         }
     }
 

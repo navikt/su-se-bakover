@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
@@ -42,26 +42,11 @@ import java.util.UUID
 internal class VilkårsvurderingerTest {
 
     @Nested
-    inner class Søknadsbehandling {
+    inner class VilkårsvurderingerSøknadsbehandling {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
-            vilkårsvurderingerSøknadsbehandlingInnvilget().let {
-                it.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
-                    setOf(
-                        it.uføre,
-                        it.formue,
-                        it.flyktning,
-                        it.lovligOpphold,
-                        it.fastOpphold,
-                        it.institusjonsopphold,
-                        it.utenlandsopphold,
-                        it.personligOppmøte,
-                        it.opplysningsplikt,
-                        it.personligOppmøte,
-                    ),
-                )
-            }
+            vilkårsvurderingerSøknadsbehandlingInnvilget().resultat() shouldBe Vurdering.Innvilget
         }
 
         @Test
@@ -92,11 +77,8 @@ internal class VilkårsvurderingerTest {
                     ),
                 ).getOrFail(),
             ).let { vilkårsvurdering ->
-                (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
-                    it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
-                    it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
-                    it.tidligsteDatoForAvslag shouldBe 1.september(2021)
-                }
+                vilkårsvurdering.resultat() shouldBe Vurdering.Avslag
+                vilkårsvurdering.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
             }
         }
 
@@ -104,9 +86,9 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår avslått gir avslag`() {
             vilkårsvurderingerAvslåttAlle()
                 .let { vilkårsvurdering ->
-                    (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
-                        it.vilkår shouldBe vilkårsvurdering.vilkår
-                        it.avslagsgrunner shouldBe listOf(
+                    vilkårsvurdering.resultat().let {
+                        it shouldBe Vurdering.Avslag
+                        vilkårsvurdering.avslagsgrunner shouldBe listOf(
                             Avslagsgrunn.UFØRHET,
                             Avslagsgrunn.FORMUE,
                             Avslagsgrunn.FLYKTNING,
@@ -117,7 +99,6 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                         )
-                        it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
                 }
         }
@@ -126,14 +107,16 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår uavklart gir uavklart`() {
             vilkårsvurderingSøknadsbehandlingIkkeVurdert()
                 .let {
-                    it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
+                    it.resultat() shouldBe Vurdering.Uavklart
+                    it.avslagsgrunner shouldBe "denne kommer til å feile - må fikse"
                 }
         }
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            vilkårsvurderingSøknadsbehandlingIkkeVurdert().vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-                setOf(
+            vilkårsvurderingSøknadsbehandlingIkkeVurdert().let {
+                it.resultat() shouldBe Vurdering.Uavklart
+                it.avslagsgrunner shouldBe setOf(
                     UføreVilkår.IkkeVurdert,
                     formuevilkårIkkeVurdert(),
                     FlyktningVilkår.IkkeVurdert,
@@ -143,8 +126,8 @@ internal class VilkårsvurderingerTest {
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
-                ),
-            )
+                )
+            }
         }
 
         @Test
@@ -239,23 +222,22 @@ internal class VilkårsvurderingerTest {
     }
 
     @Nested
-    inner class Revurdering {
+    inner class VilkårsvurderingerRevurdering {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
             vilkårsvurderingerRevurderingInnvilget().let {
-                it.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
-                    setOf(
-                        it.uføre,
-                        it.formue,
-                        it.utenlandsopphold,
-                        it.opplysningsplikt,
-                        it.lovligOpphold,
-                        it.flyktning,
-                        it.fastOpphold,
-                        it.personligOppmøte,
-                        it.institusjonsopphold,
-                    ),
+                it.resultat() shouldBe Vurdering.Innvilget
+                it.avslagsgrunner shouldBe setOf(
+                    it.uføre,
+                    it.formue,
+                    it.utenlandsopphold,
+                    it.opplysningsplikt,
+                    it.lovligOpphold,
+                    it.flyktning,
+                    it.fastOpphold,
+                    it.personligOppmøte,
+                    it.institusjonsopphold,
                 )
             }
         }
@@ -288,10 +270,8 @@ internal class VilkårsvurderingerTest {
                     ),
                 ).getOrFail(),
             ).let { vilkårsvurdering ->
-                (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
-                    it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
-                    it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
-                    it.tidligsteDatoForAvslag shouldBe 1.september(2021)
+                (vilkårsvurdering.resultat() as Vurdering.Avslag).let {
+                    vilkårsvurdering.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
                 }
             }
         }
@@ -300,9 +280,8 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår avslått gir avslag`() {
             vilkårsvurderingerAvslåttAlleRevurdering()
                 .let { vilkårsvurdering ->
-                    (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
-                        it.vilkår shouldBe vilkårsvurdering.vilkår
-                        it.avslagsgrunner shouldBe listOf(
+                    (vilkårsvurdering.resultat() as Vurdering.Avslag).let {
+                        vilkårsvurdering.avslagsgrunner shouldBe listOf(
                             Avslagsgrunn.UFØRHET,
                             Avslagsgrunn.FORMUE,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
@@ -313,7 +292,6 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
                             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
                         )
-                        it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
                 }
         }
@@ -322,7 +300,8 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår uavklart gir uavklart`() {
             vilkårsvurderingRevurderingIkkeVurdert()
                 .let {
-                    it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
+                    it.resultat() shouldBe Vurdering.Uavklart
+                    it.avslagsgrunner shouldBe "denne skal feile"
                 }
         }
 
@@ -331,18 +310,16 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerRevurderingInnvilget(
                 uføre = UføreVilkår.IkkeVurdert,
             ).let {
-                it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-                    setOf(
-                        UføreVilkår.IkkeVurdert,
-                    ),
-                )
+                it.resultat() shouldBe Vurdering.Uavklart
+                it.avslagsgrunner shouldBe setOf(UføreVilkår.IkkeVurdert)
             }
         }
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            vilkårsvurderingRevurderingIkkeVurdert().vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-                setOf(
+            vilkårsvurderingRevurderingIkkeVurdert().let {
+                it.resultat() shouldBe Vurdering.Uavklart
+                it.avslagsgrunner shouldBe setOf(
                     UføreVilkår.IkkeVurdert,
                     formuevilkårIkkeVurdert(),
                     UtenlandsoppholdVilkår.IkkeVurdert,
@@ -352,8 +329,8 @@ internal class VilkårsvurderingerTest {
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
                     InstitusjonsoppholdVilkår.IkkeVurdert,
-                ),
-            )
+                )
+            }
         }
 
         @Test

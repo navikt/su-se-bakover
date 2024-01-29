@@ -11,7 +11,8 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -39,7 +40,7 @@ data class GjeldendeVedtaksdata(
 ) {
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
     val grunnlagsdata: Grunnlagsdata get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+    val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
     private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje().krympTilPeriode(periode)
 
@@ -60,10 +61,9 @@ data class GjeldendeVedtaksdata(
                 // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
                 when {
                     vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Uføre ||
-                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
+                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Uføre
                     } -> {
-                        Vilkårsvurderinger.Revurdering.Uføre(
+                        VilkårsvurderingerRevurdering.Uføre(
                             uføre = it.uføreVilkår(),
                             lovligOpphold = it.lovligoppholdVilkår(),
                             formue = it.formueVilkår(),
@@ -77,10 +77,10 @@ data class GjeldendeVedtaksdata(
                     }
 
                     vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
-                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
+                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Alder ||
+                            it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder
                     } -> {
-                        Vilkårsvurderinger.Revurdering.Alder(
+                        VilkårsvurderingerRevurdering.Alder(
                             lovligOpphold = it.lovligoppholdVilkår(),
                             formue = it.formueVilkår(),
                             utenlandsopphold = it.utenlandsoppholdVilkår(),

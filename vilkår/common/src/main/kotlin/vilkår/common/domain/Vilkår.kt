@@ -15,6 +15,7 @@ interface Vilkår {
     val erAvslag: Boolean
     val erInnvilget: Boolean
     val vilkår: Inngangsvilkår
+    val avslagsgrunner: List<Avslagsgrunn>
 
     /**
      * Vurderte vilkår vil ha en eller flere [Periode], mens ikke-vurderte vilkår vil ikke ha en [Periode].

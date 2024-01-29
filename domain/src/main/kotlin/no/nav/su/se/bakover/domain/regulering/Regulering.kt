@@ -9,14 +9,14 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.common.domain.Vurdering
 import vilkår.vurderinger.domain.erGyldigTilstand
 import java.time.Clock
 import java.util.UUID
 
-fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
+fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat() is Vurdering.Avslag
 
 sealed interface Regulering : Reguleringsfelter {
 

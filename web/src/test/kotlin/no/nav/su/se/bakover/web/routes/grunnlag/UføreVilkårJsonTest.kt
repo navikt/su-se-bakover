@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
@@ -71,7 +71,7 @@ class UføreVilkårJsonTest {
             vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
         )
 
-        internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
+        internal val vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
             uføre = uførevurdering,
             lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
             formue = formuevilkårIkkeVurdert(),

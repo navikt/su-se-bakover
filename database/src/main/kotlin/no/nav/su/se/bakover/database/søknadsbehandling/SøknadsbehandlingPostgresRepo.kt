@@ -54,7 +54,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttes
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -68,7 +68,7 @@ internal data class BaseSøknadsbehandlingDb(
     val fritekstTilBrev: String?,
     val stønadsperiode: Stønadsperiode?,
     val grunnlagsdata: Grunnlagsdata,
-    val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+    val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling,
     val eksterneGrunnlag: EksterneGrunnlag,
     val attesteringer: Attesteringshistorikk,
     val sakstype: Sakstype,
@@ -126,7 +126,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fritekstTilBrev = null,
                 stønadsperiode = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert(),
+                vilkårsvurderinger = VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert(),
                 eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
                 sakstype = this.sakstype,

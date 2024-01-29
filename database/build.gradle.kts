@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":vilkår:personligoppmøte:domain"))
     implementation(project(":vilkår:familiegjenforening:domain"))
     implementation(project(":vilkår:bosituasjon"))
+    implementation(project(":vilkår:vurderinger"))
 
     implementation(project(":oppgave:infrastructure"))
     implementation(project(":oppgave:domain"))
