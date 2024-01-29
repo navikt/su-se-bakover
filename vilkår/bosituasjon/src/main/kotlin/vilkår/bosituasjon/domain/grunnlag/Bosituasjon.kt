@@ -134,8 +134,6 @@ sealed interface Bosituasjon : Grunnlag {
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
                         }
-
-                        else -> TODO("fjern meg senere")
                     }
                 }
 
@@ -163,8 +161,6 @@ sealed interface Bosituasjon : Grunnlag {
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
                         }
-
-                        else -> TODO("fjern meg senere")
                     }
                 }
             }
@@ -193,8 +189,6 @@ sealed interface Bosituasjon : Grunnlag {
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
                     }
-
-                    else -> TODO("fjern meg senere")
                 }
             }
         }
@@ -224,8 +218,6 @@ sealed interface Bosituasjon : Grunnlag {
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     copy(id = UUID.randomUUID(), periode = args.periode)
                 }
-
-                else -> TODO("fjern meg senere")
             }
         }
 
@@ -253,8 +245,6 @@ sealed interface Bosituasjon : Grunnlag {
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     copy(id = UUID.randomUUID(), periode = args.periode)
                 }
-
-                else -> TODO("fjern meg senere")
             }
         }
     }

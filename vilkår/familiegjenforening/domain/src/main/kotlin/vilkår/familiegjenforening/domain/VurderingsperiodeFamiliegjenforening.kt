@@ -22,7 +22,6 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
         return when (args) {
             CopyArgs.Tidslinje.Full -> copy(id = UUID.randomUUID())
             is CopyArgs.Tidslinje.NyPeriode -> copy(id = UUID.randomUUID(), periode = args.periode)
-            else -> TODO("fjern meg senere")
         }
     }
 

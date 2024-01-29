@@ -104,8 +104,6 @@ data class VurderingsperiodePersonligOppmøte(
                 grunnlag = grunnlag.copy(args),
             )
         }
-
-        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {

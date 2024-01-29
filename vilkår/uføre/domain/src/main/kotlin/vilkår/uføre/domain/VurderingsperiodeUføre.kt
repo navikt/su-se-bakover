@@ -42,8 +42,6 @@ data class VurderingsperiodeUføre private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
-
-        else -> TODO("fjern meg senere")
     }
 
     /**

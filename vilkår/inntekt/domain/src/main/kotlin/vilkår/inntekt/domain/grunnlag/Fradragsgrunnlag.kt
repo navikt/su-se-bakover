@@ -181,7 +181,5 @@ data class Fradragsgrunnlag private constructor(
              */
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
-
-        else -> TODO("fjern meg senere")
     }
 }

@@ -104,8 +104,6 @@ data class Formuegrunnlag private constructor(
         is CopyArgs.Tidslinje.NyPeriode -> {
             this.copy(id = UUID.randomUUID(), periode = args.periode)
         }
-
-        else -> TODO("fjern meg senere")
     }
 }
 

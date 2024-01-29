@@ -41,8 +41,6 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
                 periode = args.periode,
             )
         }
-
-        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {

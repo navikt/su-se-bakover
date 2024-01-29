@@ -51,7 +51,6 @@ data class VedtakPåTidslinje private constructor(
     override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje = when (args) {
         CopyArgs.Tidslinje.Full -> kopi()
         is CopyArgs.Tidslinje.NyPeriode -> nyPeriode(args.periode)
-        else -> TODO("fjern meg senere")
     }
 
     /**

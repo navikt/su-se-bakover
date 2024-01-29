@@ -45,8 +45,6 @@ data class VurderingsperiodePensjon private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
-
-        else -> TODO("fjern meg senere")
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
