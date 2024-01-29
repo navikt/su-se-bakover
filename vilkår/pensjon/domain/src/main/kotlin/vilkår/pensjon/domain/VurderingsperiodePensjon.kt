@@ -26,6 +26,7 @@ data class VurderingsperiodePensjon private constructor(
             id = id,
             opprettet = opprettet,
             periode = stønadsperiode.periode,
+            vurdering = vurdering,
             grunnlag = grunnlag,
         )
     }
@@ -58,9 +59,10 @@ data class VurderingsperiodePensjon private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             periode: Periode,
+            vurdering: Vurdering,
             grunnlag: Pensjonsgrunnlag,
         ): VurderingsperiodePensjon {
-            return tryCreate(id, opprettet, periode, grunnlag).getOrElse {
+            return tryCreate(id, opprettet, vurdering, periode, grunnlag).getOrElse {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -68,6 +70,7 @@ data class VurderingsperiodePensjon private constructor(
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
+            vurdering: Vurdering,
             vurderingsperiode: Periode,
             grunnlag: Pensjonsgrunnlag,
         ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
@@ -78,7 +81,7 @@ data class VurderingsperiodePensjon private constructor(
             return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,
-                vurdering = grunnlag.tilResultat(),
+                vurdering = vurdering,
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
             ).right()

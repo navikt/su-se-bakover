@@ -125,6 +125,7 @@ internal class PensjonVilkårsvurderingPostgresRepo(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),
             ),
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = pensjonsgrunnlagPostgresRepo.hent((uuid("grunnlag_id")), session)!!,
         )
     }

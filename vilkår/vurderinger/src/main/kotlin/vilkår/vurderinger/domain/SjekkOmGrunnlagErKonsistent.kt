@@ -19,7 +19,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.perioder
 import vilkår.uføre.domain.Uføregrunnlag
 
 /**
- * TODO - vi beholder denne klassen for å gjøre det eklere med test-oppsettet.
+ * TODO - vi beholder denne klassen for å gjøre det enklere med test-oppsettet.
  * Når vi kommer oss bort fra dette, skal den slettes
  */
 data class SjekkOmGrunnlagErKonsistent(

@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vilkår.common.domain.Vurdering
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
 
@@ -17,10 +16,6 @@ data class Pensjonsgrunnlag(
 
     fun oppdaterPeriode(periode: Periode): Pensjonsgrunnlag {
         return copy(periode = periode)
-    }
-
-    fun tilResultat(): Vurdering {
-        return pensjonsopplysninger.resultat()
     }
 
     override fun copy(args: CopyArgs.Tidslinje): Pensjonsgrunnlag = when (args) {

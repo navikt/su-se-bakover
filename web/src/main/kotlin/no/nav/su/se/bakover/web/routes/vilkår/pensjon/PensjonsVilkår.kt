@@ -174,15 +174,17 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
 ) {
     fun toDomain(clock: Clock): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
         val opprettet = Tidspunkt.now(clock)
+        val pensjonsopplysninger = pensjonsopplysninger.toDomain()
         return VurderingsperiodePensjon.tryCreate(
             id = UUID.randomUUID(),
             opprettet = opprettet,
             vurderingsperiode = periode.toPeriode(),
+            vurdering = pensjonsopplysninger.resultat(),
             grunnlag = Pensjonsgrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
                 periode = periode.toPeriode(),
-                pensjonsopplysninger = pensjonsopplysninger.toDomain(),
+                pensjonsopplysninger = pensjonsopplysninger,
             ),
         )
     }
