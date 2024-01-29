@@ -29,7 +29,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
-class LeggTilBosituasjonTestKonsistentProblem {
+class LeggTilBosituasjonKonsistentProblemTest {
     @Test
     fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituasjon endres til å være enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
