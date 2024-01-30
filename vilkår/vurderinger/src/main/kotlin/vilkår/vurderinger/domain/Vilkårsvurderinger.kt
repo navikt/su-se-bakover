@@ -32,31 +32,6 @@ interface Vilkårsvurderinger {
     val erVurdert: Boolean get() = vilkår.none { it.vurdering is Vurdering.Uavklart }
     val avslagsgrunner: List<Avslagsgrunn> get() = vilkår.flatMap { it.avslagsgrunner }
 
-//    /**
-//     * Implementasjonen må bestemme om uføre vilkåret finnes
-//     */
-//    fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår>
-//
-//    /**
-//     * Implementasjonen må bestemme om uføre vilkåret finnes
-//     */
-//    fun uføreVilkårKastHvisAlder(): UføreVilkår
-//
-//    /**
-//     * Implementasjonen må bestemme om flyktning vilkåret finnes
-//     */
-//    fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår>
-//
-//    /**
-//     * Implementasjonen må bestemme om pensjons vilkåret finnes
-//     */
-//    fun pensjonsVilkår(): Either<VilkårEksistererIkke, PensjonsVilkår>
-//
-//    /**
-//     * Implementasjonen må bestemme om familiegjenforening vilkåret finnes
-//     */
-//    fun familiegjenforening(): Either<VilkårEksistererIkke, FamiliegjenforeningVilkår>
-
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
     fun institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår = institusjonsopphold

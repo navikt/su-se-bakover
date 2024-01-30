@@ -100,10 +100,6 @@ sealed class Revurdering :
         return UgyldigTilstand(this::class, this::class).left()
     }
 
-//    fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
-//        return vilkårsvurderinger.resultat()
-//    }
-
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
     /**
