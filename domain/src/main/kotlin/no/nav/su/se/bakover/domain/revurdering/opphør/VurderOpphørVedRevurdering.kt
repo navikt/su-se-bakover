@@ -62,7 +62,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
         return when (vilkårsvurderinger.resultat()) {
             Vurdering.Avslag -> OpphørVedRevurdering.Ja(
                 opphørsgrunner = vilkårsvurderinger.avslagsgrunner.map { it }.tilOpphørsgrunn(),
-                opphørsdato = vilkårsvurderinger.vilkår.minOf { it.hentTidligesteDatoForAvslag()!! },
+                opphørsdato = vilkårsvurderinger.vilkår.filter { it.erAvslag }.minOf { it.hentTidligesteDatoForAvslag()!! },
             )
 
             Vurdering.Innvilget -> OpphørVedRevurdering.Nei

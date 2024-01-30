@@ -30,7 +30,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.PersonService
 import java.time.ZoneOffset
 
-internal class StatistikkVilkårsvurderingerRevurderingTest {
+internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer opprettet revurdering`() {

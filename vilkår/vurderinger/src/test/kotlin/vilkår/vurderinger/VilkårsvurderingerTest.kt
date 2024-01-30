@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.vurderinger
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
@@ -108,7 +109,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingSøknadsbehandlingIkkeVurdert()
                 .let {
                     it.resultat() shouldBe Vurdering.Uavklart
-                    it.avslagsgrunner shouldBe "denne kommer til å feile - må fikse"
+                    it.avslagsgrunner shouldBe emptyList()
                 }
         }
 
@@ -116,17 +117,7 @@ internal class VilkårsvurderingerTest {
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
             vilkårsvurderingSøknadsbehandlingIkkeVurdert().let {
                 it.resultat() shouldBe Vurdering.Uavklart
-                it.avslagsgrunner shouldBe setOf(
-                    UføreVilkår.IkkeVurdert,
-                    formuevilkårIkkeVurdert(),
-                    FlyktningVilkår.IkkeVurdert,
-                    LovligOppholdVilkår.IkkeVurdert,
-                    FastOppholdINorgeVilkår.IkkeVurdert,
-                    InstitusjonsoppholdVilkår.IkkeVurdert,
-                    UtenlandsoppholdVilkår.IkkeVurdert,
-                    PersonligOppmøteVilkår.IkkeVurdert,
-                    OpplysningspliktVilkår.IkkeVurdert,
-                )
+                it.avslagsgrunner shouldBe emptyList()
             }
         }
 
@@ -228,17 +219,7 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår innvilget gir resultat innvilget`() {
             vilkårsvurderingerRevurderingInnvilget().let {
                 it.resultat() shouldBe Vurdering.Innvilget
-                it.avslagsgrunner shouldBe setOf(
-                    it.uføre,
-                    it.formue,
-                    it.utenlandsopphold,
-                    it.opplysningsplikt,
-                    it.lovligOpphold,
-                    it.flyktning,
-                    it.fastOpphold,
-                    it.personligOppmøte,
-                    it.institusjonsopphold,
-                )
+                it.avslagsgrunner shouldBe emptyList()
             }
         }
 
@@ -301,7 +282,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingRevurderingIkkeVurdert()
                 .let {
                     it.resultat() shouldBe Vurdering.Uavklart
-                    it.avslagsgrunner shouldBe "denne skal feile"
+                    it.avslagsgrunner shouldBe emptyList()
                 }
         }
 
@@ -311,7 +292,7 @@ internal class VilkårsvurderingerTest {
                 uføre = UføreVilkår.IkkeVurdert,
             ).let {
                 it.resultat() shouldBe Vurdering.Uavklart
-                it.avslagsgrunner shouldBe setOf(UføreVilkår.IkkeVurdert)
+                it.avslagsgrunner shouldBe emptyList()
             }
         }
 
@@ -319,17 +300,7 @@ internal class VilkårsvurderingerTest {
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
             vilkårsvurderingRevurderingIkkeVurdert().let {
                 it.resultat() shouldBe Vurdering.Uavklart
-                it.avslagsgrunner shouldBe setOf(
-                    UføreVilkår.IkkeVurdert,
-                    formuevilkårIkkeVurdert(),
-                    UtenlandsoppholdVilkår.IkkeVurdert,
-                    OpplysningspliktVilkår.IkkeVurdert,
-                    LovligOppholdVilkår.IkkeVurdert,
-                    FlyktningVilkår.IkkeVurdert,
-                    FastOppholdINorgeVilkår.IkkeVurdert,
-                    PersonligOppmøteVilkår.IkkeVurdert,
-                    InstitusjonsoppholdVilkår.IkkeVurdert,
-                )
+                it.avslagsgrunner shouldBe emptyList()
             }
         }
 

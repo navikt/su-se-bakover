@@ -61,40 +61,33 @@ data class GjeldendeVedtaksdata(
                 // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
                 when {
                     vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Uføre
-                    } -> {
-                        VilkårsvurderingerRevurdering.Uføre(
-                            uføre = it.uføreVilkår(),
-                            lovligOpphold = it.lovligoppholdVilkår(),
-                            formue = it.formueVilkår(),
-                            utenlandsopphold = it.utenlandsoppholdVilkår(),
-                            opplysningsplikt = it.opplysningspliktVilkår(),
-                            flyktning = it.flyktningVilkår(),
-                            fastOpphold = it.fastOppholdINorgeVilkår(),
-                            personligOppmøte = it.personligOppmøteVilkår(),
-                            institusjonsopphold = it.institusjonsoppholdVilkår(),
-                        )
-                    }
+                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Uføre || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre
+                    } -> VilkårsvurderingerRevurdering.Uføre(
+                        uføre = it.uføreVilkår(),
+                        lovligOpphold = it.lovligoppholdVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                        flyktning = it.flyktningVilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
+                        institusjonsopphold = it.institusjonsoppholdVilkår(),
+                    )
 
                     vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Alder ||
-                            it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder
-                    } -> {
-                        VilkårsvurderingerRevurdering.Alder(
-                            lovligOpphold = it.lovligoppholdVilkår(),
-                            formue = it.formueVilkår(),
-                            utenlandsopphold = it.utenlandsoppholdVilkår(),
-                            opplysningsplikt = it.opplysningspliktVilkår(),
-                            pensjon = it.pensjonsVilkår(),
-                            familiegjenforening = it.familiegjenforeningvilkår(),
-                            fastOpphold = it.fastOppholdINorgeVilkår(),
-                            personligOppmøte = it.personligOppmøteVilkår(),
-                        )
-                    }
+                        it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Alder || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder
+                    } -> VilkårsvurderingerRevurdering.Alder(
+                        lovligOpphold = it.lovligoppholdVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                        pensjon = it.pensjonsVilkår(),
+                        familiegjenforening = it.familiegjenforeningvilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
+                    )
 
-                    else -> {
-                        throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
-                    }
+                    else -> throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
                 }
             },
         )
