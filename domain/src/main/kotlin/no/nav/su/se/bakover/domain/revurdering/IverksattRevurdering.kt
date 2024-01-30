@@ -28,7 +28,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class IverksattRevurdering : Revurdering() {
+sealed interface IverksattRevurdering : Revurdering {
     abstract override val id: UUID
     abstract override val periode: Periode
     abstract override val opprettet: Tidspunkt
@@ -39,7 +39,7 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val beregning: Beregning
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
-    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
     fun avventerKravgrunnlag(): Boolean {
@@ -70,7 +70,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : IverksattRevurdering() {
+    ) : IverksattRevurdering {
 
         override val erOpphørt = false
 
@@ -114,7 +114,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : IverksattRevurdering() {
+    ) : IverksattRevurdering {
 
         override val erOpphørt = true
 

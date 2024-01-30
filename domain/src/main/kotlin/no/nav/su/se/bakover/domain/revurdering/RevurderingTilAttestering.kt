@@ -27,18 +27,18 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed class RevurderingTilAttestering : Revurdering() {
+sealed interface RevurderingTilAttestering : Revurdering {
     abstract override val beregning: Beregning
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
 
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
-    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = true
 
-    abstract fun tilIverksatt(
+    fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,
         clock: Clock,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
@@ -61,7 +61,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : RevurderingTilAttestering() {
+    ) : RevurderingTilAttestering {
 
         override val erOpphørt = false
 
@@ -121,7 +121,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : RevurderingTilAttestering() {
+    ) : RevurderingTilAttestering {
         override val erOpphørt = true
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
@@ -182,8 +182,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         satsFactory: SatsFactory,
     ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
 
-    sealed class KunneIkkeIverksetteRevurdering {
-        data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+    sealed interface KunneIkkeIverksetteRevurdering {
+        data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering
     }
 
     fun underkjenn(

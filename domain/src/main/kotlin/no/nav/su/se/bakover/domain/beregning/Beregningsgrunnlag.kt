@@ -86,9 +86,9 @@ data class Beregningsgrunnlag private constructor(
     }
 }
 
-sealed class UgyldigBeregningsgrunnlag {
-    data object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag()
-    data object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag()
-    data object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag()
-    data object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag()
+sealed interface UgyldigBeregningsgrunnlag {
+    data object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag
+    data object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag
+    data object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag
+    data object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag
 }

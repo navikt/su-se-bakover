@@ -27,7 +27,7 @@ data class OpphørsvedtakPdfInnhold(
     val halvGrunnbeløp: Int?,
     val opphørsperiode: BrevPeriode,
     val satsoversikt: Satsoversikt,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Opphør.Opphørsvedtak
 
     @Suppress("unused")

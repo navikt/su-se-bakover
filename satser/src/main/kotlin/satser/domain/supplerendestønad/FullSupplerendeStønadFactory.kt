@@ -11,25 +11,25 @@ import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUf
 import java.math.BigDecimal
 import java.math.MathContext
 
-sealed class FullSupplerendeStønadFactory {
-    protected abstract val satskategori: Satskategori
-    protected abstract val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned>
+sealed interface FullSupplerendeStønadFactory {
+    val satskategori: Satskategori
+    val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned>
 
     /** Knekkpunktet til factorien */
-    protected abstract val knekkpunkt: Knekkpunkt
+    val knekkpunkt: Knekkpunkt
 
     /** Inclusive */
-    protected abstract val tidligsteTilgjengeligeMåned: Måned
+    val tidligsteTilgjengeligeMåned: Måned
 
     /** Inclusive */
-    protected abstract val senesteTilgjengeligeMåned: Måned
+    val senesteTilgjengeligeMåned: Måned
 
     companion object {
         protected val TO_PROSENT = BigDecimal("0.02")
         protected val MÅNEDER_PER_ÅR = BigDecimal("12")
     }
 
-    protected fun månedTilFullSupplerendeStønadForUføre(
+    fun månedTilFullSupplerendeStønadForUføre(
         grunnbeløpFactory: GrunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
     ): Map<Måned, FullSupplerendeStønadForMåned.Uføre> {
@@ -64,10 +64,10 @@ sealed class FullSupplerendeStønadFactory {
         return satskategori
     }
 
-    abstract fun forMåned(måned: Måned): FullSupplerendeStønadForMåned
+    fun forMåned(måned: Måned): FullSupplerendeStønadForMåned
 
-    sealed class Ordinær : FullSupplerendeStønadFactory() {
-        override val satskategori = Satskategori.ORDINÆR
+    sealed interface Ordinær : FullSupplerendeStønadFactory {
+        override val satskategori get() = Satskategori.ORDINÆR
 
         /**
          * https://www.nav.no/no/nav-og-samfunn/kontakt-nav/oversikt-over-satser/minste-arlig-ytelse-for-uforetrygdede_kap
@@ -77,7 +77,7 @@ sealed class FullSupplerendeStønadFactory {
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
-        ) : Ordinær() {
+        ) : Ordinær {
 
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
@@ -119,7 +119,7 @@ sealed class FullSupplerendeStønadFactory {
             val garantipensjonFactory: GarantipensjonFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
-        ) : Ordinær() {
+        ) : Ordinær {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.ordinær.mapValues { (måned, garantipensjonForMåned) ->
                     FullSupplerendeStønadForMåned.Alder(
@@ -162,9 +162,9 @@ sealed class FullSupplerendeStønadFactory {
         }
     }
 
-    sealed class Høy : FullSupplerendeStønadFactory() {
+    sealed interface Høy : FullSupplerendeStønadFactory {
 
-        override val satskategori = Satskategori.HØY
+        override val satskategori get() = Satskategori.HØY
 
         /**
          * https://www.nav.no/no/nav-og-samfunn/kontakt-nav/oversikt-over-satser/minste-arlig-ytelse-for-uforetrygdede_kap
@@ -174,7 +174,7 @@ sealed class FullSupplerendeStønadFactory {
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
-        ) : Høy() {
+        ) : Høy {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
                     grunnbeløpFactory = grunnbeløpFactory,
@@ -215,7 +215,7 @@ sealed class FullSupplerendeStønadFactory {
             val garantipensjonFactory: GarantipensjonFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
-        ) : Høy() {
+        ) : Høy {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.høy.mapValues { (måned, garantipensjonForMåned) ->
                     FullSupplerendeStønadForMåned.Alder(

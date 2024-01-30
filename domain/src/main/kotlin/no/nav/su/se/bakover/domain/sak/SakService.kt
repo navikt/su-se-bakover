@@ -68,16 +68,17 @@ interface SakService {
 
 data object FantIkkeSak
 
-sealed class KunneIkkeHenteGjeldendeVedtaksdata {
-    data object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
-    data object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+sealed interface KunneIkkeHenteGjeldendeVedtaksdata {
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata
+    data object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata
 }
 
-sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
-    data class Feil(val feil: Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak) :
-        KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+    data class Feil(
+        val feil: Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak,
+    ) : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 
-    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 }
 
 data class OpprettDokumentRequest(

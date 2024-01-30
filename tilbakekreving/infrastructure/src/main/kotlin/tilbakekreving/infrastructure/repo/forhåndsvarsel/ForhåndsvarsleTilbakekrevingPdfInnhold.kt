@@ -18,6 +18,6 @@ class ForhåndsvarsleTilbakekrevingPdfInnhold(
     val nettoTilbakekreving: String,
     val tilbakekreving: List<BrevTilbakekrevingInfo>,
     val dagensDato: String,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekreving
 }

@@ -274,9 +274,9 @@ internal data class TolketUtbetaling(
     }
 }
 
-sealed class TolketDetalj {
-    abstract val beløp: Kontobeløp
-    abstract val tilbakeføring: Boolean
+sealed interface TolketDetalj {
+    val beløp: Kontobeløp
+    val tilbakeføring: Boolean
 
     fun erDebet() = beløp is Kontobeløp.Debet
     fun erKredit() = beløp is Kontobeløp.Kredit
@@ -341,21 +341,21 @@ sealed class TolketDetalj {
     data class Feilkonto(
         override val beløp: Kontobeløp,
         override val tilbakeføring: Boolean,
-    ) : TolketDetalj()
+    ) : TolketDetalj
 
     data class Ytelse(
         override val beløp: Kontobeløp,
         override val tilbakeføring: Boolean,
         val erUtbetalingSomSimuleres: Boolean,
-    ) : TolketDetalj()
+    ) : TolketDetalj
 
     data class MotpostFeilkonto(
         override val beløp: Kontobeløp,
         override val tilbakeføring: Boolean,
-    ) : TolketDetalj()
+    ) : TolketDetalj
 
     data class Skatt(
         override val beløp: Kontobeløp,
         override val tilbakeføring: Boolean,
-    ) : TolketDetalj()
+    ) : TolketDetalj
 }

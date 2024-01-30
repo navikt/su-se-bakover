@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import java.time.LocalDate
 
-sealed class KlageDokumentCommand : GenererDokumentCommand {
+sealed interface KlageDokumentCommand : GenererDokumentCommand {
 
     /**
      * Førsteinstansen opprettholder et enkeltvedtak. Da sendes det en innstilling til klageinstansen. Det samme brevet sendes som informasjon til bruker (siden de ikke kan agere på dette er det ikke annotert som viktig).
@@ -19,7 +19,7 @@ sealed class KlageDokumentCommand : GenererDokumentCommand {
         val fritekst: String,
         val klageDato: LocalDate,
         val vedtaksbrevDato: LocalDate,
-    ) : KlageDokumentCommand()
+    ) : KlageDokumentCommand
 
     /**
      * Når vi avviser en klage sendes det et enkeltvedtak til bruker.
@@ -30,5 +30,5 @@ sealed class KlageDokumentCommand : GenererDokumentCommand {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
-    ) : KlageDokumentCommand()
+    ) : KlageDokumentCommand
 }

@@ -78,14 +78,14 @@ data class EktefellePartnerSamboer(
     JsonSubTypes.Type(value = OppgittAdresse.BorPåAdresse::class, name = "BorPåAdresse"),
     JsonSubTypes.Type(value = OppgittAdresse.IngenAdresse::class, name = "IngenAdresse"),
 )
-sealed class OppgittAdresse {
+sealed interface OppgittAdresse {
 
     data class BorPåAdresse(
         val adresselinje: String,
         val postnummer: String,
         val poststed: String?,
         val bruksenhet: String?,
-    ) : OppgittAdresse() {
+    ) : OppgittAdresse {
         override fun toString() = "${hentGateAdresse()}, ${hentPostAdresse()}"
 
         private fun hentGateAdresse() = if (bruksenhet != null) "$adresselinje $bruksenhet" else adresselinje
@@ -94,7 +94,7 @@ sealed class OppgittAdresse {
 
     data class IngenAdresse(
         val grunn: IngenAdresseGrunn,
-    ) : OppgittAdresse() {
+    ) : OppgittAdresse {
 
         enum class IngenAdresseGrunn {
             BOR_PÅ_ANNEN_ADRESSE,

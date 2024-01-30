@@ -10,13 +10,13 @@ import java.time.format.DateTimeFormatter
 /**
  * Brukes for å deserialisere XML-meldinger fra oppdrag.
  */
-sealed class TilbakekrevingsmeldingDto
+sealed interface TilbakekrevingsmeldingDto
 
 @JsonRootName("endringKravOgVedtakstatus")
 data class KravgrunnlagStatusendringRootDto(
     @field:JsonProperty(value = "kravOgVedtakstatus")
     val endringKravOgVedtakstatus: KravgrunnlagStatusendringDto,
-) : TilbakekrevingsmeldingDto()
+) : TilbakekrevingsmeldingDto
 
 data class KravgrunnlagStatusendringDto(
     @field:JsonProperty(value = "vedtakId")
@@ -41,7 +41,7 @@ data class KravgrunnlagStatusendringDto(
 data class KravgrunnlagRootDto(
     @field:JsonProperty(value = "detaljertKravgrunnlag")
     val kravgrunnlagDto: KravgrunnlagDto,
-) : TilbakekrevingsmeldingDto()
+) : TilbakekrevingsmeldingDto
 
 /**
  * Representerer kravmeldingen (XML) som oppdrag legger på kravgrunnlagskøen.

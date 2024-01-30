@@ -24,7 +24,7 @@ import java.util.UUID
  * https://github.com/navikt/kabal-api/blob/main/docs/schema/behandling-events.json
  *
  * Vi deserialiserer ikke feltet `kilde` på dette tidspunktet, da vi filtrer bort de som ikke tilhører `su-se-bakover` tidligere.
- * Vi deserialiserer feltene `type` og `detaljer` inn i en sealed class vha. @JsonSubTypes og @JsonTypeInfo
+ * Vi deserialiserer feltene `type` og `detaljer` inn i et sealed interface vha. @JsonSubTypes og @JsonTypeInfo
  * Feltet `eventId` brukes kun til dedup ved lagring og trengs ikke her.
  * Feltet `kabalReferanse` brukes ikke av oss til noe, så det ignoreres.
  */

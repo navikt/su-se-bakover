@@ -2,9 +2,9 @@ package økonomi.domain.simulering
 
 import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 
-sealed class SimulerStansFeilet {
-    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerStansFeilet()
+sealed interface SimulerStansFeilet {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerStansFeilet
     data class KunneIkkeGenerereUtbetaling(
         val feil: KunneIkkeGenerereUtbetalingsstrategiForStans,
-    ) : SimulerStansFeilet()
+    ) : SimulerStansFeilet
 }

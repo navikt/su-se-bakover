@@ -27,20 +27,20 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.format.DateTimeFormatter
 
-internal sealed class RevurderingJson {
-    abstract val id: String
-    abstract val sakId: String
-    abstract val status: RevurderingsStatus
-    abstract val opprettet: String
-    abstract val periode: PeriodeJson
-    abstract val tilRevurdering: String
-    abstract val saksbehandler: String
-    abstract val årsak: String
-    abstract val begrunnelse: String
-    abstract val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
-    abstract val attesteringer: List<AttesteringJson>
-    abstract val sakstype: String
-    abstract val brevvalg: BrevvalgRevurderingJson
+internal sealed interface RevurderingJson {
+    val id: String
+    val sakId: String
+    val status: RevurderingsStatus
+    val opprettet: String
+    val periode: PeriodeJson
+    val tilRevurdering: String
+    val saksbehandler: String
+    val årsak: String
+    val begrunnelse: String
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
+    val attesteringer: List<AttesteringJson>
+    val sakstype: String
+    val brevvalg: BrevvalgRevurderingJson
 }
 
 data class BrevvalgRevurderingJson(
@@ -117,7 +117,7 @@ internal data class OpprettetRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val sakstype: String,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class BeregnetRevurderingJson(
     override val id: String,
@@ -135,7 +135,7 @@ internal data class BeregnetRevurderingJson(
     override val sakstype: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class SimulertRevurderingJson(
     override val id: String,
@@ -155,7 +155,7 @@ internal data class SimulertRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class TilAttesteringJson(
     override val id: String,
@@ -175,7 +175,7 @@ internal data class TilAttesteringJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class IverksattRevurderingJson(
     override val id: String,
@@ -195,7 +195,7 @@ internal data class IverksattRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class UnderkjentRevurderingJson(
     override val id: String,
@@ -215,7 +215,7 @@ internal data class UnderkjentRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class AvsluttetRevurderingJson(
     override val id: String,
@@ -235,7 +235,7 @@ internal data class AvsluttetRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val avsluttetTidspunkt: String,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class StansAvUtbetalingJson(
     override val id: String,
@@ -253,7 +253,7 @@ internal data class StansAvUtbetalingJson(
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal data class GjenopptakAvYtelseJson(
     override val id: String,
@@ -271,7 +271,7 @@ internal data class GjenopptakAvYtelseJson(
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
     override val brevvalg: BrevvalgRevurderingJson,
-) : RevurderingJson()
+) : RevurderingJson
 
 internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): RevurderingJson {
     val formatertOpprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet)

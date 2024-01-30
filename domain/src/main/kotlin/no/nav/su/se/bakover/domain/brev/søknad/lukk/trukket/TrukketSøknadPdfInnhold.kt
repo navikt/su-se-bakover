@@ -12,7 +12,7 @@ data class TrukketSøknadPdfInnhold(
     val datoSøknadOpprettet: String,
     val trukketDato: String,
     val saksbehandlerNavn: String,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.TrukketSøknad
 
     companion object {

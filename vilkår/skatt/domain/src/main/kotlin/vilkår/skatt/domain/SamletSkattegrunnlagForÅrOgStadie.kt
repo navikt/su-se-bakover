@@ -10,9 +10,9 @@ import java.time.Year
  *
  * Hvis du er interessert i stadiene for et helt år, kan du se på [SamletSkattegrunnlagForÅr]
  */
-sealed class SamletSkattegrunnlagForÅrOgStadie {
-    abstract val oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr>
-    abstract val inntektsår: Year
+sealed interface SamletSkattegrunnlagForÅrOgStadie {
+    val oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr>
+    val inntektsår: Year
 
     sealed interface Resultat {
         data object FinnesIkke : Resultat
@@ -20,12 +20,12 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
         data class Finnes(val value: SamletSkattegrunnlagForÅrOgStadie) : Resultat
     }
 
-    abstract val resultat: Resultat
+    val resultat: Resultat
 
     data class Oppgjør(
         override val oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr>,
         override val inntektsår: Year,
-    ) : SamletSkattegrunnlagForÅrOgStadie() {
+    ) : SamletSkattegrunnlagForÅrOgStadie {
 
         override val resultat: Resultat = when (oppslag) {
             is Either.Left -> when (this.oppslag.value) {
@@ -44,7 +44,7 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
     data class Utkast(
         override val oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr>,
         override val inntektsår: Year,
-    ) : SamletSkattegrunnlagForÅrOgStadie() {
+    ) : SamletSkattegrunnlagForÅrOgStadie {
         override val resultat: Resultat = when (oppslag) {
             is Either.Left -> when (this.oppslag.value) {
                 is KunneIkkeHenteSkattemelding.FinnesIkke -> Resultat.FinnesIkke

@@ -14,11 +14,11 @@ import vilkår.common.domain.Vurdering
 import java.time.Clock
 import java.time.LocalDate
 
-sealed class VurderOpphørVedRevurdering {
+sealed interface VurderOpphørVedRevurdering {
 
     data class Vilkårsvurderinger(
         private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
-    ) : VurderOpphørVedRevurdering() {
+    ) : VurderOpphørVedRevurdering {
         val resultat = when (
             val opphør = setOf(
                 VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
@@ -34,7 +34,7 @@ sealed class VurderOpphørVedRevurdering {
         private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val beregning: Beregning,
         private val clock: Clock,
-    ) : VurderOpphørVedRevurdering() {
+    ) : VurderOpphørVedRevurdering {
         val resultat = when (
             val opphør = setOf(
                 VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
@@ -48,9 +48,9 @@ sealed class VurderOpphørVedRevurdering {
     }
 }
 
-sealed class OpphørVedRevurdering {
-    data class Ja(val opphørsgrunner: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering()
-    data object Nei : OpphørVedRevurdering()
+sealed interface OpphørVedRevurdering {
+    data class Ja(val opphørsgrunner: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering
+    data object Nei : OpphørVedRevurdering
 }
 
 data class VurderOmVilkårGirOpphørVedRevurdering(
@@ -101,7 +101,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
         }
     }
 
-    fun Merknad.Beregning.tilOpphørsgrunn(): Opphørsgrunn {
+    private fun Merknad.Beregning.tilOpphørsgrunn(): Opphørsgrunn {
         return when (this) {
             is Merknad.Beregning.Avslag.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
             is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE

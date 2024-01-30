@@ -6,42 +6,42 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class LukkSøknadCommand {
-    abstract val søknadId: UUID
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val lukketTidspunkt: Tidspunkt
+sealed interface LukkSøknadCommand {
+    val søknadId: UUID
+    val saksbehandler: NavIdentBruker.Saksbehandler
+    val lukketTidspunkt: Tidspunkt
 
     // Convenience prop
-    open val brevvalg: Brevvalg.SaksbehandlersValg? = null
+    val brevvalg: Brevvalg.SaksbehandlersValg? get() = null
 
-    sealed class MedBrev : LukkSøknadCommand() {
+    sealed interface MedBrev : LukkSøknadCommand {
 
         data class TrekkSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
             val trukketDato: LocalDate,
-        ) : MedBrev()
+        ) : MedBrev
 
         data class AvvistSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
             override val brevvalg: Brevvalg.SaksbehandlersValg,
-        ) : MedBrev()
+        ) : MedBrev
     }
 
-    sealed class UtenBrev : LukkSøknadCommand() {
+    sealed interface UtenBrev : LukkSøknadCommand {
         data class BortfaltSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
-        ) : UtenBrev()
+        ) : UtenBrev
 
         data class AvvistSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
-        ) : UtenBrev()
+        ) : UtenBrev
     }
 }

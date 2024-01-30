@@ -249,7 +249,7 @@ internal class BrevServiceImplTest {
         return utenMetadata.leggTilMetadata(metadata)
     }
 
-    data object DummyPdfInnhold : PdfInnhold() {
+    data object DummyPdfInnhold : PdfInnhold {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
     }
 

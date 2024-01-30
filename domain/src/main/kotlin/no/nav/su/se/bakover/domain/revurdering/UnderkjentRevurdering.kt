@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -42,14 +43,14 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevvalg {
+sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbrevvalg {
     abstract override val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
-    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun erÅpen() = true
 
@@ -57,7 +58,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
 
     override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
-    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): UnderkjentRevurdering
+    fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): UnderkjentRevurdering
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -69,13 +70,13 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
-    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -83,7 +84,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
-    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -92,7 +93,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
 
     override fun oppdaterOpplysningspliktOgMarkerSomVurdert(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
@@ -102,15 +103,15 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 
-    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
-    override fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+    override fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<Revurdering.KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -154,7 +155,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : UnderkjentRevurdering() {
+    ) : UnderkjentRevurdering {
         override val erOpphørt = false
 
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Innvilget {
@@ -186,7 +187,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override fun lagForhåndsvarsel(
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-        ): Either<UgyldigTilstand, GenererDokumentCommand> {
+        ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
             return tilbakekrevingsbehandling.skalTilbakekreve().fold(
                 {
                     ForhåndsvarselDokumentCommand(
@@ -243,7 +244,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : UnderkjentRevurdering() {
+    ) : UnderkjentRevurdering {
         override val erOpphørt = true
 
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Opphørt {
@@ -266,7 +267,7 @@ sealed class UnderkjentRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbre
         override fun lagForhåndsvarsel(
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-        ): Either<UgyldigTilstand, GenererDokumentCommand> {
+        ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
             return tilbakekrevingsbehandling.skalTilbakekreve().fold(
                 {
                     ForhåndsvarselDokumentCommand(

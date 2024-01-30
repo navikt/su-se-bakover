@@ -18,8 +18,8 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = ForNavJson.DigitalSøknad::class, name = "DigitalSøknad"),
     JsonSubTypes.Type(value = ForNavJson.Papirsøknad::class, name = "Papirsøknad"),
 )
-sealed class ForNavJson {
-    abstract fun toForNav(): ForNav
+sealed interface ForNavJson {
+    fun toForNav(): ForNav
 
     fun identBruker(call: ApplicationCall) = when (this) {
         is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
@@ -28,7 +28,7 @@ sealed class ForNavJson {
 
     data class DigitalSøknad(
         val harFullmektigEllerVerge: String? = null,
-    ) : ForNavJson() {
+    ) : ForNavJson {
         override fun toForNav() = ForNav.DigitalSøknad(
             harFullmektigEllerVerge?.let {
                 vergeMålType(it)
@@ -48,7 +48,7 @@ sealed class ForNavJson {
         val mottaksdatoForSøknad: LocalDate,
         val grunnForPapirinnsending: String,
         val annenGrunn: String?,
-    ) : ForNavJson() {
+    ) : ForNavJson {
         override fun toForNav() = ForNav.Papirsøknad(
             mottaksdatoForSøknad,
             grunn(grunnForPapirinnsending),

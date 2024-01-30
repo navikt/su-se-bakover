@@ -12,7 +12,7 @@ import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 internal class KonsistensavstemmingRequestBuilder(
     private val avstemming: Avstemming.Konsistensavstemming.Ny,
 ) {
-    private val aksjonsdata = Aksjonsdata.Konsistensavstemming(
+    private val aksjonsdata = Konsistensavstemming(
         avleverendeAvstemmingId = avstemming.id.toString(),
         tidspunktAvstemmingTom = avstemming.opprettetTilOgMed.toOppdragTimestamp(),
         underkomponentKode = avstemming.fagområde.toString(),

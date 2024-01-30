@@ -15,9 +15,9 @@ sealed interface Dokument {
      */
     val generertDokumentJson: String
 
-    sealed class UtenMetadata : Dokument {
+    sealed interface UtenMetadata : Dokument {
 
-        abstract fun leggTilMetadata(metadata: Metadata): MedMetadata
+        fun leggTilMetadata(metadata: Metadata): MedMetadata
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
@@ -25,20 +25,20 @@ sealed interface Dokument {
             override val tittel: String,
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
-        ) : UtenMetadata() {
+        ) : UtenMetadata {
             override fun leggTilMetadata(metadata: Metadata): MedMetadata.Vedtak {
                 return MedMetadata.Vedtak(this, metadata)
             }
         }
 
-        sealed class Informasjon : UtenMetadata() {
+        sealed interface Informasjon : UtenMetadata {
             data class Viktig(
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
-            ) : Informasjon() {
+            ) : Informasjon {
                 override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Viktig {
                     return MedMetadata.Informasjon.Viktig(this, metadata)
                 }
@@ -50,7 +50,7 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
-            ) : Informasjon() {
+            ) : Informasjon {
                 override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Annet {
                     return MedMetadata.Informasjon.Annet(this, metadata)
                 }
@@ -58,10 +58,10 @@ sealed interface Dokument {
         }
     }
 
-    sealed class MedMetadata : Dokument {
-        abstract val metadata: Metadata
-        abstract val distribusjonstype: Distribusjonstype
-        val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
+    sealed interface MedMetadata : Dokument {
+        val metadata: Metadata
+        val distribusjonstype: Distribusjonstype
+        val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
@@ -70,7 +70,7 @@ sealed interface Dokument {
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
             override val metadata: Metadata,
-        ) : MedMetadata() {
+        ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 
             constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(
@@ -86,7 +86,7 @@ sealed interface Dokument {
         /**
          * Typen informasjon vil bestemme når på døgnet brevet skal distribueres. Se DokdistFordelingClient
          */
-        sealed class Informasjon : MedMetadata() {
+        sealed interface Informasjon : MedMetadata {
             data class Viktig(
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
@@ -94,7 +94,7 @@ sealed interface Dokument {
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
                 override val metadata: Metadata,
-            ) : Informasjon() {
+            ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
                 constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(
@@ -114,7 +114,7 @@ sealed interface Dokument {
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
                 override val metadata: Metadata,
-            ) : Informasjon() {
+            ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
 
                 constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(

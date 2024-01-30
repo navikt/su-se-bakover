@@ -32,13 +32,13 @@ sealed interface BrevvalgRevurdering {
 
     data object IkkeValgt : BrevvalgRevurdering
 
-    sealed class BestemtAv {
-        data object Systembruker : BestemtAv() {
+    sealed interface BestemtAv {
+        data object Systembruker : BestemtAv {
             override fun toString(): String {
                 return SU_SE_BAKOVER_CONSUMER_ID
             }
         }
-        data class Behandler(val ident: String) : BestemtAv() {
+        data class Behandler(val ident: String) : BestemtAv {
             override fun toString(): String {
                 return ident
             }

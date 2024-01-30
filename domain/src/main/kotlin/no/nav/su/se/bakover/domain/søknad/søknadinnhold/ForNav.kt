@@ -13,14 +13,14 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = ForNav.DigitalSøknad::class, name = "DigitalSøknad"),
     JsonSubTypes.Type(value = ForNav.Papirsøknad::class, name = "Papirsøknad"),
 )
-sealed class ForNav {
+sealed interface ForNav {
 
-    abstract fun erPapirsøknad(): Boolean
+    fun erPapirsøknad(): Boolean
 
     data class DigitalSøknad(
         val harFullmektigEllerVerge: Vergemål? = null,
-    ) : ForNav() {
-        enum class Vergemål() {
+    ) : ForNav {
+        enum class Vergemål {
             FULLMEKTIG,
             VERGE,
         }
@@ -34,11 +34,11 @@ sealed class ForNav {
         val mottaksdatoForSøknad: LocalDate,
         val grunnForPapirinnsending: GrunnForPapirinnsending,
         val annenGrunn: String?,
-    ) : ForNav() {
+    ) : ForNav {
         override fun erPapirsøknad(): Boolean {
             return true
         }
-        enum class GrunnForPapirinnsending() {
+        enum class GrunnForPapirinnsending {
             VergeHarSøktPåVegneAvBruker,
             MidlertidigUnntakFraOppmøteplikt,
             Annet,

@@ -11,7 +11,7 @@ internal class GrensesnittavstemmingDataBuilder(
 
     fun build(): GrensesnittsavstemmingData {
         return GrensesnittsavstemmingData(
-            aksjon = Aksjonsdata.Grensesnittsavstemming(
+            aksjon = Grensesnittsavstemming(
                 nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
                 nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
                 avleverendeAvstemmingId = avstemming.id.toString(),

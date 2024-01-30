@@ -39,48 +39,13 @@ import kotlin.contracts.contract
 /**
  * @throws IllegalArgumentException dersom vi ikke har en OK kvittering for alle utbetalingene.
  */
-sealed class Utbetalingsstrategi {
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
-    abstract val fnr: Fnr
-    abstract val eksisterendeUtbetalinger: Utbetalinger
-    abstract val behandler: NavIdentBruker
-    abstract val sakstype: Sakstype
-
-    /**
-     * Øker med 1 mikrosekund per utbetalingslinje, siden postgressql ikke støtter nanosekunder.
-     */
-    protected fun nesteTidspunktFunksjon(utbetalingstidspunkt: Tidspunkt): () -> Tidspunkt {
-        var currentTidspunkt = utbetalingstidspunkt
-
-        return {
-            currentTidspunkt.also { currentTidspunkt = it.plus(1, ChronoUnit.MICROS) }
-        }
-    }
-
-    /**
-     * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
-     * Hvis dette er tilfelle kan vi ikke tillate stans av ytelsen med denne datoen, da en påfølgende reaktivering
-     * i værste fall kan føre til dobbelt-utbetalinger.
-     * TODO jm: Midlertidig sperre inntil TØB har fikset feilen, se https://jira.adeo.no/browse/TOB-1772
-     */
-    protected fun unngåBugMedReaktiveringAvOpphørIOppdrag(
-        datoForStanEllerReaktivering: LocalDate,
-    ): Either<Unit, Unit> {
-        if (eksisterendeUtbetalinger.utbetalingslinjerAvTypenOpphør
-                .any {
-                    it.periode.fraOgMed.between(
-                        Periode.create(
-                            fraOgMed = datoForStanEllerReaktivering,
-                            tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
-                        ),
-                    )
-                }
-        ) {
-            return Unit.left()
-        }
-        return Unit.right()
-    }
+sealed interface Utbetalingsstrategi {
+    val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val eksisterendeUtbetalinger: Utbetalinger
+    val behandler: NavIdentBruker
+    val sakstype: Sakstype
 
     data class Stans(
         override val sakId: UUID,
@@ -92,7 +57,7 @@ sealed class Utbetalingsstrategi {
         val stansDato: LocalDate,
         val clock: Clock,
         val aksepterKvitteringMedFeil: Boolean = false,
-    ) : Utbetalingsstrategi() {
+    ) : Utbetalingsstrategi {
 
         init {
             if (aksepterKvitteringMedFeil) {
@@ -175,7 +140,7 @@ sealed class Utbetalingsstrategi {
         val uføregrunnlag: List<Uføregrunnlag>,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
         val aksepterKvitteringMedFeil: Boolean = false,
-    ) : Utbetalingsstrategi() {
+    ) : Utbetalingsstrategi {
 
         init {
             if (aksepterKvitteringMedFeil) {
@@ -296,7 +261,7 @@ sealed class Utbetalingsstrategi {
         val clock: Clock,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
         val aksepterKvitteringMedFeil: Boolean = false,
-    ) : Utbetalingsstrategi() {
+    ) : Utbetalingsstrategi {
 
         init {
             if (aksepterKvitteringMedFeil) {
@@ -360,7 +325,7 @@ sealed class Utbetalingsstrategi {
         val periode: Periode,
         val clock: Clock,
         val aksepterKvitteringMedFeil: Boolean = false,
-    ) : Utbetalingsstrategi() {
+    ) : Utbetalingsstrategi {
 
         init {
             if (aksepterKvitteringMedFeil) {
@@ -418,7 +383,7 @@ sealed class Utbetalingsstrategi {
         override val sakstype: Sakstype,
         val clock: Clock,
         val aksepterKvitteringMedFeil: Boolean = false,
-    ) : Utbetalingsstrategi() {
+    ) : Utbetalingsstrategi {
 
         init {
             if (aksepterKvitteringMedFeil) {
@@ -475,16 +440,51 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    @OptIn(ExperimentalContracts::class)
-    protected inline fun validate(value: Boolean, lazyMessage: () -> Any) {
-        contract {
-            returns() implies value
-        }
-        if (!value) {
-            val message = lazyMessage()
-            throw UtbetalingStrategyException(message.toString())
-        }
-    }
-
     class UtbetalingStrategyException(msg: String) : RuntimeException(msg)
+}
+
+/**
+ * Øker med 1 mikrosekund per utbetalingslinje, siden postgressql ikke støtter nanosekunder.
+ */
+private fun nesteTidspunktFunksjon(utbetalingstidspunkt: Tidspunkt): () -> Tidspunkt {
+    var currentTidspunkt = utbetalingstidspunkt
+
+    return {
+        currentTidspunkt.also { currentTidspunkt = it.plus(1, ChronoUnit.MICROS) }
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+private inline fun validate(value: Boolean, lazyMessage: () -> Any) {
+    contract {
+        returns() implies value
+    }
+    if (!value) {
+        val message = lazyMessage()
+        throw Utbetalingsstrategi.UtbetalingStrategyException(message.toString())
+    }
+}
+
+/**
+ * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
+ * Hvis dette er tilfelle kan vi ikke tillate stans av ytelsen med denne datoen, da en påfølgende reaktivering
+ * i værste fall kan føre til dobbelt-utbetalinger.
+ * TODO jm: Midlertidig sperre inntil TØB har fikset feilen, se https://jira.adeo.no/browse/TOB-1772
+ */
+private fun Utbetalingsstrategi.unngåBugMedReaktiveringAvOpphørIOppdrag(
+    datoForStanEllerReaktivering: LocalDate,
+): Either<Unit, Unit> {
+    if (eksisterendeUtbetalinger.utbetalingslinjerAvTypenOpphør
+            .any {
+                it.periode.fraOgMed.between(
+                    Periode.create(
+                        fraOgMed = datoForStanEllerReaktivering,
+                        tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
+                    ),
+                )
+            }
+    ) {
+        return Unit.left()
+    }
+    return Unit.right()
 }

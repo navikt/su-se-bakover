@@ -21,7 +21,7 @@ internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toJs
 internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
 
-internal sealed class MerknadJson {
+internal sealed interface MerknadJson {
 
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

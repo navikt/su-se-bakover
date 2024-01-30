@@ -105,9 +105,9 @@ internal data object PersonhendelseMapper {
         }
 }
 
-internal sealed class KunneIkkeMappePersonhendelse {
+internal sealed interface KunneIkkeMappePersonhendelse {
     data class IkkeAktuellOpplysningstype(
         val hendelseId: String,
         val opplysningstype: String,
-    ) : KunneIkkeMappePersonhendelse()
+    ) : KunneIkkeMappePersonhendelse
 }

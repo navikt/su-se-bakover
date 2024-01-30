@@ -63,18 +63,15 @@ import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
-/**
- * TODO jah: Konvertere til sealed interface på sikt. Må flytte protected funksjoner til egne interfacer, one by one.
- */
-sealed class Revurdering :
+sealed interface Revurdering :
     AbstraktRevurdering,
     BehandlingMedOppgave,
     BehandlingMedAttestering {
 
-    abstract val saksbehandler: Saksbehandler
-    abstract val revurderingsårsak: Revurderingsårsak
-    abstract val informasjonSomRevurderes: InformasjonSomRevurderes
-    abstract val erOpphørt: Boolean
+    val saksbehandler: Saksbehandler
+    val revurderingsårsak: Revurderingsårsak
+    val informasjonSomRevurderes: InformasjonSomRevurderes
+    val erOpphørt: Boolean
     abstract override val beregning: Beregning?
     abstract override val simulering: Simulering?
     abstract override val oppgaveId: OppgaveId
@@ -91,9 +88,9 @@ sealed class Revurdering :
     /**
      * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
      */
-    abstract fun skalTilbakekreve(): Boolean
+    fun skalTilbakekreve(): Boolean
 
-    open fun lagForhåndsvarsel(
+    fun lagForhåndsvarsel(
         utførtAv: Saksbehandler,
         fritekst: String,
     ): Either<UgyldigTilstand, GenererDokumentCommand> {
@@ -120,15 +117,15 @@ sealed class Revurdering :
         )
     }
 
-    sealed class KunneIkkeLeggeTilFradrag {
-        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag()
+    sealed interface KunneIkkeLeggeTilFradrag {
+        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag
         data class UgyldigTilstand(
             val fra: KClass<out Revurdering>,
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
-        ) : KunneIkkeLeggeTilFradrag()
+        ) : KunneIkkeLeggeTilFradrag
     }
 
-    open fun oppdater(
+    fun oppdater(
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
@@ -144,7 +141,11 @@ sealed class Revurdering :
         ).left()
     }
 
-    protected fun oppdaterInternal(
+    /**
+     * Protected
+     * TODO jah: Denne var protected, men byttet til sealed interface og gjorde den public. Denne bør vel uansett fjernes og erstattes med direktekall til tryCreate/create.
+     */
+    fun oppdaterInternal(
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
@@ -172,10 +173,10 @@ sealed class Revurdering :
         ).right()
     }
 
-    open fun oppdaterUføreOgMarkerSomVurdert(uføre: UføreVilkår.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
+    fun oppdaterUføreOgMarkerSomVurdert(uføre: UføreVilkår.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
-    open fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> =
+    fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> =
         KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     sealed interface KunneIkkeLeggeTilFormue {
@@ -187,33 +188,33 @@ sealed class Revurdering :
         data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormue
     }
 
-    open fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         KunneIkkeLeggeTilFormue.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
-    open fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> =
+    fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> =
         KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
-    open fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+    fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+    fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+    fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+    fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+    fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterLovligOppholdOgMarkerSomVurdert(
+    fun oppdaterLovligOppholdOgMarkerSomVurdert(
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
     ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
         return KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.UgyldigTilstand(
@@ -222,7 +223,7 @@ sealed class Revurdering :
         ).left()
     }
 
-    open fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
+    fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
         institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(
@@ -285,13 +286,21 @@ sealed class Revurdering :
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(opplysningspliktVilkår)).right()
     }
 
-    protected fun oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktInternal(opplysningspliktVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Opplysningsplikt))
         }
     }
 
-    protected fun oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårInternal(vilkår)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Pensjon)) }
     }
@@ -306,7 +315,11 @@ sealed class Revurdering :
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
-    protected fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårInternal(vilkår)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Flyktning)) }
     }
@@ -331,7 +344,11 @@ sealed class Revurdering :
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(lovligOppholdVilkår)).right()
     }
 
-    protected fun oppdaterLovligOppholdOgMarkerSomVurdertInternal(
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterLovligOppholdOgMarkerSomVurdertInternal(
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
     ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
         return oppdaterLovligOpphold(lovligOppholdVilkår).map {
@@ -339,10 +356,14 @@ sealed class Revurdering :
         }
     }
 
-    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
+    fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
         KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
-    protected fun oppdaterUføreOgMarkerSomVurdertInternal(
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterUføreOgMarkerSomVurdertInternal(
         uføre: UføreVilkår.Vurdert,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
@@ -352,7 +373,11 @@ sealed class Revurdering :
         ).right()
     }
 
-    protected fun oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårInternal(vilkår)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.PersonligOppmøte)) }
     }
@@ -373,7 +398,11 @@ sealed class Revurdering :
         data object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
     }
 
-    protected fun oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(
         vilkår: UtenlandsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> {
         return valider(vilkår).map {
@@ -385,7 +414,11 @@ sealed class Revurdering :
         }
     }
 
-    protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
         return when {
             !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
                 KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
@@ -405,12 +438,20 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFormueOgMarkerSomVurdertInternal(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
         return oppdaterFormueInternal(formue)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue)) }
     }
 
-    protected fun oppdaterFormueInternal(formue: FormueVilkår): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFormueInternal(formue: FormueVilkår): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
         return BosituasjonOgFormue(
             bosituasjon = grunnlagsdata.bosituasjon,
             formue = formue.grunnlag,
@@ -421,7 +462,11 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag).getOrElse { return it.left() }
             .oppdaterInformasjonSomRevurderes(
                 informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(
@@ -430,7 +475,11 @@ sealed class Revurdering :
             ).right()
     }
 
-    protected fun oppdaterFradragInternal(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFradragInternal(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         require(fradragsgrunnlag.all { periode inneholder it.periode })
         return Grunnlagsdata.tryCreate(
             bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
@@ -442,7 +491,11 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         return oppdaterBosituasjonInternal(bosituasjon)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
     }
@@ -464,7 +517,7 @@ sealed class Revurdering :
             }
     }
 
-    open fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
@@ -478,7 +531,11 @@ sealed class Revurdering :
         data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilFastOppholdINorgeVilkår
     }
 
-    protected fun oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeInternal(vilkår)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.FastOppholdINorge)) }
     }
@@ -496,7 +553,11 @@ sealed class Revurdering :
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
-    protected fun oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(
+    /**
+     * Protected
+     * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
+     */
+    fun oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(
         vilkår: InstitusjonsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert, OpprettetRevurdering> {
         if (vilkår.perioder.size != 1 || vilkår.perioder.first() != periode) {
@@ -552,7 +613,7 @@ sealed class Revurdering :
         )
     }
 
-    open fun beregn(
+    fun beregn(
         eksisterendeUtbetalinger: Utbetalinger,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
@@ -635,5 +696,5 @@ sealed class Revurdering :
 
     abstract override fun skalSendeVedtaksbrev(): Boolean
 
-    abstract fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn>
+    fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn>
 }

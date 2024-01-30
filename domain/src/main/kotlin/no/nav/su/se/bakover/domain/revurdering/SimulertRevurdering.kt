@@ -20,6 +20,15 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAv
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFormue
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFradrag
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.UgyldigTilstand
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -44,11 +53,11 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevvalg {
+sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbrevvalg {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
-    abstract val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun erÅpen() = true
 
@@ -131,7 +140,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
-    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): SimulertRevurdering
+    fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): SimulertRevurdering
 
     sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
         data object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
@@ -180,7 +189,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-    ) : SimulertRevurdering() {
+    ) : SimulertRevurdering {
         override val erOpphørt = false
 
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Innvilget {
@@ -263,7 +272,7 @@ sealed class SimulertRevurdering : RevurderingKanBeregnes(), LeggTilVedtaksbrevv
         override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-    ) : SimulertRevurdering(), LeggTilVedtaksbrevvalg {
+    ) : SimulertRevurdering, LeggTilVedtaksbrevvalg {
         override val erOpphørt = true
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()

@@ -13,8 +13,8 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal sealed class LukketJson {
-    abstract val type: LukketType
+internal sealed interface LukketJson {
+    val type: LukketType
 
     enum class LukketType {
         AVVIST,
@@ -25,7 +25,7 @@ internal sealed class LukketJson {
     data class TrukketJson(
         override val type: LukketType,
         val datoSøkerTrakkSøknad: LocalDate,
-    ) : LukketJson() {
+    ) : LukketJson {
         init {
             require(type == LukketType.TRUKKET)
         }
@@ -33,7 +33,7 @@ internal sealed class LukketJson {
 
     data class BortfaltJson(
         override val type: LukketType,
-    ) : LukketJson() {
+    ) : LukketJson {
         init {
             require(type == LukketType.BORTFALT)
         }
@@ -42,7 +42,7 @@ internal sealed class LukketJson {
     data class AvvistJson(
         override val type: LukketType,
         val brevConfig: BrevConfigJson? = null,
-    ) : LukketJson() {
+    ) : LukketJson {
         init {
             require(type == LukketType.AVVIST)
         }

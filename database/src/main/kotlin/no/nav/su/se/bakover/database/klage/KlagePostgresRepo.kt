@@ -626,9 +626,9 @@ internal class KlagePostgresRepo(
             name = "Oppretthold",
         ),
     )
-    private sealed class VedtaksvurderingJson {
-        abstract fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
-        data class Omgjør(val årsak: String?, val utfall: String?) : VedtaksvurderingJson() {
+    private sealed interface VedtaksvurderingJson {
+        fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
+        data class Omgjør(val årsak: String?, val utfall: String?) : VedtaksvurderingJson {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
@@ -702,7 +702,7 @@ internal class KlagePostgresRepo(
             }
         }
 
-        data class Oppretthold(val hjemler: List<String>) : VedtaksvurderingJson() {
+        data class Oppretthold(val hjemler: List<String>) : VedtaksvurderingJson {
 
             enum class Hjemmel(val verdi: String) {
                 SU_PARAGRAF_3("su_paragraf_3"),

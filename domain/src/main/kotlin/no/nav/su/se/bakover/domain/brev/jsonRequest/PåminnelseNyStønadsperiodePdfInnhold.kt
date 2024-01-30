@@ -10,7 +10,7 @@ data class PåminnelseNyStønadsperiodePdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val utløpsdato: String,
     val halvtGrunnbeløp: Int,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode
 
     companion object {

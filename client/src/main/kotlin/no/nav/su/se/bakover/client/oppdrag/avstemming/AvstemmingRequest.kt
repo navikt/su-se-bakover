@@ -31,7 +31,7 @@ internal data class AvstemmingStoppRequest(
     "detalj",
 )
 internal data class GrensesnittsavstemmingData(
-    val aksjon: Aksjonsdata.Grensesnittsavstemming,
+    val aksjon: Grensesnittsavstemming,
     val total: Totaldata,
     val periode: Periodedata,
     val grunnlag: Grunnlagdata,
@@ -168,7 +168,7 @@ internal data class SendKonsistensavstemmingRequest(
     "totaldata",
 )
 internal data class KonsistensavstemmingData(
-    val aksjonsdata: Aksjonsdata.Konsistensavstemming,
+    val aksjonsdata: Konsistensavstemming,
     val oppdragsdataListe: List<Oppdragsdata>? = null,
     val totaldata: Totaldata? = null,
 ) {
@@ -245,119 +245,116 @@ internal data class KonsistensavstemmingData(
     )
 }
 
-/**
- * TODO jah: Bytt til sealed interface? Må løse protected
- */
-sealed class Aksjonsdata {
-    @JacksonXmlProperty
+internal sealed interface Aksjonsdata {
+    @get:JacksonXmlProperty
     @Suppress("unused")
-    protected val kildeType: KildeType = KildeType.AVLEVERENDE
+    val kildeType: KildeType get() = KildeType.AVLEVERENDE
 
-    @JacksonXmlProperty
+    @get:JacksonXmlProperty
     @Suppress("unused")
-    protected val mottakendeKomponentKode: String = "OS"
+    val mottakendeKomponentKode: String get() = "OS"
 
-    @JacksonXmlProperty
+    @get:JacksonXmlProperty
     @Suppress("unused")
-    protected val brukerId: String = OppdragDefaults.SAKSBEHANDLER_ID
+    val brukerId: String get() = OppdragDefaults.SAKSBEHANDLER_ID
 
-    @JacksonXmlProperty
+    @get:JacksonXmlProperty
     @Suppress("unused")
-    protected val avleverendeKomponentKode: String = OppdragDefaults.KODE_KOMPONENT
+    val avleverendeKomponentKode: String get() = OppdragDefaults.KODE_KOMPONENT
 
-    abstract val underkomponentKode: String
+    val underkomponentKode: String
 
-    abstract val aksjonType: AksjonType
-    abstract val avstemmingType: AvstemmingType
-    abstract val avleverendeAvstemmingId: String
+    val aksjonType: AksjonType
+    val avstemmingType: AvstemmingType
+    val avleverendeAvstemmingId: String
+}
 
-    enum class AksjonType(@JsonValue val value: String) {
-        START("START"),
-        DATA("DATA"),
-        AVSLUTT("AVSL"),
-        ;
+internal enum class AksjonType(@JsonValue val value: String) {
+    START("START"),
+    DATA("DATA"),
+    AVSLUTT("AVSL"),
+    ;
 
-        override fun toString() = value
+    override fun toString() = value
+}
+
+internal enum class KildeType(@JsonValue val value: String) {
+    AVLEVERENDE("AVLEV"),
+    MOTTAKENDE("MOTT"),
+    ;
+
+    override fun toString() = value
+}
+
+internal enum class AvstemmingType(@JsonValue val value: String) {
+    GRENSESNITTAVSTEMMING("GRSN"),
+    KONSISTENSAVSTEMMING("KONS"),
+    PERIODEAVSTEMMING("PERI"),
+    ;
+
+    override fun toString() = value
+}
+
+@JsonPropertyOrder(
+    "aksjonType",
+    "kildeType",
+    "avstemmingType",
+    "avleverendeKomponentKode",
+    "mottakendeKomponentKode",
+    "underkomponentKode",
+    "nokkelFom",
+    "nokkelTom",
+    "avleverendeAvstemmingId",
+    "brukerId",
+)
+internal data class Grensesnittsavstemming(
+    override val underkomponentKode: String,
+    override val aksjonType: AksjonType = AksjonType.DATA,
+    override val avleverendeAvstemmingId: String,
+    val nokkelFom: String,
+    val nokkelTom: String,
+) : Aksjonsdata {
+    @JacksonXmlProperty
+    override val avstemmingType: AvstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING
+
+    fun start(): Grensesnittsavstemming {
+        return copy(aksjonType = AksjonType.START)
     }
 
-    enum class KildeType(@JsonValue val value: String) {
-        AVLEVERENDE("AVLEV"),
-        MOTTAKENDE("MOTT"),
-        ;
+    fun avslutt(): Grensesnittsavstemming {
+        return copy(aksjonType = AksjonType.AVSLUTT)
+    }
+}
 
-        override fun toString() = value
+@JsonPropertyOrder(
+    "aksjonType",
+    "kildeType",
+    "avstemmingType",
+    "avleverendeKomponentKode",
+    "mottakendeKomponentKode",
+    "underkomponentKode",
+    "tidspunktAvstemmingTom",
+    "avleverendeAvstemmingId",
+    "brukerId",
+)
+internal data class Konsistensavstemming(
+    override val underkomponentKode: String,
+    override val aksjonType: AksjonType = AksjonType.DATA,
+    override val avleverendeAvstemmingId: String,
+    val tidspunktAvstemmingTom: String,
+) : Aksjonsdata {
+    @JacksonXmlProperty
+    override val avstemmingType: AvstemmingType = AvstemmingType.KONSISTENSAVSTEMMING
+
+    fun start(): KonsistensavstemmingData {
+        return KonsistensavstemmingData(
+            aksjonsdata = copy(aksjonType = AksjonType.START),
+        )
     }
 
-    enum class AvstemmingType(@JsonValue val value: String) {
-        GRENSESNITTAVSTEMMING("GRSN"),
-        KONSISTENSAVSTEMMING("KONS"),
-        PERIODEAVSTEMMING("PERI"),
-        ;
-
-        override fun toString() = value
-    }
-
-    @JsonPropertyOrder(
-        "aksjonType",
-        "kildeType",
-        "avstemmingType",
-        "avleverendeKomponentKode",
-        "mottakendeKomponentKode",
-        "underkomponentKode",
-        "nokkelFom",
-        "nokkelTom",
-        "avleverendeAvstemmingId",
-        "brukerId",
-    )
-    internal data class Grensesnittsavstemming(
-        override val underkomponentKode: String,
-        override val aksjonType: AksjonType = AksjonType.DATA,
-        override val avleverendeAvstemmingId: String,
-        val nokkelFom: String,
-        val nokkelTom: String,
-    ) : Aksjonsdata() {
-        @JacksonXmlProperty
-        override val avstemmingType: AvstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING
-
-        fun start(): Grensesnittsavstemming {
-            return copy(aksjonType = AksjonType.START)
-        }
-
-        fun avslutt(): Grensesnittsavstemming {
-            return copy(aksjonType = AksjonType.AVSLUTT)
-        }
-    }
-
-    @JsonPropertyOrder(
-        "aksjonType",
-        "kildeType",
-        "avstemmingType",
-        "avleverendeKomponentKode",
-        "mottakendeKomponentKode",
-        "underkomponentKode",
-        "tidspunktAvstemmingTom",
-        "avleverendeAvstemmingId",
-        "brukerId",
-    )
-    internal data class Konsistensavstemming(
-        override val underkomponentKode: String,
-        override val aksjonType: AksjonType = AksjonType.DATA,
-        override val avleverendeAvstemmingId: String,
-        val tidspunktAvstemmingTom: String,
-    ) : Aksjonsdata() {
-        @JacksonXmlProperty
-        override val avstemmingType: AvstemmingType = AvstemmingType.KONSISTENSAVSTEMMING
-
-        fun start(): KonsistensavstemmingData {
-            return KonsistensavstemmingData(
-                aksjonsdata = copy(aksjonType = AksjonType.START),
-            )
-        }
-
-        fun avslutt(): KonsistensavstemmingData {
-            return KonsistensavstemmingData(
-                aksjonsdata = copy(aksjonType = AksjonType.AVSLUTT),
-            )
-        }
+    fun avslutt(): KonsistensavstemmingData {
+        return KonsistensavstemmingData(
+            aksjonsdata = copy(aksjonType = AksjonType.AVSLUTT),
+        )
     }
 }

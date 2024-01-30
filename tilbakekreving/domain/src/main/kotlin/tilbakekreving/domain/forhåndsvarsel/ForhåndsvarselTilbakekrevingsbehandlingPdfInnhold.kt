@@ -14,7 +14,7 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     val dato: String,
     val sumBruttoSkalTilbakekreve: Int,
     val beregningFeilutbetaltBeløp: List<BeregningFeilutbetaltBeløp>,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
 
     companion object {
