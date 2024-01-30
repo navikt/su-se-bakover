@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Clock
 import java.util.UUID
 

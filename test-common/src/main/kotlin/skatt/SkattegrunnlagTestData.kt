@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.toYearRange
 import no.nav.su.se.bakover.test.fixedClock
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅr
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.toYearRange
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year

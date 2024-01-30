@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.Skatteoppslag
 import java.time.Clock
 import java.time.Year
 import java.util.UUID

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.skatt
+package vilkår.skatt.domain
 
 /**
  * De 2 ulike stadiene for et spesifisert summert skattegrunnlag

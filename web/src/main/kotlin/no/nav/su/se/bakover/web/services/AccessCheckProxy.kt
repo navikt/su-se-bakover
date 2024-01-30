@@ -122,7 +122,6 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -217,6 +216,7 @@ import person.domain.Person
 import person.domain.PersonRepo
 import person.domain.PersonService
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering

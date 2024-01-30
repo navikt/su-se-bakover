@@ -6,11 +6,11 @@ import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
+import vilkår.skatt.domain.Skattedokument
 import java.util.UUID
 
 /**

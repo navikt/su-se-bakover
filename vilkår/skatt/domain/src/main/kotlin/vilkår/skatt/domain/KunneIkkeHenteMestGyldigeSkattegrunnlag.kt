@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.skatt
+package vilkår.skatt.domain
 
 sealed interface KunneIkkeHenteMestGyldigeSkattegrunnlag {
     data object Nettverksfeil : KunneIkkeHenteMestGyldigeSkattegrunnlag

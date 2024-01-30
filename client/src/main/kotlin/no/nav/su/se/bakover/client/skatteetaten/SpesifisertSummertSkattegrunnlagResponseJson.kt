@@ -8,9 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Stadie
 import org.slf4j.LoggerFactory
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.Stadie
 import java.time.LocalDate
 import java.time.Year
 import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering

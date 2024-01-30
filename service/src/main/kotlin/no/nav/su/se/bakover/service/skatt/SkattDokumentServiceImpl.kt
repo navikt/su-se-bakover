@@ -14,15 +14,15 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonOppslag
+import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.skatt.domain.Skattedokument
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import java.time.Clock
 import java.util.UUID
 

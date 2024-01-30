@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.skatt
+package vilkår.skatt.domain
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import java.util.UUID

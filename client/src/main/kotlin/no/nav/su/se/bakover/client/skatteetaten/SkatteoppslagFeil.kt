@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.skatteetaten
 
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 import java.time.Year
 
 /**

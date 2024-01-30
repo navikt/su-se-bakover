@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":vilkår:opplysningsplikt:domain"))
     implementation(project(":vilkår:familiegjenforening:domain"))
     implementation(project(":vilkår:vurderinger"))
+    implementation(project(":vilkår:skatt:domain"))
     implementation(project(":økonomi:domain"))
 
     testImplementation(project(":test-common"))

@@ -11,12 +11,7 @@ import dokument.domain.journalføring.brev.JournalførBrevCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentPåSakCommand
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentPåSakClient
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClient
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.test.argThat
@@ -31,6 +26,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.skatt.domain.Skattedokument
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakCommand
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
 import java.time.Clock
 import java.util.UUID
 

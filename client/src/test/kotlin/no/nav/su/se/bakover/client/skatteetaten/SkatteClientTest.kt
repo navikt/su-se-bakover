@@ -12,9 +12,6 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagForÅr
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
@@ -22,6 +19,9 @@ import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅr
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
 import java.time.LocalDate
 import java.time.Year
 

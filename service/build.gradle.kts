@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":vilkår:familiegjenforening:domain"))
     implementation(project(":vilkår:bosituasjon"))
     implementation(project(":vilkår:vurderinger"))
+    implementation(project(":vilkår:skatt:domain"))
     implementation(project(":beregning"))
 
     testImplementation(project(":vilkår:utenlandsopphold:domain"))

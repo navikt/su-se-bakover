@@ -6,11 +6,11 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.YearRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅr
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.Skatteoppslag
 import java.time.Clock
 import java.time.Year
 

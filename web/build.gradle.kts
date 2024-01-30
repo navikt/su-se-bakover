@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":vilkår:utenlandsopphold:application"))
     implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":vilkår:utenlandsopphold:infrastructure"))
+    implementation(project(":vilkår:skatt:domain"))
     implementation(project(":økonomi:application"))
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:infrastructure"))

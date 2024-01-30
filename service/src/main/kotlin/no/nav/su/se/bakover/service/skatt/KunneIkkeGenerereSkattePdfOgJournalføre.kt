@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.skatt
 
 import dokument.domain.brev.KunneIkkeJournalføreDokument
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 
 sealed interface KunneIkkeGenerereSkattePdfOgJournalføre {
     data class FeilVedGenereringAvPdf(val originalFeil: KunneIkkeHenteOgLagePdfAvSkattegrunnlag) :

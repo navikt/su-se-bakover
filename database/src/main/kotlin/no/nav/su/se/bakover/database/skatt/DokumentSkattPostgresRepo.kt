@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.skatt.domain.Skattedokument
 import java.time.Clock
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.journalpost
+package vilkår.skatt.domain.journalpost
 
 import arrow.core.Either
 import arrow.core.getOrElse

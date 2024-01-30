@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.skatt
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Year
 
 data class FrioppslagSkattRequest(

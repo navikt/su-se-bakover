@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.skatt
+package vilkår.skatt.domain
 
 /**
  * Vi gjør ikke wrapping trikset med [SkatteoppslagFeil] fordi vi ikke vil at exception skal blø ut

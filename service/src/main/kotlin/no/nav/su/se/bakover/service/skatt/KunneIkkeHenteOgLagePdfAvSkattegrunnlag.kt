@@ -5,7 +5,7 @@ import person.domain.KunneIkkeHentePerson
 
 sealed interface KunneIkkeHenteOgLagePdfAvSkattegrunnlag {
 
-    data class KunneIkkeHenteSkattemelding(val originalFeil: no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding) :
+    data class KunneIkkeHenteSkattemelding(val originalFeil: vilkår.skatt.domain.KunneIkkeHenteSkattemelding) :
         KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 
     data class FeilVedHentingAvPerson(val originalFeil: KunneIkkeHentePerson) : KunneIkkeHenteOgLagePdfAvSkattegrunnlag

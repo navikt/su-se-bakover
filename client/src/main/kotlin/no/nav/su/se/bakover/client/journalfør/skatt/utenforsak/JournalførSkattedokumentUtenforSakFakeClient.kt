@@ -5,8 +5,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostIdGeneratorForFakes
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 
 /**
  * Åpen for å kunne aksesseres av tester.

@@ -4,19 +4,19 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentPåSakCommand
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentPåSakCommand.Companion.lagJournalpost
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentPåSakClient
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClient
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.skatt.domain.Skattedokument
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakCommand
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakCommand.Companion.lagJournalpost
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 
 /**
  * journalfører dokumenter/pdf tilhørende skatt

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLegg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -94,6 +93,7 @@ import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.skatt.domain.Skattegrunnlag
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.util.UUID

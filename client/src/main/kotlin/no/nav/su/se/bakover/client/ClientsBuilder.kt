@@ -17,11 +17,11 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentPåSakClient
-import no.nav.su.se.bakover.domain.skatt.JournalførSkattedokumentUtenforSakClient
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import vilkår.skatt.domain.Skatteoppslag
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
 import økonomi.domain.simulering.SimuleringClient
 
 interface ClientsBuilder {

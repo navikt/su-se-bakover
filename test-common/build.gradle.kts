@@ -44,6 +44,7 @@ dependencies {
     api(project(":vilkår:familiegjenforening:domain"))
     api(project(":vilkår:bosituasjon"))
     api(project(":vilkår:vurderinger"))
+    api(project(":vilkår:skatt:domain"))
     api(project(":web"))
     api(project(":økonomi:application"))
     api(project(":økonomi:domain"))

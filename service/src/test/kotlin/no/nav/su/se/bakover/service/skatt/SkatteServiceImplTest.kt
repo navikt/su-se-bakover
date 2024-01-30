@@ -9,10 +9,6 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -27,6 +23,10 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅr
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Skatteoppslag
 import java.time.Clock
 import java.time.Year
 

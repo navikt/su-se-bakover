@@ -69,7 +69,6 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.domain.sak.oppdaterRegulering
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -172,6 +171,7 @@ import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag
+import vilkår.skatt.domain.Skattedokument
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering

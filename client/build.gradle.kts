@@ -16,6 +16,8 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":beregning"))
     implementation(project(":vilkår:uføre:domain"))
+    // todo - denne kan fjernes senere
+    implementation(project(":vilkår:skatt:domain"))
 
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)

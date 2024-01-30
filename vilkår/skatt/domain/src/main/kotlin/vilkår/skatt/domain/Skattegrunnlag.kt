@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.skatt
+package vilkår.skatt.domain
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
