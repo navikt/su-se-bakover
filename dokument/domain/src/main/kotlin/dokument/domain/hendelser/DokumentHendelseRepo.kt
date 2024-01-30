@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
+import java.time.LocalDate
 import java.util.UUID
 
 val GenerertDokument = Hendelsestype("GENERERT_DOKUMENT")
@@ -38,4 +39,5 @@ interface DokumentHendelseRepo {
     fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
     fun hentHendelseOgFilForDokument(dokumentId: UUID, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
     fun hentDokumentHendelseForRelatert(relatertHendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
+    fun hentVedtaksbrevdatoForSakOgVedtakId(sakId: UUID, vedtakId: UUID, sessionContext: SessionContext? = null): LocalDate?
 }

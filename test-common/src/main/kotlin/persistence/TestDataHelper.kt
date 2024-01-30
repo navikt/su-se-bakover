@@ -129,6 +129,7 @@ import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.persistence.dokument.PersistertDokumentHendelseTestData
 import no.nav.su.se.bakover.test.persistence.tilbakekreving.PersistertTilbakekrevingTestData
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -219,10 +220,10 @@ class TestDataHelper(
     val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
     val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
-    private val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
+    val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
 
-    private val dokumentHendelseRepo =
+    val dokumentHendelseRepo =
         DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory), sessionFactory)
 
     val tilbakekreving = PersistertTilbakekrevingTestData(
@@ -232,6 +233,11 @@ class TestDataHelper(
         kravgrunnlagPostgresRepo = kravgrunnlagPostgresRepo,
         dokumentHendelseRepo = dokumentHendelseRepo,
         dbMetrics = dbMetrics,
+        testDataHelper = this,
+    )
+
+    val dokumentHendelse = PersistertDokumentHendelseTestData(
+        hendelseRepo = hendelseRepo,
         testDataHelper = this,
     )
 

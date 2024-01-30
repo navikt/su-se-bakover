@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
+import java.time.LocalDate
 import java.util.UUID
 
 class DokumentHendelsePostgresRepo(
@@ -161,15 +162,41 @@ class DokumentHendelsePostgresRepo(
         relatertHendelseId: HendelseId,
         sessionContext: SessionContext?,
     ): DokumentHendelse? {
-        return sessionContext?.withOptionalSession(sessionFactory) {
+        return sessionContext.withOptionalSession(sessionFactory) {
             """
-            select * from hendelse where data ->> 'relatertHendelse' = :relatertHendelseId
+            select * from hendelse where (data ->> 'relaterteHendelse') = :relatertHendelseId
             """.trimIndent().hent(
                 mapOf("relatertHendelseId" to relatertHendelseId.toString()),
                 it,
             ) {
                 HendelsePostgresRepo.toPersistertHendelse(it)
             }?.toDokumentHendelse()
+        }
+    }
+
+    /**
+     * @param sakId Vi tar inn sakId også siden den er indeksert.
+     */
+    override fun hentVedtaksbrevdatoForSakOgVedtakId(
+        sakId: UUID,
+        vedtakId: UUID,
+        sessionContext: SessionContext?,
+    ): LocalDate? {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            // generertDokumentJson er lagret som en string (escaped json)
+            """
+            select (((data->>'generertDokumentJson')::jsonb)->'personalia'->>'dato') as vedtaksbrevdato
+            from hendelse h
+            where sakid = :sakId 
+            and type = '$GenerertDokument'
+            and data->'dokumentMeta'->>'vedtakId' = :vedtakId
+            """.trimIndent().hent(
+                // vedtakId: Vi gjør en string-comparison, så slipper vi kaste til ::uuid
+                mapOf("sakId" to sakId, "vedtakId" to vedtakId.toString()),
+                it,
+            ) {
+                it.localDate("vedtaksbrevdato")
+            }
         }
     }
 }

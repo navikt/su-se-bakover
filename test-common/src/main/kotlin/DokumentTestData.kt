@@ -98,7 +98,7 @@ fun dokumentUtenFil(
     ),
     distribusjonstype: Distribusjonstype = Distribusjonstype.VEDTAK,
     distribusjonstidspunkt: Distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID,
-    generertDokumentJson: String = "dokumentJson",
+    generertDokumentJson: String = "{}",
 ): DokumentMedMetadataUtenFil = DokumentMedMetadataUtenFil(
     id = id,
     opprettet = opprettet,
