@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeLeggeTilGrunnlag {

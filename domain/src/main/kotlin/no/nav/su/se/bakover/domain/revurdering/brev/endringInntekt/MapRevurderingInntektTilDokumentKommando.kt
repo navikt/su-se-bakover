@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
+import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
 /**
  * Ment for internt bruk innenfor revurdering/brev pakken.

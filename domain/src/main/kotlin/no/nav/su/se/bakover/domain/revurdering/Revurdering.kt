@@ -22,9 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.Normal
@@ -57,7 +55,9 @@ import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
+import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.Konsistensproblem
+import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

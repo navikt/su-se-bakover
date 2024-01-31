@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.toJson
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(

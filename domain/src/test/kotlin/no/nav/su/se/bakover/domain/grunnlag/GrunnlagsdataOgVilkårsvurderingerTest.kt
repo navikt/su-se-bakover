@@ -31,6 +31,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.vurderinger.domain.Grunnlagsdata
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerTest {

@@ -32,9 +32,12 @@ import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
 import vilkår.vurderinger.domain.BosituasjonOgFradrag
 import vilkår.vurderinger.domain.Formue
+import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.Konsistensproblem
+import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import vilkår.vurderinger.domain.Uføre
 import vilkår.vurderinger.domain.Vilkårsvurderinger
+import vilkår.vurderinger.domain.fjernFradragEPS
 import java.time.Clock
 import java.util.UUID
 

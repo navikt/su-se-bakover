@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.vurderinger.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -14,8 +14,6 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.oppdaterBositua
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import vilkår.uføre.domain.Uføregrunnlag
-import vilkår.vurderinger.domain.BosituasjonOgFradrag
-import vilkår.vurderinger.domain.Konsistensproblem
 import java.time.Clock
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList

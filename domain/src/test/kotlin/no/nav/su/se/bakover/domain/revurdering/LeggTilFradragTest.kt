@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.assertThrows
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.Konsistensproblem
+import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 
 internal class LeggTilFradragTest {
 

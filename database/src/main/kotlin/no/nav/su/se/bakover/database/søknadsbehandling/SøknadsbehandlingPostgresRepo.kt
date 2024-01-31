@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatus
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -56,6 +55,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbeh
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
