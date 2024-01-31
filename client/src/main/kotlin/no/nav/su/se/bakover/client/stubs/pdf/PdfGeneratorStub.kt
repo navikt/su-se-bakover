@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.client.stubs.pdf
 import arrow.core.Either
 import arrow.core.right
 import dokument.domain.pdf.PdfInnhold
-import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 
 data object PdfGeneratorStub : PdfGenerator {
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.pdf
+package no.nav.su.se.bakover.dokument.infrastructure.client
 
 import arrow.core.Either
 import arrow.core.left
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 
 internal const val SU_PDF_GEN_PATH = "/api/v1/genpdf/supdfgen"
 
-internal class PdfClient(private val baseUrl: String) : PdfGenerator {
+class PdfClient(private val baseUrl: String) : PdfGenerator {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 

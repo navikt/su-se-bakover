@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknad
 
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService

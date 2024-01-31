@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.Tilbak
 import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientConfig
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
-import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.createJournalførBrevHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.createJournalførSøknadHttpClient
