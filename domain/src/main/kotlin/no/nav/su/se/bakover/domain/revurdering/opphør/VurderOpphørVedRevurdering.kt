@@ -8,15 +8,16 @@ import beregning.domain.finnMånederMedMerknadForAvslag
 import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.behandling.avslag.tilOpphørsgrunn
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import vilkår.common.domain.Vurdering
 import java.time.Clock
 import java.time.LocalDate
 
 sealed class VurderOpphørVedRevurdering {
 
     data class Vilkårsvurderinger(
-        private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
+        private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
     ) : VurderOpphørVedRevurdering() {
         val resultat = when (
             val opphør = setOf(
@@ -30,7 +31,7 @@ sealed class VurderOpphørVedRevurdering {
     }
 
     data class VilkårsvurderingerOgBeregning(
-        private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
+        private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val beregning: Beregning,
         private val clock: Clock,
     ) : VurderOpphørVedRevurdering() {
@@ -53,18 +54,19 @@ sealed class OpphørVedRevurdering {
 }
 
 data class VurderOmVilkårGirOpphørVedRevurdering(
-    private val vilkårsvurderinger: Vilkårsvurderinger,
+    private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
 ) {
     val resultat = vilkårGirOpphør()
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
-        return when (val resultat = vilkårsvurderinger.vurdering) {
-            is Vilkårsvurderingsresultat.Avslag -> OpphørVedRevurdering.Ja(
-                opphørsgrunner = resultat.avslagsgrunner.map { it.tilOpphørsgrunn() },
-                opphørsdato = resultat.tidligsteDatoForAvslag,
+        return when (vilkårsvurderinger.resultat()) {
+            Vurdering.Avslag -> OpphørVedRevurdering.Ja(
+                opphørsgrunner = vilkårsvurderinger.avslagsgrunner.map { it }.tilOpphørsgrunn(),
+                opphørsdato = vilkårsvurderinger.vilkår.filter { it.erAvslag }.minOf { it.hentTidligesteDatoForAvslag()!! },
             )
-            is Vilkårsvurderingsresultat.Innvilget -> OpphørVedRevurdering.Nei
-            is Vilkårsvurderingsresultat.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")
+
+            Vurdering.Innvilget -> OpphørVedRevurdering.Nei
+            Vurdering.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")
         }
     }
 }

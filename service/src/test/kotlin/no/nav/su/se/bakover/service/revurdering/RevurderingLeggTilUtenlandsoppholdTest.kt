@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
@@ -26,6 +25,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
 
 internal class RevurderingLeggTilUtenlandsoppholdTest {
@@ -37,7 +37,10 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                 utenlandsoppholdAvslag(),
             ),
         ).also {
-            it.second.vilkårsvurderingsResultat() shouldBe Vilkårsvurderingsresultat.Avslag(setOf(it.second.vilkårsvurderinger.utenlandsoppholdVilkår()))
+            it.second.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
+            it.second.vilkårsvurderinger.avslagsgrunner shouldBe listOf(
+                Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
+            )
         }
 
         val expected = opprettetRevurdering.copy(
@@ -87,9 +90,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
             verify(it.revurderingRepo).lagre(
                 argThat { lagret ->
                     lagret shouldBe expected
-                    lagret.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
-                        lagret.vilkårsvurderinger.vilkår,
-                    )
+                    lagret.vilkårsvurderinger.resultat() shouldBe Vurdering.Innvilget
                 },
                 anyOrNull(),
             )

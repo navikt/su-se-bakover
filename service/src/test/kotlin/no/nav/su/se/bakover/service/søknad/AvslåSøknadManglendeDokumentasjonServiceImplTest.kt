@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -64,6 +63,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import satser.domain.SatsFactory
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår

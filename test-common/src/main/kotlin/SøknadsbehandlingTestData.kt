@@ -44,7 +44,7 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
@@ -1105,7 +1105,7 @@ fun vilkårsvurdertSøknadsbehandling(
         saksbehandler = saksbehandler,
     ).let { (sak, søknadsbehandling) ->
         val vilkårsvurdert = when (defaultVilkår) {
-            is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+            is VilkårsvurderingerSøknadsbehandling.Alder -> {
                 søknadsbehandling
                     .leggTilPensjonsVilkår(
                         saksbehandler = saksbehandler,
@@ -1169,7 +1169,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
             }
 
-            is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
+            is VilkårsvurderingerSøknadsbehandling.Uføre -> {
                 søknadsbehandling.leggTilUførevilkår(
                     saksbehandler = saksbehandler,
                     vilkår = customVilkår.customOrDefault { defaultVilkår.uføre as UføreVilkår.Vurdert },

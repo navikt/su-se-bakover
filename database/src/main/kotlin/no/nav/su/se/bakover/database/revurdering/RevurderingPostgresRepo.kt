@@ -66,7 +66,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -85,7 +85,7 @@ private data class BaseRevurderingDb(
     val oppgaveId: OppgaveId?,
     val revurderingsårsak: Revurderingsårsak,
     val grunnlagsdata: Grunnlagsdata,
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+    val vilkårsvurderinger: VilkårsvurderingerRevurdering,
     val informasjonSomRevurderes: InformasjonSomRevurderes?,
     val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     val sakinfo: SakInfo,

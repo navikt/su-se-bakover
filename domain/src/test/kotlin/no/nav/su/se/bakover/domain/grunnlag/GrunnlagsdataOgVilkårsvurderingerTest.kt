@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -59,7 +59,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
+                vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
                     uføre = innvilgetUførevilkårForventetInntekt0(
                         periode = Periode.create(
                             1.januar(2021),
@@ -102,7 +102,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
+            vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
@@ -125,7 +125,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `ikke vurdert grunnlagsdata og innvilget vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
+            vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),

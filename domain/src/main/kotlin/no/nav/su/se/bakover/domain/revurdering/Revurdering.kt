@@ -39,8 +39,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdater
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
@@ -99,10 +98,6 @@ sealed class Revurdering :
         fritekst: String,
     ): Either<UgyldigTilstand, GenererDokumentCommand> {
         return UgyldigTilstand(this::class, this::class).left()
-    }
-
-    fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
-        return vilkårsvurderinger.vurdering
     }
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
@@ -516,7 +511,7 @@ sealed class Revurdering :
     }
 
     private fun oppdaterVilkårsvurderinger(
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: VilkårsvurderingerRevurdering,
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
             id = id,

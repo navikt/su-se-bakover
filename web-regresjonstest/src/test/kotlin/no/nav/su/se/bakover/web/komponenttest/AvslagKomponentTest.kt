@@ -7,7 +7,6 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.test.fixedClock
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandling
 import org.junit.jupiter.api.Test
+import vilkår.common.domain.Avslagsgrunn
 import java.util.UUID
 
 class AvslagKomponentTest {

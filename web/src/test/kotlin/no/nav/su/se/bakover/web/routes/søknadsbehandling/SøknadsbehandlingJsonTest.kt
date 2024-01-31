@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail

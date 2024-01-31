@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregning

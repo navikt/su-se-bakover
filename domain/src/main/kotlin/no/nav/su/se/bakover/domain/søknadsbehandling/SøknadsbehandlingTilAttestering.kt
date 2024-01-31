@@ -16,15 +16,13 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import vilkår.common.domain.Avslagsgrunn
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -154,11 +152,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
-                is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
-                is Vilkårsvurderingsresultat.Innvilget -> emptyList()
-                is Vilkårsvurderingsresultat.Uavklart -> emptyList()
-            }
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
@@ -248,11 +242,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
                 }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
-                is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
-                is Vilkårsvurderingsresultat.Innvilget -> emptyList()
-                is Vilkårsvurderingsresultat.Uavklart -> emptyList()
-            } + avslagsgrunnForBeregning
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null

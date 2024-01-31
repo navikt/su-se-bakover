@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -137,7 +137,7 @@ internal class VedtakstidslinjeTest {
                 vedtakPåTidslinje.copy(CopyArgs.Tidslinje.Full).let { kopi ->
                     kopi.opprettet shouldBe kopi.opprettet
                     kopi.periode shouldBe kopi.periode
-                    kopi.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Søknadsbehandling.Uføre>()
+                    kopi.vilkårsvurderinger.shouldBeType<VilkårsvurderingerSøknadsbehandling.Uføre>()
                         .let { vilkårsvurdering ->
                             vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
                             vilkårsvurdering.uføre.grunnlag[0].let {
@@ -199,19 +199,7 @@ internal class VedtakstidslinjeTest {
                                     }
                                 }
 
-                            vilkårsvurdering.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
-                                setOf(
-                                    vilkårsvurdering.uføre,
-                                    vilkårsvurdering.formue,
-                                    vilkårsvurdering.flyktning,
-                                    vilkårsvurdering.lovligOpphold,
-                                    vilkårsvurdering.fastOpphold,
-                                    vilkårsvurdering.institusjonsopphold,
-                                    vilkårsvurdering.utenlandsopphold,
-                                    vilkårsvurdering.personligOppmøte,
-                                    vilkårsvurdering.opplysningsplikt,
-                                ),
-                            )
+                            vilkårsvurdering.resultat() shouldBe Vurdering.Innvilget
                         }
 
                     kopi.grunnlagsdata.fradragsgrunnlag.first().fradrag shouldBe fradragKontantstøtteEpsJanFeb.fradrag
@@ -334,7 +322,7 @@ internal class VedtakstidslinjeTest {
                         kopi.opprettet shouldBe vedtakPåTidslinje.opprettet
                         kopi.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
 
-                        kopi.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Revurdering.Uføre>()
+                        kopi.vilkårsvurderinger.shouldBeType<VilkårsvurderingerRevurdering.Uføre>()
                             .let { vilkårsvurdering ->
                                 vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
                                 vilkårsvurdering.uføre.grunnlag[0].let {
@@ -418,19 +406,7 @@ internal class VedtakstidslinjeTest {
                                         }
                                     }
 
-                                vilkårsvurdering.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
-                                    setOf(
-                                        vilkårsvurdering.uføre,
-                                        vilkårsvurdering.formue,
-                                        vilkårsvurdering.utenlandsopphold,
-                                        vilkårsvurdering.opplysningsplikt,
-                                        vilkårsvurdering.lovligOpphold,
-                                        vilkårsvurdering.flyktning,
-                                        vilkårsvurdering.fastOpphold,
-                                        vilkårsvurdering.personligOppmøte,
-                                        vilkårsvurdering.institusjonsopphold,
-                                    ),
-                                )
+                                vilkårsvurdering.resultat() shouldBe Vurdering.Innvilget
                             }
                         kopi.grunnlagsdata.bosituasjon.let {
                             it shouldHaveSize 2

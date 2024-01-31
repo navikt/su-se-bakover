@@ -7,7 +7,6 @@ import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.test.argThat
@@ -27,7 +26,6 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.lang.IllegalArgumentException
 
 internal class LagBrevutkastForRevurderingTest {
 

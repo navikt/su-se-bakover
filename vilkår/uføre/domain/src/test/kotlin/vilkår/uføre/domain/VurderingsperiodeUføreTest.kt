@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vilkår
+package vilkår.uføre.domain
 
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -17,13 +17,10 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
-import vilkår.uføre.domain.Uføregrad
-import vilkår.uføre.domain.Uføregrunnlag
-import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-internal class VurderingsperiodeTest {
+internal class VurderingsperiodeUføreTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {

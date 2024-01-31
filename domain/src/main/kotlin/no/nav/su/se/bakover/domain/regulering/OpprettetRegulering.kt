@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -57,7 +57,7 @@ data class OpprettetRegulering(
 
     init {
         if (reguleringstype == Reguleringstype.AUTOMATISK) {
-            require(vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Innvilget)
+            require(vilkårsvurderinger.resultat() is Vurdering.Innvilget)
         }
         require(grunnlagsdataOgVilkårsvurderinger.erVurdert())
         require(periode == grunnlagsdataOgVilkårsvurderinger.periode())

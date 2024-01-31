@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -43,12 +42,11 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.formue.domain.FormueVilkår
+import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.Verdier
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårInnvilget
@@ -191,13 +189,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                     request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
                 ).getOrFail().also { oppdatert ->
                     oppdatert.vilkårsvurderinger.opplysningspliktVilkår()
-                    oppdatert.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-                        vilkår = setOf(
-                            FormueVilkår.IkkeVurdert,
-                            UtenlandsoppholdVilkår.IkkeVurdert,
-                        ),
-                    )
-
+                    oppdatert.vilkårsvurderinger.resultat() shouldBe Vurdering.Uavklart
                     oppdatert.grunnlagsdata.also {
                         it.fradragsgrunnlag shouldBe emptyList()
                         it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
@@ -248,7 +240,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
                     request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
                 ).getOrFail().also { oppdatert ->
-                    oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Innvilget>()
+                    oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Innvilget>()
 
                     oppdatert.grunnlagsdata.also {
                         it.fradragsgrunnlag.single().also {
@@ -291,13 +283,13 @@ internal class SøknadsbehandlingAlderKomponentTest {
                         saksbehandler = saksbehandler,
                     ),
                 ).getOrFail().also {
-                    it.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
+                    it.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
                 }
 
                 appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
                     request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
                 ).getOrFail().also { oppdatert ->
-                    oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
+                    oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
                 }
             }
         }

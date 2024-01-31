@@ -11,7 +11,12 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
+import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
@@ -20,6 +25,8 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.vurderinger.domain.VilkårEksistererIkke
+import vilkår.vurderinger.domain.Vilkårsvurderinger
 
 /**
  * Representerer et vedtak plassert på en tidslinje utledet fra vedtakenes temporale gyldighet.
@@ -61,14 +68,14 @@ data class VedtakPåTidslinje private constructor(
     fun erStans(): Boolean = originaltVedtak.erStans()
     fun erGjenopptak(): Boolean = originaltVedtak.erGjenopptak()
 
-    fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, UføreVilkår> = vilkårsvurderinger.uføreVilkår()
+    fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår> = vilkårsvurderinger.uføreVilkår()
     fun lovligOppholdVilkår() = vilkårsvurderinger.lovligOppholdVilkår()
     fun formueVilkår(): FormueVilkår = vilkårsvurderinger.formueVilkår()
     fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår = vilkårsvurderinger.utenlandsoppholdVilkår()
     fun opplysningspliktVilkår(): OpplysningspliktVilkår = vilkårsvurderinger.opplysningspliktVilkår()
     fun pensjonsVilkår() = vilkårsvurderinger.pensjonsVilkår()
     fun familiegjenforeningvilkår() = vilkårsvurderinger.familiegjenforening()
-    fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> =
+    fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår> =
         vilkårsvurderinger.flyktningVilkår()
 
     fun fastOppholdVilkår() = vilkårsvurderinger.fastOppholdVilkår()
@@ -157,4 +164,12 @@ private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<V
 
 private fun NonEmptyList<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): NonEmptyList<VedtakPåTidslinje> {
     return map { it.tilVedtakPåTidslinje() }
+}
+
+fun List<VedtakPåTidslinje>.erAlder(): Boolean = this.all {
+    it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Alder || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder
+}
+
+fun List<VedtakPåTidslinje>.erUføre(): Boolean = this.all {
+    it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Uføre || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre
 }

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -39,7 +39,7 @@ data class GjeldendeVedtaksdata(
 ) {
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
     val grunnlagsdata: Grunnlagsdata get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+    val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
     private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje().krympTilPeriode(periode)
 
@@ -59,42 +59,30 @@ data class GjeldendeVedtaksdata(
             vilkårsvurderinger = vedtakPåTidslinje.let {
                 // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
                 when {
-                    vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Uføre ||
-                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
-                    } -> {
-                        Vilkårsvurderinger.Revurdering.Uføre(
-                            uføre = it.uføreVilkår(),
-                            lovligOpphold = it.lovligoppholdVilkår(),
-                            formue = it.formueVilkår(),
-                            utenlandsopphold = it.utenlandsoppholdVilkår(),
-                            opplysningsplikt = it.opplysningspliktVilkår(),
-                            flyktning = it.flyktningVilkår(),
-                            fastOpphold = it.fastOppholdINorgeVilkår(),
-                            personligOppmøte = it.personligOppmøteVilkår(),
-                            institusjonsopphold = it.institusjonsoppholdVilkår(),
-                        )
-                    }
+                    it.erUføre() -> VilkårsvurderingerRevurdering.Uføre(
+                        uføre = it.uføreVilkår(),
+                        lovligOpphold = it.lovligoppholdVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                        flyktning = it.flyktningVilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
+                        institusjonsopphold = it.institusjonsoppholdVilkår(),
+                    )
 
-                    vedtakPåTidslinje.all {
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
-                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
-                    } -> {
-                        Vilkårsvurderinger.Revurdering.Alder(
-                            lovligOpphold = it.lovligoppholdVilkår(),
-                            formue = it.formueVilkår(),
-                            utenlandsopphold = it.utenlandsoppholdVilkår(),
-                            opplysningsplikt = it.opplysningspliktVilkår(),
-                            pensjon = it.pensjonsVilkår(),
-                            familiegjenforening = it.familiegjenforeningvilkår(),
-                            fastOpphold = it.fastOppholdINorgeVilkår(),
-                            personligOppmøte = it.personligOppmøteVilkår(),
-                        )
-                    }
+                    it.erAlder() -> VilkårsvurderingerRevurdering.Alder(
+                        lovligOpphold = it.lovligoppholdVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                        pensjon = it.pensjonsVilkår(),
+                        familiegjenforening = it.familiegjenforeningvilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
+                    )
 
-                    else -> {
-                        throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
-                    }
+                    else -> throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
                 }
             },
         )

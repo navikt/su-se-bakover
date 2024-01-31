@@ -11,13 +11,12 @@ import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -30,6 +29,8 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
+import vilkår.common.domain.Avslagsgrunn
+import vilkår.common.domain.Vurdering
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
@@ -68,7 +69,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     avslag.aldersvurdering.shouldBeType<Aldersvurdering.SkalIkkeVurderes>()
                     avslag.vilkårsvurderinger.opplysningspliktVilkår().shouldBeType<OpplysningspliktVilkår.Vurdert>()
                         .let { actualVilkår ->
-                            avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert().copy(
+                            avslag.vilkårsvurderinger shouldBe VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert().copy(
                                 opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
                                     vurderingsperioder = nonEmptyListOf(
                                         VurderingsperiodeOpplysningsplikt.create(
@@ -86,9 +87,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                 ).getOrFail(),
                             )
                         }
-                    avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
-                        setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
-                    )
+                    avslag.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
                     appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
                         .let { dokumenter ->
                             dokumenter.single().let {
@@ -175,9 +174,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                 )
                                 avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
                             }
-                        avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
-                            setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
-                        )
+                        avslag.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
                         appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
                             .let { dokumenter ->
                                 dokumenter.single().let {

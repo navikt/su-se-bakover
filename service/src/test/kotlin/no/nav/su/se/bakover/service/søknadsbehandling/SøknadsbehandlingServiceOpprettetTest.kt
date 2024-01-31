@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
-import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer

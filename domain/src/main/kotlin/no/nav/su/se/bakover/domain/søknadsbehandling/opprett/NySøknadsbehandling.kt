@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import java.util.UUID
 
 data class NySøknadsbehandling(
@@ -59,8 +59,8 @@ data class NySøknadsbehandling(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = when (sakstype) {
-                    Sakstype.ALDER -> Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
-                    Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
+                    Sakstype.ALDER -> VilkårsvurderingerSøknadsbehandling.Alder.ikkeVurdert()
+                    Sakstype.UFØRE -> VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert()
                 },
                 eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
             ),

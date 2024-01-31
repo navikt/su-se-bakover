@@ -2,7 +2,10 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
+import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
@@ -22,6 +25,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.toJson
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.vurderinger.domain.Vilkårsvurderinger
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,

@@ -4,10 +4,10 @@ import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 import java.util.UUID
 

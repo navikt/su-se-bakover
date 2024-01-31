@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
@@ -59,6 +60,12 @@ sealed interface OpplysningspliktVilkår : Vilkår {
                     .krympTilPeriode(periode)!!
                     .toNonEmptyList(),
             )
+        }
+
+        override val avslagsgrunner: List<Avslagsgrunn> = when (vurdering) {
+            Vurdering.Innvilget -> emptyList()
+            Vurdering.Uavklart -> emptyList()
+            Vurdering.Avslag -> listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
         }
 
         override fun erLik(other: Vilkår): Boolean {

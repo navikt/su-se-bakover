@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test

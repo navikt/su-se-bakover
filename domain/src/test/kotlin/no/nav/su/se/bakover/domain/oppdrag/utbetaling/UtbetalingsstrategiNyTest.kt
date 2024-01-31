@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock

@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
-import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre

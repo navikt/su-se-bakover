@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test.brev
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.jsonRequest.AvslagSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
+import vilkår.common.domain.Avslagsgrunn
 
 fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
     personalia = pdfInnholdPersonalia(),

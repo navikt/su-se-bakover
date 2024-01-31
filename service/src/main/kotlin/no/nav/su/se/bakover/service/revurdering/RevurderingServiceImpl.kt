@@ -77,7 +77,7 @@ import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
@@ -578,7 +578,7 @@ class RevurderingServiceImpl(
 
     private fun identifiserUtfallSomIkkeStøttes(
         revurderingsperiode: Periode,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: VilkårsvurderingerRevurdering,
         gjeldendeMånedsberegninger: List<Månedsberegning>,
         nyBeregning: Beregning,
     ) = IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
@@ -590,7 +590,7 @@ class RevurderingServiceImpl(
     ).resultat
 
     private fun identifiserUtfallSomIkkeStøttes(
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: VilkårsvurderingerRevurdering,
         periode: Periode,
     ) = IdentifiserRevurderingsopphørSomIkkeStøttes.UtenBeregning(
         vilkårsvurderinger = vilkårsvurderinger,

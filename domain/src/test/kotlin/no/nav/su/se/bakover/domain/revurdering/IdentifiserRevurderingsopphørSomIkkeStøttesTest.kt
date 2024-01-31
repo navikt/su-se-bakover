@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 
 internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
@@ -99,7 +99,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer at opphør grunnet lavt beløp gjøres i kombinasjon med andre beløpsendringer - under minstegrense`() {
-        val vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
 
         val tidligereBeregning = beregning()
 
@@ -132,7 +132,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer at opphør grunnet lavt beløp gjøres i kombinasjon med andre beløpsendringer - for høy inntekt`() {
-        val vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
 
         val tidligereBeregning = beregning()
 
@@ -165,7 +165,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer ingen problemer hvis alle nye måneder har for lavt beløp - for høy inntekt`() {
-        val vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
 
         val tidligereBeregning = beregning()
 
@@ -189,7 +189,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer delvis opphør hvis første måned gir opphør og andre måneder er uendret - under minstebeløp`() {
-        val vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
 
         val tidligereBeregning = beregning()
 
@@ -217,7 +217,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer delvis opphør hvis første måned gir opphør og andre måneder er uendret - for høy inntekt`() {
-        val vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
 
         val tidligereBeregning = beregning()
 
@@ -249,7 +249,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
-            vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(desember(2021)),
+            vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(desember(2021)),
             gjeldendeMånedsberegninger = beregning.getMånedsberegninger(),
             nyBeregning = beregning,
             clock = fixedClock,

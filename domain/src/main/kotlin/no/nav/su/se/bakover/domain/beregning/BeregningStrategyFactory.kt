@@ -4,7 +4,7 @@ import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkårKastHvisAlder
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.time.Clock
@@ -33,29 +33,11 @@ class BeregningStrategyFactory(
             Sakstype.ALDER -> {
                 grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag
             }
+
             Sakstype.UFØRE -> {
                 Beregningsgrunnlag.tryCreate(
                     beregningsperiode = totalBeregningsperiode,
-                    uføregrunnlag = when (
-                        val vilkårsvurderinger =
-                            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
-                    ) {
-                        is Vilkårsvurderinger.Revurdering.Uføre -> {
-                            vilkårsvurderinger.uføre.grunnlag
-                        }
-
-                        is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
-                            vilkårsvurderinger.uføre.grunnlag
-                        }
-
-                        is Vilkårsvurderinger.Revurdering.Alder -> {
-                            throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
-                        }
-
-                        is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
-                            throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
-                        }
-                    },
+                    uføregrunnlag = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag,
                     fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
                 ).getOrElse {
                     // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag

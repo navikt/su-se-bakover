@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurderi
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.time.Clock

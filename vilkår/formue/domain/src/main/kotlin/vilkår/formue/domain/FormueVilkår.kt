@@ -10,9 +10,11 @@ import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidsl
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
+import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
 import vilkår.common.domain.Vilkår
+import vilkår.common.domain.Vurdering
 import vilkår.common.domain.VurdertVilkår
 import vilkår.common.domain.erLik
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
@@ -44,7 +46,6 @@ sealed interface FormueVilkår : Vilkår {
     fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår
 
     data object IkkeVurdert : FormueVilkår, IkkeVurdertVilkår {
-
         override val grunnlag: List<Formuegrunnlag> = emptyList()
         override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
         override fun slåSammenLikePerioder(): IkkeVurdert = this
@@ -98,6 +99,12 @@ sealed interface FormueVilkår : Vilkår {
 
         override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
             return Vurdert(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
+        }
+
+        override val avslagsgrunner: List<Avslagsgrunn> = when (vurdering) {
+            Vurdering.Innvilget -> emptyList()
+            Vurdering.Uavklart -> emptyList()
+            Vurdering.Avslag -> listOf(Avslagsgrunn.FORMUE)
         }
 
         override fun erLik(other: Vilkår): Boolean {

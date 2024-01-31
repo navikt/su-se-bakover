@@ -5,7 +5,7 @@ import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
+import no.nav.su.se.bakover.domain.behandling.avslag.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
