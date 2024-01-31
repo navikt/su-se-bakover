@@ -31,11 +31,10 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
-import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalpostIdGeneratorForFakes
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.JournalførBrevFakeClient
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostIdGeneratorForFakes
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
@@ -185,7 +184,7 @@ data object SharedRegressionTestData {
                     )
                 },
                 dokumentKomponenterBuilder = { databaseRepos, services, clients ->
-                    val repos = DokumentRepos(
+                    val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
                         clock = clock,
                         sessionFactory = databaseRepos.sessionFactory,
                         hendelseRepo = databaseRepos.hendelseRepo,

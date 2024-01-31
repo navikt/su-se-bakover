@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure
+package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -12,7 +12,7 @@ class DokumentRepos(
     val sessionFactory: SessionFactory,
     val hendelseRepo: HendelseRepo,
     val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
+    val dokumentHendelseRepo: DokumentHendelseRepo = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
         sessionFactory,

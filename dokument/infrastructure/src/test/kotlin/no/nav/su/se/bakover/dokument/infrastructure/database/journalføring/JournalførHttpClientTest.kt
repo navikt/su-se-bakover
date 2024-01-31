@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 
 import arrow.core.left
 import arrow.core.right
@@ -80,7 +80,7 @@ internal class JournalførHttpClientTest {
                         ),
                     ),
             )
-            val client = JournalførHttpClient(
+            val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
                 baseUrl = baseUrl(),
                 tokenOppslag = TokenOppslagStub,
             )
@@ -100,7 +100,7 @@ internal class JournalførHttpClientTest {
                 wiremockBuilder
                     .willReturn(WireMock.forbidden()),
             )
-            val client = JournalførHttpClient(
+            val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
                 baseUrl = baseUrl(),
                 tokenOppslag = TokenOppslagStub,
             )
@@ -141,7 +141,7 @@ internal class JournalførHttpClientTest {
         eksternReferanseId = "eksternReferanseId",
     )
 
-    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(DOK_ARKIV_PATH))
+    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.DOK_ARKIV_PATH))
         .withQueryParam("forsoekFerdigstill", WireMock.equalTo("true"))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

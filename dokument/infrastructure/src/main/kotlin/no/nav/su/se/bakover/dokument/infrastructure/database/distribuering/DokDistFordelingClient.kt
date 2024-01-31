@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.distribuering
+package no.nav.su.se.bakover.dokument.infrastructure.database.distribuering
 
 import arrow.core.Either
 import arrow.core.left

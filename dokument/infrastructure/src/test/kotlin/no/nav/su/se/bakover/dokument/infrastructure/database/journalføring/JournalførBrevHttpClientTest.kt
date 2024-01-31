@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 
 import arrow.core.right
 import dokument.domain.Dokument
@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.JournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.JournalførBrevHttpClient
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer

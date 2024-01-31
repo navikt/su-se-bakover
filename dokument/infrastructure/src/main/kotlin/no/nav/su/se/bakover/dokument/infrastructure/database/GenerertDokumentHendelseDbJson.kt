@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure
+package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
@@ -8,7 +8,7 @@ import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentMetaDataDbJson.Companion.toHendelseDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentMetaDataDbJson.Companion.toHendelseDbJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon

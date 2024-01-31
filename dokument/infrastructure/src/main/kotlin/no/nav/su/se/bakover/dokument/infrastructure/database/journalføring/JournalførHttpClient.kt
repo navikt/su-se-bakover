@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 
 import arrow.core.Either
 import arrow.core.left
@@ -26,11 +26,11 @@ class JournalførHttpClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun opprettJournalpost(
-        jsonDto: JournalførJsonRequest,
+        jsonDto: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførJsonRequest,
     ): Either<ClientError, JournalpostId> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
-        val (request, response, result) = "$baseUrl$DOK_ARKIV_PATH".httpPost(listOf("forsoekFerdigstill" to "true"))
+        val (request, response, result) = "$baseUrl${no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.DOK_ARKIV_PATH}".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")

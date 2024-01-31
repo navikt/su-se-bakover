@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure
+package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.Dokument
 import java.util.UUID

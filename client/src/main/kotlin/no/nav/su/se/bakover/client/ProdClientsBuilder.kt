@@ -29,10 +29,9 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
-import no.nav.su.se.bakover.dokument.infrastructure.distribuering.DokDistFordelingClient
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.JournalførHttpClient
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.brev.createJournalførBrevHttpClient
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.createJournalførSøknadHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.createJournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.createJournalførSøknadHttpClient
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import java.time.Clock
 
@@ -95,7 +94,7 @@ data class ProdClientsBuilder(
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
-                val client = JournalførHttpClient(
+                val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
                     baseUrl = clientsConfig.dokarkivUrl,
                     tokenOppslag = tokenOppslag,
                 )

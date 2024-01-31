@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure
+package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.DokumentHendelser
 import dokument.domain.hendelser.DistribuertDokument
@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionCon
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.dokument.infrastructure.DistribuertDokumentHendelseDbJson.Companion.dataDbJson
-import no.nav.su.se.bakover.dokument.infrastructure.GenerertDokumentHendelseDbJson.Companion.toDbJson
-import no.nav.su.se.bakover.dokument.infrastructure.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.DistribuertDokumentHendelseDbJson.Companion.dataDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.GenerertDokumentHendelseDbJson.Companion.toDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.JournalførtDokumentHendelseDbJson.Companion.dataDbJson
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId

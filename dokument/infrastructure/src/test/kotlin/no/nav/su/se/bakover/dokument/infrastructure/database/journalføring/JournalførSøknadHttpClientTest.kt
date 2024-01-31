@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 
 import arrow.core.right
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.dokument.infrastructure.journalføring.søknad.JournalførSøknadHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.JournalførSøknadHttpClient
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -31,7 +31,7 @@ internal class JournalførSøknadHttpClientTest {
         tittel: String,
         behandlingstema: String,
     ) {
-        val mock = mock<JournalførHttpClient> {
+        val mock = mock<no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient> {
             on { opprettJournalpost(any()) } doReturn JournalpostId("1").right()
         }
         val client = JournalførSøknadHttpClient(mock)

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype

@@ -8,8 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentRepos
-import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
+import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
@@ -141,7 +140,7 @@ internal fun withKomptestApplication(
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->
-        val repos = DokumentRepos(
+        val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             hendelseRepo = databaseRepos.hendelseRepo,
