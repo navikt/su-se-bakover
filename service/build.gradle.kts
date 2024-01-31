@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":vilkår:vurderinger"))
     implementation(project(":vilkår:skatt:domain"))
     implementation(project(":vilkår:skatt:infrastructure"))
+    implementation(project(":vilkår:skatt:application"))
     implementation(project(":beregning"))
 
     testImplementation(project(":vilkår:utenlandsopphold:domain"))

@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":beregning"))
     implementation(project(":vilkår:uføre:domain"))
+    implementation(project(":vilkår:skatt:domain"))
     implementation(project(":vilkår:skatt:infrastructure"))
 
     implementation(rootProject.libs.kittinunf.fuel)

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.skatt
+package vilkår.skatt.application
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.skatt
+package vilkår.skatt.application
 
 import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import person.domain.KunneIkkeHentePerson

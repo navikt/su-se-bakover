@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.skatt
+package vilkår.skatt.application
 
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding

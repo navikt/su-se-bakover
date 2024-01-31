@@ -25,11 +25,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
-import no.nav.su.se.bakover.service.skatt.KunneIkkeGenerereSkattePdfOgJournalføre
-import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
-import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.routes.person.tilResultat
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
+import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
+import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 import vilkår.skatt.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 import java.time.Year

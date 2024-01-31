@@ -23,6 +23,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 import vilkår.skatt.domain.SamletSkattegrunnlagForÅr
 import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie

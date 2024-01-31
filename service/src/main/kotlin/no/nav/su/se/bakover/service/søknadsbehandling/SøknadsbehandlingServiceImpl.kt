@@ -85,7 +85,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -93,6 +92,7 @@ import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.Skattegrunnlag
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock

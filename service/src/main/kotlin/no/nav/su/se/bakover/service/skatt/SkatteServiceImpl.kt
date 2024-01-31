@@ -12,6 +12,11 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.GenererSkattPdfRequest
+import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
+import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
+import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.skatt.domain.Skatteoppslag
@@ -107,10 +112,10 @@ class SkatteServiceImpl(
         val skattegrunnlagEps = if (request.epsFnr != null) {
             Skattegrunnlag(
                 id = UUID.randomUUID(),
-                fnr = request.epsFnr,
+                fnr = request.epsFnr!!,
                 hentetTidspunkt = Tidspunkt.now(clock),
                 saksbehandler = request.saksbehandler,
-                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr, request.år)
+                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr!!, request.år)
                     .hentMestGyldigeSkattegrunnlagEllerFeil()
                     .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
                 årSpurtFor = request.år.toRange(),

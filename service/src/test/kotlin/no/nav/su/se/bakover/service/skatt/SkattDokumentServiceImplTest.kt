@@ -43,6 +43,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.PersonOppslag
+import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import java.time.Clock

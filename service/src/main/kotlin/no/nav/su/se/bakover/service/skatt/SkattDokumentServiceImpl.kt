@@ -19,6 +19,9 @@ import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonOppslag
+import vilkår.skatt.application.GenererSkattPdfRequest
+import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
+import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.skatt.domain.Skattedokument
 import vilkår.skatt.domain.Skattegrunnlag
