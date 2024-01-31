@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import vilkår.skatt.domain.Skattegrunnlag
 import java.time.LocalDate
 
 internal data class SkattegrunnlagForÅrJson(

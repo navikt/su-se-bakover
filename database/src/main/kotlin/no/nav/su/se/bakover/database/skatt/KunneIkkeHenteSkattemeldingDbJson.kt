@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.skatt
 
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 
 internal fun KunneIkkeHenteSkattemelding.toDbJson(): StadieJson = when (this) {
     is KunneIkkeHenteSkattemelding.FinnesIkke -> StadieJson.FinnesIkke

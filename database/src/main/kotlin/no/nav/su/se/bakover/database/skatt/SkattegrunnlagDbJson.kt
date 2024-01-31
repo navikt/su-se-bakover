@@ -24,9 +24,9 @@ import no.nav.su.se.bakover.database.skatt.GrunnlagslisteJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.skatt.SpesifiseringDbJson.KjøretøyJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.skatt.SpesifiseringDbJson.KjøretøyJson.Companion.toSpesifiseringKjøretøy
 import no.nav.su.se.bakover.database.skatt.ÅrsgrunnlagDbJson.Companion.toDbJson
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Skattegrunnlag
 import java.time.LocalDate
 import java.time.Year
 import java.util.UUID

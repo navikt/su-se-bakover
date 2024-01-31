@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
-import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -27,6 +25,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.SkatteService
 import java.time.Year
 
 class SkattRouteTest {

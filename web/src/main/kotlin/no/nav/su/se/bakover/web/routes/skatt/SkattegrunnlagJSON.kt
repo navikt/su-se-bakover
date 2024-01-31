@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.routes.skatt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.common.YearRangeJson
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toYearRangeJson
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.web.routes.skatt.StadieJson.Companion.toJson
+import vilkår.skatt.domain.Skattegrunnlag
 
 internal data class SkattegrunnlagJSON(
     val fnr: String,

@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test.skatt
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import vilkår.skatt.domain.Skattedokument
 import java.util.UUID
 
 fun nySkattedokumentGenerert(

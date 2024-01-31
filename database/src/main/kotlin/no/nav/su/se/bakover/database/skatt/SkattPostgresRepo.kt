@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toStringifiedYearRangeJson
 import no.nav.su.se.bakover.database.skatt.SkattegrunnlagDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import vilkår.skatt.domain.Skattegrunnlag
 import java.util.UUID
 
 internal data object SkattPostgresRepo {

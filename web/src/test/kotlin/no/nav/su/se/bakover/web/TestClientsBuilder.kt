@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedok
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
-import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
+import vilkår.skatt.infrastructure.client.SkatteClientStub
 import java.time.Clock
 import java.time.LocalDate
 

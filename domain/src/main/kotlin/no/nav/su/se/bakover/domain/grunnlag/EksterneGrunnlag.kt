@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import vilkår.skatt.domain.Skattegrunnlag
 
 sealed interface EksterneGrunnlag {
     fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag

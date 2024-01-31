@@ -10,17 +10,24 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.GenererSkattPdfRequest
+import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
+import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
+import vilkår.skatt.application.SkatteService
+import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
+import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.skatt.domain.Skatteoppslag
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
 
 /**
  * Har som ansvar å hente skattegrunnlaget, og gjøre noe videre med denne
+ *
+ * * TODO - på sikt vil vi at denne skal være i skattemodulen
  */
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
@@ -107,10 +114,10 @@ class SkatteServiceImpl(
         val skattegrunnlagEps = if (request.epsFnr != null) {
             Skattegrunnlag(
                 id = UUID.randomUUID(),
-                fnr = request.epsFnr,
+                fnr = request.epsFnr!!,
                 hentetTidspunkt = Tidspunkt.now(clock),
                 saksbehandler = request.saksbehandler,
-                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr, request.år)
+                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr!!, request.år)
                     .hentMestGyldigeSkattegrunnlagEllerFeil()
                     .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
                 årSpurtFor = request.år.toRange(),

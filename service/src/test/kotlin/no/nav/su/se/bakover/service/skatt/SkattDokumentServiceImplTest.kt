@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
-import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
@@ -45,6 +43,9 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.PersonOppslag
+import vilkår.skatt.application.GenererSkattPdfRequest
+import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 import java.time.Clock
 
 internal class SkattDokumentServiceImplTest {

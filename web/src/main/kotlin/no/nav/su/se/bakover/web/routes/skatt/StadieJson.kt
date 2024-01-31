@@ -4,11 +4,10 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagForÅrJson.Companion.toJson
+import vilkår.skatt.domain.SamletSkattegrunnlagForÅrOgStadie
+import vilkår.skatt.domain.Stadie
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

@@ -122,7 +122,6 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -194,10 +193,6 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
-import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
-import no.nav.su.se.bakover.service.skatt.KunneIkkeGenerereSkattePdfOgJournalføre
-import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
-import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -217,6 +212,11 @@ import person.domain.Person
 import person.domain.PersonRepo
 import person.domain.PersonService
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.skatt.application.FrioppslagSkattRequest
+import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
+import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
+import vilkår.skatt.application.SkatteService
+import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering

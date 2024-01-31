@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.journalfør
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.journalpost.JournalførSkattedokumentPåSakCommand.Companion.lagJournalpost
 import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.skatt.nySkattedokumentGenerert
 import org.junit.jupiter.api.Test
+import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakCommand.Companion.lagJournalpost
 
 class JournalpostSkattTest {
 
