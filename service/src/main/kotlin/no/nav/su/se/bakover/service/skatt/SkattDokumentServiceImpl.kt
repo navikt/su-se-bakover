@@ -31,6 +31,8 @@ import java.util.UUID
 
 /**
  * Service som 'gjør ting' med dokumenter/pdf tilhørende skatt
+ *
+ * * TODO - på sikt vil vi at denne skal være i skattemodulen
  */
 class SkattDokumentServiceImpl(
     private val pdfGenerator: PdfGenerator,

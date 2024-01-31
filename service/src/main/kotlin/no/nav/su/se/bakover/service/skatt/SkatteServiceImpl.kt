@@ -26,6 +26,8 @@ import java.util.UUID
 
 /**
  * Har som ansvar å hente skattegrunnlaget, og gjøre noe videre med denne
+ *
+ * * TODO - på sikt vil vi at denne skal være i skattemodulen
  */
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,

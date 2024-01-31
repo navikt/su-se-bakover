@@ -9,6 +9,9 @@ import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
 import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import vilkår.skatt.domain.Skattedokument
 
+/**
+ * * TODO - på sikt vil vi at denne skal være i skattemodulen
+ */
 interface SkattDokumentService {
     fun genererOgLagre(
         vedtak: Stønadsvedtak,
