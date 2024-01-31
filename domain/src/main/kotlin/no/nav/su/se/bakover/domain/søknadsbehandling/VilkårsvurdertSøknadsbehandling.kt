@@ -287,11 +287,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-        override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
-            is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
-            is Vurdering.Innvilget -> emptyList()
-            is Vurdering.Uavklart -> emptyList()
-        }
+        override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
     }
 
     data class Uavklart(

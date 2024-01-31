@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.common.domain.Avslagsgrunn
-import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -134,11 +133,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
-                is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
-                is Vurdering.Innvilget -> emptyList()
-                is Vurdering.Uavklart -> emptyList()
-            } + avslagsgrunnForBeregning
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
         }
 
         data class UtenBeregning(
@@ -172,11 +167,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
             }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
-                is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
-                is Vurdering.Innvilget -> emptyList()
-                is Vurdering.Uavklart -> emptyList()
-            }
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
         }
     }
 }

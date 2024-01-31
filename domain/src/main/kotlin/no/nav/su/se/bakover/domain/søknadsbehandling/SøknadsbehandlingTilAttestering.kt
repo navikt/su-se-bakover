@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import vilkår.common.domain.Avslagsgrunn
-import vilkår.common.domain.Vurdering
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -153,11 +152,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
-                is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
-                is Vurdering.Innvilget -> emptyList()
-                is Vurdering.Uavklart -> emptyList()
-            }
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
@@ -247,11 +242,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
                 }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat()) {
-                is Vurdering.Avslag -> vilkårsvurderinger.avslagsgrunner
-                is Vurdering.Innvilget -> emptyList()
-                is Vurdering.Uavklart -> emptyList()
-            } + avslagsgrunnForBeregning
+            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null

@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
@@ -162,4 +164,12 @@ private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<V
 
 private fun NonEmptyList<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): NonEmptyList<VedtakPåTidslinje> {
     return map { it.tilVedtakPåTidslinje() }
+}
+
+fun List<VedtakPåTidslinje>.erAlder(): Boolean = this.all {
+    it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Alder || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder
+}
+
+fun List<VedtakPåTidslinje>.erUføre(): Boolean = this.all {
+    it.vilkårsvurderinger is VilkårsvurderingerSøknadsbehandling.Uføre || it.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre
 }
