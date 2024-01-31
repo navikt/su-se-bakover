@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))
     implementation(project(":vilkår:uføre:domain"))
+    implementation(project(":vilkår:skatt:infrastructure"))
     implementation(project(":beregning"))
 
     implementation(rootProject.libs.ktor.client.java)

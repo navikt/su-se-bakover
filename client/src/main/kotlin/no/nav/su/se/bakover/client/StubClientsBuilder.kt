@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
-import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
-import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
@@ -42,6 +40,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.slf4j.LoggerFactory
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import vilkår.skatt.infrastructure.client.SkatteClient
+import vilkår.skatt.infrastructure.client.SkatteClientStub
 import økonomi.domain.simulering.SimuleringClient
 import java.time.Clock
 import java.time.LocalDate

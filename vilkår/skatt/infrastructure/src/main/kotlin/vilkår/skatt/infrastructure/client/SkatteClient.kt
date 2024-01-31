@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package vilkår.skatt.infrastructure.client
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -40,7 +40,7 @@ import java.time.Year
  * https://github.com/navikt/sigrun/pull/50
  *
  */
-internal class SkatteClient(
+class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
     private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraMdc() },
     private val azureAd: AzureAd,

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package vilkår.skatt.infrastructure.client
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -13,7 +13,7 @@ import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.skatt.domain.Stadie
 import java.time.LocalDate
 import java.time.Year
-import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering
+import vilkår.skatt.infrastructure.client.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering
 
 private val log = LoggerFactory.getLogger(SpesifisertSummertSkattegrunnlagResponseJson::class.java)
 

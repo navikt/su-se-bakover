@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package vilkår.skatt.infrastructure.client
 
 import arrow.core.left
 import arrow.core.right

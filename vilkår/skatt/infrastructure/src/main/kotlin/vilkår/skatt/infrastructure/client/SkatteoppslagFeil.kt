@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package vilkår.skatt.infrastructure.client
 
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
