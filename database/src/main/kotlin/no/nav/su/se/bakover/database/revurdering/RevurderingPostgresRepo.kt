@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRe
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
-import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson.Companion.toJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.BrevvalgDbJson.Companion.toJson
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingFerdigbehandlet

@@ -50,8 +50,8 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentPostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo

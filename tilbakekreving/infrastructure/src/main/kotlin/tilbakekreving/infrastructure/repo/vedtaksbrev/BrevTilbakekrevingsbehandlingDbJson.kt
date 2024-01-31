@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson
-import no.nav.su.se.bakover.dokument.infrastructure.BrevvalgDbJson.Companion.toJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.BrevvalgDbJson
+import no.nav.su.se.bakover.dokument.infrastructure.database.BrevvalgDbJson.Companion.toJson
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse

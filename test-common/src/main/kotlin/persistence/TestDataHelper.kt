@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
-import no.nav.su.se.bakover.dokument.infrastructure.DokumentHendelsePostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
