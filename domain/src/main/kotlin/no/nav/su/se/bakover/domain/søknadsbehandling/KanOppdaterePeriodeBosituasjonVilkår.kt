@@ -4,13 +4,11 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.avslåPgaOpplysningsplikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.VilkårsfeilVedSøknadsbehandling
@@ -29,6 +27,8 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.avslåPgaOpplysningsplikt
 import java.time.Clock
 
 /**
@@ -180,7 +180,7 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
     ): Either<KunneIkkeLageOpplysningspliktVilkår, VilkårsvurdertSøknadsbehandling.Avslag> {
         // TODO jah: Validering med left eller throw?
         val oppdatertGrunnlagsdataOgVilkårsvurderinger =
-            this.grunnlagsdataOgVilkårsvurderinger.avslåPgaOpplysningsplikt<GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling>(
+            this.grunnlagsdataOgVilkårsvurderinger.avslåPgaOpplysningsplikt<GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling>(
                 tidspunkt = tidspunkt,
                 periode = periode,
             ).getOrElse { return it.left() }

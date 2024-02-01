@@ -5,6 +5,8 @@ import arrow.core.Tuple4
 import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -33,9 +35,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePos
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
@@ -94,7 +93,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -157,7 +155,7 @@ import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknad
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -172,6 +170,8 @@ import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag
 import vilkår.skatt.domain.Skattedokument
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
@@ -928,7 +928,7 @@ class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: VilkårsvurderingerRevurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
+        vilkårsvurderinger: VilkårsvurderingerRevurdering.Uføre = vilkårsvurderingerRevurderingInnvilget(periode = periode),
         tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
             periode.måneder().associateWith { tilRevurdering.id },
@@ -945,7 +945,7 @@ class TestDataHelper(
             opprettet = opprettet,
             oppdatert = oppdatert,
             periode = periode,
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             ),
@@ -972,7 +972,7 @@ class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: VilkårsvurderingerRevurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
+        vilkårsvurderinger: VilkårsvurderingerRevurdering.Uføre = vilkårsvurderingerRevurderingInnvilget(periode = periode),
         tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
             periode.måneder().associateWith { tilRevurdering.id },

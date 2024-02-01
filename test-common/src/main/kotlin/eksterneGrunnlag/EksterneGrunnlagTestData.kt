@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.test.eksterneGrunnlag
 
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagMedFeilIÅrsgrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 
 fun eksternGrunnlagHentet(): StøtterHentingAvEksternGrunnlag {
     return StøtterHentingAvEksternGrunnlag(

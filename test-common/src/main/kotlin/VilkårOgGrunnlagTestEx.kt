@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Nel
 import arrow.core.getOrElse
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,8 +11,6 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurderingsperiode

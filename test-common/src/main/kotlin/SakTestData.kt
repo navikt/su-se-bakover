@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.test
 
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -8,14 +10,12 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
@@ -32,13 +32,13 @@ val sakId: UUID = UUID.randomUUID()
 fun Sak.hentGjeldendeVilkårOgGrunnlag(
     periode: Periode,
     clock: Clock,
-): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
+): GrunnlagsdataOgVilkårsvurderingerRevurdering {
     return hentGjeldendeVedtaksdata(
         periode = periode,
         clock = clock,
     ).fold(
         {
-            GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 Grunnlagsdata.IkkeVurdert,
                 VilkårsvurderingerRevurdering.Uføre.ikkeVurdert(),
             )

@@ -9,6 +9,8 @@ avro {
 
 dependencies {
     implementation(project(":behandling:domain"))
+    implementation(project(":behandling:søknadsbehandling:domain"))
+    implementation(project(":behandling:revurdering:domain"))
     implementation(project(":beregning"))
     implementation(project(":client"))
     implementation(project(":common:domain"))

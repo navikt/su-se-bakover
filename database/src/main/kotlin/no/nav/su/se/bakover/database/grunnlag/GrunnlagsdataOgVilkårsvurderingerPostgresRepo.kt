@@ -1,19 +1,21 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.Grunnlagsdata
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
@@ -121,7 +123,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         behandlingId: UUID,
         session: Session,
         sakstype: Sakstype,
-    ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
+    ): GrunnlagsdataOgVilkårsvurderingerRevurdering {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForRevurderingId") {
             val grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
@@ -165,7 +167,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     )
                 }
             }
-            GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 // TODO jah: Må håndtere eksterneGrunnlag for revurdering hvis vi implementerer det.
@@ -178,7 +180,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         session: Session,
         sakstype: Sakstype,
         eksterneGrunnlag: EksterneGrunnlag,
-    ): GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling {
+    ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForSøknadsbehandlingId") {
             val grunnlagsdata = Grunnlagsdata.createTillatUfullstendigBosituasjon(
                 fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
@@ -223,7 +225,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     )
                 }
             }
-            GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+            GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 eksterneGrunnlag = eksterneGrunnlag,

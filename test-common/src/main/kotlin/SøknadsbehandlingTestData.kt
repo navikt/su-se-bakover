@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.test
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.right
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -19,8 +21,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
@@ -74,6 +73,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.vurderinger.domain.EksterneGrunnlag
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
@@ -1079,7 +1079,7 @@ fun vilkårsvurdertSøknadsbehandling(
         throw IllegalArgumentException("Vi støtter ikke å manuelt legge til opplysningsplikt-vilkår i søknadsbehandlingen (enda)")
     }
 
-    val (defaultGrunnlagsdata, defaultVilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+    val (defaultGrunnlagsdata, defaultVilkår) = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
         grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
             periode = stønadsperiode.periode,
         ),

@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":vedtak:application"))
     implementation(project(":person:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":behandling:søknadsbehandling:domain"))
+    implementation(project(":behandling:revurdering:domain"))
     implementation(project(":satser"))
     implementation(project(":vilkår:common"))
     implementation(project(":vilkår:formue:domain"))

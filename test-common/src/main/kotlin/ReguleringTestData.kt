@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.right
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
@@ -31,7 +31,7 @@ fun opprettetRegulering(
     saksnummer: Saksnummer = Saksnummer(2021),
     opprettet: Tidspunkt = fixedTidspunkt,
     fnr: Fnr = Fnr.generer(),
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering = GrunnlagsdataOgVilkårsvurderingerRevurdering(
         grunnlagsdataEnsligUtenFradrag(periode = reguleringsperiode),
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),
@@ -61,7 +61,7 @@ fun iverksattAutomatiskRegulering(
     saksnummer: Saksnummer = Saksnummer(2021),
     opprettet: Tidspunkt = fixedTidspunkt,
     fnr: Fnr = Fnr.generer(),
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering = GrunnlagsdataOgVilkårsvurderingerRevurdering(
         grunnlagsdataEnsligUtenFradrag(reguleringsperiode),
         vilkårsvurderingerRevurderingInnvilget(reguleringsperiode),
     ),
@@ -167,7 +167,7 @@ fun avsluttetRegulering(
     saksnummer: Saksnummer = Saksnummer(2021),
     opprettet: Tidspunkt = fixedTidspunkt,
     fnr: Fnr = Fnr.generer(),
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering = GrunnlagsdataOgVilkårsvurderingerRevurdering(
         grunnlagsdataEnsligUtenFradrag(periode = reguleringsperiode),
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),

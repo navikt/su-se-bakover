@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.database.eksternGrunnlag
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import java.util.UUID
 
 internal class EksternGrunnlagPostgresRepo(

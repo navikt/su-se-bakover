@@ -42,6 +42,8 @@ dependencies {
     implementation(project(":tilbakekreving:infrastructure"))
 
     implementation(project(":behandling:domain"))
+    implementation(project(":behandling:søknadsbehandling:domain"))
+    implementation(project(":behandling:revurdering:domain"))
 
     implementation(project(":grunnbeløp"))
     implementation(project(":satser"))

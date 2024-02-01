@@ -32,6 +32,7 @@ interface Vilkårsvurderinger {
     val erVurdert: Boolean get() = vilkår.none { it.vurdering is Vurdering.Uavklart }
     val avslagsgrunner: List<Avslagsgrunn> get() = vilkår.flatMap { it.avslagsgrunner }
 
+    fun uføreVilkårKastHvisAlder(): UføreVilkår
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
     fun institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår = institusjonsopphold
@@ -89,3 +90,18 @@ interface Vilkårsvurderinger {
 }
 
 data object VilkårEksistererIkke
+
+/**
+ * Skal kun kalles fra undertyper av [Vilkårsvurderinger].
+ */
+fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
+    // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
+    vilkår.map { Pair(it.vilkår, it.perioder) }.zipWithNext { a, b ->
+        // Vilkår med tomme perioder har ikke blitt vurdert enda.
+        if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
+            require(a.second == b.second) {
+                "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
+            }
+        }
+    }
+}
