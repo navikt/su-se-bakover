@@ -7,7 +7,7 @@ kittinunf = "2.3.1"
 wiremock = "3.3.1"
 jupiter = "5.10.1"
 kotlin = "1.9.22"
-ktor = "2.3.7"
+ktor = "2.3.8"
 tjenestespesifikasjonVersion = "2618.0448179"
 cxf= "3.5.5"
 
