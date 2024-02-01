@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":dokument:domain"))
     implementation(project(":vedtak:domain"))
+    implementation(project(":behandling:domain"))
     // TODO jah: Try to remove this dependency
     implementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))

@@ -4,6 +4,7 @@ import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
 import kotliquery.Row
+import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -34,7 +35,6 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
-import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering

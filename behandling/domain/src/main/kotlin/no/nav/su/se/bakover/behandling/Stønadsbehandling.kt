@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.behandling
 
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -21,12 +21,12 @@ import java.util.UUID
 /**
  * https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
  */
-interface Stønadsbehandling {
-    val id: UUID
-    val opprettet: Tidspunkt
-    val sakId: UUID
-    val saksnummer: Saksnummer
-    val fnr: Fnr
+interface Stønadsbehandling : Behandling {
+    override val id: UUID
+    override val opprettet: Tidspunkt
+    override val sakId: UUID
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
     val periode: Periode
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.bosituasjon
 
-import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
+import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import vilkår.vurderinger.domain.Konsistensproblem
 import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata

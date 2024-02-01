@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
