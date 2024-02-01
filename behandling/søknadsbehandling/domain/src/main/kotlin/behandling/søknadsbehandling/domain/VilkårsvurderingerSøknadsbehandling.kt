@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.domain.vilkår
+package behandling.søknadsbehandling.domain
 
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.erLik
@@ -16,6 +17,7 @@ import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.Vilkårsvurderinger
+import vilkår.vurderinger.domain.kastHvisPerioderErUlike
 
 sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
     abstract override val formue: FormueVilkår
@@ -31,6 +33,11 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
         stønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
     ): VilkårsvurderingerSøknadsbehandling
+
+    override fun uføreVilkårKastHvisAlder(): UføreVilkår = when (this) {
+        is Uføre -> uføre
+        is Alder -> TODO("Kan ikke hente uføre vilkår. Vilkårsvurderinger for alder.")
+    }
 
     data class Uføre(
         override val formue: FormueVilkår,
@@ -91,24 +98,6 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
                 is PensjonsVilkår -> throw IllegalArgumentException("Kan ikke legge til Pensjonsvilkår for vilkårvurdering uføre (kun støttet for alder)")
                 else -> throw IllegalStateException("Ukjent vilkår: $vilkår ved oppdatering av vilkårsvurderinger for uføre (søknadsbehandling)")
             }
-        }
-
-        fun tilVilkårsvurderingerRevurdering(): VilkårsvurderingerRevurdering.Uføre {
-            return VilkårsvurderingerRevurdering.Uføre(
-                uføre = uføre,
-                lovligOpphold = lovligOpphold,
-                formue = formue,
-                utenlandsopphold = utenlandsopphold,
-                opplysningsplikt = opplysningsplikt,
-                flyktning = flyktning,
-                fastOpphold = fastOpphold,
-                personligOppmøte = personligOppmøte,
-                institusjonsopphold = institusjonsopphold,
-            )
-        }
-
-        fun tilVilkårsvurderingerSøknadsbehandling(): Uføre {
-            return this
         }
 
         override fun erLik(other: Vilkårsvurderinger): Boolean {

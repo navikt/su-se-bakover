@@ -3,6 +3,8 @@ dependencies {
     val kotestVersion = "5.8.0"
 
     api(project(":behandling:domain"))
+    api(project(":behandling:søknadsbehandling:domain"))
+    api(project(":behandling:revurdering:domain"))
     api(project(":beregning"))
     api(project(":client"))
     api(project(":common:domain"))

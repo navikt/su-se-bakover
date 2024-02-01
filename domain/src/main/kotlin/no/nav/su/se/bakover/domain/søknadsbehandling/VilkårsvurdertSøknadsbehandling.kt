@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -14,14 +16,10 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
@@ -29,6 +27,8 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
 import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
@@ -47,7 +47,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         fun opprett(
             forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
             saksbehandler: NavIdentBruker.Saksbehandler,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             tidspunkt: Tidspunkt,
             // TODO jah: 2023-06-15 Finn en bedre løsning enn bang her.
             //  Jeg tror vi setter aldersvurderingen sammen med oppdatering av stønadsperiode.
@@ -159,7 +159,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val fnr: Fnr,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
@@ -192,7 +192,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         private val forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
     ) : VilkårsvurdertSøknadsbehandling,
@@ -300,7 +300,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val fnr: Fnr,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering?,
-        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
 

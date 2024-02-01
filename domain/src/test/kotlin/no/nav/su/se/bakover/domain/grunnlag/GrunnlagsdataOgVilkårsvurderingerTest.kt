@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
@@ -11,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -39,7 +40,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med ulike perioder kaster exception`() {
         shouldThrow<IllegalArgumentException> {
-            GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = nonEmptyListOf(
                         fradragsgrunnlagArbeidsinntekt1000(
@@ -82,7 +83,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med like perioder kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        GrunnlagsdataOgVilkårsvurderingerRevurdering(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
@@ -124,7 +125,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `ikke vurdert grunnlagsdata og innvilget vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        GrunnlagsdataOgVilkårsvurderingerRevurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
@@ -147,7 +148,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `innvilget grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        GrunnlagsdataOgVilkårsvurderingerRevurdering(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
@@ -174,7 +175,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `ikke vurdert grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        GrunnlagsdataOgVilkårsvurderingerRevurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         )

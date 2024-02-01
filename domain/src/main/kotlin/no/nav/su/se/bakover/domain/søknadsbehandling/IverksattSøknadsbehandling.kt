@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -16,16 +17,15 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
-import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.krevAlleVilkårInnvilget
+import vilkår.vurderinger.domain.krevMinstEttAvslag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -58,7 +58,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
     ) : IverksattSøknadsbehandling, KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -109,7 +109,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -149,7 +149,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode

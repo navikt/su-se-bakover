@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.web.routes.grunnlag.EksterneGrunnlagSkattJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagJSON
 import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagJSON.Companion.toJSON
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 
 internal data class EksterneGrunnlagJson(
     val skatt: EksterneGrunnlagSkattJson?,

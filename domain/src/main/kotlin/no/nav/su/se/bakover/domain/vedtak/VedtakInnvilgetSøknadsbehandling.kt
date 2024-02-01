@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
-import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import vilkår.vurderinger.domain.krevAlleVilkårInnvilget
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

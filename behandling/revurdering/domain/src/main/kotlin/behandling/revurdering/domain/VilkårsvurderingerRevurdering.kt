@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.domain.vilkår
+package behandling.revurdering.domain
 
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.erLik
@@ -16,6 +17,7 @@ import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.Vilkårsvurderinger
+import vilkår.vurderinger.domain.kastHvisPerioderErUlike
 
 sealed interface VilkårsvurderingerRevurdering : Vilkårsvurderinger {
     abstract override val lovligOpphold: LovligOppholdVilkår
@@ -26,6 +28,11 @@ sealed interface VilkårsvurderingerRevurdering : Vilkårsvurderinger {
     abstract override val institusjonsopphold: InstitusjonsoppholdVilkår
 
     fun oppdaterVilkår(vilkår: Vilkår): VilkårsvurderingerRevurdering
+
+    override fun uføreVilkårKastHvisAlder(): UføreVilkår = when (this) {
+        is Alder -> TODO("Kan ikke hente uføre vilkår. Vilkårsvurderinger for alder.")
+        is Uføre -> uføre
+    }
 
     data class Uføre(
         val uføre: UføreVilkår,

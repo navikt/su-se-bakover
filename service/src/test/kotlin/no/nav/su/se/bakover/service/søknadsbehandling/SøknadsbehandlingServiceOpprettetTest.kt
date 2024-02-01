@@ -2,14 +2,13 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
@@ -51,6 +50,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import vilkår.vurderinger.domain.Grunnlagsdata
+import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceOpprettetTest {
@@ -204,7 +204,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 fnr = søknad.fnr,
                 fritekstTilBrev = "",
                 aldersvurdering = null,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                     grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                     vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                     eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
@@ -260,7 +260,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         fnr = søknad.fnr,
                         fritekstTilBrev = "",
                         aldersvurdering = null,
-                        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                             vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                             eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),

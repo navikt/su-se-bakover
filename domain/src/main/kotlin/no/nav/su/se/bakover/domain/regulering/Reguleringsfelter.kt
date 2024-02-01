@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Stønadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.StøtterIkkeHentingAvEksternGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
 
 interface Reguleringsfelter : Stønadsbehandling {
@@ -16,6 +16,6 @@ interface Reguleringsfelter : Stønadsbehandling {
         get() = StøtterIkkeHentingAvEksternGrunnlag
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
-    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
     override val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 }

@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -45,6 +44,7 @@ import no.nav.su.se.bakover.test.toFormueRequestGrunnlag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 
 internal class SøknadsbehandlingPostgresRepoTest {
 

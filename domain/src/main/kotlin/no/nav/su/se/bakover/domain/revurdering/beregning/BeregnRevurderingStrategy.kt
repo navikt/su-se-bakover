@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering.beregning
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingKanBeregnes
 
@@ -33,7 +33,7 @@ private fun gjørBeregning(
     beregningStrategyFactory: BeregningStrategyFactory,
 ): Beregning {
     return beregningStrategyFactory.beregn(
-        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
             grunnlagsdata = revurdering.grunnlagsdata,
             vilkårsvurderinger = revurdering.vilkårsvurderinger,
         ),

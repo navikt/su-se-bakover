@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import arrow.core.getOrElse
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import kotliquery.Row
@@ -43,7 +45,6 @@ import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.database.BrevvalgDbJson.Companion.toJson
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
@@ -65,7 +66,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.simulering.Simulering
@@ -804,7 +804,7 @@ internal class RevurderingPostgresRepo(
         oppgaveId: String?,
         attesteringer: Attesteringshistorikk,
         revurderingsårsak: Revurderingsårsak,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
         tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering?,
         sakinfo: SakInfo,

@@ -3,10 +3,9 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.getOrElse
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkårKastHvisAlder
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import java.time.Clock
 
 class BeregningStrategyFactory(

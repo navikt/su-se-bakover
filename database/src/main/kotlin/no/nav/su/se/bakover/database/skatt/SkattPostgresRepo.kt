@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toStringifiedYearRangeJson
 import no.nav.su.se.bakover.database.skatt.SkattegrunnlagDbJson.Companion.toDbJson
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import vilkår.skatt.domain.Skattegrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import java.util.UUID
 
 internal data object SkattPostgresRepo {

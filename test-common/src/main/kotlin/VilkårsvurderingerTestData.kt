@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerRevurdering
-import no.nav.su.se.bakover.domain.vilkår.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
@@ -36,7 +36,7 @@ data class OpprettetRegulering(
     override val sakId: UUID,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
-    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
     override val periode: Periode = grunnlagsdataOgVilkårsvurderinger.periode()!!,
     override val beregning: Beregning?,
     override val simulering: Simulering?,
@@ -66,7 +66,7 @@ data class OpprettetRegulering(
 
     fun leggTilFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): OpprettetRegulering =
         this.copy(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
                     fradragsgrunnlag = fradragsgrunnlag,
@@ -85,7 +85,7 @@ data class OpprettetRegulering(
         )
 
         return this.copy(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(
                     UføreVilkår.Vurdert.tryCreate(

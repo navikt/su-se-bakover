@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.vurderinger.domain
 
 import vilkår.skatt.domain.Skattegrunnlag
 

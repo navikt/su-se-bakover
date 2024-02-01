@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.skatt
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import org.junit.jupiter.api.Test
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import java.util.UUID
 
 internal class SkattPostgresRepoTest {
