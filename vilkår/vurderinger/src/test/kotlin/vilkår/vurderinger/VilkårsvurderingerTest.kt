@@ -43,7 +43,7 @@ import java.util.UUID
 internal class VilkårsvurderingerTest {
 
     @Nested
-    inner class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
+    inner class Søknadsbehandling {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
@@ -213,7 +213,7 @@ internal class VilkårsvurderingerTest {
     }
 
     @Nested
-    inner class GrunnlagsdataOgVilkårsvurderingerRevurdering {
+    inner class Revurdering {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {

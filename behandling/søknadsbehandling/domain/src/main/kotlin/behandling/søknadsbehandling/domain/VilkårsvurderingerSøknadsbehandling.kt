@@ -100,24 +100,6 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
             }
         }
 
-//        fun tilVilkårsvurderingerRevurdering(): VilkårsvurderingerRevurdering.Uføre {
-//            return VilkårsvurderingerRevurdering.Uføre(
-//                uføre = uføre,
-//                lovligOpphold = lovligOpphold,
-//                formue = formue,
-//                utenlandsopphold = utenlandsopphold,
-//                opplysningsplikt = opplysningsplikt,
-//                flyktning = flyktning,
-//                fastOpphold = fastOpphold,
-//                personligOppmøte = personligOppmøte,
-//                institusjonsopphold = institusjonsopphold,
-//            )
-//        }
-//
-//        fun tilVilkårsvurderingerSøknadsbehandling(): Uføre {
-//            return this
-//        }
-
         override fun erLik(other: Vilkårsvurderinger): Boolean {
             return other is Uføre && vilkår.erLik(other.vilkår)
         }
