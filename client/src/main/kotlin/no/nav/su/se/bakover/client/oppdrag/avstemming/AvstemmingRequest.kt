@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
@@ -21,6 +23,13 @@ internal data class AvstemmingStoppRequest(
 )
 
 @JacksonXmlRootElement(localName = "avstemmingsdata")
+@JsonPropertyOrder(
+    "aksjon",
+    "total",
+    "periode",
+    "grunnlag",
+    "detalj",
+)
 internal data class GrensesnittsavstemmingData(
     val aksjon: Aksjonsdata.Grensesnittsavstemming,
     val total: Totaldata,
@@ -48,6 +57,20 @@ internal data class GrensesnittsavstemmingData(
      * avvist = alvorlighetsgrad 08
      * mangler = meldinger det ikke er mottatt kvitteringer
      */
+    @JsonPropertyOrder(
+        "godkjentAntall",
+        "godkjentBelop",
+        "godkjentFortegn",
+        "varselAntall",
+        "varselBelop",
+        "varselFortegn",
+        "avvistAntall",
+        "avvistBelop",
+        "avvistFortegn",
+        "manglerAntall",
+        "manglerBelop",
+        "manglerFortegn",
+    )
     data class Grunnlagdata(
         val godkjentAntall: Int,
         val godkjentBelop: BigDecimal,
@@ -62,12 +85,19 @@ internal data class GrensesnittsavstemmingData(
         val manglerBelop: BigDecimal,
         val manglerFortegn: Fortegn,
     ) {
+        @JsonIgnore
         fun totaltAntall() = godkjentAntall + varselAntall + avvistAntall + manglerAntall
     }
 
     /**
      * ID 140
      */
+    @JsonPropertyOrder(
+        "detaljType",
+        "offnr",
+        "avleverendeTransaksjonNokkel",
+        "tidspunkt",
+    )
     data class Detaljdata(
         val detaljType: Detaljtype,
         /*
@@ -91,6 +121,11 @@ internal data class GrensesnittsavstemmingData(
 /**
  * ID 120
  */
+@JsonPropertyOrder(
+    "totalAntall",
+    "totalBelop",
+    "fortegn",
+)
 internal data class Totaldata(
     val totalAntall: Int,
     val totalBelop: BigDecimal,
@@ -100,6 +135,10 @@ internal data class Totaldata(
 /**
  * ID 150
  */
+@JsonPropertyOrder(
+    "datoAvstemtFom",
+    "datoAvstemtTom",
+)
 internal data class Periodedata(
     val datoAvstemtFom: String,
     val datoAvstemtTom: String,
@@ -123,12 +162,27 @@ internal data class SendKonsistensavstemmingRequest(
 )
 
 @JacksonXmlRootElement(localName = "konsistensavstemmingdata")
+@JsonPropertyOrder(
+    "aksjonsdata",
+    "oppdragsdataListe",
+    "totaldata",
+)
 internal data class KonsistensavstemmingData(
     val aksjonsdata: Aksjonsdata.Konsistensavstemming,
     val oppdragsdataListe: List<Oppdragsdata>? = null,
     val totaldata: Totaldata? = null,
 ) {
 
+    @JsonPropertyOrder(
+        "fagomradeKode",
+        "fagsystemId",
+        "utbetalingsfrekvens",
+        "oppdragGjelderId",
+        "oppdragGjelderFom",
+        "saksbehandlerId",
+        "oppdragsenhetListe",
+        "oppdragslinjeListe",
+    )
     data class Oppdragsdata(
         val fagomradeKode: String,
         val fagsystemId: String,
@@ -140,17 +194,37 @@ internal data class KonsistensavstemmingData(
         val oppdragslinjeListe: List<Oppdragslinje>,
     )
 
+    @JsonPropertyOrder(
+        "enhetType",
+        "enhet",
+        "enhetFom",
+    )
     data class Enhet(
         val enhetType: String,
         val enhet: String,
         val enhetFom: String,
     )
 
+    @JsonPropertyOrder(
+        "fom",
+        "tom",
+    )
     data class VedtakPeriode(
         val fom: String,
         val tom: String,
     )
 
+    @JsonPropertyOrder(
+        "delytelseId",
+        "klassifikasjonKode",
+        "vedtakPeriode",
+        "sats",
+        "satstypeKode",
+        "fradragTillegg",
+        "brukKjoreplan",
+        "utbetalesTilId",
+        "attestantListe",
+    )
     data class Oppdragslinje(
         val delytelseId: String,
         val klassifikasjonKode: String,
@@ -163,6 +237,9 @@ internal data class KonsistensavstemmingData(
         val attestantListe: List<Attestant>,
     )
 
+    @JsonPropertyOrder(
+        "attestantId",
+    )
     data class Attestant(
         val attestantId: String,
     )
@@ -220,6 +297,18 @@ sealed class Aksjonsdata {
         override fun toString() = value
     }
 
+    @JsonPropertyOrder(
+        "aksjonType",
+        "kildeType",
+        "avstemmingType",
+        "avleverendeKomponentKode",
+        "mottakendeKomponentKode",
+        "underkomponentKode",
+        "nokkelFom",
+        "nokkelTom",
+        "avleverendeAvstemmingId",
+        "brukerId",
+    )
     internal data class Grensesnittsavstemming(
         override val underkomponentKode: String,
         override val aksjonType: AksjonType = AksjonType.DATA,
@@ -239,6 +328,17 @@ sealed class Aksjonsdata {
         }
     }
 
+    @JsonPropertyOrder(
+        "aksjonType",
+        "kildeType",
+        "avstemmingType",
+        "avleverendeKomponentKode",
+        "mottakendeKomponentKode",
+        "underkomponentKode",
+        "tidspunktAvstemmingTom",
+        "avleverendeAvstemmingId",
+        "brukerId",
+    )
     internal data class Konsistensavstemming(
         override val underkomponentKode: String,
         override val aksjonType: AksjonType = AksjonType.DATA,

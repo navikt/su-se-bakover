@@ -42,15 +42,15 @@ internal class KonsistensavstemmingXmlMappingTest {
               <request>
                 <konsistensavstemmingsdata>
                   <aksjonsdata>
-                    <kildeType>AVLEV</kildeType>
-                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                    <brukerId>SU</brukerId>
-                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                    <underkomponentKode>SUUFORE</underkomponentKode>
                     <aksjonType>START</aksjonType>
-                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
-                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <kildeType>AVLEV</kildeType>
                     <avstemmingType>KONS</avstemmingType>
+                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                    <underkomponentKode>SUUFORE</underkomponentKode>
+                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
+                    <brukerId>SU</brukerId>
                   </aksjonsdata>
                 </konsistensavstemmingsdata>
               </request>
@@ -70,15 +70,15 @@ internal class KonsistensavstemmingXmlMappingTest {
               <request>
                 <konsistensavstemmingsdata>
                   <aksjonsdata>
-                    <kildeType>AVLEV</kildeType>
-                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                    <brukerId>SU</brukerId>
-                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                    <underkomponentKode>SUUFORE</underkomponentKode>
                     <aksjonType>DATA</aksjonType>
-                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
-                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <kildeType>AVLEV</kildeType>
                     <avstemmingType>KONS</avstemmingType>
+                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                    <underkomponentKode>SUUFORE</underkomponentKode>
+                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
+                    <brukerId>SU</brukerId>
                   </aksjonsdata>
                   <oppdragsdataListe>
                     <fagomradeKode>SUUFORE</fagomradeKode>
@@ -127,15 +127,15 @@ internal class KonsistensavstemmingXmlMappingTest {
               <request>
                 <konsistensavstemmingsdata>
                   <aksjonsdata>
-                    <kildeType>AVLEV</kildeType>
-                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                    <brukerId>SU</brukerId>
-                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                    <underkomponentKode>SUUFORE</underkomponentKode>
                     <aksjonType>AVSL</aksjonType>
-                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
-                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <kildeType>AVLEV</kildeType>
                     <avstemmingType>KONS</avstemmingType>
+                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                    <underkomponentKode>SUUFORE</underkomponentKode>
+                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
+                    <brukerId>SU</brukerId>
                   </aksjonsdata>
                 </konsistensavstemmingsdata>
               </request>
@@ -155,15 +155,15 @@ internal class KonsistensavstemmingXmlMappingTest {
               <request>
                 <konsistensavstemmingsdata>
                   <aksjonsdata>
-                    <kildeType>AVLEV</kildeType>
-                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                    <brukerId>SU</brukerId>
-                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                    <underkomponentKode>SUUFORE</underkomponentKode>
                     <aksjonType>DATA</aksjonType>
-                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
-                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <kildeType>AVLEV</kildeType>
                     <avstemmingType>KONS</avstemmingType>
+                    <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                    <underkomponentKode>SUUFORE</underkomponentKode>
+                    <tidspunktAvstemmingTom>2021-01-01-02.02.03.456789</tidspunktAvstemmingTom>
+                    <avleverendeAvstemmingId>${avstemming.id}</avleverendeAvstemmingId>
+                    <brukerId>SU</brukerId>
                   </aksjonsdata>
                   <totaldata>
                     <totalAntall>1</totalAntall>
