@@ -20,6 +20,7 @@ internal data class GenerertDokumentHendelseDbJson(
     val distribusjonstype: DistribusjonstypeDbJson,
     val distribusjonstidspunkt: DistribusjonstidspunktDbJson,
     val tittel: String,
+    /* Siden denne allerede er serialisert, vil Jackson escape den som en string. Dette kan påvirke jsonb-funksjonaliteten til Postgres. */
     val generertDokumentJson: String,
     val relaterteHendelse: String,
     val dokumentMeta: DokumentMetaDataDbJson,
