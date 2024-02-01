@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-internal class AvsluttetGrunnlagsdataOgVilkårsvurderingerRevurderingJsonTest {
+internal class AvsluttetRevurderingJsonTest {
     @Test
     fun `avsluttet json matcher AvsluttetRevurderingInfo`() {
         //language=JSON
