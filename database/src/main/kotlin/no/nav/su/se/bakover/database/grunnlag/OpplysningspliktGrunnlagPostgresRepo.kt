@@ -117,9 +117,9 @@ internal class OpplysningspliktGrunnlagPostgresRepo(
         name = "UtilstrekkeligDokumentasjon",
     ),
 )
-private sealed class OpplysningspliktBeskrivelseDb {
-    data object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelseDb()
-    data object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelseDb()
+private sealed interface OpplysningspliktBeskrivelseDb {
+    data object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelseDb
+    data object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelseDb
 }
 
 internal fun OpplysningspliktBeskrivelse.toDb(): String {

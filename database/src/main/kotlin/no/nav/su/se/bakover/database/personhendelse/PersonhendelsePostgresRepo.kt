@@ -229,15 +229,15 @@ internal class PersonhendelsePostgresRepo(
     /**
      * Dto som persisteres som JSON i databasen. Tilbyr mapping til/fra domenetypen.
      */
-    private sealed class HendelseJson {
-        data class DødsfallJson(val dødsdato: LocalDate?) : HendelseJson()
-        data class UtflyttingFraNorgeJson(val utflyttingsdato: LocalDate?) : HendelseJson()
+    private sealed interface HendelseJson {
+        data class DødsfallJson(val dødsdato: LocalDate?) : HendelseJson
+        data class UtflyttingFraNorgeJson(val utflyttingsdato: LocalDate?) : HendelseJson
         data class SivilstandJson(
             val type: String?,
             val gyldigFraOgMed: LocalDate?,
             val relatertVedSivilstand: String?,
             val bekreftelsesdato: LocalDate?,
-        ) : HendelseJson() {
+        ) : HendelseJson {
             enum class Typer(val value: String) {
                 UOPPGITT("uoppgitt"),
                 UGIFT("ugift"),
@@ -261,9 +261,9 @@ internal class PersonhendelsePostgresRepo(
             }
         }
 
-        data object BostedsadresseJson : HendelseJson()
+        data object BostedsadresseJson : HendelseJson
 
-        data object KontaktadresseJson : HendelseJson()
+        data object KontaktadresseJson : HendelseJson
 
         fun toDomain(): Personhendelse.Hendelse = when (this) {
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)

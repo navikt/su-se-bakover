@@ -1,6 +1,6 @@
 package beregning.domain
 
-sealed class Merknader {
+sealed interface Merknader {
 
     class Beregningsmerknad(
         private val merknader: MutableList<Merknad.Beregning> = mutableListOf(),
@@ -46,24 +46,24 @@ sealed class Merknader {
     }
 }
 
-sealed class Merknad {
+sealed interface Merknad {
 
-    sealed class Beregning {
-        sealed class Avslag : Beregning() {
+    sealed interface Beregning {
+        sealed interface Avslag : Beregning {
             /**
              * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Satskategori.Høy]
              */
-            data object BeløpMellomNullOgToProsentAvHøySats : Avslag()
+            data object BeløpMellomNullOgToProsentAvHøySats : Avslag
 
             /**
              * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
              */
-            data object BeløpErNull : Avslag()
+            data object BeløpErNull : Avslag
         }
 
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Satskategori.Høy] som følge av sosialstønad.
          */
-        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning
     }
 }

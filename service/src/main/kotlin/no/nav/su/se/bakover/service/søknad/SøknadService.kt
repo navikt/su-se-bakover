@@ -11,7 +11,11 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
 interface SøknadService {
-    fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>>
+    fun nySøknad(
+        søknadInnhold: SøknadInnhold,
+        identBruker: NavIdentBruker,
+    ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>>
+
     fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext)
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
     fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, PdfA>
@@ -20,24 +24,27 @@ interface SøknadService {
 
 data object FantIkkeSøknad
 
-sealed class KunneIkkeOppretteSøknad {
-    data object FantIkkePerson : KunneIkkeOppretteSøknad()
-    data object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad()
+sealed interface KunneIkkeOppretteSøknad {
+    data object FantIkkePerson : KunneIkkeOppretteSøknad
+    data object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad
 }
 
-sealed class KunneIkkeLageSøknadPdf {
-    data object FantIkkeSøknad : KunneIkkeLageSøknadPdf()
-    data object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf()
-    data object FantIkkePerson : KunneIkkeLageSøknadPdf()
-    data object FantIkkeSak : KunneIkkeLageSøknadPdf()
+sealed interface KunneIkkeLageSøknadPdf {
+    data object FantIkkeSøknad : KunneIkkeLageSøknadPdf
+    data object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf
+    data object FantIkkePerson : KunneIkkeLageSøknadPdf
+    data object FantIkkeSak : KunneIkkeLageSøknadPdf
 }
 
 data class OpprettManglendeJournalpostOgOppgaveResultat(
     val journalpostResultat: List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>>,
     val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>,
-) {
-    fun harFeil(): Boolean = journalpostResultat.mapNotNull { it.swap().getOrNull() }.isNotEmpty() ||
-        oppgaveResultat.mapNotNull { it.swap().getOrNull() }.isNotEmpty()
-}
+)
+
 data class KunneIkkeOppretteJournalpost(val sakId: UUID, val søknadId: UUID, val grunn: String)
-data class KunneIkkeOppretteOppgave(val sakId: UUID, val søknadId: UUID, val journalpostId: JournalpostId, val grunn: String)
+data class KunneIkkeOppretteOppgave(
+    val sakId: UUID,
+    val søknadId: UUID,
+    val journalpostId: JournalpostId,
+    val grunn: String,
+)

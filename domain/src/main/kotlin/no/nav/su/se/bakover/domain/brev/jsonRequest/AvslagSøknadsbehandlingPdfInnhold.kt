@@ -27,7 +27,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     val formueVerdier: FormueForBrev?,
     val satsoversikt: Satsoversikt?,
     override val sakstype: Sakstype,
-) : PdfInnhold() {
+) : PdfInnhold {
     @Suppress("unused")
     @JsonInclude
     val harFlereAvslagsgrunner: Boolean = avslagsgrunner.size > 1

@@ -6,7 +6,7 @@ import dokument.domain.pdf.PersonaliaPdfInnhold
 
 data class InnkallingTilKontrollsamtalePdfInnhold(
     val personalia: PersonaliaPdfInnhold,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.InnkallingTilKontrollsamtale
 
     companion object {

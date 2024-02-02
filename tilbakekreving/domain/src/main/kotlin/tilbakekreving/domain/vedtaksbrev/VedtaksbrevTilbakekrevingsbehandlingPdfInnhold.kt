@@ -17,7 +17,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     val fritekst: String?,
     val dato: String,
     val månedsoversiktMedSum: MånedsoversiktMedSum,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
 
     companion object {

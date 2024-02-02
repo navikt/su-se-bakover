@@ -17,28 +17,28 @@ import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Stans
 import java.time.Clock
 import java.time.LocalDate
 
-sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
-    abstract val id: UUID30 // delytelseId
+sealed interface Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
+    val id: UUID30 // delytelseId
 
     // TODO jah: Fjern eller la den arve utbetalingen sin. Vurder samme med databasen.
-    abstract val opprettet: Tidspunkt
-    abstract val rekkefølge: Rekkefølge
+    val opprettet: Tidspunkt
+    val rekkefølge: Rekkefølge
 
     /**
      * @see originalFraOgMed
      */
-    protected abstract val fraOgMed: LocalDate
+    val fraOgMed: LocalDate
 
     /**
      * @see originalTilOgMed
      */
-    protected abstract val tilOgMed: LocalDate
-    abstract val forrigeUtbetalingslinjeId: UUID30?
-    abstract val beløp: Int
-    abstract val uføregrad: Uføregrad?
-    abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
+    val tilOgMed: LocalDate
+    val forrigeUtbetalingslinjeId: UUID30?
+    val beløp: Int
+    val uføregrad: Uføregrad?
+    val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log get() = LoggerFactory.getLogger(this::class.java)
 
     /**
      * En utbetaling har [1-N] utbetalingslinjer.
@@ -59,6 +59,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
                 it < 0 -> require(this.opprettet <= other.opprettet) {
                     "Utbetalingslinje.compareTo(...) feilet, this.rekkefølge (${this.rekkefølge} <= other.rekkefølge(${other.rekkefølge}, men this.opprettet (${this.opprettet}) > other.opprettet (${other.opprettet})"
                 }
+
                 else -> require(this.opprettet >= other.opprettet) {
                     "Utbetalingslinje.compareTo(...) feilet, this.rekkefølge (${this.rekkefølge} > other.rekkefølge(${other.rekkefølge}, men this.opprettet (${this.opprettet}) < other.opprettet (${other.opprettet})"
                 }
@@ -92,7 +93,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         private val betalUtSåFortSomMulig = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
     }
 
-    abstract fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Utbetalingslinje
+    fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Utbetalingslinje
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -104,7 +105,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         override val beløp: Int,
         override val uføregrad: Uføregrad?,
         override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
-    ) : Utbetalingslinje() {
+    ) : Utbetalingslinje {
 
         init {
             require(id != forrigeUtbetalingslinjeId) {
@@ -131,9 +132,9 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
      * endringen skal gjelde fra - i utgangspunktet vil alle endringer i OS gjøre seg gjeldende for perioden
      * ["angitt endringsdato" ([virkningsperiode.fraOgMed] for oss)]-[originalTilOgMed] for linjen som endres.
      */
-    sealed class Endring : Utbetalingslinje() {
-        abstract val linjeStatus: LinjeStatus
-        protected abstract val virkningsperiode: Periode
+    sealed interface Endring : Utbetalingslinje {
+        val linjeStatus: LinjeStatus
+        val virkningsperiode: Periode
 
         data class Opphør(
             override val id: UUID30,
@@ -146,7 +147,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
-        ) : Endring() {
+        ) : Endring {
 
             init {
                 require(id != forrigeUtbetalingslinjeId) {
@@ -205,7 +206,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
-        ) : Endring() {
+        ) : Endring {
 
             init {
                 require(id != forrigeUtbetalingslinjeId) {
@@ -280,7 +281,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
-        ) : Endring() {
+        ) : Endring {
 
             init {
                 require(id != forrigeUtbetalingslinjeId) {

@@ -10,14 +10,14 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 
-sealed class BeregningStrategy {
-    protected abstract val satsFactory: SatsFactory
-    protected abstract val sakstype: Sakstype
+sealed interface BeregningStrategy {
+    val satsFactory: SatsFactory
+    val sakstype: Sakstype
 
-    abstract fun fradragStrategy(): FradragStrategy
-    abstract fun satsgrunn(): Satsgrunn
+    fun fradragStrategy(): FradragStrategy
+    fun satsgrunn(): Satsgrunn
 
-    abstract fun beregn(måned: Måned): FullSupplerendeStønadForMåned
+    fun beregn(måned: Måned): FullSupplerendeStønadForMåned
 
     fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>): List<FradragForMåned> {
         return when (sakstype) {
@@ -33,7 +33,7 @@ sealed class BeregningStrategy {
     data class BorAlene(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
-    ) : BeregningStrategy() {
+    ) : BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy {
             return when (sakstype) {
                 Sakstype.ALDER -> FradragStrategy.Alder.Enslig
@@ -53,7 +53,7 @@ sealed class BeregningStrategy {
     data class BorMedVoksne(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
-    ) : BeregningStrategy() {
+    ) : BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy {
             return when (sakstype) {
                 Sakstype.ALDER -> FradragStrategy.Alder.Enslig
@@ -73,7 +73,7 @@ sealed class BeregningStrategy {
     data class Eps67EllerEldre(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
-    ) : BeregningStrategy() {
+    ) : BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy {
             return when (sakstype) {
                 Sakstype.ALDER -> FradragStrategy.Alder.EpsOver67År(satsFactory)
@@ -93,7 +93,7 @@ sealed class BeregningStrategy {
     data class EpsUnder67ÅrOgUførFlyktning(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
-    ) : BeregningStrategy() {
+    ) : BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy {
             return when (sakstype) {
                 Sakstype.ALDER -> FradragStrategy.Alder.EpsUnder67ÅrOgUførFlyktning(satsFactory)
@@ -113,7 +113,7 @@ sealed class BeregningStrategy {
     data class EpsUnder67År(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
-    ) : BeregningStrategy() {
+    ) : BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy {
             return when (sakstype) {
                 Sakstype.ALDER -> FradragStrategy.Alder.EpsUnder67År

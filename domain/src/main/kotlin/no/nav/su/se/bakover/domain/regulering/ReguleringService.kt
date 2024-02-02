@@ -12,20 +12,19 @@ import java.util.UUID
 sealed interface KunneIkkeFerdigstilleOgIverksette {
     data object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette
     data object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette
-    data object KontrollsimuleringFeielt : KunneIkkeFerdigstilleOgIverksette
     data object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette
     data object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette
 }
 
-sealed class KunneIkkeRegulereManuelt {
-    data object FantIkkeRegulering : KunneIkkeRegulereManuelt()
-    data object SimuleringFeilet : KunneIkkeRegulereManuelt()
-    data object BeregningFeilet : KunneIkkeRegulereManuelt()
-    data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
-    data object FantIkkeSak : KunneIkkeRegulereManuelt()
-    data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
-    data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt()
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt()
+sealed interface KunneIkkeRegulereManuelt {
+    data object FantIkkeRegulering : KunneIkkeRegulereManuelt
+    data object SimuleringFeilet : KunneIkkeRegulereManuelt
+    data object BeregningFeilet : KunneIkkeRegulereManuelt
+    data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
+    data object FantIkkeSak : KunneIkkeRegulereManuelt
+    data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
+    data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
+    data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt
 }
 
 sealed interface BeregnOgSimulerFeilet {

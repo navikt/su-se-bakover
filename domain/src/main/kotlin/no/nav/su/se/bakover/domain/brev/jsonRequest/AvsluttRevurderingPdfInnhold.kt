@@ -13,7 +13,7 @@ data class AvsluttRevurderingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String?,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.Revurdering.AvsluttRevurdering
 
     companion object {

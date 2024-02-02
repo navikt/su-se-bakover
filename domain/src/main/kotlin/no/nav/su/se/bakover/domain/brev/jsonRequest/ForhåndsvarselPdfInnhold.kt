@@ -9,7 +9,7 @@ data class ForhåndsvarselPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.Forhåndsvarsel
 
     companion object {

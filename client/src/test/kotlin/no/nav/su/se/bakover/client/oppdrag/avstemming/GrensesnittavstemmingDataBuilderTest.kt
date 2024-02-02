@@ -44,7 +44,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
         val avstemmingId = UUID30.randomUUID()
         val expected = GrensesnittsavstemmingData(
-            aksjon = Aksjonsdata.Grensesnittsavstemming(
+            aksjon = Grensesnittsavstemming(
                 nokkelFom = "1583017200000000000",
                 nokkelTom = "1583103600000000000",
                 avleverendeAvstemmingId = avstemmingId.toString(),

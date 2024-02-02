@@ -31,13 +31,12 @@ data class Revurderingsårsak(
         }
     }
 
-    sealed class UgyldigRevurderingsårsak {
-        data object UgyldigÅrsak : UgyldigRevurderingsårsak()
-        data object UgyldigBegrunnelse : UgyldigRevurderingsårsak()
+    sealed interface UgyldigRevurderingsårsak {
+        data object UgyldigÅrsak : UgyldigRevurderingsårsak
+        data object UgyldigBegrunnelse : UgyldigRevurderingsårsak
     }
 
     companion object {
-        val MIGRERT = Revurderingsårsak(Årsak.MIGRERT, Begrunnelse.MIGRERT)
 
         fun tryCreate(årsak: String, begrunnelse: String): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
             val validÅrsak = Årsak.tryCreate(årsak).getOrElse {

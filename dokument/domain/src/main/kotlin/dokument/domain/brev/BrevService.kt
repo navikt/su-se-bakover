@@ -33,20 +33,20 @@ sealed interface HentDokumenterForIdType {
     data class HentDokumenterForKlage(override val id: UUID) : HentDokumenterForIdType
 }
 
-sealed class KunneIkkeJournalføreBrev {
+sealed interface KunneIkkeJournalføreBrev {
 
-    data object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev()
+    data object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev
 }
 
 data object KunneIkkeDistribuereBrev
 
-sealed class KunneIkkeJournalføreDokument {
-    data object KunneIkkeFinnePerson : KunneIkkeJournalføreDokument()
-    data object FeilVedOpprettelseAvJournalpost : KunneIkkeJournalføreDokument()
+sealed interface KunneIkkeJournalføreDokument {
+    data object KunneIkkeFinnePerson : KunneIkkeJournalføreDokument
+    data object FeilVedOpprettelseAvJournalpost : KunneIkkeJournalføreDokument
 }
 
-sealed class KunneIkkeBestilleBrevForDokument {
+sealed interface KunneIkkeBestilleBrevForDokument {
 
-    data object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument()
-    data object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument()
+    data object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument
+    data object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument
 }

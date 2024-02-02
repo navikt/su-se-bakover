@@ -22,7 +22,7 @@ data class SøknadPdfInnhold private constructor(
         .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val søknadOpprettet: String,
     val søknadInnhold: SøknadInnhold,
-) : PdfInnhold() {
+) : PdfInnhold {
 
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Søknad
 

@@ -8,24 +8,24 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
-sealed class UtbetalingslinjePåTidslinje {
-    abstract val kopiertFraId: UUID30
-    abstract val periode: Periode
-    abstract val beløp: Int
+sealed interface UtbetalingslinjePåTidslinje {
+    val kopiertFraId: UUID30
+    val periode: Periode
+    val beløp: Int
 
     /**
      * Ekvivalent i denne contexten betyr at linjen er av klasse, har samme [periode] og samme [beløp] som en annen linje.
      * Ekskluderer sjekk av [kopiertFraId]
      */
-    abstract fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean
+    fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean
 
-    abstract fun nyPeriode(periode: Periode): UtbetalingslinjePåTidslinje
+    fun nyPeriode(periode: Periode): UtbetalingslinjePåTidslinje
 
     data class Ny(
         override val kopiertFraId: UUID30,
         override val periode: Periode,
         override val beløp: Int,
-    ) : UtbetalingslinjePåTidslinje() {
+    ) : UtbetalingslinjePåTidslinje {
 
         override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
             return other is Ny && periode == other.periode && beløp == other.beløp
@@ -40,7 +40,7 @@ sealed class UtbetalingslinjePåTidslinje {
         override val kopiertFraId: UUID30,
         override val periode: Periode,
         override val beløp: Int = 0,
-    ) : UtbetalingslinjePåTidslinje() {
+    ) : UtbetalingslinjePåTidslinje {
         override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
             return other is Stans && periode == other.periode && beløp == other.beløp
         }
@@ -54,7 +54,7 @@ sealed class UtbetalingslinjePåTidslinje {
         override val kopiertFraId: UUID30,
         override val periode: Periode,
         override val beløp: Int = 0,
-    ) : UtbetalingslinjePåTidslinje() {
+    ) : UtbetalingslinjePåTidslinje {
         override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
             return other is Opphør && periode == other.periode && beløp == other.beløp
         }
@@ -68,7 +68,7 @@ sealed class UtbetalingslinjePåTidslinje {
         override val kopiertFraId: UUID30,
         override val periode: Periode,
         override val beløp: Int,
-    ) : UtbetalingslinjePåTidslinje() {
+    ) : UtbetalingslinjePåTidslinje {
         override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
             return other is Reaktivering && periode == other.periode && beløp == other.beløp
         }

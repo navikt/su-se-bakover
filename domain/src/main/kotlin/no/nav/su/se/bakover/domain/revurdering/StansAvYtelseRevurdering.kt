@@ -18,12 +18,12 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
-sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
+sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
 
-    abstract val attesteringer: Attesteringshistorikk
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    val attesteringer: Attesteringshistorikk
+    val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val simulering: Simulering
-    abstract val revurderingsårsak: Revurderingsårsak
+    val revurderingsårsak: Revurderingsårsak
 
     /**
      * Stans og gjenoppta er ikke ekte vedtak.
@@ -50,7 +50,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
         override val avsluttetAv: NavIdentBruker?,
-    ) : StansAvYtelseRevurdering(), Avbrutt {
+    ) : StansAvYtelseRevurdering, Avbrutt {
         override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo = underliggendeStansAvYtelse.sakinfo
@@ -111,7 +111,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : StansAvYtelseRevurdering() {
+    ) : StansAvYtelseRevurdering {
 
         override val beregning = null
 
@@ -140,13 +140,13 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
         }
     }
 
-    sealed class KunneIkkeIverksetteStansAvYtelse {
-        data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
+    sealed interface KunneIkkeIverksetteStansAvYtelse {
+        data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse
     }
 
-    sealed class KunneIkkeLageAvsluttetStansAvYtelse {
-        data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetStansAvYtelse()
-        data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetStansAvYtelse()
+    sealed interface KunneIkkeLageAvsluttetStansAvYtelse {
+        data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetStansAvYtelse
+        data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetStansAvYtelse
     }
 
     data class IverksattStansAvYtelse(
@@ -166,7 +166,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
+    ) : StansAvYtelseRevurdering, BehandlingMedAttestering {
 
         override val beregning = null
         override fun erÅpen() = false

@@ -150,12 +150,12 @@ open class Periode protected constructor(
         }
     }
 
-    sealed class UgyldigPeriode {
-        data object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode()
+    sealed interface UgyldigPeriode {
+        data object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode
 
-        data object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode()
+        data object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode
 
-        data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
+        data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode
     }
 
     override fun equals(other: Any?) = super.equals(other)

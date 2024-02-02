@@ -134,16 +134,16 @@ data class Sak(
             }
     }
 
-    sealed class KunneIkkeHenteGjeldendeVedtaksdata {
+    sealed interface KunneIkkeHenteGjeldendeVedtaksdata {
         data class FinnesIngenVedtakSomKanRevurderes(
             val fraOgMed: LocalDate,
             val tilOgMed: LocalDate,
-        ) : KunneIkkeHenteGjeldendeVedtaksdata() {
+        ) : KunneIkkeHenteGjeldendeVedtaksdata {
             constructor(periode: Periode) : this(periode.fraOgMed, periode.tilOgMed)
             constructor(fraOgMed: LocalDate) : this(fraOgMed, LocalDate.MAX)
         }
 
-        data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata()
+        data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata
     }
 
     /**
@@ -170,9 +170,9 @@ data class Sak(
             }
     }
 
-    sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
-        data object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
-        data object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+    sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+        data object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
+        data object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
     }
 
     /**

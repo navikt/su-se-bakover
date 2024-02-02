@@ -26,7 +26,7 @@ data class AvsluttetRevurdering private constructor(
     val brevvalg: Brevvalg,
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker?,
-) : Revurdering(),
+) : Revurdering,
     Avbrutt {
 
     override val id: UUID = underliggendeRevurdering.id
@@ -105,29 +105,29 @@ data class AvsluttetRevurdering private constructor(
     override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
 }
 
-sealed class KunneIkkeLageAvsluttetRevurdering {
-    data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering()
-    data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering()
-    data object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering()
-    data object BrevvalgUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
-    data object ManglerBrevvalgVedForhåndsvarsling : KunneIkkeLageAvsluttetRevurdering()
+sealed interface KunneIkkeLageAvsluttetRevurdering {
+    data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering
+    data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering
+    data object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering
+    data object BrevvalgUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering
+    data object ManglerBrevvalgVedForhåndsvarsling : KunneIkkeLageAvsluttetRevurdering
 }
 
-sealed class KunneIkkeAvslutteRevurdering {
+sealed interface KunneIkkeAvslutteRevurdering {
     data class KunneIkkeLageAvsluttetRevurdering(
         val feil: no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering,
-    ) : KunneIkkeAvslutteRevurdering()
+    ) : KunneIkkeAvslutteRevurdering
 
     data class KunneIkkeLageAvsluttetGjenopptaAvYtelse(
         val feil: no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse,
-    ) : KunneIkkeAvslutteRevurdering()
+    ) : KunneIkkeAvslutteRevurdering
 
     data class KunneIkkeLageAvsluttetStansAvYtelse(
         val feil: StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse,
-    ) : KunneIkkeAvslutteRevurdering()
+    ) : KunneIkkeAvslutteRevurdering
 
-    data object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
-    data object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()
-    data object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering()
-    data object BrevvalgIkkeTillatt : KunneIkkeAvslutteRevurdering()
+    data object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering
+    data object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering
+    data object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering
+    data object BrevvalgIkkeTillatt : KunneIkkeAvslutteRevurdering
 }

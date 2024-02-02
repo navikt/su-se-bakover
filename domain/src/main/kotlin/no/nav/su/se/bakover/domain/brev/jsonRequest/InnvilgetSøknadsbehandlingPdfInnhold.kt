@@ -26,7 +26,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val fritekst: String,
     val satsoversikt: Satsoversikt,
     override val sakstype: Sakstype,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.InnvilgetVedtak
 
     @Suppress("unused")

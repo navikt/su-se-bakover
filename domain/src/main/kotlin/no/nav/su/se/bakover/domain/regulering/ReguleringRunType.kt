@@ -22,7 +22,7 @@ interface ReguleringRunType {
     val notifyObservers: (VedtakInnvilgetRegulering) -> Unit
 }
 
-sealed class LiveRun : ReguleringRunType {
+sealed interface LiveRun : ReguleringRunType {
 
     data class Opprettet(
         override val sessionFactory: SessionFactory,
@@ -30,7 +30,7 @@ sealed class LiveRun : ReguleringRunType {
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
-    ) : LiveRun() {
+    ) : LiveRun {
         fun kjørSideffekter(regulering: OpprettetRegulering) {
             sessionFactory.withTransactionContext { tx ->
                 lagreRegulering(regulering, tx)
@@ -44,7 +44,7 @@ sealed class LiveRun : ReguleringRunType {
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
-    ) : LiveRun() {
+    ) : LiveRun {
         fun kjørSideffekter(
             regulering: IverksattRegulering,
             utbetaling: Utbetaling.SimulertUtbetaling,

@@ -9,7 +9,7 @@ import person.domain.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class Personhendelse {
+sealed interface Personhendelse {
     enum class Endringstype {
         OPPRETTET,
         KORRIGERT,
@@ -25,7 +25,7 @@ sealed class Personhendelse {
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
         override val metadata: Metadata,
-    ) : Personhendelse() {
+    ) : Personhendelse {
         fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakInfo) = TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = endringstype,
             hendelse = hendelse,
@@ -37,7 +37,7 @@ sealed class Personhendelse {
         )
     }
 
-    sealed class TilknyttetSak : Personhendelse() {
+    sealed interface TilknyttetSak : Personhendelse {
         abstract val id: UUID
         abstract val sakId: UUID
         abstract val saksnummer: Saksnummer
@@ -51,7 +51,7 @@ sealed class Personhendelse {
             override val saksnummer: Saksnummer,
             override val metadata: Metadata,
             override val antallFeiledeForsøk: Int,
-        ) : TilknyttetSak() {
+        ) : TilknyttetSak {
             fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
                 SendtTilOppgave(
                     endringstype = endringstype,
@@ -74,14 +74,14 @@ sealed class Personhendelse {
             override val metadata: Metadata,
             val oppgaveId: OppgaveId,
             override val antallFeiledeForsøk: Int,
-        ) : TilknyttetSak()
+        ) : TilknyttetSak
     }
 
-    sealed class Hendelse {
+    sealed interface Hendelse {
         /**
          * @see <a href="https://navikt.github.io/pdl/#_d%C3%B8dsfall">Dokumentasjonen</a>
          * */
-        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse() {
+        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse {
             companion object {
                 val EMPTY = Dødsfall(null)
             }
@@ -90,7 +90,7 @@ sealed class Personhendelse {
         /**
          * @see <a href="https://navikt.github.io/pdl/#_utflytting">Dokumentasjonen</a>
          * */
-        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse() {
+        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse {
             companion object {
                 val EMPTY = UtflyttingFraNorge(null)
             }
@@ -98,14 +98,14 @@ sealed class Personhendelse {
 
         /**
          * @see <a href="https://navikt.github.io/pdl/#_sivilstand">Dokumentasjonen</a>
-         * @see [no.nav.su.se.bakover.domain.Person.Sivilstand]
+         * @see [person.domain.Person.Sivilstand]
          * */
         data class Sivilstand(
             val type: SivilstandTyper?,
             val gyldigFraOgMed: LocalDate?,
             val relatertVedSivilstand: Fnr?,
             val bekreftelsesdato: LocalDate?,
-        ) : Hendelse() {
+        ) : Hendelse {
             companion object {
                 val EMPTY = Sivilstand(null, null, null, null)
             }
@@ -118,12 +118,12 @@ sealed class Personhendelse {
         /**
          * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse">Dokumentasjonen</a>
          * */
-        data object Bostedsadresse : Hendelse()
+        data object Bostedsadresse : Hendelse
 
         /**
          * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-kontaktAdresse">Dokumentasjonen</a>
          * */
-        data object Kontaktadresse : Hendelse()
+        data object Kontaktadresse : Hendelse
     }
 
     /** Metadata rundt hendelsen

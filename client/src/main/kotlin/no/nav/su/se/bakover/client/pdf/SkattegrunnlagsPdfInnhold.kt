@@ -31,7 +31,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
     val søkers: SkattPdfDataJson,
     val eps: SkattPdfDataJson?,
     val begrunnelse: String?,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
 
     companion object {

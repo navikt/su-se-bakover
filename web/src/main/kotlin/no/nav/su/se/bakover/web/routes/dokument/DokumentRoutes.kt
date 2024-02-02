@@ -97,9 +97,9 @@ private data class HentDokumentParameters(
             ).right()
         }
 
-        sealed class UgyldigParameter {
-            data object UgyldigUUID : UgyldigParameter()
-            data object UgyldigType : UgyldigParameter()
+        sealed interface UgyldigParameter {
+            data object UgyldigUUID : UgyldigParameter
+            data object UgyldigType : UgyldigParameter
         }
     }
 

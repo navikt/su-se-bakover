@@ -26,12 +26,12 @@ import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
-sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
+sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
 
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val simulering: Simulering
-    abstract val revurderingsårsak: Revurderingsårsak
-    abstract val attesteringer: Attesteringshistorikk
+    val revurderingsårsak: Revurderingsårsak
+    val attesteringer: Attesteringshistorikk
 
     /**
      * Stans og gjenoppta er ikke ekte vedtak.
@@ -58,7 +58,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
         override val avsluttetAv: NavIdentBruker?,
-    ) : GjenopptaYtelseRevurdering(), Avbrutt {
+    ) : GjenopptaYtelseRevurdering, Avbrutt {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
             underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
@@ -120,7 +120,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : GjenopptaYtelseRevurdering() {
+    ) : GjenopptaYtelseRevurdering {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
         override val beregning = null
 
@@ -164,7 +164,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering {
+    ) : GjenopptaYtelseRevurdering, BehandlingMedAttestering {
 
         override val beregning = null
         override fun erÅpen() = false

@@ -1044,8 +1044,8 @@ class RevurderingServiceImpl(
             ?: KunneIkkeHenteRevurdering.FantIkkeRevurdering.left()
     }
 
-    sealed class KunneIkkeHenteRevurdering {
-        data object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering()
-        data object FantIkkeRevurdering : KunneIkkeHenteRevurdering()
+    sealed interface KunneIkkeHenteRevurdering {
+        data object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering
+        data object FantIkkeRevurdering : KunneIkkeHenteRevurdering
     }
 }

@@ -5,16 +5,16 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import vilkår.vurderinger.domain.Konsistensproblem
 import kotlin.reflect.KClass
 
-sealed class KunneIkkeLeggeTilFormuegrunnlag {
-    data object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
+sealed interface KunneIkkeLeggeTilFormuegrunnlag {
+    data object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilFormuegrunnlag()
+    ) : KunneIkkeLeggeTilFormuegrunnlag
 
-    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormuegrunnlag()
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormuegrunnlag
 
     data class KunneIkkeMappeTilDomenet(
         val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet,
-    ) : KunneIkkeLeggeTilFormuegrunnlag()
+    ) : KunneIkkeLeggeTilFormuegrunnlag
 }

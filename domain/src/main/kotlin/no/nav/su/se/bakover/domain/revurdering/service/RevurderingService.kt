@@ -192,12 +192,12 @@ data class RevurderingOgFeilmeldingerResponse(
     }
 }
 
-sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
-    data object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn()
-    data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn()
+sealed interface KunneIkkeHentePersonEllerSaksbehandlerNavn {
+    data object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn
+    data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn
 }
 
-sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
-    data object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
+    data object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 }

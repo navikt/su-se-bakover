@@ -19,11 +19,11 @@ import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
-sealed class Avstemming {
-    abstract val id: UUID30
-    abstract val opprettet: Tidspunkt
-    abstract val avstemmingXmlRequest: String?
-    abstract val fagområde: Fagområde
+sealed interface Avstemming {
+    val id: UUID30
+    val opprettet: Tidspunkt
+    val avstemmingXmlRequest: String?
+    val fagområde: Fagområde
 
     data class Grensesnittavstemming(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -33,7 +33,7 @@ sealed class Avstemming {
         val fraOgMed: Tidspunkt,
         val tilOgMed: Tidspunkt,
         val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
-    ) : Avstemming() {
+    ) : Avstemming {
         init {
             if (utbetalinger.isNotEmpty()) {
                 val byFagområde = utbetalinger
@@ -67,13 +67,13 @@ sealed class Avstemming {
      *      Årsaken til dette er at stans/reak/opph er den samme linja (samme id), men med status satt, noe som vil føre til duplikater.
      *      Filtrer til slutt vekk alle utbetalingslinjene hvis id ikke eksisterer i listen fra 6.
      */
-    sealed class Konsistensavstemming : Avstemming() {
+    sealed interface Konsistensavstemming : Avstemming {
         abstract override val id: UUID30
         abstract override val opprettet: Tidspunkt
         abstract override val fagområde: Fagområde
         abstract override val avstemmingXmlRequest: String?
-        abstract val løpendeFraOgMed: Tidspunkt
-        abstract val opprettetTilOgMed: Tidspunkt
+        val løpendeFraOgMed: Tidspunkt
+        val opprettetTilOgMed: Tidspunkt
 
         data class Ny(
             override val id: UUID30 = UUID30.randomUUID(),
@@ -83,7 +83,7 @@ sealed class Avstemming {
             override val fagområde: Fagområde,
             override val avstemmingXmlRequest: String? = null,
             private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
-        ) : Konsistensavstemming() {
+        ) : Konsistensavstemming {
 
             init {
                 if (utbetalinger.isNotEmpty()) {
@@ -148,7 +148,7 @@ sealed class Avstemming {
             override val fagområde: Fagområde,
             override val avstemmingXmlRequest: String? = null,
             val utbetalinger: Map<Saksnummer, List<Utbetalingslinje>>,
-        ) : Konsistensavstemming()
+        ) : Konsistensavstemming
     }
 }
 

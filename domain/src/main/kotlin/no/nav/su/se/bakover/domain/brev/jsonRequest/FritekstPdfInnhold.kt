@@ -10,7 +10,7 @@ data class FritekstPdfInnhold(
     val saksbehandlerNavn: String,
     val tittel: String,
     val fritekst: String,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
 
     companion object {

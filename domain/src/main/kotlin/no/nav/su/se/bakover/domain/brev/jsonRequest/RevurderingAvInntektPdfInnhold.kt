@@ -19,7 +19,7 @@ data class RevurderingAvInntektPdfInnhold(
     val harEktefelle: Boolean,
     val forventetInntektStørreEnn0: Boolean,
     val satsoversikt: Satsoversikt,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.Revurdering.Inntekt
 
     @Suppress("unused")

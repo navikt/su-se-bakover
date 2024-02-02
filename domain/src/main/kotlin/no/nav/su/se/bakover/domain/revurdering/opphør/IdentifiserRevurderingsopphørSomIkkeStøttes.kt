@@ -15,14 +15,12 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
-sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
-
-    protected abstract fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean
+sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
 
     data class UtenBeregning(
         private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val periode: Periode,
-    ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
+    ) : IdentifiserRevurderingsopphørSomIkkeStøttes {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat.let { opphørVedRevurdering ->
                 val utfall = mutableSetOf<RevurderingsutfallSomIkkeStøttes>()
@@ -40,7 +38,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
                 }
             }
 
-        override fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
+        private fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
             return this.opphørsdato == periode.fraOgMed
         }
     }
@@ -51,7 +49,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
         private val gjeldendeMånedsberegninger: List<Månedsberegning>,
         private val nyBeregning: Beregning,
         private val clock: Clock,
-    ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
+    ) : IdentifiserRevurderingsopphørSomIkkeStøttes {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,
@@ -132,16 +130,16 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
             return tidligereFradrag != nyeFradrag
         }
 
-        override fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
+        private fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
             return this.opphørsdato == nyBeregning.getMånedsberegninger()
                 .minByOrNull { it.periode.fraOgMed }!!.periode.fraOgMed
         }
     }
 }
 
-sealed class RevurderingsutfallSomIkkeStøttes {
-    data object OpphørOgAndreEndringerIKombinasjon : RevurderingsutfallSomIkkeStøttes()
-    data object OpphørErIkkeFraFørsteMåned : RevurderingsutfallSomIkkeStøttes()
-    data object DelvisOpphør : RevurderingsutfallSomIkkeStøttes()
-    data object OpphørAvFlereVilkår : RevurderingsutfallSomIkkeStøttes()
+sealed interface RevurderingsutfallSomIkkeStøttes {
+    data object OpphørOgAndreEndringerIKombinasjon : RevurderingsutfallSomIkkeStøttes
+    data object OpphørErIkkeFraFørsteMåned : RevurderingsutfallSomIkkeStøttes
+    data object DelvisOpphør : RevurderingsutfallSomIkkeStøttes
+    data object OpphørAvFlereVilkår : RevurderingsutfallSomIkkeStøttes
 }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
-import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
+import no.nav.su.se.bakover.client.oppdrag.avstemming.AksjonType.AVSLUTT
+import no.nav.su.se.bakover.client.oppdrag.avstemming.AksjonType.DATA
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
@@ -15,7 +15,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
     @Test
     fun `Sjekk mapping av start melding`() {
         val request = AvstemmingStartRequest(
-            aksjon = Aksjonsdata.Grensesnittsavstemming(
+            aksjon = Grensesnittsavstemming(
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
                 avleverendeAvstemmingId = "avleverendeAvstemmingId",
@@ -49,7 +49,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
     @Test
     fun `Sjekk mapping av data melding`() {
         val dataRequest = GrensesnittsavstemmingData(
-            aksjon = Aksjonsdata.Grensesnittsavstemming(
+            aksjon = Grensesnittsavstemming(
                 aksjonType = DATA,
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
@@ -143,7 +143,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
     @Test
     fun `Sjekk mapping av stopp melding`() {
         val request = AvstemmingStoppRequest(
-            aksjon = Aksjonsdata.Grensesnittsavstemming(
+            aksjon = Grensesnittsavstemming(
                 aksjonType = AVSLUTT,
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",

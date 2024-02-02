@@ -51,8 +51,8 @@ class AvstemmingPublisherTest {
         client.publishedMessages.size shouldBe 3
         client.publishedMessages[0] shouldBe xmlMapper.writeValueAsString(
             AvstemmingStartRequest(
-                aksjon = Aksjonsdata.Grensesnittsavstemming(
-                    aksjonType = Aksjonsdata.AksjonType.START,
+                aksjon = Grensesnittsavstemming(
+                    aksjonType = AksjonType.START,
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
@@ -62,8 +62,8 @@ class AvstemmingPublisherTest {
         )
         client.publishedMessages[1] shouldBe xmlMapper.writeValueAsString(
             GrensesnittsavstemmingData(
-                aksjon = Aksjonsdata.Grensesnittsavstemming(
-                    aksjonType = Aksjonsdata.AksjonType.DATA,
+                aksjon = Grensesnittsavstemming(
+                    aksjonType = AksjonType.DATA,
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
@@ -97,8 +97,8 @@ class AvstemmingPublisherTest {
         )
         client.publishedMessages[2] shouldBe xmlMapper.writeValueAsString(
             AvstemmingStoppRequest(
-                aksjon = Aksjonsdata.Grensesnittsavstemming(
-                    aksjonType = Aksjonsdata.AksjonType.AVSLUTT,
+                aksjon = Grensesnittsavstemming(
+                    aksjonType = AksjonType.AVSLUTT,
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),

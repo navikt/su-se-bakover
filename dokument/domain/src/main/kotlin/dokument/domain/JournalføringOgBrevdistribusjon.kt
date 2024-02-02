@@ -6,9 +6,9 @@ import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDis
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 
-sealed class JournalføringOgBrevdistribusjon {
-    abstract fun journalpostId(): JournalpostId?
-    abstract fun brevbestillingsId(): BrevbestillingId?
+sealed interface JournalføringOgBrevdistribusjon {
+    fun journalpostId(): JournalpostId?
+    fun brevbestillingsId(): BrevbestillingId?
     fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Journalført> {
         return when (this) {
             is IkkeJournalførtEllerDistribuert -> {
@@ -42,14 +42,14 @@ sealed class JournalføringOgBrevdistribusjon {
         }
     }
 
-    data object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon() {
+    data object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon {
         fun medJournalpost(journalpostId: JournalpostId): Journalført = Journalført(journalpostId)
 
         override fun journalpostId(): JournalpostId? = null
         override fun brevbestillingsId(): BrevbestillingId? = null
     }
 
-    data class Journalført(val journalpostId: JournalpostId) : JournalføringOgBrevdistribusjon() {
+    data class Journalført(val journalpostId: JournalpostId) : JournalføringOgBrevdistribusjon {
         fun medDistribuertBrev(brevbestillingId: BrevbestillingId): JournalførtOgDistribuertBrev =
             JournalførtOgDistribuertBrev(journalpostId, brevbestillingId)
 
@@ -60,9 +60,9 @@ sealed class JournalføringOgBrevdistribusjon {
     data class JournalførtOgDistribuertBrev(
         val journalpostId: JournalpostId,
         val brevbestillingId: BrevbestillingId,
-    ) : JournalføringOgBrevdistribusjon() {
+    ) : JournalføringOgBrevdistribusjon {
         override fun journalpostId() = journalpostId
-        override fun brevbestillingsId(): BrevbestillingId? = brevbestillingId
+        override fun brevbestillingsId(): BrevbestillingId = brevbestillingId
     }
 
     companion object {
@@ -108,15 +108,15 @@ sealed class JournalføringOgBrevdistribusjon {
     }
 }
 
-sealed class KunneIkkeJournalføreOgDistribuereBrev {
-    sealed class KunneIkkeDistribuereBrev : KunneIkkeJournalføreOgDistribuereBrev() {
-        data object MåJournalføresFørst : KunneIkkeDistribuereBrev()
-        data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
-        data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
+sealed interface KunneIkkeJournalføreOgDistribuereBrev {
+    sealed interface KunneIkkeDistribuereBrev : KunneIkkeJournalføreOgDistribuereBrev {
+        data object MåJournalføresFørst : KunneIkkeDistribuereBrev
+        data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev
+        data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev
     }
 
-    sealed class KunneIkkeJournalføre : KunneIkkeJournalføreOgDistribuereBrev() {
-        data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
-        data object FeilVedJournalføring : KunneIkkeJournalføre()
+    sealed interface KunneIkkeJournalføre : KunneIkkeJournalføreOgDistribuereBrev {
+        data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre
+        data object FeilVedJournalføring : KunneIkkeJournalføre
     }
 }

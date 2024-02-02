@@ -12,7 +12,7 @@ data class AvvistSøknadVedtakPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String?,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadVedtak
 }
 
@@ -20,7 +20,7 @@ data class AvvistSøknadFritekstPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String,
-) : PdfInnhold() {
+) : PdfInnhold {
 
     override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadFritekst
 

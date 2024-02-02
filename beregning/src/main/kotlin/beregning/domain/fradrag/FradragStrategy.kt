@@ -14,13 +14,18 @@ import vilkår.inntekt.domain.grunnlag.sum
 import vilkår.inntekt.domain.grunnlag.sumEksklusiv
 import java.lang.Double.max
 
-sealed class FradragStrategy {
+sealed interface FradragStrategy {
 
-    abstract fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>>
-    abstract fun getEpsFribeløp(måned: Måned): Double
-    protected abstract fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>>
+    fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>>
+    fun getEpsFribeløp(måned: Måned): Double
 
-    abstract class Uføre : FradragStrategy() {
+    /**
+     * Kun ment brukt av de som arver fra denne klassen.
+     * TODO jah: Flytt ut av interfacet? Annet?
+     */
+    fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>>
+
+    abstract class Uføre : FradragStrategy {
         override fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
             val periodiserteFradrag = fradrag
                 .flatMap { FradragFactory.periodiser(it) }
@@ -139,7 +144,7 @@ sealed class FradragStrategy {
         }
     }
 
-    abstract class Alder : FradragStrategy() {
+    abstract class Alder : FradragStrategy {
 
         override fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
             val periodiserteFradrag = fradrag
@@ -226,7 +231,11 @@ sealed class FradragStrategy {
         }
     }
 
-    protected fun `fjern EPS fradrag opp til beløpsgrense`(
+    /**
+     * Var protected. Kun ment brukt internt av de som arver fra denne klassen.
+     * TODO jah: Flytt ut av interface? Annet?
+     */
+    fun `fjern EPS fradrag opp til beløpsgrense`(
         måned: Måned,
         beløpsgrense: Double,
         fradrag: List<FradragForMåned>,

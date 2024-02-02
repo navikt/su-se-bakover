@@ -23,7 +23,7 @@ data class RevurderingMedTilbakekrevingAvPengerPdfInnhold(
     val periodeStart: String,
     val periodeSlutt: String,
     val satsoversikt: Satsoversikt,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.Revurdering.MedTilbakekreving
 
     @Suppress("unused")

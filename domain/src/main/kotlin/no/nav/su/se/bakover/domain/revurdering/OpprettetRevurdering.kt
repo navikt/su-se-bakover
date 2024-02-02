@@ -47,7 +47,7 @@ data class OpprettetRevurdering(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val sakinfo: SakInfo,
     override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-) : RevurderingKanBeregnes() {
+) : RevurderingKanBeregnes {
     override val erOpphørt = false
     override val beregning: Beregning? = null
     override val simulering: Simulering? = null
@@ -66,7 +66,7 @@ data class OpprettetRevurdering(
 
     override fun oppdaterFormueOgMarkerSomVurdert(
         formue: FormueVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    ): Either<Revurdering.KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>) =
@@ -74,19 +74,19 @@ data class OpprettetRevurdering(
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(
         vilkår: PensjonsVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(
         vilkår: FlyktningVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(
         vilkår: PersonligOppmøteVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -95,7 +95,7 @@ data class OpprettetRevurdering(
 
     override fun oppdaterOpplysningspliktOgMarkerSomVurdert(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
@@ -107,7 +107,7 @@ data class OpprettetRevurdering(
 
     override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
         institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+    ): Either<Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
@@ -119,11 +119,11 @@ data class OpprettetRevurdering(
      * Ikke ment å bli kalt som saksbehandler.
      * Bruk heller [oppdaterFradragOgMarkerSomVurdert]
      */
-    override fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+    override fun oppdaterFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): Either<Revurdering.KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 

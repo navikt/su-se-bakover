@@ -1,3 +1,3 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-sealed class RevurderingKanBeregnes : Revurdering()
+sealed interface RevurderingKanBeregnes : Revurdering

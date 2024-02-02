@@ -23,7 +23,7 @@ data class ForhåndsvarselTilbakekrevingPdfInnhold(
     val periodeStart: String,
     val periodeSlutt: String,
     val dato: String,
-) : PdfInnhold() {
+) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekreving
 
     companion object {

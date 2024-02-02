@@ -4,21 +4,21 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.util.UUID
 
-sealed class GjenopptaYtelseRequest {
-    abstract val sakId: UUID
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val revurderingsårsak: Revurderingsårsak
+sealed interface GjenopptaYtelseRequest {
+    val sakId: UUID
+    val saksbehandler: NavIdentBruker.Saksbehandler
+    val revurderingsårsak: Revurderingsårsak
 
     data class Opprett(
         override val sakId: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRequest()
+    ) : GjenopptaYtelseRequest
 
     data class Oppdater(
         override val sakId: UUID,
         val revurderingId: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRequest()
+    ) : GjenopptaYtelseRequest
 }

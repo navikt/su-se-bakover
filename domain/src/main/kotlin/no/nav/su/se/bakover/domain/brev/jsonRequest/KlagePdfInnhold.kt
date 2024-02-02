@@ -6,7 +6,7 @@ import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 
-sealed class KlagePdfInnhold : PdfInnhold() {
+sealed interface KlagePdfInnhold : PdfInnhold {
     data class Oppretthold(
         val personalia: PersonaliaPdfInnhold,
         val saksbehandlerNavn: String,
@@ -15,7 +15,7 @@ sealed class KlagePdfInnhold : PdfInnhold() {
         val klageDato: String,
         val vedtakDato: String,
         val saksnummer: Long,
-    ) : KlagePdfInnhold() {
+    ) : KlagePdfInnhold {
         override val pdfTemplate = PdfTemplateMedDokumentNavn.Klage.Oppretthold
 
         companion object {
@@ -44,7 +44,7 @@ sealed class KlagePdfInnhold : PdfInnhold() {
         val attestantNavn: String?,
         val fritekst: String,
         val saksnummer: Long,
-    ) : KlagePdfInnhold() {
+    ) : KlagePdfInnhold {
         override val pdfTemplate = PdfTemplateMedDokumentNavn.Klage.Avvist
 
         companion object {

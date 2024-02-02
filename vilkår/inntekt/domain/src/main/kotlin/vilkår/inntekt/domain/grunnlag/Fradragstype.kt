@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 
+// TODO jah: Vurder bytt til sealed interface. Merk felles toString()
 sealed class Fradragstype {
 
     abstract val kategori: Kategori

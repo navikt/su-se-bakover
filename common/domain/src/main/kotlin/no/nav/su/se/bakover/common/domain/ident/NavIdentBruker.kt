@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 
 /**
  * TODO jah: Bør lage en Json-versjon, domenetyper skal ikke serialiseres/deserialiseres direkte.
+ * TODO jah: Er det verdt å endre denne til sealed interface mtp. toString/equals/hashCode/compareTo?
  */
 sealed class NavIdentBruker : Comparable<NavIdentBruker> {
 
