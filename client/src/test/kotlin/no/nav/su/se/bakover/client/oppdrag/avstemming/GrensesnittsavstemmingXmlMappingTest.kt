@@ -29,16 +29,16 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
+              <aksjonType>START</aksjonType>
                 <kildeType>AVLEV</kildeType>
-                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                <brukerId>SU</brukerId>
+                <avstemmingType>GRSN</avstemmingType>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
-                <aksjonType>START</aksjonType>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
                 <nokkelFom>nokkelFom</nokkelFom>
                 <nokkelTom>nokkelTom</nokkelTom>
-                <avstemmingType>GRSN</avstemmingType>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <brukerId>SU</brukerId>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
@@ -94,16 +94,16 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
-                <kildeType>AVLEV</kildeType>
-                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                <brukerId>SU</brukerId>
-                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                <underkomponentKode>SUUFORE</underkomponentKode>
-                <aksjonType>DATA</aksjonType>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
-                <nokkelFom>nokkelFom</nokkelFom>
-                <nokkelTom>nokkelTom</nokkelTom>
-                <avstemmingType>GRSN</avstemmingType>
+               <aksjonType>DATA</aksjonType>
+               <kildeType>AVLEV</kildeType>
+               <avstemmingType>GRSN</avstemmingType>
+               <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+               <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+               <underkomponentKode>SUUFORE</underkomponentKode>
+               <nokkelFom>nokkelFom</nokkelFom>
+               <nokkelTom>nokkelTom</nokkelTom>
+               <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+               <brukerId>SU</brukerId>
               </aksjon>
               <total>
                 <totalAntall>1</totalAntall>
@@ -157,16 +157,16 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
-                <kildeType>AVLEV</kildeType>
-                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
-                <brukerId>SU</brukerId>
-                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
-                <underkomponentKode>SUUFORE</underkomponentKode>
                 <aksjonType>AVSL</aksjonType>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <kildeType>AVLEV</kildeType>
+                <avstemmingType>GRSN</avstemmingType>
+                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                <underkomponentKode>SUUFORE</underkomponentKode>
                 <nokkelFom>nokkelFom</nokkelFom>
                 <nokkelTom>nokkelTom</nokkelTom>
-                <avstemmingType>GRSN</avstemmingType>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <brukerId>SU</brukerId>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
