@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.revurdering.stans
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import java.util.UUID
 
 interface StansYtelseService {
 
@@ -27,7 +27,7 @@ interface StansYtelseService {
     ): StansAvYtelseITransaksjonResponse
 
     fun iverksettStansAvYtelse(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
 
@@ -43,7 +43,7 @@ interface StansYtelseService {
      * @return [IverksettStansAvYtelseITransaksjonResponse.sendStatistikkCallback] callback som publiserer statistikk på kafka
      */
     fun iverksettStansAvYtelseITransaksjon(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
         transactionContext: TransactionContext,
     ): IverksettStansAvYtelseITransaksjonResponse

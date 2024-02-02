@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -69,7 +70,7 @@ private data class FormueBody(
             }
 
             return LeggTilFormuevilkårRequest(
-                behandlingId = revurderingId,
+                behandlingId = RevurderingId(revurderingId),
                 formuegrunnlag = this.map { formueBody ->
                     LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                         periode = formueBody.periode.toPeriodeOrResultat()
@@ -108,7 +109,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                             .map { request ->
                                 revurderingService.leggTilFormuegrunnlag(request)
                                     .map {
-                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                         call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
                                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                                     }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->

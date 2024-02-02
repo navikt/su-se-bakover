@@ -31,7 +31,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class OpprettetRegulering(
-    override val id: UUID,
+    override val id: ReguleringId,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
     override val saksnummer: Saksnummer,

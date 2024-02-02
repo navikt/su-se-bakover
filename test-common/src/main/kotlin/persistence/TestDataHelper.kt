@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -58,6 +59,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -76,6 +78,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -926,7 +929,7 @@ class TestDataHelper(
     }
 
     fun persisterGjenopptakAvYtelseSimulert(
-        id: UUID = UUID.randomUUID(),
+        id: RevurderingId = RevurderingId.generer(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
         oppdatert: Tidspunkt = opprettet,
         periode: Periode = Periode.create(
@@ -970,7 +973,7 @@ class TestDataHelper(
      * @param tilRevurdering default: [persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling]
      */
     fun persisterGjenopptakAvYtelseIverksatt(
-        id: UUID = UUID.randomUUID(),
+        id: RevurderingId = RevurderingId.generer(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
         oppdatert: Tidspunkt = opprettet,
         periode: Periode = Periode.create(
@@ -1009,7 +1012,7 @@ class TestDataHelper(
      * Underliggende søknadsbehahandling: [VilkårsvurdertSøknadsbehandling.Uavklart]
      */
     fun persisterSøknadsbehandlingAvsluttet(
-        id: UUID = UUID.randomUUID(),
+        id: SøknadsbehandlingId = SøknadsbehandlingId.generer(),
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1417,7 +1420,7 @@ class TestDataHelper(
      * 2) legger stønadsperiode og persisterer
      */
     fun persisternySøknadsbehandlingMedStønadsperiode(
-        id: UUID = UUID.randomUUID(),
+        id: SøknadsbehandlingId = SøknadsbehandlingId.generer(),
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1703,10 +1706,10 @@ class TestDataHelper(
 
     fun persisterUprosessertKlageinstanshendelse(
         id: UUID = UUID.randomUUID(),
-        klageId: UUID = UUID.randomUUID(),
+        klageId: KlageId = KlageId.generer(),
         utfall: KlageinstansUtfall = KlageinstansUtfall.STADFESTELSE,
         opprettet: Tidspunkt = Tidspunkt.now(clock),
-    ): Pair<UUID, UUID> {
+    ): Pair<UUID, KlageId> {
         databaseRepos.klageinstanshendelseRepo.lagre(
             UprosessertKlageinstanshendelse(
                 id = id,

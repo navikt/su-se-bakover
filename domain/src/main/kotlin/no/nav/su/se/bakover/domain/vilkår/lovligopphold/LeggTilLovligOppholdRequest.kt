@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.lovligopphold
 
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -7,7 +8,6 @@ import vilkår.common.domain.Vurdering
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
 import java.time.Clock
-import java.util.UUID
 
 enum class LovligOppholdVilkårStatus {
     VilkårOppfylt,
@@ -30,7 +30,7 @@ data class LovligOppholdVurderinger(
 )
 
 data class LeggTilLovligOppholdRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vurderinger: List<LovligOppholdVurderinger>,
 ) {
 

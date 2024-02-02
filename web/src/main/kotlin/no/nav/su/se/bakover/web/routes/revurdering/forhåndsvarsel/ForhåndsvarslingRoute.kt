@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -35,11 +36,11 @@ internal fun Route.forhåndsvarslingRoute(
             call.withBody<ForhåndsvarsleBody> { body ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.lagreOgSendForhåndsvarsel(
-                        revurderingId,
+                        RevurderingId(revurderingId),
                         NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         fritekst = body.fritekst,
                     ).map {
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                     }.mapLeft {
@@ -56,11 +57,11 @@ internal fun Route.forhåndsvarslingRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val revurdering =
-                        revurderingService.hentRevurdering(revurderingId) ?: return@authorize call.svar(
+                        revurderingService.hentRevurdering(RevurderingId(revurderingId)) ?: return@authorize call.svar(
                             fantIkkeRevurdering,
                         )
 
-                    revurderingService.lagBrevutkastForForhåndsvarsling(revurderingId, call.suUserContext.saksbehandler, body.fritekst).fold(
+                    revurderingService.lagBrevutkastForForhåndsvarsling(RevurderingId(revurderingId), call.suUserContext.saksbehandler, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for forhåndsvarsel for revurdering med id $revurderingId")

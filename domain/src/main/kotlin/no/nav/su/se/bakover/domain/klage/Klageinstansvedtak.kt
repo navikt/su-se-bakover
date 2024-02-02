@@ -33,7 +33,7 @@ data class TolketKlageinstanshendelse(
     val id: UUID,
     val opprettet: Tidspunkt,
     val avsluttetTidspunkt: Tidspunkt,
-    val klageId: UUID,
+    val klageId: KlageId,
     val utfall: KlageinstansUtfall,
     val journalpostIDer: List<JournalpostId>,
 ) {
@@ -50,7 +50,7 @@ data class TolketKlageinstanshendelse(
 data class ProsessertKlageinstanshendelse(
     val id: UUID,
     val opprettet: Tidspunkt,
-    val klageId: UUID,
+    val klageId: KlageId,
     val utfall: KlageinstansUtfall,
     /** Dersom Klageinstansen har sendt ut et eller flere brev */
     val journalpostIDer: List<JournalpostId>,

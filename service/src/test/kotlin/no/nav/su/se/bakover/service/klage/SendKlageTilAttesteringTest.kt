@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
@@ -39,7 +40,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class SendKlageTilAttesteringTest {
 
@@ -51,7 +51,7 @@ internal class SendKlageTilAttesteringTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
         mocks.service.sendTilAttestering(
             klageId = klageId,

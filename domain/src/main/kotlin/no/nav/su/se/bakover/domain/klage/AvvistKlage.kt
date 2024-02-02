@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.reflect.KClass
 
 interface AvvistKlageFelter : VilkårsvurdertKlageFelter {
@@ -42,7 +41,7 @@ data class AvvistKlage(
      */
     override fun lagBrevRequest(
         utførtAv: NavIdentBruker,
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+        hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         return lagAvvistVedtaksbrevKommando(attestant = null)
     }

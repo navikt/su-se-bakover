@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -15,10 +16,9 @@ import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.KunneIkkeLageFormueGrunnlag
 import vilkår.formue.domain.Verdier
 import vilkår.vurderinger.domain.Konsistensproblem
-import java.util.UUID
 
 data class LeggTilFormuevilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val formuegrunnlag: Nel<Grunnlag>,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val tidspunkt: Tidspunkt,

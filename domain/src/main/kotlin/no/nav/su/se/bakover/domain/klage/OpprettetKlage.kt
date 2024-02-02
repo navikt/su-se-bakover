@@ -14,7 +14,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class OpprettetKlage(
-    override val id: UUID,
+    override val id: KlageId,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
     override val saksnummer: Saksnummer,

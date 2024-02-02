@@ -30,7 +30,7 @@ import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBrev {
-    abstract override val id: UUID
+    abstract override val id: SøknadsbehandlingId
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
     abstract override val saksnummer: Saksnummer
@@ -44,7 +44,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -96,7 +96,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
 
     sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
         data class MedBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -137,7 +137,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         }
 
         data class UtenBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,

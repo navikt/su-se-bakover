@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringReq
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
@@ -79,7 +80,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     behandlingId = revurderingId,
                     vurderinger = nonEmptyListOf(
                         LeggTilUførevilkårRequest(
-                            behandlingId = nyttUføregrunnlag.id,
+                            behandlingId = SøknadsbehandlingId.generer(),
                             periode = nyttUføregrunnlag.periode,
                             uføregrad = nyttUføregrunnlag.uføregrad,
                             forventetInntekt = nyttUføregrunnlag.forventetInntekt,

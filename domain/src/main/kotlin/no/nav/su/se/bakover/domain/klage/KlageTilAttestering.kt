@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.reflect.KClass
 
 interface KlageTilAttesteringFelter : VilkårsvurdertKlageFelter {
@@ -36,7 +35,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
          */
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
-            hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
             return lagAvvistVedtaksbrevKommando(attestant = utførtAv)
@@ -96,7 +95,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
          */
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
-            hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
             return genererOversendelsesBrev(

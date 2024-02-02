@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -151,14 +152,14 @@ internal class BrevServiceImplTest {
         val vedtakId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val revurderingId = UUID.randomUUID()
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val randomId = UUID.randomUUID()
 
         val sakDokument = lagDokument(Dokument.Metadata(sakId = sakId))
         val vedtakDokument = lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId))
         val søknadDokument = lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId))
         val revurderingDokument = lagDokument(Dokument.Metadata(sakId = sakId, revurderingId = revurderingId))
-        val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId))
+        val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId.value))
 
         val dokumentRepoMock = mock<DokumentRepo> {
             on { hentForSak(sakId) } doReturn listOf(sakDokument)
@@ -168,7 +169,7 @@ internal class BrevServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
             on { hentForSøknad(randomId) } doReturn emptyList()
             on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
-            on { hentForKlage(klageId) } doReturn listOf(klageDokument)
+            on { hentForKlage(klageId.value) } doReturn listOf(klageDokument)
             on { hentForRevurdering(randomId) } doReturn emptyList()
         }
 
@@ -192,7 +193,7 @@ internal class BrevServiceImplTest {
             revurderingDokument,
         )
         service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(randomId)) shouldBe emptyList()
-        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForKlage(klageId)) shouldBe listOf(klageDokument)
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForKlage(klageId.value)) shouldBe listOf(klageDokument)
     }
 
     @Test

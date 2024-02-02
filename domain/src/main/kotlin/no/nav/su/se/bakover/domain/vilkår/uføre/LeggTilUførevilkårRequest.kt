@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.common.domain.Vurdering
@@ -12,7 +13,6 @@ import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.Clock
-import java.util.UUID
 
 enum class UførevilkårStatus {
     VilkårOppfylt,
@@ -21,7 +21,7 @@ enum class UførevilkårStatus {
 }
 
 data class LeggTilUførevilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val periode: Periode,
     val uføregrad: Uføregrad?,
     val forventetInntekt: Int?,

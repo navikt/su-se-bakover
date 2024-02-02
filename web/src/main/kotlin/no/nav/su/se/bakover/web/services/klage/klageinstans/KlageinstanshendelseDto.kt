@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
@@ -89,7 +90,7 @@ sealed interface KlageinstanshendelseDto {
                     id = id,
                     opprettet = opprettet,
                     avsluttetTidspunkt = parseKabalDatetime(detaljer.klagebehandlingAvsluttet.avsluttet),
-                    klageId = UUID.fromString(kildeReferanse),
+                    klageId = KlageId(UUID.fromString(kildeReferanse)),
                     utfall = detaljer.klagebehandlingAvsluttet.utfall.toDomain(),
                     journalpostIDer = detaljer.klagebehandlingAvsluttet.journalpostReferanser.map { JournalpostId(it) },
                 )

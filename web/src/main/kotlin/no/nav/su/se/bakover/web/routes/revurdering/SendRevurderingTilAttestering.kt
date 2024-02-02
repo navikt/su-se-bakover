@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
@@ -39,14 +40,14 @@ internal fun Route.sendRevurderingTilAttestering(
             call.withRevurderingId { revurderingId ->
                 revurderingService.sendTilAttestering(
                     SendTilAttesteringRequest(
-                        revurderingId = revurderingId,
+                        revurderingId = RevurderingId(revurderingId),
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     ),
                 ).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
                     ifRight = {
                         call.sikkerlogg("Sendt revurdering til attestering med id $revurderingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                     },
                 )

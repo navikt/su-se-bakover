@@ -51,7 +51,7 @@ internal fun KravgrunnlagRootDto.toHendelse(
                 hendelsestidspunkt = hendelsesTidspunkt,
                 tidligereHendelseId = tidligereHendelseId,
                 kravgrunnlag = kravgrunnlag,
-                revurderingId = revurdering?.id,
+                revurderingId = revurdering?.id?.value,
             )
         }
     }

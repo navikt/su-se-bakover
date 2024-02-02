@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.vedtak.domain
 
 import dokument.domain.Dokumenttilstand
+import no.nav.su.se.bakover.behandling.Behandling
 import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -11,6 +12,7 @@ import java.util.UUID
  */
 interface Vedtak : Avsluttet {
     val id: UUID
+    val behandling: Behandling
 
     /**
      * Et vedtak blir opprettet & avsluttet samtidig

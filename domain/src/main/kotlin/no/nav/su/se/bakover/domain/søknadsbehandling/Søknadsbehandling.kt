@@ -21,6 +21,7 @@ sealed interface Søknadsbehandling :
     BehandlingMedAttestering,
     MedSaksbehandlerHistorikk<Søknadsbehandlingshendelse> {
     val søknad: Søknad.Journalført.MedOppgave
+    override val id: SøknadsbehandlingId
 
     val aldersvurdering: Aldersvurdering?
     val stønadsperiode: Stønadsperiode?

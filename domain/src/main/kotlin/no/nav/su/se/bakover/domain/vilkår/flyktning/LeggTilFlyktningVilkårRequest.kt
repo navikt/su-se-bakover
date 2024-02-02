@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår.flyktning
 
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
-import java.util.UUID
 
 data class LeggTilFlyktningVilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vilkår: FlyktningVilkår.Vurdert,
 )
 

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
-import java.util.UUID
 
 sealed interface KunneIkkeFerdigstilleOgIverksette {
     data object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette
@@ -57,11 +56,11 @@ interface ReguleringService {
         command: StartAutomatiskReguleringForInnsynCommand,
     )
 
-    fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
+    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatus(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
-        reguleringId: UUID,
+        reguleringId: ReguleringId,
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,

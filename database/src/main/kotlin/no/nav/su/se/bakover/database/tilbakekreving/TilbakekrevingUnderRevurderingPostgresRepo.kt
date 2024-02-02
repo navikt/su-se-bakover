@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.SendtT
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
@@ -90,7 +91,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
                     "id" to tilbakrekrevingsbehanding.id,
                     "opprettet" to tilbakrekrevingsbehanding.opprettet,
                     "sakId" to tilbakrekrevingsbehanding.sakId,
-                    "revurderingId" to tilbakrekrevingsbehanding.revurderingId,
+                    "revurderingId" to tilbakrekrevingsbehanding.revurderingId.value,
                     "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
                     "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
                     "avgjorelse" to when (tilbakrekrevingsbehanding) {
@@ -159,24 +160,24 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
             )
     }
 
-    internal fun slettForRevurderingId(revurderingId: UUID, session: Session) {
+    internal fun slettForRevurderingId(revurderingId: RevurderingId, session: Session) {
         """
                 delete from revurdering_tilbakekreving where revurderingId = :revurderingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "revurderingId" to revurderingId,
+                    "revurderingId" to revurderingId.value,
                 ),
                 session,
             )
     }
 
-    internal fun hentTilbakekrevingsbehandling(revurderingId: UUID, session: Session): TilbakekrevingsbehandlingUnderRevurdering? {
+    internal fun hentTilbakekrevingsbehandling(revurderingId: RevurderingId, session: Session): TilbakekrevingsbehandlingUnderRevurdering? {
         return """
             select * from revurdering_tilbakekreving where revurderingId = :revurderingId
         """.trimIndent()
             .hent(
-                mapOf("revurderingId" to revurderingId),
+                mapOf("revurderingId" to revurderingId.value),
                 session,
             ) {
                 it.toTilbakekrevingsbehandling()
@@ -186,7 +187,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
     private fun Row.toTilbakekrevingsbehandling(): TilbakekrevingsbehandlingUnderRevurdering {
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
-        val revurderingId = uuid("revurderingId")
+        val revurderingId = RevurderingId(uuid("revurderingId"))
         val sakId = uuid("sakId")
         val periode = Periode.create(
             fraOgMed = localDate("fraOgMed"),
@@ -263,7 +264,7 @@ internal class TilbakekrevingUnderRevurderingPostgresRepo(
         }
     }
 
-    private fun Row.getKravgrunnlag(revurderingId: UUID): Kravgrunnlag? {
+    private fun Row.getKravgrunnlag(revurderingId: RevurderingId): Kravgrunnlag? {
         return stringOrNull("kravgrunnlag")?.trim()?.let { dbJsonOrXml ->
             when {
                 dbJsonOrXml.startsWith("<") -> {

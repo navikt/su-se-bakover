@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
@@ -65,7 +66,7 @@ internal fun Route.leggTilFradragRevurdering(
                         call.svar(
                             body.toDomain(clock).flatMap { fradrag ->
                                 revurderingService.leggTilFradragsgrunnlag(
-                                    LeggTilFradragsgrunnlagRequest(revurderingId, fradrag),
+                                    LeggTilFradragsgrunnlagRequest(RevurderingId(revurderingId), fradrag),
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
@@ -81,7 +82,7 @@ internal fun Route.leggTilFradragRevurdering(
                                         }
                                     }
                                 }.map {
-                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
                                     Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory)))
                                 }

@@ -65,7 +65,7 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget -> toDto(
             clock = clock,
             gitCommit = gitCommit,
-            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id, clock),
+            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id.value, clock),
             behandlingStatus = BehandlingStatus.Underkjent,
             behandlingsresultat = BehandlingResultat.Innvilget,
             resultatBegrunnelse = null,
@@ -78,7 +78,7 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> toDto(
             clock = clock,
             gitCommit = gitCommit,
-            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id, clock),
+            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id.value, clock),
             behandlingStatus = BehandlingStatus.Underkjent,
             behandlingsresultat = BehandlingResultat.AvslåttSøknadsbehandling,
             resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
@@ -154,7 +154,7 @@ private fun StatistikkEvent.Behandling.Søknad.toDto(
         // registrertDato skal samsvare med REGISTRERT-hendelsen sin funksjonellTid (som er når søknaden ble registrert i systemet vårt)
         registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
         mottattDato = søknad.mottattDato(),
-        behandlingId = søknadsbehandling.id,
+        behandlingId = søknadsbehandling.id.value,
         sakId = søknadsbehandling.sakId,
         søknadId = søknadsbehandling.søknad.id,
         saksnummer = søknadsbehandling.saksnummer.nummer,

@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -28,7 +29,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter IkkeVurdert`() {
         withMigratedDb { dataSource ->
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val vilkår = formuevilkårIkkeVurdert()
             dataSource.withTransaction { session ->
                 repo.lagre(behandlingId, vilkår, session)
@@ -81,7 +82,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
             )
@@ -103,7 +104,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(formuegrunnlag(periode = periode, epsFormue = null)),
             )
@@ -125,7 +126,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
                     formuegrunnlag(
@@ -161,7 +162,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
                 nonEmptyListOf(
                     VurderingsperiodeFormue.create(

@@ -22,7 +22,7 @@ interface VilkårsvurdertKlageFelter : Klagefelter {
 sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
 
     data class Påbegynt(
-        override val id: UUID,
+        override val id: KlageId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -99,7 +99,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
          * En vilkårsvurdert avvist representerer en klage der minst et av vilkårene er blitt besvart 'nei/false'
          */
         data class Avvist(
-            override val id: UUID,
+            override val id: KlageId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -195,7 +195,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
          * En vilkårsvurdert avvist representerer en klage alle vilkårene oppfylt
          */
         data class TilVurdering(
-            override val id: UUID,
+            override val id: KlageId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -295,7 +295,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
 
         companion object {
             fun create(
-                id: UUID,
+                id: KlageId,
                 opprettet: Tidspunkt,
                 sakId: UUID,
                 saksnummer: Saksnummer,
@@ -357,7 +357,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
     sealed interface Bekreftet : VilkårsvurdertKlage, BekreftetFelter {
 
         data class Avvist(
-            override val id: UUID,
+            override val id: KlageId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -461,7 +461,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
         }
 
         data class TilVurdering(
-            override val id: UUID,
+            override val id: KlageId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,

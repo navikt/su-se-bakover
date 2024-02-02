@@ -216,7 +216,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                         behandlingId = søknadsbehandling.id,
                         request = nonEmptyListOf(
                             LeggTilUtenlandsoppholdRequest(
-                                behandlingId = søknadsbehandling.id,
+                                behandlingId = søknadsbehandling.id.value,
                                 periode = stønadsperiode2022.periode,
                                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             ),

@@ -12,6 +12,7 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -29,7 +30,7 @@ import java.util.UUID
 
 internal class AvsluttKlageTest {
     private val sakId = UUID.randomUUID()
-    private val klageId = UUID.randomUUID()
+    private val klageId = KlageId.generer()
     private val uri = "$SAK_PATH/$sakId/klager/$klageId/avslutt"
 
     @Test

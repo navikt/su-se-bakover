@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanGenerereBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import satser.domain.SatsFactory
-import java.util.UUID
 
 fun genererBrevutkastForSøknadsbehandling(
     command: BrevutkastForSøknadsbehandlingCommand,
-    hentSøknadsbehandling: (UUID) -> Søknadsbehandling?,
+    hentSøknadsbehandling: (SøknadsbehandlingId) -> Søknadsbehandling?,
     lagDokument: (GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     satsFactory: SatsFactory,
 ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {

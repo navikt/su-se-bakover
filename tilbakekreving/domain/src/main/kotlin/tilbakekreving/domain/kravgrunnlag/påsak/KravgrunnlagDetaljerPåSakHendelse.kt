@@ -20,6 +20,7 @@ data class KravgrunnlagDetaljerPåSakHendelse(
     override val hendelsestidspunkt: Tidspunkt,
     override val tidligereHendelseId: HendelseId,
     val kravgrunnlag: Kravgrunnlag,
+    // TODO her skal det være RevurderingId?, men først må vi flytte revurdering til behandlings-modulen
     val revurderingId: UUID?,
 ) : KravgrunnlagPåSakHendelse {
     init {

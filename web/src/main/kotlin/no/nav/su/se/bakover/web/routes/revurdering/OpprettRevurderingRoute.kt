@@ -62,7 +62,7 @@ internal fun Route.opprettRevurderingRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
                             SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },

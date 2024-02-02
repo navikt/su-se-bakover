@@ -47,7 +47,7 @@ sealed interface BeregnetSøknadsbehandling :
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, BeregnetSøknadsbehandling>
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -136,7 +136,7 @@ sealed interface BeregnetSøknadsbehandling :
     }
 
     data class Avslag(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,

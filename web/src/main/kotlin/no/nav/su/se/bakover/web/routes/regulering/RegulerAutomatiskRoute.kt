@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
@@ -71,7 +72,7 @@ internal fun Route.reguler(
 
                     sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
                     reguleringService.regulerManuelt(
-                        reguleringId = id,
+                        reguleringId = ReguleringId(id),
                         uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -123,7 +124,7 @@ internal fun Route.reguler(
                             }
                         },
                         ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.okJson())
                         },
                     )
@@ -139,7 +140,7 @@ internal fun Route.reguler(
                     call.svar(HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format"))
                 },
                 ifRight = {
-                    reguleringService.avslutt(it, call.suUserContext.saksbehandler).fold(
+                    reguleringService.avslutt(ReguleringId(it), call.suUserContext.saksbehandler).fold(
                         ifLeft = { feilmelding ->
                             call.svar(
                                 when (feilmelding) {

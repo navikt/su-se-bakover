@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -61,7 +62,7 @@ internal class OversendKlageTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
             klageId = klageId,
@@ -270,7 +271,7 @@ internal class OversendKlageTest {
                         søknadId = null,
                         vedtakId = null,
                         revurderingId = null,
-                        klageId = klage.id,
+                        klageId = klage.id.value,
                         journalpostId = null,
                         brevbestillingId = null,
                     ),
@@ -492,7 +493,7 @@ internal class OversendKlageTest {
                         søknadId = null,
                         vedtakId = null,
                         revurderingId = null,
-                        klageId = klage.id,
+                        klageId = klage.id.value,
                         journalpostId = null,
                         brevbestillingId = null,
                     ),

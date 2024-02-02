@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
@@ -35,7 +36,9 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<LeggTilBosituasjonJsonRequest> { json ->
                         call.svar(
-                            json.toService(behandlingId)
+                            json.toService(
+                                SøknadsbehandlingId(behandlingId),
+                            )
                                 .mapLeft { it }
                                 .flatMap {
                                     søknadsbehandlingService.leggTilBosituasjongrunnlag(
@@ -47,7 +50,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             call.audit(
                                                 søknadsbehandling.fnr,
                                                 AuditLogEvent.Action.UPDATE,
-                                                søknadsbehandling.id,
+                                                søknadsbehandling.id.value,
                                             )
                                             call.sikkerlogg("Lagret bosituasjon for søknadsbehandling $behandlingId på $sakId")
                                             Resultat.json(

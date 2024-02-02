@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -43,7 +44,6 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 class StansYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
@@ -130,7 +130,7 @@ class StansYtelseServiceImpl(
                     throw KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling.exception()
                 }
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                    id = UUID.randomUUID(),
+                    id = RevurderingId.generer(),
                     opprettet = Tidspunkt.now(clock),
                     oppdatert = Tidspunkt.now(clock),
                     periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
@@ -186,7 +186,7 @@ class StansYtelseServiceImpl(
     }
 
     override fun iverksettStansAvYtelse(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
         return Either.catch {
@@ -219,7 +219,7 @@ class StansYtelseServiceImpl(
     }
 
     override fun iverksettStansAvYtelseITransaksjon(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
         transactionContext: TransactionContext,
     ): IverksettStansAvYtelseITransaksjonResponse {

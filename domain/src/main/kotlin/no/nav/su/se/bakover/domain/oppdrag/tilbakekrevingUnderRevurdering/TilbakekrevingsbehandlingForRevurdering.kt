@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import java.math.BigDecimal
@@ -25,7 +26,7 @@ data class Tilbakekrev(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
-    override val revurderingId: UUID,
+    override val revurderingId: RevurderingId,
     override val periode: Periode,
 ) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
     TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
@@ -38,7 +39,7 @@ data class IkkeTilbakekrev(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
-    override val revurderingId: UUID,
+    override val revurderingId: RevurderingId,
     override val periode: Periode,
 ) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort,
     TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
@@ -51,7 +52,7 @@ data class IkkeAvgjort(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
-    override val revurderingId: UUID,
+    override val revurderingId: RevurderingId,
     override val periode: Periode,
 ) : TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.IkkeAvgjort,
     TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving {
@@ -82,7 +83,7 @@ data class AvventerKravgrunnlag(
     override fun mottattKravgrunnlag(
         kravgrunnlag: Kravgrunnlag,
         kravgrunnlagMottatt: Tidspunkt,
-        hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+        hentRevurdering: (revurderingId: RevurderingId) -> IverksattRevurdering,
     ): TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
         unsafeKontrollerKravgrunnlagMotRevurdering(
             kravgrunnlag = kravgrunnlag,
@@ -100,7 +101,7 @@ data class AvventerKravgrunnlag(
      */
     private fun unsafeKontrollerKravgrunnlagMotRevurdering(
         kravgrunnlag: Kravgrunnlag,
-        hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+        hentRevurdering: (revurderingId: RevurderingId) -> IverksattRevurdering,
     ) {
         val simulering = hentRevurdering(avgjort.revurderingId).let {
             when (it) {
@@ -286,7 +287,7 @@ sealed interface TilbakekrevingsbehandlingUnderRevurdering {
             val id: UUID
             val opprettet: Tidspunkt
             val sakId: UUID
-            val revurderingId: UUID
+            val revurderingId: RevurderingId
             val periode: Periode
 
             sealed interface Avgjort : VurderTilbakekreving {
@@ -348,7 +349,7 @@ sealed interface TilbakekrevingsbehandlingUnderRevurdering {
                 fun mottattKravgrunnlag(
                     kravgrunnlag: Kravgrunnlag,
                     kravgrunnlagMottatt: Tidspunkt,
-                    hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+                    hentRevurdering: (revurderingId: RevurderingId) -> IverksattRevurdering,
                 ): MedKravgrunnlag.MottattKravgrunnlag
             }
         }

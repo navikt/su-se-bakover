@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.util.UUID
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 
@@ -25,7 +24,7 @@ fun Sak.opprettEllerOppdaterRegulering(
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {
-                0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), fraOgMedMåned)
+                0 -> Triple(ReguleringId.generer(), Tidspunkt.now(clock), fraOgMedMåned)
 
                 1 -> Triple(r.first().id, r.first().opprettet, minOf(fraOgMedMåned, Måned.fra(r.first().periode.fraOgMed)))
 

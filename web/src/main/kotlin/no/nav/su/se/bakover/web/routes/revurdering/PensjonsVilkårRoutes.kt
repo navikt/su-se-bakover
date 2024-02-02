@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.pensjon.LeggTilVurderingsperiodePensjonsvilkårJson
@@ -33,13 +34,13 @@ internal fun Route.pensjonsVilkårRoutes(
                     call.svar(
                         revurderingService.leggTilPensjonsVilkår(
                             request = LeggTilPensjonsVilkårRequest(
-                                behandlingId = it,
+                                behandlingId = RevurderingId(it),
                                 vilkår = body.toDomain(clock).getOrElse { return@authorize call.svar(it.tilResultat()) },
                             ),
                         ).fold(
                             { it.tilResultat() },
                             {
-                                call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                 Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                             },
                         ),

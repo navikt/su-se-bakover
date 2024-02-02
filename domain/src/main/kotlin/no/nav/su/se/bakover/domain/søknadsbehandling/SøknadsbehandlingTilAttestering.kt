@@ -39,7 +39,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -133,7 +133,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
         }
 
         data class UtenBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -218,7 +218,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
         }
 
         data class MedBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,

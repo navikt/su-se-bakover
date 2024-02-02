@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
@@ -61,7 +62,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                id = UUID.randomUUID(),
+                id = RevurderingId.generer(),
                 opprettet = fixedTidspunkt,
                 oppdatert = fixedTidspunkt,
                 periode = år(2021),
@@ -117,7 +118,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                id = UUID.randomUUID(),
+                id = RevurderingId.generer(),
                 opprettet = fixedTidspunkt,
                 oppdatert = fixedTidspunkt,
                 periode = år(2021),

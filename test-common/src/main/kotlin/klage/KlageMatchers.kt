@@ -24,8 +24,8 @@ fun Klagevedtak.Avvist.shouldBeEqualComparingPublicFieldsAndInterface(
     expected: Klagevedtak.Avvist,
     vararg others: KProperty<*>,
 ) {
-    this.shouldBeEqualToIgnoringFields(other = expected, property = Klagevedtak.Avvist::klage, others = others)
-    this.klage.shouldBeEqualComparingPublicFieldsAndInterface(expected.klage)
+    this.shouldBeEqualToIgnoringFields(other = expected, property = Klagevedtak.Avvist::behandling, others = others)
+    this.behandling.shouldBeEqualComparingPublicFieldsAndInterface(expected.behandling)
 }
 
 fun List<Klage?>.shouldBeEqualComparingPublicFieldsAndInterface(expected: List<Klage?>) {

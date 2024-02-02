@@ -74,7 +74,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     behandlingId = opprettetRevurdering.id,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = opprettetRevurdering.id,
+                            behandlingId = opprettetRevurdering.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
@@ -113,7 +113,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     behandlingId = revurderingId,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = opprettetRevurdering.id,
+                            behandlingId = opprettetRevurdering.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
@@ -143,7 +143,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     behandlingId = revurderingId,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = opprettetRevurdering.id,
+                            behandlingId = opprettetRevurdering.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),

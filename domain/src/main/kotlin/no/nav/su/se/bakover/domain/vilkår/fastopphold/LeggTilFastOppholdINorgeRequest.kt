@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår.fastopphold
 
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
-import java.util.UUID
 
 data class LeggTilFastOppholdINorgeRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vilkår: FastOppholdINorgeVilkår.Vurdert,
 )
 

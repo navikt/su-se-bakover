@@ -4,10 +4,13 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
@@ -16,7 +19,6 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
-import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val dbMetrics: DbMetrics,
@@ -35,7 +37,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val institusjonsoppholdVilkårsvurderingPostgresRepo: InstitusjonsoppholdVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         tx: TransactionalSession,
     ) {
@@ -120,48 +122,48 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
 
     @Suppress("UNCHECKED_CAST")
     fun hentForRevurdering(
-        behandlingId: UUID,
+        revurderingId: RevurderingId,
         session: Session,
         sakstype: Sakstype,
     ): GrunnlagsdataOgVilkårsvurderingerRevurdering {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForRevurderingId") {
             val grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
+                fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(revurderingId, session),
                 // for revurdering kan man bare ha fullstendige bosituasjoner
                 bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(
-                    behandlingId,
+                    revurderingId,
                     session,
                 ) as List<Bosituasjon.Fullstendig>,
             )
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {
                     VilkårsvurderingerRevurdering.Alder(
-                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        formue = formueVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(revurderingId, session),
                         familiegjenforening = familiegjenforeningVilkårsvurderingPostgresRepo.hent(
-                            behandlingId,
+                            revurderingId,
                             session,
                         ),
-                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(revurderingId, session),
                     )
                 }
 
                 Sakstype.UFØRE -> {
                     VilkårsvurderingerRevurdering.Uføre(
-                        uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        flyktning = flyktningVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        uføre = uføreVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        formue = formueVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        flyktning = flyktningVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(revurderingId, session),
                         institusjonsopphold = institusjonsoppholdVilkårsvurderingPostgresRepo.hent(
-                            behandlingId = behandlingId,
+                            behandlingId = revurderingId,
                             session = session,
                         ),
                     )
@@ -176,33 +178,33 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     }
 
     fun hentForSøknadsbehandling(
-        behandlingId: UUID,
+        søknadsbehandlingId: SøknadsbehandlingId,
         session: Session,
         sakstype: Sakstype,
         eksterneGrunnlag: EksterneGrunnlag,
     ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForSøknadsbehandlingId") {
             val grunnlagsdata = Grunnlagsdata.createTillatUfullstendigBosituasjon(
-                fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
-                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
+                fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(søknadsbehandlingId, session),
+                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(søknadsbehandlingId, session),
             )
 
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {
                     VilkårsvurderingerSøknadsbehandling.Alder(
-                        formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        formue = formueVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
                         familiegjenforening = familiegjenforeningVilkårsvurderingPostgresRepo.hent(
-                            behandlingId = behandlingId,
+                            behandlingId = søknadsbehandlingId,
                             session = session,
                         ),
-                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
                         institusjonsopphold = institusjonsoppholdVilkårsvurderingPostgresRepo.hent(
-                            behandlingId = behandlingId,
+                            behandlingId = søknadsbehandlingId,
                             session = session,
                         ),
                     )
@@ -210,18 +212,18 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
 
                 Sakstype.UFØRE -> {
                     VilkårsvurderingerSøknadsbehandling.Uføre(
-                        uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
-                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        uføre = uføreVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        formue = formueVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
                         institusjonsopphold = institusjonsoppholdVilkårsvurderingPostgresRepo.hent(
-                            behandlingId = behandlingId,
+                            behandlingId = søknadsbehandlingId,
                             session = session,
                         ),
-                        flyktning = flyktningVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        flyktning = flyktningVilkårsvurderingPostgresRepo.hent(søknadsbehandlingId, session),
                     )
                 }
             }

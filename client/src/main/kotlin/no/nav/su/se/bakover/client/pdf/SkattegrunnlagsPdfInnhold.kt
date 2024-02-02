@@ -8,6 +8,7 @@ import arrow.core.right
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.SkattegrunnlagPdfTemplate
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -37,7 +38,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
     companion object {
         fun lagSkattegrunnlagsPdf(
             saksnummer: Saksnummer,
-            søknadsbehandlingsId: UUID,
+            behandlingsId: BehandlingsId,
             vedtaksId: UUID,
             hentet: Tidspunkt,
             skatt: ÅrsgrunnlagForPdf,
@@ -47,7 +48,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
             saksnummer = saksnummer.toString(),
             behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
             sakstype = Sakstype.UFØRE,
-            behandlingsId = søknadsbehandlingsId,
+            behandlingsId = behandlingsId.value,
             vedtaksId = vedtaksId,
             hentet = hentet,
             opprettet = Tidspunkt.now(clock),

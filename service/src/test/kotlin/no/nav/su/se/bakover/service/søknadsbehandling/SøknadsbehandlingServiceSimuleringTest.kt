@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -22,7 +23,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import økonomi.domain.simulering.SimuleringFeilet
-import java.util.UUID
 
 internal class SøknadsbehandlingServiceSimuleringTest {
 
@@ -69,7 +69,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 on { hentSakForSøknadsbehandling(any()) } doReturn nySakUføre().first
             },
         ).also {
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             shouldThrowWithMessage<IllegalArgumentException>("Fant ikke Søknadsbehandling med id $behandlingId") {
                 it.søknadsbehandlingService.simuler(
                     SøknadsbehandlingService.SimulerRequest(behandlingId, saksbehandler),

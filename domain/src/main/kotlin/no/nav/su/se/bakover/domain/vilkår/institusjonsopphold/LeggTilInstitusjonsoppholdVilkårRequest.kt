@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår.institusjonsopphold
 
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import java.util.UUID
 
 data class LeggTilInstitusjonsoppholdVilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vilkår: InstitusjonsoppholdVilkår.Vurdert,
 )
 

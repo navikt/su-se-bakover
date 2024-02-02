@@ -9,19 +9,19 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import java.time.LocalDate
-import java.util.UUID
 
 /**
  * Funksjonell service (tilstandsløs) for å generere brevutkast for klage.
  * For å holde domenelogikken i domenelaget, og ikke i servicelaget.
  */
 fun genererBrevutkastForKlage(
-    klageId: UUID,
+    klageId: KlageId,
     ident: NavIdentBruker,
-    hentKlage: (UUID) -> Klage?,
-    hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+    hentKlage: (KlageId) -> Klage?,
+    hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     genererPdf: (KlageDokumentCommand) -> Either<KunneIkkeLageDokument, PdfA>,
 ): Either<KunneIkkeLageBrevutkast, PdfA> {
     val klage: KanGenerereBrevutkast = when (val k = hentKlage(klageId)) {

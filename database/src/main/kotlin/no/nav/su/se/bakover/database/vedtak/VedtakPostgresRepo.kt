@@ -37,14 +37,18 @@ import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
@@ -134,7 +138,7 @@ internal class VedtakPostgresRepo(
             }
     }
 
-    override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+    override fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak? {
         return sessionFactory.withSession { session ->
             """
                 select
@@ -151,7 +155,7 @@ internal class VedtakPostgresRepo(
                 and d.duplikatAv is null
                 order by v.opprettet
             """.trimIndent()
-                .hent(mapOf("revurderingId" to revurderingId), session) {
+                .hent(mapOf("revurderingId" to revurderingId.value), session) {
                     it.toVedtak(session)
                 }
         }
@@ -683,7 +687,7 @@ internal class VedtakPostgresRepo(
         """.trimIndent().insert(
             mapOf(
                 "id" to vedtak.id,
-                "sakId" to vedtak.klage.sakId,
+                "sakId" to vedtak.behandling.sakId,
                 "opprettet" to vedtak.opprettet,
                 "saksbehandler" to vedtak.saksbehandler,
                 "attestant" to vedtak.attestant,
@@ -717,7 +721,7 @@ private fun lagreKlagevedtaksknytningTilRevurdering(vedtak: Stønadsvedtak, sess
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRevurdering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            revurderingId = vedtak.behandling.id,
+            revurderingId = vedtak.behandling.id as RevurderingId,
         ),
         session = session,
     )
@@ -728,7 +732,7 @@ private fun lagreKlagevedtaksknytningTilRegulering(vedtak: Stønadsvedtak, sessi
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRegulering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            reguleringId = vedtak.behandling.id,
+            reguleringId = vedtak.behandling.id as ReguleringId,
         ),
         session = session,
     )
@@ -739,7 +743,7 @@ private fun lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak: Stønadsvedta
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForSøknadsbehandling(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            søknadsbehandlingId = vedtak.behandling.id,
+            søknadsbehandlingId = vedtak.behandling.id as SøknadsbehandlingId,
         ),
         session = session,
     )
@@ -749,8 +753,8 @@ private fun lagreKlagevedtaksknytningTilKlage(vedtak: Klagevedtak, session: Sess
     lagreVedtaksknytning(
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForKlage(
             vedtakId = vedtak.id,
-            sakId = vedtak.klage.sakId,
-            klageId = vedtak.klage.id,
+            sakId = vedtak.behandling.sakId,
+            klageId = vedtak.behandling.id,
         ),
         session = session,
     )
@@ -784,10 +788,10 @@ private fun lagreVedtaksknytning(
             "id" to behandlingVedtaksknytning.id,
             "vedtakId" to behandlingVedtaksknytning.vedtakId,
             "sakId" to behandlingVedtaksknytning.sakId,
-            "soknadsbehandlingId" to behandlingVedtaksknytning.søknadsbehandlingId,
-            "revurderingId" to behandlingVedtaksknytning.revurderingId,
-            "klageId" to behandlingVedtaksknytning.klageId,
-            "reguleringId" to behandlingVedtaksknytning.reguleringId,
+            "soknadsbehandlingId" to behandlingVedtaksknytning.søknadsbehandlingId?.value,
+            "revurderingId" to behandlingVedtaksknytning.revurderingId?.value,
+            "klageId" to behandlingVedtaksknytning.klageId?.value,
+            "reguleringId" to behandlingVedtaksknytning.reguleringId?.value,
         ),
         session,
     )
@@ -804,10 +808,10 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
     val id = it.uuid("id")
     check(it.uuid("vedtakId") == vedtakId)
     val sakId = it.uuid("sakId")
-    val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")
-    val revurderingId = it.stringOrNull("revurderingId")
-    val klageId = it.stringOrNull("klageId")
-    val reguleringId = it.stringOrNull("reguleringId")
+    val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")?.let { SøknadsbehandlingId.fraString(it) }
+    val revurderingId = it.stringOrNull("revurderingId")?.let { RevurderingId.fraString(it) }
+    val klageId = it.stringOrNull("klageId")?.let { KlageId.fraString(it) }
+    val reguleringId = it.stringOrNull("reguleringId")?.let { ReguleringId.fraString(it) }
 
     when {
         revurderingId == null && søknadsbehandlingId != null && klageId == null && reguleringId == null -> {
@@ -815,7 +819,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
-                søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
+                søknadsbehandlingId = søknadsbehandlingId,
             )
         }
 
@@ -824,7 +828,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
-                revurderingId = UUID.fromString(revurderingId),
+                revurderingId = revurderingId,
             )
         }
 
@@ -833,7 +837,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
-                klageId = UUID.fromString(klageId),
+                klageId = klageId,
             )
         }
 
@@ -842,7 +846,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
-                reguleringId = UUID.fromString(reguleringId),
+                reguleringId = reguleringId,
             )
         }
 
@@ -859,52 +863,52 @@ private sealed interface BehandlingVedtaksknytning {
     val vedtakId: UUID
     val sakId: UUID
 
-    val søknadsbehandlingId: UUID?
-    val revurderingId: UUID?
-    val klageId: UUID?
-    val reguleringId: UUID?
+    val søknadsbehandlingId: SøknadsbehandlingId?
+    val revurderingId: RevurderingId?
+    val klageId: KlageId?
+    val reguleringId: ReguleringId?
 
     data class ForSøknadsbehandling(
         override val id: UUID = UUID.randomUUID(),
         override val vedtakId: UUID,
         override val sakId: UUID,
-        override val søknadsbehandlingId: UUID,
+        override val søknadsbehandlingId: SøknadsbehandlingId,
     ) : BehandlingVedtaksknytning {
-        override val revurderingId: UUID? = null
-        override val klageId: UUID? = null
-        override val reguleringId: UUID? = null
+        override val revurderingId: RevurderingId? = null
+        override val klageId: KlageId? = null
+        override val reguleringId: ReguleringId? = null
     }
 
     data class ForRevurdering(
         override val id: UUID = UUID.randomUUID(),
         override val vedtakId: UUID,
         override val sakId: UUID,
-        override val revurderingId: UUID,
+        override val revurderingId: RevurderingId,
     ) : BehandlingVedtaksknytning {
-        override val søknadsbehandlingId: UUID? = null
-        override val klageId: UUID? = null
-        override val reguleringId: UUID? = null
+        override val søknadsbehandlingId: SøknadsbehandlingId? = null
+        override val klageId: KlageId? = null
+        override val reguleringId: ReguleringId? = null
     }
 
     data class ForKlage(
         override val id: UUID = UUID.randomUUID(),
         override val vedtakId: UUID,
         override val sakId: UUID,
-        override val klageId: UUID,
+        override val klageId: KlageId,
     ) : BehandlingVedtaksknytning {
-        override val søknadsbehandlingId: UUID? = null
-        override val revurderingId: UUID? = null
-        override val reguleringId: UUID? = null
+        override val søknadsbehandlingId: SøknadsbehandlingId? = null
+        override val revurderingId: RevurderingId? = null
+        override val reguleringId: ReguleringId? = null
     }
 
     data class ForRegulering(
         override val id: UUID = UUID.randomUUID(),
         override val vedtakId: UUID,
         override val sakId: UUID,
-        override val reguleringId: UUID,
+        override val reguleringId: ReguleringId,
     ) : BehandlingVedtaksknytning {
-        override val søknadsbehandlingId: UUID? = null
-        override val klageId: UUID? = null
-        override val revurderingId: UUID? = null
+        override val søknadsbehandlingId: SøknadsbehandlingId? = null
+        override val klageId: KlageId? = null
+        override val revurderingId: RevurderingId? = null
     }
 }

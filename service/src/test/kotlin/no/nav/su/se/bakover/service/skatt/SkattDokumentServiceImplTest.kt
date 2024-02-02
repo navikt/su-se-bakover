@@ -76,7 +76,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
-                    søknadsbehandlingsId = vedtak.behandling.id,
+                    behandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
                     skatt = ÅrsgrunnlagForPdf(
@@ -133,7 +133,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
-                    søknadsbehandlingsId = vedtak.behandling.id,
+                    behandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
                     skatt = ÅrsgrunnlagForPdf(
@@ -196,7 +196,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
-                    søknadsbehandlingsId = vedtak.behandling.id,
+                    behandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
                     skatt = ÅrsgrunnlagForPdf(
@@ -259,7 +259,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
-                    søknadsbehandlingsId = vedtak.behandling.id,
+                    behandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
                     skatt = ÅrsgrunnlagForPdf(
@@ -318,7 +318,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
-                    søknadsbehandlingsId = vedtak.behandling.id,
+                    behandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
                     skatt = ÅrsgrunnlagForPdf(

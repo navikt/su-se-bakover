@@ -69,7 +69,7 @@ internal fun GjenopptaYtelseRevurdering.toBehandlingsstatistikk(
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = this.opprettet.toLocalDate(zoneIdOslo),
         mottattDato = this.opprettet.toLocalDate(zoneIdOslo),
-        behandlingId = this.id,
+        behandlingId = this.id.value,
         sakId = this.sakId,
         saksnummer = this.saksnummer.nummer,
         versjon = gitCommit?.value,

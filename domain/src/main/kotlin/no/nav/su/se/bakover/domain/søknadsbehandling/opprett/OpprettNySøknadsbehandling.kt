@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import java.time.Clock
@@ -57,7 +58,7 @@ fun Sak.opprettNySøknadsbehandling(
     oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
 
     return NySøknadsbehandling(
-        id = UUID.randomUUID(),
+        id = SøknadsbehandlingId.generer(),
         opprettet = Tidspunkt.now(clock),
         sakId = this.id,
         søknad = søknad,

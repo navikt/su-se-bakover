@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -28,7 +29,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class VurderKlageTest {
 
@@ -39,7 +39,7 @@ internal class VurderKlageTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val request = KlageVurderingerRequest(
             klageId = klageId,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
@@ -57,7 +57,7 @@ internal class VurderKlageTest {
     fun `ugyldig omgjøringsårsak`() {
         val mocks = KlageServiceMocks()
         val request = KlageVurderingerRequest(
-            klageId = UUID.randomUUID(),
+            klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null),
@@ -72,7 +72,7 @@ internal class VurderKlageTest {
     fun `ugyldig omgjøringsutfall`() {
         val mocks = KlageServiceMocks()
         val request = KlageVurderingerRequest(
-            klageId = UUID.randomUUID(),
+            klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = KlageVurderingerRequest.Omgjør(null, "UGYLDIG_OMGJØRINGSUTFALL"),
@@ -86,7 +86,7 @@ internal class VurderKlageTest {
     fun `ugyldig opprettholdelseshjemler`() {
         val mocks = KlageServiceMocks()
         val request = KlageVurderingerRequest(
-            klageId = UUID.randomUUID(),
+            klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
@@ -100,7 +100,7 @@ internal class VurderKlageTest {
     fun `kan ikke velge både omgjør og oppretthold`() {
         val mocks = KlageServiceMocks()
         val request = KlageVurderingerRequest(
-            klageId = UUID.randomUUID(),
+            klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = KlageVurderingerRequest.Omgjør(

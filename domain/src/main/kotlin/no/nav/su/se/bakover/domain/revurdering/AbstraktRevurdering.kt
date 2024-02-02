@@ -12,6 +12,7 @@ import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import java.util.UUID
 
 sealed interface AbstraktRevurdering : Stønadsbehandling {
+    override val id: RevurderingId
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
     override val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 

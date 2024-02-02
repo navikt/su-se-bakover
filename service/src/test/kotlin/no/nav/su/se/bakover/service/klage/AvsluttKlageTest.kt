@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -35,7 +36,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import java.util.UUID
 
 internal class AvsluttKlageTest {
 
@@ -46,9 +46,8 @@ internal class AvsluttKlageTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val klageId = UUID.randomUUID()
         mocks.service.avslutt(
-            klageId = klageId,
+            klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler som prøvde og avslutte klagen"),
             begrunnelse = "Begrunnelse for å avslutte klagen",
         ) shouldBe KunneIkkeAvslutteKlage.FantIkkeKlage.left()

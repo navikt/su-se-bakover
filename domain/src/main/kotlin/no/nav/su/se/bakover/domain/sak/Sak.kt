@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
@@ -45,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
@@ -219,11 +222,11 @@ data class Sak(
         return hentIkkeOpphørtePerioder().any { it.inneholder(now) || it.starterEtter(now) }
     }
 
-    fun hentRevurdering(id: UUID): Either<Unit, AbstraktRevurdering> {
+    fun hentRevurdering(id: RevurderingId): Either<Unit, AbstraktRevurdering> {
         return revurderinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
-    fun hentSøknadsbehandling(id: UUID): Either<Unit, Søknadsbehandling> {
+    fun hentSøknadsbehandling(id: SøknadsbehandlingId): Either<Unit, Søknadsbehandling> {
         return søknadsbehandlinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
@@ -245,7 +248,7 @@ data class Sak(
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
     fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
 
-    fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
+    fun hentKlage(klageId: KlageId): Klage? = klager.find { it.id == klageId }
 
     fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
         val tidslinje = utbetalingstidslinje()

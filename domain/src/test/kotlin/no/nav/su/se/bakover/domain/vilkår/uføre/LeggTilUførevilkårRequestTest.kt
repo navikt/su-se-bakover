@@ -3,16 +3,16 @@ package no.nav.su.se.bakover.domain.vilkår.uføre
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
-import java.util.UUID
 
 internal class LeggTilUførevilkårRequestTest {
 
     @Test
     fun `Må sende inn uføregrad ved VilkårOppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = RevurderingId.generer()
         LeggTilUførevilkårRequest(
             behandlingId = behandlingId,
             periode = januar(2021),
@@ -27,7 +27,7 @@ internal class LeggTilUførevilkårRequestTest {
 
     @Test
     fun `Må sende inn forventetInntekt ved VilkårOppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = RevurderingId.generer()
         LeggTilUførevilkårRequest(
             behandlingId = behandlingId,
             periode = januar(2021),
@@ -43,7 +43,7 @@ internal class LeggTilUførevilkårRequestTest {
 
     @Test
     fun `Periode for vurdering og grunnlag må være lik`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = RevurderingId.generer()
         LeggTilUførevilkårRequest(
             behandlingId = behandlingId,
             periode = januar(2021),

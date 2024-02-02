@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import java.util.UUID
 
 internal class BosituasjongrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
@@ -79,7 +79,7 @@ internal class BosituasjongrunnlagPostgresRepo(
     }
 
     internal fun lagreBosituasjongrunnlag(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         grunnlag: List<Bosituasjon>,
         tx: TransactionalSession,
     ) {
@@ -91,19 +91,19 @@ internal class BosituasjongrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             delete from grunnlag_bosituasjon where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
     }
 
-    private fun lagre(behandlingId: UUID, grunnlag: Bosituasjon, tx: TransactionalSession) {
+    private fun lagre(behandlingId: BehandlingsId, grunnlag: Bosituasjon, tx: TransactionalSession) {
         """
             insert into grunnlag_bosituasjon
             (
@@ -129,7 +129,7 @@ internal class BosituasjongrunnlagPostgresRepo(
                 mapOf(
                     "id" to grunnlag.id,
                     "opprettet" to grunnlag.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "fraOgMed" to grunnlag.periode.fraOgMed,
                     "tilOgMed" to grunnlag.periode.tilOgMed,
                     "bosituasjontype" to when (grunnlag) {
@@ -155,12 +155,12 @@ internal class BosituasjongrunnlagPostgresRepo(
             )
     }
 
-    internal fun hentBosituasjongrunnlag(behandlingId: UUID, session: Session): List<Bosituasjon> {
+    internal fun hentBosituasjongrunnlag(behandlingId: BehandlingsId, session: Session): List<Bosituasjon> {
         return dbMetrics.timeQuery("hentBosituasjonsgrunnlag") {
             """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
                 .hentListe(
                     mapOf(
-                        "behandlingid" to behandlingId,
+                        "behandlingid" to behandlingId.value,
                     ),
                     session,
                 ) {

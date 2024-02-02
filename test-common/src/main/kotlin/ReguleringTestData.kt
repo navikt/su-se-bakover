@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
@@ -25,7 +26,7 @@ import java.time.Clock
 import java.util.UUID
 
 fun opprettetRegulering(
-    id: UUID = UUID.randomUUID(),
+    id: ReguleringId = ReguleringId.generer(),
     sakId: UUID = UUID.randomUUID(),
     reguleringsperiode: Periode = stønadsperiode2021.periode,
     saksnummer: Saksnummer = Saksnummer(2021),
@@ -55,7 +56,7 @@ fun opprettetRegulering(
 )
 
 fun iverksattAutomatiskRegulering(
-    id: UUID = UUID.randomUUID(),
+    id: ReguleringId = ReguleringId.generer(),
     sakId: UUID = UUID.randomUUID(),
     reguleringsperiode: Periode = stønadsperiode2021.periode,
     saksnummer: Saksnummer = Saksnummer(2021),
@@ -161,7 +162,7 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
 }
 
 fun avsluttetRegulering(
-    id: UUID = UUID.randomUUID(),
+    id: ReguleringId = ReguleringId.generer(),
     sakId: UUID = UUID.randomUUID(),
     reguleringsperiode: Periode = stønadsperiode2021.periode,
     saksnummer: Saksnummer = Saksnummer(2021),

@@ -1,23 +1,25 @@
 package no.nav.su.se.bakover.domain.vilkår.opplysningsplikt
 
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
-import java.util.UUID
 
 sealed interface LeggTilOpplysningspliktRequest {
-    val behandlingId: UUID
+    val behandlingId: BehandlingsId
     val vilkår: OpplysningspliktVilkår.Vurdert
 
     data class Søknadsbehandling(
-        override val behandlingId: UUID,
+        override val behandlingId: SøknadsbehandlingId,
         override val vilkår: OpplysningspliktVilkår.Vurdert,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : LeggTilOpplysningspliktRequest
 
     data class Revurdering(
-        override val behandlingId: UUID,
+        override val behandlingId: RevurderingId,
         override val vilkår: OpplysningspliktVilkår.Vurdert,
     ) : LeggTilOpplysningspliktRequest
 }

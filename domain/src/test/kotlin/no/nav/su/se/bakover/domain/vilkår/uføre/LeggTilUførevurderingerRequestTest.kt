@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -24,7 +25,6 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre
-import java.util.UUID
 
 internal class LeggTilUførevurderingerRequestTest {
 
@@ -36,7 +36,7 @@ internal class LeggTilUførevurderingerRequestTest {
             LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder to LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder,
             LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden to LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden,
         ).forEach { testArg ->
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val leggTilUførevilkårRequest = mock<LeggTilUførevilkårRequest> {
                 on { toVurderingsperiode(any()) } doReturn testArg.first.left()
             }
@@ -52,7 +52,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Kan ikke ha overlappende vurderingsperioder`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -84,7 +84,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Hele behandlingsperioden må ha vurderinger`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -116,7 +116,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Kan ikke ha blande VilkårOppfylt og VilkårIkkeOppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -148,7 +148,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Kan ikke ha blande VilkårOppfylt og HarUføresakTilBehandling`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -180,7 +180,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Kan ikke ha blande VilkårIkkeOppfylt og HarUføresakTilBehandling`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -212,7 +212,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Støtter fler VilkårOppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         val actual = LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -274,7 +274,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `Støtter fler VilkårIkkeOppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         val actual = LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(
@@ -336,7 +336,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
     @Test
     fun `setter grunnlag til null dersom vilkår ikke er oppfylt`() {
-        val behandlingId = UUID.randomUUID()
+        val behandlingId = SøknadsbehandlingId.generer()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
             vurderinger = nonEmptyListOf(

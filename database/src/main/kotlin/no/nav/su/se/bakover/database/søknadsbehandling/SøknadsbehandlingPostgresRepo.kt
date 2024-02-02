@@ -5,6 +5,7 @@ import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandlin
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import kotliquery.Row
+import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -60,7 +62,7 @@ import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 internal data class BaseSøknadsbehandlingDb(
-    val id: UUID,
+    val id: SøknadsbehandlingId,
     val opprettet: Tidspunkt,
     val sakId: UUID,
     val søknad: Søknad.Journalført.MedOppgave,
@@ -312,11 +314,11 @@ internal class SøknadsbehandlingPostgresRepo(
     }
 
     private fun hentSkatteIDerForBehandling(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         session: Session,
     ): Pair<UUID?, UUID?> {
         return "select søkersSkatteId, epsSkatteId from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId), session) {
+            .hent(mapOf("id" to behandlingId.value), session) {
                 it.uuidOrNull("søkersSkatteId") to it.uuidOrNull("epsSkatteId")
             } ?: Pair(null, null)
     }
@@ -388,7 +390,7 @@ internal class SøknadsbehandlingPostgresRepo(
             """.trimIndent()
             ).insert(
             params = mapOf(
-                "id" to søknadsbehandling.base.id,
+                "id" to søknadsbehandling.base.id.value,
                 "sakId" to søknadsbehandling.base.sakId,
                 "soknadId" to søknadsbehandling.base.søknad.id,
                 "opprettet" to søknadsbehandling.base.opprettet,
@@ -449,11 +451,11 @@ internal class SøknadsbehandlingPostgresRepo(
         )
     }
 
-    override fun hent(id: UUID): Søknadsbehandling? {
+    override fun hent(id: SøknadsbehandlingId): Søknadsbehandling? {
         return dbMetrics.timeQuery("hentSøknadsbehandling") {
             sessionFactory.withSession { session ->
                 "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
-                    .hent(mapOf("id" to id), session) { row ->
+                    .hent(mapOf("id" to id.value), session) { row ->
                         row.toSøknadsbehandling(session)
                     }
             }
@@ -490,15 +492,15 @@ internal class SøknadsbehandlingPostgresRepo(
         return sessionFactory.newSessionContext()
     }
 
-    internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
+    internal fun hent(id: SøknadsbehandlingId, session: Session): Søknadsbehandling? {
         return "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
-            .hent(mapOf("id" to id), session) { row ->
+            .hent(mapOf("id" to id.value), session) { row ->
                 row.toSøknadsbehandling(session)
             }
     }
 
     private fun Row.toSøknadsbehandling(session: Session): Søknadsbehandling {
-        val behandlingId = uuid("id")
+        val behandlingId = SøknadsbehandlingId(uuid("id"))
         val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
         if (søknad !is Søknad.Journalført.MedOppgave) {
             throw IllegalStateException("Kunne ikke hente behandling med søknad som ikke er journalført med oppgave.")
@@ -537,7 +539,7 @@ internal class SøknadsbehandlingPostgresRepo(
         )
 
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
-            behandlingId = behandlingId,
+            søknadsbehandlingId = behandlingId,
             session = session,
             sakstype = Sakstype.from(string("type")),
             eksterneGrunnlag = eksterneGrunnlag,

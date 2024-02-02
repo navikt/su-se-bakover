@@ -104,7 +104,7 @@ internal class StatistikkStansTest {
                        "tekniskTid":"2021-01-01T01:02:03.456789Z",
                        "mottattDato":"2021-01-01",
                        "registrertDato":"2021-01-01",
-                       "behandlingId":${statistikkEvent.revurdering.id},
+                       "behandlingId":${statistikkEvent.revurdering.id.value},
                        "sakId":${statistikkEvent.revurdering.sakId},
                        "saksnummer":"12345676",
                        "behandlingType":"REVURDERING",

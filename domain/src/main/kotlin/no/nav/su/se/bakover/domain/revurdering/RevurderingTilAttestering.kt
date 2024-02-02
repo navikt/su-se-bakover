@@ -44,7 +44,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
@@ -104,7 +104,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
     }
 
     data class Opphørt(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,

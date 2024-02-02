@@ -32,8 +32,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -124,12 +126,12 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakForRevurdering(revurderingId: UUID): Sak {
+    override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
         return dbMetrics.timeQuery("hentSakForRevurdering") {
             sessionFactory.withSessionContext { sessionContext ->
                 sessionContext.withSession { session ->
                     "select s.* from sak s join revurdering r on r.sakid = s.id where r.id =:revurderingid".hent(
-                        mapOf("revurderingid" to revurderingId),
+                        mapOf("revurderingid" to revurderingId.value),
                         session,
                     ) { it.toSak(sessionContext) }
                 }
@@ -137,11 +139,11 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+    override fun hentSakForRevurdering(revurderingId: RevurderingId, sessionContext: SessionContext): Sak {
         return dbMetrics.timeQuery("hentSakForRevurdering") {
             sessionContext.withSession { session ->
                 "select s.* from sak s join revurdering r on r.sakid = s.id where r.id =:revurderingid"
-                    .hent(mapOf("revurderingid" to revurderingId), session) { it.toSak(sessionContext) }
+                    .hent(mapOf("revurderingid" to revurderingId.value), session) { it.toSak(sessionContext) }
             }
         }!!
     }
@@ -157,12 +159,12 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak {
+    override fun hentSakforSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak {
         return dbMetrics.timeQuery("hentSakForSøknadsbehandling") {
             sessionFactory.withSessionContext { sessionContext ->
                 sessionContext.withSession { session ->
                     "select s.* from sak s join behandling b on s.id = b.sakid where b.id = :soknadsbehandlingId".hent(
-                        mapOf("soknadsbehandlingId" to søknadsbehandlingId),
+                        mapOf("soknadsbehandlingId" to søknadsbehandlingId.value),
                         session,
                     ) { it.toSak(sessionContext) }!!
                 }

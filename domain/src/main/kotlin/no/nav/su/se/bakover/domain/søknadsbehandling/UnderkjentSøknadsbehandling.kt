@@ -40,7 +40,7 @@ sealed interface UnderkjentSøknadsbehandling :
     KanOppdaterePeriodeBosituasjonVilkår,
     KanSendesTilAttestering,
     KanGenerereBrev {
-    abstract override val id: UUID
+    abstract override val id: SøknadsbehandlingId
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
     abstract override val saksnummer: Saksnummer
@@ -56,7 +56,7 @@ sealed interface UnderkjentSøknadsbehandling :
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, UnderkjentSøknadsbehandling>
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -198,7 +198,7 @@ sealed interface UnderkjentSøknadsbehandling :
     sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
 
         data class MedBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
@@ -287,7 +287,7 @@ sealed interface UnderkjentSøknadsbehandling :
         }
 
         data class UtenBeregning(
-            override val id: UUID,
+            override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,

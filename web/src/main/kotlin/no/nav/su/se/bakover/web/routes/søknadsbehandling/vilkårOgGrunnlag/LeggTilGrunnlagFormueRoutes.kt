@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -76,7 +77,7 @@ private data class FormueBody(
             }
 
             return LeggTilFormuevilkårRequest(
-                behandlingId = behandlingId,
+                behandlingId = SøknadsbehandlingId(behandlingId),
                 formuegrunnlag = this.map { formueBody ->
                     LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                         periode = formueBody.periode.toPeriodeOrResultat()
@@ -115,7 +116,7 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                         }.map { request ->
                             søknadsbehandlingService.leggTilFormuevilkår(request)
                                 .map {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
                                     return@authorize call.svar(
                                         Resultat.json(

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 
 interface ReguleringRepo {
-    fun hent(id: UUID): Regulering?
+    fun hent(id: ReguleringId): Regulering?
     fun hentReguleringerSomIkkeErIverksatt(): List<ReguleringSomKreverManuellBehandling>
     fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Regulering>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>

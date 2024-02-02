@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.revurdering.attestering
 
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
-import java.util.UUID
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeSendeRevurderingTilAttestering {
@@ -28,6 +28,6 @@ sealed interface KunneIkkeSendeRevurderingTilAttestering {
     ) : KunneIkkeSendeRevurderingTilAttestering
 
     data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-        val revurderingId: UUID,
+        val revurderingId: RevurderingId,
     ) : KunneIkkeSendeRevurderingTilAttestering
 }

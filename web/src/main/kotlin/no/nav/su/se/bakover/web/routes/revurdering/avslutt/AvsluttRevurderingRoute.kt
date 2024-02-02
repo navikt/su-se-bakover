@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
@@ -46,7 +47,7 @@ internal fun Route.avsluttRevurderingRoute(
                 call.withRevurderingId { revurderingId ->
                     body.toBrevvalg().flatMap { brevvalg ->
                         revurderingService.avsluttRevurdering(
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -54,7 +55,7 @@ internal fun Route.avsluttRevurderingRoute(
                     }.fold(
                         ifLeft = { call.svar(it) },
                         ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
@@ -71,7 +72,7 @@ internal fun Route.avsluttRevurderingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
-                    revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst, call.suUserContext.saksbehandler).fold(
+                    revurderingService.lagBrevutkastForAvslutting(RevurderingId(revurderingId), body.fritekst, call.suUserContext.saksbehandler).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")

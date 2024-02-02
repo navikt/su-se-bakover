@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.jobcontext.JobContext
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import org.slf4j.LoggerFactory
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
@@ -144,7 +145,7 @@ data class UtløptFristForKontrollsamtaleContext(
         hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: DatoIntervall) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
         sessionFactory: SessionFactory,
         opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-        iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
+        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         clock: Clock,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
@@ -231,7 +232,7 @@ data class UtløptFristForKontrollsamtaleContext(
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
         tx: TransactionContext,
         opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-        iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
+        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
         clock: Clock,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
     ): UtløptFristForKontrollsamtaleContext {
@@ -365,7 +366,7 @@ data class UtløptFristForKontrollsamtaleContext(
     private data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
 
     data class OpprettStansTransactionCallback(
-        val revurderingId: UUID,
+        val revurderingId: RevurderingId,
         val sendStatistikkCallback: () -> Unit,
     )
 

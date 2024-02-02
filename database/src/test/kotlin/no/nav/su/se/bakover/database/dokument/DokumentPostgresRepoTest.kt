@@ -42,8 +42,8 @@ internal class DokumentPostgresRepoTest {
                     sakId = sak.id,
                     søknadId = sak.søknader.first().id,
                     vedtakId = vedtak.id,
-                    revurderingId = revurdering.id,
-                    klageId = klage.id,
+                    revurderingId = revurdering.id.value,
+                    klageId = klage.id.value,
                 ),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
@@ -60,8 +60,8 @@ internal class DokumentPostgresRepoTest {
             dokumentRepo.hentForSak(sak.id) shouldHaveSize 1
             dokumentRepo.hentForSøknad(sak.søknader.first().id) shouldHaveSize 1
             dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
-            dokumentRepo.hentForRevurdering(revurdering.id) shouldHaveSize 1
-            dokumentRepo.hentForKlage(klage.id) shouldHaveSize 1
+            dokumentRepo.hentForRevurdering(revurdering.id.value) shouldHaveSize 1
+            dokumentRepo.hentForKlage(klage.id.value) shouldHaveSize 1
         }
     }
 

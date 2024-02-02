@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.test.argThat
@@ -37,7 +38,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.ZoneOffset
-import java.util.UUID
 
 internal class HentBrevutkastTest {
 
@@ -48,7 +48,7 @@ internal class HentBrevutkastTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         mocks.service.brevutkast(
             klageId = klageId,
             ident = saksbehandler,

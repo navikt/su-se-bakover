@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -51,7 +52,7 @@ internal class VilkårsvurderKlageTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val request = VurderKlagevilkårRequest(
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             klageId = klageId,
@@ -77,7 +78,7 @@ internal class VilkårsvurderKlageTest {
         val vedtakId = UUID.randomUUID()
         val request = VurderKlagevilkårRequest(
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-            klageId = UUID.randomUUID(),
+            klageId = KlageId.generer(),
             vedtakId = vedtakId,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
@@ -118,7 +119,7 @@ internal class VilkårsvurderKlageTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
-                klageId = UUID.randomUUID(),
+                klageId = KlageId.generer(),
                 utfall = KlageinstansUtfall.RETUR,
                 journalpostIDer = emptyList(),
             ),
@@ -146,7 +147,7 @@ internal class VilkårsvurderKlageTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
-                klageId = UUID.randomUUID(),
+                klageId = KlageId.generer(),
                 utfall = KlageinstansUtfall.RETUR,
                 journalpostIDer = emptyList(),
             ),

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.stans
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.time.LocalDate
 import java.util.UUID
@@ -20,7 +21,7 @@ sealed interface StansYtelseRequest {
 
     data class Oppdater(
         override val sakId: UUID,
-        val revurderingId: UUID,
+        val revurderingId: RevurderingId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val fraOgMed: LocalDate,
         override val revurderingsårsak: Revurderingsårsak,

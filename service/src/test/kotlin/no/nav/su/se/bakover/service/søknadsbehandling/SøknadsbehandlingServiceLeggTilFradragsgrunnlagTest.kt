@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -28,7 +29,6 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.Grunnlagsdata
-import java.util.UUID
 
 class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
@@ -111,7 +111,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         val søknadsbehandlingService = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         )
-        val søknadsbehandlingId = UUID.randomUUID()
+        val søknadsbehandlingId = SøknadsbehandlingId.generer()
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = søknadsbehandlingId,
             fradragsgrunnlag = listOf(

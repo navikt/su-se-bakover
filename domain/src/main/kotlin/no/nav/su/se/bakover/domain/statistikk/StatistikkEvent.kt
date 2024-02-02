@@ -201,7 +201,7 @@ sealed interface StatistikkEvent {
                 val vedtak: Klagevedtak.Avvist,
             ) : Klage {
                 override val klage: IverksattAvvistKlage
-                    get() = vedtak.klage
+                    get() = vedtak.behandling
             }
 
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage

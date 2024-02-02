@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
@@ -38,7 +39,7 @@ internal fun Route.iverksettRevurderingRoute(
         authorize(Brukerrolle.Attestant) {
             call.withRevurderingId { revurderingId ->
                 revurderingService.iverksett(
-                    revurderingId = revurderingId,
+                    revurderingId = RevurderingId(revurderingId),
                     attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                 ).fold(
                     ifLeft = {
@@ -47,7 +48,7 @@ internal fun Route.iverksettRevurderingRoute(
                     },
                     ifRight = {
                         call.sikkerlogg("Iverksatt revurdering med id $revurderingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.REVURDERING)
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                     },

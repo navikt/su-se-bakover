@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.behandling.Behandling
+import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -36,7 +38,7 @@ import kotlin.reflect.KClass
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
  */
-sealed interface Klage : Klagefelter {
+sealed interface Klage : Klagefelter, BehandlingMedAttestering {
 
     /**
      * Convenience funksjon for å slippe store when-blokker.
@@ -49,10 +51,7 @@ sealed interface Klage : Klagefelter {
      * Dersom attesteringer er [Attestering.Iverksatt] vil behandlingen være ferdistilt/avsluttet.
      * Dersom attesteringer er [Attestering.Underkjent] vil behandlingen fremdeles være åpen.
      * */
-    val attesteringer: Attesteringshistorikk
-
-    fun prøvHentSisteAttestering(): Attestering? = attesteringer.prøvHentSisteAttestering()
-    fun prøvHentSisteAttestant(): NavIdentBruker.Attestant? = prøvHentSisteAttestering()?.attestant
+    override val attesteringer: Attesteringshistorikk
 
     fun erÅpen(): Boolean
 
@@ -119,7 +118,7 @@ sealed interface Klage : Klagefelter {
             clock: Clock,
         ): OpprettetKlage {
             return OpprettetKlage(
-                id = UUID.randomUUID(),
+                id = KlageId.generer(),
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -159,10 +158,10 @@ interface KanLeggeTilFritekstTilAvvistBrev {
     ): AvvistKlage
 }
 
-interface Klagefelter {
-    val id: UUID
-    val opprettet: Tidspunkt
-    val sakId: UUID
+interface Klagefelter : Behandling {
+    override val id: KlageId
+    override val opprettet: Tidspunkt
+    override val sakId: UUID
     val saksnummer: Saksnummer
     val fnr: Fnr
     val journalpostId: JournalpostId

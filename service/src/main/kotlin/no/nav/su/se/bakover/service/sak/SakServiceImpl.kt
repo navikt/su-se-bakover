@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
@@ -127,15 +129,15 @@ class SakServiceImpl(
             ?: FantIkkeSak.left()
     }
 
-    override fun hentSakForRevurdering(revurderingId: UUID): Sak {
+    override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
         return sakRepo.hentSakForRevurdering(revurderingId)
     }
 
-    override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+    override fun hentSakForRevurdering(revurderingId: RevurderingId, sessionContext: SessionContext): Sak {
         return sakRepo.hentSakForRevurdering(revurderingId, sessionContext)
     }
 
-    override fun hentSakForSøknadsbehandling(søknadsbehandlingId: UUID): Sak {
+    override fun hentSakForSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak {
         return sakRepo.hentSakforSøknadsbehandling(søknadsbehandlingId)
     }
 

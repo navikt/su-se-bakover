@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -36,14 +37,14 @@ internal fun Route.institusjonsoppholdRoutes(
                         body.toDomain(clock).map { vilkår ->
                             søknadsbehandlingService.leggTilInstitusjonsoppholdVilkår(
                                 request = LeggTilInstitusjonsoppholdVilkårRequest(
-                                    behandlingId = behandlingId,
+                                    behandlingId = SøknadsbehandlingId(behandlingId),
                                     vilkår = vilkår,
                                 ),
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ).fold(
                                 { it.tilResultat() },
                                 {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                     Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                                 },
                             )

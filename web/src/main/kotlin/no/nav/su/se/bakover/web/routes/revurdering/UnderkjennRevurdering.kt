@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -76,7 +77,7 @@ internal fun Route.underkjennRevurdering(
                             ifLeft = { return@authorize call.svar(it) },
                             ifRight = { underkjent ->
                                 revurderingService.underkjenn(
-                                    revurderingId = revurderingId,
+                                    revurderingId = RevurderingId(revurderingId),
                                     attestering = underkjent,
                                 ).fold(
                                     ifLeft = {
@@ -94,7 +95,7 @@ internal fun Route.underkjennRevurdering(
                                     },
                                     ifRight = {
                                         call.sikkerlogg("Underkjente behandling med id: $revurderingId")
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                         return@authorize call.svar(
                                             Resultat.json(
                                                 HttpStatusCode.OK,

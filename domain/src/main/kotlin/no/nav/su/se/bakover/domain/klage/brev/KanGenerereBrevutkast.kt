@@ -9,7 +9,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
-import java.util.UUID
 
 sealed interface KanGenerereBrevutkast : Klage {
     val fritekstTilVedtaksbrev: String
@@ -21,7 +20,7 @@ sealed interface KanGenerereBrevutkast : Klage {
      */
     fun lagBrevRequest(
         utførtAv: NavIdentBruker,
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+        hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand>
 }
 
@@ -40,7 +39,7 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
 
 internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     attestant: NavIdentBruker.Attestant?,
-    hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+    hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
     val vedtaksbrevDato = (
         hentVedtaksbrevDato(this.id)

@@ -96,7 +96,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
     }
 
     data class SimulertStansAvYtelse(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,
@@ -150,7 +150,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
     }
 
     data class IverksattStansAvYtelse(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,

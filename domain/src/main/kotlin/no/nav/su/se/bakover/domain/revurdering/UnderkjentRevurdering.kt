@@ -138,7 +138,7 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
     }
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
@@ -227,7 +227,7 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
     }
 
     data class Opphørt(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,

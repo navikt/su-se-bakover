@@ -63,7 +63,7 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
             underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo: SakInfo = underliggendeStansAvYtelse.sakinfo
-        override val id: UUID = underliggendeStansAvYtelse.id
+        override val id: RevurderingId = underliggendeStansAvYtelse.id
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
         override val oppdatert: Tidspunkt = underliggendeStansAvYtelse.oppdatert
         override val periode: Periode = underliggendeStansAvYtelse.periode
@@ -105,7 +105,7 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
     }
 
     data class SimulertGjenopptakAvYtelse(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,
@@ -148,7 +148,7 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
     }
 
     data class IverksattGjenopptakAvYtelse(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,

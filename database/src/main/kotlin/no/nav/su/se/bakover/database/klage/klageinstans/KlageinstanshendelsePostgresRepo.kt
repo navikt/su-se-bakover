@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
@@ -81,7 +82,7 @@ internal class KlageinstanshendelsePostgresRepo(
                             "oppgaveid" to hendelse.oppgaveId,
                             "utlest_utfall" to hendelse.utfall.toDatabaseType(),
                             "utlest_journalpostid" to hendelse.journalpostIDer,
-                            "utlest_klageid" to hendelse.klageId,
+                            "utlest_klageid" to hendelse.klageId.value,
                         ),
                         session = transaction,
                     )
@@ -125,7 +126,7 @@ internal class KlageinstanshendelsePostgresRepo(
     }
 
     internal fun hentProsesserteKlageinstanshendelser(
-        klageId: UUID,
+        klageId: KlageId,
         session: Session,
     ): List<ProsessertKlageinstanshendelse> {
         return dbMetrics.timeQuery("hentProsesserteKlageinstanshendelser") {
@@ -133,7 +134,7 @@ internal class KlageinstanshendelsePostgresRepo(
             select * from klageinstanshendelse where utlest_klageid = :klageid AND type = :type
             """.trimIndent().hentListe(
                 mapOf(
-                    "klageid" to klageId,
+                    "klageid" to klageId.value,
                     "type" to KlageinstanshendelseType.PROSESSERT.toString(),
                 ),
                 session,
@@ -141,7 +142,7 @@ internal class KlageinstanshendelsePostgresRepo(
                 ProsessertKlageinstanshendelse(
                     id = row.uuid("id"),
                     opprettet = row.tidspunkt("opprettet"),
-                    klageId = row.uuid("utlest_klageid"),
+                    klageId = KlageId(row.uuid("utlest_klageid")),
                     utfall = UtfallJson.valueOf(row.string("utlest_utfall")).toDomain(),
                     journalpostIDer = row.array<String>("utlest_journalpostid").map { JournalpostId(it) },
                     oppgaveId = OppgaveId(row.string("oppgaveid")),
