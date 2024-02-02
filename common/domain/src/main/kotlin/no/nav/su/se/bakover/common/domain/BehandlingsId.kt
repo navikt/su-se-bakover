@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.behandling
+package no.nav.su.se.bakover.common.domain
 
 import java.util.UUID
 

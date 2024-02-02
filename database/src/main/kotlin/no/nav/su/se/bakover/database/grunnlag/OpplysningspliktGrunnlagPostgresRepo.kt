@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.database.grunnlag
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotliquery.Row
-import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession

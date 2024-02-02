@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.behandling
 
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.opplysningsplikt
 
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId

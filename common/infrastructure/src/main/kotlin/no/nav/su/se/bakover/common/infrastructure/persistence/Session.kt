@@ -31,6 +31,7 @@ import kotliquery.param
 import kotliquery.sqlType
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -119,6 +120,7 @@ open class Session(
                 is java.sql.Array -> this.setArray(idx, v)
                 is URL -> this.setURL(idx, v)
                 is UUID30 -> this.setString(idx, v.toString())
+                is BehandlingsId -> this.setString(idx, v.value.toString())
                 is Fnr -> this.setString(idx, v.toString())
                 is NavIdentBruker -> this.setString(idx, v.navIdent)
 

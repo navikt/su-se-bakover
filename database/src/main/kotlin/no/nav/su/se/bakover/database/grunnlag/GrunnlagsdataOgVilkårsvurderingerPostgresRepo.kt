@@ -4,7 +4,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session

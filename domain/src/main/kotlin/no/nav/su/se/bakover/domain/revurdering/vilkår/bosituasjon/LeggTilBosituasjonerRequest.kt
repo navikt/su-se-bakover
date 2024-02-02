@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
 
 import arrow.core.Either
 import arrow.core.raise.either
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person

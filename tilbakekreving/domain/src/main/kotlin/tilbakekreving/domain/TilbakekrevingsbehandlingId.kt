@@ -1,6 +1,6 @@
 package tilbakekreving.domain
 
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import java.util.UUID
 
 data class TilbakekrevingsbehandlingId(

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.oppmøte
 
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 

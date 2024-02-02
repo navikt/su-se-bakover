@@ -5,8 +5,8 @@ import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandlin
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import kotliquery.Row
-import no.nav.su.se.bakover.behandling.BehandlingsId
 import no.nav.su.se.bakover.common.deserializeNullable
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk

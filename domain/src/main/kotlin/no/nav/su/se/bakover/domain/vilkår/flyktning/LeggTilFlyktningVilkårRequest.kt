@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.flyktning
 
-import no.nav.su.se.bakover.behandling.BehandlingsId
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 
