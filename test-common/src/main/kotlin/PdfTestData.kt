@@ -16,7 +16,7 @@ fun nySkattegrunnlagsPdfInnhold(): SkattegrunnlagsPdfInnhold {
     return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
         saksnummer = saksnummer,
         hentet = fixedTidspunkt,
-        behandlingsId = SøknadsbehandlingId.generer(),
+        søknadsbehandlingId = SøknadsbehandlingId.generer(),
         vedtaksId = UUID.randomUUID(),
         skatt = ÅrsgrunnlagForPdf(
             søkers = ÅrsgrunnlagMedFnr(

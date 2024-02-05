@@ -4,4 +4,6 @@ import java.util.UUID
 
 interface BehandlingsId {
     val value: UUID
+
+    override fun toString(): String
 }

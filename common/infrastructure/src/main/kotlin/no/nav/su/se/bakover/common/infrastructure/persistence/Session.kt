@@ -120,7 +120,9 @@ open class Session(
                 is java.sql.Array -> this.setArray(idx, v)
                 is URL -> this.setURL(idx, v)
                 is UUID30 -> this.setString(idx, v.toString())
-                is BehandlingsId -> this.setString(idx, v.value.toString())
+                is BehandlingsId -> this.setString(idx, v.value.toString()).also {
+                    logger.warn("Session.kt lagret en BehandlingsId. Mapping burde ha vært gjort i SQL params for repoene. Dette er en midlertidig løsning")
+                }
                 is Fnr -> this.setString(idx, v.toString())
                 is NavIdentBruker -> this.setString(idx, v.navIdent)
 

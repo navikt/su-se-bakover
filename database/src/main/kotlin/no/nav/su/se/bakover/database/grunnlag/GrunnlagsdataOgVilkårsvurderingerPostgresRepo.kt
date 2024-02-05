@@ -20,6 +20,9 @@ import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 
+/**
+ * TODO - må splittes opp i generell + revurdering + søknadsbehandlings deler
+ */
 internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val bosituasjongrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,

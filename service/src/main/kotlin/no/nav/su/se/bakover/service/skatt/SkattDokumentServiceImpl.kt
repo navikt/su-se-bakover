@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import org.slf4j.Logger
@@ -140,7 +141,7 @@ class SkattDokumentServiceImpl(
 
         return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
-            behandlingsId = vedtak.behandling.id,
+            søknadsbehandlingId = vedtak.behandling.id as SøknadsbehandlingId,
             vedtaksId = vedtak.id,
             // vi henter skattemeldingene samtidig
             hentet = hentetSkatt.søkers.hentetTidspunkt,
