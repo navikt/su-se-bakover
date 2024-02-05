@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":oppgave:domain"))
     implementation(project(":vedtak:domain"))
+    implementation(project(":behandling:domain"))
 
     testImplementation(project(":test-common"))
 }

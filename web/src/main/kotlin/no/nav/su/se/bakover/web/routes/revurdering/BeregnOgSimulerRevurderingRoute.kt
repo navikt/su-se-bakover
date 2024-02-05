@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
@@ -47,14 +48,14 @@ internal fun Route.beregnOgSimulerRevurdering(
                 call.withRevurderingId { revurderingId ->
                     call.withBody<Body> {
                         revurderingService.beregnOgSimuler(
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             skalUtsetteTilbakekreving = it.skalUtsetteTilbakekreving,
                         ).mapLeft {
                             call.svar(it.tilResultat())
                         }.map { response ->
                             call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
-                            call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
+                            call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id.value)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(formuegrenserFactory))))
                         }
                     }

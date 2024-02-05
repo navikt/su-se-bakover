@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import java.util.UUID
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 
 data class LeggTilBrevvalgRequest(
-    val revurderingId: UUID,
+    val revurderingId: RevurderingId,
     val valg: Valg,
     val fritekst: String?,
     val begrunnelse: String?,

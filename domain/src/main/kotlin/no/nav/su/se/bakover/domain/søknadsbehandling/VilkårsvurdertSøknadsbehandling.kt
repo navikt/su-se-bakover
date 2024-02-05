@@ -150,7 +150,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
     }
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -291,7 +291,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
     }
 
     data class Uavklart(
-        override val id: UUID,
+        override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -329,7 +329,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
 
         data class StønadsperiodeIkkeDefinertException(
-            val id: UUID,
+            val id: SøknadsbehandlingId,
         ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
     }
 }

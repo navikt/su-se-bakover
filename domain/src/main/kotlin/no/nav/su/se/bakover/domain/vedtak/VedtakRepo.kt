@@ -6,13 +6,14 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import java.time.LocalDate
 import java.util.UUID
 
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
-    fun hentForRevurderingId(revurderingId: UUID): Vedtak?
+    fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
     fun hentForMåned(måned: Måned): List<Vedtaksammendrag>
     fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
 

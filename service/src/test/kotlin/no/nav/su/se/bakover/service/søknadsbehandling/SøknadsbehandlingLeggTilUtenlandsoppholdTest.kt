@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -26,7 +27,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.util.UUID
 
 class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
     @Test
@@ -34,13 +34,13 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock { on { hent(any()) } doReturn null },
         ).let {
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             it.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = behandlingId,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = behandlingId,
+                            behandlingId = behandlingId.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
@@ -63,7 +63,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 it.søknadsbehandlingService.leggTilUtenlandsopphold(
                     // I praksis ikke mulig at dette tryner per nå
                     mock {
-                        on { behandlingId } doReturn UUID.randomUUID()
+                        on { behandlingId } doReturn SøknadsbehandlingId.generer()
                         on { it.tilVilkår(any()) } doReturn LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     },
                     saksbehandler = saksbehandler,
@@ -86,7 +86,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = iverksatt.id,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = iverksatt.id,
+                            behandlingId = iverksatt.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
@@ -117,7 +117,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = innvilget.id,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = innvilget.id,
+                            behandlingId = innvilget.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
@@ -156,7 +156,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = innvilget.id,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
-                            behandlingId = innvilget.id,
+                            behandlingId = innvilget.id.value,
                             periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
                         ),

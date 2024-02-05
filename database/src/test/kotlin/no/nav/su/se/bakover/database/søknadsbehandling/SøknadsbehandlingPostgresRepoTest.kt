@@ -164,7 +164,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .also { (_, innvilget) ->
                     repo.hent(innvilget.id) shouldBe innvilget
                     dataSource.withSession { session ->
-                        "select * from behandling where id = :id".hent(mapOf("id" to innvilget.id), session) { row ->
+                        "select * from behandling where id = :id".hent(mapOf("id" to innvilget.id.value), session) { row ->
                             row.stringOrNull("beregning") shouldBe null
                             row.stringOrNull("simulering") shouldBe null
                         }
@@ -183,7 +183,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     repo.hent(it.id) shouldBe it
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(
-                            mapOf("id" to innvilgetVilkårsvurdering.id),
+                            mapOf("id" to innvilgetVilkårsvurdering.id.value),
                             session,
                         ) { row ->
                             row.stringOrNull("beregning") shouldNotBe null
@@ -208,7 +208,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 repo.hent(simulert.id) shouldBe simulert
                 dataSource.withSession {
                     "select * from behandling where id = :id".hent(
-                        mapOf("id" to innvilgetVilkårsvurdering.id),
+                        mapOf("id" to innvilgetVilkårsvurdering.id.value),
                         it,
                     ) { row ->
                         row.stringOrNull("beregning") shouldNotBe null
@@ -231,7 +231,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
                 dataSource.withSession {
                     "select * from behandling where id = :id".hent(
-                        mapOf("id" to innvilgetVilkårsvurdering.id),
+                        mapOf("id" to innvilgetVilkårsvurdering.id.value),
                         it,
                     ) { row ->
                         row.stringOrNull("beregning") shouldBe null

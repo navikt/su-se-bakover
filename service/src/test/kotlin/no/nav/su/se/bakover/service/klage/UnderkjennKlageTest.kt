@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -40,7 +41,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class UnderkjennKlageTest {
 
@@ -52,7 +52,7 @@ internal class UnderkjennKlageTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val attestant = NavIdentBruker.Attestant("s2")
         val request = UnderkjennKlageRequest(
             klageId = klageId,

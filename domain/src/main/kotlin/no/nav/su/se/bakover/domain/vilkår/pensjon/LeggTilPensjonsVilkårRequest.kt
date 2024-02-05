@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.vilkår.pensjon
 
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.pensjon.domain.KunneIkkeLagePensjonsVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
-import java.util.UUID
 
 data class LeggTilPensjonsVilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vilkår: PensjonsVilkår.Vurdert,
 )
 

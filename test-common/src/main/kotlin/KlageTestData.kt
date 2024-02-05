@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -39,7 +40,7 @@ import java.util.UUID
 
 val oppgaveIdKlage = OppgaveId("oppgaveIdKlage")
 fun opprettetKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -76,7 +77,7 @@ fun opprettetKlage(
  *
  */
 fun påbegyntVilkårsvurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -121,7 +122,7 @@ fun påbegyntVilkårsvurdertKlage(
 }
 
 fun utfyltVilkårsvurdertKlageTilVurdering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -169,7 +170,7 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
 }
 
 fun utfyltAvvistVilkårsvurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -214,7 +215,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
 }
 
 fun bekreftetVilkårsvurdertKlageTilVurdering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -260,7 +261,7 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
 }
 
 fun bekreftetAvvistVilkårsvurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -303,7 +304,7 @@ fun bekreftetAvvistVilkårsvurdertKlage(
 }
 
 fun påbegyntVurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -350,7 +351,7 @@ fun påbegyntVurdertKlage(
 }
 
 fun utfyltVurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     fnr: Fnr = Fnr.generer(),
@@ -402,7 +403,7 @@ fun utfyltVurdertKlage(
 }
 
 fun bekreftetVurdertKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -451,7 +452,7 @@ fun bekreftetVurdertKlage(
 }
 
 fun avvistKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -515,7 +516,7 @@ fun avsluttetKlage(
 }
 
 fun vurdertKlageTilAttestering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -562,7 +563,7 @@ fun vurdertKlageTilAttestering(
 }
 
 fun avvistKlageTilAttestering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -606,7 +607,7 @@ fun avvistKlageTilAttestering(
 }
 
 fun underkjentKlageTilVurdering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -658,7 +659,7 @@ fun underkjentKlageTilVurdering(
 }
 
 fun underkjentAvvistKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -708,7 +709,7 @@ fun underkjentAvvistKlage(
 }
 
 fun underkjentTilVurderingKlageTilAttestering(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -753,7 +754,7 @@ fun underkjentTilVurderingKlageTilAttestering(
 
 fun oversendtKlage(
     clock: Clock = TikkendeKlokke(),
-    klageId: UUID = UUID.randomUUID(),
+    klageId: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = Tidspunkt.now(clock).plus(31, ChronoUnit.DAYS),
     sakId: UUID = UUID.randomUUID(),
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -811,7 +812,7 @@ fun oversendtKlage(
 }
 
 fun iverksattAvvistKlage(
-    id: UUID = UUID.randomUUID(),
+    id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
@@ -860,7 +861,7 @@ fun iverksattAvvistKlage(
 }
 
 fun createBekreftetVilkårsvurdertKlage(
-    id: UUID,
+    id: KlageId,
     opprettet: Tidspunkt,
     sakId: UUID,
     saksnummer: Saksnummer,

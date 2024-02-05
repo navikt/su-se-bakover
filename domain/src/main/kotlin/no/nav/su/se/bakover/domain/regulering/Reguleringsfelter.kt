@@ -10,6 +10,7 @@ import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
 
 interface Reguleringsfelter : Stønadsbehandling {
+    override val id: ReguleringId
     override val beregning: Beregning?
     override val simulering: Simulering?
     override val eksterneGrunnlag: EksterneGrunnlag

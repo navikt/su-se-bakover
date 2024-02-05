@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -30,7 +31,7 @@ class VedtakServiceImpl(
         return vedtakRepo.hentVedtakForId(vedtakId)
     }
 
-    override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+    override fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak? {
         return vedtakRepo.hentForRevurderingId(revurderingId)
     }
 

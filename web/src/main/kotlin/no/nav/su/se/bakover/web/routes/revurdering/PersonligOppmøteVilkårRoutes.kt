@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.LeggTilVurderingsperiodePersonligOppmøteJson
@@ -32,13 +33,13 @@ internal fun Route.personligOppmøteVilkårRoutes(
                     call.svar(
                         revurderingService.leggTilPersonligOppmøteVilkår(
                             request = LeggTilPersonligOppmøteVilkårRequest(
-                                behandlingId = it,
+                                behandlingId = RevurderingId(it),
                                 vilkår = body.toDomain(clock),
                             ),
                         ).fold(
                             { it.tilResultat() },
                             {
-                                call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                 Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                             },
                         ),

@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
@@ -54,7 +55,7 @@ internal fun Route.leggTilGrunnlagFradrag(
     ) {
         fun toCommand(behandlingId: UUID, clock: Clock): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
             LeggTilFradragsgrunnlagRequest(
-                behandlingId = behandlingId,
+                behandlingId = SøknadsbehandlingId(behandlingId),
                 fradragsgrunnlag = fradrag.map { fradrag ->
                     Fradragsgrunnlag.tryCreate(
                         id = UUID.randomUUID(),
@@ -97,7 +98,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                 )
                                     .mapLeft { it.tilResultat() }
                                     .map {
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     }

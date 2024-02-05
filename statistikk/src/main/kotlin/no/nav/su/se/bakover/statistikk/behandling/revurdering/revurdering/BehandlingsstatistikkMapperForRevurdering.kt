@@ -75,7 +75,7 @@ internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
             totrinnsbehandling = true,
             beslutter = this.revurdering.prøvHentSisteAttestant(),
             behandlingYtelseDetaljer = this.revurdering.behandlingYtelseDetaljer(),
-            funksjonellTid = this.revurdering.attesteringer.toFunksjonellTid(this.revurdering.id, clock),
+            funksjonellTid = this.revurdering.attesteringer.toFunksjonellTid(this.revurdering.id.value, clock),
             saksbehandler = this.revurdering.saksbehandler,
         )
 
@@ -89,7 +89,7 @@ internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
             totrinnsbehandling = true,
             beslutter = this.revurdering.prøvHentSisteAttestant(),
             behandlingYtelseDetaljer = this.revurdering.behandlingYtelseDetaljer(),
-            funksjonellTid = this.revurdering.attesteringer.toFunksjonellTid(this.revurdering.id, clock),
+            funksjonellTid = this.revurdering.attesteringer.toFunksjonellTid(this.revurdering.id.value, clock),
             saksbehandler = this.revurdering.saksbehandler,
         )
 
@@ -157,7 +157,7 @@ private fun Revurdering.toDto(
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = this.opprettet.toLocalDate(zoneIdOslo),
         mottattDato = this.opprettet.toLocalDate(zoneIdOslo),
-        behandlingId = this.id,
+        behandlingId = this.id.value,
         sakId = this.sakId,
         saksnummer = this.saksnummer.nummer,
         versjon = gitCommit?.value,

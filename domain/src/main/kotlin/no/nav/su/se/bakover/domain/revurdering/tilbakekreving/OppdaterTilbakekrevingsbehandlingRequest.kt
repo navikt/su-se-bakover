@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.revurdering.tilbakekreving
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import java.util.UUID
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 
 data class OppdaterTilbakekrevingsbehandlingRequest(
-    val revurderingId: UUID,
+    val revurderingId: RevurderingId,
     val avgjørelse: Avgjørelse,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {

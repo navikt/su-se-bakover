@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageSomKanVurderes
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
@@ -56,7 +57,6 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock
-import java.util.UUID
 
 class KlageServiceImpl(
     private val sakService: SakService,
@@ -151,7 +151,7 @@ class KlageServiceImpl(
     }
 
     override fun bekreftVilkårsvurderinger(
-        klageId: UUID,
+        klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
@@ -186,7 +186,7 @@ class KlageServiceImpl(
     }
 
     override fun bekreftVurderinger(
-        klageId: UUID,
+        klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
         return (
@@ -208,7 +208,7 @@ class KlageServiceImpl(
     }
 
     override fun leggTilAvvistFritekstTilBrev(
-        klageId: UUID,
+        klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
@@ -232,7 +232,7 @@ class KlageServiceImpl(
     }
 
     override fun sendTilAttestering(
-        klageId: UUID,
+        klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeKlageTilAttestering.FantIkkeKlage.left()
@@ -276,7 +276,7 @@ class KlageServiceImpl(
     }
 
     override fun oversend(
-        klageId: UUID,
+        klageId: KlageId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
         val klage = (klageRepo.hentKlage(klageId) ?: return KunneIkkeOversendeKlage.FantIkkeKlage.left()).let {
@@ -298,7 +298,7 @@ class KlageServiceImpl(
             }
         }.leggTilMetadata(
             Dokument.Metadata(
-                klageId = klage.id,
+                klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
         )
@@ -328,7 +328,7 @@ class KlageServiceImpl(
     }
 
     override fun iverksettAvvistKlage(
-        klageId: UUID,
+        klageId: KlageId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
@@ -357,7 +357,7 @@ class KlageServiceImpl(
             }
         }.leggTilMetadata(
             Dokument.Metadata(
-                klageId = klage.id,
+                klageId = klage.id.value,
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             ),
@@ -378,7 +378,7 @@ class KlageServiceImpl(
     }
 
     override fun brevutkast(
-        klageId: UUID,
+        klageId: KlageId,
         ident: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkast, PdfA> {
         return genererBrevutkastForKlage(
@@ -393,7 +393,7 @@ class KlageServiceImpl(
     }
 
     override fun avslutt(
-        klageId: UUID,
+        klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String,
     ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {

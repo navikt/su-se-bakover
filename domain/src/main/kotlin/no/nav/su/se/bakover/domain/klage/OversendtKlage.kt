@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.reflect.KClass
 
 data class OversendtKlage(
@@ -30,7 +29,7 @@ data class OversendtKlage(
 
     fun genererOversendelsesbrev(
         // TODO jah: Hadde vært fint å sluppet IO i det laget her. Kan vi flytte til en funksjonell service-funksjon?
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+        hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         return KlageDokumentCommand.Oppretthold(
             fødselsnummer = this.fnr,

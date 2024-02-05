@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
@@ -62,7 +63,7 @@ internal fun Route.gjenopptaUtbetaling(
                         ifRight = {
                             // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                             call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
-                            call.audit(it.first.fnr, AuditLogEvent.Action.CREATE, it.first.id)
+                            call.audit(it.first.fnr, AuditLogEvent.Action.CREATE, it.first.id.value)
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
@@ -92,7 +93,7 @@ internal fun Route.gjenopptaUtbetaling(
                             sakId = sakId,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
                             revurderingsårsak = revurderingsårsak,
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                         )
 
                         service.gjenopptaYtelse(request).fold(
@@ -100,7 +101,7 @@ internal fun Route.gjenopptaUtbetaling(
                             ifRight = {
                                 // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                                 call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
-                                call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id.value)
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
@@ -120,13 +121,13 @@ internal fun Route.gjenopptaUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     service.iverksettGjenopptakAvYtelse(
-                        revurderingId = revurderingId,
+                        revurderingId = RevurderingId(revurderingId),
                         attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Iverksatt gjenopptak av utbetalinger for sak:$sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )

@@ -33,7 +33,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class OpprettetRevurdering(
-    override val id: UUID = UUID.randomUUID(),
+    override val id: RevurderingId = RevurderingId.generer(),
     override val periode: Periode,
     override val opprettet: Tidspunkt,
     override val oppdatert: Tidspunkt,

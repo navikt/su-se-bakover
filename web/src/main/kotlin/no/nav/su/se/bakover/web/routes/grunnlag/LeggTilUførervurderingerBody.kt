@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -15,10 +16,9 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import vilkår.uføre.domain.Uføregrad
-import java.util.UUID
 
 internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {
-    fun toServiceCommand(behandlingId: UUID): Either<Resultat, LeggTilUførevurderingerRequest> {
+    fun toServiceCommand(behandlingId: BehandlingsId): Either<Resultat, LeggTilUførevurderingerRequest> {
         if (vurderinger.isEmpty()) {
             return HttpStatusCode.BadRequest.errorJson(
                 "Ingen perioder er vurdert",
@@ -47,7 +47,7 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
         val begrunnelse: String?,
     ) {
 
-        fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
+        fun toServiceCommand(behandlingsId: BehandlingsId): Either<Resultat, LeggTilUførevilkårRequest> {
             val periode = periode.toPeriodeOrResultat().getOrElse {
                 return it.left()
             }
@@ -57,7 +57,7 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
                 }
             }
             return LeggTilUførevilkårRequest(
-                behandlingId = revurderingId,
+                behandlingId = behandlingsId,
                 periode = periode,
                 uføregrad = validUføregrad,
                 forventetInntekt = forventetInntekt,

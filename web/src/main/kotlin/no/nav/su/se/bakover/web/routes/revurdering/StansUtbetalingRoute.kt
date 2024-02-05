@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -67,7 +68,7 @@ internal fun Route.stansUtbetaling(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
@@ -94,14 +95,14 @@ internal fun Route.stansUtbetaling(
                             fraOgMed = body.fraOgMed,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             revurderingsårsak = revurderingsårsak,
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                         )
 
                         service.stansAvYtelse(request).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                             },
                         )
@@ -116,13 +117,13 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     service.iverksettStansAvYtelse(
-                        revurderingId = revurderingId,
+                        revurderingId = RevurderingId(revurderingId),
                         attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Iverksatt stans av utbetalinger for sak:$sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )

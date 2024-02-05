@@ -29,7 +29,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 sealed interface IverksattRevurdering : Revurdering {
-    abstract override val id: UUID
+    abstract override val id: RevurderingId
     abstract override val periode: Periode
     abstract override val opprettet: Tidspunkt
     abstract override val tilRevurdering: UUID
@@ -53,7 +53,7 @@ sealed interface IverksattRevurdering : Revurdering {
     override fun erÅpen() = false
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
@@ -97,7 +97,7 @@ sealed interface IverksattRevurdering : Revurdering {
     }
 
     data class Opphørt(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,

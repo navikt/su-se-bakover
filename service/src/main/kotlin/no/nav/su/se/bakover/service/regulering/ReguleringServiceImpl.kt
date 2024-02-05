@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.LiveRun
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
@@ -46,7 +47,6 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -203,7 +203,7 @@ class ReguleringServiceImpl(
     }
 
     override fun regulerManuelt(
-        reguleringId: UUID,
+        reguleringId: ReguleringId,
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -332,7 +332,7 @@ class ReguleringServiceImpl(
     }
 
     override fun avslutt(
-        reguleringId: UUID,
+        reguleringId: ReguleringId,
         avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()

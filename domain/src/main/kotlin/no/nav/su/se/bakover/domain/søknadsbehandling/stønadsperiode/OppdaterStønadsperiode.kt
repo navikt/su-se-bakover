@@ -10,13 +10,13 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
-import java.util.UUID
 
 /**
  * Begrensninger:
@@ -31,7 +31,7 @@ import java.util.UUID
  *          - Det er ikke sikkert at personen har fødselsinformasjon (ikke garantert fra api)
  */
 fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
-    søknadsbehandlingId: UUID,
+    søknadsbehandlingId: SøknadsbehandlingId,
     stønadsperiode: Stønadsperiode,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,

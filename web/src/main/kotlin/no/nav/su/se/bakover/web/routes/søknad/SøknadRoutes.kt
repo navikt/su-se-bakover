@@ -158,7 +158,7 @@ internal fun Route.søknadRoutes(
                                     søknadId
                                 },
                                 {
-                                    it.id
+                                    it.id.value
                                 },
                             ),
                         )

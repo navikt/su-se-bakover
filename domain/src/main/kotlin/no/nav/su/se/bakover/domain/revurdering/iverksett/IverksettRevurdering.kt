@@ -6,6 +6,7 @@ import arrow.core.raise.either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.iverksettInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.iverksettOpphørtRevurderingMedUtbetaling
@@ -13,10 +14,9 @@ import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
-import java.util.UUID
 
 fun Sak.iverksettRevurdering(
-    revurderingId: UUID,
+    revurderingId: RevurderingId,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
@@ -44,7 +44,7 @@ fun Sak.iverksettRevurdering(
 }
 
 private fun Sak.finnRevurderingOgValiderTilstand(
-    revurderingId: UUID,
+    revurderingId: RevurderingId,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, RevurderingTilAttestering> {
     return hentRevurdering(revurderingId)
         .mapLeft { KunneIkkeIverksetteRevurdering.Saksfeil.FantIkkeRevurdering }

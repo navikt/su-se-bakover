@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
@@ -32,13 +33,13 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
             call.withRevurderingId { revurderingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->
                     call.svar(
-                        body.toServiceCommand(revurderingId)
+                        body.toServiceCommand(RevurderingId(revurderingId))
                             .flatMap { command ->
                                 revurderingService.leggTilUførevilkår(command)
                                     .mapLeft {
                                         it.tilResultat()
                                     }.map {
-                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     }
                             }.getOrElse { it },

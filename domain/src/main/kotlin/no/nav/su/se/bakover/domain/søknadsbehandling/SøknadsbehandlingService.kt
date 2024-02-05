@@ -139,7 +139,7 @@ interface SøknadsbehandlingService {
     }
 
     data class BeregnRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
         val begrunnelse: String?,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )
@@ -156,29 +156,29 @@ interface SøknadsbehandlingService {
     }
 
     data class SimulerRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
     data class SendTilAttesteringRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val fritekstTilBrev: String,
     )
 
     data class UnderkjennRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
         val attestering: Attestering.Underkjent,
     )
 
     data class HentRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
     )
 
     data object FantIkkeBehandling
 
     data class OppdaterStønadsperiodeRequest(
-        val behandlingId: UUID,
+        val behandlingId: SøknadsbehandlingId,
         val stønadsperiode: Stønadsperiode,
         val sakId: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,

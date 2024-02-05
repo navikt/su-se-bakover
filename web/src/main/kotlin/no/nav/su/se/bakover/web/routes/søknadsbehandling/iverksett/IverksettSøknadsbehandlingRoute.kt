@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
@@ -47,7 +48,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
 
                 service.iverksett(
                     IverksettSøknadsbehandlingCommand(
-                        behandlingId = behandlingId,
+                        behandlingId = SøknadsbehandlingId(behandlingId),
                         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent), Tidspunkt.now(clock)),
                     ),
                 ).fold(
@@ -57,7 +58,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                     {
                         val søknadsbehandling = it.second
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id)
+                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
                         call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, formuegrenserFactory))
                     },

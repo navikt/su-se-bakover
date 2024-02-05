@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -31,7 +32,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->
                     call.svar(
-                        body.toServiceCommand(behandlingId)
+                        body.toServiceCommand(SøknadsbehandlingId(behandlingId))
                             .flatMap { leggTilUføregrunnlagRequest ->
                                 søknadsbehandlingService.leggTilUførevilkår(
                                     leggTilUføregrunnlagRequest,
@@ -39,7 +40,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                 }
                             }.merge(),

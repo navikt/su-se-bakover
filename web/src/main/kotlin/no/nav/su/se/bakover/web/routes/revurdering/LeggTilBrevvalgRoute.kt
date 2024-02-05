@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import vilkår.formue.domain.FormuegrenserFactory
@@ -38,7 +39,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                     call.svar(
                         revurderingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(
-                                revurderingId = revurderingId,
+                                revurderingId = RevurderingId(revurderingId),
                                 valg = body.valg,
                                 fritekst = body.fritekst,
                                 begrunnelse = body.begrunnelse,

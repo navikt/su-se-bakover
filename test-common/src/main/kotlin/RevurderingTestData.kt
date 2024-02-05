@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -75,7 +76,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-val revurderingId: UUID = UUID.randomUUID()
+val revurderingId: RevurderingId = RevurderingId.generer()
 
 val oppgaveIdRevurdering = OppgaveId("oppgaveIdRevurdering")
 
@@ -661,7 +662,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail()
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-            id = UUID.randomUUID(),
+            id = RevurderingId.generer(),
             opprettet = Tidspunkt.now(clock),
             oppdatert = Tidspunkt.now(clock),
             periode = periode,
@@ -741,7 +742,7 @@ fun simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { it.first to it.second },
-    gjenopptaId: UUID = UUID.randomUUID(),
+    gjenopptaId: RevurderingId = RevurderingId.generer(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     revurderingsårsak: Revurderingsårsak = Revurderingsårsak.create(
         årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
@@ -186,7 +187,7 @@ internal class AccessCheckProxyTest {
 
             shouldThrow<Tilgangssjekkfeil> {
                 proxied.søknadsbehandling.søknadsbehandlingService.hent(
-                    SøknadsbehandlingService.HentRequest(UUID.randomUUID()),
+                    SøknadsbehandlingService.HentRequest(SøknadsbehandlingId.generer()),
                 )
             }
         }
@@ -272,12 +273,10 @@ internal class AccessCheckProxyTest {
 
             @Test
             fun `Når man gjør oppslag på behandlingId`() {
-                val id = UUID.randomUUID()
+                val id = SøknadsbehandlingId.generer()
                 proxied.søknadsbehandling.søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(id))
                 verify(servicesReturningSak.søknadsbehandling.søknadsbehandlingService).hent(
-                    SøknadsbehandlingService.HentRequest(
-                        id,
-                    ),
+                    SøknadsbehandlingService.HentRequest(id),
                 )
             }
         }

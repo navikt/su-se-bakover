@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
@@ -51,7 +53,7 @@ internal fun Route.opplysningspliktRoutes(
                                 .fold(
                                     { it.tilResultat() },
                                     {
-                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     },
                                 )
@@ -62,7 +64,7 @@ internal fun Route.opplysningspliktRoutes(
                                 .fold(
                                     { it.tilResultat() },
                                     {
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                                     },
                                 )
@@ -129,11 +131,11 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
             .map {
                 when (type) {
                     Behandlingstype.SØKNADSBEHANDLING -> {
-                        LeggTilOpplysningspliktRequest.Søknadsbehandling(id, it, saksbehandler)
+                        LeggTilOpplysningspliktRequest.Søknadsbehandling(SøknadsbehandlingId(id), it, saksbehandler)
                     }
 
                     Behandlingstype.REVURDERING -> {
-                        LeggTilOpplysningspliktRequest.Revurdering(id, it)
+                        LeggTilOpplysningspliktRequest.Revurdering(RevurderingId(id), it)
                     }
                 }
             }

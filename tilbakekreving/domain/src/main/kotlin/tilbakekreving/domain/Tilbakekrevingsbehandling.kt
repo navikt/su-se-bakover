@@ -1,6 +1,7 @@
 package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -20,10 +21,11 @@ import java.util.UUID
  * @property versjon versjonen til den siste hendelsen knyttet til denne tilbakekrevingsbehandlingen
  * @property hendelseId hendelses iden til den siste hendelsen knyttet til denne tilbakekrevingsbehandlingen
  */
-sealed interface Tilbakekrevingsbehandling {
-    val id: TilbakekrevingsbehandlingId
-    val sakId: UUID
-    val opprettet: Tidspunkt
+sealed interface Tilbakekrevingsbehandling : BehandlingMedAttestering {
+    override val id: TilbakekrevingsbehandlingId
+    override val sakId: UUID
+    override val opprettet: Tidspunkt
+    override val attesteringer: Attesteringshistorikk
     val opprettetAv: NavIdentBruker.Saksbehandler
     val kravgrunnlag: Kravgrunnlag
     val erKravgrunnlagUtdatert: Boolean
@@ -31,7 +33,6 @@ sealed interface Tilbakekrevingsbehandling {
 
     // TODO jah: Brevvalg.SaksbehandlersValg er for generell. Vi trenger en mer spesifikk type for tilbakekreving.
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
-    val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon
     val hendelseId: HendelseId
     val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>

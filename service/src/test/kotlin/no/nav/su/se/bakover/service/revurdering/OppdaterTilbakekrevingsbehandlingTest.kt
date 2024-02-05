@@ -6,6 +6,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
@@ -22,7 +23,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
-import java.util.UUID
 
 internal class OppdaterTilbakekrevingsbehandlingTest {
     @Test
@@ -40,7 +40,7 @@ internal class OppdaterTilbakekrevingsbehandlingTest {
             ).let {
                 it.revurderingService.oppdaterTilbakekrevingsbehandling(
                     request = OppdaterTilbakekrevingsbehandlingRequest(
-                        revurderingId = UUID.randomUUID(),
+                        revurderingId = RevurderingId.generer(),
                         avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
                         saksbehandler = saksbehandler,
                     ),
@@ -68,7 +68,7 @@ internal class OppdaterTilbakekrevingsbehandlingTest {
         ).let {
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
                 request = OppdaterTilbakekrevingsbehandlingRequest(
-                    revurderingId = UUID.randomUUID(),
+                    revurderingId = RevurderingId.generer(),
                     avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
                     saksbehandler = saksbehandler,
                 ),
@@ -78,7 +78,7 @@ internal class OppdaterTilbakekrevingsbehandlingTest {
 
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
                 request = OppdaterTilbakekrevingsbehandlingRequest(
-                    revurderingId = UUID.randomUUID(),
+                    revurderingId = RevurderingId.generer(),
                     avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.IKKE_TILBAKEKREV,
                     saksbehandler = saksbehandler,
                 ),

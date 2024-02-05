@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -90,7 +91,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                             )
                         }
                     },
-                    iverksettStans = { revurderingId: UUID, transactionContext: TransactionContext ->
+                    iverksettStans = { revurderingId: RevurderingId, transactionContext: TransactionContext ->
                         stansAvYtelseService.iverksettStansAvYtelseITransaksjon(
                             revurderingId = revurderingId,
                             attestant = NavIdentBruker.Attestant(serviceUser),

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
@@ -20,7 +21,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
-import java.util.UUID
 
 internal class SøknadsbehandlingLeggTilUførevilkårTest {
     @Test
@@ -30,12 +30,13 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
                 on { hent(any()) } doReturn nySøknadsbehandlingMedStønadsperiode().second
             },
         ).let { serviceAndMocks ->
+            val behandlingId = SøknadsbehandlingId.generer()
             serviceAndMocks.søknadsbehandlingService.leggTilUførevilkår(
                 request = LeggTilUførevurderingerRequest(
-                    behandlingId = UUID.randomUUID(),
+                    behandlingId = behandlingId,
                     vurderinger = nonEmptyListOf(
                         LeggTilUførevilkårRequest(
-                            behandlingId = UUID.randomUUID(),
+                            behandlingId = behandlingId,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             uføregrad = Uføregrad.parse(50),
                             forventetInntekt = 15000,
@@ -43,7 +44,7 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
                             begrunnelse = "jambo",
                         ),
                         LeggTilUførevilkårRequest(
-                            behandlingId = UUID.randomUUID(),
+                            behandlingId = behandlingId,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 30000,

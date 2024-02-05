@@ -11,19 +11,19 @@ import java.time.Clock
 import java.util.UUID
 
 sealed interface Klagevedtak : Vedtak {
-    val klage: Klage
+    override val behandling: Klage
 
     data class Avvist(
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
-        override val klage: IverksattAvvistKlage,
+        override val behandling: IverksattAvvistKlage,
         override val dokumenttilstand: Dokumenttilstand,
     ) : Klagevedtak {
         init {
             require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
-            require(klage.skalSendeVedtaksbrev())
+            require(behandling.skalSendeVedtaksbrev())
         }
 
         companion object {
@@ -36,7 +36,7 @@ sealed interface Klagevedtak : Vedtak {
                     opprettet = Tidspunkt.now(clock),
                     saksbehandler = iverksattAvvistKlage.saksbehandler,
                     attestant = (iverksattAvvistKlage.attesteringer.hentSisteAttestering() as Attestering.Iverksatt).attestant,
-                    klage = iverksattAvvistKlage,
+                    behandling = iverksattAvvistKlage,
                     // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
                     // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
                     dokumenttilstand = Dokumenttilstand.GENERERT,
@@ -55,7 +55,7 @@ sealed interface Klagevedtak : Vedtak {
                 opprettet = opprettet,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                klage = klage,
+                behandling = klage,
                 dokumenttilstand = when (dokumenttilstand) {
                     null -> when (klage.skalSendeVedtaksbrev()) {
                         true -> Dokumenttilstand.IKKE_GENERERT_ENDA

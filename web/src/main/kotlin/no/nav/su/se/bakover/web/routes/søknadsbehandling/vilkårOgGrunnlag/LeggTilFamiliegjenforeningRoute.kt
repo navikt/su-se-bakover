@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
@@ -40,7 +41,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
@@ -55,7 +56,7 @@ internal data class FamiliegjenforeningBody(
 ) {
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: UUID) =
         LeggTilFamiliegjenforeningRequest(
-            behandlingId = behandlingId,
+            behandlingId = SøknadsbehandlingId(behandlingId),
             vurderinger = vurderinger.map { FamiliegjenforeningVurderinger(it.status) },
         )
 }

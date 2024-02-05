@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
@@ -17,7 +18,7 @@ internal class PersonligOppmøteGrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, grunnlag: List<PersonligOppmøteGrunnlag>, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, grunnlag: List<PersonligOppmøteGrunnlag>, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagrePersonligOppmøtegrunnlag") {
             slettForBehandlingId(behandlingId, tx)
             grunnlag.forEach {
@@ -40,13 +41,13 @@ internal class PersonligOppmøteGrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             delete from grunnlag_personlig_oppmøte where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
@@ -64,7 +65,7 @@ internal class PersonligOppmøteGrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(grunnlag: PersonligOppmøteGrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(grunnlag: PersonligOppmøteGrunnlag, behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             insert into grunnlag_personlig_oppmøte
             (
@@ -88,7 +89,7 @@ internal class PersonligOppmøteGrunnlagPostgresRepo(
                 mapOf(
                     "id" to grunnlag.id,
                     "opprettet" to grunnlag.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "fraOgMed" to grunnlag.periode.fraOgMed,
                     "tilOgMed" to grunnlag.periode.tilOgMed,
                     "aarsak" to grunnlag.årsak.toDb(),

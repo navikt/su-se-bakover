@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -20,12 +21,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbeh
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
-import java.util.UUID
 
 data class LeggTilBosituasjonJsonRequest(
     val bosituasjoner: List<JsonBody>,
 ) {
-    fun toService(behandlingId: UUID): Either<Resultat, LeggTilBosituasjonerRequest> {
+    fun toService(behandlingId: BehandlingsId): Either<Resultat, LeggTilBosituasjonerRequest> {
         return either {
             LeggTilBosituasjonerRequest(
                 behandlingId = behandlingId,

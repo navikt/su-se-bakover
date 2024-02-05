@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -162,7 +163,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             )
             val revurderingId = kravgrunnlagPåSakHendelse.revurderingId
             if (revurderingId != null) {
-                val revurdering = sak.hentRevurdering(revurderingId).getOrNull() as IverksattRevurdering
+                val revurdering = sak.hentRevurdering(RevurderingId(revurderingId)).getOrNull() as IverksattRevurdering
 
                 (revurdering.tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
                     kravgrunnlag = kravgrunnlag,

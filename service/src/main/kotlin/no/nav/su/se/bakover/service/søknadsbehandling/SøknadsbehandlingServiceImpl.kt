@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegru
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -353,7 +354,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra, til) },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling },
@@ -379,7 +380,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling, Søknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -405,7 +406,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
         val søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, til ->
                 KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigTilstand(
@@ -439,7 +440,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
         val søknadsbehandling: KanOppdatereFradragsgrunnlag =
-            when (val s = søknadsbehandlingRepo.hent(request.behandlingId)) {
+            when (val s = søknadsbehandlingRepo.hent(request.behandlingId as SøknadsbehandlingId)) {
                 is Søknadsbehandling -> (s as? KanOppdatereFradragsgrunnlag)
                     ?: return KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                         fra = s::class,
@@ -488,7 +489,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra, til) },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling },
@@ -541,7 +542,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilPensjonsVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -561,7 +562,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFlyktningVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -581,7 +582,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -600,7 +601,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -618,7 +619,7 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, til ->
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
@@ -643,7 +644,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             // TODO jah: Mangler Left.
             ugyldigTilstandError = { _, _ -> null },
@@ -663,7 +664,7 @@ class SøknadsbehandlingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
-            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, _ ->
                 // TODO jah: Bruker Revurdering sin type. Burde lage en egen for søknadsbehandling. Kan service/domain bruke den samme?
@@ -722,7 +723,7 @@ class SøknadsbehandlingServiceImpl(
 
     private inline fun <reified T> hentKanOppdaterePeriodeGrunnlagVilkår(
         søknadsbehandlingRepo: SøknadsbehandlingRepo,
-        søknadsbehandlingId: UUID,
+        søknadsbehandlingId: SøknadsbehandlingId,
         ugyldigTilstandError: (KClass<out Søknadsbehandling>, KClass<KanOppdaterePeriodeBosituasjonVilkår>) -> T?,
         fantIkkeBehandlingError: () -> T?,
     ): Either<T, KanOppdaterePeriodeBosituasjonVilkår> {

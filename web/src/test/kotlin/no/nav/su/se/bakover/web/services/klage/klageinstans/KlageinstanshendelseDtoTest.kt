@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
@@ -16,13 +17,13 @@ internal class KlageinstanshendelseDtoTest {
     @Test
     fun `Kan deserialisere avsluttet klagebehandling`() {
         val id = UUID.randomUUID()
-        val kildeReferanse = UUID.randomUUID()
+        val kildeReferanse = KlageId.generer()
 
         KlageinstanshendelseDto.toDomain(
             id = id,
             opprettet = fixedTidspunkt,
             json = jsonMelding(
-                kildeReferanse = kildeReferanse,
+                kildeReferanse = kildeReferanse.value,
                 type = "KLAGEBEHANDLING_AVSLUTTET",
                 journalpostReferanser = listOf("123", "456"),
                 // Legger på en time for emulere tidssonen Europe/Oslo i januar. Skal være 1 time etter UTC.

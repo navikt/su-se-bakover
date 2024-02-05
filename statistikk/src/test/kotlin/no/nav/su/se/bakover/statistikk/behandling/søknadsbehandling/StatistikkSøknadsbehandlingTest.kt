@@ -243,7 +243,7 @@ internal class StatistikkSøknadsbehandlingTest {
                        "tekniskTid":"2021-01-01T01:02:03.456789Z",
                        "mottattDato":"2021-01-01",
                        "registrertDato":"2021-01-01",
-                       "behandlingId":${statistikkEvent.søknadsbehandling.id},
+                       "behandlingId":${statistikkEvent.søknadsbehandling.id.value},
                        "sakId":${statistikkEvent.søknadsbehandling.sakId},
                        "søknadId":${statistikkEvent.søknadsbehandling.søknad.id},
                        "saksnummer":"12345676",

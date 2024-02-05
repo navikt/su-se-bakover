@@ -13,5 +13,5 @@ class VedtakTilbakekrevingsbehandling(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val dokumenttilstand: Dokumenttilstand,
-    val behandling: IverksattTilbakekrevingsbehandling,
+    override val behandling: IverksattTilbakekrevingsbehandling,
 ) : Vedtak

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
@@ -19,7 +20,7 @@ import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.util.UUID
 
 data class NySøknadsbehandling(
-    val id: UUID,
+    val id: SøknadsbehandlingId,
     val opprettet: Tidspunkt,
     val sakId: UUID,
     val søknad: Søknad.Journalført.MedOppgave,

@@ -1,10 +1,11 @@
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import java.util.UUID
 
 data class TilbakekrevingsbehandlingId(
-    val value: UUID,
-) {
+    override val value: UUID,
+) : BehandlingsId {
     override fun toString(): String = value.toString()
 
     companion object {

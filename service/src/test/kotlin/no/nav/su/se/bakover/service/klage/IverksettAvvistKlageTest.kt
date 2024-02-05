@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -47,7 +48,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.util.UUID
 
 internal class IverksettAvvistKlageTest {
 
@@ -59,7 +59,7 @@ internal class IverksettAvvistKlageTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
+        val klageId = KlageId.generer()
         val attestant = NavIdentBruker.Attestant("attestantensen")
 
         mocks.service.iverksettAvvistKlage(
@@ -289,7 +289,7 @@ internal class IverksettAvvistKlageTest {
                     opprettet = fixedTidspunkt,
                     saksbehandler = expected.saksbehandler,
                     attestant = expected.attesteringer.first().attestant,
-                    klage = expected,
+                    behandling = expected,
                     dokumenttilstand = Dokumenttilstand.GENERERT,
                 )
                 it shouldBe expectedVedtak!!
@@ -302,7 +302,7 @@ internal class IverksettAvvistKlageTest {
                     utenMetadata = dokumentUtenMetadataVedtak,
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,
-                        klageId = klage.id,
+                        klageId = klage.id.value,
                         vedtakId = expectedVedtak!!.id,
                     ),
                 )

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLegg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
@@ -41,7 +42,7 @@ import java.util.UUID
 
 internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem {
 
-    private val behandlingId = UUID.randomUUID()
+    private val behandlingId = SøknadsbehandlingId.generer()
     private val stønadsperiode = Stønadsperiode.create(år(2021))
 
     @Test

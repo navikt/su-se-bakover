@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -12,13 +13,12 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.VurderingsperiodeFormue
-import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepo(
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) {
-    internal fun lagre(behandlingId: UUID, vilkår: FormueVilkår, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, vilkår: FormueVilkår, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
             is FormueVilkår.IkkeVurdert -> {
@@ -37,7 +37,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: VurderingsperiodeFormue, tx: TransactionalSession) {
+    private fun lagre(behandlingId: BehandlingsId, vurderingsperiode: VurderingsperiodeFormue, tx: TransactionalSession) {
         """
                 insert into vilkårsvurdering_formue
                 (
@@ -65,7 +65,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 mapOf(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "formue_grunnlag_id" to vurderingsperiode.grunnlag.id,
                     "vurdering" to "AUTOMATISK",
                     "resultat" to vurderingsperiode.vurdering.toDto(),
@@ -76,26 +76,26 @@ internal class FormueVilkårsvurderingPostgresRepo(
             )
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
                 delete from vilkårsvurdering_formue where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): FormueVilkår {
+    internal fun hent(behandlingId: BehandlingsId, session: Session): FormueVilkår {
         return dbMetrics.timeQuery("hentVilkårsvurderingFormue") {
             """
                 select * from vilkårsvurdering_formue where behandlingId = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(
-                        "behandlingId" to behandlingId,
+                        "behandlingId" to behandlingId.value,
                     ),
                     session,
                 ) {

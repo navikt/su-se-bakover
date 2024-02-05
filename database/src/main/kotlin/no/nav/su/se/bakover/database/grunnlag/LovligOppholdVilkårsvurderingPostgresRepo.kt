@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.getOrElse
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -13,14 +14,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.lovligopphold.domain.VurderingsperiodeLovligOpphold
-import java.util.UUID
 
 internal class LovligOppholdVilkårsvurderingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val lovligOppholdGrunnlagPostgresRepo: LovligOppholdgrunnlagPostgresRepo,
 ) {
 
-    internal fun lagre(behandlingId: UUID, vilkår: LovligOppholdVilkår, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, vilkår: LovligOppholdVilkår, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagreVilkårsvurderingLovligOpphold") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
@@ -38,7 +38,7 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
     }
 
     private fun lagre(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         vurderingsperiode: VurderingsperiodeLovligOpphold,
         tx: TransactionalSession,
     ) {
@@ -67,7 +67,7 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
                 mapOf(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
@@ -77,26 +77,26 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
             )
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
                 delete from vilkårsvurdering_lovligopphold where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): LovligOppholdVilkår {
+    internal fun hent(behandlingId: BehandlingsId, session: Session): LovligOppholdVilkår {
         return dbMetrics.timeQuery("hentVilkårsvurderinglovligopphold") {
             """
                     select * from vilkårsvurdering_lovligopphold where behandlingId = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(
-                        "behandlingId" to behandlingId,
+                        "behandlingId" to behandlingId.value,
                     ),
                     session,
                 ) {

@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
@@ -67,6 +68,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
@@ -77,6 +79,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
@@ -131,6 +134,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegru
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingSkattCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -350,16 +354,16 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentSakForRevurdering(revurderingId: UUID): Sak {
+                override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
                 }
 
-                override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+                override fun hentSakForRevurdering(revurderingId: RevurderingId, sessionContext: SessionContext): Sak {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentSakForSøknadsbehandling(søknadsbehandlingId: UUID): Sak {
+                override fun hentSakForSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -463,7 +467,7 @@ open class AccessCheckProxy(
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
                         is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
-                            hentDokumenterForIdType.id,
+                            RevurderingId(hentDokumenterForIdType.id),
                         )
 
                         is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
@@ -479,7 +483,7 @@ open class AccessCheckProxy(
                         )
 
                         is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(
-                            hentDokumenterForIdType.id,
+                            KlageId(hentDokumenterForIdType.id),
                         )
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
@@ -543,7 +547,7 @@ open class AccessCheckProxy(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
 
                     override fun iverksett(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak>> {
-                        assertHarTilgangTilBehandling(command.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(command.behandlingId)
                         return services.søknadsbehandling.iverksettSøknadsbehandlingService.iverksett(command)
                     }
 
@@ -562,39 +566,39 @@ open class AccessCheckProxy(
                     }
 
                     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.beregn(request)
                     }
 
                     override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.simuler(request)
                     }
 
                     override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.sendTilAttestering(request)
                     }
 
                     override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.underkjenn(request)
                     }
 
                     override fun genererBrevutkast(
                         command: BrevutkastForSøknadsbehandlingCommand,
                     ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
-                        assertHarTilgangTilBehandling(command.søknadsbehandlingId)
+                        assertHarTilgangTilSøknadsbehandling(command.søknadsbehandlingId)
                         return service.genererBrevutkast(command)
                     }
 
                     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.hent(request)
                     }
 
                     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.oppdaterStønadsperiode(request)
                     }
 
@@ -602,7 +606,7 @@ open class AccessCheckProxy(
                         request: LeggTilUførevurderingerRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilUførevilkår(request, saksbehandler)
                     }
 
@@ -610,7 +614,7 @@ open class AccessCheckProxy(
                         request: LeggTilLovligOppholdRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilLovligOpphold(request, saksbehandler)
                     }
 
@@ -618,7 +622,7 @@ open class AccessCheckProxy(
                         request: LeggTilFamiliegjenforeningRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilFamiliegjenforeningvilkår(request, saksbehandler)
                     }
 
@@ -626,14 +630,14 @@ open class AccessCheckProxy(
                         request: LeggTilFradragsgrunnlagRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilFradragsgrunnlag(request, saksbehandler)
                     }
 
                     override fun leggTilFormuevilkår(
                         request: LeggTilFormuevilkårRequest,
                     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilFormuevilkår(request)
                     }
 
@@ -648,12 +652,12 @@ open class AccessCheckProxy(
                         request: LeggTilFlereUtenlandsoppholdRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilUtenlandsopphold(request, saksbehandler)
                     }
 
                     override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.leggTilOpplysningspliktVilkår(request)
                     }
 
@@ -661,7 +665,7 @@ open class AccessCheckProxy(
                         request: LeggTilPensjonsVilkårRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeTilPensjonsVilkår, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilPensjonsVilkår(request, saksbehandler)
                     }
 
@@ -669,7 +673,7 @@ open class AccessCheckProxy(
                         request: LeggTilFlyktningVilkårRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeTilFlyktningVilkår, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilFlyktningVilkår(request, saksbehandler)
                     }
 
@@ -677,7 +681,7 @@ open class AccessCheckProxy(
                         request: LeggTilFastOppholdINorgeRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilFastOppholdINorgeVilkår(request, saksbehandler)
                     }
 
@@ -685,7 +689,7 @@ open class AccessCheckProxy(
                         request: LeggTilPersonligOppmøteVilkårRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilPersonligOppmøteVilkår(request, saksbehandler)
                     }
 
@@ -693,7 +697,7 @@ open class AccessCheckProxy(
                         request: LeggTilInstitusjonsoppholdVilkårRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilInstitusjonsoppholdVilkår(request, saksbehandler)
                     }
 
@@ -701,14 +705,14 @@ open class AccessCheckProxy(
                         request: LeggTilBosituasjonerRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
                     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
 
                     override fun oppdaterSkattegrunnlag(
                         command: SøknadsbehandlingSkattCommand,
                     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(command.behandlingId)
+                        assertHarTilgangTilSøknadsbehandling(command.behandlingId)
                         return service.oppdaterSkattegrunnlag(command)
                     }
                 },
@@ -726,7 +730,7 @@ open class AccessCheckProxy(
                 override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
-                override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
+                override fun hentRevurdering(revurderingId: RevurderingId): AbstraktRevurdering? {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentRevurdering(revurderingId)
                 }
@@ -746,7 +750,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun beregnOgSimuler(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     skalUtsetteTilbakekreving: Boolean,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
@@ -759,7 +763,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagreOgSendForhåndsvarsel(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     utførtAv: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                 ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
@@ -772,7 +776,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagBrevutkastForForhåndsvarsling(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     utførtAv: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
@@ -798,14 +802,14 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagBrevutkastForRevurdering(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkastForRevurdering(revurderingId)
                 }
 
                 override fun iverksett(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
@@ -813,7 +817,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun underkjenn(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     attestering: Attestering.Underkjent,
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
@@ -823,34 +827,34 @@ open class AccessCheckProxy(
                 override fun leggTilUførevilkår(
                     request: LeggTilUførevurderingerRequest,
                 ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilUførevilkår(request)
                 }
 
                 override fun leggTilUtenlandsopphold(
                     request: LeggTilFlereUtenlandsoppholdRequest,
                 ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilUtenlandsopphold(request)
                 }
 
                 override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
                 override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 
                 override fun leggTilFormuegrunnlag(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
                 }
 
                 override fun avsluttRevurdering(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     begrunnelse: String,
                     brevvalg: Brevvalg.SaksbehandlersValg?,
                     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -870,33 +874,33 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilPensjonsVilkår(request: LeggTilPensjonsVilkårRequest): Either<KunneIkkeLeggeTilPensjonsVilkår, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilPensjonsVilkår(request)
                 }
 
                 override fun leggTilLovligOppholdVilkår(
                     request: LeggTilLovligOppholdRequest,
-                ) = assertHarTilgangTilRevurdering(request.behandlingId).let {
+                ) = assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId).let {
                     services.revurdering.leggTilLovligOppholdVilkår(request)
                 }
 
                 override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilFlyktningVilkår(request)
                 }
 
                 override fun leggTilFastOppholdINorgeVilkår(request: LeggTilFastOppholdINorgeRequest): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilFastOppholdINorgeVilkår(request)
                 }
 
                 override fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilPersonligOppmøteVilkår(request)
                 }
 
                 override fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
                     return services.revurdering.leggTilInstitusjonsoppholdVilkår(request)
                 }
 
@@ -905,7 +909,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagBrevutkastForAvslutting(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     fritekst: String,
                     avsluttetAv: NavIdentBruker,
                 ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
@@ -928,7 +932,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksettStansAvYtelse(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
@@ -939,7 +943,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksettStansAvYtelseITransaksjon(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     attestant: NavIdentBruker.Attestant,
                     transactionContext: TransactionContext,
                 ): IverksettStansAvYtelseITransaksjonResponse {
@@ -955,7 +959,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksettGjenopptakAvYtelse(
-                    revurderingId: UUID,
+                    revurderingId: RevurderingId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
@@ -972,7 +976,7 @@ open class AccessCheckProxy(
 
                 override fun hentForVedtakId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentForRevurderingId(revurderingId: UUID) = kastKanKunKallesFraAnnenService()
+                override fun hentForRevurderingId(revurderingId: RevurderingId) = kastKanKunKallesFraAnnenService()
 
                 override fun hentJournalpostId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()
 
@@ -1017,7 +1021,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun bekreftVilkårsvurderinger(
-                    klageId: UUID,
+                    klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet> {
                     assertHarTilgangTilKlage(klageId)
@@ -1030,7 +1034,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun bekreftVurderinger(
-                    klageId: UUID,
+                    klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
                     assertHarTilgangTilKlage(klageId)
@@ -1038,7 +1042,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilAvvistFritekstTilBrev(
-                    klageId: UUID,
+                    klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                 ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
@@ -1047,7 +1051,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun sendTilAttestering(
-                    klageId: UUID,
+                    klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
                     assertHarTilgangTilKlage(klageId)
@@ -1060,7 +1064,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun oversend(
-                    klageId: UUID,
+                    klageId: KlageId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
                     assertHarTilgangTilKlage(klageId)
@@ -1068,7 +1072,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksettAvvistKlage(
-                    klageId: UUID,
+                    klageId: KlageId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
                     assertHarTilgangTilKlage(klageId)
@@ -1076,7 +1080,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun brevutkast(
-                    klageId: UUID,
+                    klageId: KlageId,
                     ident: NavIdentBruker,
                 ): Either<KunneIkkeLageBrevutkast, PdfA> {
                     assertHarTilgangTilKlage(klageId)
@@ -1084,7 +1088,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun avslutt(
-                    klageId: UUID,
+                    klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     begrunnelse: String,
                 ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
@@ -1116,7 +1120,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun avslutt(
-                    reguleringId: UUID,
+                    reguleringId: ReguleringId,
                     avsluttetAv: NavIdentBruker,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringService.avslutt(reguleringId, avsluttetAv)
@@ -1131,7 +1135,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun regulerManuelt(
-                    reguleringId: UUID,
+                    reguleringId: ReguleringId,
                     uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1281,8 +1285,8 @@ open class AccessCheckProxy(
         personRepo.hentFnrForSøknad(søknadId).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertHarTilgangTilBehandling(behandlingId: UUID) {
-        personRepo.hentFnrForBehandling(behandlingId).forEach { assertHarTilgangTilPerson(it) }
+    private fun assertHarTilgangTilSøknadsbehandling(behandlingId: SøknadsbehandlingId) {
+        personRepo.hentFnrForBehandling(behandlingId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 
     @Suppress("unused")
@@ -1290,16 +1294,16 @@ open class AccessCheckProxy(
         personRepo.hentFnrForUtbetaling(utbetalingId).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
-        personRepo.hentFnrForRevurdering(revurderingId).forEach { assertHarTilgangTilPerson(it) }
+    private fun assertHarTilgangTilRevurdering(revurderingId: RevurderingId) {
+        personRepo.hentFnrForRevurdering(revurderingId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
         personRepo.hentFnrForVedtak(vedtakId).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertHarTilgangTilKlage(klageId: UUID) {
-        personRepo.hentFnrForKlage(klageId).forEach { assertHarTilgangTilPerson(it) }
+    private fun assertHarTilgangTilKlage(klageId: KlageId) {
+        personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 }
 

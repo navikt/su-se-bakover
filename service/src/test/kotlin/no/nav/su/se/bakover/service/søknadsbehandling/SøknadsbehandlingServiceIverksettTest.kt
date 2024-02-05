@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
@@ -84,7 +85,6 @@ import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
-import java.util.UUID
 
 internal class SøknadsbehandlingServiceIverksettTest {
 
@@ -99,7 +99,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             shouldThrow<NullPointerException> {
                 serviceAndMocks.service.iverksett(
                     IverksettSøknadsbehandlingCommand(
-                        UUID.randomUUID(),
+                        SøknadsbehandlingId.generer(),
                         Attestering.Iverksatt(attestant, fixedTidspunkt),
                     ),
                 )

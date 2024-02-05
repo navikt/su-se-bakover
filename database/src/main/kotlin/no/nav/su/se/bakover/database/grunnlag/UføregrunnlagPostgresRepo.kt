@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
@@ -18,7 +19,7 @@ internal class UføregrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, uføregrunnlag: List<Uføregrunnlag>, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagreUføregrunnlag") {
             slettForBehandlingId(behandlingId, tx)
             uføregrunnlag.forEach {
@@ -57,13 +58,13 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             delete from grunnlag_uføre where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
@@ -79,7 +80,7 @@ internal class UføregrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(uføregrunnlag: Uføregrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(uføregrunnlag: Uføregrunnlag, behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             insert into grunnlag_uføre
             (
@@ -105,7 +106,7 @@ internal class UføregrunnlagPostgresRepo(
                 mapOf(
                     "id" to uføregrunnlag.id,
                     "opprettet" to uføregrunnlag.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "fraOgMed" to uføregrunnlag.periode.fraOgMed,
                     "tilOgMed" to uføregrunnlag.periode.tilOgMed,
                     "uforegrad" to uføregrunnlag.uføregrad.value,

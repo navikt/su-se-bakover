@@ -129,7 +129,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     data class Innvilget(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
@@ -215,7 +215,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
     }
 
     data class Opphørt(
-        override val id: UUID,
+        override val id: RevurderingId,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,

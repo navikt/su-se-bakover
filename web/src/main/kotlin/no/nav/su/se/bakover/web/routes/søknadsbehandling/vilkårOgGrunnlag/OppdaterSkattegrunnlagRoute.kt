@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingSkattCommand
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -29,7 +30,7 @@ private data class OppdaterSkattegrunnlagBody(
     val til: String,
 ) {
     fun toCommand(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler) = SøknadsbehandlingSkattCommand(
-        behandlingId = behandlingId,
+        behandlingId = SøknadsbehandlingId(behandlingId),
         saksbehandler = saksbehandler,
         yearRange = YearRange(start = Year.parse(fra), endInclusive = Year.parse(til)),
     )

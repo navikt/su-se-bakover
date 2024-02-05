@@ -11,6 +11,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -24,8 +25,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
@@ -38,7 +41,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
-import java.util.UUID
 
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
@@ -56,13 +58,13 @@ internal fun Route.leggTilUtenlandsopphold(
                             ),
                         )
                     }
-                    body.toDomain(behandlingId).mapLeft {
+                    body.toDomain(SøknadsbehandlingId(behandlingId)).mapLeft {
                         return@authorize call.svar(it)
                     }.map { request ->
                         søknadsbehandlingService.leggTilUtenlandsopphold(request, saksbehandler = call.suUserContext.saksbehandler).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                             },
                         )
@@ -81,14 +83,14 @@ internal fun Route.leggTilUtlandsoppholdRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    body.toDomain(revurderingId).mapLeft {
+                    body.toDomain(RevurderingId(revurderingId)).mapLeft {
                         return@authorize call.svar(it)
                     }.map {
                         revurderingService.leggTilUtenlandsopphold(it)
                             .fold(
                                 ifLeft = { call.svar(it.tilResultat()) },
                                 ifRight = {
-                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                                     call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                                 },
                             )
@@ -102,12 +104,12 @@ internal fun Route.leggTilUtlandsoppholdRoute(
 internal data class UtenlandsoppholdBody(
     val vurderinger: List<UtenlandsoppholdVurderingBody>,
 ) {
-    fun toDomain(revurderingId: UUID): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
+    fun toDomain(behandlingId: BehandlingsId): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
         LeggTilFlereUtenlandsoppholdRequest(
-            behandlingId = revurderingId,
+            behandlingId = behandlingId,
             request = vurderinger.map {
                 LeggTilUtenlandsoppholdRequest(
-                    behandlingId = revurderingId,
+                    behandlingId = behandlingId.value,
                     periode = it.periode.toPeriodeOrResultat().getOrElse { return it.left() },
                     status = it.status,
                 )

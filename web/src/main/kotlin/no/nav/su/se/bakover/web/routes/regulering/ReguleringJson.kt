@@ -51,7 +51,7 @@ internal data class ReguleringJson(
 }
 
 internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
-    id = id,
+    id = id.value,
     fnr = fnr.toString(),
     opprettet = opprettet,
     sakId = sakId,

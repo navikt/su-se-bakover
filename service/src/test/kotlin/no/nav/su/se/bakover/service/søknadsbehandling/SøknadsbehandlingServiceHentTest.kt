@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class SøknadsbehandlingServiceHentTest {
     @Test
@@ -20,7 +20,7 @@ internal class SøknadsbehandlingServiceHentTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
+        ).hent(SøknadsbehandlingService.HentRequest(SøknadsbehandlingId.generer())).let {
             it shouldBe SøknadsbehandlingService.FantIkkeBehandling.left()
         }
     }
@@ -33,7 +33,7 @@ internal class SøknadsbehandlingServiceHentTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
+        ).hent(SøknadsbehandlingService.HentRequest(SøknadsbehandlingId.generer())).let {
             it shouldBe behandlingMock.right()
         }
     }

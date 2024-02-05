@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
@@ -88,7 +89,7 @@ internal class KlagePostgresRepo(
         """.trimIndent()
             .insert(
                 params = mapOf(
-                    "id" to klage.id,
+                    "id" to klage.id.value,
                     "sakid" to klage.sakId,
                     "opprettet" to klage.opprettet,
                     "journalpostid" to klage.journalpostId,
@@ -117,7 +118,7 @@ internal class KlagePostgresRepo(
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "id" to klage.id,
+                    "id" to klage.id.value,
                     "oppgaveid" to klage.oppgaveId,
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
@@ -150,7 +151,7 @@ internal class KlagePostgresRepo(
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "id" to klage.id,
+                    "id" to klage.id.value,
                     "oppgaveid" to klage.oppgaveId,
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
@@ -180,7 +181,7 @@ internal class KlagePostgresRepo(
                 id=:id
         """.trimIndent().oppdatering(
             mapOf(
-                "id" to klage.id,
+                "id" to klage.id.value,
                 "type" to klage.databasetype(),
                 "attestering" to klage.attesteringer.toDatabaseJson(),
                 "fritekst" to klage.fritekstTilVedtaksbrev,
@@ -203,7 +204,7 @@ internal class KlagePostgresRepo(
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "id" to klage.id,
+                    "id" to klage.id.value,
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
@@ -225,7 +226,7 @@ internal class KlagePostgresRepo(
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "id" to klage.id,
+                    "id" to klage.id.value,
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -245,7 +246,7 @@ internal class KlagePostgresRepo(
                 id=:id
         """.trimIndent().oppdatering(
             mapOf(
-                "id" to klage.id,
+                "id" to klage.id.value,
                 "type" to klage.databasetype(),
                 "attestering" to klage.attesteringer.toDatabaseJson(),
             ),
@@ -265,7 +266,7 @@ internal class KlagePostgresRepo(
                 id=:id
         """.trimIndent().oppdatering(
             mapOf(
-                "id" to klage.id,
+                "id" to klage.id.value,
                 "saksbehandler" to klage.saksbehandler,
                 "avsluttet" to klage.toAvsluttetKlageJson(),
             ),
@@ -273,7 +274,7 @@ internal class KlagePostgresRepo(
         )
     }
 
-    override fun hentKlage(klageId: UUID): Klage? {
+    override fun hentKlage(klageId: KlageId): Klage? {
         return dbMetrics.timeQuery("hentKlageForId") {
             sessionFactory.withSession { session ->
                 hentKlage(klageId, session)
@@ -281,10 +282,10 @@ internal class KlagePostgresRepo(
         }
     }
 
-    internal fun hentKlage(klageId: UUID, session: Session): Klage? {
+    internal fun hentKlage(klageId: KlageId, session: Session): Klage? {
         return "select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.id=:id".trimIndent()
             .hent(
-                params = mapOf("id" to klageId),
+                params = mapOf("id" to klageId.value),
                 session = session,
             ) { rowToKlage(it, session) }
     }
@@ -304,7 +305,7 @@ internal class KlagePostgresRepo(
         }
     }
 
-    override fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: UUID): LocalDate? {
+    override fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: KlageId): LocalDate? {
         return dbMetrics.timeQuery("hentVedtaksbrevDatoSomDetKlagesPå") {
             sessionFactory.withSession {
                 """
@@ -315,7 +316,7 @@ internal class KlagePostgresRepo(
                   where k.id = :id
                   and d.duplikatAv is null
                 """.trimIndent()
-                    .hent(mapOf("id" to klageId), it) { row ->
+                    .hent(mapOf("id" to klageId.value), it) { row ->
                         row.string("vedtaksbrevdato").let {
                             LocalDate.parse(it, ddMMyyyyFormatter) // Eksempel: 17.10.2022
                         }
@@ -333,7 +334,7 @@ internal class KlagePostgresRepo(
     }
 
     private fun rowToKlage(row: Row, session: Session): Klage {
-        val id: UUID = row.uuid("id")
+        val id = KlageId(row.uuid("id"))
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
         val saksnummer = Saksnummer(row.long("saksnummer"))

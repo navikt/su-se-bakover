@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
@@ -49,7 +50,6 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import java.time.Clock
-import java.util.UUID
 
 internal class AvsluttRevurderingTest {
 
@@ -93,7 +93,7 @@ internal class AvsluttRevurderingTest {
 
     @Test
     fun `får feil dersom man prøver å avslutte en revurdering man ikke finner`() {
-        val id = UUID.randomUUID()
+        val id = RevurderingId.generer()
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn null
         }

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import java.util.UUID
@@ -11,7 +12,7 @@ import java.util.UUID
  * I første omgang vi saksbehandler mulighet til å delvis oppdatere vilkårsvurderingene til en klage.
  */
 data class VurderKlagevilkårRequest(
-    val klageId: UUID,
+    val klageId: KlageId,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
     private val vedtakId: UUID?,
     private val innenforFristen: VilkårsvurderingerTilKlage.Svarord?,
@@ -20,7 +21,7 @@ data class VurderKlagevilkårRequest(
     private val begrunnelse: String?,
 ) {
     data class Domain(
-        val klageId: UUID,
+        val klageId: KlageId,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val vilkårsvurderinger: VilkårsvurderingerTilKlage,
     )

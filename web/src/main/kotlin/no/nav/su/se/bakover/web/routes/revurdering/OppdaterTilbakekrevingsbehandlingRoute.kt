@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
@@ -35,7 +36,7 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
                 call.withBody<Body> { body ->
                     revurderingService.oppdaterTilbakekrevingsbehandling(
                         OppdaterTilbakekrevingsbehandlingRequest(
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                             avgjørelse = body.avgjørelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ),
@@ -43,7 +44,7 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Oppdatert tilbakekrevingsbehandling for $revurderingId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )

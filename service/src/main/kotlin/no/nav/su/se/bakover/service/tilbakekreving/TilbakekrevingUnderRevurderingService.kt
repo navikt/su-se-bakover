@@ -94,7 +94,7 @@ class TilbakekrevingServiceImpl(
                                         Dokument.Metadata(
                                             sakId = vedtak.behandling.sakId,
                                             vedtakId = vedtak.id,
-                                            revurderingId = vedtak.behandling.id,
+                                            revurderingId = vedtak.behandling.id.value,
                                         ),
                                     )
                                 },

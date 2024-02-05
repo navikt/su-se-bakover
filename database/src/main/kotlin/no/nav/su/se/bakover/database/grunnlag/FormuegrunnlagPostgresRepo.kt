@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
@@ -21,7 +22,7 @@ internal class FormuegrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
     internal fun lagreFormuegrunnlag(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         formuegrunnlag: List<Formuegrunnlag>,
         tx: TransactionalSession,
     ) {
@@ -49,13 +50,13 @@ internal class FormuegrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             delete from grunnlag_formue where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
@@ -71,7 +72,7 @@ internal class FormuegrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(formuegrunnlag: Formuegrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(formuegrunnlag: Formuegrunnlag, behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             insert into grunnlag_formue
             (
@@ -97,7 +98,7 @@ internal class FormuegrunnlagPostgresRepo(
                 mapOf(
                     "id" to formuegrunnlag.id,
                     "opprettet" to formuegrunnlag.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "fraOgMed" to formuegrunnlag.periode.fraOgMed,
                     "tilOgMed" to formuegrunnlag.periode.tilOgMed,
                     "epsFormue" to serializeNullable(formuegrunnlag.epsFormue?.toJson()),

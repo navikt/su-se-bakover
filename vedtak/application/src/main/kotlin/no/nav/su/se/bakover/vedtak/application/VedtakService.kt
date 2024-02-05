@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
@@ -16,7 +17,7 @@ interface VedtakService {
     fun lagre(vedtak: Vedtak)
     fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext)
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
-    fun hentForRevurderingId(revurderingId: UUID): Vedtak?
+    fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
 
     /**

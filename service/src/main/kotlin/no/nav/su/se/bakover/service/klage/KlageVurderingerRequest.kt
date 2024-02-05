@@ -9,15 +9,15 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
-import java.util.UUID
 
 /**
  * Prøver å unngå validering / mapping i web-laget så holder det til primitiver/objekter/arrays
  */
 data class KlageVurderingerRequest(
-    val klageId: UUID,
+    val klageId: KlageId,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
     private val fritekstTilBrev: String?,
     private val omgjør: Omgjør?,
@@ -121,7 +121,7 @@ data class KlageVurderingerRequest(
     }
 
     data class Domain(
-        val klageId: UUID,
+        val klageId: KlageId,
         val vurderinger: VurderingerTilKlage,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )

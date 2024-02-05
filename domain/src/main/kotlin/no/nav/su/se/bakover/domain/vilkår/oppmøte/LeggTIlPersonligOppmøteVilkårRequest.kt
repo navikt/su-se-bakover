@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår.oppmøte
 
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
-import java.util.UUID
 
 data class LeggTilPersonligOppmøteVilkårRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val vilkår: PersonligOppmøteVilkår.Vurdert,
 )
 

@@ -32,7 +32,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class SimulertSøknadsbehandling(
-    override val id: UUID,
+    override val id: SøknadsbehandlingId,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
     override val saksnummer: Saksnummer,

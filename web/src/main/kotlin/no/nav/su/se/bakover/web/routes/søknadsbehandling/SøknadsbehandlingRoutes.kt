@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
@@ -101,7 +102,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             { call.svar(it.tilResultat()) },
                             {
                                 call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id)
+                                call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id.value)
                                 SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
                                 call.svar(Created.jsonBody(it.second, formuegrenserFactory))
                             },
@@ -122,7 +123,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         }.onRight { partialOppdaterRequest ->
                             søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                                    behandlingId = behandlingId,
+                                    behandlingId = SøknadsbehandlingId(behandlingId),
                                     stønadsperiode = partialOppdaterRequest.stønadsperiode,
                                     sakId = sakId,
                                     saksbehandler = call.suUserContext.saksbehandler,
@@ -131,7 +132,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             ).fold(
                                 { return@authorize call.svar(it.tilResultat()) },
                                 {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                     return@authorize call.svar(
                                         Resultat.json(
                                             Created,
@@ -152,7 +153,7 @@ internal fun Route.søknadsbehandlingRoutes(
     get("$SØKNADSBEHANDLING_PATH/{behandlingId}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
+                søknadsbehandlingService.hent(HentRequest(SøknadsbehandlingId(behandlingId))).mapLeft {
                     call.svar(
                         NotFound.errorJson(
                             "Fant ikke behandling med id $behandlingId",
@@ -161,7 +162,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     )
                 }.map {
                     call.sikkerlogg("Hentet behandling med id $behandlingId")
-                    call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
+                    call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id.value)
                     call.svar(OK.jsonBody(it, formuegrenserFactory))
                 }
             }
@@ -175,7 +176,7 @@ internal fun Route.søknadsbehandlingRoutes(
             ) {
                 fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
                     return BeregnRequest(
-                        behandlingId = behandlingId,
+                        behandlingId = SøknadsbehandlingId(behandlingId),
                         begrunnelse = begrunnelse,
                         saksbehandler = saksbehandler,
                     ).right()
@@ -205,7 +206,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     return@authorize call.svar(resultat)
                                 }.map { behandling ->
                                     call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
-                                    call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
+                                    call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id.value)
                                     return@authorize call.svar(Created.jsonBody(behandling, formuegrenserFactory))
                                 }
                         }
@@ -230,7 +231,7 @@ internal fun Route.søknadsbehandlingRoutes(
             },
             {
                 call.sikkerlogg("Hentet brev for behandling med id ${req.søknadsbehandlingId}")
-                call.audit(it.second, AuditLogEvent.Action.ACCESS, req.søknadsbehandlingId)
+                call.audit(it.second, AuditLogEvent.Action.ACCESS, req.søknadsbehandlingId.value)
                 call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
             },
         )
@@ -243,7 +244,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     lagBrevutkast(
                         call,
                         BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
-                            søknadsbehandlingId = behandlingId,
+                            søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                             utførtAv = Saksbehandler(call.suUserContext.navIdent),
                             fritekst = body.fritekst,
                         ),
@@ -259,7 +260,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 lagBrevutkast(
                     call,
                     BrevutkastForSøknadsbehandlingCommand.ForAttestant(
-                        søknadsbehandlingId = behandlingId,
+                        søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                         utførtAv = Attestant(call.suUserContext.navIdent),
                     ),
                 )
@@ -272,7 +273,7 @@ internal fun Route.søknadsbehandlingRoutes(
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.simuler(
                     SimulerRequest(
-                        behandlingId = behandlingId,
+                        behandlingId = SøknadsbehandlingId(behandlingId),
                         saksbehandler = Saksbehandler(call.suUserContext.navIdent),
                     ),
                 ).fold(
@@ -297,7 +298,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
                         søknadsbehandlingService.sendTilAttestering(
                             SendTilAttesteringRequest(
-                                behandlingId = behandlingId,
+                                behandlingId = SøknadsbehandlingId(behandlingId),
                                 saksbehandler = saksBehandler,
                                 fritekstTilBrev = body.fritekst,
                             ),
@@ -307,7 +308,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             },
                             {
                                 call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                 call.svar(OK.jsonBody(it, formuegrenserFactory))
                             },
                         )
@@ -338,7 +339,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         if (body.valid()) {
                             søknadsbehandlingService.underkjenn(
                                 UnderkjennRequest(
-                                    behandlingId = behandlingId,
+                                    behandlingId = SøknadsbehandlingId(behandlingId),
                                     attestering = Attestering.Underkjent(
                                         attestant = Attestant(navIdent),
                                         grunn = UnderkjennAttesteringsgrunnBehandling.valueOf(body.grunn),
@@ -362,7 +363,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 },
                                 ifRight = {
                                     call.sikkerlogg("Underkjente behandling med id: $behandlingId")
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                     call.svar(OK.jsonBody(it, formuegrenserFactory))
                                 },
                             )

@@ -4,6 +4,7 @@ import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
@@ -19,7 +20,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import vilkår.common.domain.Vurdering
-import java.util.UUID
 
 internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
@@ -32,7 +32,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
         ).let {
             it.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                 request = LeggTilFamiliegjenforeningRequest(
-                    behandlingId = UUID.randomUUID(),
+                    behandlingId = SøknadsbehandlingId.generer(),
                     vurderinger = listOf(
                         FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.Uavklart),
                     ),
@@ -52,7 +52,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 on { hent(any()) } doReturn søknadsbehandling
             },
         ).let { søknadsbehandlingServiceAndMocks ->
-            val behandlingId = UUID.randomUUID()
+            val behandlingId = SøknadsbehandlingId.generer()
             val actual = søknadsbehandlingServiceAndMocks.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = behandlingId,
@@ -81,16 +81,13 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling
                 },
-            ).let { søknadsbehandlingServiceAndMocks ->
-                val behandlingId = UUID.randomUUID()
-                søknadsbehandlingServiceAndMocks.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                    request = LeggTilFamiliegjenforeningRequest(
-                        behandlingId = behandlingId,
-                        vurderinger = emptyList(),
-                    ),
-                    saksbehandler = saksbehandler,
-                )
-            }
+            ).søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
+                request = LeggTilFamiliegjenforeningRequest(
+                    behandlingId = SøknadsbehandlingId.generer(),
+                    vurderinger = emptyList(),
+                ),
+                saksbehandler = saksbehandler,
+            )
         }
     }
 }

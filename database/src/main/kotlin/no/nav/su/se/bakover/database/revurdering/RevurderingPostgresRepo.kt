@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -75,7 +76,7 @@ import java.util.UUID
  * Brukes kun ved insert / update av revurderinger.
  */
 private data class BaseRevurderingDb(
-    val id: UUID,
+    val id: RevurderingId,
     val periode: Periode,
     val opprettet: Tidspunkt,
     val oppdatert: Tidspunkt?,
@@ -372,7 +373,7 @@ internal class RevurderingPostgresRepo(
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : RevurderingRepo {
 
-    override fun hent(id: UUID): AbstraktRevurdering? {
+    override fun hent(id: RevurderingId): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
             sessionFactory.withSession { session ->
                 hent(id, session)
@@ -380,7 +381,7 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    override fun hent(id: UUID, sessionContext: SessionContext): AbstraktRevurdering? {
+    override fun hent(id: RevurderingId, sessionContext: SessionContext): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
             sessionContext.withSession { session ->
                 hent(id, session)
@@ -388,7 +389,7 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun hent(id: UUID, session: Session): AbstraktRevurdering? {
+    internal fun hent(id: RevurderingId, session: Session): AbstraktRevurdering? {
         return """
                     SELECT
                         r.*,
@@ -399,7 +400,7 @@ internal class RevurderingPostgresRepo(
                         JOIN sak s ON s.id = r.sakid
                     WHERE r.id = :id
         """.trimIndent()
-            .hent(mapOf("id" to id), session) { row ->
+            .hent(mapOf("id" to id.value), session) { row ->
                 row.toRevurdering(
                     session = session,
                 )
@@ -544,7 +545,7 @@ internal class RevurderingPostgresRepo(
             }
 
     private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
-        val id = uuid("id")
+        val id = RevurderingId(uuid("id"))
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = deserialize<Periode>(string("periode"))
         val opprettet = tidspunkt("opprettet")
@@ -579,7 +580,7 @@ internal class RevurderingPostgresRepo(
 
         // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
-            behandlingId = id,
+            revurderingId = id,
             session = session,
             sakstype = sakinfo.type,
         )
@@ -713,7 +714,7 @@ internal class RevurderingPostgresRepo(
         """.trimIndent()
             .insert(
                 mapOf(
-                    "id" to revurdering.base.id,
+                    "id" to revurdering.base.id.value,
                     "opprettet" to revurdering.base.opprettet,
                     "oppdatert" to revurdering.base.oppdatert,
                     "periode" to serialize(revurdering.base.periode),
@@ -792,7 +793,7 @@ internal class RevurderingPostgresRepo(
 
     private fun lagRevurdering(
         status: RevurderingsType,
-        id: UUID,
+        id: RevurderingId,
         periode: Periode,
         opprettet: Tidspunkt,
         oppdatert: Tidspunkt,

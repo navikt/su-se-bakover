@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.getOrElse
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -13,13 +14,12 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.flyktning.domain.VurderingsperiodeFlyktning
-import java.util.UUID
 
 internal class FlyktningVilkårsvurderingPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, vilkår: FlyktningVilkår, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, vilkår: FlyktningVilkår, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagreVilkårsvurderingFlyktning") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
@@ -34,7 +34,7 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
     }
 
     private fun lagre(
-        behandlingId: UUID,
+        behandlingId: BehandlingsId,
         vurderingsperiode: VurderingsperiodeFlyktning,
         tx: TransactionalSession,
     ) {
@@ -61,7 +61,7 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                 mapOf(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
@@ -70,26 +70,26 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
             )
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
                 delete from vilkårsvurdering_flyktning where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): FlyktningVilkår {
+    internal fun hent(behandlingId: BehandlingsId, session: Session): FlyktningVilkår {
         return dbMetrics.timeQuery("hentVilkårsvurderingFlyktning") {
             """
                     select * from vilkårsvurdering_flyktning where behandlingId = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(
-                        "behandlingId" to behandlingId,
+                        "behandlingId" to behandlingId.value,
                     ),
                     session,
                 ) {

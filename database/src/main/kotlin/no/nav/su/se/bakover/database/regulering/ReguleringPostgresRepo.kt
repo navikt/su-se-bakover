@@ -35,11 +35,13 @@ import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
@@ -50,7 +52,7 @@ internal class ReguleringPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : ReguleringRepo {
-    override fun hent(id: UUID): Regulering? {
+    override fun hent(id: ReguleringId): Regulering? {
         return sessionFactory.withSession { session ->
             hent(id, session)
         }
@@ -81,7 +83,7 @@ internal class ReguleringPostgresRepo(
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
-                        reguleringId = it.uuid("id"),
+                        reguleringId = ReguleringId(it.uuid("id")),
                         merknader = if (harFosterhjemsgodtgjørelse) listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse) else emptyList(),
                     )
                 }
@@ -135,7 +137,7 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    internal fun hent(id: UUID, session: Session): Regulering? =
+    internal fun hent(id: ReguleringId, session: Session): Regulering? =
         dbMetrics.timeQuery("hentReguleringFraId") {
             """
             select *
@@ -146,7 +148,7 @@ internal class ReguleringPostgresRepo(
 
             where r.id = :id
             """.trimIndent()
-                .hent(mapOf("id" to id), session) { row ->
+                .hent(mapOf("id" to id.value), session) { row ->
                     row.toRegulering(session)
                 }
         }
@@ -195,7 +197,7 @@ internal class ReguleringPostgresRepo(
                 """.trimIndent()
                     .insert(
                         mapOf(
-                            "id" to regulering.id,
+                            "id" to regulering.id.value,
                             "sakId" to regulering.sakId,
                             "periode" to serialize(regulering.periode),
                             "opprettet" to regulering.opprettet,
@@ -250,7 +252,7 @@ internal class ReguleringPostgresRepo(
 
     private fun Row.toRegulering(session: Session): Regulering {
         val sakId = uuid("sakid")
-        val id = uuid("id")
+        val id = ReguleringId(uuid("id"))
         val opprettet = tidspunkt("opprettet")
         val saksnummer = Saksnummer(long("saksnummer"))
         val fnr = Fnr(string("fnr"))
@@ -275,7 +277,10 @@ internal class ReguleringPostgresRepo(
 
         // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
-            behandlingId = id,
+            // grunnlagsdata og vilkårsvurderinger er av 2 typer, søknadsbehandling & revurdering
+            // men det er slik at regulering tar i bruk revurderingstypen, og blir da lagret på sin in.
+            // vi konverterer derfor reguleringId til revurderingId for henting av informasjon
+            revurderingId = RevurderingId(id.value),
             session = session,
             sakstype = Sakstype.from(string("type")),
         )
@@ -308,7 +313,7 @@ internal class ReguleringPostgresRepo(
 
     private fun lagRegulering(
         status: ReguleringStatus,
-        id: UUID,
+        id: ReguleringId,
         opprettet: Tidspunkt,
         sakId: UUID,
         saksnummer: Saksnummer,

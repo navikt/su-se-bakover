@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
@@ -19,7 +20,7 @@ internal class PensjonsgrunnlagPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, grunnlag: List<Pensjonsgrunnlag>, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: BehandlingsId, grunnlag: List<Pensjonsgrunnlag>, tx: TransactionalSession) {
         dbMetrics.timeQuery("lagrePensjonsgrunnlag") {
             slettForBehandlingId(behandlingId, tx)
             grunnlag.forEach {
@@ -42,13 +43,13 @@ internal class PensjonsgrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
+    private fun slettForBehandlingId(behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             delete from grunnlag_pensjon where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                 ),
                 tx,
             )
@@ -63,7 +64,7 @@ internal class PensjonsgrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(grunnlag: Pensjonsgrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(grunnlag: Pensjonsgrunnlag, behandlingId: BehandlingsId, tx: TransactionalSession) {
         """
             insert into grunnlag_pensjon
             (
@@ -87,7 +88,7 @@ internal class PensjonsgrunnlagPostgresRepo(
                 mapOf(
                     "id" to grunnlag.id,
                     "opprettet" to grunnlag.opprettet,
-                    "behandlingId" to behandlingId,
+                    "behandlingId" to behandlingId.value,
                     "fraOgMed" to grunnlag.periode.fraOgMed,
                     "tilOgMed" to grunnlag.periode.tilOgMed,
                     "pensjonsopplysninger" to serialize(grunnlag.pensjonsopplysninger.toDb()),

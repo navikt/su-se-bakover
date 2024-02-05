@@ -49,7 +49,7 @@ internal class UføregrunnlagPostgresRepoTest {
                 session.transaction { tx ->
                     grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), tx)
                 }
-                grunnlagRepo.hentUføregrunnlagForBehandlingId(behandling.id, session) shouldBe listOf(
+                grunnlagRepo.hentUføregrunnlagForBehandlingId(behandling.id.value, session) shouldBe listOf(
                     uføregrunnlag1,
                     uføregrunnlag2,
                 )

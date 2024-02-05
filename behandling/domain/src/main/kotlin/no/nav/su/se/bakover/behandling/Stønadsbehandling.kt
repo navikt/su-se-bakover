@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.behandling
 
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -22,11 +23,11 @@ import java.util.UUID
  * https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
  */
 interface Stønadsbehandling : Behandling {
-    override val id: UUID
+    override val id: BehandlingsId
     override val opprettet: Tidspunkt
     override val sakId: UUID
-    override val saksnummer: Saksnummer
-    override val fnr: Fnr
+    val saksnummer: Saksnummer
+    val fnr: Fnr
     val periode: Periode
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 
@@ -54,7 +55,7 @@ interface BehandlingMedOppgave : Stønadsbehandling {
     val oppgaveId: OppgaveId
 }
 
-interface BehandlingMedAttestering : Stønadsbehandling {
+interface BehandlingMedAttestering : Behandling {
     val attesteringer: Attesteringshistorikk
 
     fun hentAttestantSomIverksatte(): NavIdentBruker.Attestant? {

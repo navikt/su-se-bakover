@@ -16,7 +16,7 @@ import økonomi.domain.simulering.Simulering
  */
 sealed interface Stønadsvedtak : Vedtak {
     val periode: Periode
-    val behandling: Stønadsbehandling
+    override val behandling: Stønadsbehandling
     val beregning: Beregning? get() = behandling.beregning
     val simulering: Simulering? get() = behandling.simulering
 

@@ -33,7 +33,7 @@ sealed interface Regulering : Reguleringsfelter {
          * @param clock Brukes kun dersom [opprettet] ikke sendes inn.
          */
         fun opprettRegulering(
-            id: UUID = UUID.randomUUID(),
+            id: ReguleringId = ReguleringId.generer(),
             sakId: UUID,
             saksnummer: Saksnummer,
             fnr: Fnr,

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -47,7 +48,7 @@ internal fun Route.oppdaterRevurderingRoute(
                 call.withBody<Body> { body ->
                     revurderingService.oppdaterRevurdering(
                         OppdaterRevurderingCommand(
-                            revurderingId = revurderingId,
+                            revurderingId = RevurderingId(revurderingId),
                             periode = Periode.create(
                                 fraOgMed = body.fraOgMed,
                                 tilOgMed = body.tilOgMed,
@@ -61,7 +62,7 @@ internal fun Route.oppdaterRevurderingRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Oppdaterte perioden på revurdering med id: $revurderingId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )

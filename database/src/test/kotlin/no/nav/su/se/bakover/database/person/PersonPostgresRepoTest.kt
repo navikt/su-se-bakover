@@ -94,7 +94,7 @@ internal class PersonPostgresRepoTest {
     @Test
     fun `hent fnr for behandling gir brukers fnr`() {
         withDbWithData {
-            val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id)
+            val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id.value)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
@@ -102,7 +102,7 @@ internal class PersonPostgresRepoTest {
     @Test
     fun `hent fnr for behandling gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr) {
-            val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id)
+            val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id.value)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
@@ -126,7 +126,7 @@ internal class PersonPostgresRepoTest {
     @Test
     fun `hent fnr for revurdering gir søkers fnr`() {
         withDbWithData {
-            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id)
+            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id.value)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
@@ -134,7 +134,7 @@ internal class PersonPostgresRepoTest {
     @Test
     fun `hent fnr for revurdering gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr) {
-            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id)
+            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id.value)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }

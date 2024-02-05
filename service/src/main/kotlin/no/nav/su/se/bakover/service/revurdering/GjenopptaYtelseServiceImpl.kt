@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
@@ -35,7 +36,6 @@ import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 class GjenopptaYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
@@ -124,7 +124,7 @@ class GjenopptaYtelseServiceImpl(
                     }
 
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                        id = UUID.randomUUID(),
+                        id = RevurderingId.generer(),
                         opprettet = Tidspunkt.now(clock),
                         oppdatert = Tidspunkt.now(clock),
                         periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
@@ -164,7 +164,7 @@ class GjenopptaYtelseServiceImpl(
     }
 
     override fun iverksettGjenopptakAvYtelse(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
         val sak = sakService.hentSakForRevurdering(revurderingId)

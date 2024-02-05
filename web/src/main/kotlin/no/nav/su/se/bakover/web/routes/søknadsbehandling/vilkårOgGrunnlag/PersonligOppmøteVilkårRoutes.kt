@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -35,14 +36,14 @@ internal fun Route.personligOppmøteVilkårRoutes(
                     call.svar(
                         søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
                             request = LeggTilPersonligOppmøteVilkårRequest(
-                                behandlingId = it,
+                                behandlingId = SøknadsbehandlingId(it),
                                 vilkår = body.toDomain(clock),
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(
                             { it.tilResultat() },
                             {
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                 Resultat.json(HttpStatusCode.Created, it.json(formuegrenserFactory))
                             },
                         ),

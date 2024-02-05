@@ -56,7 +56,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             avsluttet = false,
             totrinnsbehandling = true,
             // Vi legger til en attesteringshendelse når vi oversender til klageinstansen
-            funksjonellTid = this.klage.attesteringer.toFunksjonellTid(this.klage.id, clock),
+            funksjonellTid = this.klage.attesteringer.toFunksjonellTid(this.klage.id.value, clock),
             beslutter = this.klage.prøvHentSisteAttestant(),
         )
 
@@ -95,7 +95,7 @@ private fun toDto(
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = klage.opprettet.toLocalDate(zoneIdOslo),
         mottattDato = klage.datoKlageMottatt,
-        behandlingId = klage.id,
+        behandlingId = klage.id.value,
         sakId = klage.sakId,
         saksnummer = klage.saksnummer.nummer,
         versjon = gitCommit?.value,

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
@@ -55,10 +56,9 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import java.util.UUID
 
 interface RevurderingService {
-    fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering?
+    fun hentRevurdering(revurderingId: RevurderingId): AbstraktRevurdering?
 
     fun opprettRevurdering(
         command: OpprettRevurderingCommand,
@@ -69,19 +69,19 @@ interface RevurderingService {
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering>
 
     fun beregnOgSimuler(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
         skalUtsetteTilbakekreving: Boolean,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse>
 
     fun lagreOgSendForhåndsvarsel(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
     fun lagBrevutkastForForhåndsvarsling(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA>
@@ -99,16 +99,16 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering>
 
     fun lagBrevutkastForRevurdering(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA>
 
     fun iverksett(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     fun underkjenn(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 
@@ -133,13 +133,13 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun lagBrevutkastForAvslutting(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         fritekst: String,
         avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>>
 
     fun avsluttRevurdering(
-        revurderingId: UUID,
+        revurderingId: RevurderingId,
         begrunnelse: String,
         brevvalg: Brevvalg.SaksbehandlersValg?,
         saksbehandler: NavIdentBruker.Saksbehandler,

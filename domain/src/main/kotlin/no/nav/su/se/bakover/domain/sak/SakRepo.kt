@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
 
@@ -28,11 +30,11 @@ interface SakRepo {
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
     fun hentSaker(fnr: Fnr): List<Sak>
 
-    fun hentSakForRevurdering(revurderingId: UUID): Sak
+    fun hentSakForRevurdering(revurderingId: RevurderingId): Sak
 
-    fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak
+    fun hentSakForRevurdering(revurderingId: RevurderingId, sessionContext: SessionContext): Sak
     fun hentSakForUtbetalingId(utbetalingId: UUID30, sessionContext: SessionContext? = null): Sak?
-    fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
+    fun hentSakforSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
     fun hentSakForVedtak(vedtakId: UUID): Sak?
     fun oppdaterFødselsnummer(

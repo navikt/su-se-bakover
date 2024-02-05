@@ -29,7 +29,7 @@ data class AvsluttetRevurdering private constructor(
 ) : Revurdering,
     Avbrutt {
 
-    override val id: UUID = underliggendeRevurdering.id
+    override val id: RevurderingId = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
     override val oppdatert: Tidspunkt = underliggendeRevurdering.oppdatert
     override val periode: Periode = underliggendeRevurdering.periode

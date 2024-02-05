@@ -5,6 +5,7 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
@@ -14,7 +15,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class LeggTilFlereUtenlandsoppholdRequest(
-    val behandlingId: UUID,
+    val behandlingId: BehandlingsId,
     val request: Nel<LeggTilUtenlandsoppholdRequest>,
 ) {
     sealed interface UgyldigUtenlandsopphold {

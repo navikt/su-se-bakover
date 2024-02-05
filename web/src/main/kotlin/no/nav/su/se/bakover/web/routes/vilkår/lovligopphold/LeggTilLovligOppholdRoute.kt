@@ -6,6 +6,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -17,8 +18,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForRevurdering
@@ -32,7 +35,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.lovligopphold.domain.KunneIkkeLageLovligOppholdVilkår
-import java.util.UUID
 
 internal fun Route.leggTilLovligOppholdRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
@@ -43,12 +45,12 @@ internal fun Route.leggTilLovligOppholdRoute(
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->
                     søknadsbehandlingService.leggTilLovligOpphold(
-                        body.toLovligOppholdRequest(behandlingId),
+                        body.toLovligOppholdRequest(SøknadsbehandlingId(behandlingId)),
                         saksbehandler = call.suUserContext.saksbehandler,
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
@@ -66,10 +68,10 @@ internal fun Route.leggTilLovligOppholdRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<LovligOppholdBody> { body ->
-                    revurderingService.leggTilLovligOppholdVilkår(body.toLovligOppholdRequest(revurderingId)).fold(
+                    revurderingService.leggTilLovligOppholdVilkår(body.toLovligOppholdRequest(RevurderingId(revurderingId))).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                            call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
@@ -82,7 +84,7 @@ internal fun Route.leggTilLovligOppholdRoute(
 internal data class LovligOppholdBody(
     val vurderinger: List<LovligOppholdVurderingBody>,
 ) {
-    fun toLovligOppholdRequest(behandlingId: UUID) = LeggTilLovligOppholdRequest(
+    fun toLovligOppholdRequest(behandlingId: BehandlingsId) = LeggTilLovligOppholdRequest(
         behandlingId = behandlingId,
         vurderinger = vurderinger.map { LovligOppholdVurderinger(it.periode.toPeriode(), it.status) },
     )
