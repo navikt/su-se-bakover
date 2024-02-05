@@ -725,7 +725,7 @@ data class SimuleringResponseData(
             var feilkonto: String = "false",
             var utbetalesTilNavn: String = "Test Testesen",
             var utbetalesTilId: String = fnr.toString(),
-            var detaljer: List<Detalj> = emptyList(),
+            var beregningStoppnivaaDetaljer: List<Detalj> = emptyList(),
         ) {
             /**
              * @param belop må være 0/positivt
@@ -738,7 +738,7 @@ data class SimuleringResponseData(
             ) {
                 require(belop >= 0)
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "4952000",
@@ -768,7 +768,7 @@ data class SimuleringResponseData(
             fun Periode.debetFeilutbetaling(belop: Int) {
                 require(belop > 0)
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "4952000",
@@ -797,7 +797,7 @@ data class SimuleringResponseData(
             fun Periode.motposteringskonto(belop: Int) {
                 require(belop < 0) { "Skattedetaljer belop må være negativt og motsatt av feilutbetaling" }
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "0902900",
@@ -832,7 +832,7 @@ data class SimuleringResponseData(
             ) {
                 require(belop < 0) { "tidligere utbetalt belop må være negativt" }
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "4952000",
@@ -860,7 +860,7 @@ data class SimuleringResponseData(
             fun Periode.feilutbetaling(belop: Int) {
                 require(belop > 0)
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "0630986",
@@ -890,7 +890,7 @@ data class SimuleringResponseData(
             fun Periode.skattedetalj(belop: Int) {
                 require(belop < 0) { "Skattedetaljer belop må være negativt" }
 
-                detaljer += Detalj(
+                beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
                     faktiskTom = periodeTom,
                     kontoStreng = "0510000",
@@ -947,6 +947,8 @@ data class SimuleringResponseData(
             return SimuleringResponseData().apply(init).let {
                 // language=XML
                 """
+                  <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+                  <Body>
                   <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
                     <response xmlns="">
                       <simulering>
@@ -979,7 +981,7 @@ data class SimuleringResponseData(
                             <forfall xmlns="">${it.forfall}</forfall>
                             <feilkonto xmlns="">${it.feilkonto}</feilkonto>
                             ${
-                                    it.detaljer.joinToString("\n") {
+                                    it.beregningStoppnivaaDetaljer.joinToString("\n") {
                                         """
                             <beregningStoppnivaaDetaljer>
                               <faktiskFom xmlns="">${it.faktiskFom}</faktiskFom>
@@ -1024,6 +1026,8 @@ data class SimuleringResponseData(
                       </infomelding>
                     </response>
                   </simulerBeregningResponse>
+                  </Body>
+                  </Envelope>
                 """.trimIndent()
             }
         }

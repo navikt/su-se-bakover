@@ -1,19 +1,18 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -24,8 +23,6 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
-import no.nav.su.se.bakover.test.simulering.utbetalingForSimulering
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -41,9 +38,8 @@ import økonomi.domain.simulering.SimuleringsOppsummering
 import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
-import java.math.BigDecimal
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
 
+@Suppress("HttpUrlsUsage")
 internal class SimuleringResponseMapperTest {
 
     private val saksnummer = no.nav.su.se.bakover.test.saksnummer
@@ -55,6 +51,74 @@ internal class SimuleringResponseMapperTest {
     private val kontoMotp = "0902900"
     private val typeSats = "MND"
     private val suBeskrivelse = "Supplerende stønad Uføre"
+
+    @Test
+    fun `kan mappe uten response`() {
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = """
+                <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+                <Body>
+                <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+                </simulerBeregningResponse>
+                </Body>
+                </Envelope>
+            """.trimIndent(),
+            clock = fixedClock,
+        ).getOrFail()
+    }
+
+    @Test
+    fun `kan mappe tom simulering`() {
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = """
+                <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+                <Body>
+                <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+                  <response xmlns="">
+                  </response>
+                </simulerBeregningResponse>
+                </Body>
+                </Envelope>
+            """.trimIndent(),
+            clock = fixedClock,
+        ).getOrFail()
+    }
+
+    @Test
+    fun `kan mappe ingen perioder`() {
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = """
+                <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+                <Body>
+                <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+                 <response xmlns="">
+                    <simulering>
+                       <gjelderId>${no.nav.su.se.bakover.test.fnr}</gjelderId>
+                       <gjelderNavn>navn</gjelderNavn>
+                       <datoBeregnet>2521-04-07</datoBeregnet>
+                       <kodeFaggruppe>INNT</kodeFaggruppe>
+                       <belop>10390.00</belop>
+                    </simulering>
+                </response>
+                </simulerBeregningResponse>
+                </Body>
+                </Envelope>
+            """.trimIndent(),
+            clock = fixedClock,
+        ).getOrFail()
+    }
 
     @Test
     fun `mapper fremtidige simulerte utbetalinger`() {
@@ -70,17 +134,15 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            rawResponse,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
-        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = rawResponse,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail()
+        // TODO jah: Bør vel stemme med simuleringsdataene?
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -168,16 +230,15 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-        val request = utbetalingForSimulering()
-        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail()
+
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -261,12 +322,15 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFeilutbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
+            clock = fixedClock,
+        ).getOrFail()
 
-        val request = utbetalingForSimulering()
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -385,11 +449,6 @@ internal class SimuleringResponseMapperTest {
             ),
             rawResponse = simuleringXml,
         )
-        val actualSimulering = responseMedFeilutbetaling.toSimulering(
-            request = request,
-            clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
-        ).getOrFail()
         actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
 
         actualSimulering.also {
@@ -509,17 +568,15 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedEtterbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
-        val actualSimulering = responseMedEtterbetaling.toSimulering(
-            request = request,
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail()
+
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -708,12 +765,14 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
+            clock = fixedClock,
+        ).getOrFail()
         val expectedSimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
@@ -750,11 +809,6 @@ internal class SimuleringResponseMapperTest {
             ),
             rawResponse = simuleringXml,
         )
-        val actualSimulering = responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
-            clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
-        ).getOrFail()
         actualSimulering.shouldBeEqualToIgnoringFields(expectedSimulering, Simulering::rawResponse)
         actualSimulering.also {
             it.kontooppstilling() shouldBe mapOf(
@@ -778,26 +832,27 @@ internal class SimuleringResponseMapperTest {
     fun `feiler ved flere utbetalingsperioder for samme fagsystemId`() {
         val simuleringXml = simuleringXml {
             periode {
-                stoppnivå {}
-                stoppnivå {}
+                stoppnivå {
+                    ordinær(5000)
+                }
+                stoppnivå {
+                    ordinær(5000)
+                }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
         val logMock = mock<Logger>()
         val sikkerLoggMock = mock<Logger>()
-        val soapRequest = SimuleringRequestBuilder(request).build()
-        responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
             clock = fixedClock,
-            soapRequest = soapRequest,
             log = logMock,
             sikkerLogg = sikkerLoggMock,
         ) shouldBe SimuleringFeilet.TekniskFeil.left()
+
         verify(logMock).error(
             // Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se sikkerlogg for flere detaljer og feilmelding.
             argThat { it shouldBe "Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer. Se sikkerlogg for stacktrace og context." },
@@ -819,21 +874,22 @@ internal class SimuleringResponseMapperTest {
                 stoppnivå {
                     // Forventer at denne filtreres vekk
                     fagsystemId = "1000"
+                    ordinær(5000)
                 }
-                stoppnivå {}
+                stoppnivå {
+                    fagsystemId = "2021"
+                    ordinær(10000)
+                }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
-        responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
+        mapSimuleringResponse(
+            saksnummer = Saksnummer(2021),
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
-        ).getOrFail().måneder.map { it.utbetaling!!.fagSystemId } shouldBe listOf(fagsystemId)
+        ).getOrFail().måneder.map { it.utbetaling!!.fagSystemId } shouldBe listOf("2021")
     }
 
     @Test
@@ -843,36 +899,35 @@ internal class SimuleringResponseMapperTest {
                 stoppnivå {
                     // Forventer at denne filtreres vekk
                     kodeFagomraade = "UFORE"
+                    ordinær(5000)
                 }
-                stoppnivå {}
+                stoppnivå {
+                    ordinær(10000)
+                }
             }
         }
-        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
-            simuleringXml,
-            GrensesnittResponse::class.java,
-        ).response
-
-        val request = utbetalingForSimulering()
-        responseMedFremtidigUtbetaling.toSimulering(
-            request = request,
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().måneder.map { it.utbetaling!! }.size.shouldBe(1)
     }
 
     @Test
     fun `mapping med åpen feilkonto`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
-        val rawResponse = jsonMedÅpenFeilkonto
-        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
-            rawResponse,
-        )
+        val rawResponse = xmlMedÅpnedFeilkonto
 
-        val request = utbetalingForSimulering()
-        responseMedÅpenFeilkonto.toSimulering(
-            request = request,
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = rawResponse,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
@@ -933,159 +988,157 @@ internal class SimuleringResponseMapperTest {
         }
     }
 
-    private val jsonMedÅpenFeilkonto = """
-        {
-          "simulering": {
-            "gjelderId": "$fnr",
-            "gjelderNavn": "$navn",
-            "datoBeregnet": "2022-11-17",
-            "kodeFaggruppe": "INNT",
-            "belop": 0.00,
-            "beregningsPeriode": [
-              {
-                "periodeFom": "2022-08-01",
-                "periodeTom": "2022-08-31",
-                "beregningStoppnivaa": [
-                  {
-                    "kodeFagomraade": "SUUFORE",
-                    "stoppNivaaId": 1,
-                    "behandlendeEnhet": "8020",
-                    "oppdragsId": 60937907,
-                    "fagsystemId": "$fagsystemId",
-                    "kid": "",
-                    "utbetalesTilId": "$fnr",
-                    "utbetalesTilNavn": "$navn",
-                    "bilagsType": "U",
-                    "forfall": "2022-11-17",
-                    "feilkonto": true,
-                    "beregningStoppnivaaDetaljer": [
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "0630986",
-                        "behandlingskode": "0",
-                        "belop": -21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "KL_KODE_FEIL_INNT",
-                        "klasseKodeBeskrivelse": "Feilutbetaling Inntektsytelser",
-                        "typeKlasse": "FEIL",
-                        "typeKlasseBeskrivelse": "Klassetype for feilkontoer",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "0902900",
-                        "behandlingskode": "0",
-                        "belop": 21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "TBMOTOBS",
-                        "klasseKodeBeskrivelse": "Feilutbetaling motkonto til OBS konto",
-                        "typeKlasse": "MOTP",
-                        "typeKlasseBeskrivelse": "Klassetype for motposteringskonto",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "4952000",
-                        "behandlingskode": "2",
-                        "belop": -21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "SUUFORE",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "4952000",
-                        "behandlingskode": "2",
-                        "belop": 21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 4,
-                        "sats": 21181.00,
-                        "typeSats": "MND",
-                        "antallSats": 1.00,
-                        "saksbehId": "SU",
-                        "uforeGrad": 100,
-                        "kravhaverId": "",
-                        "delytelseId": "da87bf28-50f4-4bee-bc05-a62333",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "SUUFORE",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti",
-                        "refunderesOrgNr": ""
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "infomelding": null
-        }
+    // TODO jah: Denne er konvert fra JSON til XML og deretter tilpasset. Prøv å få tak i en original.
+    private val xmlMedÅpnedFeilkonto = """
+<Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+<Body>
+<simulerBeregningResponse>
+<response>
+<simulering>
+    <gjelderId>$fnr</gjelderId>
+    <gjelderNavn>$navn</gjelderNavn>
+    <datoBeregnet>2022-11-17</datoBeregnet>
+    <kodeFaggruppe>INNT</kodeFaggruppe>
+    <belop>0</belop>
+    <beregningsPeriode>
+        <periodeFom>2022-08-01</periodeFom>
+        <periodeTom>2022-08-31</periodeTom>
+        <beregningStoppnivaa>
+            <kodeFagomraade>SUUFORE</kodeFagomraade>
+            <stoppNivaaId>1</stoppNivaaId>
+            <behandlendeEnhet>8020</behandlendeEnhet>
+            <oppdragsId>60937907</oppdragsId>
+            <fagsystemId>$fagsystemId</fagsystemId>
+            <kid></kid>
+            <utbetalesTilId>$fnr</utbetalesTilId>
+            <utbetalesTilNavn>$navn</utbetalesTilNavn>
+            <bilagsType>U</bilagsType>
+            <forfall>2022-11-17</forfall>
+            <feilkonto>true</feilkonto>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>0630986</kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>-21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>KL_KODE_FEIL_INNT</klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling Inntektsytelser</klasseKodeBeskrivelse>
+                <typeKlasse>FEIL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for feilkontoer</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>0902900</kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>TBMOTOBS</klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling motkonto til OBS konto</klasseKodeBeskrivelse>
+                <typeKlasse>MOTP</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for motposteringskonto</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>4952000</kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>-21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE</klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>4952000</kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>4</linjeId>
+                <sats>21181</sats>
+                <typeSats>MND</typeSats>
+                <antallSats>1</antallSats>
+                <saksbehId>SU</saksbehId>
+                <uforeGrad>100</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId>da87bf28-50f4-4bee-bc05-a62333</delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE</klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+        </beregningStoppnivaa>
+    </beregningsPeriode>
+</simulering>
+</response>
+</simulerBeregningResponse>
+</Body>
+</Envelope>
     """.trimIndent()
 
     @Test
     fun `mapping med åpen feilkonto annullering og etterbetaling`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
-        val rawResponse = jsonMedÅpenFeilkontoOgEtterbetaling
-        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
-            rawResponse,
-        )
-
-        val request = utbetalingForSimulering()
-        responseMedÅpenFeilkonto.toSimulering(
-            request = request,
+        val rawResponse = xmlMedÅpenFeilkontoOgEtterbetaling
+        mapSimuleringResponse(
+            saksnummer = saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = rawResponse,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -1145,185 +1198,183 @@ internal class SimuleringResponseMapperTest {
         }
     }
 
-    private val jsonMedÅpenFeilkontoOgEtterbetaling = """
-        {
-          "simulering": {
-            "gjelderId": "$fnr",
-            "gjelderNavn": "$navn",
-            "datoBeregnet": "2022-11-17",
-            "kodeFaggruppe": "INNT",
-            "belop": 1673.00,
-            "beregningsPeriode": [
-              {
-                "periodeFom": "2022-08-01",
-                "periodeTom": "2022-08-31",
-                "beregningStoppnivaa": [
-                  {
-                    "kodeFagomraade": "SUUFORE",
-                    "stoppNivaaId": 1,
-                    "behandlendeEnhet": "8020",
-                    "oppdragsId": 60937907,
-                    "fagsystemId": "$fagsystemId",
-                    "kid": "",
-                    "utbetalesTilId": "$fnr",
-                    "utbetalesTilNavn": "$navn",
-                    "bilagsType": "U",
-                    "forfall": "2022-11-17",
-                    "feilkonto": true,
-                    "beregningStoppnivaaDetaljer": [
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "0630986",
-                        "behandlingskode": "0",
-                        "belop": -21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "KL_KODE_FEIL_INNT",
-                        "klasseKodeBeskrivelse": "Feilutbetaling Inntektsytelser",
-                        "typeKlasse": "FEIL",
-                        "typeKlasseBeskrivelse": "Klassetype for feilkontoer",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "0902900",
-                        "behandlingskode": "0",
-                        "belop": 21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "TBMOTOBS",
-                        "klasseKodeBeskrivelse": "Feilutbetaling motkonto til OBS konto",
-                        "typeKlasse": "MOTP",
-                        "typeKlasseBeskrivelse": "Klassetype for motposteringskonto",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "4952000",
-                        "behandlingskode": "2",
-                        "belop": -21181.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "SUUFORE",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "0510000",
-                        "behandlingskode": "0",
-                        "belop": -185.00,
-                        "trekkVedtakId": 12333856,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "MND",
-                        "antallSats": 31.00,
-                        "saksbehId": "SU",
-                        "uforeGrad": 0,
-                        "kravhaverId": "",
-                        "delytelseId": "",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "FSKTSKAT",
-                        "klasseKodeBeskrivelse": "Forskuddskatt",
-                        "typeKlasse": "SKAT",
-                        "typeKlasseBeskrivelse": "Klassetype for skatt",
-                        "refunderesOrgNr": ""
-                      },
-                      {
-                        "faktiskFom": "2022-08-01",
-                        "faktiskTom": "2022-08-31",
-                        "kontoStreng": "4952000",
-                        "behandlingskode": "2",
-                        "belop": 23039.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "",
-                        "korrigering": "",
-                        "tilbakeforing": false,
-                        "linjeId": 4,
-                        "sats": 23039.00,
-                        "typeSats": "MND",
-                        "antallSats": 1.00,
-                        "saksbehId": "SU",
-                        "uforeGrad": 100,
-                        "kravhaverId": "",
-                        "delytelseId": "39e2f790-3c75-4e70-9889-a768bb",
-                        "bostedsenhet": "8020",
-                        "skykldnerId": "",
-                        "klassekode": "SUUFORE",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti",
-                        "refunderesOrgNr": ""
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "infomelding": null
-        }
+// TODO jah: Denne er konvert fra JSON til XML og deretter tilpasset. Prøv å få tak i en original.
+    private val xmlMedÅpenFeilkontoOgEtterbetaling = """
+      <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body>
+      <simulerBeregningResponse>
+<response>
+<simulering>
+    <gjelderId>$fnr</gjelderId>
+    <gjelderNavn>$navn</gjelderNavn>
+    <datoBeregnet>2022-11-17</datoBeregnet>
+    <kodeFaggruppe>INNT</kodeFaggruppe>
+    <belop>1673</belop>
+    <beregningsPeriode>
+        <periodeFom>2022-08-01</periodeFom>
+        <periodeTom>2022-08-31</periodeTom>
+        <beregningStoppnivaa>
+            <kodeFagomraade>SUUFORE</kodeFagomraade>
+            <stoppNivaaId>1</stoppNivaaId>
+            <behandlendeEnhet>8020</behandlendeEnhet>
+            <oppdragsId>60937907</oppdragsId>
+            <fagsystemId>$fagsystemId</fagsystemId>
+            <kid></kid>
+            <utbetalesTilId>$fnr</utbetalesTilId>
+            <utbetalesTilNavn>$navn</utbetalesTilNavn>
+            <bilagsType>U</bilagsType>
+            <forfall>2022-11-17</forfall>
+            <feilkonto>true</feilkonto>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>0630986</kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>-21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>KL_KODE_FEIL_INNT</klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling Inntektsytelser</klasseKodeBeskrivelse>
+                <typeKlasse>FEIL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for feilkontoer</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>0902900</kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>TBMOTOBS</klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling motkonto til OBS konto</klasseKodeBeskrivelse>
+                <typeKlasse>MOTP</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for motposteringskonto</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>4952000</kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>-21181</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE</klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>0510000</kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>-185</belop>
+                <trekkVedtakId>12333856</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats>MND</typeSats>
+                <antallSats>31</antallSats>
+                <saksbehId>SU</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>FSKTSKAT</klassekode>
+                <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                <typeKlasse>SKAT</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-08-01</faktiskFom>
+                <faktiskTom>2022-08-31</faktiskTom>
+                <kontoStreng>4952000</kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>23039</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>4</linjeId>
+                <sats>23039</sats>
+                <typeSats>MND</typeSats>
+                <antallSats>1</antallSats>
+                <saksbehId>SU</saksbehId>
+                <uforeGrad>100</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId>39e2f790-3c75-4e70-9889-a768bb</delytelseId>
+                <bostedsenhet>8020</bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE</klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+        </beregningStoppnivaa>
+    </beregningsPeriode>
+</simulering>
+</response>
+</simulerBeregningResponse>
+</Body>
+</Envelope>
     """.trimIndent()
 
     @Test
     fun `mapping med reduksjon av åpen feilkonto og ikke trimmet verdier`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
-        val rawResponse = jsonMedReduksjonAvFeilkonto
-        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
-            rawResponse,
-        )
-
-        val request = utbetalingForSimulering()
-        responseMedÅpenFeilkonto.toSimulering(
-            request = request,
+        val rawResponse = soapMedReduksjonAvFeilkonto
+        mapSimuleringResponse(
+            saksnummer = no.nav.su.se.bakover.test.saksnummer,
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = rawResponse,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail().also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
@@ -1382,7 +1433,10 @@ internal class SimuleringResponseMapperTest {
     @Test
     fun `Tilbakeføring utligner hverandre`() {
         val rawXml = """
-                <SimulerBeregningResponse>
+                <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+                <Body>
+                <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+                    <response xmlns="">
                     <simulering>
                         <gjelderId>12345678901</gjelderId>
                         <gjelderNavn>Fiskus Fiske</gjelderNavn>
@@ -1537,187 +1591,187 @@ internal class SimuleringResponseMapperTest {
                             </beregningStoppnivaa>
                         </beregningsPeriode>
                     </simulering>
-                </SimulerBeregningResponse>
+                    </response>
+                </simulerBeregningResponse>
+                </Body>
+                </Envelope>
             """
-        val response = xmlMapper.readValue<SimulerBeregningResponse>(rawXml)
-
-        response.simulering.belop shouldBe BigDecimal("2480.00")
-
-        val request = utbetalingForSimulering(
-            saksnummer = Saksnummer.parse("2021"),
-        )
-        val actualSimulering = response.toSimulering(
-            request = request,
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = Saksnummer(2021),
+            fnr = Fnr.tryCreate("12345678901")!!,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = rawXml,
             clock = fixedClock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail()
 
+        actualSimulering.nettoBeløp shouldBe 2480
         actualSimulering.hentTotalUtbetaling() shouldBe Månedsbeløp(listOf(MånedBeløp(mai(2023), Beløp(2480))))
     }
 
-    private val jsonMedReduksjonAvFeilkonto = """
-        {
-          "simulering": {
-            "gjelderId": "$fnr",
-            "gjelderNavn": "$navn",
-            "datoBeregnet": "2022-11-29",
-            "kodeFaggruppe": "INNT    ",
-            "belop": 0.00,
-            "beregningsPeriode": [
-              {
-                "periodeFom": "2022-01-01",
-                "periodeTom": "2022-01-31",
-                "beregningStoppnivaa": [
-                  {
-                    "kodeFagomraade": "SUUFORE ",
-                    "stoppNivaaId": 1,
-                    "behandlendeEnhet": "8020         ",
-                    "oppdragsId": 62847682,
-                    "fagsystemId": "$fagsystemId                      ",
-                    "kid": "",
-                    "utbetalesTilId": "$fnr",
-                    "utbetalesTilNavn": "$navn",
-                    "bilagsType": "U ",
-                    "forfall": "2022-11-29",
-                    "feilkonto": true,
-                    "beregningStoppnivaaDetaljer": [
-                      {
-                        "faktiskFom": "2022-01-01",
-                        "faktiskTom": "2022-01-31",
-                        "kontoStreng": "0902900            ",
-                        "behandlingskode": "0",
-                        "belop": 2000.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "          ",
-                        "korrigering": " ",
-                        "tilbakeforing": true,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "    ",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "           ",
-                        "delytelseId": "                              ",
-                        "bostedsenhet": "8020         ",
-                        "skykldnerId": "           ",
-                        "klassekode": "TBMOTOBS            ",
-                        "klasseKodeBeskrivelse": "Feilutbetaling motkonto til OBS konto             ",
-                        "typeKlasse": "MOTP",
-                        "typeKlasseBeskrivelse": "Klassetype for motposteringskonto                 ",
-                        "refunderesOrgNr": "           "
-                      },
-                      {
-                        "faktiskFom": "2022-01-01",
-                        "faktiskTom": "2022-01-31",
-                        "kontoStreng": "4952000            ",
-                        "behandlingskode": "2",
-                        "belop": -2000.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "          ",
-                        "korrigering": " ",
-                        "tilbakeforing": true,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "    ",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "           ",
-                        "delytelseId": "                              ",
-                        "bostedsenhet": "8020         ",
-                        "skykldnerId": "           ",
-                        "klassekode": "SUUFORE             ",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre                          ",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti                       ",
-                        "refunderesOrgNr": "           "
-                      },
-                      {
-                        "faktiskFom": "2022-01-01",
-                        "faktiskTom": "2022-01-31",
-                        "kontoStreng": "0630986            ",
-                        "behandlingskode": "0",
-                        "belop": -2000.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "          ",
-                        "korrigering": " ",
-                        "tilbakeforing": true,
-                        "linjeId": 0,
-                        "sats": 0.00,
-                        "typeSats": "    ",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B214",
-                        "uforeGrad": 0,
-                        "kravhaverId": "           ",
-                        "delytelseId": "                              ",
-                        "bostedsenhet": "8020         ",
-                        "skykldnerId": "           ",
-                        "klassekode": "KL_KODE_FEIL_INNT   ",
-                        "klasseKodeBeskrivelse": "Feilutbetaling Inntektsytelser                    ",
-                        "typeKlasse": "FEIL",
-                        "typeKlasseBeskrivelse": "Klassetype for feilkontoer                        ",
-                        "refunderesOrgNr": "           "
-                      },
-                      {
-                        "faktiskFom": "2022-01-01",
-                        "faktiskTom": "2022-01-31",
-                        "kontoStreng": "4952000            ",
-                        "behandlingskode": "2",
-                        "belop": 8989.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "          ",
-                        "korrigering": " ",
-                        "tilbakeforing": false,
-                        "linjeId": 16,
-                        "sats": 8989.00,
-                        "typeSats": "MND ",
-                        "antallSats": 1.00,
-                        "saksbehId": "SU      ",
-                        "uforeGrad": 100,
-                        "kravhaverId": "           ",
-                        "delytelseId": "716c51b0-4d73-4e26-b345-0cf684",
-                        "bostedsenhet": "8020         ",
-                        "skykldnerId": "           ",
-                        "klassekode": "SUUFORE             ",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre                          ",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti                       ",
-                        "refunderesOrgNr": "           "
-                      },
-                      {
-                        "faktiskFom": "2022-01-01",
-                        "faktiskTom": "2022-01-31",
-                        "kontoStreng": "4952000            ",
-                        "behandlingskode": "2",
-                        "belop": -6989.00,
-                        "trekkVedtakId": 0,
-                        "stonadId": "          ",
-                        "korrigering": " ",
-                        "tilbakeforing": true,
-                        "linjeId": 8,
-                        "sats": 0.00,
-                        "typeSats": "    ",
-                        "antallSats": 0.00,
-                        "saksbehId": "K231B215",
-                        "uforeGrad": 100,
-                        "kravhaverId": "           ",
-                        "delytelseId": "                              ",
-                        "bostedsenhet": "8020         ",
-                        "skykldnerId": "           ",
-                        "klassekode": "SUUFORE             ",
-                        "klasseKodeBeskrivelse": "Supplerende stønad Uføre                          ",
-                        "typeKlasse": "YTEL",
-                        "typeKlasseBeskrivelse": "Klassetype for ytelseskonti                       ",
-                        "refunderesOrgNr": "           "
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "infomelding": null
-        }
+    // TODO jah: Konvert fra JSON til XML. Og tilpasset. Bør finne en original i preprod.
+    private val soapMedReduksjonAvFeilkonto = """
+      <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body>
+       <simulerBeregningResponse>
+<response>
+<simulering>
+    <gjelderId>$fnr</gjelderId>
+    <gjelderNavn>$navn</gjelderNavn>
+    <datoBeregnet>2022-11-29</datoBeregnet>
+    <kodeFaggruppe>INNT    </kodeFaggruppe>
+    <belop>0</belop>
+    <beregningsPeriode>
+        <periodeFom>2022-01-01</periodeFom>
+        <periodeTom>2022-01-31</periodeTom>
+        <beregningStoppnivaa>
+            <kodeFagomraade>SUUFORE </kodeFagomraade>
+            <stoppNivaaId>1</stoppNivaaId>
+            <behandlendeEnhet>8020         </behandlendeEnhet>
+            <oppdragsId>62847682</oppdragsId>
+            <fagsystemId>$fagsystemId                      </fagsystemId>
+            <kid></kid>
+            <utbetalesTilId>$fnr</utbetalesTilId>
+            <utbetalesTilNavn>$navn</utbetalesTilNavn>
+            <bilagsType>U </bilagsType>
+            <forfall>2022-11-29</forfall>
+            <feilkonto>true</feilkonto>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-01-01</faktiskFom>
+                <faktiskTom>2022-01-31</faktiskTom>
+                <kontoStreng>0902900            </kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>2000</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>true</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020         </bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>TBMOTOBS            </klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling motkonto til OBS konto             </klasseKodeBeskrivelse>
+                <typeKlasse>MOTP</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for motposteringskonto                 </typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-01-01</faktiskFom>
+                <faktiskTom>2022-01-31</faktiskTom>
+                <kontoStreng>4952000            </kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>-2000</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>true</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020         </bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE             </klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre                          </klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti                       </typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-01-01</faktiskFom>
+                <faktiskTom>2022-01-31</faktiskTom>
+                <kontoStreng>0630986            </kontoStreng>
+                <behandlingskode>0</behandlingskode>
+                <belop>-2000</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>true</tilbakeforing>
+                <linjeId>0</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B214</saksbehId>
+                <uforeGrad>0</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020         </bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>KL_KODE_FEIL_INNT   </klassekode>
+                <klasseKodeBeskrivelse>Feilutbetaling Inntektsytelser                    </klasseKodeBeskrivelse>
+                <typeKlasse>FEIL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for feilkontoer                        </typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-01-01</faktiskFom>
+                <faktiskTom>2022-01-31</faktiskTom>
+                <kontoStreng>4952000            </kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>8989</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>false</tilbakeforing>
+                <linjeId>16</linjeId>
+                <sats>8989</sats>
+                <typeSats>MND </typeSats>
+                <antallSats>1</antallSats>
+                <saksbehId>SU      </saksbehId>
+                <uforeGrad>100</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId>716c51b0-4d73-4e26-b345-0cf684</delytelseId>
+                <bostedsenhet>8020         </bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE             </klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre                          </klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti                       </typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+            <beregningStoppnivaaDetaljer>
+                <faktiskFom>2022-01-01</faktiskFom>
+                <faktiskTom>2022-01-31</faktiskTom>
+                <kontoStreng>4952000            </kontoStreng>
+                <behandlingskode>2</behandlingskode>
+                <belop>-6989</belop>
+                <trekkVedtakId>0</trekkVedtakId>
+                <stonadId></stonadId>
+                <korrigering></korrigering>
+                <tilbakeforing>true</tilbakeforing>
+                <linjeId>8</linjeId>
+                <sats>0</sats>
+                <typeSats></typeSats>
+                <antallSats>0</antallSats>
+                <saksbehId>K231B215</saksbehId>
+                <uforeGrad>100</uforeGrad>
+                <kravhaverId></kravhaverId>
+                <delytelseId></delytelseId>
+                <bostedsenhet>8020         </bostedsenhet>
+                <skykldnerId></skykldnerId>
+                <klassekode>SUUFORE             </klassekode>
+                <klasseKodeBeskrivelse>Supplerende stønad Uføre                          </klasseKodeBeskrivelse>
+                <typeKlasse>YTEL</typeKlasse>
+                <typeKlasseBeskrivelse>Klassetype for ytelseskonti                       </typeKlasseBeskrivelse>
+                <refunderesOrgNr></refunderesOrgNr>
+            </beregningStoppnivaaDetaljer>
+        </beregningStoppnivaa>
+    </beregningsPeriode>
+</simulering>
+</response>
+</simulerBeregningResponse>
+</Body>
+</Envelope>
     """.trimIndent()
 }

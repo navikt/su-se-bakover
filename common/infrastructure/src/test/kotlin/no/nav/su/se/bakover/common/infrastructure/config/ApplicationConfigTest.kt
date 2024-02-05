@@ -108,6 +108,7 @@ class ApplicationConfigTest {
             dokarkivUrl = "dokarkivUrl",
             kodeverkUrl = "kodeverkUrl",
             stsUrl = "stsUrl",
+            stsSamlUrl = "stsSamlUrl",
             skjermingUrl = "skjermingUrl",
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                 appId = "krrId",
@@ -189,6 +190,7 @@ class ApplicationConfigTest {
                 "DOKDIST_URL" to "dokDistUrl",
                 "DOKARKIV_URL" to "dokarkivUrl",
                 "STS_URL" to "stsUrl",
+                "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "PDL_CLIENT_ID" to "pdlClientId",
@@ -278,6 +280,7 @@ class ApplicationConfigTest {
                     dokarkivUrl = "mocked",
                     kodeverkUrl = "mocked",
                     stsUrl = "mocked",
+                    stsSamlUrl = "mocked",
                     skjermingUrl = "mocked",
                     kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                         appId = "mocked",

@@ -12,6 +12,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.Temporal
 import java.time.temporal.TemporalAdjuster
+import java.time.temporal.TemporalAmount
 import java.time.temporal.TemporalUnit
 import java.util.Date
 
@@ -74,6 +75,7 @@ private constructor(
 
     override fun hashCode() = instant.hashCode()
     override fun plus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.plus(amount, unit).toTidspunkt()
+    override fun plus(amount: TemporalAmount): Tidspunkt = instant.plus(amount).toTidspunkt()
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
     fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), tidspunktPresisjon)

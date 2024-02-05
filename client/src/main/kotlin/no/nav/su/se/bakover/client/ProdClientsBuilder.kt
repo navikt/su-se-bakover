@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
-import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClient
 import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientConfig
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.client.sts.StsSamlClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
@@ -117,12 +117,12 @@ data class ProdClientsBuilder(
             ),
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
-                SimuleringConfig(
-                    simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
-                    stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
-                    disableCNCheck = true,
+                baseUrl = applicationConfig.oppdrag.simulering.url,
+                samlTokenProvider = StsSamlClient(
+                    baseUrl = applicationConfig.clientsConfig.stsSamlUrl,
                     serviceUser = serviceUser,
-                ).wrapWithSTSSimulerFpService(),
+                    clock = clock,
+                ),
                 clock = clock,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
