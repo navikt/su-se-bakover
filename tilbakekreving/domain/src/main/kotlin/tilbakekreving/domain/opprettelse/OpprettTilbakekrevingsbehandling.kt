@@ -1,5 +1,6 @@
 package tilbakekreving.domain.opprettelse
 
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
@@ -10,6 +11,7 @@ fun opprettTilbakekrevingsbehandling(
     command: OpprettTilbakekrevingsbehandlingCommand,
     forrigeVersjon: Hendelsesversjon,
     clock: Clock,
+    fnr: Fnr,
     kravgrunnlag: Kravgrunnlag,
     erKravgrunnlagUtdatert: Boolean,
 ): Pair<OpprettetTilbakekrevingsbehandlingHendelse, OpprettetTilbakekrevingsbehandling> {
@@ -20,6 +22,6 @@ fun opprettTilbakekrevingsbehandling(
         clock = clock,
         kravgrunnlagPåSakHendelseId = kravgrunnlag.hendelseId,
     ).let {
-        it to it.toDomain(kravgrunnlag, erKravgrunnlagUtdatert)
+        it to it.toDomain(fnr, kravgrunnlag, erKravgrunnlagUtdatert)
     }
 }

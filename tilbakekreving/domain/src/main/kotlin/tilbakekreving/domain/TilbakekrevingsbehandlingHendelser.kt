@@ -3,6 +3,8 @@ package tilbakekreving.domain
 import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentHendelser
 import dokument.domain.Dokumenttilstand
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
@@ -15,6 +17,8 @@ import java.util.UUID
  */
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
+    private val saksnummer: Saksnummer,
+    private val fnr: Fnr,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
     val kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
     private val tilhørendeOgSorterteDokumentHendelser: DokumentHendelser,
@@ -92,6 +96,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
                     acc.plus(
                         hendelseId to hendelse.toDomain(
+                            fnr = fnr,
                             kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
                             erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag() != kravgrunnlagsDetaljer.kravgrunnlag,
                         ),
@@ -214,9 +219,11 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
     companion object {
 
-        fun empty(sakId: UUID, clock: Clock): TilbakekrevingsbehandlingHendelser {
+        fun empty(sakId: UUID, fnr: Fnr, saksnummer: Saksnummer, clock: Clock): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
                 clock = clock,
                 sorterteHendelser = emptyList(),
                 kravgrunnlagPåSak = KravgrunnlagPåSakHendelser(emptyList()),
@@ -227,12 +234,16 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         fun create(
             sakId: UUID,
             clock: Clock,
+            fnr: Fnr,
+            saksnummer: Saksnummer,
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
             kravgrunnlagPåSak: KravgrunnlagPåSakHendelser,
             dokumentHendelser: DokumentHendelser,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
                 clock = clock,
                 sorterteHendelser = hendelser.sorted(),
                 kravgrunnlagPåSak = kravgrunnlagPåSak,

@@ -32,6 +32,8 @@ class OpprettTilbakekrevingsbehandlingRepoTest {
                 }
             actual shouldBe TilbakekrevingsbehandlingHendelser.create(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
                 clock = fixedClock,
                 hendelser = listOf(hendelse),
                 kravgrunnlagPåSak = actualKravgrunnlag,

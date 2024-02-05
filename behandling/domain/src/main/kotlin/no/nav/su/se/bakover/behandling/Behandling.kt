@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.behandling
 
 import no.nav.su.se.bakover.common.domain.BehandlingsId
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
@@ -11,4 +13,6 @@ interface Behandling {
     val id: BehandlingsId
     val opprettet: Tidspunkt
     val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
 }

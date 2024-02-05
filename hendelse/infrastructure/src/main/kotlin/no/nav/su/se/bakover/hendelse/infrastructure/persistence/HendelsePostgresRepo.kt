@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
@@ -127,6 +129,37 @@ class HendelsePostgresRepo(
                     ),
                     session = session,
                 ) { toPersistertHendelse(it) }
+            }
+        }
+    }
+
+    fun hentHendelserMedSaksnummerOgFnrForSakIdOgType(
+        sakId: UUID,
+        type: Hendelsestype,
+        sessionContext: SessionContext? = null,
+    ): Triple<List<PersistertHendelse>, Saksnummer, Fnr> {
+        return dbMetrics.timeQuery("hentHendelserMedSaksnummerOgFnrForSakIdOgType") {
+            sessionContext.withOptionalSession(sessionFactory) { session ->
+                val persisterteHendelser = """
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    from hendelse
+                    where sakId = :sakId and type = :type
+                    order by versjon
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "sakId" to sakId,
+                        "type" to type.toString(),
+                    ),
+                    session = session,
+                ) { toPersistertHendelse(it) }
+
+                val saksnummerOgFnr = """select saksnummer, fnr from sak where id = :sakId""".hent(
+                    mapOf("sakId" to sakId),
+                    session,
+                ) { Pair(Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr"))) }
+
+                // tar for god boknafisk at vi alltid har en saknr og fnr :)
+                Triple(persisterteHendelser, saksnummerOgFnr!!.first, saksnummerOgFnr.second)
             }
         }
     }
