@@ -9,6 +9,8 @@ import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 /**
+ * ADVARSEL: Denne brukes kun av [VedtakOpphørUtenUtbetaling], som igjen brukes kun for historiske revurderinger (rene avkortingsvedtak uten utbetaling). Skal ikke brukes i nye revurderinger.
+ *
  * Motparten til [VedtakEndringIYtelse].
  * Vil ikke ha nye utbetalingslinjer (fører ikke til en utbetaling mot oppdrag)
  */

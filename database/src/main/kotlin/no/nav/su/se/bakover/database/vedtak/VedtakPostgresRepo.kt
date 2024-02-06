@@ -39,15 +39,12 @@ import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
-import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -61,10 +58,10 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
@@ -195,7 +192,7 @@ internal class VedtakPostgresRepo(
                 when (vedtak) {
                     // TODO jah: Erstatt med én felles insert-function
                     is VedtakEndringIYtelse -> lagreInternt(vedtak, tx)
-                    is VedtakIngenEndringIYtelse -> lagreInternt(vedtak, tx)
+                    is VedtakIngenEndringIYtelse -> throw IllegalStateException("")
                     is Avslagsvedtak -> lagreInternt(vedtak, tx)
                     is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
                 }
@@ -236,6 +233,7 @@ internal class VedtakPostgresRepo(
                 order by v.opprettet
                 """.trimIndent()
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
+                        // Siden vi krever vedtak med utbetalingId bør dette være en trygg cast.
                         it.toVedtak(session) as VedtakEndringIYtelse
                     }
             }
@@ -552,7 +550,7 @@ internal class VedtakPostgresRepo(
     }
 
     /** @param tx Persisterer både 'vedtak' og 'behandling_vedtak', så vi krever en transaksjon her. */
-    private fun lagreInternt(vedtak: VedtakSomKanRevurderes, tx: TransactionalSession) {
+    private fun lagreInternt(vedtak: VedtakEndringIYtelse, tx: TransactionalSession) {
         """
                 INSERT INTO vedtak(
                     id,
@@ -700,50 +698,50 @@ internal class VedtakPostgresRepo(
 }
 
 /** Kan være en Søknadsbehandling eller Revurdering */
-private fun lagreKlagevedtaksknytningTilBehandling(vedtak: Stønadsvedtak, session: Session) {
-    when (vedtak.behandling) {
-        is AbstraktRevurdering ->
-            lagreKlagevedtaksknytningTilRevurdering(vedtak, session)
-
-        is Søknadsbehandling ->
-            lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
-
-        is Regulering ->
-            lagreKlagevedtaksknytningTilRegulering(vedtak, session)
-
-        else ->
-            throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
+private fun lagreKlagevedtaksknytningTilBehandling(vedtak: VedtakEndringIYtelse, session: Session) {
+    when (vedtak) {
+        is VedtakInnvilgetSøknadsbehandling -> lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
+        // TODO jah: Kan også vurdere lage en felles type for innvilget rev, opphør, stans og gjenopptak, da tregner vi ikke sende med vedtak.behandling.id
+        is VedtakOpphørMedUtbetaling -> lagreKlagevedtaksknytningTilRevurdering(vedtak, vedtak.behandling.id, session)
+        is VedtakInnvilgetRevurdering -> lagreKlagevedtaksknytningTilRevurdering(vedtak, vedtak.behandling.id, session)
+        is VedtakGjenopptakAvYtelse -> lagreKlagevedtaksknytningTilRevurdering(vedtak, vedtak.behandling.id, session)
+        is VedtakInnvilgetRegulering -> lagreKlagevedtaksknytningTilRegulering(vedtak, session)
+        is VedtakStansAvYtelse -> lagreKlagevedtaksknytningTilRevurdering(vedtak, vedtak.behandling.id, session)
     }
 }
 
-private fun lagreKlagevedtaksknytningTilRevurdering(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilRevurdering(
+    vedtak: Stønadsvedtak,
+    revurderingId: RevurderingId,
+    session: Session,
+) {
     lagreVedtaksknytning(
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRevurdering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            revurderingId = vedtak.behandling.id as RevurderingId,
+            revurderingId = revurderingId,
         ),
         session = session,
     )
 }
 
-private fun lagreKlagevedtaksknytningTilRegulering(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilRegulering(vedtak: VedtakInnvilgetRegulering, session: Session) {
     lagreVedtaksknytning(
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRegulering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            reguleringId = vedtak.behandling.id as ReguleringId,
+            reguleringId = vedtak.behandling.id,
         ),
         session = session,
     )
 }
 
-private fun lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak: VedtakIverksattSøknadsbehandling, session: Session) {
     lagreVedtaksknytning(
         behandlingVedtaksknytning = BehandlingVedtaksknytning.ForSøknadsbehandling(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
-            søknadsbehandlingId = vedtak.behandling.id as SøknadsbehandlingId,
+            søknadsbehandlingId = vedtak.behandling.id,
         ),
         session = session,
     )
