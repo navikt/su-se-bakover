@@ -3,8 +3,10 @@ package tilbakekreving.domain
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.common.domain.NonBlankString
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -24,6 +26,8 @@ import java.util.UUID
 sealed interface Tilbakekrevingsbehandling : BehandlingMedAttestering {
     override val id: TilbakekrevingsbehandlingId
     override val sakId: UUID
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
     override val opprettet: Tidspunkt
     override val attesteringer: Attesteringshistorikk
     val opprettetAv: NavIdentBruker.Saksbehandler

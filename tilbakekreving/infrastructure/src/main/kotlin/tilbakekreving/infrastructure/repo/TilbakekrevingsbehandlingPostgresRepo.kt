@@ -162,24 +162,34 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 UnderkjentTilbakekrevingsbehandlingHendelsestype,
                 OppdatertKravgrunnlagPåTilbakekrevingHendelse,
                 NotatTilbakekrevingsbehandlingHendelsestype,
-            ).flatMap {
+            ).map {
                 (hendelseRepo as HendelsePostgresRepo)
-                    .hentHendelserForSakIdOgType(
+                    .hentHendelserMedSaksnummerOgFnrForSakIdOgType(
                         sakId = sakId,
                         type = it,
                         sessionContext = openSessionContext,
-                    ).map {
-                        it.toTilbakekrevingsbehandlingHendelse()
+                    ).let {
+                        Triple(
+                            it.first.map { it.toTilbakekrevingsbehandlingHendelse() },
+                            it.second,
+                            it.third,
+                        )
                     }
             }.let { tilbakekrevingsHendelser ->
+                val saksnummer = tilbakekrevingsHendelser[0].second
+                val fnr = tilbakekrevingsHendelser[0].third
+                val flatMappedHendelser = tilbakekrevingsHendelser.flatMap { it.first }
+
                 TilbakekrevingsbehandlingHendelser.create(
                     sakId = sakId,
-                    hendelser = tilbakekrevingsHendelser,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    hendelser = flatMappedHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
                     dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
                         .filter { dokumentHendelseSerie ->
-                            tilbakekrevingsHendelser.any { dokumentHendelseSerie.relatertHendelse == it.hendelseId }
+                            flatMappedHendelser.any { dokumentHendelseSerie.relatertHendelse == it.hendelseId }
                         }.let {
                             DokumentHendelser(sakId = sakId, serier = it)
                         },

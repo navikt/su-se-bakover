@@ -132,6 +132,8 @@ class PersistertTilbakekrevingTestData(
                 fourth = it.fourth,
                 fifth = TilbakekrevingsbehandlingHendelser.create(
                     sakId = it.first.id,
+                    fnr = it.first.fnr,
+                    saksnummer = it.first.saksnummer,
                     clock = clock,
                     hendelser = listOf(
                         it.seventh,

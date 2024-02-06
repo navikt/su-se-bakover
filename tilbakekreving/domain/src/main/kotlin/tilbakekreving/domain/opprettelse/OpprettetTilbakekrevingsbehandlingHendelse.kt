@@ -4,6 +4,7 @@
 package tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -62,17 +63,20 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     }
 
     fun toDomain(
+        fnr: Fnr,
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
         erKravgrunnlagUtdatert: Boolean,
     ): OpprettetTilbakekrevingsbehandling {
-        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
+        return toDomain(fnr, kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
     }
 
-    fun toDomain(kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(fnr: Fnr, kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
         require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
             sakId = sakId,
+            fnr = fnr,
+            saksnummer = kravgrunnlag.saksnummer,
             opprettet = hendelsestidspunkt,
             opprettetAv = opprettetAv,
             kravgrunnlag = kravgrunnlag,

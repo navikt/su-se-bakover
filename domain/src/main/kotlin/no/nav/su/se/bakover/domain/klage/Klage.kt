@@ -162,8 +162,8 @@ interface Klagefelter : Behandling {
     override val id: KlageId
     override val opprettet: Tidspunkt
     override val sakId: UUID
-    val saksnummer: Saksnummer
-    val fnr: Fnr
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
     val journalpostId: JournalpostId
     val oppgaveId: OppgaveId
     val datoKlageMottatt: LocalDate

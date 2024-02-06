@@ -50,6 +50,7 @@ class OpprettTilbakekrevingsbehandlingService(
                 command = command,
                 forrigeVersjon = sak.versjon,
                 clock = clock,
+                fnr = sak.fnr,
                 kravgrunnlag = k,
                 erKravgrunnlagUtdatert = false,
             ).let { (hendelse, behandling) ->
