@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
@@ -722,7 +723,7 @@ fun iverksattSøknadsbehandling(
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
-): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
+): Triple<Sak, IverksattSøknadsbehandling, VedtakIverksattSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,

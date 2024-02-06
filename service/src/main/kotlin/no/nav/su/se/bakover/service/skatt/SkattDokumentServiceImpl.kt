@@ -13,9 +13,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonOppslag
@@ -46,7 +45,7 @@ class SkattDokumentServiceImpl(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun genererOgLagre(
-        vedtak: Stønadsvedtak,
+        vedtak: VedtakIverksattSøknadsbehandling,
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
@@ -133,7 +132,7 @@ class SkattDokumentServiceImpl(
         }
     }
 
-    private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
+    private fun generer(vedtak: VedtakIverksattSøknadsbehandling): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
         val hentetSkatt = when (vedtak.behandling.eksterneGrunnlag.skatt) {
             is EksterneGrunnlagSkatt.Hentet -> vedtak.behandling.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet
             EksterneGrunnlagSkatt.IkkeHentet -> return KunneIkkeGenerereSkattedokument.SkattegrunnlagErIkkeHentetForÅGenereDokument.left()
@@ -141,7 +140,7 @@ class SkattDokumentServiceImpl(
 
         return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
-            søknadsbehandlingId = vedtak.behandling.id as SøknadsbehandlingId,
+            søknadsbehandlingId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
             // vi henter skattemeldingene samtidig
             hentet = hentetSkatt.søkers.hentetTidspunkt,

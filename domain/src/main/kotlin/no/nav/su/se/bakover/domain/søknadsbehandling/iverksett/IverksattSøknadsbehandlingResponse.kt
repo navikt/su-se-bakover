@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import økonomi.domain.utbetaling.Utbetaling
@@ -17,7 +17,7 @@ import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 
 interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
     val sak: Sak
-    val vedtak: Stønadsvedtak
+    val vedtak: VedtakIverksattSøknadsbehandling
     val søknadsbehandling: T
 
     fun ferdigstillIverksettelseITransaksjon(
@@ -29,6 +29,6 @@ interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeLukkeOppgave, Unit>,
-        genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
+        genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
     )
 }

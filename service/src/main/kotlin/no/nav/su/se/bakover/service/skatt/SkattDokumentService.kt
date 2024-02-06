@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
 import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import vilkår.skatt.domain.Skattedokument
@@ -14,7 +14,7 @@ import vilkår.skatt.domain.Skattedokument
  */
 interface SkattDokumentService {
     fun genererOgLagre(
-        vedtak: Stønadsvedtak,
+        vedtak: VedtakIverksattSøknadsbehandling,
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument>
 

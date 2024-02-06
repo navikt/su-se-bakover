@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.slf4j.LoggerFactory
@@ -46,7 +46,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeLukkeOppgave, Unit>,
-        genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
+        genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
             /**
