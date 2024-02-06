@@ -85,7 +85,7 @@ open class Session(
             when (it.size) {
                 0 -> null
                 1 -> it[0]
-                else -> throw IllegalArgumentException("Flere enn én database-mapper for samme type (${v?.let{v::class}}): $it")
+                else -> throw IllegalArgumentException("Flere enn én database-mapper for samme type (${v?.let { v::class }}): $it")
             }
         }
         if (v == null) {
@@ -121,8 +121,12 @@ open class Session(
                 is URL -> this.setURL(idx, v)
                 is UUID30 -> this.setString(idx, v.toString())
                 is BehandlingsId -> this.setString(idx, v.value.toString()).also {
-                    logger.warn("Session.kt lagret en BehandlingsId. Mapping burde ha vært gjort i SQL params for repoene. Dette er en midlertidig løsning")
+                    logger.warn(
+                        "Session.kt lagret en BehandlingsId. Mapping burde ha vært gjort i SQL params for repoene. Dette er en midlertidig løsning",
+                        RuntimeException("trigger stacktrace på warning"),
+                    )
                 }
+
                 is Fnr -> this.setString(idx, v.toString())
                 is NavIdentBruker -> this.setString(idx, v.navIdent)
 
