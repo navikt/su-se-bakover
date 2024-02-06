@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
@@ -210,6 +211,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderin
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -364,6 +366,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakForSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentSakForVedtak(vedtakId: UUID): Sak? {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -560,7 +566,7 @@ open class AccessCheckProxy(
                     override fun opprett(
                         request: SøknadsbehandlingService.OpprettRequest,
                         hentSak: (() -> Sak)?,
-                    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+                    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
                         return service.opprett(request, hentSak)
                     }
@@ -992,6 +998,14 @@ open class AccessCheckProxy(
 
                 override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> =
                     kastKanKunKallesFraAnnenService()
+
+                override fun startNySøknadsbehandlingForAvslag(
+                    vedtakId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
+                    assertHarTilgangTilVedtak(vedtakId)
+                    return services.vedtakService.startNySøknadsbehandlingForAvslag(vedtakId, saksbehandler)
+                }
             },
             nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {

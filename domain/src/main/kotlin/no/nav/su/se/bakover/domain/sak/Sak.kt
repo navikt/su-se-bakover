@@ -313,13 +313,6 @@ data class Sak(
             ?: FantIkkeSøknadsbehandlingForSøknad.left()
     }
 
-    sealed interface KunneIkkeOppretteSøknadsbehandling {
-        data object ErLukket : KunneIkkeOppretteSøknadsbehandling
-        data object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
-        data object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
-        data object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
-    }
-
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode: Periode,
         clock: Clock,

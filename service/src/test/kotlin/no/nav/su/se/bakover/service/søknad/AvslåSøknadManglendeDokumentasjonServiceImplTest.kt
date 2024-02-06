@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevService
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -406,7 +406,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
-                Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling,
+                KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling,
             ).left()
 
             verify(it.sakService).hentSakForSøknad(nySøknad.id)

@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon
 
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
 
 sealed interface KunneIkkeAvslåSøknad {
     data class KunneIkkeOppretteSøknadsbehandling(
-        val underliggendeFeil: Sak.KunneIkkeOppretteSøknadsbehandling,
+        val underliggendeFeil: behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling,
     ) : KunneIkkeAvslåSøknad
 
     data class KunneIkkeIverksetteSøknadsbehandling(

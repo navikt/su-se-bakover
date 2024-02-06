@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -135,7 +136,7 @@ class SøknadsbehandlingServiceImpl(
     override fun opprett(
         request: OpprettRequest,
         hentSak: (() -> Sak)?,
-    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
         val sakId = request.sakId
         val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
             .getOrElse { throw IllegalArgumentException("Fant ikke sak $sakId") }

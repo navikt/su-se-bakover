@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
@@ -87,7 +87,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+            ) shouldBe KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
         }
     }
 
@@ -106,26 +106,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
-        }
-    }
-
-    @Test
-    fun `svarer med feil dersom søknad har påbegynt behandling`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingIverksattAvslagMedBeregning()
-
-        SøknadsbehandlingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-        ).also {
-            it.søknadsbehandlingService.opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknadsbehandling.søknad.id,
-                    sakId = sak.id,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
+            ) shouldBe KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
         }
     }
 
@@ -154,7 +135,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = nySøknad.sakId,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+            ) shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
         }
     }
 

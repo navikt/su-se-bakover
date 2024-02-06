@@ -234,7 +234,7 @@ class SakServiceImpl(
             endretAv = command.saksbehandler,
             endretTidspunkt = Tidspunkt.now(clock),
 
-            )
+        )
         // TODO jah: La Sak.kt ha en funksjon for å oppdatere og flytt logikken dit.
         return hentSak(sakId).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke sak med id $sakId")

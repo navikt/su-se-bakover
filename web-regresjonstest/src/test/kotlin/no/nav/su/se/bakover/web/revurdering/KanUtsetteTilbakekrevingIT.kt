@@ -5,11 +5,8 @@ import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
-import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
@@ -116,7 +113,8 @@ internal class KanUtsetteTilbakekrevingIT {
                                           "tilOgMed":"2021-01-31"
                                         },
                                         "type":"SØKNAD",
-                                        "dokumenttilstand": "GENERERT"
+                                        "dokumenttilstand": "GENERERT",
+                                        "kanStarteNyBehandling": false
                                     },
                                     {
                                         "id":"ignore-me",
@@ -132,7 +130,8 @@ internal class KanUtsetteTilbakekrevingIT {
                                           "tilOgMed":"2021-01-31"
                                         },
                                         "type":"OPPHØR",
-                                        "dokumenttilstand": "GENERERT"
+                                        "dokumenttilstand": "GENERERT",
+                                        "kanStarteNyBehandling": false
                                     },
                             ]
                             """.trimIndent(),

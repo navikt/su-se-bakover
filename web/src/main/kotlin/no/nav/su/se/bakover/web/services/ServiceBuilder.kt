@@ -105,6 +105,10 @@ data object ServiceBuilder {
         }
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
+            sakService = sakService,
+            personservice = personService,
+            oppgaveService = oppgaveService,
+            clock = clock,
         )
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,

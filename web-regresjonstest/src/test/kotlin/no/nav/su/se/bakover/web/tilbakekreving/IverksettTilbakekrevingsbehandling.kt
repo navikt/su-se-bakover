@@ -138,7 +138,8 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
                     "behandlingId":$tilbakekrevingsbehandlingId,
                     "periode":null,
                     "type":"TILBAKEKREVING",
-                    "dokumenttilstand":"SENDT"
+                    "dokumenttilstand":"SENDT",
+                    "kanStarteNyBehandling": false
                 }
     """.trimIndent()
     tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id", "opprettet")
