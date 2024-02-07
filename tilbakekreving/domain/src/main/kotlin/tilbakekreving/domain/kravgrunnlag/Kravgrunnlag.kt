@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.math.BigDecimal
 
 data class Kravgrunnlag(
-    /** Se [tilbakekreving.domain.kravgrunnlag.KravgrunnlagDetaljerPåSakHendelse]*/
+    /** Se [tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse]*/
     val hendelseId: HendelseId,
 
     val saksnummer: Saksnummer,

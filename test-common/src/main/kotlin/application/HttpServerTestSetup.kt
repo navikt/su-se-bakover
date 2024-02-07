@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.test.applicationConfig
+import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
@@ -98,6 +99,7 @@ fun Application.runApplicationWithMocks(
             brevService = brevService,
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
+            samlTokenProvider = FakeSamlTokenProvider(),
         )
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),

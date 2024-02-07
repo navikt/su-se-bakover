@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 
-internal class TilbakekrevingSoapClientTest {
+internal class TilbakekrevingUnderRevurderingSoapClientTest {
 
     @Test
     fun `svarer med feil hvis problemer hos mottaker`() {

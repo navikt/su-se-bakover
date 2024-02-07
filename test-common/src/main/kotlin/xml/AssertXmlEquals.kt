@@ -34,11 +34,11 @@ fun String.shouldBeSimilarXmlTo(expectedXml: String, strict: Boolean = false) {
  * Kan si at builderen med node-matcher vil reagere på hvis dataen er feil - men builderen uten node matcher gir ikke feil om strukturen er feil
  */
 private fun String.compareXmlWith(expectedXml: String, strict: Boolean): Pair<Diff, Diff> {
-    val diffBuilderWithoutNodeMatcher = DiffBuilder.compare(this).withTest(expectedXml)
+    val diffBuilderWithoutNodeMatcher = DiffBuilder.compare(expectedXml).withTest(this)
         .ignoreWhitespace()
         .withComparisonController(ComparisonControllers.StopWhenDifferent)
 
-    val diffBuilderWithNodeMatcher = DiffBuilder.compare(this).withTest(expectedXml)
+    val diffBuilderWithNodeMatcher = DiffBuilder.compare(expectedXml).withTest(this)
         .ignoreWhitespace()
         .withNodeMatcher(DefaultNodeMatcher(ElementSelectors.byNameAndText))
         .withComparisonController(ComparisonControllers.StopWhenDifferent)
