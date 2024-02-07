@@ -1,88 +1,135 @@
+@file:Suppress("HttpUrlsUsage")
+
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
-import com.ctc.wstx.exc.WstxEOFException
-import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
-import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
-import java.net.SocketException
+import java.io.IOException
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.time.Clock
-import javax.net.ssl.SSLException
-import javax.xml.ws.WebServiceException
-import javax.xml.ws.soap.SOAPFaultException
+import java.time.Duration
+import java.util.UUID
+
+private const val ACTION =
+    "http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt/simulerFpService/simulerBeregningRequest"
 
 internal class SimuleringSoapClient(
-    private val simulerFpService: SimulerFpService,
+    private val baseUrl: String,
+    private val samlTokenProvider: SamlTokenProvider,
     private val clock: Clock,
 ) : SimuleringClient {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private val client: HttpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(5))
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build()
+
     override fun simulerUtbetaling(
         utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(utbetalingForSimulering).build()
-        return try {
-            simulerFpService.simulerBeregning(simulerRequest)?.response.let { response: SimulerBeregningResponse? ->
-                response.toSimulering(
-                    request = utbetalingForSimulering,
-                    soapRequest = simulerRequest,
-                    clock = clock,
-                )
-            }
-        } catch (e: SimulerBeregningFeilUnderBehandling) {
-            log.warn("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
-            sikkerLogg.warn(
-                "Simulering feilet med feiltype:${e.faultInfo.errorType}, feilmelding=${e.faultInfo.errorMessage} for request:${simulerRequest.print()}",
-                e,
+        val soapBody = buildXmlRequestBody(utbetalingForSimulering)
+        val saksnummer = utbetalingForSimulering.saksnummer
+        val assertion = samlTokenProvider.samlToken().getOrElse {
+            // SamlTokenProvider logger, men mangler kontekst.
+            log.error(
+                "Feil ved simulering: Kunne ikke hente SAML-token for saksnummer: $saksnummer. Se sikkerlogg for soap body.",
+                RuntimeException("Trigger stacktrace"),
             )
-            with(e.faultInfo.errorMessage) {
-                when {
-                    startsWith("Personen finnes ikke i TPS") -> SimuleringFeilet.PersonFinnesIkkeITPS.left()
-                    startsWith("Finner ikke kjøreplansperiode for fom-dato") -> SimuleringFeilet.FinnerIkkeKjøreplanForFraOgMed.left()
-                    startsWith("OPPDRAGET/FAGSYSTEM-ID finnes ikke") -> SimuleringFeilet.OppdragEksistererIkke.left()
-                    else -> SimuleringFeilet.FunksjonellFeil.left()
+            sikkerLogg.error("Feil ved simulering: Kunne ikke hente SAML-token for saksnummer: $saksnummer. soapBody: $soapBody")
+            return SimuleringFeilet.TekniskFeil.left()
+        }.toString()
+        val soapRequest = buildXmlRequestSoapEnvelope(
+            action = ACTION,
+            messageId = UUID.randomUUID().toString(),
+            serviceUrl = baseUrl,
+            assertion = assertion,
+            body = soapBody,
+        )
+        // TODO jah: Kan fjerne debug etter vi har fått verifisert.
+        log.debug(
+            "Simulerer utbetaling for saksnummer: {}, baseUrl: $baseUrl. Se sikkerlogg for mer kontekst.",
+            saksnummer,
+        )
+        sikkerLogg.debug("Simulerer utbetaling for saksnummer: {}, soapRequest: {}", saksnummer, soapRequest)
+        return Either.catch {
+            val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
+                .header("SOAPAction", ACTION)
+                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
+                .build()
+            val (response: String?, status: Int) = client.send(httpRequest, HttpResponse.BodyHandlers.ofString()).let {
+                it.body() to it.statusCode()
+            }
+            // TODO jah: Kan fjerne debug etter vi har fått verifisert.
+            log.debug(
+                "Simuleringsrespons for saksnummer: {}. statusCode: {}. Se sikkerlogg for mer kontekst.",
+                saksnummer,
+                status,
+            )
+            sikkerLogg.debug(
+                "Simuleringsrespons for saksnummer: {}. statusCode: {}, response: {}",
+                saksnummer,
+                status,
+                response,
+            )
+            if (status != 200) {
+                log.error(
+                    "Feil ved simulering: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status. Se sikkerlogg for request.",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                sikkerLogg.error("Feil ved simulering: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, Soap-request: $soapRequest")
+                return SimuleringFeilet.TekniskFeil.left()
+            }
+
+            response ?: return SimuleringFeilet.TekniskFeil.left().also {
+                log.error(
+                    "Feil ved simulering: Simuleringsresponsen fra Oppdrag var tom (forventet soap) for saksnummer: $saksnummer. statusCode: $status. Se sikkerlogg for request.",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                sikkerLogg.error("Simuleringsresponsen fra Oppdrag var tom (forventet soap) for saksnummer: $saksnummer. statusCode: $status. Soap-request: $soapRequest")
+            }
+        }.mapLeft { error: Throwable ->
+            when (error) {
+                is IOException -> {
+                    log.warn(
+                        "Feil ved simulering: Antar Oppdrag/UR stengt. Se sikkerlogg for kontekst.",
+                        RuntimeException("Trigger stacktrace"),
+                    )
+                    sikkerLogg.warn("Feil ved simulering: Antar Oppdrag/UR stengt. Soap-request: $soapRequest", error)
+                    SimuleringFeilet.UtenforÅpningstid
+                }
+
+                else -> {
+                    log.warn(
+                        "Feil ved simulering: Ukjent feil. Se sikkerlogg for kontekst.",
+                        RuntimeException("Trigger stacktrace"),
+                    )
+                    sikkerLogg.warn("Feil ved simulering: Ukjent feil. Soap-request: $soapRequest", error)
+                    SimuleringFeilet.TekniskFeil
                 }
             }
-        } catch (e: SOAPFaultException) {
-            when (e.cause) {
-                is WstxEOFException -> utenforÅpningstidResponse(e)
-                else -> unknownTechnicalExceptionResponse(e)
-            }
-        } catch (e: WebServiceException) {
-            if (e.cause is SSLException || e.rootCause is SocketException) {
-                utenforÅpningstidResponse(e)
-            } else {
-                unknownTechnicalExceptionResponse(e)
-            }
-        } catch (e: Throwable) {
-            unknownTechnicalExceptionResponse(e)
+        }.flatMap { soapResponse ->
+            mapSimuleringResponse(
+                saksnummer = saksnummer,
+                fnr = utbetalingForSimulering.fnr,
+                simuleringsperiode = utbetalingForSimulering.periode,
+                soapRequest = soapRequest,
+                soapResponse = soapResponse,
+                clock = clock,
+            )
         }
     }
-
-    private fun SimulerBeregningRequest.print() = serialize(this)
-
-    private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TekniskFeil.left().also {
-        log.error("Ukjent teknisk feil ved simulering", exception)
-    }
-
-    private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringFeilet.UtenforÅpningstid.left().also {
-        log.error("Feil ved simulering, Oppdrag/UR er stengt", exception)
-    }
-
-    private val Throwable.rootCause: Throwable
-        get() {
-            var rootCause: Throwable = this
-            while (rootCause.cause != null) rootCause = rootCause.cause!!
-            return rootCause
-        }
 }

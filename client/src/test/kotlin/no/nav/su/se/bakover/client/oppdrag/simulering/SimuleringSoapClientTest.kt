@@ -1,15 +1,21 @@
+@file:Suppress("HttpUrlsUsage")
+
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.tomakehurst.wiremock.client.MappingBuilder
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
+import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -17,28 +23,22 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
-import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
-import no.nav.system.os.tjenester.simulerfpservice.feil.FeilUnderBehandling
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SendInnOppdragRequest
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SendInnOppdragResponse
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
+import no.nav.su.se.bakover.test.simulering.simuleringSoapResponseUkjentFeil
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
-import java.net.SocketException
-import javax.net.ssl.SSLException
-import javax.xml.ws.WebServiceException
+import java.time.Clock
 
 internal class SimuleringSoapClientTest {
 
-    private val nyUtbetaling = beregnetRevurdering().let {
+    private fun nyUtbetaling(clock: Clock) = beregnetRevurdering().let {
         it.first.lagNyUtbetaling(
             saksbehandler = saksbehandler,
             beregning = it.second.beregning,
-            clock = fixedClock,
+            clock = clock,
             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
             uføregrunnlag = it.second.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
         )
@@ -46,154 +46,247 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should return ok simulering`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return xmlMapper.readValue(xmlResponse)
-                }
-            },
-            clock = fixedClock,
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling).getOrFail().shouldBeType<Simulering>()
+        val clock = fixedClock
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/a").willReturn(
+                    WireMock.okXml(xmlResponse),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/a",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "a"),
+                clock = clock,
+            ).simulerUtbetaling(nyUtbetaling(clock)).getOrFail().shouldBeType<Simulering>()
+        }
     }
 
     @Test
     fun `should handle simulering with empty response`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                }
-            },
-            clock = fixedClock,
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe Simulering(
-            gjelderId = nyUtbetaling.fnr,
-            gjelderNavn = nyUtbetaling.fnr.toString(),
-            nettoBeløp = 0,
-            datoBeregnet = fixedLocalDate,
-            måneder = SimulertMåned.create(januar(2021)..desember(2021)),
-            rawResponse = "Tom respons fra oppdrag.",
-        ).right()
+        // kommentar jah: Veldig usikker på om denne faktisk kan inntreffe. Veldig spesielt hvis vi får et beløp>0 uten perioder.
+        val clock = fixedClock
+        val utbetalingForSimulering = nyUtbetaling(clock)
+        val xmlResponse = xmlUtenBeregningsperioder(utbetalingForSimulering.fnr)
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/b").willReturn(
+                    WireMock.okXml(xmlResponse),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/b",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "b"),
+                clock = clock,
+            ).simulerUtbetaling(utbetalingForSimulering).getOrFail() shouldBe (
+                Simulering(
+                    gjelderId = utbetalingForSimulering.fnr,
+                    gjelderNavn = "navn",
+                    nettoBeløp = 10390,
+                    datoBeregnet = fixedLocalDate,
+                    måneder = SimulertMåned.create(januar(2021)..desember(2021)),
+                    rawResponse = xmlResponse,
+                )
+                )
+        }
     }
 
     @Test
-    fun `should handle known error situations`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    throw SimulerBeregningFeilUnderBehandling(
-                        "Simulering feilet",
-                        FeilUnderBehandling().apply {
-                            errorMessage = "Detaljert feilmelding"
-                        },
-                    )
-                }
-            },
-            clock = fixedClock,
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FunksjonellFeil.left()
+    fun `should handle network error`() {
+        val clock = fixedClock
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/c").willReturn(
+                    aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/c",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "c"),
+                clock = clock,
+            ).simulerUtbetaling(nyUtbetaling(clock)) shouldBe SimuleringFeilet.UtenforÅpningstid.left()
+        }
     }
 
     @Test
-    fun `should handle utenfor åpningstid exception SSLException`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    throw WebServiceException(SSLException(""))
-                }
-            },
-            clock = fixedClock,
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.UtenforÅpningstid.left()
+    fun `cics feil`() {
+        val clock = fixedClock
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/d").willReturn(
+                    aResponse().withStatus(500).withBody(xmlCicsFeil),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/d",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "d"),
+                clock = clock,
+            ).simulerUtbetaling(nyUtbetaling(clock)) shouldBe SimuleringFeilet.TekniskFeil.left()
+        }
     }
 
     @Test
-    fun `should handle utenfor åpningstid exception SocketException`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    throw WebServiceException(SocketException(""))
-                }
-            },
-            clock = fixedClock,
-        )
-
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.UtenforÅpningstid.left()
-    }
-
-    @Test
-    fun `should handle unknown technical errors`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    throw WebServiceException(IllegalArgumentException())
-                }
-            },
-            clock = fixedClock,
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TekniskFeil.left()
+    fun `teknisk feil`() {
+        val clock = fixedClock
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/d").willReturn(
+                    aResponse().withStatus(500).withBody(xmlSimulerBeregningFeilUnderBehandling),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/d",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "d"),
+                clock = clock,
+            ).simulerUtbetaling(nyUtbetaling(clock)) shouldBe SimuleringFeilet.TekniskFeil.left()
+        }
     }
 
     @Test
     fun `skal returnere simulering ekvivalent med 0-utbetaling dersom response ikke inneholder data`() {
-        val simuleringService = SimuleringSoapClient(
-            simulerFpService = object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
+        val clock = fixedClock
+        val utbetalingForSimulering = nyUtbetaling(clock)
+        startedWireMockServerWithCorrelationId {
+            this.stubFor(
+                wiremockBuilder("/e").willReturn(
+                    aResponse().withStatus(200).withBody(xmlUtenSimulering),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/e",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "e"),
+                clock = clock,
+            ).simulerUtbetaling(utbetalingForSimulering) shouldBe (
+                Simulering(
+                    gjelderId = utbetalingForSimulering.fnr,
+                    gjelderNavn = utbetalingForSimulering.fnr.toString(),
+                    nettoBeløp = 0,
+                    datoBeregnet = fixedLocalDate,
+                    måneder = SimulertMåned.create(januar(2021)..desember(2021)),
+                    rawResponse = xmlUtenSimulering,
+                ).right()
+                )
+        }
+    }
 
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                        .apply { response = null }
-                }
-            },
-            clock = fixedClock,
-        )
+    @Test
+    fun `skal returnere simulering ekvivalent med 0-utbetaling dersom response mangler`() {
+        val clock = fixedClock
+        val utbetalingForSimulering = nyUtbetaling(clock)
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/f").willReturn(
+                    aResponse().withStatus(200).withBody(xmlUtenResponse),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/f",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "f"),
+                clock = clock,
+            ).simulerUtbetaling(utbetalingForSimulering) shouldBe Simulering(
+                gjelderId = utbetalingForSimulering.fnr,
+                gjelderNavn = utbetalingForSimulering.fnr.toString(),
+                nettoBeløp = 0,
+                datoBeregnet = fixedLocalDate,
+                måneder = SimulertMåned.create(januar(2021)..desember(2021)),
+                rawResponse = xmlUtenResponse,
+            ).right()
+        }
+    }
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe Simulering(
-            gjelderId = nyUtbetaling.fnr,
-            gjelderNavn = nyUtbetaling.fnr.toString(),
-            nettoBeløp = 0,
-            datoBeregnet = fixedLocalDate,
-            måneder = SimulertMåned.create(januar(2021)..desember(2021)),
-            rawResponse = "Tom respons fra oppdrag.",
-        ).right()
+    @Test
+    fun `skal feile pga soap fault`() {
+        val clock = fixedClock
+        val utbetalingForSimulering = nyUtbetaling(clock)
+        val soapResonse = simuleringSoapResponseUkjentFeil()
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder("/g").willReturn(
+                    aResponse().withStatus(500).withBody(soapResonse),
+                ),
+            )
+            SimuleringSoapClient(
+                baseUrl = "${this.baseUrl()}/g",
+                samlTokenProvider = FakeSamlTokenProvider(clock = clock, token = "g"),
+                clock = clock,
+            ).simulerUtbetaling(utbetalingForSimulering) shouldBe SimuleringFeilet.TekniskFeil.left()
+        }
     }
 
     //language=xml
+    private val xmlCicsFeil = """
+    <S:Fault xmlns="">
+        <faultcode>SOAP-ENV:Server</faultcode>
+        <faultstring>Conversion from SOAP failed</faultstring>
+        <detail>
+            <CICSFault xmlns="http://www.ibm.com/software/htp/cics/WSFault">RUTINE1 17/01/2024 08:55:44 CICS01
+                ERR01 1337 XML to data transformation failed. A conversion error (OUTPUT_OVERFLOW) occurred when
+                converting field maksDato for WEBSERVICE simulerFpServiceWSBinding.
+            </CICSFault>
+        </detail>
+    </S:Fault>
+    """.trimIndent()
+
+    //language=xml
+    private val xmlSimulerBeregningFeilUnderBehandling = """
+        <S:Fault xmlns="">
+        <faultcode>Soap:Client</faultcode>
+        <faultstring>simulerBeregningFeilUnderBehandling                                             </faultstring>
+        <detail>
+            <sf:simulerBeregningFeilUnderBehandling xmlns:sf="http://nav.no/system/os/tjenester/oppdragService">
+                <errorMessage>UTBETALES-TIL-ID er ikke utfylt</errorMessage>
+                <errorSource>K231BB50 section: CA10-KON</errorSource>
+                <rootCause>Kode BB50018F - SQL      - MQ</rootCause>
+                <dateTimeStamp>2024-01-14T09:41:29</dateTimeStamp>
+            </sf:simulerBeregningFeilUnderBehandling>
+        </detail>
+    </S:Fault>
+    """.trimIndent()
+
+    //language=xml
+    private val xmlUtenResponse = """
+        <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+         <Body>
+         <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+        </simulerBeregningResponse>
+        </Body>
+        </Envelope>
+    """.trimIndent()
+
+    //language=xml
+    private val xmlUtenSimulering = """
+        <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+         <Body>
+         <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+             <response xmlns="">
+            </response>
+        </simulerBeregningResponse>
+        </Body>
+        </Envelope>
+    """.trimIndent()
+
+    //language=xml
+    private fun xmlUtenBeregningsperioder(fnr: Fnr) = """
+        <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+         <Body>
+         <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+             <response xmlns="">
+                <simulering>
+                   <gjelderId>$fnr</gjelderId>
+                   <gjelderNavn>navn</gjelderNavn>
+                   <datoBeregnet>2021-01-01</datoBeregnet>
+                   <kodeFaggruppe>INNT</kodeFaggruppe>
+                   <belop>10390.00</belop>
+                </simulering>
+            </response>
+        </simulerBeregningResponse>
+        </Body>
+        </Envelope>
+    """.trimIndent()
+
+    //language=xml
     private val xmlResponse = """
+    <Envelope namespace="http://schemas.xmlsoap.org/soap/envelope/">
+    <Body>
     <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
              <response xmlns="">
                 <simulering>
@@ -277,5 +370,12 @@ internal class SimuleringSoapClientTest {
                 </infomelding>
              </response>
           </simulerBeregningResponse>
+          </Body>
+          </Envelope>
     """.trimIndent()
 }
+
+private fun wiremockBuilder(testUrl: String): MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(testUrl)).withHeader(
+    "SOAPAction",
+    WireMock.equalTo("http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt/simulerFpService/simulerBeregningRequest"),
+)

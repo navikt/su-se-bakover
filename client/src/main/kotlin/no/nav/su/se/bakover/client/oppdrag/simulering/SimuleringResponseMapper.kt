@@ -1,18 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
-import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.Fagområde
@@ -23,7 +16,6 @@ import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
-import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.time.LocalDate
 
@@ -35,83 +27,64 @@ private val defaultLog = LoggerFactory.getLogger("SimuleringResponseMapper")
  * @param log For testing.
  * @param sikkerLogg For testing.
  */
-fun SimulerBeregningResponse?.toSimulering(
-    request: Utbetaling.UtbetalingForSimulering,
+fun mapSimuleringResponse(
+    saksnummer: Saksnummer,
+    fnr: Fnr,
+    simuleringsperiode: Periode,
+    soapRequest: String,
+    soapResponse: String,
     clock: Clock,
-    soapRequest: SimulerBeregningRequest,
     log: Logger = defaultLog,
     sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
 ): Either<SimuleringFeilet.TekniskFeil, Simulering> {
-    val saksnummer = request.saksnummer
-    // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
-    // Siden dette er javaklasser uten toString() så serialiserer vi de før vi lagrer/logger.
-    val rawResponse: String? = this?.let {
-        serializeSoapMessage(log = log, sikkerLogg = sikkerLogg, message = this, request = request)
-    }
-    val rawRequest: String = serializeSoapMessage(log = log, sikkerLogg = sikkerLogg, message = soapRequest, request = request)
     return Either.catch {
-        if (this == null) {
-            request.mapTomResponsFraOppdrag(
-                simuleringsperiode = request.periode,
+        val response = soapResponse.deserializeSimulerBeregningResponse()
+        if (response == null) {
+            mapTomResponsFraOppdrag(
+                simuleringsperiode = simuleringsperiode,
                 clock = clock,
+                fnr = fnr,
+                rawResponse = soapResponse,
             )
         } else {
             Simulering(
-                gjelderId = Fnr(simulering.gjelderId),
-                gjelderNavn = simulering.gjelderNavn.trim(),
-                datoBeregnet = LocalDate.parse(simulering.datoBeregnet),
-                nettoBeløp = simulering.belop.toInt(),
-                måneder = simulering.beregningsPeriode.map {
+                gjelderId = Fnr(response.gjelderId),
+                gjelderNavn = response.gjelderNavn.trim(),
+                datoBeregnet = LocalDate.parse(response.datoBeregnet),
+                nettoBeløp = response.belop.toBigDecimal().intValueExact(),
+                måneder =
+                response.beregningsPeriode.map {
                     it.toSimulertPeriode(
                         saksnummer = saksnummer,
-                        request = request,
-                        rawRequest = rawRequest,
-                        rawResponse = rawResponse!!,
+                        soapRequest = soapRequest,
+                        soapResponse = soapResponse,
                         log = log,
                     )
+                }.ifEmpty {
+                    // Merknad jah: Usikker på om dette faktisk kan inntreffe. Tror denne alltid kommer med dersom vi først har et simuleringsobjekt.
+                    SimulertMåned.create(simuleringsperiode)
                 },
-                rawResponse = rawResponse!!,
+                rawResponse = soapResponse,
             )
         }
     }.mapLeft { throwable ->
         log.error("Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer. Se sikkerlogg for stacktrace og context.")
         sikkerLogg.error(
-            "Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer. Response: $rawResponse, SoapRequest: $rawRequest, Request: $request",
+            "Kunne ikke mappe SimulerBeregningResponse til Simulering for saksnummer $saksnummer. Response: $soapResponse, SoapRequest: $soapRequest",
             throwable,
         )
         SimuleringFeilet.TekniskFeil
     }
 }
 
-private fun serializeSoapMessage(
-    log: Logger,
-    sikkerLogg: Logger,
-    message: Any,
-    request: Utbetaling.UtbetalingForSimulering,
-): String {
-    return Either.catch {
-        xmlMapper.writeValueAsString(message)
-    }.getOrElse { throwable ->
-        "Kunne ikke serialisere ${message.javaClass.simpleName} til XML, se sikkerlogg for stacktrace og context. Lagrer denne strengen istedenfor.".also { errorMessage ->
-            log.error(errorMessage)
-            sikkerLogg.error(
-                "Kunne ikke serialisere ${message.javaClass.simpleName} til XML. Request: $request",
-                throwable,
-            )
-        }
-    }
-}
-
 /**
- * @param rawResponse Brukes kun for logging.
- * @param request Brukes kun for logging.
- * @param rawRequest Brukes kun for logging.
+ * @param soapResponse Brukes kun for logging.
+ * @param soapRequest Brukes kun for logging.
  */
-private fun BeregningsPeriode.toSimulertPeriode(
+private fun SimulerBeregningResponse.BeregningsPeriode.toSimulertPeriode(
     saksnummer: Saksnummer,
-    rawResponse: String,
-    request: Utbetaling.UtbetalingForSimulering,
-    rawRequest: String,
+    soapResponse: String,
+    soapRequest: String,
     log: Logger,
 ): SimulertMåned {
     return SimulertMåned(
@@ -127,12 +100,11 @@ private fun BeregningsPeriode.toSimulertPeriode(
                             fagsystemId,
                         )
                         sikkerLogg.debug(
-                            "Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer {}. fagsystemId={}. soapResponse: {}, soapRequest: {}, request: {}",
+                            "Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer {}. fagsystemId={}. soapResponse: {}, soapRequest: {}",
                             saksnummer,
                             fagsystemId,
-                            rawResponse,
-                            rawRequest,
-                            request,
+                            soapResponse,
+                            soapRequest,
                         )
                     }
                 }
@@ -146,12 +118,11 @@ private fun BeregningsPeriode.toSimulertPeriode(
                             kodeFagomraade,
                         )
                         sikkerLogg.debug(
-                            "Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer {}. kodeFagomraade={}. soapResponse: {}, soapRequest: {}, request: {}",
+                            "Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer {}. kodeFagomraade={}. soapResponse: {}, soapRequest: {}",
                             saksnummer,
                             kodeFagomraade,
-                            rawResponse,
-                            rawRequest,
-                            request,
+                            soapResponse,
+                            soapRequest,
                         )
                     }
                 }
@@ -168,7 +139,7 @@ private fun BeregningsPeriode.toSimulertPeriode(
     )
 }
 
-private fun BeregningStoppnivaa.toSimulertUtbetaling(
+private fun SimulerBeregningResponse.BeregningStoppnivaa.toSimulertUtbetaling(
     log: Logger,
 ): SimulertUtbetaling {
     return SimulertUtbetaling(
@@ -176,7 +147,7 @@ private fun BeregningStoppnivaa.toSimulertUtbetaling(
         utbetalesTilNavn = utbetalesTilNavn.trim(),
         utbetalesTilId = Fnr(utbetalesTilId),
         forfall = LocalDate.parse(forfall),
-        feilkonto = isFeilkonto,
+        feilkonto = feilkonto.toBooleanStrict(),
         detaljer = beregningStoppnivaaDetaljer
             .filter { detajl ->
                 val typeKlasse = detajl.typeKlasse.trim()
@@ -198,17 +169,17 @@ private fun BeregningStoppnivaa.toSimulertUtbetaling(
     )
 }
 
-private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
+private fun SimulerBeregningResponse.BeregningStoppnivaaDetaljer.toSimulertDetalj() =
     SimulertDetaljer(
         faktiskFraOgMed = LocalDate.parse(faktiskFom),
         faktiskTilOgMed = LocalDate.parse(faktiskTom),
         konto = kontoStreng.trim(),
-        belop = belop.toInt(),
-        tilbakeforing = isTilbakeforing,
-        sats = sats.toInt(),
+        belop = belop.toBigDecimal().intValueExact(),
+        tilbakeforing = tilbakeforing.toBooleanStrict(),
+        sats = sats.toBigDecimal().intValueExact(),
         typeSats = typeSats.trim(),
-        antallSats = antallSats.intValueExact(),
-        uforegrad = uforeGrad.intValueExact(),
+        antallSats = antallSats.toBigDecimal().intValueExact(),
+        uforegrad = uforeGrad.toBigDecimal().intValueExact(),
         klassekode = KlasseKode.valueOf(klassekode.trim()),
         klassekodeBeskrivelse = klasseKodeBeskrivelse.trim(),
         klasseType = KlasseType.valueOf(typeKlasse.trim()),
@@ -218,9 +189,11 @@ private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
  * Return something with meaning for our domain for cases where simulering returns an empty response.
  * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
  */
-private fun Utbetaling.mapTomResponsFraOppdrag(
+private fun mapTomResponsFraOppdrag(
     simuleringsperiode: Periode,
     clock: Clock,
+    fnr: Fnr,
+    rawResponse: String,
 ): Simulering {
     return Simulering(
         gjelderId = fnr,
@@ -229,6 +202,6 @@ private fun Utbetaling.mapTomResponsFraOppdrag(
         datoBeregnet = LocalDate.now(clock),
         nettoBeløp = 0,
         måneder = SimulertMåned.create(simuleringsperiode),
-        rawResponse = "Tom respons fra oppdrag.",
+        rawResponse = rawResponse,
     )
 }

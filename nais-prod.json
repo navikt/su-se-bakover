@@ -41,6 +41,8 @@
     "KRR_URL": "https://digdir-krr-proxy.intern.nav.no",
     "KRR_APP_ID": "api://prod-gcp.team-rocket.digdir-krr-proxy",
     "INSTITUSJONSOPPHOLD_TOPIC": "team-rocket.institusjon-opphold-hendelser",
-    "KODEVERK_URL": "http://kodeverk.team-rocket.svc.nais.local"
+    "KODEVERK_URL": "http://kodeverk.team-rocket.svc.nais.local",
+    "STS_URL": "http://security-token-service.default.svc.nais.local",
+    "GANDALF_URL": "https://security-token-service.nais.adeo.no"
   }
 }

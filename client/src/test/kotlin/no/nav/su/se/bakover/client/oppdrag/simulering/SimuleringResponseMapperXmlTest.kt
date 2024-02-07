@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.extensions.september
-import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -17,8 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulering.simuleringDobbelTilbakeføringMedTrekkXml
-import no.nav.su.se.bakover.test.simulering.utbetalingForSimulering
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import økonomi.domain.simulering.Kontobeløp
 import økonomi.domain.simulering.Kontooppstilling
@@ -33,15 +30,13 @@ internal class SimuleringResponseMapperXmlTest {
     fun `dobbel tilbakeføring med trekk`() {
         // Da skal oktober bli etterbetalt, mens ikke månedene etter.
         val clock = fixedClockAt(1.november(2023))
-        val response = xmlMapper.readValue<SimulerBeregningResponse>(simuleringDobbelTilbakeføringMedTrekkXml)
-        val request = utbetalingForSimulering(
+        val actualSimulering = mapSimuleringResponse(
             saksnummer = Saksnummer(2021),
+            fnr = no.nav.su.se.bakover.test.fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringDobbelTilbakeføringMedTrekkXml,
             clock = clock,
-        )
-        val actualSimulering = response.toSimulering(
-            request = request,
-            clock = clock,
-            soapRequest = SimuleringRequestBuilder(request).build(),
         ).getOrFail()
         actualSimulering.kontooppstilling() shouldBe mapOf(
             september(2023) to Kontooppstilling.EMPTY.copy(

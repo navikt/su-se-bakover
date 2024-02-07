@@ -215,6 +215,7 @@ data class ApplicationConfig(
         val dokarkivUrl: String,
         val kodeverkUrl: String,
         val stsUrl: String,
+        val stsSamlUrl: String,
         val skjermingUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
@@ -229,9 +230,11 @@ data class ApplicationConfig(
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrThrow("KODEVERK_URL"),
-                stsUrl = getEnvironmentVariableOrDefault(
+                stsUrl = getEnvironmentVariableOrThrow(
                     "STS_URL",
-                    "http://security-token-service.default.svc.nais.local",
+                ),
+                stsSamlUrl = getEnvironmentVariableOrThrow(
+                    "GANDALF_URL",
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
@@ -249,6 +252,10 @@ data class ApplicationConfig(
                 kodeverkUrl = "mocked",
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
+                    "mocked",
+                ),
+                stsSamlUrl = getEnvironmentVariableOrDefault(
+                    "GANDALF_URL",
                     "mocked",
                 ),
                 skjermingUrl = "mocked",

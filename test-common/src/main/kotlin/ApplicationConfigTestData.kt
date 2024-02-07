@@ -77,6 +77,7 @@ fun applicationConfig() = ApplicationConfig(
         dokarkivUrl = "dokarkivUrl",
         kodeverkUrl = "kodeverkUrl",
         stsUrl = "stsUrl",
+        stsSamlUrl = "stsSamlUrl",
         skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
