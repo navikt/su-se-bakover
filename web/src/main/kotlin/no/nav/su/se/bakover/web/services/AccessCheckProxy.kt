@@ -497,7 +497,7 @@ open class AccessCheckProxy(
                 }
             },
             lukkSøknad = object : LukkSøknadService {
-                override fun lukkSøknad(command: LukkSøknadCommand): Sak {
+                override fun lukkSøknad(command: LukkSøknadCommand): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> {
                     assertHarTilgangTilSøknad(command.søknadId)
 
                     return services.lukkSøknad.lukkSøknad(command)

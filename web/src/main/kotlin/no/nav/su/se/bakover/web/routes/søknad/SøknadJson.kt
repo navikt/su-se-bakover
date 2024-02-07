@@ -30,11 +30,11 @@ fun Søknad.toJson(): SøknadJson {
         sakId = sakId.toString(),
         søknadInnhold = søknadInnhold.toSøknadsinnholdJson(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        lukket = if (this is Søknad.Journalført.MedOppgave.Lukket) this.toJson() else null,
+        lukket = if (this is Søknad.Journalført.MedOppgave.Lukket) this.toLukketJson() else null,
     )
 }
 
-internal fun Søknad.Journalført.MedOppgave.Lukket.toJson() = LukketJson(
+internal fun Søknad.Journalført.MedOppgave.Lukket.toLukketJson() = LukketJson(
     tidspunkt = DateTimeFormatter.ISO_INSTANT.format(lukketTidspunkt),
     saksbehandler = lukketAv.toString(),
     type = when (this) {

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.vedtak
 
+import behandling.søknadsbehandling.presentation.tilResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -14,16 +15,15 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal const val VEDTAK_PATH = "$SAK_PATH/{sakId}/vedtak}"
 
-internal fun Route.vedtakRoutes(
+fun Route.vedtakRoutes(
     vedtakService: VedtakService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    post("$VEDTAK_PATH/{vedtakId}/nyBehandling") {
+    post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
         call.withVedtakId {
             vedtakService.startNySøknadsbehandlingForAvslag(it, call.suUserContext.saksbehandler).fold(
                 ifLeft = { call.svar(it.tilResultat()) },

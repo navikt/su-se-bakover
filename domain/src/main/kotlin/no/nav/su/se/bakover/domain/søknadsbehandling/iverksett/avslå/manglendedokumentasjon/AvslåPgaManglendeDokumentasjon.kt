@@ -9,6 +9,7 @@ import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -51,22 +52,24 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 saksbehandler = command.saksbehandler,
                 oppdaterOppgave = null,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
-                Pair(it.first, it.third)
+                Pair(it.first, listOf(it.third))
             }
         },
         {
             Pair(this, it)
         },
-    ).let { (sak, behandling) ->
-        avslå(
-            sak = sak,
-            søknadsbehandling = (behandling as? KanOppdaterePeriodeBosituasjonVilkår).let {
-                it
-                    ?: throw IllegalArgumentException("Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: ${behandling::class.qualifiedName}")
+    ).let { (sak, behandlinger) ->
+        behandlinger.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().whenever(
+            { throw IllegalArgumentException("Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad ${command.søknadId}") },
+            {
+                avslå(
+                    sak = sak,
+                    søknadsbehandling = it.single(),
+                    request = command,
+                    clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
+                )
             },
-            request = command,
-            clock = clock,
-            formuegrenserFactory = formuegrenserFactory,
         )
     }.let {
         it.getOrElse {

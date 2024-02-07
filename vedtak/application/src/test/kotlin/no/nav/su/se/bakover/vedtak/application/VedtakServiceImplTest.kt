@@ -2,25 +2,29 @@ package no.nav.su.se.bakover.vedtak.application
 
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
-import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagUtenBeregning
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
@@ -36,10 +40,12 @@ class VedtakServiceImplTest {
         val personService = mock<PersonService> { on { hentAktørId(any()) } doReturn AktørId("123").right() }
         val oppgaveService =
             mock<OppgaveService> { on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right() }
+        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+            doNothing().whenever(it).lagre(any(), anyOrNull())
+        }
+        val service = Services(vedtakRepo, sakService, oppgaveService, personService, søknadsbehandlingRepo)
 
-        val service = Services(vedtakRepo, sakService, oppgaveService, personService)
-
-        service.testableService().startNySøknadsbehandlingForAvslag(vedtak.id, saksbehandler).shouldBeRight()
+        val actual = service.testableService().startNySøknadsbehandlingForAvslag(vedtak.id, saksbehandler).getOrFail()
 
         verify(vedtakRepo).hentVedtakForId(argShouldBe(vedtak.id))
         verify(sakService).hentSakForVedtak(argShouldBe(vedtak.id))
@@ -56,6 +62,7 @@ class VedtakServiceImplTest {
                 ),
             ),
         )
+        verify(søknadsbehandlingRepo).lagre(argShouldBe(actual), anyOrNull())
 
         service.verifyNoMoreInteractions()
     }
@@ -76,6 +83,7 @@ class VedtakServiceImplTest {
         private val sakService: SakService = mock(),
         private val oppgaveService: OppgaveService = mock(),
         private val personService: PersonService = mock(),
+        private val søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         private val clock: Clock = enUkeEtterFixedClock,
     ) {
         fun testableService() = VedtakServiceImpl(
@@ -83,6 +91,7 @@ class VedtakServiceImplTest {
             sakService = sakService,
             oppgaveService = oppgaveService,
             personservice = personService,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
 

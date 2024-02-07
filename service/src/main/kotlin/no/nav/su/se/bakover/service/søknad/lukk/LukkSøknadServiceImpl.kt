@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
@@ -38,7 +38,7 @@ class LukkSøknadServiceImpl(
 
     override fun lukkSøknad(
         command: LukkSøknadCommand,
-    ): Sak {
+    ): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> {
         val søknadId = command.søknadId
         val sak = sakService.hentSakForSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
@@ -68,7 +68,8 @@ class LukkSøknadServiceImpl(
                     // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
                     e.handle(it.hendelse)
                 }
-                it.sak
+
+                Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)
             }
         }
     }

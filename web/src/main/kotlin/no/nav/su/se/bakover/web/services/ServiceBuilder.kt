@@ -108,6 +108,7 @@ data object ServiceBuilder {
             sakService = sakService,
             personservice = personService,
             oppgaveService = oppgaveService,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
         )
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(

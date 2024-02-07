@@ -1,11 +1,11 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett
+package behandling.søknadsbehandling.presentation
 
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 
-internal fun KunneIkkeOppretteSøknadsbehandling.tilResultat() = when (this) {
+fun KunneIkkeOppretteSøknadsbehandling.tilResultat() = when (this) {
     KunneIkkeOppretteSøknadsbehandling.ErLukket -> Feilresponser.søknadErLukket
     KunneIkkeOppretteSøknadsbehandling.ManglerOppgave -> Feilresponser.søknadManglerOppgave
     KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling -> HttpStatusCode.BadRequest.errorJson(

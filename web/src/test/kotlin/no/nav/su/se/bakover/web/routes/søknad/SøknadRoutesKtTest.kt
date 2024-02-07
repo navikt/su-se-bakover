@@ -34,9 +34,10 @@ internal class SøknadRoutesKtTest {
     fun `ok lukking av søknad svarer med OK`() {
         testApplication {
             application {
+                val sakMedLukketSøknad = nySakMedLukketSøknad()
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
-                        lukkSøknad = mock { on { lukkSøknad(any()) } doReturn nySakMedLukketSøknad().first },
+                        lukkSøknad = mock { on { lukkSøknad(any()) } doReturn Triple(sakMedLukketSøknad.second, null, sakMedLukketSøknad.first.fnr) },
                     ),
                 )
             }

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
@@ -33,6 +34,7 @@ class VedtakServiceImpl(
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
     private val personservice: PersonService,
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
 ) : VedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -106,7 +108,12 @@ class VedtakServiceImpl(
             }.mapLeft {
                 log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
             }
-            it.third
+
+            // TODO - vi må sette ny oppgave id på behandlingen dersom opprettOppgave er right
+
+            it.third.also {
+                søknadsbehandlingRepo.lagre(it)
+            }
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
         }
