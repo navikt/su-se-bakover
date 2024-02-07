@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal const val VEDTAK_PATH = "$SAK_PATH/{sakId}/vedtak}"
+internal const val VEDTAK_PATH = "$SAK_PATH/{sakId}/vedtak"
 
 fun Route.vedtakRoutes(
     vedtakService: VedtakService,
