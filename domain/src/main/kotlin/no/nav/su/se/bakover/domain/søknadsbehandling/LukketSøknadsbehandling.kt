@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -54,6 +55,7 @@ data class LukketSøknadsbehandling private constructor(
     override fun skalSendeVedtaksbrev(): Boolean {
         return søknad.brevvalg.skalSendeBrev()
     }
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en lukket søknadsbehandling $id")
 
     override val beregning = when (underliggendeSøknadsbehandling) {
         is BeregnetSøknadsbehandling.Avslag -> underliggendeSøknadsbehandling.beregning

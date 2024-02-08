@@ -58,7 +58,7 @@ data class SimulertSøknadsbehandling(
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
         grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
     }
-
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
     override fun skalSendeVedtaksbrev(): Boolean {
         return true
     }

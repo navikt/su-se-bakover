@@ -41,4 +41,6 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Kan ikke starte ny søknadsbehandling på et vedtak som ikke er avslag",
         "vedtak_er_ikke_avslag",
     )
+    is KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
+    KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
 }

@@ -66,6 +66,8 @@ sealed interface BeregnetSøknadsbehandling :
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val simulering: Simulering? = null
 
+        override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
+
         override fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
@@ -156,6 +158,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         override val simulering: Simulering? = null
+        override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
             return when (this.eksterneGrunnlag.skatt) {

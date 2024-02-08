@@ -51,8 +51,6 @@ sealed interface UnderkjentSøknadsbehandling :
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val aldersvurdering: Aldersvurdering
 
-    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
-
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, UnderkjentSøknadsbehandling>
 
     data class Innvilget(
@@ -96,9 +94,7 @@ sealed interface UnderkjentSøknadsbehandling :
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
-        override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
-            return this.copy(oppgaveId = nyOppgaveId)
-        }
+        override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -245,9 +241,7 @@ sealed interface UnderkjentSøknadsbehandling :
                 return true
             }
 
-            override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
-                return this.copy(oppgaveId = nyOppgaveId)
-            }
+            override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
 
             override fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -326,9 +320,7 @@ sealed interface UnderkjentSøknadsbehandling :
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
 
-            override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
-                return this.copy(oppgaveId = nyOppgaveId)
-            }
+            override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
 
             override fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,

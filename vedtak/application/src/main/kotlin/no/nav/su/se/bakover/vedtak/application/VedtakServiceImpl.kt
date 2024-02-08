@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.vedtak.application
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -90,32 +91,31 @@ class VedtakServiceImpl(
             clock = clock,
             saksbehandler = saksbehandler,
             oppdaterOppgave = null,
-        ).map {
-            // best effort for å opprette oppgave
-            personservice.hentAktørId(vedtak.fnr).map {
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.Søknad(
-                        journalpostId = vedtak.behandling.søknad.journalpostId,
-                        søknadId = vedtak.behandling.søknad.id,
-                        aktørId = it,
-                        tilordnetRessurs = saksbehandler,
-                        clock = clock,
-                        sakstype = vedtak.sakstype,
-                    ),
-                ).mapLeft {
-                    log.error("Feil ved opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
-                }
-            }.mapLeft {
+        ).map { (_, _, søknadsbehandling, _) ->
+            val aktørId = personservice.hentAktørId(vedtak.fnr).getOrElse {
                 log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
+                return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
             }
 
-            // TODO - vi må sette ny oppgave id på behandlingen dersom opprettOppgave er right
+            val oppgaveResponse = oppgaveService.opprettOppgave(
+                OppgaveConfig.Søknad(
+                    journalpostId = vedtak.behandling.søknad.journalpostId,
+                    søknadId = vedtak.behandling.søknad.id,
+                    aktørId = aktørId,
+                    tilordnetRessurs = saksbehandler,
+                    clock = clock,
+                    sakstype = vedtak.sakstype,
+                ),
+            ).getOrElse {
+                log.error("Feil ved opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
+                return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave.left()
+            }
 
-            it.third.also {
+            søknadsbehandling.oppdaterOppgaveId(oppgaveResponse.oppgaveId).also {
                 søknadsbehandlingRepo.lagre(it)
             }
         }.mapLeft {
-            KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
+            return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it).left()
         }
     }
 }
