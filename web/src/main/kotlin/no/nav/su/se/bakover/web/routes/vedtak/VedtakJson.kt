@@ -35,6 +35,7 @@ internal data class VedtakJson(
     val periode: PeriodeJson?,
     val type: String,
     val dokumenttilstand: String,
+    val kanStarteNyBehandling: Boolean,
 )
 
 internal enum class VedtakTypeJson(private val beskrivelse: String) {
@@ -77,7 +78,7 @@ internal fun VedtakTilbakekrevingsbehandling.toJson(): VedtakJson = VedtakJson(
     periode = null,
     type = VedtakTypeJson.TILBAKEKREVING.toString(),
     dokumenttilstand = this.dokumenttilstand.toJson(),
-
+    kanStarteNyBehandling = false,
 )
 
 internal fun Avslagsvedtak.toJson(): VedtakJson = VedtakJson(
@@ -92,6 +93,8 @@ internal fun Avslagsvedtak.toJson(): VedtakJson = VedtakJson(
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
     dokumenttilstand = this.dokumenttilstand.toJson(),
+    // avslagsvedtak er per tidspunkt det eneste vedtaket som kan starte en ny form for behandling
+    kanStarteNyBehandling = true,
 )
 
 internal fun VedtakAvslagBeregning.toJson(): VedtakJson = VedtakJson(
@@ -106,6 +109,7 @@ internal fun VedtakAvslagBeregning.toJson(): VedtakJson = VedtakJson(
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
     dokumenttilstand = this.dokumenttilstand.toJson(),
+    kanStarteNyBehandling = false,
 )
 
 internal fun Stønadsvedtak.toJson(): VedtakJson = VedtakJson(
@@ -120,6 +124,7 @@ internal fun Stønadsvedtak.toJson(): VedtakJson = VedtakJson(
     periode = periode.toJson(),
     type = this.toVedtakTypeJson().toString(),
     dokumenttilstand = this.dokumenttilstand.toJson(),
+    kanStarteNyBehandling = false,
 )
 
 internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
@@ -134,6 +139,7 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
     periode = null,
     type = VedtakTypeJson.AVVIST_KLAGE.toString(),
     dokumenttilstand = dokumenttilstand.toJson(),
+    kanStarteNyBehandling = false,
 )
 
 internal fun Stønadsvedtak.toVedtakTypeJson(): VedtakTypeJson = when (this) {

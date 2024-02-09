@@ -103,27 +103,6 @@ data object ServiceBuilder {
         ).apply {
             addObserver(statistikkEventObserver)
         }
-        val vedtakService = VedtakServiceImpl(
-            vedtakRepo = databaseRepos.vedtakRepo,
-        )
-        val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
-            brevService = brevService,
-            oppgaveService = oppgaveService,
-            vedtakService = vedtakService,
-            behandlingMetrics = behandlingMetrics,
-            clock = clock,
-            satsFactory = satsFactory,
-        )
-
-        val tilbakekrevingService = TilbakekrevingServiceImpl(
-            tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
-            tilbakekrevingClient = clients.tilbakekrevingClient,
-            vedtakService = vedtakService,
-            brevService = brevService,
-            sessionFactory = databaseRepos.sessionFactory,
-            clock = clock,
-            satsFactory = satsFactory,
-        )
 
         val skattDokumentService = SkattDokumentServiceImpl(
             pdfGenerator = clients.pdfGenerator,
@@ -142,6 +121,50 @@ data object ServiceBuilder {
             skatteClient = clients.skatteOppslag,
             skattDokumentService = skattDokumentService,
             clock = clock,
+        )
+
+        val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            utbetalingService = utbetalingService,
+            personService = personService,
+            oppgaveService = oppgaveService,
+            behandlingMetrics = behandlingMetrics,
+            brevService = brevService,
+            clock = clock,
+            sakService = sakService,
+            formuegrenserFactory = formuegrenserFactory,
+            satsFactory = satsFactory,
+            sessionFactory = databaseRepos.sessionFactory,
+            skatteService = skatteServiceImpl,
+        ).apply {
+            addObserver(statistikkEventObserver)
+        }
+
+        val vedtakService = VedtakServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo,
+            sakService = sakService,
+            personservice = personService,
+            oppgaveService = oppgaveService,
+            søknadsbehandlingService = søknadsbehandlingService,
+            clock = clock,
+        )
+        val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            vedtakService = vedtakService,
+            behandlingMetrics = behandlingMetrics,
+            clock = clock,
+            satsFactory = satsFactory,
+        )
+
+        val tilbakekrevingService = TilbakekrevingServiceImpl(
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
+            tilbakekrevingClient = clients.tilbakekrevingClient,
+            vedtakService = vedtakService,
+            brevService = brevService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+            satsFactory = satsFactory,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
@@ -208,22 +231,6 @@ data object ServiceBuilder {
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
-        val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
-            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            utbetalingService = utbetalingService,
-            personService = personService,
-            oppgaveService = oppgaveService,
-            behandlingMetrics = behandlingMetrics,
-            brevService = brevService,
-            clock = clock,
-            sakService = sakService,
-            formuegrenserFactory = formuegrenserFactory,
-            satsFactory = satsFactory,
-            sessionFactory = databaseRepos.sessionFactory,
-            skatteService = skatteServiceImpl,
-        ).apply {
-            addObserver(statistikkEventObserver)
-        }
         val klageService = KlageServiceImpl(
             sakService = sakService,
             klageRepo = databaseRepos.klageRepo,

@@ -40,7 +40,7 @@ data object OppgaveClientStub : OppgaveClient {
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
-            oppgaveId = OppgaveId("stubbedOppgaveId"),
+            oppgaveId = oppgaveId,
             request = "stubbedRequest",
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
@@ -49,7 +49,7 @@ data object OppgaveClientStub : OppgaveClient {
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
-            oppgaveId = OppgaveId("stubbedOppgaveId"),
+            oppgaveId = oppgaveId,
             request = "stubbedRequest",
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
@@ -60,7 +60,7 @@ data object OppgaveClientStub : OppgaveClient {
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(
-        oppgaveId = OppgaveId("stubbedOppgaveId"),
+        oppgaveId = oppgaveId,
         request = "stubbedRequest",
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
@@ -71,7 +71,7 @@ data object OppgaveClientStub : OppgaveClient {
         oppgaveId: OppgaveId,
         oppdatertOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = OppgaveHttpKallResponse(
-        oppgaveId = OppgaveId("stubbedOppgaveId"),
+        oppgaveId = oppgaveId,
         request = "stubbedRequest",
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",

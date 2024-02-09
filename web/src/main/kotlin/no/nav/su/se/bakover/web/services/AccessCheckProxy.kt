@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
@@ -210,6 +211,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderin
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -367,6 +369,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentSakForVedtak(vedtakId: UUID): Sak? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
                     assertHarTilgangTilSøknad(søknadId)
                     return services.sak.hentSakForSøknad(søknadId)
@@ -491,7 +497,7 @@ open class AccessCheckProxy(
                 }
             },
             lukkSøknad = object : LukkSøknadService {
-                override fun lukkSøknad(command: LukkSøknadCommand): Sak {
+                override fun lukkSøknad(command: LukkSøknadCommand): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> {
                     assertHarTilgangTilSøknad(command.søknadId)
 
                     return services.lukkSøknad.lukkSøknad(command)
@@ -560,7 +566,7 @@ open class AccessCheckProxy(
                     override fun opprett(
                         request: SøknadsbehandlingService.OpprettRequest,
                         hentSak: (() -> Sak)?,
-                    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+                    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
                         return service.opprett(request, hentSak)
                     }
@@ -715,6 +721,8 @@ open class AccessCheckProxy(
                         assertHarTilgangTilSøknadsbehandling(command.behandlingId)
                         return service.oppdaterSkattegrunnlag(command)
                     }
+
+                    override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
                 },
             ),
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -992,6 +1000,15 @@ open class AccessCheckProxy(
 
                 override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> =
                     kastKanKunKallesFraAnnenService()
+
+                override fun startNySøknadsbehandlingForAvslag(
+                    sakId: UUID,
+                    vedtakId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
+                    assertHarTilgangTilVedtak(vedtakId)
+                    return services.vedtakService.startNySøknadsbehandlingForAvslag(sakId, vedtakId, saksbehandler)
+                }
             },
             nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {

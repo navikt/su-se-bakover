@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Tuple4
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -32,23 +33,20 @@ fun Sak.opprettNySøknadsbehandling(
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
-): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+): Either<KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     if (harÅpenSøknadsbehandling()) {
         // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Kan være lurt og sjekke for overlappende søknadsbehandlinger ved oppdaterStønadsperiode.
-        return Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+        return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
     val søknad = hentSøknad(søknadId).fold(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
         ifRight = {
             if (it is Søknad.Journalført.MedOppgave.Lukket) {
-                return Sak.KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+                return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
             }
             if (it !is Søknad.Journalført.MedOppgave) {
                 // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-                return Sak.KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
-            }
-            if (hentSøknadsbehandlingForSøknad(søknadId).isRight()) {
-                return Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
+                return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
             }
             it
         },

@@ -42,6 +42,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     abstract override val aldersvurdering: Aldersvurdering
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
     data class Innvilget(
         override val id: SøknadsbehandlingId,
@@ -62,6 +63,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         override val sakstype: Sakstype,
     ) : IverksattSøknadsbehandling, KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         init {

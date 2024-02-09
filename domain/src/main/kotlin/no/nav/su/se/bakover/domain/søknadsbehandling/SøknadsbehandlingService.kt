@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -45,7 +46,7 @@ interface SøknadsbehandlingService {
     fun opprett(
         request: OpprettRequest,
         hentSak: (() -> Sak)? = null,
-    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>>
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>>
 
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
@@ -127,6 +128,8 @@ interface SøknadsbehandlingService {
     fun oppdaterSkattegrunnlag(
         command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
+
+    fun lagre(søknadsbehandling: Søknadsbehandling)
 
     data class OpprettRequest(
         val søknadId: UUID,

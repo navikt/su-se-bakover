@@ -59,6 +59,8 @@ interface SakService {
 
     fun hentSakForSøknadsbehandling(søknadsbehandlingId: SøknadsbehandlingId): Sak
 
+    fun hentSakForVedtak(vedtakId: UUID): Sak?
+
     fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
     fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata>
     fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>

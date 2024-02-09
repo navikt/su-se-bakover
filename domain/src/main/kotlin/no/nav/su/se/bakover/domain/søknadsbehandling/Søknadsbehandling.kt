@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -44,6 +45,16 @@ sealed interface Søknadsbehandling :
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
+
+    /**
+     * Denne brukes kun i de tilfellene vi skal gjøre om en avslått søknad.
+     * Det er fordi den 'originale' oppgaveId'en er ferdigstilt og vi trenger en ny oppgaveId for saksbehandlerne
+     *
+     * TODO - på et senere tidspunkt, skal vi fylle behandlingen fra forrige behandling/vedtak.
+     *  Det kan gjerne bety at kun vilkårsvurdert/beregnet/simulert skal kunne oppdatere oppgaveId, og ikke underkjent.
+     *  Per nå, så kan alle 'åpne' tilstander oppdatere oppgaveId'en
+     */
+    fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling
 
     /**
      * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]

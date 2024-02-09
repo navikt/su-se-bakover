@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.søknadsbehandling.presentation.tilResultat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -60,7 +61,6 @@ import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory

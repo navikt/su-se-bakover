@@ -94,7 +94,8 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-12-31"
                                         },
                                         "type":"SØKNAD",
-                                        "dokumenttilstand": "GENERERT"
+                                        "dokumenttilstand": "GENERERT",
+                                        "kanStarteNyBehandling": false
                                     },
                                     {
                                         "id":"ignore-me",
@@ -110,7 +111,8 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-07-31"
                                         },
                                         "type":"ENDRING",
-                                        "dokumenttilstand": "GENERERT"
+                                        "dokumenttilstand": "GENERERT",
+                                        "kanStarteNyBehandling": false
                                     },
                             ]
                             """.trimIndent(),

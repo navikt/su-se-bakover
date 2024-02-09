@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -308,16 +309,11 @@ data class Sak(
     fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
         .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
 
-    fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, Søknadsbehandling> {
-        return søknadsbehandlinger.singleOrNull { it.søknad.id == søknadId }?.right()
-            ?: FantIkkeSøknadsbehandlingForSøknad.left()
-    }
-
-    sealed interface KunneIkkeOppretteSøknadsbehandling {
-        data object ErLukket : KunneIkkeOppretteSøknadsbehandling
-        data object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
-        data object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
-        data object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
+    fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, List<Søknadsbehandling>> {
+        return søknadsbehandlinger.filter { it.søknad.id == søknadId }.whenever(
+            { FantIkkeSøknadsbehandlingForSøknad.left() },
+            { it.right() },
+        )
     }
 
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
@@ -404,7 +400,12 @@ data class Sak(
                     StatistikkEvent.Søknad.Lukket(lukketSøknad, saksnummer),
                 )
             },
-            { søknadsbehandlingSomSkalLukkes ->
+            { søknadensBehandlinger ->
+                // det skal kun finnes 1 søknadsbehandling åpen om gangen
+                val søknadsbehandlingSomSkalLukkes =
+                    søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
+                        ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
+
                 // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
                 søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(
                     lukkSøknadCommand = lukkSøknadCommand,

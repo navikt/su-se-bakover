@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import behandling.søknadsbehandling.presentation.tilResultat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -49,9 +50,10 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
@@ -138,6 +140,11 @@ internal fun Route.søknadRoutes(
     }
 
     post("$SØKNAD_PATH/{søknadId}/lukk") {
+        data class LukkSøknadResponse(
+            val lukketSøknad: SøknadJson,
+            val lukketSøknadsbehandling: SøknadsbehandlingJson?,
+        )
+
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
@@ -150,20 +157,22 @@ internal fun Route.søknadRoutes(
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).let {
                         call.audit(
-                            berørtBruker = it.fnr,
+                            berørtBruker = it.third,
                             action = AuditLogEvent.Action.UPDATE,
-                            behandlingId = it.hentSøknadsbehandlingForSøknad(søknadId).fold(
-                                {
-                                    // Her bruker vi søknadId siden det ikke er opprettet en søknadsbehandling enda
-                                    søknadId
-                                },
-                                {
-                                    it.id.value
-                                },
-                            ),
+                            behandlingId = it.second?.id?.value ?: it.first.id,
                         )
                         call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
+                        call.svar(
+                            Resultat.json(
+                                OK,
+                                serialize(
+                                    LukkSøknadResponse(
+                                        lukketSøknad = it.first.toJson(),
+                                        lukketSøknadsbehandling = it.second?.toJson(formuegrenserFactory),
+                                    ),
+                                ),
+                            ),
+                        )
                     }
                 }
             }

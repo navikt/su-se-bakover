@@ -141,6 +141,8 @@ class SakServiceImpl(
         return sakRepo.hentSakforSøknadsbehandling(søknadsbehandlingId)
     }
 
+    override fun hentSakForVedtak(vedtakId: UUID): Sak? = sakRepo.hentSakForVedtak(vedtakId)
+
     override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSakForSøknad(søknadId)?.right() ?: FantIkkeSak.left()
     }

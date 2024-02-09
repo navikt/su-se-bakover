@@ -183,7 +183,7 @@ internal class UføresøknadJsonTest {
                 "dokumenttilstand": "IKKE_GENERERT_ENDA"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, serialize(trukket.toJson()), true)
+        JSONAssert.assertEquals(expectedJson, serialize(trukket.toLukketJson()), true)
         deserialize<LukketJson>(expectedJson) shouldBe LukketJson(
             tidspunkt = "2021-01-01T01:02:03.456789Z",
             saksbehandler = "saksbehandler",

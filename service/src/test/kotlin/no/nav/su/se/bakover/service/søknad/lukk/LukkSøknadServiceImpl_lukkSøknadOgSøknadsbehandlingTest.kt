@@ -14,13 +14,13 @@ import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -148,9 +148,9 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             ),
 
         ).let { serviceAndMocks ->
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} og søknadsbehandling. Underliggende feil: KanIkkeLukkeEnIverksattSøknadsbehandling"
+            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -171,9 +171,9 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             ),
 
         ).let { serviceAndMocks ->
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} og søknadsbehandling. Underliggende feil: KanIkkeLukkeEnAlleredeLukketSøknadsbehandling"
+            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -392,7 +392,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             sessionFactory = sessionFactory,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
-        fun lukkSøknad(): Sak = lukkSøknadService.lukkSøknad(
+        fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> = lukkSøknadService.lukkSøknad(
             lukkSøknadCommand,
         )
 
@@ -475,15 +475,8 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             verifyNoMoreInteractions()
         }
 
-        fun expectedSak(): Sak {
-            return sak!!.let {
-                if (søknadsbehandling != null) {
-                    it.oppdaterSøknadsbehandling(expectedLukketSøknadsbehandling())
-                } else {
-                    it
-                }
-            }.copy(søknader = listOf(expectedLukketSøknad()))
-        }
+        fun expectedSak(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =
+            Triple(expectedLukketSøknad(), if (søknadsbehandling != null) expectedLukketSøknadsbehandling() else null, sak!!.fnr)
 
         fun expectedLukketSøknadsbehandling() = LukketSøknadsbehandling.createFromPersistedState(
             søknadsbehandling = søknadsbehandling!!,

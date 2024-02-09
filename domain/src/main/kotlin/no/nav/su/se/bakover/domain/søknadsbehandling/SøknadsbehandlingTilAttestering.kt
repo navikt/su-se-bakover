@@ -37,6 +37,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
     abstract override val attesteringer: Attesteringshistorikk
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en søknadsbehandling til attestering $id")
 
     data class Innvilget(
         override val id: SøknadsbehandlingId,
