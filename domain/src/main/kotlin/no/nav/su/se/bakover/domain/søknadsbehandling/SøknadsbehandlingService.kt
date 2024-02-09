@@ -129,6 +129,8 @@ interface SøknadsbehandlingService {
         command: SøknadsbehandlingSkattCommand,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
+    fun lagre(søknadsbehandling: Søknadsbehandling)
+
     data class OpprettRequest(
         val søknadId: UUID,
         val sakId: UUID,

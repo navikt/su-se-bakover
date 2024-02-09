@@ -722,6 +722,10 @@ class SøknadsbehandlingServiceImpl(
         ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
 
+    override fun lagre(søknadsbehandling: Søknadsbehandling) {
+        søknadsbehandlingRepo.lagre(søknadsbehandling)
+    }
+
     private inline fun <reified T> hentKanOppdaterePeriodeGrunnlagVilkår(
         søknadsbehandlingRepo: SøknadsbehandlingRepo,
         søknadsbehandlingId: SøknadsbehandlingId,

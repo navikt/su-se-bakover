@@ -103,12 +103,49 @@ data object ServiceBuilder {
         ).apply {
             addObserver(statistikkEventObserver)
         }
+
+        val skattDokumentService = SkattDokumentServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            journalførSkattDokumentService = JournalførSkattDokumentService(
+                journalførSkattedokumentPåSakClient = clients.journalførClients.skattedokumentPåSak,
+                journalførSkattedokumentUtenforSakClient = clients.journalførClients.skattedokumentUtenforSak,
+                sakService = sakService,
+                dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            ),
+            clock = clock,
+        )
+
+        val skatteServiceImpl = SkatteServiceImpl(
+            skatteClient = clients.skatteOppslag,
+            skattDokumentService = skattDokumentService,
+            clock = clock,
+        )
+
+        val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            utbetalingService = utbetalingService,
+            personService = personService,
+            oppgaveService = oppgaveService,
+            behandlingMetrics = behandlingMetrics,
+            brevService = brevService,
+            clock = clock,
+            sakService = sakService,
+            formuegrenserFactory = formuegrenserFactory,
+            satsFactory = satsFactory,
+            sessionFactory = databaseRepos.sessionFactory,
+            skatteService = skatteServiceImpl,
+        ).apply {
+            addObserver(statistikkEventObserver)
+        }
+
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
             personservice = personService,
             oppgaveService = oppgaveService,
-            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
         )
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
@@ -128,25 +165,6 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
             satsFactory = satsFactory,
-        )
-
-        val skattDokumentService = SkattDokumentServiceImpl(
-            pdfGenerator = clients.pdfGenerator,
-            personOppslag = clients.personOppslag,
-            dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
-            journalførSkattDokumentService = JournalførSkattDokumentService(
-                journalførSkattedokumentPåSakClient = clients.journalførClients.skattedokumentPåSak,
-                journalførSkattedokumentUtenforSakClient = clients.journalførClients.skattedokumentUtenforSak,
-                sakService = sakService,
-                dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
-            ),
-            clock = clock,
-        )
-
-        val skatteServiceImpl = SkatteServiceImpl(
-            skatteClient = clients.skatteOppslag,
-            skattDokumentService = skattDokumentService,
-            clock = clock,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
@@ -213,22 +231,6 @@ data object ServiceBuilder {
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
-        val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
-            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            utbetalingService = utbetalingService,
-            personService = personService,
-            oppgaveService = oppgaveService,
-            behandlingMetrics = behandlingMetrics,
-            brevService = brevService,
-            clock = clock,
-            sakService = sakService,
-            formuegrenserFactory = formuegrenserFactory,
-            satsFactory = satsFactory,
-            sessionFactory = databaseRepos.sessionFactory,
-            skatteService = skatteServiceImpl,
-        ).apply {
-            addObserver(statistikkEventObserver)
-        }
         val klageService = KlageServiceImpl(
             sakService = sakService,
             klageRepo = databaseRepos.klageRepo,

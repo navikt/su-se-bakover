@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
@@ -35,7 +35,7 @@ class VedtakServiceImpl(
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
     private val personservice: PersonService,
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
+    private val søknadsbehandlingService: SøknadsbehandlingService,
     private val clock: Clock,
 ) : VedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -77,14 +77,18 @@ class VedtakServiceImpl(
     }
 
     override fun startNySøknadsbehandlingForAvslag(
+        sakId: UUID,
         vedtakId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
-        val vedtak = vedtakRepo.hentVedtakForId(vedtakId).let {
+        val sak = sakService.hentSak(sakId).getOrElse {
+            return KunneIkkeStarteNySøknadsbehandling.FantIkkeSak.left()
+        }
+
+        val vedtak = sak.vedtakListe.find { it.id == vedtakId }.let {
             it ?: return KunneIkkeStarteNySøknadsbehandling.FantIkkeVedtak.left()
             it as? Avslagsvedtak ?: return KunneIkkeStarteNySøknadsbehandling.VedtakErIkkeAvslag.left()
         }
-        val sak = sakService.hentSakForVedtak(vedtakId) ?: return KunneIkkeStarteNySøknadsbehandling.FantIkkeSak.left()
 
         return sak.opprettNySøknadsbehandling(
             søknadId = vedtak.behandling.søknad.id,
@@ -104,7 +108,7 @@ class VedtakServiceImpl(
                     aktørId = aktørId,
                     tilordnetRessurs = saksbehandler,
                     clock = clock,
-                    sakstype = vedtak.sakstype,
+                    sakstype = sak.type,
                 ),
             ).getOrElse {
                 log.error("Feil ved opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
@@ -112,7 +116,7 @@ class VedtakServiceImpl(
             }
 
             søknadsbehandling.oppdaterOppgaveId(oppgaveResponse.oppgaveId).also {
-                søknadsbehandlingRepo.lagre(it)
+                søknadsbehandlingService.lagre(it)
             }
         }.mapLeft {
             return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it).left()

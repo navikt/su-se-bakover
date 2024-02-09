@@ -35,8 +35,5 @@ interface VedtakService {
     fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 
-    /**
-     * Per nå, så kan bare vedtak som er blitt avslått av §18 (manglende dokumentasjon) åpne en ny behandling.
-     */
-    fun startNySøknadsbehandlingForAvslag(vedtakId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
+    fun startNySøknadsbehandlingForAvslag(sakId: UUID, vedtakId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
 }

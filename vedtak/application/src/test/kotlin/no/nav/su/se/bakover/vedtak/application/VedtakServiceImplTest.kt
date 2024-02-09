@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagUtenBeregning
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -35,20 +34,23 @@ class VedtakServiceImplTest {
     fun `dersom vedtak er Avslagsvedtak, vil kan kunne starte en ny søknadsbehandling`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattAvslagUtenBeregning()
 
-        val vedtakRepo = mock<VedtakRepo> { on { hentVedtakForId(any()) } doReturn vedtak }
-        val sakService = mock<SakService> { on { hentSakForVedtak(any<UUID>()) } doReturn sak }
+        val sakService = mock<SakService> { on { hentSak(any<UUID>()) } doReturn sak.right() }
         val personService = mock<PersonService> { on { hentAktørId(any()) } doReturn AktørId("123").right() }
         val oppgaveService =
             mock<OppgaveService> { on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right() }
-        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
-            doNothing().whenever(it).lagre(any(), anyOrNull())
+        val søknadsbehandlingService = mock<SøknadsbehandlingService> {
+            doNothing().whenever(it).lagre(any())
         }
-        val service = Services(vedtakRepo, sakService, oppgaveService, personService, søknadsbehandlingRepo)
+        val service = Services(
+            sakService = sakService,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            søknadsbehandlingService = søknadsbehandlingService,
+        )
 
-        val actual = service.testableService().startNySøknadsbehandlingForAvslag(vedtak.id, saksbehandler).getOrFail()
+        val actual = service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler).getOrFail()
 
-        verify(vedtakRepo).hentVedtakForId(argShouldBe(vedtak.id))
-        verify(sakService).hentSakForVedtak(argShouldBe(vedtak.id))
+        verify(sakService).hentSak(argShouldBe(sak.id))
         verify(personService).hentAktørId(argShouldBe(sak.fnr))
         verify(oppgaveService).opprettOppgave(
             argShouldBe(
@@ -62,19 +64,19 @@ class VedtakServiceImplTest {
                 ),
             ),
         )
-        verify(søknadsbehandlingRepo).lagre(argShouldBe(actual), anyOrNull())
+        verify(søknadsbehandlingService).lagre(argShouldBe(actual))
 
         service.verifyNoMoreInteractions()
     }
 
     @Test
     fun `dersom vedtak ikke er Avslagsvedtak, får man feil`() {
-        val (_, vedtak) = vedtakRevurdering()
+        val (sak, vedtak) = vedtakRevurdering()
 
-        val vedtakRepo = mock<VedtakRepo> { on { hentVedtakForId(any()) } doReturn vedtak }
-        val service = Services(vedtakRepo)
-        service.testableService().startNySøknadsbehandlingForAvslag(vedtak.id, saksbehandler).shouldBeLeft()
-        verify(vedtakRepo).hentVedtakForId(argShouldBe(vedtak.id))
+        val sakService = mock<SakService> { on { hentSak(any<UUID>()) } doReturn sak.right() }
+        val service = Services(sakService = sakService)
+        service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler).shouldBeLeft()
+        verify(sakService).hentSak(argShouldBe(sak.id))
         service.verifyNoMoreInteractions()
     }
 
@@ -83,7 +85,7 @@ class VedtakServiceImplTest {
         private val sakService: SakService = mock(),
         private val oppgaveService: OppgaveService = mock(),
         private val personService: PersonService = mock(),
-        private val søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
+        private val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         private val clock: Clock = enUkeEtterFixedClock,
     ) {
         fun testableService() = VedtakServiceImpl(
@@ -91,7 +93,7 @@ class VedtakServiceImplTest {
             sakService = sakService,
             oppgaveService = oppgaveService,
             personservice = personService,
-            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
         )
 

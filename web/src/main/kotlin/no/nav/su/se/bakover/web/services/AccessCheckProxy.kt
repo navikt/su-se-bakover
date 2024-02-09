@@ -721,6 +721,8 @@ open class AccessCheckProxy(
                         assertHarTilgangTilSøknadsbehandling(command.behandlingId)
                         return service.oppdaterSkattegrunnlag(command)
                     }
+
+                    override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
                 },
             ),
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -1000,11 +1002,12 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
 
                 override fun startNySøknadsbehandlingForAvslag(
+                    sakId: UUID,
                     vedtakId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
                     assertHarTilgangTilVedtak(vedtakId)
-                    return services.vedtakService.startNySøknadsbehandlingForAvslag(vedtakId, saksbehandler)
+                    return services.vedtakService.startNySøknadsbehandlingForAvslag(sakId, vedtakId, saksbehandler)
                 }
             },
             nøkkeltallService = object : NøkkeltallService {
