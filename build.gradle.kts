@@ -20,7 +20,7 @@ subprojects {
     }
     val kotestVersion = "5.8.0"
     val jacksonVersion = "2.16.1"
-    val confluentVersion = "7.5.3"
+    val confluentVersion = "7.6.0"
     dependencies {
         implementation(rootProject.libs.kotlin.reflect)
         implementation(rootProject.libs.kotlin.script.runtime)
