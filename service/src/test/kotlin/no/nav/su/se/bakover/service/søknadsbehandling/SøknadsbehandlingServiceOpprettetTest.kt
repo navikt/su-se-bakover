@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
+import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -43,7 +43,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -150,12 +149,10 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingIverksattInnvilget().second,
         )
 
-        val capturedSøknadsbehandling = argumentCaptor<NySøknadsbehandling>()
+        val capturedSøknadsbehandling = argumentCaptor<VilkårsvurdertSøknadsbehandling.Uavklart>()
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hentForSak(any(), anyOrNull()) } doReturn eksisterendeSøknadsbehandlinger
-            doNothing().whenever(mock).lagreNySøknadsbehandling(capturedSøknadsbehandling.capture())
-            doAnswer { capturedSøknadsbehandling.firstValue.toSøknadsbehandling(saksnummer) }.whenever(mock)
-                .hent(any())
+            doNothing().whenever(mock).lagre(capturedSøknadsbehandling.capture(), anyOrNull())
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -168,13 +165,15 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             },
         )
 
-        serviceAndMocks.søknadsbehandlingService.opprett(
+        val (_, actualBehandling) = serviceAndMocks.søknadsbehandlingService.opprett(
             SøknadsbehandlingService.OpprettRequest(
                 søknadId = søknad.id,
                 sakId = sak.id,
                 saksbehandler = saksbehandler,
             ),
-        ).getOrFail().second.shouldBeEqualToIgnoringFields(
+        ).getOrFail()
+
+        actualBehandling.shouldBeEqualToIgnoringFields(
             VilkårsvurdertSøknadsbehandling.Uavklart(
                 id = capturedSøknadsbehandling.firstValue.id,
                 opprettet = capturedSøknadsbehandling.firstValue.opprettet,
@@ -214,49 +213,12 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 )
             },
         )
-        verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(
-            argThat {
-                it shouldBe NySøknadsbehandling(
-                    id = capturedSøknadsbehandling.firstValue.id,
-                    opprettet = capturedSøknadsbehandling.firstValue.opprettet,
-                    sakId = søknad.sakId,
-                    søknad = søknad,
-                    oppgaveId = søknad.oppgaveId,
-                    fnr = søknad.fnr,
-                    sakstype = sak.type,
-                    saksbehandler = saksbehandler,
-                )
-            },
-        )
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
+        verify(søknadsbehandlingRepoMock).lagre(argShouldBe(actualBehandling), sessionContext = anyOrNull())
         verify(serviceAndMocks.observer).handle(
             argThat {
                 it shouldBe StatistikkEvent.Behandling.Søknad.Opprettet(
-                    VilkårsvurdertSøknadsbehandling.Uavklart(
-                        id = capturedSøknadsbehandling.firstValue.id,
-                        opprettet = capturedSøknadsbehandling.firstValue.opprettet,
-                        sakId = søknad.sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = søknad.oppgaveId,
-                        fnr = søknad.fnr,
-                        fritekstTilBrev = "",
-                        aldersvurdering = null,
-                        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
-                            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-                            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
-                        ),
-                        attesteringer = Attesteringshistorikk.empty(),
-                        sakstype = sak.type,
-                        saksbehandler = saksbehandler,
-                        søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
-                            hendelse = Søknadsbehandlingshendelse(
-                                tidspunkt = fixedTidspunkt,
-                                saksbehandler = saksbehandler,
-                                handling = SøknadsbehandlingsHandling.StartetBehandling,
-                            ),
-                        ),
-                    ),
+                    actualBehandling,
                     saksbehandler = saksbehandler,
                 )
             },

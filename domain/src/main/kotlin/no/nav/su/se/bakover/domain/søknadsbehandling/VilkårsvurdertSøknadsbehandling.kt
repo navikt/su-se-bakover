@@ -304,10 +304,15 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : VilkårsvurdertSøknadsbehandling {
+
+        init {
+            require(sakstype == søknad.type) {
+                "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak."
+            }
+        }
 
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null

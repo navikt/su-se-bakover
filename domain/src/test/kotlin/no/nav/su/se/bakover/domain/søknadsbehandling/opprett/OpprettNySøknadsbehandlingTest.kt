@@ -23,9 +23,9 @@ internal class OpprettNySøknadsbehandlingTest {
     fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
         val (sak, søknad) = nySakUføre()
         sak.opprettNySøknadsbehandling(
-            søknad.id,
-            fixedClock,
-            saksbehandler,
+            søknadId = søknad.id,
+            clock = fixedClock,
+            saksbehandler = saksbehandler,
         ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
     }
 
@@ -35,9 +35,9 @@ internal class OpprettNySøknadsbehandlingTest {
             eksisterendeSak = nySøknadsbehandlingMedStønadsperiode().first,
         )
         sak.opprettNySøknadsbehandling(
-            søknad.id,
-            fixedClock,
-            saksbehandler,
+            søknadId = søknad.id,
+            clock = fixedClock,
+            saksbehandler = saksbehandler,
         ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
 

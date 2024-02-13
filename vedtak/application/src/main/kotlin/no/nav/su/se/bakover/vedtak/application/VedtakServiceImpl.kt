@@ -95,7 +95,7 @@ class VedtakServiceImpl(
             clock = clock,
             saksbehandler = saksbehandler,
             oppdaterOppgave = null,
-        ).map { (_, _, søknadsbehandling, _) ->
+        ).map { (_, søknadsbehandling, _) ->
             val aktørId = personservice.hentAktørId(vedtak.fnr).getOrElse {
                 log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
                 return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()

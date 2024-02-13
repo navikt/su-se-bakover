@@ -82,7 +82,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -110,6 +110,7 @@ import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -1416,7 +1417,7 @@ class TestDataHelper(
     }
 
     /**
-     * 1) persisterer en [NySøknadsbehandling]
+     * 1) persisterer en [VilkårsvurdertSøknadsbehandling.Uavklart]
      * 2) legger stønadsperiode og persisterer
      */
     fun persisternySøknadsbehandlingMedStønadsperiode(
@@ -1428,18 +1429,16 @@ class TestDataHelper(
     ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
         val (sak, søknad) = persisterJournalførtSøknadMedOppgave(sakId = sakId, søknadId = søknadId)
         require(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
-        val opprettet = Tidspunkt.now(clock)
-        return NySøknadsbehandling(
-            id = id,
-            opprettet = opprettet,
-            sakId = sak.id,
-            søknad = søknad,
-            oppgaveId = søknad.oppgaveId,
-            fnr = sak.fnr,
-            sakstype = sak.type,
+
+        return sak.opprettNySøknadsbehandling(
+            søknadsbehandlingId = id,
+            søknadId = søknad.id,
+            clock = fixedClock,
             saksbehandler = saksbehandler,
-        ).let { nySøknadsbehandling ->
-            databaseRepos.søknadsbehandling.lagreNySøknadsbehandling(nySøknadsbehandling)
+            oppdaterOppgave = null,
+
+        ).getOrFail().let { (_, nySøknadsbehandling) ->
+            databaseRepos.søknadsbehandling.lagre(nySøknadsbehandling)
             databaseRepos.sak.hentSak(sakId)!!.oppdaterStønadsperiodeForSøknadsbehandling(
                 søknadsbehandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,

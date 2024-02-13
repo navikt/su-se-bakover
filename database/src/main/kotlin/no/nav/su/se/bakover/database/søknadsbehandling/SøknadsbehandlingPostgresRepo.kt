@@ -52,7 +52,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
@@ -107,40 +106,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 lagre(søknadsbehandling.toDb(), tx)
             }
         }
-    }
-
-    override fun lagreNySøknadsbehandling(søknadsbehandling: NySøknadsbehandling) {
-        dbMetrics.timeQuery("lagreNySøknadsbehandling") {
-            sessionFactory.withTransaction { tx ->
-                lagre(søknadsbehandling.toDb(), tx)
-            }
-        }
-    }
-
-    fun NySøknadsbehandling.toDb(): SøknadsbehandlingDb {
-        return SøknadsbehandlingDb(
-            base = BaseSøknadsbehandlingDb(
-                id = this.id,
-                opprettet = this.opprettet,
-                sakId = this.sakId,
-                søknad = this.søknad,
-                oppgaveId = this.oppgaveId,
-                fritekstTilBrev = null,
-                stønadsperiode = null,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert(),
-                eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
-                attesteringer = Attesteringshistorikk.empty(),
-                sakstype = this.sakstype,
-                status = SøknadsbehandlingStatusDB.OPPRETTET,
-                saksbehandler = saksbehandler.navIdent,
-                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
-                aldersvurdering = null,
-            ),
-            beregning = null,
-            simulering = null,
-            lukket = false,
-        )
     }
 
     fun Søknadsbehandling.toDb(): SøknadsbehandlingDb {
@@ -544,6 +509,7 @@ internal class SøknadsbehandlingPostgresRepo(
             sakstype = Sakstype.from(string("type")),
             eksterneGrunnlag = eksterneGrunnlag,
         )
+
         fun uavklart(): VilkårsvurdertSøknadsbehandling.Uavklart = VilkårsvurdertSøknadsbehandling.Uavklart(
             id = behandlingId,
             opprettet = opprettet,
@@ -560,6 +526,7 @@ internal class SøknadsbehandlingPostgresRepo(
             sakstype = sakstype,
             saksbehandler = saksbehandler,
         )
+
         val søknadsbehandling = when (status) {
             SøknadsbehandlingStatusDB.OPPRETTET -> uavklart()
 

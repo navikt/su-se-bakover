@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 
 import arrow.core.Either
-import arrow.core.Tuple4
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
@@ -13,8 +16,13 @@ import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import vilkår.vurderinger.domain.Grunnlagsdata
+import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
 import java.util.UUID
 
@@ -26,14 +34,16 @@ import java.util.UUID
  *
  * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
  *
+ * @param søknadsbehandlingId - Id'en til søknadsbehandlingen. Genereres automatisk dersom dette ikke sendes med.
  * @param oppdaterOppgave - Ved opprettelse av behandlingen, vil man i noen tilfeller gjøre noe med oppgaven
  */
 fun Sak.opprettNySøknadsbehandling(
+    søknadsbehandlingId: SøknadsbehandlingId? = null,
     søknadId: UUID,
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
-): Either<KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     if (harÅpenSøknadsbehandling()) {
         // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Kan være lurt og sjekke for overlappende søknadsbehandlinger ved oppdaterStønadsperiode.
         return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
@@ -50,25 +60,42 @@ fun Sak.opprettNySøknadsbehandling(
             }
             it
         },
-    )
+    ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
 
     // gjør en best effort for å oppdatere oppgaven. logging av left gjøres i oppdaterTilordnetRessurs
     oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
 
-    return NySøknadsbehandling(
-        id = SøknadsbehandlingId.generer(),
+    return VilkårsvurdertSøknadsbehandling.Uavklart(
+        id = søknadsbehandlingId ?: SøknadsbehandlingId.generer(),
         opprettet = Tidspunkt.now(clock),
         sakId = this.id,
+        saksnummer = saksnummer,
         søknad = søknad,
         oppgaveId = søknad.oppgaveId,
-        fnr = søknad.fnr,
-        sakstype = søknad.type,
+        fnr = fnr,
+        fritekstTilBrev = "",
+        aldersvurdering = null,
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            vilkårsvurderinger = when (type) {
+                Sakstype.ALDER -> VilkårsvurderingerSøknadsbehandling.Alder.ikkeVurdert()
+                Sakstype.UFØRE -> VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert()
+            },
+            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+        ),
+        attesteringer = Attesteringshistorikk.empty(),
+        søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+            Søknadsbehandlingshendelse(
+                tidspunkt = opprettet,
+                saksbehandler = saksbehandler,
+                handling = SøknadsbehandlingsHandling.StartetBehandling,
+            ),
+        ),
+        sakstype = type,
         saksbehandler = saksbehandler,
-    ).let { nySøknadsbehandling ->
-        val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
-        Tuple4(
+    ).let { søknadsbehandling ->
+        Triple(
             this.nySøknadsbehandling(søknadsbehandling),
-            nySøknadsbehandling,
             søknadsbehandling,
             StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
         ).right()

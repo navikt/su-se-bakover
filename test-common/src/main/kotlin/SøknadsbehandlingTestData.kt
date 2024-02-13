@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -522,6 +523,7 @@ fun nySøknadsbehandlingUføre(
  * Oppretter en søknadsbehandling med bagrunn i [sakOgSøknad]. Støtter både uføre og alder.
  */
 fun nySøknadsbehandlingUtenStønadsperiode(
+    id: SøknadsbehandlingId = SøknadsbehandlingId.generer(),
     clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
@@ -553,11 +555,12 @@ fun nySøknadsbehandlingUtenStønadsperiode(
         // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
         søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad,
     ).opprettNySøknadsbehandling(
+        søknadsbehandlingId = id,
         søknadId = søknad.id,
         clock = clock,
         saksbehandler = saksbehandler,
         oppdaterOppgave = null,
-    ).getOrFail().let { (sak, _, behandling) ->
+    ).getOrFail().let { (sak, behandling) ->
         Pair(sak, behandling)
     }
 }

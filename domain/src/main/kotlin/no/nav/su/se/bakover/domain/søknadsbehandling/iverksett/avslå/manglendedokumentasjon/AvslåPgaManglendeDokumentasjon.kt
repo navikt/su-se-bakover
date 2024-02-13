@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
@@ -52,13 +53,13 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 saksbehandler = command.saksbehandler,
                 oppdaterOppgave = null,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
-                Pair(it.first, listOf(it.third))
+                Pair(it.first, listOf(it.second))
             }
         },
         {
             Pair(this, it)
         },
-    ).let { (sak, behandlinger) ->
+    ).let { (sak: Sak, behandlinger: List<Søknadsbehandling>) ->
         behandlinger.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().whenever(
             { throw IllegalArgumentException("Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad ${command.søknadId}") },
             {

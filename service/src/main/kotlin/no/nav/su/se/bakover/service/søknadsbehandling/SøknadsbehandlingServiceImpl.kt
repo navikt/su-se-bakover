@@ -158,8 +158,8 @@ class SøknadsbehandlingServiceImpl(
                     log.error("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
                 }
             },
-        ).map { (sak, nySøknadsbehandling, uavklartSøknadsbehandling, statistikk) ->
-            søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
+        ).map { (sak, uavklartSøknadsbehandling, statistikk) ->
+            søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
             observers.notify(statistikk)
             Pair(sak, uavklartSøknadsbehandling)
         }
