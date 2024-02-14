@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":common:domain"))
     implementation(project(":behandling:domain"))
+    implementation(project(":oppgave:domain"))
 
     implementation(project(":vilkår:vurderinger"))
     implementation(project(":common:domain"))

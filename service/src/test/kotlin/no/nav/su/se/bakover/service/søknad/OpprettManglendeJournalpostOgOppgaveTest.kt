@@ -233,7 +233,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentPersonMedSystembruker(fnr) } doReturn person.right()
             },
             oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave.left()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave.left()
             },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(

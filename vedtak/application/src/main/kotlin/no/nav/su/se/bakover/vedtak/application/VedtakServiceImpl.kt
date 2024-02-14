@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNysøknadsbehandlingMedNyOppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -90,36 +90,32 @@ class VedtakServiceImpl(
             it as? Avslagsvedtak ?: return KunneIkkeStarteNySøknadsbehandling.VedtakErIkkeAvslag.left()
         }
 
-        return sak.opprettNySøknadsbehandling(
+        val aktørId = personservice.hentAktørId(vedtak.fnr).getOrElse {
+            log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
+            return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
+        }
+
+        return sak.opprettNysøknadsbehandlingMedNyOppgaveId(
             søknadId = vedtak.behandling.søknad.id,
             clock = clock,
             saksbehandler = saksbehandler,
-            oppdaterOppgave = null,
-        ).map { (_, søknadsbehandling, _) ->
-            val aktørId = personservice.hentAktørId(vedtak.fnr).getOrElse {
-                log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
-                return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
-            }
-
-            val oppgaveResponse = oppgaveService.opprettOppgave(
-                OppgaveConfig.Søknad(
-                    journalpostId = vedtak.behandling.søknad.journalpostId,
-                    søknadId = vedtak.behandling.søknad.id,
-                    aktørId = aktørId,
-                    tilordnetRessurs = saksbehandler,
-                    clock = clock,
-                    sakstype = sak.type,
-                ),
-            ).getOrElse {
-                log.error("Feil ved opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
-                return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave.left()
-            }
-
-            søknadsbehandling.oppdaterOppgaveId(oppgaveResponse.oppgaveId).also {
-                søknadsbehandlingService.lagre(it)
-            }
+            opprettOppgave = {
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.Søknad(
+                        journalpostId = vedtak.behandling.søknad.journalpostId,
+                        søknadId = vedtak.behandling.søknad.id,
+                        aktørId = aktørId,
+                        tilordnetRessurs = saksbehandler,
+                        clock = clock,
+                        sakstype = sak.type,
+                    ),
+                )
+            },
+        ).map {
+            søknadsbehandlingService.lagre(it.second)
+            it.second
         }.mapLeft {
-            return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it).left()
+            KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
         }
     }
 }

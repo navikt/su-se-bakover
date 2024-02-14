@@ -4,4 +4,5 @@ sealed interface KunneIkkeOppretteSøknadsbehandling {
     data object ErLukket : KunneIkkeOppretteSøknadsbehandling
     data object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
     data object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
+    data object FeilVedOpprettingAvOppgave : KunneIkkeOppretteSøknadsbehandling
 }

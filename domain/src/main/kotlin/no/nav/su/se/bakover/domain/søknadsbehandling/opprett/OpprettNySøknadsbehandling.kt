@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
@@ -44,23 +46,8 @@ fun Sak.opprettNySøknadsbehandling(
     saksbehandler: NavIdentBruker.Saksbehandler,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
 ): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
-    if (harÅpenSøknadsbehandling()) {
-        // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Kan være lurt og sjekke for overlappende søknadsbehandlinger ved oppdaterStønadsperiode.
-        return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
-    }
-    val søknad = hentSøknad(søknadId).fold(
-        ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
-        ifRight = {
-            if (it is Søknad.Journalført.MedOppgave.Lukket) {
-                return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
-            }
-            if (it !is Søknad.Journalført.MedOppgave) {
-                // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-                return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
-            }
-            it
-        },
-    ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
+    ingenÅpneBehandlingerEllerLeft().getOrElse { return it.left() }
+    val søknad = søknadIGyldigTilstandEllerLeft(søknadId).getOrElse { return it.left() }
 
     // gjør en best effort for å oppdatere oppgaven. logging av left gjøres i oppdaterTilordnetRessurs
     oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
@@ -100,4 +87,77 @@ fun Sak.opprettNySøknadsbehandling(
             StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
         ).right()
     }
+}
+
+fun Sak.opprettNysøknadsbehandlingMedNyOppgaveId(
+    søknadId: UUID,
+    clock: Clock,
+    saksbehandler: NavIdentBruker.Saksbehandler,
+    opprettOppgave: () -> Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>,
+): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+    ingenÅpneBehandlingerEllerLeft().getOrElse { return it.left() }
+    val søknad = søknadIGyldigTilstandEllerLeft(søknadId).getOrElse { return it.left() }
+
+    return VilkårsvurdertSøknadsbehandling.Uavklart(
+        id = SøknadsbehandlingId.generer(),
+        opprettet = Tidspunkt.now(clock),
+        sakId = this.id,
+        saksnummer = saksnummer,
+        søknad = søknad,
+        oppgaveId = opprettOppgave().fold(
+            ifLeft = { return KunneIkkeOppretteSøknadsbehandling.FeilVedOpprettingAvOppgave.left() },
+            ifRight = { it.oppgaveId },
+        ),
+        fnr = fnr,
+        fritekstTilBrev = "",
+        aldersvurdering = null,
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            vilkårsvurderinger = when (type) {
+                Sakstype.ALDER -> VilkårsvurderingerSøknadsbehandling.Alder.ikkeVurdert()
+                Sakstype.UFØRE -> VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert()
+            },
+            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+        ),
+        attesteringer = Attesteringshistorikk.empty(),
+        søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+            Søknadsbehandlingshendelse(
+                tidspunkt = opprettet,
+                saksbehandler = saksbehandler,
+                handling = SøknadsbehandlingsHandling.StartetBehandling,
+            ),
+        ),
+        sakstype = type,
+        saksbehandler = saksbehandler,
+    ).let { søknadsbehandling ->
+        Triple(
+            this.nySøknadsbehandling(søknadsbehandling),
+            søknadsbehandling,
+            StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
+        ).right()
+    }
+}
+
+private fun Sak.ingenÅpneBehandlingerEllerLeft(): Either<KunneIkkeOppretteSøknadsbehandling, Unit> {
+    if (harÅpenSøknadsbehandling()) {
+        return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+    }
+    return Unit.right()
+}
+
+private fun Sak.søknadIGyldigTilstandEllerLeft(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Søknad.Journalført.MedOppgave> {
+    return hentSøknad(søknadId).fold(
+        ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
+        ifRight = {
+            if (it is Søknad.Journalført.MedOppgave.Lukket) {
+                return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+            }
+            if (it !is Søknad.Journalført.MedOppgave) {
+                // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
+                return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
+            }
+            it
+        },
+    ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
+        .right()
 }

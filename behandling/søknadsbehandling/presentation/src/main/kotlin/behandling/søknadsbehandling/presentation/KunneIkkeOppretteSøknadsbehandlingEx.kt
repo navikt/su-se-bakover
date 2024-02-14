@@ -12,4 +12,6 @@ fun KunneIkkeOppretteSøknadsbehandling.tilResultat() = when (this) {
         "Det finnes en eksisterende åpen søknadsbehandling. Iverksett eller lukk denne først.",
         "finnes_åpen_søknadsbehandling",
     )
+
+    KunneIkkeOppretteSøknadsbehandling.FeilVedOpprettingAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
 }
