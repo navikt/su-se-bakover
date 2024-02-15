@@ -28,9 +28,8 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     override fun erLik(other: Vurderingsperiode) =
         other is VurderingsperiodeFamiliegjenforening && vurdering == other.vurdering && erGrunnlagLik(other.grunnlag)
 
-    override fun copyWithNewId(): Vurderingsperiode {
-        return this.copy(id = UUID.randomUUID(), grunnlag = grunnlag?.copyWithNewId())
-    }
+    override fun copyWithNewId(): VurderingsperiodeFamiliegjenforening =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag?.copyWithNewId())
 
     private fun erGrunnlagLik(other: Grunnlag?): Boolean {
         return if (grunnlag == null && other == null) {

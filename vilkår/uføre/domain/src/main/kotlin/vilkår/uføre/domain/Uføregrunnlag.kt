@@ -48,7 +48,7 @@ data class Uføregrunnlag(
         return this.uføregrad == other.uføregrad && this.forventetInntekt == other.forventetInntekt
     }
 
-    override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
+    override fun copyWithNewId(): Uføregrunnlag = this.copy(id = UUID.randomUUID())
 
     companion object {
         fun List<Uføregrunnlag>.slåSammenPeriodeOgUføregrad(): List<Pair<Periode, Uføregrad>> {

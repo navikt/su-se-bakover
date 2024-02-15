@@ -78,7 +78,7 @@ sealed interface LovligOppholdVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): Vilkår =
+        override fun copyWithNewId(): LovligOppholdVilkår =
             this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {

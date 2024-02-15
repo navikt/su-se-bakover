@@ -104,6 +104,18 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
             return other is Uføre && vilkår.erLik(other.vilkår)
         }
 
+        override fun copyWithNewIds(): Uføre = Uføre(
+            uføre = uføre.copyWithNewId() as UføreVilkår,
+            lovligOpphold = lovligOpphold.copyWithNewId() as LovligOppholdVilkår,
+            formue = formue.copyWithNewId() as FormueVilkår,
+            utenlandsopphold = utenlandsopphold.copyWithNewId() as UtenlandsoppholdVilkår,
+            opplysningsplikt = opplysningsplikt.copyWithNewId() as OpplysningspliktVilkår,
+            flyktning = flyktning.copyWithNewId() as FlyktningVilkår,
+            fastOpphold = fastOpphold.copyWithNewId() as FastOppholdINorgeVilkår,
+            personligOppmøte = personligOppmøte.copyWithNewId() as PersonligOppmøteVilkår,
+            institusjonsopphold = institusjonsopphold.copyWithNewId() as InstitusjonsoppholdVilkår,
+        )
+
         /**
          * Override av [equals] for å slippe å endre alle eksisterende tester som baserer seg på objektliket.
          * Må modifiserers etterhvert som disse dataene begynner å lagres.
@@ -219,6 +231,18 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
         override fun erLik(other: Vilkårsvurderinger): Boolean {
             return other is Alder && vilkår.erLik(other.vilkår)
         }
+
+        override fun copyWithNewIds(): Alder = Alder(
+            pensjon = pensjon.copyWithNewId() as PensjonsVilkår,
+            lovligOpphold = lovligOpphold.copyWithNewId() as LovligOppholdVilkår,
+            formue = formue.copyWithNewId() as FormueVilkår,
+            utenlandsopphold = utenlandsopphold.copyWithNewId() as UtenlandsoppholdVilkår,
+            opplysningsplikt = opplysningsplikt.copyWithNewId() as OpplysningspliktVilkår,
+            familiegjenforening = familiegjenforening.copyWithNewId() as FamiliegjenforeningVilkår,
+            fastOpphold = fastOpphold.copyWithNewId() as FastOppholdINorgeVilkår,
+            personligOppmøte = personligOppmøte.copyWithNewId() as PersonligOppmøteVilkår,
+            institusjonsopphold = institusjonsopphold.copyWithNewId() as InstitusjonsoppholdVilkår,
+        )
 
         companion object {
             fun ikkeVurdert() = Alder(
