@@ -5,17 +5,27 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingHandlingDb.Companion.toDb
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
+import java.util.UUID
 
-data class SøknadsbehandlingHendelseJson(
+internal data class SøknadsbehandlingHendelseJson(
     val tidspunkt: Tidspunkt,
     val navIdent: String,
-    val handling: SøknadsbehandlingHandlingDb,
+    val handlingJson: HandlingJson,
 )
 
-data class SøknadsbehandlingshistorikkJson(
+data class HandlingJson(
+    val handling: SøknadsbehandlingHandlingDb,
+    val tilhørendeSøknadsbehandlingId: String? = null,
+) {
+    fun toSøknadsbehandlingsHandling() =
+        handling.toSøknadsbehandlingsHandling(tilhørendeSøknadsbehandlingId?.let { SøknadsbehandlingId(UUID.fromString(it)) })
+}
+
+internal data class SøknadsbehandlingshistorikkJson(
     val historikk: List<SøknadsbehandlingHendelseJson>,
 ) {
 
@@ -24,7 +34,7 @@ data class SøknadsbehandlingshistorikkJson(
             Søknadsbehandlingshendelse(
                 tidspunkt = it.tidspunkt,
                 saksbehandler = NavIdentBruker.Saksbehandler(it.navIdent),
-                handling = it.handling.toSøknadsbehandlingsHandling(),
+                handling = it.handlingJson.toSøknadsbehandlingsHandling(),
             )
         },
     )
@@ -36,7 +46,7 @@ data class SøknadsbehandlingshistorikkJson(
                     SøknadsbehandlingHendelseJson(
                         tidspunkt = it.tidspunkt,
                         navIdent = it.saksbehandler.navIdent,
-                        handling = it.handling.toDb(),
+                        handlingJson = it.handling.toDb(),
                     )
                 },
             ).let { serialize(it) }
@@ -68,13 +78,14 @@ enum class SøknadsbehandlingHandlingDb {
     Simulert,
     SendtTilAttestering,
     Lukket,
+    StartetFraEtAvslag,
 
     // Unike for alder
     OppdatertPensjonsvilkår,
     OppdatertFamiliegjenforening,
     ;
 
-    fun toSøknadsbehandlingsHandling() = when (this) {
+    fun toSøknadsbehandlingsHandling(tidligereAvslagsId: SøknadsbehandlingId? = null) = when (this) {
         StartetBehandling -> SøknadsbehandlingsHandling.StartetBehandling
         OppdatertStønadsperiode -> SøknadsbehandlingsHandling.OppdatertStønadsperiode
         OppdatertFastOppholdINorge -> SøknadsbehandlingsHandling.OppdatertFastOppholdINorge
@@ -107,31 +118,36 @@ enum class SøknadsbehandlingHandlingDb {
         OppdatertBosituasjon -> SøknadsbehandlingsHandling.OppdatertBosituasjon
         OppdatertPensjonsvilkår -> SøknadsbehandlingsHandling.OppdatertPensjonsvilkår
         OppdatertFamiliegjenforening -> SøknadsbehandlingsHandling.OppdatertFamiliegjenforening
+        StartetFraEtAvslag -> SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(tidligereAvslagsId!!)
     }
 
     companion object {
-        fun SøknadsbehandlingsHandling.toDb() = when (this) {
-            SøknadsbehandlingsHandling.Beregnet -> Beregnet
-            SøknadsbehandlingsHandling.FullførtBosituasjon -> FullførtBosituasjon
-            SøknadsbehandlingsHandling.Lukket -> Lukket
-            SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag -> OppdatertFradrag
-            SøknadsbehandlingsHandling.OppdatertStønadsperiode -> OppdatertStønadsperiode
-            SøknadsbehandlingsHandling.SendtTilAttestering -> SendtTilAttestering
-            SøknadsbehandlingsHandling.Simulert -> Simulert
-            SøknadsbehandlingsHandling.StartetBehandling -> StartetBehandling
-            SøknadsbehandlingsHandling.TattStillingTilEPS -> TattStillingTilEPS
-            SøknadsbehandlingsHandling.OppdatertFastOppholdINorge -> OppdatertFastOppholdINorge
-            SøknadsbehandlingsHandling.OppdatertFlyktning -> OppdatertFlyktning
-            SøknadsbehandlingsHandling.OppdatertFormue -> OppdatertFormue
-            SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold -> OppdatertInstitusjonsopphold
-            SøknadsbehandlingsHandling.OppdatertLovligOpphold -> OppdatertLovligOpphold
-            SøknadsbehandlingsHandling.OppdatertOpplysningsplikt -> OppdatertOpplysningsplikt
-            SøknadsbehandlingsHandling.OppdatertPersonligOppmøte -> OppdatertPersonligOppmøte
-            SøknadsbehandlingsHandling.OppdatertUførhet -> OppdatertUførhet
-            SøknadsbehandlingsHandling.OppdatertUtenlandsopphold -> OppdatertUtenlandsopphold
-            SøknadsbehandlingsHandling.OppdatertBosituasjon -> OppdatertBosituasjon
-            SøknadsbehandlingsHandling.OppdatertFamiliegjenforening -> OppdatertFamiliegjenforening
-            SøknadsbehandlingsHandling.OppdatertPensjonsvilkår -> OppdatertPensjonsvilkår
+        fun SøknadsbehandlingsHandling.toDb(): HandlingJson = when (this) {
+            SøknadsbehandlingsHandling.Beregnet -> HandlingJson(Beregnet)
+            SøknadsbehandlingsHandling.FullførtBosituasjon -> HandlingJson(FullførtBosituasjon)
+            SøknadsbehandlingsHandling.Lukket -> HandlingJson(Lukket)
+            SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag -> HandlingJson(OppdatertFradrag)
+            SøknadsbehandlingsHandling.OppdatertStønadsperiode -> HandlingJson(OppdatertStønadsperiode)
+            SøknadsbehandlingsHandling.SendtTilAttestering -> HandlingJson(SendtTilAttestering)
+            SøknadsbehandlingsHandling.Simulert -> HandlingJson(Simulert)
+            SøknadsbehandlingsHandling.StartetBehandling -> HandlingJson(StartetBehandling)
+            SøknadsbehandlingsHandling.TattStillingTilEPS -> HandlingJson(TattStillingTilEPS)
+            SøknadsbehandlingsHandling.OppdatertFastOppholdINorge -> HandlingJson(OppdatertFastOppholdINorge)
+            SøknadsbehandlingsHandling.OppdatertFlyktning -> HandlingJson(OppdatertFlyktning)
+            SøknadsbehandlingsHandling.OppdatertFormue -> HandlingJson(OppdatertFormue)
+            SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold -> HandlingJson(OppdatertInstitusjonsopphold)
+            SøknadsbehandlingsHandling.OppdatertLovligOpphold -> HandlingJson(OppdatertLovligOpphold)
+            SøknadsbehandlingsHandling.OppdatertOpplysningsplikt -> HandlingJson(OppdatertOpplysningsplikt)
+            SøknadsbehandlingsHandling.OppdatertPersonligOppmøte -> HandlingJson(OppdatertPersonligOppmøte)
+            SøknadsbehandlingsHandling.OppdatertUførhet -> HandlingJson(OppdatertUførhet)
+            SøknadsbehandlingsHandling.OppdatertUtenlandsopphold -> HandlingJson(OppdatertUtenlandsopphold)
+            SøknadsbehandlingsHandling.OppdatertBosituasjon -> HandlingJson(OppdatertBosituasjon)
+            SøknadsbehandlingsHandling.OppdatertFamiliegjenforening -> HandlingJson(OppdatertFamiliegjenforening)
+            SøknadsbehandlingsHandling.OppdatertPensjonsvilkår -> HandlingJson(OppdatertPensjonsvilkår)
+            is SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag -> HandlingJson(
+                StartetFraEtAvslag,
+                this.tidligereAvslagsId.toString(),
+            )
         }
     }
 }

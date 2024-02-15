@@ -100,3 +100,11 @@ fun <A, B> Pair<A?, B?>.isEitherNull(): Boolean = isFirstNull() || isSecondNull(
 fun <A, B, C> Pair<A?, B?>.wheneverEitherIsNull(eitherIsNull: () -> C, eitherIsNotNull: (Pair<A, B>) -> C): C {
     return if (this.isEitherNull()) eitherIsNull() else eitherIsNotNull(Pair(this.first!!, this.second!!))
 }
+
+fun <T> (() -> Boolean).whenever(isFalse: () -> T, isTrue: () -> T): T {
+    return if (this()) isTrue() else isFalse()
+}
+
+fun <T> Boolean.whenever(isFalse: () -> T, isTrue: () -> T): T {
+    return if (this) isTrue() else isFalse()
+}

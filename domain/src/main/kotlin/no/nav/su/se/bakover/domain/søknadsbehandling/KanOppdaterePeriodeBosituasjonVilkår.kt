@@ -332,4 +332,14 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
             handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge,
         ).mapLeft { KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.Vilkårsfeil(it) }
     }
+
+    fun kopierUføreVilkårFra(sb: Søknadsbehandling): VilkårsvurdertSøknadsbehandling {
+        return VilkårsvurdertSøknadsbehandling.opprett(
+            forrigeTilstand = this,
+            saksbehandler = sb.saksbehandler,
+            grunnlagsdataOgVilkårsvurderinger = sb.grunnlagsdataOgVilkårsvurderinger,
+            tidspunkt = sb.opprettet,
+            handling = SøknadsbehandlingsHandling.OppdatertUførhet,
+        )
+    }
 }

@@ -34,6 +34,7 @@ data class Søknadsbehandlingshistorikk private constructor(
 
 sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
     data object StartetBehandling : SøknadsbehandlingsHandling
+    data class StartetBehandlingFraEtAvslag(val tidligereAvslagsId: SøknadsbehandlingId) : SøknadsbehandlingsHandling
     data object OppdatertStønadsperiode : SøknadsbehandlingsHandling
     data object OppdatertUførhet : SøknadsbehandlingsHandling
     data object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling
