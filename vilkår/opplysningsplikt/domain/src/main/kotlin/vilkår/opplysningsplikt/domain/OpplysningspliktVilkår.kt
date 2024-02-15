@@ -148,7 +148,7 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
             grunnlag.erLik(other.grunnlag)
     }
 
-    override fun copyWithNewId(): VurderingsperiodeOpplysningsplikt = this.copy(id = UUID.randomUUID())
+    override fun copyWithNewId(): VurderingsperiodeOpplysningsplikt = this.copy(id = UUID.randomUUID(), grunnlag = grunnlag.copyWithNewId())
 
     companion object {
         fun create(

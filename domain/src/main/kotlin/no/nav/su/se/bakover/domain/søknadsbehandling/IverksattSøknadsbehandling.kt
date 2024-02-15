@@ -251,6 +251,9 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
             ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
+                    return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+                }
                 return kanOppretteNyBehandling.whenever(
                     isFalse = { KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left() },
                     isTrue = {
@@ -301,11 +304,12 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                             StøtterIkkeHentingAvEksternGrunnlag -> StøtterIkkeHentingAvEksternGrunnlag
                         }
 
-                        val oppdaterteGrunnlagdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
-                            grunnlagsdata = oppdaterteGrunnlag,
-                            vilkårsvurderinger = oppdatertevilkår,
-                            eksterneGrunnlag = oppdaterteEksterneGrunnlag,
-                        )
+                        val oppdaterteGrunnlagdataOgVilkårsvurderinger =
+                            GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
+                                grunnlagsdata = oppdaterteGrunnlag,
+                                vilkårsvurderinger = oppdatertevilkår,
+                                eksterneGrunnlag = oppdaterteEksterneGrunnlag,
+                            )
 
                         erAvslagGrunnetOpplysningsplikt.whenever(
                             isFalse = {

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import java.time.Clock
@@ -15,6 +16,13 @@ import java.time.Clock
 sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, ErAvslag {
     override val periode: Periode
     override val behandling: IverksattSøknadsbehandling.Avslag
+
+    /**
+     * Om ny behandling kan bli startet basert på vedtakets behandling.
+     *
+     * Denne sjekker ikke på om det allerede finnes en åpen behandling fra før
+     */
+    val kanStarteNyBehandling: Boolean get() = behandling.søknad !is Søknad.Journalført.MedOppgave.Lukket
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(

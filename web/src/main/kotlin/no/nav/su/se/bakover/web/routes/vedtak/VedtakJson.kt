@@ -94,7 +94,7 @@ internal fun Avslagsvedtak.toJson(): VedtakJson = VedtakJson(
     type = VedtakTypeJson.AVSLAG.toString(),
     dokumenttilstand = this.dokumenttilstand.toJson(),
     // avslagsvedtak er per tidspunkt det eneste vedtaket som kan starte en ny form for behandling
-    kanStarteNyBehandling = true,
+    kanStarteNyBehandling = kanStarteNyBehandling,
 )
 
 internal fun VedtakAvslagBeregning.toJson(): VedtakJson = VedtakJson(
