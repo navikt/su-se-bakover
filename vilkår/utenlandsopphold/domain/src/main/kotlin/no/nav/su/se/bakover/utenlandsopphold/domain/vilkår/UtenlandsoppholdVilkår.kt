@@ -77,6 +77,9 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
+        override fun copyWithNewId(): UtenlandsoppholdVilkår =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
+
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,

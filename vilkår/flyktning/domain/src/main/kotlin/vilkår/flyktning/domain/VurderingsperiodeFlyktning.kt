@@ -46,6 +46,8 @@ data class VurderingsperiodeFlyktning private constructor(
         return other is VurderingsperiodeFlyktning && vurdering == other.vurdering
     }
 
+    override fun copyWithNewId(): VurderingsperiodeFlyktning = this.copy(id = UUID.randomUUID())
+
     companion object {
         fun create(
             id: UUID = UUID.randomUUID(),

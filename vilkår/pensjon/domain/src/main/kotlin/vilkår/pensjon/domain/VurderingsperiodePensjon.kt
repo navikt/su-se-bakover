@@ -54,6 +54,9 @@ data class VurderingsperiodePensjon private constructor(
             grunnlag.erLik(other.grunnlag)
     }
 
+    override fun copyWithNewId(): VurderingsperiodePensjon =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag.copyWithNewId())
+
     companion object {
         fun create(
             id: UUID = UUID.randomUUID(),

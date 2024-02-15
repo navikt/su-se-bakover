@@ -73,6 +73,9 @@ sealed interface InstitusjonsoppholdVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
+        override fun copyWithNewId(): InstitusjonsoppholdVilkår =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
+
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeInstitusjonsopphold>,

@@ -37,6 +37,8 @@ data class Utenlandsoppholdgrunnlag(
         return other is Utenlandsoppholdgrunnlag
     }
 
+    override fun copyWithNewId(): Utenlandsoppholdgrunnlag = this.copy(id = UUID.randomUUID())
+
     companion object {
         fun tryCreate(
             id: UUID = UUID.randomUUID(),

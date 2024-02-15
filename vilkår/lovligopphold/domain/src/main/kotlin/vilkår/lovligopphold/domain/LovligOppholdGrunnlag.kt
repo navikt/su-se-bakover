@@ -34,6 +34,8 @@ data class LovligOppholdGrunnlag(
         return other is LovligOppholdGrunnlag
     }
 
+    override fun copyWithNewId(): LovligOppholdGrunnlag = this.copy(id = UUID.randomUUID())
+
     companion object {
         fun tryCreate(
             id: UUID = UUID.randomUUID(),

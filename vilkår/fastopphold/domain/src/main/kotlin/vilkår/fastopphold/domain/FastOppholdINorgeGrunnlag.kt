@@ -37,6 +37,8 @@ data class FastOppholdINorgeGrunnlag(
         return other is FastOppholdINorgeGrunnlag
     }
 
+    override fun copyWithNewId(): FastOppholdINorgeGrunnlag = this.copy(id = UUID.randomUUID())
+
     companion object {
         fun tryCreate(
             id: UUID = UUID.randomUUID(),

@@ -213,6 +213,17 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
         ).mapLeft { KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.Vilkårsfeil(it) }
     }
 
+    fun leggTilOpplysningspliktVilkårMaskinelt(
+        vilkår: OpplysningspliktVilkår.Vurdert,
+    ): VilkårsvurdertSøknadsbehandling {
+        return vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+            vilkår = vilkår,
+            tidspunkt = vilkår.vurderingsperioder.first().opprettet,
+            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
+        ).getOrElse { throw IllegalArgumentException("Kunne ikke legge til opplysningsplikt vilkår maskinelt. Feil var $it") }
+    }
+
     fun leggTilPensjonsVilkår(
         vilkår: PensjonsVilkår.Vurdert,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -331,15 +342,5 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
             tidspunkt = vilkår.vurderingsperioder.first().opprettet,
             handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge,
         ).mapLeft { KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.Vilkårsfeil(it) }
-    }
-
-    fun kopierUføreVilkårFra(sb: Søknadsbehandling): VilkårsvurdertSøknadsbehandling {
-        return VilkårsvurdertSøknadsbehandling.opprett(
-            forrigeTilstand = this,
-            saksbehandler = sb.saksbehandler,
-            grunnlagsdataOgVilkårsvurderinger = sb.grunnlagsdataOgVilkårsvurderinger,
-            tidspunkt = sb.opprettet,
-            handling = SøknadsbehandlingsHandling.OppdatertUførhet,
-        )
     }
 }

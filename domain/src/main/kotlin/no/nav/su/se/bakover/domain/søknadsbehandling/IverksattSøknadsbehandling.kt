@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -25,14 +25,26 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
+import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Avslagsgrunn
-import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
+import vilkår.flyktning.domain.FlyktningVilkår
+import vilkår.formue.domain.FormueVilkår
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
-import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
-import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
+import vilkår.pensjon.domain.PensjonsVilkår
+import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.Grunnlagsdata
+import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
+import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.krevAlleVilkårInnvilget
 import vilkår.vurderinger.domain.krevMinstEttAvslag
 import økonomi.domain.simulering.Simulering
@@ -244,6 +256,57 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                     isTrue = {
                         val opprettet = Tidspunkt.now(clock)
                         val erAvslagGrunnetOpplysningsplikt = vilkårsvurderinger.opplysningsplikt.erAvslag
+
+                        val oppdatertevilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vilkår.map {
+                            it.copyWithNewId()
+                        }.let {
+                            when (sakstype) {
+                                Sakstype.ALDER -> VilkårsvurderingerSøknadsbehandling.Alder(
+                                    formue = it.filterIsInstance<FormueVilkår>().single(),
+                                    lovligOpphold = it.filterIsInstance<LovligOppholdVilkår>().single(),
+                                    fastOpphold = it.filterIsInstance<FastOppholdINorgeVilkår>().single(),
+                                    institusjonsopphold = it.filterIsInstance<InstitusjonsoppholdVilkår>()
+                                        .single(),
+                                    utenlandsopphold = it.filterIsInstance<UtenlandsoppholdVilkår>().single(),
+                                    personligOppmøte = it.filterIsInstance<PersonligOppmøteVilkår>().single(),
+                                    opplysningsplikt = it.filterIsInstance<OpplysningspliktVilkår>().single(),
+                                    pensjon = it.filterIsInstance<PensjonsVilkår>().single(),
+                                    familiegjenforening = it.filterIsInstance<FamiliegjenforeningVilkår>()
+                                        .single(),
+                                )
+
+                                Sakstype.UFØRE -> VilkårsvurderingerSøknadsbehandling.Uføre(
+                                    formue = it.filterIsInstance<FormueVilkår>().single(),
+                                    lovligOpphold = it.filterIsInstance<LovligOppholdVilkår>().single(),
+                                    fastOpphold = it.filterIsInstance<FastOppholdINorgeVilkår>().single(),
+                                    institusjonsopphold = it.filterIsInstance<InstitusjonsoppholdVilkår>()
+                                        .single(),
+                                    utenlandsopphold = it.filterIsInstance<UtenlandsoppholdVilkår>().single(),
+                                    personligOppmøte = it.filterIsInstance<PersonligOppmøteVilkår>().single(),
+                                    opplysningsplikt = it.filterIsInstance<OpplysningspliktVilkår>().single(),
+                                    uføre = it.filterIsInstance<UføreVilkår>().single(),
+                                    flyktning = it.filterIsInstance<FlyktningVilkår>().single(),
+                                )
+                            }
+                        }
+
+                        val oppdaterteGrunnlag = Grunnlagsdata.create(
+                            fradragsgrunnlag = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map { it.copyWithNewId() as Fradragsgrunnlag },
+                            bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjonSomFullstendig()
+                                .map { it.copyWithNewId() as Bosituasjon.Fullstendig },
+                        )
+
+                        val oppdaterteEksterneGrunnlag = when (grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag) {
+                            is StøtterHentingAvEksternGrunnlag -> grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.copyWithNewId()
+                            StøtterIkkeHentingAvEksternGrunnlag -> StøtterIkkeHentingAvEksternGrunnlag
+                        }
+
+                        val oppdaterteGrunnlagdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
+                            grunnlagsdata = oppdaterteGrunnlag,
+                            vilkårsvurderinger = oppdatertevilkår,
+                            eksterneGrunnlag = oppdaterteEksterneGrunnlag,
+                        )
+
                         erAvslagGrunnetOpplysningsplikt.whenever(
                             isFalse = {
                                 VilkårsvurdertSøknadsbehandling.Avslag(
@@ -251,6 +314,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                                     oppgaveId = oppgaveId,
                                     saksbehandler = saksbehandler,
                                     iverksattSøknadsbehandling = this,
+                                    grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagdataOgVilkårsvurderinger,
                                 ).right()
                             },
                             isTrue = {
@@ -259,23 +323,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                                     oppgaveId = oppgaveId,
                                     saksbehandler = saksbehandler,
                                     iverksattSøknadsbehandling = this,
-                                    grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.oppdaterOpplysningsplikt(
-                                        opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
-                                            vurderingsperioder = nonEmptyListOf(
-                                                VurderingsperiodeOpplysningsplikt.create(
-                                                    id = UUID.randomUUID(),
-                                                    opprettet = opprettet,
-                                                    periode = periode,
-                                                    grunnlag = Opplysningspliktgrunnlag(
-                                                        id = UUID.randomUUID(),
-                                                        opprettet = opprettet,
-                                                        periode = periode,
-                                                        beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
-                                                    ),
-                                                ),
-                                            ),
-                                        ).getOrElse { throw IllegalArgumentException(it.toString()) },
-                                    ),
+                                    grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagdataOgVilkårsvurderinger,
                                 ).right()
                             },
                         )

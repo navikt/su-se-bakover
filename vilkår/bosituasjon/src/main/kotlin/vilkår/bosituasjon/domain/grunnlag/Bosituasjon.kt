@@ -126,6 +126,8 @@ sealed interface Bosituasjon : Grunnlag {
                         return this.fnr == other.fnr
                     }
 
+                    override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
+
                     override fun copy(args: CopyArgs.Tidslinje): UførFlyktning = when (args) {
                         CopyArgs.Tidslinje.Full -> {
                             copy(id = UUID.randomUUID())
@@ -152,6 +154,8 @@ sealed interface Bosituasjon : Grunnlag {
                         }
                         return this.fnr == other.fnr
                     }
+
+                    override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
 
                     override fun copy(args: CopyArgs.Tidslinje): IkkeUførFlyktning = when (args) {
                         CopyArgs.Tidslinje.Full -> {
@@ -180,6 +184,8 @@ sealed interface Bosituasjon : Grunnlag {
                     }
                     return this.fnr == other.fnr
                 }
+
+                override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
 
                 override fun copy(args: CopyArgs.Tidslinje): SektiSyvEllerEldre = when (args) {
                     CopyArgs.Tidslinje.Full -> {
@@ -210,6 +216,8 @@ sealed interface Bosituasjon : Grunnlag {
                 return other is Enslig
             }
 
+            override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
+
             override fun copy(args: CopyArgs.Tidslinje): Enslig = when (args) {
                 CopyArgs.Tidslinje.Full -> {
                     copy(id = UUID.randomUUID())
@@ -236,6 +244,8 @@ sealed interface Bosituasjon : Grunnlag {
             override fun erLik(other: Grunnlag): Boolean {
                 return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
             }
+
+            override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
 
             override fun copy(args: CopyArgs.Tidslinje): DelerBoligMedVoksneBarnEllerAnnenVoksen = when (args) {
                 CopyArgs.Tidslinje.Full -> {
@@ -268,6 +278,8 @@ sealed interface Bosituasjon : Grunnlag {
             override fun erLik(other: Grunnlag): Boolean {
                 return other is HarIkkeEps
             }
+
+            override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
         }
 
         /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
@@ -282,6 +294,8 @@ sealed interface Bosituasjon : Grunnlag {
             override fun harEPS(): Boolean {
                 return true
             }
+
+            override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
 
             override fun erLik(other: Grunnlag): Boolean {
                 return other is HarEps

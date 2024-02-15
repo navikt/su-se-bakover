@@ -85,6 +85,10 @@ sealed interface OpplysningspliktVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
+        override fun copyWithNewId(): OpplysningspliktVilkår {
+            return this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
+        }
+
         companion object {
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeOpplysningsplikt>,
@@ -143,6 +147,8 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
             vurdering == other.vurdering &&
             grunnlag.erLik(other.grunnlag)
     }
+
+    override fun copyWithNewId(): VurderingsperiodeOpplysningsplikt = this.copy(id = UUID.randomUUID())
 
     companion object {
         fun create(

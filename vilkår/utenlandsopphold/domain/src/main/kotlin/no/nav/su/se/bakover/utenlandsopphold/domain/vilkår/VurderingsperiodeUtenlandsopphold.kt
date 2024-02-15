@@ -58,6 +58,9 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             }
     }
 
+    override fun copyWithNewId(): VurderingsperiodeUtenlandsopphold =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag?.copyWithNewId())
+
     companion object {
         fun create(
             id: UUID = UUID.randomUUID(),

@@ -239,8 +239,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             iverksattSøknadsbehandling: IverksattSøknadsbehandling.Avslag,
-            // hvis du vil oppdatere grunnlagsdata og vilkårsvurderinger
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling = iverksattSøknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         ) : this(
             opprettet = opprettet,
             sakId = iverksattSøknadsbehandling.sakId,

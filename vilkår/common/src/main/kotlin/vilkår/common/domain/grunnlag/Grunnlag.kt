@@ -16,6 +16,7 @@ interface Grunnlag {
     fun erLik(other: Grunnlag): Boolean
 
     fun tilstøterOgErLik(other: Grunnlag) = this.tilstøter(other) && this.erLik(other)
+    fun copyWithNewId(): Grunnlag
 }
 
 /**

@@ -30,4 +30,5 @@ interface Vilkår {
     fun erLik(other: Vilkår): Boolean
     fun lagTidslinje(periode: Periode): Vilkår
     fun slåSammenLikePerioder(): Vilkår
+    fun copyWithNewId(): Vilkår
 }

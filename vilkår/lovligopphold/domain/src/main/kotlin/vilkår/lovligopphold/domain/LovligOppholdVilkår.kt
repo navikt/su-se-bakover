@@ -78,6 +78,9 @@ sealed interface LovligOppholdVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
+        override fun copyWithNewId(): Vilkår =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
+
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
