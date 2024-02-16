@@ -68,7 +68,7 @@ sealed interface UføreVilkår : Vilkår {
             return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): UføreVilkår =
+        override fun copyWithNewId(): Vurdert =
             this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
