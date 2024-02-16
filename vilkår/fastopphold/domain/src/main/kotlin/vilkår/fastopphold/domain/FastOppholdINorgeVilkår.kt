@@ -76,7 +76,7 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): FastOppholdINorgeVilkår = this.copy(
+        override fun copyWithNewId(): Vurdert = this.copy(
             vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() },
         )
 

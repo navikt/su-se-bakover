@@ -136,7 +136,7 @@ private class FamiliegjenforeningTest {
         fun `kopierer grunnlaget med ny id`() {
             val vilkår = familiegjenforeningVilkårInnvilget()
             vilkår.copyWithNewId().let {
-                (it as FamiliegjenforeningVilkår.Vurdert).vurderingsperioder.let {
+                it.vurderingsperioder.let {
                     it.size shouldBe 1
                     it.first().id shouldNotBe vilkår.vurderingsperioder.first().id
                     it.first().grunnlag?.id shouldBe vilkår.vurderingsperioder.first().grunnlag?.id

@@ -3,6 +3,7 @@ package vilkår.fastopphold.domain
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.juli
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
@@ -94,5 +96,16 @@ internal class FastOppholdINorgeVilkårTest {
         ).getOrFail()
             .lagTidslinje(år(2021))
             .erLik(FastOppholdINorgeVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+    }
+
+    @Test
+    fun `kopierer vilkåret med ny id'er`() {
+        val fastOppholdINorge = fastOppholdVilkårInnvilget()
+
+        fastOppholdINorge.copyWithNewId().let {
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first().id shouldNotBe fastOppholdINorge.vurderingsperioder.first().id
+            it.vurderingsperioder.first().grunnlag?.id shouldBe fastOppholdINorge.vurderingsperioder.first().grunnlag?.id
+        }
     }
 }

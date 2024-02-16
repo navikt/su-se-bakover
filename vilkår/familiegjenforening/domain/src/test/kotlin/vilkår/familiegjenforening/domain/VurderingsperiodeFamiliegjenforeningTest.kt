@@ -36,7 +36,7 @@ class VurderingsperiodeFamiliegjenforeningTest {
     }
 
     @Test
-    fun `kopierer grunnlaget med ny id`() {
+    fun `kopierer vurderingsperioden med ny id`() {
         val vurderingsperiode = vurderingsperiodeFamiliegjenforeningInnvilget()
         vurderingsperiode.copyWithNewId().let {
             it.id shouldNotBe vurderingsperiode.id

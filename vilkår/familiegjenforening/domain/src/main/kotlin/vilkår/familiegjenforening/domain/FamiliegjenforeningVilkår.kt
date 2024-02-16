@@ -55,7 +55,7 @@ sealed interface FamiliegjenforeningVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): FamiliegjenforeningVilkår =
+        override fun copyWithNewId(): Vurdert =
             this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         override fun lagTidslinje(periode: Periode): Vurdert {

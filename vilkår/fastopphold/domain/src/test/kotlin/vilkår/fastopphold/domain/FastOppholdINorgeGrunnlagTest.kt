@@ -1,11 +1,13 @@
 package vilkår.fastopphold.domain
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.nyFastOppholdINorgeGrunnlag
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -57,5 +59,16 @@ internal class FastOppholdINorgeGrunnlagTest {
                 periode = februar(2021),
             ),
         ) shouldBe true
+    }
+
+    @Test
+    fun `kopierer grunnlag med ny id`() {
+        val grunnlag = nyFastOppholdINorgeGrunnlag()
+
+        grunnlag.copyWithNewId().let {
+            it.id shouldNotBe grunnlag.id
+            it.periode shouldBe grunnlag.periode
+            it.opprettet shouldBe grunnlag.opprettet
+        }
     }
 }
