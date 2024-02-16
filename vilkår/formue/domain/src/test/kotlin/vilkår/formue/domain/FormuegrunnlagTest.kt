@@ -3,6 +3,7 @@ package vilkår.formue.domain
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -235,6 +237,18 @@ internal class FormuegrunnlagTest {
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlag = formueGrunnlagUtenEps0Innvilget()
+        grunnlag.copyWithNewId().let {
+            it.id shouldNotBe grunnlag.id
+            it.opprettet shouldBe grunnlag.opprettet
+            it.periode shouldBe grunnlag.periode
+            it.epsFormue shouldBe grunnlag.epsFormue
+            it.søkersFormue shouldBe grunnlag.søkersFormue
+        }
     }
 
     private fun lagFormuegrunnlag(

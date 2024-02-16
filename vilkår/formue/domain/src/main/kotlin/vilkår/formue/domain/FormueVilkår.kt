@@ -115,7 +115,7 @@ sealed interface FormueVilkår : Vilkår {
             return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): FormueVilkår =
+        override fun copyWithNewId(): Vurdert =
             this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {

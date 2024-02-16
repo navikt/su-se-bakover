@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldHaveSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juli
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
@@ -186,7 +188,8 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).erLik(opprinneligVilkår)
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+                .erLik(opprinneligVilkår)
         }
     }
 
@@ -210,7 +213,8 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022)))).erLik(opprinneligVilkår)
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022))))
+                .erLik(opprinneligVilkår)
         }
     }
 
@@ -268,6 +272,17 @@ internal class FormueVilkårTest {
                     opprinneligVilkår.harEPSFormue() shouldBe true
                     it.erLik(opprinneligVilkår) shouldBe true
                 }
+        }
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vilkår = formuevilkårMedEps0Innvilget()
+
+        vilkår.copyWithNewId().let {
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first().id shouldNotBe vilkår.vurderingsperioder.first().id
+            it.vurderingsperioder.first().grunnlag.id shouldNotBe vilkår.vurderingsperioder.first().grunnlag.id
         }
     }
 
