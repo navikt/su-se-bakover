@@ -166,7 +166,7 @@ data class Grunnlagsdata private constructor(
     }
 
     fun copyWithNewIds(): Grunnlagsdata = Grunnlagsdata(
-        fradragsgrunnlag = fradragsgrunnlag.map { it.copyWithNewId() as Fradragsgrunnlag },
+        fradragsgrunnlag = fradragsgrunnlag.map { it.copyWithNewId() },
         bosituasjon = bosituasjon.map { it.copyWithNewId() as Bosituasjon.Fullstendig },
     )
 }
