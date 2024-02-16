@@ -53,7 +53,7 @@ data class Fradragsgrunnlag private constructor(
             this.fradrag.tilhører == other.tilhører
     }
 
-    override fun copyWithNewId(): Grunnlag = this.copy(id = UUID.randomUUID())
+    override fun copyWithNewId(): Fradragsgrunnlag = this.copy(id = UUID.randomUUID())
 
     override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
         return copyInternal(args).getOrElse { throw IllegalArgumentException(it.toString()) }

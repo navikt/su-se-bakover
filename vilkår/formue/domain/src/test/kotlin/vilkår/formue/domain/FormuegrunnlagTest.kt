@@ -2,6 +2,7 @@ package vilkår.formue.domain
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.januar
@@ -243,11 +244,8 @@ internal class FormuegrunnlagTest {
     fun `kopierer innholdet med ny id`() {
         val grunnlag = formueGrunnlagUtenEps0Innvilget()
         grunnlag.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(grunnlag, Formuegrunnlag::id)
             it.id shouldNotBe grunnlag.id
-            it.opprettet shouldBe grunnlag.opprettet
-            it.periode shouldBe grunnlag.periode
-            it.epsFormue shouldBe grunnlag.epsFormue
-            it.søkersFormue shouldBe grunnlag.søkersFormue
         }
     }
 
