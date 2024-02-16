@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.fullstendigMedEPS
+import no.nav.su.se.bakover.test.fullstendigMedEPSUnder67UførFlyktning
 import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -135,7 +135,7 @@ class LeggTilBosituasjonKonsistentProblemTest {
 
     @Test
     fun `legger til tom formue for EPS dersom bosituasjon endres til å ha EPS`() {
-        val bosituasjon = fullstendigUtenEPS(år(2021))
+        val bosituasjon = fullstendigUtenEPS(periode = år(2021))
         opprettetRevurdering(
             vilkårOverrides = listOf(innvilgetFormueVilkår(periode = år(2021), bosituasjon = bosituasjon)),
             grunnlagsdataOverrides = listOf(bosituasjon),
@@ -144,7 +144,7 @@ class LeggTilBosituasjonKonsistentProblemTest {
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe false
             revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
                 bosituasjon = listOf(
-                    fullstendigMedEPS(år(2021)),
+                    fullstendigMedEPSUnder67UførFlyktning(periode = år(2021)),
                 ),
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true
