@@ -1,12 +1,14 @@
 package vilkår.flyktning.domain
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeFlyktning
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
@@ -85,5 +87,17 @@ internal class VurderingsperiodeFlyktningTest {
                 periode = februar(2021),
             ),
         ) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id `() {
+        val vurdering = vurderingsperiodeFlyktning()
+
+        vurdering.copyWithNewId().let {
+            it.id shouldNotBe vurdering.id
+            it.opprettet shouldBe vurdering.opprettet
+            it.vurdering shouldBe vurdering.vurdering
+            it.periode shouldBe vurdering.periode
+        }
     }
 }

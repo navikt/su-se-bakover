@@ -69,7 +69,7 @@ sealed interface FlyktningVilkår : Vilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
-        override fun copyWithNewId(): Vilkår =
+        override fun copyWithNewId(): Vurdert =
             this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
