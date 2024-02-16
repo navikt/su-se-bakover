@@ -1,6 +1,8 @@
 package vilkår.lovligopphold.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -31,5 +33,15 @@ internal class VurderingsperiodeLovligOppholdTest {
     fun `er lik ser kun på funksjonelle verdier`() {
         vurderingsperiodeLovligOppholdInnvilget().erLik(vurderingsperiodeLovligOppholdInnvilget()) shouldBe true
         vurderingsperiodeLovligOppholdInnvilget().erLik(fastOppholdVilkårAvslag().vurderingsperioder.single()) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vurderingsperiode = vurderingsperiodeLovligOppholdInnvilget()
+
+        vurderingsperiode.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(vurderingsperiode, VurderingsperiodeLovligOpphold::id)
+            it.id shouldNotBe vurderingsperiode.id
+        }
     }
 }

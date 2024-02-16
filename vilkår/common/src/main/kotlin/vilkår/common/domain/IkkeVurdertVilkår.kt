@@ -10,5 +10,5 @@ interface IkkeVurdertVilkår : Vilkår {
     override val perioder: List<Periode> get() = emptyList()
     override val avslagsgrunner: List<Avslagsgrunn> get() = emptyList()
     override fun hentTidligesteDatoForAvslag(): LocalDate? = null
-    override fun copyWithNewId(): Vilkår = this
+    override fun copyWithNewId(): IkkeVurdertVilkår = this
 }

@@ -2,7 +2,9 @@ package vilkår.lovligopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.juli
@@ -70,5 +72,18 @@ internal class LovligOppholdVilkårTest {
         ).getOrFail()
             .lagTidslinje(år(2021))
             .erLik(LovligOppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vilkår = lovligOppholdVilkårInnvilget()
+
+        vilkår.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(vilkår, LovligOppholdVilkår.Vurdert::vurderingsperioder)
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first()
+                .shouldBeEqualToIgnoringFields(vilkår.vurderingsperioder.first(), VurderingsperiodeLovligOpphold::id)
+            it.vurderingsperioder.first().id shouldNotBe vilkår.vurderingsperioder.first().id
+        }
     }
 }
