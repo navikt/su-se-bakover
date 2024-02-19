@@ -1,5 +1,6 @@
 package vilkår.uføre.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import java.util.UUID
@@ -202,5 +204,14 @@ internal class UføregrunnlagTest {
         )
 
         u1.tilstøterOgErLik(u2) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlag = uføregrunnlagForventetInntekt0()
+        grunnlag.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(grunnlag, Uføregrunnlag::id)
+            it.id shouldNotBe grunnlag.id
+        }
     }
 }

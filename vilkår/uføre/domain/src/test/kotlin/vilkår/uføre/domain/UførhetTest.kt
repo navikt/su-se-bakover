@@ -3,6 +3,7 @@ package vilkår.uføre.domain
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.extensions.april
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.slåSammenLikePerioder
@@ -261,6 +263,24 @@ internal class UførhetTest {
                     ),
                 ) shouldBe true
             }
+        }
+    }
+
+    @Test
+    fun `kopirerer innholdet med ny id`() {
+        val vilkår = innvilgetUførevilkårForventetInntekt0()
+        vilkår.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(
+                vilkår,
+                UføreVilkår.Vurdert::vurderingsperioder,
+                UføreVilkår.Vurdert::grunnlag,
+            )
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first().shouldBeEqualToIgnoringFields(
+                vilkår.vurderingsperioder.first(),
+                VurderingsperiodeUføre::id,
+                VurderingsperiodeUføre::grunnlag,
+            )
         }
     }
 
