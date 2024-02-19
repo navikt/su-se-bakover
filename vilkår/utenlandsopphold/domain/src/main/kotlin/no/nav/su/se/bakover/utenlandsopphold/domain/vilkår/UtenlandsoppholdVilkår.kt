@@ -23,7 +23,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface UtenlandsoppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Utenlandsopphold
-    val grunnlag: List<Utenlandsoppholdgrunnlag>
+    override val grunnlag: List<Utenlandsoppholdgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår

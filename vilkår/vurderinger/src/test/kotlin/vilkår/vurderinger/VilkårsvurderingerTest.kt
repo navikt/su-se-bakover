@@ -1,6 +1,7 @@
 package vilkår.vurderinger
 
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
+import vilkår.common.domain.VurdertVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
@@ -210,6 +213,26 @@ internal class VilkårsvurderingerTest {
                 OpplysningspliktVilkår.IkkeVurdert,
             )
         }
+
+        @Test
+        fun `kopierer innholdet med ny id`() {
+            val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
+
+            innvilget.copyWithNewIds().let {
+                validerIdEndring(it.opplysningsplikt as VurdertVilkår, innvilget.opplysningsplikt as VurdertVilkår)
+                validerIdEndring(it.uføre as VurdertVilkår, innvilget.uføre as VurdertVilkår)
+                validerIdEndring(it.flyktning as VurdertVilkår, innvilget.flyktning as VurdertVilkår)
+                validerIdEndring(it.lovligOpphold as VurdertVilkår, innvilget.lovligOpphold as VurdertVilkår)
+                validerIdEndring(it.fastOpphold as VurdertVilkår, innvilget.fastOpphold as VurdertVilkår)
+                validerIdEndring(
+                    it.institusjonsopphold as VurdertVilkår,
+                    innvilget.institusjonsopphold as VurdertVilkår,
+                )
+                validerIdEndring(it.utenlandsopphold as VurdertVilkår, innvilget.utenlandsopphold as VurdertVilkår)
+                validerIdEndring(it.formue as VurdertVilkår, innvilget.formue as VurdertVilkår)
+                validerIdEndring(it.personligOppmøte as VurdertVilkår, innvilget.personligOppmøte as VurdertVilkår)
+            }
+        }
     }
 
     @Nested
@@ -353,5 +376,36 @@ internal class VilkårsvurderingerTest {
             (a == b) shouldBe true
             a.erLik(b) shouldBe true
         }
+
+        @Test
+        fun `kopierer innholdet med ny id`() {
+            val innvilget = vilkårsvurderingerRevurderingInnvilget()
+
+            innvilget.copyWithNewIds().let {
+                validerIdEndring(it.opplysningsplikt as VurdertVilkår, innvilget.opplysningsplikt as VurdertVilkår)
+                validerIdEndring(it.uføre as VurdertVilkår, innvilget.uføre as VurdertVilkår)
+                validerIdEndring(it.flyktning as VurdertVilkår, innvilget.flyktning as VurdertVilkår)
+                validerIdEndring(it.lovligOpphold as VurdertVilkår, innvilget.lovligOpphold as VurdertVilkår)
+                validerIdEndring(it.fastOpphold as VurdertVilkår, innvilget.fastOpphold as VurdertVilkår)
+                validerIdEndring(
+                    it.institusjonsopphold as VurdertVilkår,
+                    innvilget.institusjonsopphold as VurdertVilkår,
+                )
+                validerIdEndring(it.utenlandsopphold as VurdertVilkår, innvilget.utenlandsopphold as VurdertVilkår)
+                validerIdEndring(it.formue as VurdertVilkår, innvilget.formue as VurdertVilkår)
+                validerIdEndring(it.personligOppmøte as VurdertVilkår, innvilget.personligOppmøte as VurdertVilkår)
+            }
+        }
     }
+}
+
+internal fun validerIdEndring(actual: VurdertVilkår, expected: VurdertVilkår) {
+    actual.shouldBeEqualToIgnoringFields(expected, VurdertVilkår::vurderingsperioder, VurdertVilkår::grunnlag)
+    actual.vurderingsperioder.size shouldBe 1
+    actual.vurderingsperioder.first().shouldBeEqualToIgnoringFields(
+        expected.vurderingsperioder.first(),
+        Vurderingsperiode::id,
+        Vurderingsperiode::grunnlag,
+    )
+    actual.vurderingsperioder.first().id shouldNotBe expected.vurderingsperioder.first().id
 }

@@ -16,11 +16,13 @@ import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.VurdertVilkår
 import vilkår.common.domain.erLik
+import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface FamiliegjenforeningVilkår : Vilkår {
     override val vilkår: Inngangsvilkår get() = Inngangsvilkår.Familiegjenforening
+    override val grunnlag: List<Grunnlag> get() = emptyList()
 
     abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår

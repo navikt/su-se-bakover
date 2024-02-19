@@ -28,7 +28,7 @@ val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDE
 
 sealed interface UføreVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Uførhet
-    val grunnlag: List<Uføregrunnlag>
+    override val grunnlag: List<Uføregrunnlag>
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UføreVilkår
 

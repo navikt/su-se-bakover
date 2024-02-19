@@ -18,7 +18,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface PersonligOppmøteVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.PersonligOppmøte
-    val grunnlag: List<PersonligOppmøteGrunnlag>
+    override val grunnlag: List<PersonligOppmøteGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår

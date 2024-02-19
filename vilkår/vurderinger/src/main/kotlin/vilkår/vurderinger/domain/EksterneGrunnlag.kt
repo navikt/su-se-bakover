@@ -14,7 +14,7 @@ data class StøtterHentingAvEksternGrunnlag(
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag = this.copy(skatt = skatt)
     override fun fjernEps(): EksterneGrunnlag = this.copy(skatt = skatt.fjernEps())
-    override fun copyWithNewIds(): EksterneGrunnlag = this.copy(skatt = skatt.copyWithNewId())
+    override fun copyWithNewIds(): StøtterHentingAvEksternGrunnlag = this.copy(skatt = skatt.copyWithNewId())
 
     companion object {
         fun ikkeHentet(): EksterneGrunnlag = StøtterHentingAvEksternGrunnlag(skatt = EksterneGrunnlagSkatt.IkkeHentet)
@@ -27,7 +27,7 @@ data object StøtterIkkeHentingAvEksternGrunnlag : EksterneGrunnlag {
     }
 
     override fun fjernEps(): EksterneGrunnlag = this
-    override fun copyWithNewIds(): EksterneGrunnlag = this
+    override fun copyWithNewIds(): StøtterIkkeHentingAvEksternGrunnlag = this
 
     override val skatt: EksterneGrunnlagSkatt get() = EksterneGrunnlagSkatt.IkkeHentet
 }

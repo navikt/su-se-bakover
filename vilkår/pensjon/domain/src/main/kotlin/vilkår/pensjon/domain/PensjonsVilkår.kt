@@ -24,7 +24,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface PensjonsVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Pensjon
-    val grunnlag: List<Pensjonsgrunnlag>
+    override val grunnlag: List<Pensjonsgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): PensjonsVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår

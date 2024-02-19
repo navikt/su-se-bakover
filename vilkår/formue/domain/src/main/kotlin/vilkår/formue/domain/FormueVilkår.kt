@@ -23,7 +23,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface FormueVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Formue
-    val grunnlag: List<Formuegrunnlag>
+    override val grunnlag: List<Formuegrunnlag>
 
     fun oppdaterStønadsperiode(
         stønadsperiode: Stønadsperiode,

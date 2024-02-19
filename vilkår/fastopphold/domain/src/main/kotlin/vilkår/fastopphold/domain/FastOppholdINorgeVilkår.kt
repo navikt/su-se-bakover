@@ -22,7 +22,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface FastOppholdINorgeVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.FastOppholdINorge
-    val grunnlag: List<FastOppholdINorgeGrunnlag>
+    override val grunnlag: List<FastOppholdINorgeGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår

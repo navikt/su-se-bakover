@@ -24,7 +24,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface OpplysningspliktVilkår : Vilkår {
     override val vilkår: Inngangsvilkår.Opplysningsplikt get() = Inngangsvilkår.Opplysningsplikt
-    val grunnlag: List<Opplysningspliktgrunnlag>
+    override val grunnlag: List<Opplysningspliktgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
