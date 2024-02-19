@@ -1,11 +1,14 @@
 package vilkår.personligoppmøte.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.nyPersonligoppmøteGrunnlag
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -63,5 +66,15 @@ internal class PersonligOppmøteGrunnlagTest {
                 årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
         ) shouldBe true
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlag = nyPersonligoppmøteGrunnlag()
+
+        grunnlag.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(grunnlag, PersonligOppmøteGrunnlag::id)
+            it.id shouldNotBe grunnlag.id
+        }
     }
 }
