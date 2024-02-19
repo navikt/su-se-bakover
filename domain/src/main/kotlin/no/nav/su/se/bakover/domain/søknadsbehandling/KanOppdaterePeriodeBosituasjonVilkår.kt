@@ -213,17 +213,6 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
         ).mapLeft { KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.Vilkårsfeil(it) }
     }
 
-    fun leggTilOpplysningspliktVilkårMaskinelt(
-        vilkår: OpplysningspliktVilkår.Vurdert,
-    ): VilkårsvurdertSøknadsbehandling {
-        return vilkårsvurder(
-            saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
-            vilkår = vilkår,
-            tidspunkt = vilkår.vurderingsperioder.first().opprettet,
-            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
-        ).getOrElse { throw IllegalArgumentException("Kunne ikke legge til opplysningsplikt vilkår maskinelt. Feil var $it") }
-    }
-
     fun leggTilPensjonsVilkår(
         vilkår: PensjonsVilkår.Vurdert,
         saksbehandler: NavIdentBruker.Saksbehandler,
