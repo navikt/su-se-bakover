@@ -11,6 +11,10 @@ data object BehandlingJson {
         return JSONObject(søknadsbehandlingResponseJson).getString("sakId").toString()
     }
 
+    fun hentSøknadId(søknadsbehandlingResponseJson: String): String {
+        return JSONObject(søknadsbehandlingResponseJson).getJSONObject("søknad").getString("id")
+    }
+
     fun hentPensjonsVilkår(json: String): String {
         return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("pensjon").toString()
     }
