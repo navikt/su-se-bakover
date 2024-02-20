@@ -178,7 +178,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                             sakId = sakId,
                             saksnummer = saksnummer,
                             søknad = søknad,
-                            oppgaveId = oppgaveId,
+                            oppgaveId = nyOppgaveId,
                             fnr = fnr,
                             beregning = beregning,
                             fritekstTilBrev = fritekstTilBrev,
@@ -254,7 +254,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                             isFalse = {
                                 VilkårsvurdertSøknadsbehandling.Avslag(
                                     opprettet = opprettet,
-                                    oppgaveId = oppgaveId,
+                                    oppgaveId = nyOppgaveId,
                                     saksbehandler = saksbehandler,
                                     iverksattSøknadsbehandling = this,
                                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds(),
@@ -263,7 +263,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                             isTrue = {
                                 VilkårsvurdertSøknadsbehandling.Avslag(
                                     opprettet = opprettet,
-                                    oppgaveId = oppgaveId,
+                                    oppgaveId = nyOppgaveId,
                                     saksbehandler = saksbehandler,
                                     iverksattSøknadsbehandling = this,
                                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds()

@@ -1,9 +1,9 @@
 package vilkår.vurderinger
 
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
+import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
-import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 
 class EksternGrunnlagTest {
@@ -12,10 +12,8 @@ class EksternGrunnlagTest {
     fun `kopierer innholdet med ny id`() {
         val eksternGrunnlag = eksternGrunnlagHentet()
         eksternGrunnlag.copyWithNewIds().let {
-            (it.skatt as EksterneGrunnlagSkatt.Hentet).søkers.shouldBeEqualToIgnoringFields(
-                (eksternGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers,
-                Skattegrunnlag::id,
-            )
+            it.shouldBeEqualToExceptId(eksternGrunnlag)
+            (it.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id shouldNotBe (eksternGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id
         }
     }
 }

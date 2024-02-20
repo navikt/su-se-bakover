@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyGrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
@@ -284,10 +285,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
             )
 
             // TODO - fix this - har manuelt sett gjennom innholdet, og bare id'en er endret (som forventet). Likevel feiler testen.
-//            it.eksterneGrunnlag.shouldBeEqualToIgnoringFields(
-//                grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
-//                Skattegrunnlag::id,
-//            )
+            it.eksterneGrunnlag.shouldBeEqualToExceptId(grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag)
             (it.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id shouldNotBe (grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id
         }
     }

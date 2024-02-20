@@ -191,7 +191,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
     }
 
-    data class Avslag private constructor(
+    // internal for tester
+    data class Avslag internal constructor(
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
