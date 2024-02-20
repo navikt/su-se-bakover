@@ -42,7 +42,7 @@ subprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:7.4")
         implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
-        implementation("com.networknt:json-schema-validator:1.3.2")
+        implementation("com.networknt:json-schema-validator:1.3.3")
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.4.1")
         implementation("org.apache.kafka:kafka-clients:3.6.1") {
             exclude("org.apache.kafka", "kafka-raft")
