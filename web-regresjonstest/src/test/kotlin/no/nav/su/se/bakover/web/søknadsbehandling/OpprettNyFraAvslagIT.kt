@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 class OpprettNyFraAvslagIT {
 
     @Test
-    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (vilkår)`() {
+    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (vilkår) - kan ikke opprette dersom søknaden senere blir lukket`() {
         withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
             val (sakId, søknadId) = opprettAvslåttSøknadsbehandlingPgaVilkår(client = this.client).let {
                 Pair(BehandlingJson.hentSakId(it), BehandlingJson.hentSøknadId(it))
@@ -39,10 +39,14 @@ class OpprettNyFraAvslagIT {
     }
 
     @Test
-    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning)`() {
+    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning) - kan ikke opprette dersom søknaden senere blir lukket`() {
         withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
             val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
-                Triple(BehandlingJson.hentSakId(it), BehandlingJson.hentBehandlingId(it), BehandlingJson.hentSøknadId(it))
+                Triple(
+                    BehandlingJson.hentSakId(it),
+                    BehandlingJson.hentBehandlingId(it),
+                    BehandlingJson.hentSøknadId(it),
+                )
             }
             val sak = hentSak(sakId, client = this.client)
             // avslagsvedtaket fra opprettAvslåttSøknadsbehandlingPgaBeregning
@@ -67,6 +71,45 @@ class OpprettNyFraAvslagIT {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = false,
+                expectedHttpStatusCode = HttpStatusCode.BadRequest,
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke opprette ny behandling dersom det finnes en åpen behandling fra før`() {
+        withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+                Triple(
+                    BehandlingJson.hentSakId(it),
+                    BehandlingJson.hentBehandlingId(it),
+                    BehandlingJson.hentSøknadId(it),
+                )
+            }
+            val (sak, fnr) = hentSak(sakId, client = this.client).let {
+                it to SakJson.hentFnr(it)
+            }
+            // avslagsvedtaket fra opprettAvslåttSøknadsbehandlingPgaBeregning
+            val vedtakId = SakJson.hentFørsteVedtak(sak).let {
+                verifiserVedtak(it, behandlingId)
+                VedtakJson.hentVedtakId(it)
+            }
+
+            opprettInnvilgetSøknadsbehandling(
+                fnr = fnr,
+                fraOgMed = "2022-01-01",
+                tilOgMed = "2022-12-31",
+                client = this.client,
+                appComponents = appComponents,
+                iverksett = { _, _ -> SKIP_STEP },
+            )
+
+            appComponents.opprettNySøknadsbehandlingFraVedtak(
+                sakId = sakId,
+                vedtakId = vedtakId,
+                client = this.client,
+                expectedSøknadId = søknadId,
+                verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
             )
         }

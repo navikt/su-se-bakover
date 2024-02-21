@@ -18,4 +18,8 @@ data object SakJson {
             return it.first().toString()
         }
     }
+
+    fun hentFnr(sakJson: String): String {
+        return JSONObject(sakJson).getString("fnr")
+    }
 }
