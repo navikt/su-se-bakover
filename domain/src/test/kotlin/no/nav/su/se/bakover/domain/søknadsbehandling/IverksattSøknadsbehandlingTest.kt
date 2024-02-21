@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.nonEmptyListOf
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -28,33 +27,34 @@ class IverksattSøknadsbehandlingTest {
         val (sak, original) = søknadsbehandlingIverksattAvslagMedBeregning()
 
         original.opprettNySøknadsbehandling(
-            kanOppretteNyBehandling = true,
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,
         ).getOrFail().let {
-            it shouldBe BeregnetSøknadsbehandling.Avslag(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                søknad = original.søknad,
-                oppgaveId = OppgaveId(value = "ny oppgaveId"),
-                fnr = sak.fnr,
-                beregning = original.beregning,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
-                attesteringer = Attesteringshistorikk.empty(),
-                søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
-                    Søknadsbehandlingshendelse(
-                        handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(original.id),
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
-                        tidspunkt = fixedTidspunkt,
+            it.shouldBeEqualToExceptId(
+                BeregnetSøknadsbehandling.Avslag(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    søknad = original.søknad,
+                    oppgaveId = OppgaveId(value = "ny oppgaveId"),
+                    fnr = sak.fnr,
+                    beregning = original.beregning,
+                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
+                    attesteringer = Attesteringshistorikk.empty(),
+                    søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                        Søknadsbehandlingshendelse(
+                            handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(original.id),
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
+                            tidspunkt = fixedTidspunkt,
+                        ),
                     ),
+                    fritekstTilBrev = original.fritekstTilBrev,
+                    aldersvurdering = original.aldersvurdering,
+                    grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
+                    sakstype = sak.type,
                 ),
-                fritekstTilBrev = original.fritekstTilBrev,
-                aldersvurdering = original.aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
-                sakstype = sak.type,
             )
         }
     }
@@ -69,7 +69,6 @@ class IverksattSøknadsbehandlingTest {
         )
 
         original.opprettNySøknadsbehandling(
-            kanOppretteNyBehandling = true,
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,
@@ -124,7 +123,6 @@ class IverksattSøknadsbehandlingTest {
         val (sak, original) = søknadsbehandlingIverksattAvslagUtenBeregning()
 
         original.opprettNySøknadsbehandling(
-            kanOppretteNyBehandling = true,
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,

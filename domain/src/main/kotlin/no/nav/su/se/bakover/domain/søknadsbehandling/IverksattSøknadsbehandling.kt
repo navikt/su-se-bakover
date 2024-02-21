@@ -108,6 +108,8 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     }
 
     sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
+        val erSøknadÅpen: Boolean get() = søknad !is Søknad.Journalført.MedOppgave.Lukket
+
         /**
          * Lager en ny behandling, og kopierer over data. Behandlingen vil være i tilsvarende tilstand som originalen, før attestering & iverksetting
          * Saksbehandler får da muligheten til å endre behandlingen slik som dem ønsker
@@ -115,7 +117,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
          * Merk at opplysningsplikt vilkåret ved [Avslag.UtenBeregning] blir satt til innvilget.
          */
         fun opprettNySøknadsbehandling(
-            kanOppretteNyBehandling: Boolean,
             nyOppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
@@ -163,13 +164,12 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
 
             override fun opprettNySøknadsbehandling(
-                kanOppretteNyBehandling: Boolean,
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
             ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
-                return kanOppretteNyBehandling.whenever(
-                    isFalse = { KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left() },
+                return erSøknadÅpen.whenever(
+                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
                     isTrue = {
                         val opprettet = Tidspunkt.now(clock)
                         BeregnetSøknadsbehandling.Avslag(
@@ -183,7 +183,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                             beregning = beregning,
                             fritekstTilBrev = fritekstTilBrev,
                             aldersvurdering = aldersvurdering,
-                            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds(),
                             attesteringer = Attesteringshistorikk.empty(),
                             søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
                                 Søknadsbehandlingshendelse(
@@ -234,18 +234,13 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
             override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
 
             override fun opprettNySøknadsbehandling(
-                kanOppretteNyBehandling: Boolean,
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
             ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
-
-                if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
-                    return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
-                }
-                return kanOppretteNyBehandling.whenever(
-                    isFalse = { KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left() },
+                return erSøknadÅpen.whenever(
+                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
                     isTrue = {
                         val opprettet = Tidspunkt.now(clock)
                         val erAvslagGrunnetOpplysningsplikt = vilkårsvurderinger.opplysningsplikt.erAvslag

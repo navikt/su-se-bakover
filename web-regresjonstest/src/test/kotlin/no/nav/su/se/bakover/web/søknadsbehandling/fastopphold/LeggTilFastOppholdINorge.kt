@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.test.application.defaultRequest
 internal fun leggTilFastOppholdINorge(
     sakId: String,
     behandlingId: String,
-    fraOgMed: String,
-    tilOgMed: String,
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     body: () -> String = { innvilgetFastOppholdJson(fraOgMed, tilOgMed) },
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/behandlinger/$behandlingId/fastopphold",

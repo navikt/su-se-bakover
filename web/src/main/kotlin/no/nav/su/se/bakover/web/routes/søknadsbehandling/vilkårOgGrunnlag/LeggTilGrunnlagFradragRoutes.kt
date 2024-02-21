@@ -100,7 +100,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                     .map {
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
+                                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory)))
                                     }
                             }.merge(),
                         )

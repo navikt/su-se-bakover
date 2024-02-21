@@ -13,6 +13,8 @@ sealed interface KunneIkkeStarteNySøknadsbehandling {
     data class FeilVedHentingAvPersonForOpprettelseAvOppgave(val feil: KunneIkkeHentePerson) :
         KunneIkkeStarteNySøknadsbehandling
 
+    data object ÅpenBehandlingFinnes : KunneIkkeStarteNySøknadsbehandling
+
     // TODO - ta inn feilmelding - må flytte ting til oppgave-modulen
     data object FeilVedOpprettelseAvOppgave : KunneIkkeStarteNySøknadsbehandling
 }

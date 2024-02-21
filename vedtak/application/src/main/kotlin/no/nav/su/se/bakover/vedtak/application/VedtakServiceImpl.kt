@@ -101,8 +101,11 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
         }
 
+        if (sak.harÅpenSøknadsbehandling()) {
+            return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
+        }
+
         return vedtak.behandling.opprettNySøknadsbehandling(
-            kanOppretteNyBehandling = !sak.harÅpenSøknadsbehandling(),
             nyOppgaveId = oppgaveService.opprettOppgave(
                 OppgaveConfig.Søknad(
                     aktørId = aktørId,

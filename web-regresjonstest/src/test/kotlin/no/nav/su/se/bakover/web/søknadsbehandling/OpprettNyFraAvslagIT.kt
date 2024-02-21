@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.SakJson
@@ -12,11 +13,10 @@ import org.junit.jupiter.api.Test
 
 class OpprettNyFraAvslagIT {
 
-    // tester i tillegg at man ikke får opprettet ny behandling fra avslaget dersom søknaden senere blir lukket
     @Test
-    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak`() {
+    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (vilkår)`() {
         withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
-            val (sakId, søknadId) = opprettAvslåttSøknadsbehandling(client = this.client).let {
+            val (sakId, søknadId) = opprettAvslåttSøknadsbehandlingPgaVilkår(client = this.client).let {
                 Pair(BehandlingJson.hentSakId(it), BehandlingJson.hentSøknadId(it))
             }
             val sak = hentSak(sakId, client = this.client)
@@ -26,17 +26,78 @@ class OpprettNyFraAvslagIT {
             }
 
             appComponents.opprettNySøknadsbehandlingFraVedtak(sakId, vedtakId, this.client, søknadId)
-
             appComponents.lukkSøknad(søknadId, this.client)
-
             appComponents.opprettNySøknadsbehandlingFraVedtak(
                 sakId,
                 vedtakId,
                 this.client,
                 søknadId,
-                verifiserRespons = false,
+                verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
             )
         }
     }
+
+    @Test
+    fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning)`() {
+        withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+                Triple(BehandlingJson.hentSakId(it), BehandlingJson.hentBehandlingId(it), BehandlingJson.hentSøknadId(it))
+            }
+            val sak = hentSak(sakId, client = this.client)
+            // avslagsvedtaket fra opprettAvslåttSøknadsbehandlingPgaBeregning
+            val vedtakId = SakJson.hentFørsteVedtak(sak).let {
+                verifiserVedtak(it, behandlingId)
+                VedtakJson.hentVedtakId(it)
+            }
+
+            appComponents.opprettNySøknadsbehandlingFraVedtak(
+                sakId = sakId,
+                vedtakId = vedtakId,
+                client = this.client,
+                expectedSøknadId = søknadId,
+                verifiserResponsVilkårAvslag = false,
+                verifiserResponsBeregningAvslag = true,
+            )
+            appComponents.lukkSøknad(søknadId, this.client)
+            appComponents.opprettNySøknadsbehandlingFraVedtak(
+                sakId = sakId,
+                vedtakId = vedtakId,
+                client = this.client,
+                expectedSøknadId = søknadId,
+                verifiserResponsVilkårAvslag = false,
+                verifiserResponsBeregningAvslag = false,
+                expectedHttpStatusCode = HttpStatusCode.BadRequest,
+            )
+        }
+    }
+}
+
+private fun verifiserVedtak(vedtak: String, expectedBehandlingId: String) {
+    //language=json
+    val expected = """{
+        "id":"ignored",
+        "opprettet":"2021-01-01T01:02:35.456789Z",
+        "behandlingId":"$expectedBehandlingId",
+        "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
+        "saksbehandler":"Z990Lokal",
+        "utbetalingId":null,
+        "type":"AVSLAG",
+        "dokumenttilstand":"GENERERT",
+        "beregning":{
+          "id":"ignored",
+          "fraOgMed":"2021-01-01",
+          "tilOgMed":"2021-12-31",
+          "fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}}],
+          "opprettet":"2021-01-01T01:02:29.456789Z",
+          "månedsberegninger":[{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-01-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"}}],"beløp":0,"tilOgMed":"2021-01-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-02-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-02-01","tilOgMed":"2021-02-28"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-02-01","tilOgMed":"2021-02-28"}}],"beløp":0,"tilOgMed":"2021-02-28","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-03-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-03-01","tilOgMed":"2021-03-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-03-01","tilOgMed":"2021-03-31"}}],"beløp":0,"tilOgMed":"2021-03-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-04-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"}}],"beløp":0,"tilOgMed":"2021-04-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-05-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}}],"beløp":0,"tilOgMed":"2021-05-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-06-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}}],"beløp":0,"tilOgMed":"2021-06-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-07-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}}],"beløp":0,"tilOgMed":"2021-07-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-08-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}}],"beløp":0,"tilOgMed":"2021-08-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-09-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}}],"beløp":0,"tilOgMed":"2021-09-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-10-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}}],"beløp":0,"tilOgMed":"2021-10-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-11-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}}],"beløp":0,"tilOgMed":"2021-11-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-12-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}}],"beløp":0,"tilOgMed":"2021-12-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}]}],
+          "begrunnelse":"Beregning er kjørt automatisk av Beregn.kt"
+        },
+        "simulering":null,
+        "attestant":"automatiskAttesteringAvSøknadsbehandling",
+        "kanStarteNyBehandling":true
+        }
+    """.trimIndent()
+
+    vedtak.shouldBeSimilarJsonTo(expected, "id", "beregning.id")
 }
