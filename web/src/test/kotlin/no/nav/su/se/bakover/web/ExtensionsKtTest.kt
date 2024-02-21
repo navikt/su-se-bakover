@@ -100,4 +100,16 @@ internal class ExtensionsKtTest {
             { fail("minst en av pair verdiene er null") },
         )
     }
+
+    @Test
+    fun `whenever utfører false block dersom den er false`() {
+        { false }.whenever(isFalse = { }, isTrue = { fail("false skal utføre isFalse blokken") })
+        false.whenever(isFalse = { }, isTrue = { fail("false skal utføre isFalse blokken") })
+    }
+
+    @Test
+    fun `whenever utfører true block dersom den er true`() {
+        { true }.whenever(isFalse = { fail("true skal utføre isTrue blokken") }, isTrue = { })
+        true.whenever(isFalse = { fail("true skal utføre isTrue blokken") }, isTrue = { })
+    }
 }
