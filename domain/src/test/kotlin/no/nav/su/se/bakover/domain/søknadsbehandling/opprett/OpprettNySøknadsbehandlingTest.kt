@@ -38,7 +38,7 @@ internal class OpprettNySøknadsbehandlingTest {
             søknadId = søknad.id,
             clock = fixedClock,
             saksbehandler = saksbehandler,
-        ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe KunneIkkeOppretteSøknadsbehandling.KanIkkeStarteNyBehandling.left()
+        ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
 
     @Test

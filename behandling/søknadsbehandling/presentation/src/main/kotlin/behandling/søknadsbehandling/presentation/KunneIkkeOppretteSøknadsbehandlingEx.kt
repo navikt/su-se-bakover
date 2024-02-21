@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 fun KunneIkkeOppretteSøknadsbehandling.tilResultat() = when (this) {
     KunneIkkeOppretteSøknadsbehandling.ErLukket -> Feilresponser.søknadErLukket
     KunneIkkeOppretteSøknadsbehandling.ManglerOppgave -> Feilresponser.søknadManglerOppgave
-    KunneIkkeOppretteSøknadsbehandling.KanIkkeStarteNyBehandling -> HttpStatusCode.BadRequest.errorJson(
+    KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling -> HttpStatusCode.BadRequest.errorJson(
         "Det finnes en eksisterende åpen søknadsbehandling. Iverksett eller lukk denne først.",
         "finnes_åpen_søknadsbehandling",
     )

@@ -150,7 +150,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Fant ingen, en/flere ikke åpen behandling, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
+            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -173,7 +173,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Fant ingen, en/flere ikke åpen behandling, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
+            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()

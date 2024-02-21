@@ -168,6 +168,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
             ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
                     isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
                     isTrue = {
