@@ -2,7 +2,9 @@ package vilkår.inntekt.domain
 
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.februar
@@ -11,7 +13,6 @@ import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragFactory
@@ -183,24 +185,24 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `2 fradragsgrunnlag som tilstøter, og er lik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(periode = februar(2021))
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(periode = februar(2021))
 
         f1.tilstøterOgErLik(f2) shouldBe true
     }
 
     @Test
     fun `2 fradragsgrunnlag som ikke tilstøter, men er lik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(periode = mars(2021))
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(periode = mars(2021))
 
         f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
     fun `2 fradragsgrunnlag som tilstøter, men fradragstype er ulik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(
             periode = februar(2021),
             type = Fradragstype.Sosialstønad,
         )
@@ -209,16 +211,16 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `2 fradragsgrunnlag som tilstøter, men månedsbeløp er ulik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(periode = februar(2021), månedsbeløp = 300.0)
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(periode = februar(2021), månedsbeløp = 300.0)
 
         f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
     fun `2 fradragsgrunnlag som tilstøter, men utenlandsinntekt er ulik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(
             periode = februar(2021),
             utenlandskInntekt = UtenlandskInntekt.create(
                 beløpIUtenlandskValuta = 9000,
@@ -232,8 +234,8 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `2 fradragsgrunnlag som tilstøter, men tilhører er ulik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(
             periode = februar(2021),
             tilhører = FradragTilhører.EPS,
         )
@@ -243,8 +245,8 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `2 fradragsgrunnlag som  ikke tilstøter, og er ulik`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(
             periode = mars(2021),
             type = Fradragstype.Sosialstønad,
             månedsbeløp = 300.0,
@@ -256,9 +258,9 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `slår sammen fradrag som er like og tilstøtende`() {
-        val f1 = lagFradragsgrunnlag(periode = januar(2021))
-        val f2 = lagFradragsgrunnlag(periode = februar(2021))
-        val f3 = lagFradragsgrunnlag(
+        val f1 = nyFradragsgrunnlag(periode = januar(2021))
+        val f2 = nyFradragsgrunnlag(periode = februar(2021))
+        val f3 = nyFradragsgrunnlag(
             periode = mars(2021),
             type = Fradragstype.Sosialstønad,
             månedsbeløp = 300.0,
@@ -355,14 +357,14 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fjerner fradrag for EPS for utvalgte perioder og bevarer for resterende`() {
-        val fBruker = lagFradragsgrunnlag(
+        val fBruker = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 5_000.0,
             periode = år(2021),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
-        val fEps = lagFradragsgrunnlag(
+        val fEps = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10_000.0,
             periode = år(2021),
@@ -377,7 +379,7 @@ internal class FradragsgrunnlagTest {
         ).let {
             it[0] shouldBe fBruker
             it[1].erLik(
-                lagFradragsgrunnlag(
+                nyFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10_000.0,
                     periode = januar(2021),
@@ -386,7 +388,7 @@ internal class FradragsgrunnlagTest {
                 ),
             ) shouldBe true
             it[2].erLik(
-                lagFradragsgrunnlag(
+                nyFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.mars(2021), 31.mai(2021)),
@@ -395,7 +397,7 @@ internal class FradragsgrunnlagTest {
                 ),
             ) shouldBe true
             it[3].erLik(
-                lagFradragsgrunnlag(
+                nyFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
@@ -408,14 +410,14 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fjerning av fradrag for EPS uten spesifisert periode`() {
-        val fBruker = lagFradragsgrunnlag(
+        val fBruker = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 5_000.0,
             periode = år(2021),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
-        val fEps = lagFradragsgrunnlag(
+        val fEps = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10_000.0,
             periode = år(2021),
@@ -429,14 +431,14 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`() {
-        val fBruker = lagFradragsgrunnlag(
+        val fBruker = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 5_000.0,
             periode = år(2021),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
-        val fEps = lagFradragsgrunnlag(
+        val fEps = nyFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10_000.0,
             periode = år(2021),
@@ -448,23 +450,12 @@ internal class FradragsgrunnlagTest {
         }
     }
 
-    private fun lagFradragsgrunnlag(
-        opprettet: Tidspunkt = fixedTidspunkt,
-        type: Fradragstype = Fradragstype.Kontantstøtte,
-        månedsbeløp: Double = 200.0,
-        periode: Periode,
-        utenlandskInntekt: UtenlandskInntekt? = null,
-        tilhører: FradragTilhører = FradragTilhører.BRUKER,
-    ): Fradragsgrunnlag {
-        return Fradragsgrunnlag.create(
-            opprettet = opprettet,
-            fradrag = FradragFactory.nyFradragsperiode(
-                fradragstype = type,
-                månedsbeløp = månedsbeløp,
-                periode = periode,
-                utenlandskInntekt = utenlandskInntekt,
-                tilhører = tilhører,
-            ),
-        )
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlag = nyFradragsgrunnlag()
+        grunnlag.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(grunnlag, Fradragsgrunnlag::id)
+            it.id shouldNotBe grunnlag.id
+        }
     }
 }

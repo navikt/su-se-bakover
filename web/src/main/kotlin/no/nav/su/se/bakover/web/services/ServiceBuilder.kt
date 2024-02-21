@@ -147,7 +147,9 @@ data object ServiceBuilder {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
-        )
+        ).apply {
+            addObserver(statistikkEventObserver)
+        }
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.mapFirst
 import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -1079,9 +1080,6 @@ fun vilkårsvurdertSøknadsbehandling(
             "Vi støtter ikke delvis vurderte vilkår i søknadsbehandlingen (enda), da må denne funksjonen endres"
         }
     }
-    customVilkår.filterIsInstance<OpplysningspliktVilkår>().ifNotEmpty {
-        throw IllegalArgumentException("Vi støtter ikke å manuelt legge til opplysningsplikt-vilkår i søknadsbehandlingen (enda)")
-    }
 
     val (defaultGrunnlagsdata, defaultVilkår) = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
         grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
@@ -1110,7 +1108,20 @@ fun vilkårsvurdertSøknadsbehandling(
     ).let { (sak, søknadsbehandling) ->
         val vilkårsvurdert = when (defaultVilkår) {
             is VilkårsvurderingerSøknadsbehandling.Alder -> {
-                søknadsbehandling
+                søknadsbehandling.let {
+                    customVilkår.filterIsInstance<OpplysningspliktVilkår.Vurdert>().isNotEmpty().whenever(
+                        isFalse = {
+                            it
+                        },
+                        isTrue = {
+                            it.leggTilOpplysningspliktVilkår(
+                                vilkår = customVilkår.customOrDefault { defaultVilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
+                                saksbehandler = saksbehandler,
+                            )
+                                .getOrFail()
+                        },
+                    )
+                }
                     .leggTilPensjonsVilkår(
                         saksbehandler = saksbehandler,
                         vilkår = customVilkår.customOrDefault { defaultVilkår.pensjon as PensjonsVilkår.Vurdert },
@@ -1174,7 +1185,20 @@ fun vilkårsvurdertSøknadsbehandling(
             }
 
             is VilkårsvurderingerSøknadsbehandling.Uføre -> {
-                søknadsbehandling.leggTilUførevilkår(
+                søknadsbehandling.let {
+                    customVilkår.filterIsInstance<OpplysningspliktVilkår.Vurdert>().isNotEmpty().whenever(
+                        isFalse = {
+                            it
+                        },
+                        isTrue = {
+                            it.leggTilOpplysningspliktVilkår(
+                                vilkår = customVilkår.customOrDefault { defaultVilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
+                                saksbehandler = saksbehandler,
+                            )
+                                .getOrFail()
+                        },
+                    )
+                }.leggTilUførevilkår(
                     saksbehandler = saksbehandler,
                     vilkår = customVilkår.customOrDefault { defaultVilkår.uføre as UføreVilkår.Vurdert },
                 ).getOrFail()

@@ -23,7 +23,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface FormueVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Formue
-    val grunnlag: List<Formuegrunnlag>
+    override val grunnlag: List<Formuegrunnlag>
 
     fun oppdaterStønadsperiode(
         stønadsperiode: Stønadsperiode,
@@ -114,6 +114,9 @@ sealed interface FormueVilkår : Vilkår {
         override fun slåSammenLikePerioder(): Vurdert {
             return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        override fun copyWithNewId(): Vurdert =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
 

@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
+import io.kotest.assertions.fail
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -23,9 +24,15 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.vurderinger.domain.EksterneGrunnlag
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
+import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
+import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 import java.util.UUID
 
@@ -293,6 +300,47 @@ fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
 fun List<Fradragsgrunnlag>.shouldBeEqualToExceptId(expected: List<Fradragsgrunnlag>) {
     this.zip(expected).map { (actual, expected) ->
         actual.shouldBeEqualToExceptId(expected)
+    }
+}
+
+fun GrunnlagsdataOgVilkårsvurderinger.shouldBeEqualToExceptId(expected: GrunnlagsdataOgVilkårsvurderinger) {
+    this.grunnlagsdata.shouldBeEqualToExceptId(expected.grunnlagsdata)
+    this.vilkårsvurderinger.shouldBeEqualToExceptId(expected.vilkårsvurderinger)
+    this.eksterneGrunnlag.shouldBeEqualToExceptId(expected.eksterneGrunnlag)
+}
+
+fun EksterneGrunnlag.shouldBeEqualToExceptId(expected: EksterneGrunnlag) {
+    when (this) {
+        is StøtterHentingAvEksternGrunnlag -> this.shouldBeEqualToExceptId(expected as StøtterHentingAvEksternGrunnlag)
+        StøtterIkkeHentingAvEksternGrunnlag -> this shouldBe expected
+    }
+}
+
+fun StøtterHentingAvEksternGrunnlag.shouldBeEqualToExceptId(expected: StøtterHentingAvEksternGrunnlag) {
+    this.skatt.shouldBeEqualToExceptId(expected.skatt)
+}
+
+fun EksterneGrunnlagSkatt.shouldBeEqualToExceptId(expected: EksterneGrunnlagSkatt) {
+    when (this) {
+        is EksterneGrunnlagSkatt.Hentet -> {
+            if (expected !is EksterneGrunnlagSkatt.Hentet) {
+                fail("Actual er EksternGrunnlagSkatt.Hentet, expected er EksternGrunnlagSkatt.IkkeHentet")
+            }
+
+            this.søkers.shouldBeEqualToIgnoringFields(expected.søkers, Skattegrunnlag::id)
+            this.eps.let {
+                if (it == null) {
+                    expected.eps shouldBe null
+                } else {
+                    expected.eps shouldNotBe null
+                    it.shouldBeEqualToIgnoringFields(expected.eps!!, Skattegrunnlag::id)
+                }
+            }
+        }
+
+        EksterneGrunnlagSkatt.IkkeHentet -> {
+            this shouldBe expected
+        }
     }
 }
 

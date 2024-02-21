@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
+import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -11,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -22,11 +27,16 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.common.domain.Avslagsgrunn
+import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
+import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
+import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
+import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.krevAlleVilkårInnvilget
 import vilkår.vurderinger.domain.krevMinstEttAvslag
 import økonomi.domain.simulering.Simulering
+import java.time.Clock
 import java.util.UUID
 
 sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBrev {
@@ -42,7 +52,8 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     abstract override val aldersvurdering: Aldersvurdering
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
-    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
+        throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
     data class Innvilget(
         override val id: SøknadsbehandlingId,
@@ -97,6 +108,20 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     }
 
     sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
+        val erSøknadÅpen: Boolean get() = søknad !is Søknad.Journalført.MedOppgave.Lukket
+
+        /**
+         * Lager en ny behandling, og kopierer over data. Behandlingen vil være i tilsvarende tilstand som originalen, før attestering & iverksetting
+         * Saksbehandler får da muligheten til å endre behandlingen slik som dem ønsker
+         *
+         * Merk at opplysningsplikt vilkåret ved [Avslag.UtenBeregning] blir satt til innvilget.
+         */
+        fun opprettNySøknadsbehandling(
+            nyOppgaveId: OppgaveId,
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            clock: Clock,
+        ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
+
         data class MedBeregning(
             override val id: SøknadsbehandlingId,
             override val opprettet: Tidspunkt,
@@ -135,7 +160,44 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
+            override val avslagsgrunner: List<Avslagsgrunn> =
+                vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
+
+            override fun opprettNySøknadsbehandling(
+                nyOppgaveId: OppgaveId,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                clock: Clock,
+            ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                return erSøknadÅpen.whenever(
+                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
+                    isTrue = {
+                        val opprettet = Tidspunkt.now(clock)
+                        BeregnetSøknadsbehandling.Avslag(
+                            id = SøknadsbehandlingId.generer(),
+                            opprettet = opprettet,
+                            sakId = sakId,
+                            saksnummer = saksnummer,
+                            søknad = søknad,
+                            oppgaveId = nyOppgaveId,
+                            fnr = fnr,
+                            beregning = beregning,
+                            fritekstTilBrev = fritekstTilBrev,
+                            aldersvurdering = aldersvurdering,
+                            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds(),
+                            attesteringer = Attesteringshistorikk.empty(),
+                            søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                                Søknadsbehandlingshendelse(
+                                    tidspunkt = opprettet,
+                                    saksbehandler = saksbehandler,
+                                    handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(this.id),
+                                ),
+                            ),
+                            sakstype = sakstype,
+                            saksbehandler = saksbehandler,
+                        ).right()
+                    },
+                )
+            }
         }
 
         data class UtenBeregning(
@@ -170,6 +232,63 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
             override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
+
+            override fun opprettNySøknadsbehandling(
+                nyOppgaveId: OppgaveId,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                clock: Clock,
+            ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
+                return erSøknadÅpen.whenever(
+                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
+                    isTrue = {
+                        val opprettet = Tidspunkt.now(clock)
+                        val erAvslagGrunnetOpplysningsplikt = vilkårsvurderinger.opplysningsplikt.erAvslag
+
+                        erAvslagGrunnetOpplysningsplikt.whenever(
+                            isFalse = {
+                                VilkårsvurdertSøknadsbehandling.Avslag(
+                                    opprettet = opprettet,
+                                    oppgaveId = nyOppgaveId,
+                                    saksbehandler = saksbehandler,
+                                    iverksattSøknadsbehandling = this,
+                                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds(),
+                                ).right()
+                            },
+                            isTrue = {
+                                VilkårsvurdertSøknadsbehandling.Avslag(
+                                    opprettet = opprettet,
+                                    oppgaveId = nyOppgaveId,
+                                    saksbehandler = saksbehandler,
+                                    iverksattSøknadsbehandling = this,
+                                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds()
+                                        .let {
+                                            // siden vi har avslag grunnet opplysningsplikt, så skal vi sette opplysningsplikt til innvilget
+                                            // fordi saksbehandlerne ikke manuelt kan endre dette
+                                            it.oppdaterOpplysningsplikt(
+                                                OpplysningspliktVilkår.Vurdert.tryCreate(
+                                                    nonEmptyListOf(
+                                                        VurderingsperiodeOpplysningsplikt.create(
+                                                            id = UUID.randomUUID(),
+                                                            opprettet = opprettet,
+                                                            periode = periode,
+                                                            grunnlag = Opplysningspliktgrunnlag(
+                                                                id = UUID.randomUUID(),
+                                                                opprettet = opprettet,
+                                                                periode = periode,
+                                                                beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ).getOrElse { throw IllegalStateException(it.toString()) },
+                                            )
+                                        },
+                                ).right()
+                            },
+                        )
+                    },
+                )
+            }
         }
     }
 }

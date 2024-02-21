@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingHandlingDb.Companion.toDb
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -16,6 +17,7 @@ class SøknadsbehandlingshistorikkJsonTest {
 
     @Test
     fun `mapper søknadsbehandlinghistorikk til Json`() {
+        val expectedTilhørendeId = SøknadsbehandlingId.generer()
         //language=json
         val expected = """
             {
@@ -23,12 +25,26 @@ class SøknadsbehandlingshistorikkJsonTest {
                     {
                         "tidspunkt": "2021-01-01T01:02:03.456789Z",
                         "navIdent": "saksbehandler",
-                        "handling": "StartetBehandling"
+                        "handlingJson": {
+                            "handling": "StartetBehandling",
+                            "tilhørendeSøknadsbehandlingId": null
+                        }
                     },
                     {
                         "tidspunkt": "2021-01-08T01:02:03.456789Z",
                         "navIdent": "saksbehandler",
-                        "handling": "OppdatertUførhet"
+                        "handlingJson": {
+                            "handling": "OppdatertUførhet",
+                            "tilhørendeSøknadsbehandlingId": null
+                        }
+                    },
+                    {
+                        "tidspunkt": "2021-01-08T01:02:03.456789Z",
+                        "navIdent": "saksbehandler",
+                        "handlingJson": {
+                            "handling": "StartetFraEtAvslag",
+                            "tilhørendeSøknadsbehandlingId": $expectedTilhørendeId
+                        }
                     }
                 ]}
         """.trimIndent()
@@ -43,6 +59,10 @@ class SøknadsbehandlingshistorikkJsonTest {
                     tidspunkt = enUkeEtterFixedTidspunkt,
                     handling = SøknadsbehandlingsHandling.OppdatertUførhet,
                 ),
+                nySøknadsbehandlingshendelse(
+                    tidspunkt = enUkeEtterFixedTidspunkt,
+                    handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(expectedTilhørendeId),
+                ),
             ),
         ).toDbJson()
         JSONAssert.assertEquals(expected, actual, true)
@@ -50,19 +70,35 @@ class SøknadsbehandlingshistorikkJsonTest {
 
     @Test
     fun `mapper json til søknadsbehandlinghistorikk`() {
+        val expectedTilhørendeId = SøknadsbehandlingId.generer()
         SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(
+            //language=json
             """
             {
                 "historikk": [
                     {
                         "tidspunkt": "2021-01-01T01:02:03.456789Z",
                         "navIdent": "saksbehandler",
-                        "handling": "StartetBehandling"
+                        "handlingJson": {
+                            "handling": "StartetBehandling",
+                            "tilhørendeSøknadsbehandlingId": null
+                        }
                     },
                     {
                         "tidspunkt": "2021-01-08T01:02:03.456789Z",
                         "navIdent": "saksbehandler",
-                        "handling": "OppdatertUførhet"
+                        "handlingJson": {
+                            "handling": "OppdatertUførhet",
+                            "tilhørendeSøknadsbehandlingId": null
+                        }
+                    },
+                    {
+                        "tidspunkt": "2021-01-08T01:02:03.456789Z",
+                        "navIdent": "saksbehandler",
+                        "handlingJson": {
+                            "handling": "StartetFraEtAvslag",
+                            "tilhørendeSøknadsbehandlingId": "$expectedTilhørendeId"
+                        }
                     }
                 ]}
             """.trimIndent(),
@@ -76,30 +112,36 @@ class SøknadsbehandlingshistorikkJsonTest {
                     tidspunkt = enUkeEtterFixedTidspunkt,
                     handling = SøknadsbehandlingsHandling.OppdatertUførhet,
                 ),
+                nySøknadsbehandlingshendelse(
+                    tidspunkt = enUkeEtterFixedTidspunkt,
+                    handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(expectedTilhørendeId),
+                ),
             ),
         )
     }
 
     @Test
     fun `mapper SøknadsbehandlingsHandling til riktig DB-type`() {
-        SøknadsbehandlingsHandling.StartetBehandling.toDb() shouldBe SøknadsbehandlingHandlingDb.StartetBehandling
-        SøknadsbehandlingsHandling.OppdatertStønadsperiode.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertStønadsperiode
-        SøknadsbehandlingsHandling.OppdatertUførhet.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertUførhet
-        SøknadsbehandlingsHandling.OppdatertFlyktning.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertFlyktning
-        SøknadsbehandlingsHandling.OppdatertLovligOpphold.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertLovligOpphold
-        SøknadsbehandlingsHandling.OppdatertFastOppholdINorge.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertFastOppholdINorge
-        SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertInstitusjonsopphold
-        SøknadsbehandlingsHandling.OppdatertUtenlandsopphold.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertUtenlandsopphold
-        SøknadsbehandlingsHandling.TattStillingTilEPS.toDb() shouldBe SøknadsbehandlingHandlingDb.TattStillingTilEPS
-        SøknadsbehandlingsHandling.OppdatertFormue.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertFormue
-        SøknadsbehandlingsHandling.OppdatertPersonligOppmøte.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertPersonligOppmøte
-        SøknadsbehandlingsHandling.FullførtBosituasjon.toDb() shouldBe SøknadsbehandlingHandlingDb.FullførtBosituasjon
-        SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertFradrag
-        SøknadsbehandlingsHandling.Beregnet.toDb() shouldBe SøknadsbehandlingHandlingDb.Beregnet
-        SøknadsbehandlingsHandling.Simulert.toDb() shouldBe SøknadsbehandlingHandlingDb.Simulert
-        SøknadsbehandlingsHandling.SendtTilAttestering.toDb() shouldBe SøknadsbehandlingHandlingDb.SendtTilAttestering
-        SøknadsbehandlingsHandling.OppdatertOpplysningsplikt.toDb() shouldBe SøknadsbehandlingHandlingDb.OppdatertOpplysningsplikt
-        SøknadsbehandlingsHandling.Lukket.toDb() shouldBe SøknadsbehandlingHandlingDb.Lukket
+        SøknadsbehandlingsHandling.StartetBehandling.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.StartetBehandling)
+        SøknadsbehandlingsHandling.OppdatertStønadsperiode.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertStønadsperiode)
+        SøknadsbehandlingsHandling.OppdatertUførhet.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertUførhet)
+        SøknadsbehandlingsHandling.OppdatertFlyktning.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertFlyktning)
+        SøknadsbehandlingsHandling.OppdatertLovligOpphold.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertLovligOpphold)
+        SøknadsbehandlingsHandling.OppdatertFastOppholdINorge.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertFastOppholdINorge)
+        SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertInstitusjonsopphold)
+        SøknadsbehandlingsHandling.OppdatertUtenlandsopphold.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertUtenlandsopphold)
+        SøknadsbehandlingsHandling.TattStillingTilEPS.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.TattStillingTilEPS)
+        SøknadsbehandlingsHandling.OppdatertFormue.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertFormue)
+        SøknadsbehandlingsHandling.OppdatertPersonligOppmøte.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertPersonligOppmøte)
+        SøknadsbehandlingsHandling.FullførtBosituasjon.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.FullførtBosituasjon)
+        SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertFradrag)
+        SøknadsbehandlingsHandling.Beregnet.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.Beregnet)
+        SøknadsbehandlingsHandling.Simulert.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.Simulert)
+        SøknadsbehandlingsHandling.SendtTilAttestering.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.SendtTilAttestering)
+        SøknadsbehandlingsHandling.OppdatertOpplysningsplikt.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.OppdatertOpplysningsplikt)
+        SøknadsbehandlingsHandling.Lukket.toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.Lukket)
+        val expectedTilhørendeId = SøknadsbehandlingId.generer()
+        SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(expectedTilhørendeId).toDb() shouldBe HandlingJson(SøknadsbehandlingHandlingDb.StartetFraEtAvslag, expectedTilhørendeId.toString())
     }
 
     @Test
@@ -122,5 +164,7 @@ class SøknadsbehandlingshistorikkJsonTest {
         SøknadsbehandlingHandlingDb.SendtTilAttestering.toSøknadsbehandlingsHandling() shouldBe SøknadsbehandlingsHandling.SendtTilAttestering
         SøknadsbehandlingHandlingDb.OppdatertOpplysningsplikt.toSøknadsbehandlingsHandling() shouldBe SøknadsbehandlingsHandling.OppdatertOpplysningsplikt
         SøknadsbehandlingHandlingDb.Lukket.toSøknadsbehandlingsHandling() shouldBe SøknadsbehandlingsHandling.Lukket
+        val expectedTilhørendeId = SøknadsbehandlingId.generer()
+        SøknadsbehandlingHandlingDb.StartetFraEtAvslag.toSøknadsbehandlingsHandling(expectedTilhørendeId) shouldBe SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(expectedTilhørendeId)
     }
 }

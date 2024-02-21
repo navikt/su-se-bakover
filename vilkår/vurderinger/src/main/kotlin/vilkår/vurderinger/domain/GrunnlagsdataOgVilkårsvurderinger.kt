@@ -64,6 +64,8 @@ interface GrunnlagsdataOgVilkårsvurderinger {
             if (problemer.isEmpty()) Unit.right() else problemer.left()
         }
     }
+
+    fun copyWithNewIds(): GrunnlagsdataOgVilkårsvurderinger
 }
 
 /**

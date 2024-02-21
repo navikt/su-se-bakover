@@ -3,6 +3,7 @@ package vilkår.familiegjenforening.domain
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -129,6 +130,18 @@ private class FamiliegjenforeningTest {
             familiegjenforeningVilkårInnvilget(nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget())).erLik(
                 FamiliegjenforeningVilkår.IkkeVurdert,
             )
+        }
+
+        @Test
+        fun `kopierer grunnlaget med ny id`() {
+            val vilkår = familiegjenforeningVilkårInnvilget()
+            vilkår.copyWithNewId().let {
+                it.vurderingsperioder.let {
+                    it.size shouldBe 1
+                    it.first().id shouldNotBe vilkår.vurderingsperioder.first().id
+                    it.first().grunnlag?.id shouldBe vilkår.vurderingsperioder.first().grunnlag?.id
+                }
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.søknad.SØKNAD_PATH
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
-import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandlingPgaVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 
 val localClient = HttpClient(Java) {
@@ -60,7 +60,7 @@ internal fun Route.testDataRoutes() {
                             appComponents = null,
                         )
                     } else {
-                        opprettAvslåttSøknadsbehandling(
+                        opprettAvslåttSøknadsbehandlingPgaVilkår(
                             fnr = it.fnr ?: Fnr.generer().toString(),
                             fraOgMed = it.fraOgMed ?: fixedLocalDate.startOfMonth().toString(),
                             tilOgMed = it.tilOgMed ?: fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),

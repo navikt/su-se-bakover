@@ -28,4 +28,5 @@ interface Vurderingsperiode {
     fun erLik(other: Vurderingsperiode): Boolean
 
     fun tilstøterOgErLik(other: Vurderingsperiode) = this.tilstøter(other) && this.erLik(other)
+    fun copyWithNewId(): Vurderingsperiode
 }

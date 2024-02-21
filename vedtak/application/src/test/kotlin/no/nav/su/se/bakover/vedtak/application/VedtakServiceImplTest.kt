@@ -31,7 +31,7 @@ import java.util.UUID
 class VedtakServiceImplTest {
 
     @Test
-    fun `dersom vedtak er Avslagsvedtak, vil kan kunne starte en ny søknadsbehandling`() {
+    fun `dersom vedtak er Avslagsvedtak, vil man kunne starte en ny søknadsbehandling`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattAvslagUtenBeregning()
 
         val sakService = mock<SakService> { on { hentSak(any<UUID>()) } doReturn sak.right() }

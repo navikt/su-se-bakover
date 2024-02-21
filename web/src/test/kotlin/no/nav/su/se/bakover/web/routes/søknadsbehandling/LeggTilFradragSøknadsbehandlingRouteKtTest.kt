@@ -74,7 +74,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                status shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.OK
             }
         }
     }

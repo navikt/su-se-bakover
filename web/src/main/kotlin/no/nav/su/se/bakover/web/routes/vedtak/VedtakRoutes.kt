@@ -47,4 +47,8 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
 
     is KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
     KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
+    KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes -> HttpStatusCode.BadRequest.errorJson(
+        "Kan ikke starte ny søknadsbehandling når det allerede finnes en åpen søknadsbehandling",
+        "åpen_behandling_finnes",
+    )
 }

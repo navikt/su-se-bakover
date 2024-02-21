@@ -44,6 +44,8 @@ data class Opplysningspliktgrunnlag(
         return other is Opplysningspliktgrunnlag
     }
 
+    override fun copyWithNewId(): Opplysningspliktgrunnlag = this.copy(id = UUID.randomUUID())
+
     companion object {
         fun tryCreate(
             id: UUID = UUID.randomUUID(),

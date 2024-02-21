@@ -24,7 +24,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface LovligOppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.LovligOpphold
-    val grunnlag: List<LovligOppholdGrunnlag>
+    override val grunnlag: List<LovligOppholdGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): LovligOppholdVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
@@ -77,6 +77,9 @@ sealed interface LovligOppholdVilkår : Vilkår {
         override fun slåSammenLikePerioder(): LovligOppholdVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        override fun copyWithNewId(): Vurdert =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
             fun tryCreate(

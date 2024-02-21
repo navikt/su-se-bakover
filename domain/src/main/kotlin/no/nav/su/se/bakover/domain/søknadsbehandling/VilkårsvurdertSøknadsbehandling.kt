@@ -44,6 +44,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         /**
          * @param handling støtter null her, siden vi har noen maskinelle/automatiske handlinger som vi ikke ønsker i handlingsloggen. I.e. OppdaterStønadsperiode ved avslagPgaManglendeDokumentasjon.
          */
+        // Opprett burde ikke ta inn forrige tilstand. Den burde kun gi det første steget (Uavklart)
+        // dersom man har lyst til at denne skal være en 'magisk' funksjon som copy(?) så burde vel disse heller ligge i data klassene?
         fun opprett(
             forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -189,19 +191,78 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
     }
 
-    data class Avslag(
-        private val forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
+    // internal for tester
+    data class Avslag internal constructor(
+        override val opprettet: Tidspunkt,
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val sakstype: Sakstype,
+        override val oppgaveId: OppgaveId,
+        override val søknad: Søknad.Journalført.MedOppgave,
+        override val id: SøknadsbehandlingId,
+        override val attesteringer: Attesteringshistorikk,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
-    ) : VilkårsvurdertSøknadsbehandling,
-        KanOppdaterePeriodeBosituasjonVilkår,
-        KanSendesTilAttestering,
-        KanGenerereAvslagsbrev,
-        Søknadsbehandling by forrigeTilstand,
-        ErAvslag {
+    ) : VilkårsvurdertSøknadsbehandling, KanSendesTilAttestering, KanGenerereAvslagsbrev, ErAvslag {
+        override val periode: Periode = aldersvurdering.stønadsperiode.periode
+        override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
+        constructor(
+            forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            aldersvurdering: Aldersvurdering,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
+            søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
+            fritekstTilBrev: String,
+        ) : this(
+            opprettet = forrigeTilstand.opprettet,
+            sakId = forrigeTilstand.sakId,
+            saksnummer = forrigeTilstand.saksnummer,
+            fnr = forrigeTilstand.fnr,
+            sakstype = forrigeTilstand.sakstype,
+            oppgaveId = forrigeTilstand.oppgaveId,
+            søknad = forrigeTilstand.søknad,
+            id = forrigeTilstand.id,
+            attesteringer = forrigeTilstand.attesteringer,
+            saksbehandler = saksbehandler,
+            aldersvurdering = aldersvurdering,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+            fritekstTilBrev = fritekstTilBrev,
+        )
+
+        constructor(
+            opprettet: Tidspunkt,
+            oppgaveId: OppgaveId,
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            iverksattSøknadsbehandling: IverksattSøknadsbehandling.Avslag,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
+        ) : this(
+            opprettet = opprettet,
+            sakId = iverksattSøknadsbehandling.sakId,
+            saksnummer = iverksattSøknadsbehandling.saksnummer,
+            fnr = iverksattSøknadsbehandling.fnr,
+            sakstype = iverksattSøknadsbehandling.sakstype,
+            oppgaveId = oppgaveId,
+            søknad = iverksattSøknadsbehandling.søknad,
+            id = SøknadsbehandlingId.generer(),
+            attesteringer = Attesteringshistorikk.empty(),
+            saksbehandler = saksbehandler,
+            aldersvurdering = iverksattSøknadsbehandling.aldersvurdering,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                Søknadsbehandlingshendelse(
+                    tidspunkt = opprettet,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(iverksattSøknadsbehandling.id),
+                ),
+            ),
+            fritekstTilBrev = iverksattSøknadsbehandling.fritekstTilBrev,
+        )
 
         override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling =
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
@@ -210,6 +271,10 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         override val beregning = null
         override val simulering: Simulering? = null
+
+        override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling {
+            return this.copy(oppgaveId = oppgaveId)
+        }
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
             return this.copy(
@@ -220,8 +285,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
         }
-
-        override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()

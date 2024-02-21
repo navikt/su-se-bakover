@@ -18,8 +18,8 @@ internal fun leggTilFormue(
     behandlingId: String,
     begrunnelse: String = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    fraOgMed: String,
-    tilOgMed: String,
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     måInnhenteMerInformasjon: Boolean = false,
     client: HttpClient,
 ): String {

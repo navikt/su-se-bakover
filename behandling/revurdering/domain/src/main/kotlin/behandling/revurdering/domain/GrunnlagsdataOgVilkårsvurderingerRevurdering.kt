@@ -101,4 +101,10 @@ data class GrunnlagsdataOgVilkårsvurderingerRevurdering(
             ),
         )
     }
+
+    override fun copyWithNewIds(): GrunnlagsdataOgVilkårsvurderingerRevurdering = this.copy(
+        grunnlagsdata = grunnlagsdata.copyWithNewIds(),
+        vilkårsvurderinger = vilkårsvurderinger.copyWithNewIds() as VilkårsvurderingerRevurdering,
+        eksterneGrunnlag = eksterneGrunnlag.copyWithNewIds(),
+    )
 }

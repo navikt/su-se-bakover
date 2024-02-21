@@ -35,6 +35,7 @@ data class VurderingsperiodeUføre private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
+
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
@@ -56,6 +57,9 @@ data class VurderingsperiodeUføre private constructor(
                 else -> false
             }
     }
+
+    override fun copyWithNewId(): VurderingsperiodeUføre =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag?.copyWithNewId())
 
     companion object {
         fun create(

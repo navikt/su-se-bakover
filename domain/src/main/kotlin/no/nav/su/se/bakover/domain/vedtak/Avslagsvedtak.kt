@@ -16,6 +16,13 @@ sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, ErAvslag {
     override val periode: Periode
     override val behandling: IverksattSøknadsbehandling.Avslag
 
+    /**
+     * Om ny behandling kan bli startet basert på vedtakets behandling.
+     *
+     * Denne sjekker ikke på om det allerede finnes en åpen behandling fra før
+     */
+    val kanStarteNyBehandling: Boolean get() = behandling.erSøknadÅpen
+
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
             avslag: IverksattSøknadsbehandling.Avslag.MedBeregning,

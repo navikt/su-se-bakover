@@ -17,12 +17,14 @@ import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.VurdertVilkår
 import vilkår.common.domain.erLik
+import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface InstitusjonsoppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Institusjonsopphold
+    override val grunnlag: List<Grunnlag> get() = emptyList()
 
     abstract override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
@@ -72,6 +74,9 @@ sealed interface InstitusjonsoppholdVilkår : Vilkår {
         override fun slåSammenLikePerioder(): InstitusjonsoppholdVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        override fun copyWithNewId(): Vurdert =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
             fun tryCreate(

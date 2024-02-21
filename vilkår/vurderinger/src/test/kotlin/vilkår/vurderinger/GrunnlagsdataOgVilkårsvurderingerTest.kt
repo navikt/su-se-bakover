@@ -1,11 +1,13 @@
-package no.nav.su.se.bakover.domain.grunnlag
+package vilkår.vurderinger
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
@@ -13,16 +15,20 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nyGrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.VurdertVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.inntekt.domain.grunnlag.FradragFactory
@@ -32,6 +38,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
 import java.util.UUID
 
@@ -223,5 +230,63 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode
         actual.bosituasjon.size shouldBe 1
         actual.bosituasjon.first().periode shouldBe oppdatertPeriode
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderingerSøknadsbehandling()
+        grunnlagsdataOgVilkårsvurderinger.copyWithNewIds().let {
+            validerIdEndring(
+                it.vilkårsvurderinger.opplysningsplikt as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.opplysningsplikt as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.uføreVilkårKastHvisAlder() as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkårKastHvisAlder() as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.flyktningVilkår().getOrFail() as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.flyktningVilkår().getOrFail() as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.lovligOpphold as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.lovligOpphold as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.fastOpphold as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.fastOpphold as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.institusjonsopphold as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.institusjonsopphold as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.utenlandsopphold as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.utenlandsopphold as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.formue as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.formue as VurdertVilkår,
+            )
+            validerIdEndring(
+                it.vilkårsvurderinger.personligOppmøte as VurdertVilkår,
+                grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.personligOppmøte as VurdertVilkår,
+            )
+
+            it.grunnlagsdata.bosituasjon.size shouldBe 1
+            it.grunnlagsdata.bosituasjon.first().shouldBeEqualToIgnoringFields(
+                grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.first(),
+                Bosituasjon::id,
+            )
+            it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
+            it.grunnlagsdata.fradragsgrunnlag.first().shouldBeEqualToIgnoringFields(
+                grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.first(),
+                Fradragsgrunnlag::id,
+            )
+
+            // TODO - fix this - har manuelt sett gjennom innholdet, og bare id'en er endret (som forventet). Likevel feiler testen.
+            it.eksterneGrunnlag.shouldBeEqualToExceptId(grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag)
+            (it.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id shouldNotBe (grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id
+        }
     }
 }

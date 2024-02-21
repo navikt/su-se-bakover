@@ -76,6 +76,12 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
         )
     }
 
+    override fun copyWithNewIds(): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling = this.copy(
+        grunnlagsdata = grunnlagsdata.copyWithNewIds(),
+        vilkårsvurderinger = vilkårsvurderinger.copyWithNewIds() as VilkårsvurderingerSøknadsbehandling,
+        eksterneGrunnlag = eksterneGrunnlag.copyWithNewIds(),
+    )
+
     fun leggTilSkatt(
         skatt: EksterneGrunnlagSkatt,
     ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {

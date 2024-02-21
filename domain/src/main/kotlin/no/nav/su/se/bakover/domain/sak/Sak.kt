@@ -404,7 +404,7 @@ data class Sak(
                 // det skal kun finnes 1 søknadsbehandling åpen om gangen
                 val søknadsbehandlingSomSkalLukkes =
                     søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
-                        ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
+                        ?: throw IllegalStateException("Fant ingen, en/flere ikke åpen behandling, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
 
                 // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
                 søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(

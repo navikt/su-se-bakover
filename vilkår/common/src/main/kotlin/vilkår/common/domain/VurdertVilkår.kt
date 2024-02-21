@@ -30,6 +30,8 @@ interface VurdertVilkår : Vilkår {
     fun minsteAntallSammenhengendePerioder(): List<Periode> {
         return vurderingsperioder.minsteAntallSammenhengendePerioder()
     }
+
+    override fun copyWithNewId(): VurdertVilkår
 }
 
 /**

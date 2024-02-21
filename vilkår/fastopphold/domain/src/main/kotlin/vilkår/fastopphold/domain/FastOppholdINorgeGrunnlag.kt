@@ -1,8 +1,5 @@
 package vilkår.fastopphold.domain
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -16,13 +13,11 @@ data class FastOppholdINorgeGrunnlag(
     override val periode: Periode,
 ) : Grunnlag, KanPlasseresPåTidslinje<FastOppholdINorgeGrunnlag> {
 
-    fun oppdaterPeriode(periode: Periode): FastOppholdINorgeGrunnlag {
-        return tryCreate(
-            id = id,
-            opprettet = opprettet,
-            periode = periode,
-        ).getOrElse { throw IllegalArgumentException(it.toString()) }
-    }
+    fun oppdaterPeriode(periode: Periode): FastOppholdINorgeGrunnlag = FastOppholdINorgeGrunnlag(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+    )
 
     override fun copy(args: CopyArgs.Tidslinje): FastOppholdINorgeGrunnlag = when (args) {
         CopyArgs.Tidslinje.Full -> {
@@ -37,19 +32,5 @@ data class FastOppholdINorgeGrunnlag(
         return other is FastOppholdINorgeGrunnlag
     }
 
-    companion object {
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            periode: Periode,
-        ): Either<KunneIkkeLageFastOppholdINorgeGrunnlag, FastOppholdINorgeGrunnlag> {
-            return FastOppholdINorgeGrunnlag(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-            ).right()
-        }
-    }
+    override fun copyWithNewId(): FastOppholdINorgeGrunnlag = this.copy(id = UUID.randomUUID())
 }
-
-sealed interface KunneIkkeLageFastOppholdINorgeGrunnlag

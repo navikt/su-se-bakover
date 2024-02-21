@@ -2,7 +2,9 @@ package vilkår.utenlandsopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.juli
@@ -11,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
@@ -128,5 +131,24 @@ internal class UtenlandsoppholdVilkårTest {
         ).getOrFail()
             .lagTidslinje(år(2021))
             .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vilkår = utenlandsoppholdInnvilget()
+        vilkår.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(
+                vilkår,
+                UtenlandsoppholdVilkår.Vurdert::vurderingsperioder,
+                UtenlandsoppholdVilkår::grunnlag,
+            )
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first().shouldBeEqualToIgnoringFields(
+                vilkår.vurderingsperioder.first(),
+                VurderingsperiodeUtenlandsopphold::id,
+                VurderingsperiodeUtenlandsopphold::grunnlag,
+            )
+            it.vurderingsperioder.first().id shouldNotBe vilkår.vurderingsperioder.first().id
+        }
     }
 }

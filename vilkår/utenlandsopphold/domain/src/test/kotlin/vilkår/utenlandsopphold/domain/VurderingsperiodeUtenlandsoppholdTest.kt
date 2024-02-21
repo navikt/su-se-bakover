@@ -1,6 +1,8 @@
 package vilkår.utenlandsopphold.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -8,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.vurderingsperiode.nyVurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
@@ -131,5 +134,20 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
             ) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vurderingsperiode = nyVurderingsperiodeUtenlandsopphold()
+        vurderingsperiode.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(
+                vurderingsperiode,
+                VurderingsperiodeUtenlandsopphold::id,
+                VurderingsperiodeUtenlandsopphold::grunnlag,
+            )
+            it.id shouldNotBe vurderingsperiode.id
+            it.grunnlag!!.shouldBeEqualToIgnoringFields(vurderingsperiode.grunnlag!!, Utenlandsoppholdgrunnlag::id)
+            it.id shouldNotBe vurderingsperiode.grunnlag!!.id
+        }
     }
 }

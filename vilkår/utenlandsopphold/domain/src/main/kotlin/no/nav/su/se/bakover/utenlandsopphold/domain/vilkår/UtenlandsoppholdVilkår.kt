@@ -23,7 +23,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface UtenlandsoppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Utenlandsopphold
-    val grunnlag: List<Utenlandsoppholdgrunnlag>
+    override val grunnlag: List<Utenlandsoppholdgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
@@ -76,6 +76,9 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
         override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        override fun copyWithNewId(): Vurdert =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
 
         companion object {
             fun tryCreate(

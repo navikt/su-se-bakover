@@ -1,11 +1,14 @@
 package vilkår.utenlandsopphold.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.nyUtenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -58,5 +61,14 @@ internal class UtenlandsoppholdgrunnlagTest {
                 periode = februar(2021),
             ),
         ) shouldBe true
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val grunnlag = nyUtenlandsoppholdgrunnlag()
+        grunnlag.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(grunnlag, Utenlandsoppholdgrunnlag::id)
+            it.id shouldNotBe grunnlag.id
+        }
     }
 }

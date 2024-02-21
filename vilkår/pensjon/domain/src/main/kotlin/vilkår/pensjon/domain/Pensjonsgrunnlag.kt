@@ -31,4 +31,6 @@ data class Pensjonsgrunnlag(
         return other is Pensjonsgrunnlag &&
             other.pensjonsopplysninger == pensjonsopplysninger
     }
+
+    override fun copyWithNewId(): Pensjonsgrunnlag = this.copy(id = UUID.randomUUID())
 }

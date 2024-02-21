@@ -134,7 +134,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = nySøknad.sakId,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+            ) shouldBe KunneIkkeOppretteSøknadsbehandling.KanIkkeStarteNyBehandling.left()
         }
     }
 

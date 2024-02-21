@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.institusjonsopphold.domain
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -8,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeInstitusjonsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
@@ -86,5 +89,15 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = februar(2021),
             ),
         ) shouldBe false
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vurderingsperiode = vurderingsperiodeInstitusjonsoppholdInnvilget()
+
+        vurderingsperiode.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(vurderingsperiode, VurderingsperiodeInstitusjonsopphold::id)
+            it.id shouldNotBe vurderingsperiode.id
+        }
     }
 }

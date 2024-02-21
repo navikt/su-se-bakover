@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.institusjonsopphold.domain
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.juli
@@ -13,6 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.util.UUID
@@ -97,5 +100,16 @@ internal class InstitusjonsoppholdVilkårTest {
         ).getOrFail()
             .lagTidslinje(år(2021))
             .erLik(InstitusjonsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vilkår = institusjonsoppholdvilkårInnvilget()
+
+        vilkår.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(vilkår, InstitusjonsoppholdVilkår.Vurdert::vurderingsperioder)
+            it.vurderingsperioder.size shouldBe 1
+            it.vurderingsperioder.first().id shouldNotBe vilkår.vurderingsperioder.first().id
+        }
     }
 }

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
+import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagMedEps0Innvilget
@@ -65,7 +66,14 @@ fun formuevilkårUtenEps0Innvilget(
 fun formuevilkårMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
+    bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
+        Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = periode,
+            fnr = epsFnr,
+        ),
+    ),
 ): FormueVilkår.Vurdert {
     val bosituasjonsperiode = bosituasjon.periode()
     require(bosituasjonsperiode == periode) {

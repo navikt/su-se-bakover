@@ -22,7 +22,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 
 sealed interface FastOppholdINorgeVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.FastOppholdINorge
-    val grunnlag: List<FastOppholdINorgeGrunnlag>
+    override val grunnlag: List<FastOppholdINorgeGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
@@ -75,6 +75,10 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
         override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        override fun copyWithNewId(): Vurdert = this.copy(
+            vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() },
+        )
 
         companion object {
             fun tryCreate(

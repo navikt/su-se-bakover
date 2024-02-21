@@ -56,6 +56,9 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
             }
     }
 
+    override fun copyWithNewId(): VurderingsperiodeFastOppholdINorge =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag?.copyWithNewId())
+
     companion object {
         fun create(
             id: UUID = UUID.randomUUID(),

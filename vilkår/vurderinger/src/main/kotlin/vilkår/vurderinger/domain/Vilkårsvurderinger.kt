@@ -87,6 +87,8 @@ interface Vilkårsvurderinger {
     fun lagTidslinje(periode: Periode): Vilkårsvurderinger
 
     fun erLik(other: Vilkårsvurderinger): Boolean
+
+    fun copyWithNewIds(): Vilkårsvurderinger
 }
 
 data object VilkårEksistererIkke

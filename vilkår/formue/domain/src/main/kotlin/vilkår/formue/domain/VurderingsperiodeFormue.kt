@@ -81,6 +81,9 @@ data class VurderingsperiodeFormue private constructor(
             grunnlag.erLik(other.grunnlag)
     }
 
+    override fun copyWithNewId(): VurderingsperiodeFormue =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag.copyWithNewId())
+
     fun harEPSFormue(): Boolean {
         return grunnlag.harEPSFormue()
     }

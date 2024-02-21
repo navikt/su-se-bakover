@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandlingPgaVilkår
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn
 import java.util.UUID
@@ -26,7 +26,7 @@ class AvslagKomponentTest {
         ) { appComponents ->
             val fnr = Fnr.generer()
 
-            val sakId = opprettAvslåttSøknadsbehandling(
+            val sakId = opprettAvslåttSøknadsbehandlingPgaVilkår(
                 fnr = fnr.toString(),
                 client = this.client,
             ).let { søknadsbehandlingJson ->

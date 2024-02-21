@@ -2,6 +2,7 @@ package vilkår.uføre.domain
 
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.vurderingsperiode.nyVurderingsperiodeUførhet
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import java.time.temporal.ChronoUnit
@@ -182,5 +184,17 @@ internal class VurderingsperiodeUføreTest {
             grunnlag = null,
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
         ).shouldBeRight()
+    }
+
+    @Test
+    fun `kopierer innholdet med ny id`() {
+        val vurderingsperiode = nyVurderingsperiodeUførhet()
+
+        vurderingsperiode.copyWithNewId().let {
+            it.shouldBeEqualToIgnoringFields(vurderingsperiode, VurderingsperiodeUføre::id, VurderingsperiodeUføre::grunnlag)
+            it.id shouldNotBe vurderingsperiode.id
+            it.grunnlag!!.shouldBeEqualToIgnoringFields(vurderingsperiode.grunnlag!!, Uføregrunnlag::id)
+            it.grunnlag!!.id shouldNotBe vurderingsperiode.grunnlag!!.id
+        }
     }
 }

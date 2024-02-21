@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNysøknadsbehandlingMedNyOppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -39,6 +39,12 @@ class VedtakServiceImpl(
     private val clock: Clock,
 ) : VedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
+
+    fun addObserver(observer: StatistikkEventObserver) {
+        observers.add(observer)
+    }
 
     override fun lagre(vedtak: Vedtak) {
         return vedtakRepo.lagre(vedtak)
@@ -95,25 +101,28 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
         }
 
-        return sak.opprettNysøknadsbehandlingMedNyOppgaveId(
-            søknadId = vedtak.behandling.søknad.id,
-            clock = clock,
+        if (sak.harÅpenSøknadsbehandling()) {
+            return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
+        }
+
+        return vedtak.behandling.opprettNySøknadsbehandling(
+            nyOppgaveId = oppgaveService.opprettOppgave(
+                OppgaveConfig.Søknad(
+                    aktørId = aktørId,
+                    tilordnetRessurs = saksbehandler,
+                    journalpostId = vedtak.behandling.søknad.journalpostId,
+                    søknadId = vedtak.behandling.søknad.id,
+                    clock = clock,
+                    sakstype = sak.type,
+                ),
+            ).getOrElse { return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave.left() }.oppgaveId,
             saksbehandler = saksbehandler,
-            opprettOppgave = {
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.Søknad(
-                        journalpostId = vedtak.behandling.søknad.journalpostId,
-                        søknadId = vedtak.behandling.søknad.id,
-                        aktørId = aktørId,
-                        tilordnetRessurs = saksbehandler,
-                        clock = clock,
-                        sakstype = sak.type,
-                    ),
-                )
-            },
+            clock = clock,
         ).map {
-            søknadsbehandlingService.lagre(it.second)
-            it.second
+            søknadsbehandlingService.lagre(it)
+            // TODO - her må vi finne ut hvordan vi vil håndtere statistikken. Skal den bare være en opprettet?
+            // observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(it, saksbehandler))
+            it
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
         }

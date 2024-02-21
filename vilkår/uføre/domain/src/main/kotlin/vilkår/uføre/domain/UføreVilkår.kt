@@ -3,6 +3,7 @@ package vilkår.uføre.domain
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
@@ -27,7 +28,7 @@ val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDE
 
 sealed interface UføreVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Uførhet
-    val grunnlag: List<Uføregrunnlag>
+    override val grunnlag: List<Uføregrunnlag>
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UføreVilkår
 
@@ -67,7 +68,14 @@ sealed interface UføreVilkår : Vilkår {
             return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
+        override fun copyWithNewId(): Vurdert =
+            this.copy(vurderingsperioder = vurderingsperioder.map { it.copyWithNewId() })
+
         companion object {
+
+            fun tryCreate(vurderingsperiode: VurderingsperiodeUføre): Either<UgyldigUførevilkår, Vurdert> {
+                return Vurdert(nonEmptyListOf(vurderingsperiode)).right()
+            }
 
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeUføre>,

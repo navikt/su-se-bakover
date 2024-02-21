@@ -81,4 +81,6 @@ data class PersonligOppmøteGrunnlag(
     override fun erLik(other: Grunnlag): Boolean {
         return other is PersonligOppmøteGrunnlag && årsak == other.årsak
     }
+
+    override fun copyWithNewId(): PersonligOppmøteGrunnlag = this.copy(id = UUID.randomUUID())
 }

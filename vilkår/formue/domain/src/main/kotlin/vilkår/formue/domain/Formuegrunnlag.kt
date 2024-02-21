@@ -49,6 +49,8 @@ data class Formuegrunnlag private constructor(
             epsFormue == other.epsFormue
     }
 
+    override fun copyWithNewId(): Formuegrunnlag = this.copy(id = UUID.randomUUID())
+
     fun oppdaterPeriode(periode: Periode): Formuegrunnlag {
         return this.copy(periode = periode)
     }

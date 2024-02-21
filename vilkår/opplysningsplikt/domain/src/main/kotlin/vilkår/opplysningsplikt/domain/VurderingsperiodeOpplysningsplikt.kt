@@ -1,0 +1,95 @@
+package vilkår.opplysningsplikt.domain
+
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.common.domain.Vurdering
+import vilkår.common.domain.Vurderingsperiode
+import java.util.UUID
+
+data class VurderingsperiodeOpplysningsplikt private constructor(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Tidspunkt,
+    override val grunnlag: Opplysningspliktgrunnlag,
+    override val vurdering: Vurdering,
+    override val periode: Periode,
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
+
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeOpplysningsplikt {
+        return create(
+            id = id,
+            opprettet = opprettet,
+            periode = stønadsperiode.periode,
+            grunnlag = this.grunnlag.oppdaterPeriode(stønadsperiode.periode),
+        )
+    }
+
+    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeOpplysningsplikt = when (args) {
+        CopyArgs.Tidslinje.Full -> {
+            copy(
+                id = UUID.randomUUID(),
+                grunnlag = grunnlag.copy(args),
+            )
+        }
+
+        is CopyArgs.Tidslinje.NyPeriode -> {
+            copy(
+                id = UUID.randomUUID(),
+                periode = args.periode,
+                grunnlag = grunnlag.copy(args),
+            )
+        }
+    }
+
+    override fun erLik(other: Vurderingsperiode): Boolean {
+        return other is VurderingsperiodeOpplysningsplikt &&
+            vurdering == other.vurdering &&
+            grunnlag.erLik(other.grunnlag)
+    }
+
+    override fun copyWithNewId(): VurderingsperiodeOpplysningsplikt =
+        this.copy(id = UUID.randomUUID(), grunnlag = grunnlag.copyWithNewId())
+
+    companion object {
+        fun create(
+            id: UUID = UUID.randomUUID(),
+            opprettet: Tidspunkt,
+            periode: Periode,
+            grunnlag: Opplysningspliktgrunnlag,
+        ): VurderingsperiodeOpplysningsplikt {
+            return tryCreate(id, opprettet, periode, grunnlag).getOrElse {
+                throw IllegalArgumentException(it.toString())
+            }
+        }
+
+        fun tryCreate(
+            id: UUID = UUID.randomUUID(),
+            opprettet: Tidspunkt,
+            vurderingsperiode: Periode,
+            grunnlag: Opplysningspliktgrunnlag,
+        ): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
+            if (!vurderingsperiode.fullstendigOverlapp(grunnlag.periode)) {
+                return KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+            }
+            return VurderingsperiodeOpplysningsplikt(
+                id = id,
+                opprettet = opprettet,
+                grunnlag = grunnlag,
+                vurdering = resultatFraBeskrivelse(grunnlag),
+                periode = vurderingsperiode,
+            ).right()
+        }
+
+        private fun resultatFraBeskrivelse(grunnlag: Opplysningspliktgrunnlag): Vurdering =
+            when (grunnlag.beskrivelse) {
+                OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> Vurdering.Avslag
+                OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> Vurdering.Innvilget
+            }
+    }
+}
