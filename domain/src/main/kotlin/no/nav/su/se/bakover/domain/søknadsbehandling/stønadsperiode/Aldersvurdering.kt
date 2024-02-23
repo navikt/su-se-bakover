@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.sikkerLogg
 import person.domain.Person
 import java.time.Clock
 import java.time.LocalDate
@@ -51,7 +52,8 @@ sealed interface Aldersvurdering {
                         is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre -> {
                             it.also {
                                 if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
-                                    throw IllegalArgumentException("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på uføre")
+                                    sikkerLogg.error("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på uføre. Fnr ${person.ident.fnr} for stønadsperiode $stønadsperiode")
+                                    throw IllegalArgumentException("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på uføre. Se sikker logg for mer context")
                                 }
                             }.right()
                         }
