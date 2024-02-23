@@ -139,7 +139,8 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
                     "periode":null,
                     "type":"TILBAKEKREVING",
                     "dokumenttilstand":"SENDT",
-                    "kanStarteNyBehandling": false
+                    "kanStarteNyBehandling": false,
+                    "skalSendeBrev": true
                 }
     """.trimIndent()
     tilbakekrevingsvedtak.toString().shouldBeSimilarJsonTo(expected, "id", "opprettet")

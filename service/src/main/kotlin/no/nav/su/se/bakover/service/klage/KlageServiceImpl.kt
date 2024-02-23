@@ -136,8 +136,11 @@ class KlageServiceImpl(
     override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return request.toDomain().flatMap {
             it.vilkårsvurderinger.vedtakId?.let { vedtakId ->
-                if (vedtakService.hentForVedtakId(vedtakId) == null) {
-                    return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+                val vedtak =
+                    vedtakService.hentForVedtakId(vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+
+                if (!vedtak.skalSendeBrev) {
+                    return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
                 }
             }
             val klage = klageRepo.hentKlage(it.klageId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()

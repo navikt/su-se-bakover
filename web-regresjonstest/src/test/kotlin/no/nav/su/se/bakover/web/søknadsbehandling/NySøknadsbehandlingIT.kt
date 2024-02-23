@@ -63,7 +63,8 @@ internal class NySøknadsbehandlingIT {
                             },
                             "type":"SØKNAD",
                             "dokumenttilstand": "GENERERT",
-                            "kanStarteNyBehandling": false
+                            "kanStarteNyBehandling": false,
+                            "skalSendeBrev": true
                         }
                     ]
                 """.trimIndent(),

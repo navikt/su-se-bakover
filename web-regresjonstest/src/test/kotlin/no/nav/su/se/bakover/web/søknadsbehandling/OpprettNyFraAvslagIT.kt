@@ -138,7 +138,8 @@ private fun verifiserVedtak(vedtak: String, expectedBehandlingId: String) {
         },
         "simulering":null,
         "attestant":"automatiskAttesteringAvSøknadsbehandling",
-        "kanStarteNyBehandling":true
+        "kanStarteNyBehandling":true,
+        "skalSendeBrev": true
         }
     """.trimIndent()
 

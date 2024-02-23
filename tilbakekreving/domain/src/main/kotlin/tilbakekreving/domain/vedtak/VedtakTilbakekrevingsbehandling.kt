@@ -14,4 +14,7 @@ class VedtakTilbakekrevingsbehandling(
     override val attestant: NavIdentBruker.Attestant,
     override val dokumenttilstand: Dokumenttilstand,
     override val behandling: IverksattTilbakekrevingsbehandling,
-) : Vedtak
+) : Vedtak {
+    override val skalSendeBrev: Boolean
+        get() = behandling.vedtaksbrevvalg.skalSendeBrev()
+}

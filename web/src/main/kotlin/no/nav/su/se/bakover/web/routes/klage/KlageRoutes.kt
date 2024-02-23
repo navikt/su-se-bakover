@@ -168,6 +168,11 @@ internal fun Route.klageRoutes(
                                 "Kan ikke avvise en klage som har tidligere vært oversendt",
                                 "kan_ikke_avvise_klage_som_har_vært_oversendt",
                             )
+
+                            KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev -> BadRequest.errorJson(
+                                "Vedtak som ikke skal sende brev mangler dato-felt for klage-vedtak. Disse vedtakene kan ikke klages på",
+                                "vedtak_skal_ikke_sende_brev",
+                            )
                         }
                     }
                     call.svar(resultat)

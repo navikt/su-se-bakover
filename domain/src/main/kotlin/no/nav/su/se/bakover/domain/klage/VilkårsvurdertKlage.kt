@@ -58,6 +58,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                     klageinstanshendelser = Klageinstanshendelser.empty(),
                     fritekstTilAvvistVedtaksbrev = null,
                 )
+
                 is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                     id = id,
                     opprettet = opprettet,
@@ -137,6 +138,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                     )
+
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
@@ -237,6 +239,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         vurderinger = vurderinger,
                         fritekstTilAvvistVedtaksbrev = null,
                     )
+
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
@@ -395,6 +398,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                         fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     )
+
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
@@ -503,6 +507,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         klageinstanshendelser = klageinstanshendelser,
                         fritekstTilAvvistVedtaksbrev = null,
                     )
+
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
@@ -604,4 +609,6 @@ sealed interface KunneIkkeVilkårsvurdereKlage {
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage {
         val til = VilkårsvurdertKlage::class
     }
+
+    data object VedtakSkalIkkeSendeBrev : KunneIkkeVilkårsvurdereKlage
 }

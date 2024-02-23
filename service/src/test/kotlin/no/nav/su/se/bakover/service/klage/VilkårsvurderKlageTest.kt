@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
@@ -30,10 +32,12 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.junit.jupiter.api.Test
@@ -88,6 +92,35 @@ internal class VilkårsvurderKlageTest {
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
         verify(mocks.vedtakServiceMock).hentForVedtakId(vedtakId)
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kan ikke velge et vedtak som ikke skal sende brev ved vilkårsvurdering`() {
+        val vedtak = vedtakRevurderingIverksattInnvilget(
+            brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                null,
+                BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+            ),
+        ).second
+
+        val mocks = KlageServiceMocks(
+            vedtakServiceMock = mock { on { hentForVedtakId(any()) } doReturn vedtak },
+        )
+
+        mocks.service.vilkårsvurder(
+            VurderKlagevilkårRequest(
+                klageId = KlageId.generer(),
+                saksbehandler = saksbehandler,
+                vedtakId = vedtak.id,
+                innenforFristen = null,
+                klagesDetPåKonkreteElementerIVedtaket = null,
+                erUnderskrevet = null,
+                begrunnelse = null,
+            ),
+        ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
+
+        verify(mocks.vedtakServiceMock).hentForVedtakId(argShouldBe(vedtak.id))
         mocks.verifyNoMoreInteractions()
     }
 

@@ -30,6 +30,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val beregning: Beregning?
     override val simulering: Simulering
     override val utbetalingId: UUID30?
+    override val skalSendeBrev: Boolean get() = behandling.skalSendeVedtaksbrev()
 
     fun sakinfo(): SakInfo = behandling.sakinfo()
 

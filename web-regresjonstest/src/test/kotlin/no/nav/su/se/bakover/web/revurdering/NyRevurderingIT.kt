@@ -95,7 +95,8 @@ internal class NyRevurderingIT {
                                         },
                                         "type":"SØKNAD",
                                         "dokumenttilstand": "GENERERT",
-                                        "kanStarteNyBehandling": false
+                                        "kanStarteNyBehandling": false,
+                                        "skalSendeBrev": true
                                     },
                                     {
                                         "id":"ignore-me",
@@ -112,7 +113,8 @@ internal class NyRevurderingIT {
                                         },
                                         "type":"ENDRING",
                                         "dokumenttilstand": "GENERERT",
-                                        "kanStarteNyBehandling": false
+                                        "kanStarteNyBehandling": false,
+                                        "skalSendeBrev": true
                                     },
                             ]
                             """.trimIndent(),

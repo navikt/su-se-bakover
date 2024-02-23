@@ -17,6 +17,11 @@ sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, ErAvslag {
     override val behandling: IverksattSøknadsbehandling.Avslag
 
     /**
+     * Sender alltid brev ved avslag
+     */
+    override val skalSendeBrev: Boolean get() = behandling.skalSendeVedtaksbrev()
+
+    /**
      * Om ny behandling kan bli startet basert på vedtakets behandling.
      *
      * Denne sjekker ikke på om det allerede finnes en åpen behandling fra før

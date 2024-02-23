@@ -13,6 +13,11 @@ import java.util.UUID
 sealed interface Klagevedtak : Vedtak {
     override val behandling: Klage
 
+    /**
+     * Sender alltid brev ved klage
+     */
+    override val skalSendeBrev: Boolean get() = true
+
     data class Avvist(
         override val id: UUID,
         override val opprettet: Tidspunkt,

@@ -114,7 +114,8 @@ internal class KanUtsetteTilbakekrevingIT {
                                         },
                                         "type":"SØKNAD",
                                         "dokumenttilstand": "GENERERT",
-                                        "kanStarteNyBehandling": false
+                                        "kanStarteNyBehandling": false,
+                                        "skalSendeBrev": true
                                     },
                                     {
                                         "id":"ignore-me",
@@ -131,7 +132,8 @@ internal class KanUtsetteTilbakekrevingIT {
                                         },
                                         "type":"OPPHØR",
                                         "dokumenttilstand": "GENERERT",
-                                        "kanStarteNyBehandling": false
+                                        "kanStarteNyBehandling": false,
+                                        "skalSendeBrev": true
                                     },
                             ]
                             """.trimIndent(),
