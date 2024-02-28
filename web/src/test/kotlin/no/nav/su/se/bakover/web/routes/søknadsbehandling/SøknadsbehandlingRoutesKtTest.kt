@@ -293,4 +293,36 @@ internal class SøknadsbehandlingRoutesKtTest {
             }
         }
     }
+
+    @Test
+    fun `gjeldende vedtaksdata for tidligere periode`() {
+        val innvilget = søknadsbehandlingVilkårsvurdertInnvilget().second
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = mock {
+                                on {
+                                    this.gjeldendeVedtaksdataForTidligerePeriode(
+                                        any(),
+                                        any(),
+                                    )
+                                } doReturn Pair(innvilget.periode, innvilget.grunnlagsdataOgVilkårsvurderinger).right()
+                            },
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Get,
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/gjeldendeVedtaksdata/tidligereperiode",
+                listOf(Brukerrolle.Saksbehandler),
+            ).apply {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
@@ -86,3 +87,10 @@ internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(formuegrenserFactory: For
         formuegrenserFactory = formuegrenserFactory,
     )
 }
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.toStringifiedJson(formuegrenserFactory: FormuegrenserFactory): String =
+    GrunnlagsdataOgVilkårsvurderingerJson.create(
+        grunnlagsdata = this.grunnlagsdata,
+        vilkårsvurderinger = this.vilkårsvurderinger,
+        formuegrenserFactory = formuegrenserFactory,
+    ).let { serialize(it) }

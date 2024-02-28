@@ -130,6 +130,7 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -224,6 +225,7 @@ import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
@@ -723,6 +725,13 @@ open class AccessCheckProxy(
                     }
 
                     override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
+                    override fun gjeldendeVedtaksdataForTidligerePeriode(
+                        sakId: UUID,
+                        søknadsbehandlingId: SøknadsbehandlingId,
+                    ): Either<FeilVedHentingAvGjeldendeVedtaksdataForPeriode, Pair<Periode, GrunnlagsdataOgVilkårsvurderinger>> {
+                        assertHarTilgangTilSak(sakId)
+                        return service.gjeldendeVedtaksdataForTidligerePeriode(sakId, søknadsbehandlingId)
+                    }
                 },
             ),
             ferdigstillVedtak = object : FerdigstillVedtakService {

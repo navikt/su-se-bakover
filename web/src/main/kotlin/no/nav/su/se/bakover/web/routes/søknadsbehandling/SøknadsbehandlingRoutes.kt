@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.extensions.enumContains
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -43,6 +45,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -58,6 +61,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
@@ -379,6 +384,46 @@ internal fun Route.søknadsbehandlingRoutes(
                 )
             }
         }
+    }
+
+    data class TidligerePeriodeRespnse(
+        val periode: PeriodeJson,
+        val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    )
+
+    get("$SØKNADSBEHANDLING_PATH/{behandlingId}/gjeldendeVedtaksdata/tidligereperiode") {
+        call.withSakId { sakId ->
+            call.withBehandlingId { behandlingId ->
+                søknadsbehandlingService.gjeldendeVedtaksdataForTidligerePeriode(
+                    sakId = sakId,
+                    søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
+                ).fold(
+                    ifLeft = { call.svar(it.tilResultat()) },
+                    ifRight = {
+                        call.svar(
+                            Resultat.json(
+                                OK,
+                                serialize(
+                                    TidligerePeriodeRespnse(
+                                        periode = it.first.toJson(),
+                                        grunnlagsdataOgVilkårsvurderinger = it.second.toJson(formuegrenserFactory),
+                                    ),
+                                ),
+                            ),
+                        )
+                    },
+                )
+            }
+        }
+    }
+}
+
+internal fun FeilVedHentingAvGjeldendeVedtaksdataForPeriode.tilResultat(): Resultat {
+    return when (this) {
+        FeilVedHentingAvGjeldendeVedtaksdataForPeriode.GjeldendeVedtaksdataFinnesIkke -> NotFound.errorJson(
+            "Fant ikke gjeldende vedtaksdata for tidligere periode",
+            "fant_ikke_gjeldende_vedtaksdata_for_tidligere_peridoe",
+        )
     }
 }
 
