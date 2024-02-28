@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdatereFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
@@ -67,6 +69,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -96,6 +99,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.util.UUID
@@ -724,6 +728,27 @@ class SøknadsbehandlingServiceImpl(
 
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         søknadsbehandlingRepo.lagre(søknadsbehandling)
+    }
+
+    override fun gjeldendeVedtaksdataForTidligerePeriode(
+        sakId: UUID,
+        søknadsbehandlingId: SøknadsbehandlingId,
+    ): Either<FeilVedHentingAvGjeldendeVedtaksdataForPeriode, Pair<Periode, GrunnlagsdataOgVilkårsvurderinger>> {
+        val sak = sakService.hentSak(sakId)
+            .getOrElse { throw IllegalStateException("Fant ikke sak $sakId ved henting av gjeldende vedtaksdata for tidligere perioder") }
+
+        return sak.vedtakListe.filterIsInstance<Stønadsvedtak>().filter {
+            it.behandling.id != søknadsbehandlingId
+        }.maxByOrNull { it.opprettet.instant }?.let { tidligereStønadsvedtak ->
+            sak.hentGjeldendeVedtaksdata(
+                periode = tidligereStønadsvedtak.periode,
+                clock = clock,
+            ).mapLeft {
+                FeilVedHentingAvGjeldendeVedtaksdataForPeriode.GjeldendeVedtaksdataFinnesIkke
+            }.map {
+                tidligereStønadsvedtak.periode to it.grunnlagsdataOgVilkårsvurderinger
+            }
+        } ?: FeilVedHentingAvGjeldendeVedtaksdataForPeriode.GjeldendeVedtaksdataFinnesIkke.left()
     }
 
     private inline fun <reified T> hentKanOppdaterePeriodeGrunnlagVilkår(

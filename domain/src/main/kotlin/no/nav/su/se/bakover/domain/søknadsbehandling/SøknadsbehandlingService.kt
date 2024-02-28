@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
+import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -130,6 +132,17 @@ interface SøknadsbehandlingService {
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
     fun lagre(søknadsbehandling: Søknadsbehandling)
+
+    /**
+     * Henter gjeldende vedtaksdata for perioden som er før perioden som settes for denne søknadsbehandlingen.
+     *
+     * Eksempel: Hvis vi har et vedtak for ny periode (01.2021 - 12.2021), og vi har fått en ny søknad for
+     * perioden 01.2022 - 12.2022, så vil vi hente gjeldende vedtaksdata for perioden 01.2021 - 12.2021.
+     */
+    fun gjeldendeVedtaksdataForTidligerePeriode(
+        sakId: UUID,
+        søknadsbehandlingId: SøknadsbehandlingId,
+    ): Either<FeilVedHentingAvGjeldendeVedtaksdataForPeriode, Pair<Periode, GrunnlagsdataOgVilkårsvurderinger>>
 
     data class OpprettRequest(
         val søknadId: UUID,
