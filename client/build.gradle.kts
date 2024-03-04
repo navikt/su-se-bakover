@@ -23,7 +23,7 @@ dependencies {
     implementation(rootProject.libs.kittinunf.fuel.gson)
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    implementation("org.json:json:20240205")
+    implementation("org.json:json:20240303")
 
     implementation(rootProject.libs.tjenestespesifikasjoner.tilbakekreving)
     implementation(rootProject.libs.tjenestespesifikasjoner.utbetaling)
