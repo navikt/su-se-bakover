@@ -5,8 +5,9 @@ truncate
     klageinstanshendelse,
     personhendelse,
     hendelse,
+    hendelse_fil,
+    hendelse_konsument,
     avkortingsvarsel,
-    tilbakekrevingsbehandling,
     kontrollsamtale,
     dokument_distribusjon,
     dokument,
@@ -39,6 +40,7 @@ truncate
     klage,
     regulering,
     revurdering,
+    revurdering_tilbakekreving,
     behandling,
     søknad,
     sak
