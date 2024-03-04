@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.common.domain.Avslagsgrunn
+import vilkår.common.domain.Vurdering
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
@@ -167,7 +168,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-            ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+            ): Either<KunneIkkeOppretteSøknadsbehandling, BeregnetSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
                     isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
@@ -238,7 +239,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-            ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+            ): Either<KunneIkkeOppretteSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
                     isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
@@ -246,47 +247,86 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
                         val opprettet = Tidspunkt.now(clock)
                         val erAvslagGrunnetOpplysningsplikt = vilkårsvurderinger.opplysningsplikt.erAvslag
 
-                        erAvslagGrunnetOpplysningsplikt.whenever(
+                        val nyHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                            Søknadsbehandlingshendelse(
+                                tidspunkt = opprettet,
+                                saksbehandler = saksbehandler,
+                                handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(this.id),
+                            ),
+                        )
+
+                        val grunnlagsdataOgVilkårsvurderinger = erAvslagGrunnetOpplysningsplikt.whenever(
                             isFalse = {
-                                VilkårsvurdertSøknadsbehandling.Avslag(
-                                    opprettet = opprettet,
-                                    oppgaveId = nyOppgaveId,
-                                    saksbehandler = saksbehandler,
-                                    iverksattSøknadsbehandling = this,
-                                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds(),
-                                ).right()
+                                grunnlagsdataOgVilkårsvurderinger.copyWithNewIds()
                             },
                             isTrue = {
-                                VilkårsvurdertSøknadsbehandling.Avslag(
-                                    opprettet = opprettet,
-                                    oppgaveId = nyOppgaveId,
-                                    saksbehandler = saksbehandler,
-                                    iverksattSøknadsbehandling = this,
-                                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copyWithNewIds()
-                                        .let {
-                                            // siden vi har avslag grunnet opplysningsplikt, så skal vi sette opplysningsplikt til innvilget
-                                            // fordi saksbehandlerne ikke manuelt kan endre dette
-                                            it.oppdaterOpplysningsplikt(
-                                                OpplysningspliktVilkår.Vurdert.tryCreate(
-                                                    nonEmptyListOf(
-                                                        VurderingsperiodeOpplysningsplikt.create(
-                                                            id = UUID.randomUUID(),
-                                                            opprettet = opprettet,
-                                                            periode = periode,
-                                                            grunnlag = Opplysningspliktgrunnlag(
-                                                                id = UUID.randomUUID(),
-                                                                opprettet = opprettet,
-                                                                periode = periode,
-                                                                beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
-                                                            ),
-                                                        ),
+                                grunnlagsdataOgVilkårsvurderinger.copyWithNewIds().let {
+                                    // siden vi har avslag grunnet opplysningsplikt, så skal vi sette opplysningsplikt til innvilget
+                                    // fordi saksbehandlerne ikke manuelt kan endre dette
+                                    it.oppdaterOpplysningsplikt(
+                                        OpplysningspliktVilkår.Vurdert.tryCreate(
+                                            nonEmptyListOf(
+                                                VurderingsperiodeOpplysningsplikt.create(
+                                                    id = UUID.randomUUID(),
+                                                    opprettet = opprettet,
+                                                    periode = periode,
+                                                    grunnlag = Opplysningspliktgrunnlag(
+                                                        id = UUID.randomUUID(),
+                                                        opprettet = opprettet,
+                                                        periode = periode,
+                                                        beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
                                                     ),
-                                                ).getOrElse { throw IllegalStateException(it.toString()) },
-                                            )
-                                        },
-                                ).right()
+                                                ),
+                                            ),
+                                        ).getOrElse { throw IllegalStateException(it.toString()) },
+                                    )
+                                }
                             },
                         )
+
+                        when (grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat()) {
+                            Vurdering.Avslag -> VilkårsvurdertSøknadsbehandling.Avslag(
+                                opprettet = opprettet,
+                                oppgaveId = nyOppgaveId,
+                                saksbehandler = saksbehandler,
+                                iverksattSøknadsbehandling = this,
+                                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                            )
+
+                            Vurdering.Innvilget -> VilkårsvurdertSøknadsbehandling.Innvilget(
+                                id = SøknadsbehandlingId.generer(),
+                                opprettet = opprettet,
+                                sakId = sakId,
+                                saksnummer = saksnummer,
+                                søknad = søknad,
+                                oppgaveId = nyOppgaveId,
+                                fnr = fnr,
+                                fritekstTilBrev = fritekstTilBrev,
+                                aldersvurdering = aldersvurdering,
+                                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                                attesteringer = Attesteringshistorikk.empty(),
+                                søknadsbehandlingsHistorikk = nyHistorikk,
+                                sakstype = sakstype,
+                                saksbehandler = saksbehandler,
+                            )
+
+                            Vurdering.Uavklart -> VilkårsvurdertSøknadsbehandling.Uavklart(
+                                id = SøknadsbehandlingId.generer(),
+                                opprettet = opprettet,
+                                sakId = sakId,
+                                saksnummer = saksnummer,
+                                søknad = søknad,
+                                oppgaveId = nyOppgaveId,
+                                fnr = fnr,
+                                fritekstTilBrev = fritekstTilBrev,
+                                aldersvurdering = aldersvurdering,
+                                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                                attesteringer = Attesteringshistorikk.empty(),
+                                søknadsbehandlingsHistorikk = nyHistorikk,
+                                sakstype = sakstype,
+                                saksbehandler = saksbehandler,
+                            )
+                        }.right()
                     },
                 )
             }

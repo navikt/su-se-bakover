@@ -74,7 +74,7 @@ class IverksattSøknadsbehandlingTest {
             clock = fixedClock,
         ).getOrFail().let {
             it.shouldBeEqualToExceptId(
-                VilkårsvurdertSøknadsbehandling.Avslag(
+                VilkårsvurdertSøknadsbehandling.Innvilget(
                     id = it.id,
                     opprettet = fixedTidspunkt,
                     sakId = sak.id,
