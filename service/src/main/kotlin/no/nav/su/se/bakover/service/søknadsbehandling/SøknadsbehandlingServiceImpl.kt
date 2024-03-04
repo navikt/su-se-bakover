@@ -69,7 +69,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -737,7 +737,7 @@ class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSak(sakId)
             .getOrElse { throw IllegalStateException("Fant ikke sak $sakId ved henting av gjeldende vedtaksdata for tidligere perioder") }
 
-        return sak.vedtakListe.filterIsInstance<Stønadsvedtak>().filter {
+        return sak.vedtakListe.filterIsInstance<VedtakInnvilgetSøknadsbehandling>().filter {
             it.behandling.id != søknadsbehandlingId
         }.maxByOrNull { it.opprettet.instant }?.let { tidligereStønadsvedtak ->
             sak.hentGjeldendeVedtaksdata(
