@@ -119,6 +119,7 @@ internal class OppdaterOppgaveHttpClient(
                     } ?: internalBeskrivelse,
                     status = data.status ?: oppgave.status,
                     oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
+                    tilordnetRessurs = data.tilordnetRessurs ?: oppgave.tilordnetRessurs,
                 ),
             )
 
@@ -146,6 +147,7 @@ internal class OppdaterOppgaveHttpClient(
                         request = requestBody,
                         response = it.body(),
                         beskrivelse = data.beskrivelse,
+                        tilordnetRessurs = data.tilordnetRessurs,
                     ).right()
                 } else {
                     log.error(
@@ -166,4 +168,5 @@ private data class EndreOppgaveRequest(
     val beskrivelse: String,
     val oppgavetype: String,
     val status: String,
+    val tilordnetRessurs: String?,
 )

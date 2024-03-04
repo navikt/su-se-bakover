@@ -248,6 +248,7 @@ internal class OppgaveHttpClient(
                         request = requestBody,
                         response = body,
                         beskrivelse = beskrivelse,
+                        tilordnetRessurs = config.tilordnetRessurs?.navIdent,
                     ).right()
                 } else {
                     log.error(

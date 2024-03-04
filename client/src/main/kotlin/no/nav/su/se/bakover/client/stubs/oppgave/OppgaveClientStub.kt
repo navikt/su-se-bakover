@@ -27,6 +27,7 @@ data object OppgaveClientStub : OppgaveClient {
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
+            tilordnetRessurs = "stubbedTilordnetRessurs",
         ).right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
@@ -36,6 +37,7 @@ data object OppgaveClientStub : OppgaveClient {
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
+            tilordnetRessurs = "stubbedTilordnetRessurs",
         ).right().also { log.info("OppgaveClientStub oppretter oppgave med systembruker: $config") }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
@@ -45,6 +47,7 @@ data object OppgaveClientStub : OppgaveClient {
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
+            tilordnetRessurs = "stubbedTilordnetRessurs",
         ).right().also { log.info("OppgaveClientStub lukker oppgave med oppgaveId: $oppgaveId") }
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> =
@@ -54,6 +57,7 @@ data object OppgaveClientStub : OppgaveClient {
             response = "stubbedResponse",
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
+            tilordnetRessurs = "stubbedTilordnetRessurs",
         ).right().also { log.info("OppgaveClientStub lukker oppgave med systembruker og oppgaveId: $oppgaveId") }
 
     override fun oppdaterOppgave(
@@ -65,6 +69,7 @@ data object OppgaveClientStub : OppgaveClient {
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
+        tilordnetRessurs = "stubbedTilordnetRessurs",
     ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: ${oppdatertOppgaveInfo.beskrivelse}") }
 
     override fun oppdaterOppgaveMedSystembruker(
@@ -76,6 +81,7 @@ data object OppgaveClientStub : OppgaveClient {
         response = "stubbedResponse",
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
+        tilordnetRessurs = "stubbedTilordnetRessurs",
     ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med data: $oppdatertOppgaveInfo") }
 
     override fun hentOppgave(

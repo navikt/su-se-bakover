@@ -21,6 +21,7 @@ internal data class OppgaveResponse(
     val tema: String?,
     val behandlingstema: String?,
     val oppgavetype: String,
+    val tilordnetRessurs: String?,
     val behandlingstype: String?,
     val versjon: Int,
     val opprettetAv: String,

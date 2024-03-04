@@ -15,4 +15,5 @@ data class OppgaveHttpKallResponse(
     val request: String,
     val response: String,
     val beskrivelse: String,
+    val tilordnetRessurs: String?,
 )

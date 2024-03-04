@@ -77,12 +77,14 @@ internal class OppdaterHttpClientTest {
                 request = expectedBody,
                 response = patchResponse,
                 beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                tilordnetRessurs = null,
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
             actual.oppgavetype shouldBe expected.oppgavetype
             actual.beskrivelse shouldBe expected.beskrivelse
             actual.response shouldBe expected.response
+            actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
             WireMock.configureFor(port())
@@ -250,7 +252,8 @@ internal class OppdaterHttpClientTest {
             {
               "oppgavetype": "BEH_SAK",
               "beskrivelse": "$beskrivelse",
-              "status": "$status"
+              "status": "$status",
+              "tilordnetRessurs": "Z123456"
             }
         """.trimIndent()
     }
@@ -265,7 +268,8 @@ internal class OppdaterHttpClientTest {
                   "id": $oppgaveId,
                   "versjon": ${versjon + 1},
                   "beskrivelse": "$beskrivelse",
-                  "status": "$status"
+                  "status": "$status",
+                  "tilordnetRessurs": "Z123456"
                 }
         """.trimIndent()
     }

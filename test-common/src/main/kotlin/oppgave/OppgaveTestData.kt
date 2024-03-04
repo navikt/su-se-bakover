@@ -12,10 +12,12 @@ fun nyOppgaveHttpKallResponse(
     request: String = "request",
     response: String = "response",
     beskrivelse: String = "beskrivelse",
+    tilordnetRessurs: String? = "tilordnetRessurs",
 ): OppgaveHttpKallResponse = OppgaveHttpKallResponse(
     oppgaveId = oppgaveId,
     oppgavetype = oppgavetype,
     request = request,
     response = response,
     beskrivelse = beskrivelse,
+    tilordnetRessurs = tilordnetRessurs,
 )
