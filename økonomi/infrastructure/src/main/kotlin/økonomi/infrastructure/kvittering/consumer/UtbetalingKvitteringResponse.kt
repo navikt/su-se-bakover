@@ -22,7 +22,7 @@ import java.time.Clock
 /**
  * https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
  */
-@JacksonXmlRootElement(localName = "Oppdrag")
+@JacksonXmlRootElement(localName = "oppdrag")
 data class UtbetalingKvitteringResponse(
     val mmel: Mmel,
     @field:JacksonXmlProperty(localName = "oppdrag-110")
@@ -80,7 +80,15 @@ data class UtbetalingKvitteringResponse(
 
     companion object {
         internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): UtbetalingKvitteringResponse = this
-            .replace("<oppdrag xmlns", "<Oppdrag xmlns")
+            .let {
+                // Oppdrag sendte fram til feb/mar 2024 <oppdrag xmlns ...> og avsluttet med </Oppdrag>
+                // Dette har de nå fikset, men vi tar høyde for gamle meldinger
+                if (it.contains("</Oppdrag>")) {
+                    it.replace("</Oppdrag>", "</oppdrag>")
+                } else {
+                    it
+                }
+            }
             .let {
                 Either.catch {
                     xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
