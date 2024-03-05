@@ -8,9 +8,15 @@ SET saksbehandling = jsonb_set(
                                 'tidspunkt', obj ->> 'tidspunkt',
                                 'handlingJson', jsonb_build_object(
                                         'handling', obj ->> 'handling',
-                                        'id', null
+                                        'tilhørendeSøknadsbehandlingId', null
                                                 )
                         )
                 )
          FROM jsonb_array_elements(saksbehandling -> 'historikk') WITH ORDINALITY AS arr(obj, idx))
                      )
+WHERE jsonb_array_length(saksbehandling->'historikk') > 0
+  AND NOT EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(saksbehandling->'historikk') AS element
+    WHERE element ? 'handlingJson'
+);
