@@ -13,9 +13,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.application.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.test.application.runApplicationWithMocks
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
-import no.nav.su.se.bakover.web.SharedRegressionTestData.testSusebakover
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -52,7 +52,7 @@ class MDCLogTest {
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         testApplication {
             application {
-                testSusebakover()
+                runApplicationWithMocks()
                 (environment.log as Logger).also {
                     it.apply { addAppender(appender) }
                 }
