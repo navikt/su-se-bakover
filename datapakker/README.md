@@ -20,10 +20,8 @@ Start en manuell cronjob (husk å slett dersom den feiler):
 kubectl create job --namespace=supstonad --from=cronjobs/su-datapakke-soknad manuell-test-custom-name-here
 ```
 
-
 ## How-to
 ### Lage en ny datapakke
-
 
 #### prerequisites 
 1. legg inn `Google Cloud Platform` fra `myapps.microsoft.com`
@@ -51,7 +49,6 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 3. konfigurer GCP/BigQuery
 4. Lag en nais.yml & dockerfile for å kjøre jobben i nais
 
-
 #### GCP
 1. Gå til `console.cloud.google.com`
 2. Velg `BigQuery` fra Quick access
@@ -69,5 +66,42 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 6. Det samme må nå gjøres for det andre miljøet
 
 
+### Visualisering av data fra BigQuery
+
+#### NADA
+Før du kan visualisere dataen ved bruk av Metabase, må vi legge til datapakken vår i NADA.
+1. Gå til `data.intern.nav.no` (dev - `data.intern.dev.nav.no`)
+2. Finn fram til supstonad - eksempel på hvordan du kan finne fram
+   - klikk på `Utforsk områder`
+   - velg `Produkområde Pensjon` i selected øverst til venstre
+   - velg `SU` fra menyen til venstre
+   - Klikk på `Produkter` fanen øverst i midten
+   - Klikk på `supstonad`
+   - Gjerne utforsk hva vi allerede har 
+3. Ved menyen til venstre, klikk `Legg til datasett`
+4. Fyll inn informasjon som ønsket
+   - `Velg tabell eller view` lister opp bare prod-basen i BigQuery. Dersom du bare har lagt til dev på dette tidspunktet, må du gå tilbake, og legge til prod.
+   - Klikk `Lagre`
+5. Legg til tilganger hvis den ikke er åpen for alle. 
+6. sjekk at datasettet ser riktig ut
+7. Under overskiften, har du forskjellige links, trykk på `Legg til metabase` hvis du har ønske om å visualisere datasettet i Metabase
+
+Mer info om NADA, etc kan finnes på `docs.knada.io`
+
+
 #### Metabase
-TODO
+Hvis du vil visualisere dataen fra BigQuery, kan dette gjøres i Metabase. Datasettet må ha vært lagt til i NADA. Hvis ikke dette er gjort, må du gjøre det først. 
+Tilgang til metabase kommer når du har lagt til GCP i `myapps.microsoft.com` (???)
+1. gå og logg inn til `metabase.intern.nav.no` (dev - `metabase.intern.dev.nav.no`)
+2. Åpne sidepanelet til venstre: PO Pensjon -> Team Supplerende Stønad
+3. Klikk på `new`
+   - Her er det litt valg muligheter.
+   - Dersom du er interessert i å lage en basic spørring mot datasettet vi la inn i NADA, velger du `Question`
+   - Dersom du vil gruppere sammen questions, kan du velge `Dashboard`
+     - Ved valg av `Question`
+       1. Velg `Raw Data`
+       2. skriv inn navnet på tabellen som du lagde i GCP  
+       3. Visaliser dataen som øsnkelig
+       4. Klikk `Visualize`
+
+Litt mer info om metabase kan finnes på `docs.knada.io/analyse/metabase`
