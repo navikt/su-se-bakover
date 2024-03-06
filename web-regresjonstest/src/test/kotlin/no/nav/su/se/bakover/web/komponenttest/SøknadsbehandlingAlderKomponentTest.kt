@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
@@ -171,10 +171,10 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 )
 
                 appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjongrunnlag(
-                    request = LeggTilBosituasjonerRequest(
+                    request = LeggTilBosituasjonerCommand(
                         behandlingId = søknadsbehandling.id,
                         bosituasjoner = listOf(
-                            LeggTilBosituasjonRequest(
+                            LeggTilBosituasjonCommand(
                                 periode = stønadsperiode2022.periode,
                                 epsFnr = null,
                                 delerBolig = false,

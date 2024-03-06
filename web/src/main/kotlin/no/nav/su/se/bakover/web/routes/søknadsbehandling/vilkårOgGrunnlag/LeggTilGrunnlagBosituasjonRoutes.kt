@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
 import arrow.core.flatMap
 import arrow.core.getOrElse
+import behandling.søknadsbehandling.presentation.bosituasjon.LeggTilBosituasjonForSøknadsbehandlingJsonRequest
+import behandling.søknadsbehandling.presentation.bosituasjon.tilResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -20,8 +22,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
-import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
@@ -34,7 +34,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<LeggTilBosituasjonJsonRequest> { json ->
+                    call.withBody<LeggTilBosituasjonForSøknadsbehandlingJsonRequest> { json ->
                         call.svar(
                             json.toService(
                                 SøknadsbehandlingId(behandlingId),

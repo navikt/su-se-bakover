@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
@@ -11,9 +14,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -96,10 +96,10 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
                     argThat {
-                        it shouldBe LeggTilBosituasjonerRequest(
+                        it shouldBe LeggTilBosituasjonerCommand(
                             behandlingId = søknadsbehandling.id,
                             bosituasjoner = listOf(
-                                LeggTilBosituasjonRequest(
+                                LeggTilBosituasjonCommand(
                                     periode = søknadsbehandling.periode,
                                     epsFnr = null,
                                     delerBolig = true,
@@ -150,10 +150,10 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
                     argThat {
-                        it shouldBe LeggTilBosituasjonerRequest(
+                        it shouldBe LeggTilBosituasjonerCommand(
                             behandlingId = søknadsbehandling.id,
                             bosituasjoner = listOf(
-                                LeggTilBosituasjonRequest(
+                                LeggTilBosituasjonCommand(
                                     periode = søknadsbehandling.periode,
                                     epsFnr = null,
                                     delerBolig = false,
@@ -202,10 +202,10 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
                     argThat {
-                        it shouldBe LeggTilBosituasjonerRequest(
+                        it shouldBe LeggTilBosituasjonerCommand(
                             behandlingId = søknadsbehandling.id,
                             bosituasjoner = listOf(
-                                LeggTilBosituasjonRequest(
+                                LeggTilBosituasjonCommand(
                                     periode = søknadsbehandling.periode,
                                     epsFnr = "12345678901",
                                     delerBolig = null,
@@ -254,10 +254,10 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
                     argThat {
-                        it shouldBe LeggTilBosituasjonerRequest(
+                        it shouldBe LeggTilBosituasjonerCommand(
                             behandlingId = søknadsbehandling.id,
                             bosituasjoner = listOf(
-                                LeggTilBosituasjonRequest(
+                                LeggTilBosituasjonCommand(
                                     periode = søknadsbehandling.periode,
                                     epsFnr = "12345678901",
                                     delerBolig = null,
@@ -306,10 +306,10 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
                     argThat {
-                        it shouldBe LeggTilBosituasjonerRequest(
+                        it shouldBe LeggTilBosituasjonerCommand(
                             behandlingId = søknadsbehandling.id,
                             bosituasjoner = listOf(
-                                LeggTilBosituasjonRequest(
+                                LeggTilBosituasjonCommand(
                                     periode = søknadsbehandling.periode,
                                     epsFnr = "12345678901",
                                     delerBolig = false,

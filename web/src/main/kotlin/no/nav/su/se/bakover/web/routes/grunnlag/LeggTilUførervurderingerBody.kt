@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
-import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import vilkår.uføre.domain.Uføregrad
 
 internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {

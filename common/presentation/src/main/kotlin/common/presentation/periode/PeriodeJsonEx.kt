@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.periode
+package common.presentation.periode
 
 import arrow.core.Either
 import io.ktor.http.HttpStatusCode
@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
-internal fun PeriodeJson.toPeriodeOrResultat(): Either<Resultat, Periode> {
+fun PeriodeJson.toPeriodeOrResultat(): Either<Resultat, Periode> {
     return this.tryToPeriode().mapLeft {
         when (it) {
             Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> HttpStatusCode.BadRequest.errorJson(

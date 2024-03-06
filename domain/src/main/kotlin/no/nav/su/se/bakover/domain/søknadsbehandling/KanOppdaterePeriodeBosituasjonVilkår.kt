@@ -271,9 +271,9 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
     fun oppdaterBosituasjon(
         saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Bosituasjon.Fullstendig,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, VilkårsvurdertSøknadsbehandling> {
+    ): Either<GrunnlagetMåVæreInnenforBehandlingsperioden, VilkårsvurdertSøknadsbehandling> {
         if (this.periode != bosituasjon.periode) {
-            return KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
+            return GrunnlagetMåVæreInnenforBehandlingsperioden.left()
         }
         return VilkårsvurdertSøknadsbehandling.opprett(
             forrigeTilstand = this,
@@ -333,3 +333,5 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
         ).mapLeft { KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.Vilkårsfeil(it) }
     }
 }
+
+object GrunnlagetMåVæreInnenforBehandlingsperioden

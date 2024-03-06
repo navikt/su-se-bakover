@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import arrow.core.Either
 import arrow.core.getOrElse
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
@@ -710,9 +711,9 @@ open class AccessCheckProxy(
                     }
 
                     override fun leggTilBosituasjongrunnlag(
-                        request: LeggTilBosituasjonerRequest,
+                        request: LeggTilBosituasjonerCommand,
                         saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+                    ): Either<behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }

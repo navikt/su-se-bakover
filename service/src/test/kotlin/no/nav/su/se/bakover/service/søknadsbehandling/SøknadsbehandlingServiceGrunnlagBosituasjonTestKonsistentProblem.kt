@@ -1,14 +1,13 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -80,10 +79,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
             clock = fixedClock,
         ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-            request = LeggTilBosituasjonerRequest(
+            request = LeggTilBosituasjonerCommand(
                 behandlingId = uavklart.id,
                 bosituasjoner = listOf(
-                    LeggTilBosituasjonRequest(
+                    LeggTilBosituasjonCommand(
                         periode = stønadsperiode.periode,
                         epsFnr = bosituasjon.fnr.toString(),
                         delerBolig = null,
@@ -108,10 +107,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-            request = LeggTilBosituasjonerRequest(
+            request = LeggTilBosituasjonerCommand(
                 behandlingId = behandlingId,
                 bosituasjoner = listOf(
-                    LeggTilBosituasjonRequest(
+                    LeggTilBosituasjonCommand(
                         periode = stønadsperiode.periode,
                         epsFnr = null,
                         delerBolig = false,
@@ -139,10 +138,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-            request = LeggTilBosituasjonerRequest(
+            request = LeggTilBosituasjonerCommand(
                 behandlingId = behandlingId,
                 bosituasjoner = listOf(
-                    LeggTilBosituasjonRequest(
+                    LeggTilBosituasjonCommand(
                         periode = stønadsperiode.periode,
                         epsFnr = null,
                         delerBolig = false,
@@ -150,11 +149,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
                     ),
                 ),
             ),
-        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(
-            KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                fra = tilAttestering::class,
-                til = VilkårsvurdertSøknadsbehandling::class,
-            ),
+        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+            fra = tilAttestering::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -185,10 +182,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
             clock = fixedClock,
         ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-            request = LeggTilBosituasjonerRequest(
+            request = LeggTilBosituasjonerCommand(
                 behandlingId = søknadsbehandling.id,
                 bosituasjoner = listOf(
-                    LeggTilBosituasjonRequest(
+                    LeggTilBosituasjonCommand(
                         periode = stønadsperiode.periode,
                         epsFnr = null,
                         delerBolig = false,

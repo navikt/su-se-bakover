@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":vilkår:familiegjenforening:domain"))
     implementation(project(":vilkår:bosituasjon"))
     implementation(project(":vilkår:skatt:domain"))
+    implementation(project(":person:domain"))
 }
 
 tasks.named<Jar>("jar") {

@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
 
 import vilkår.vurderinger.domain.Konsistensproblem
 
+/**
+ * Søknadsbehandling har fått sin egen type, så denne eies nå alene av revurdering og kan refaktoreres deretter.
+ */
 sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
     data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag
     data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag

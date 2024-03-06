@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -19,8 +21,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -665,19 +665,16 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilBosituasjongrunnlag(
-        request: LeggTilBosituasjonerRequest,
+        request: LeggTilBosituasjonerCommand,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId as SøknadsbehandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             ugyldigTilstandError = { fra, _ ->
-                // TODO jah: Bruker Revurdering sin type. Burde lage en egen for søknadsbehandling. Kan service/domain bruke den samme?
-                KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(
-                    KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                        fra = fra,
-                        til = VilkårsvurdertSøknadsbehandling::class,
-                    ),
+                KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                    fra = fra,
+                    til = VilkårsvurdertSøknadsbehandling::class,
                 )
             },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling },
@@ -695,7 +692,7 @@ class SøknadsbehandlingServiceImpl(
             saksbehandler = saksbehandler,
             bosituasjon = bosituasjon,
         ).mapLeft {
-            KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(it)
+            KunneIkkeLeggeTilBosituasjongrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
         }.map {
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(it, tx)
