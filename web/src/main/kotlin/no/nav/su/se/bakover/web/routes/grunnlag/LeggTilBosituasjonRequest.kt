@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormue
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -86,9 +86,9 @@ internal fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         is KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> inner.feil.tilResultat()
 
         is KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> when (val innerInner = inner.feil) {
-            is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> innerInner.feil.tilResultat()
+            is KunneIkkeLeggeTilFormue.Konsistenssjekk -> innerInner.feil.tilResultat()
 
-            is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+            is KunneIkkeLeggeTilFormue.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
                 innerInner.fra,
                 innerInner.til,
             )

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
-import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFormue
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt

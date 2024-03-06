@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormue
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -371,11 +372,11 @@ class RevurderingServiceImpl(
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
             when (it) {
-                is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
+                is KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
                     KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
                 }
 
-                is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+                is KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
                     KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
                 }
             }

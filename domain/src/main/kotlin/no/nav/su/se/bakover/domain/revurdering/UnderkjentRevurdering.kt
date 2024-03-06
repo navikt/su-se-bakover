@@ -70,7 +70,7 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>) =

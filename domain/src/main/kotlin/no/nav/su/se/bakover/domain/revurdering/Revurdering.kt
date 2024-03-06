@@ -56,7 +56,6 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
 import vilkår.vurderinger.domain.Grunnlagsdata
-import vilkår.vurderinger.domain.Konsistensproblem
 import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
@@ -178,15 +177,6 @@ sealed interface Revurdering :
 
     fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> =
         KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
-
-    sealed interface KunneIkkeLeggeTilFormue {
-        data class UgyldigTilstand(
-            val fra: KClass<out Revurdering>,
-            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
-        ) : KunneIkkeLeggeTilFormue
-
-        data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormue
-    }
 
     fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         KunneIkkeLeggeTilFormue.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()

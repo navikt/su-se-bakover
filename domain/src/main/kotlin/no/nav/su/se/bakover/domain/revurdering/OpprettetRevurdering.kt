@@ -66,7 +66,7 @@ data class OpprettetRevurdering(
 
     override fun oppdaterFormueOgMarkerSomVurdert(
         formue: FormueVilkår.Vurdert,
-    ): Either<Revurdering.KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    ): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>) =
