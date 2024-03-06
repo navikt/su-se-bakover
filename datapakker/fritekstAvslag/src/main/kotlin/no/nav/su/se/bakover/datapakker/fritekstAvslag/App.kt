@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.datapakker.fritekstAvslag
 
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
+import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
-import no.nav.su.se.bakover.common.extensions.endOfMonth
-import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import org.slf4j.LoggerFactory
@@ -16,7 +16,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.channels.Channels
-import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 import javax.sql.DataSource
@@ -35,39 +34,45 @@ fun main() {
         it.use { hentAntallAvslagsvedtakUtenFritekst(it) }
     }
 
-    writeToBigQuery(antallAvslagsvedtakUtenFritekst = antallAvslagsvedtakUtenFritekst)
+    deleteAllAndWriteToBigQuery(antallAvslagsvedtakUtenFritekst = antallAvslagsvedtakUtenFritekst)
 }
 
-fun hentAntallAvslagsvedtakUtenFritekst(datasource: DataSource): AvslagsvedtakUtenFritekst {
-    val forrigeMåned = LocalDate.now().minusMonths(1)
+fun hentAntallAvslagsvedtakUtenFritekst(datasource: DataSource): List<AvslagsvedtakUtenFritekst> {
     return datasource.connection.let {
         it.use {
             it.prepareStatement(
                 """
-                select count(d.generertdokumentjson)
-                from vedtak v
-                         join dokument d on v.id = d.vedtakid
-                where length(trim(d.generertdokumentjson ->> 'fritekst')) < 1
-                    and v.vedtaktype = 'AVSLAG'
-                    and Date(v.opprettet) >= ${forrigeMåned.startOfMonth()}
-                    and Date(v.opprettet) <= ${forrigeMåned.endOfMonth()};
+                    select count(d.generertdokumentjson), to_char(date_trunc('month', v.opprettet), 'YYYY-MM') as grupperingsdato
+                    from vedtak v
+                             join dokument d on v.id = d.vedtakid
+                    where length(trim(d.generertdokumentjson ->> 'fritekst')) < 1
+                      and v.vedtaktype = 'AVSLAG'
+                    group by grupperingsdato;
                 """.trimIndent(),
             ).executeQuery().let {
-                AvslagsvedtakUtenFritekst(
-                    antall = it.getInt("count"),
-                    forMånedÅr = YearMonth.from(forrigeMåned),
-                )
+                val result = mutableListOf<AvslagsvedtakUtenFritekst>()
+
+                while (it.next()) {
+                    result.add(
+                        AvslagsvedtakUtenFritekst(
+                            antall = it.getInt("count"),
+                            forMånedÅr = YearMonth.parse(it.getString("grupperingsdato")),
+                        ),
+                    )
+                }
+
+                result.toList()
             }
         }
     }
 }
 
-fun writeToBigQuery(
+fun deleteAllAndWriteToBigQuery(
     jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery")),
     project: String = System.getenv("GCP_PROJECT"),
     dataset: String = "avslagsvedtak",
     table: String = "antallAvslagsvedtakUtenFritekst",
-    antallAvslagsvedtakUtenFritekst: AvslagsvedtakUtenFritekst,
+    antallAvslagsvedtakUtenFritekst: List<AvslagsvedtakUtenFritekst>,
 ) {
     val credentials = GoogleCredentials.fromStream(jsonKey)
 
@@ -78,6 +83,8 @@ fun writeToBigQuery(
         .setProjectId(project)
         .build().service
 
+    deleteAll(bq)
+
     val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
 
     val configuration = WriteChannelConfiguration.newBuilder(
@@ -87,11 +94,24 @@ fun writeToBigQuery(
     val job = bq.writer(jobId, configuration).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write("${antallAvslagsvedtakUtenFritekst.antall},${antallAvslagsvedtakUtenFritekst.forMånedÅr}".toByteArray())
+                os.write(antallAvslagsvedtakUtenFritekst.toCSV().toByteArray())
             }
         }
         it.job.waitFor()
     }
 
     logger.info("job statistikk: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
+}
+
+fun deleteAll(
+    bq: BigQuery,
+    dataset: String = "avslagsvedtak",
+    table: String = "antallAvslagsvedtakUtenFritekst",
+) {
+    val query = QueryJobConfiguration.newBuilder(
+        "DELETE FROM `$dataset.$table` WHERE true",
+    ).setUseLegacySql(false).build()
+
+    val result = bq.query(query)
+    logger.info("slettet antall linjer ${result.totalRows}")
 }
