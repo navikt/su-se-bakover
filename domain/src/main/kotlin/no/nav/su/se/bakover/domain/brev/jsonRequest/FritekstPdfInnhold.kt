@@ -1,10 +1,19 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 
+@JsonPropertyOrder(
+    "personalia",
+    "saksbehandlerNavn",
+    "tittel",
+    "fritekst",
+    "sakstype",
+    "erAldersbrev",
+)
 data class FritekstPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,

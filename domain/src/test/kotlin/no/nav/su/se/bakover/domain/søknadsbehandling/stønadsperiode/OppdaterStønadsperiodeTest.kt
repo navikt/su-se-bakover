@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprettet

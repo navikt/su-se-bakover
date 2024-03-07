@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormue
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 
@@ -55,10 +55,6 @@ data class LeggTilBosituasjonJsonRequest(
             ).right()
         }
     }
-}
-
-internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat = when (this) {
-    SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
 }
 
 internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat = when (this) {

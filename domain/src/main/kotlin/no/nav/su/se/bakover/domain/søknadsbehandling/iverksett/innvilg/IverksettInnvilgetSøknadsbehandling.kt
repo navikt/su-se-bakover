@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.SimuleringFeilet

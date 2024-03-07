@@ -469,9 +469,10 @@ internal class SkattDokumentServiceImplTest {
                             generertDokument = pdf,
                             generertDokumentJson = """
                                 {
+                                  "sakstype": "ALDER",
+                                  "erAldersbrev":true,
                                   "saksnummer":"fagsystemId",
                                   "behandlingstype":"Frioppslag",
-                                  "sakstype": "ALDER",
                                   "behandlingsId":null,
                                   "vedtaksId":null,
                                   "hentet":"2021-01-01T01:02:03.456789Z",
@@ -523,8 +524,7 @@ internal class SkattDokumentServiceImplTest {
                                             "manglerKategori":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
                                             "annet":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
                                             "kjøretøy":[{"beløp":"15000","registreringsnummer":"AB12345","fabrikatnavn":"Troll","årForFørstegangsregistrering":"1957","formuesverdi":"15000","antattVerdiSomNytt":null,"antattMarkedsverdi":null},{"beløp":"5000","registreringsnummer":"BC67890","fabrikatnavn":"Think","årForFørstegangsregistrering":"2003","formuesverdi":"5000","antattVerdiSomNytt":null,"antattMarkedsverdi":null}]}]},
-                                  "begrunnelse":"begrunnelse",
-                                  "erAldersbrev":true
+                                  "begrunnelse":"begrunnelse"
                                 }
                             """.trimIndent().trimWhitespace(),
                         ),

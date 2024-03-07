@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import dokument.domain.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 import økonomi.domain.utbetaling.UtbetalingFeilet
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {

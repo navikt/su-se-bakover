@@ -305,7 +305,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
                                 on {
-                                    this.gjeldendeVedtaksdataForTidligerePeriode(
+                                    this.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
                                         any(),
                                         any(),
                                     )

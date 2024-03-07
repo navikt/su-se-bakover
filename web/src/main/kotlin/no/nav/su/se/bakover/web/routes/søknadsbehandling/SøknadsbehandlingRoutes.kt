@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
+import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -394,7 +394,7 @@ internal fun Route.søknadsbehandlingRoutes(
     get("$SØKNADSBEHANDLING_PATH/{behandlingId}/gjeldendeVedtaksdata/tidligereperiode") {
         call.withSakId { sakId ->
             call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.gjeldendeVedtaksdataForTidligerePeriode(
+                søknadsbehandlingService.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
                     sakId = sakId,
                     søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                 ).fold(

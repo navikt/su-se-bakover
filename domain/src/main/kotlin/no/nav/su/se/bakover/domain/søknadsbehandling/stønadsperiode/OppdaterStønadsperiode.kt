@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import vilkår.formue.domain.FormuegrenserFactory
@@ -84,11 +83,11 @@ private fun Sak.internalOppdater(
         saksbehandler = saksbehandler,
     ).getOrElse {
         return when (it) {
-            is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+            is KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
                 Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
             }
 
-            is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
+            is KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
                 Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
             }
         }.left()

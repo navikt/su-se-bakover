@@ -20,6 +20,6 @@ sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
 
     // TODO jah - Klassen er delt mellom søknadsbehandling og revurdering, men disse feilene blir bare brukt av søknadsbehandling
     data class KunneIkkeLeggeTilGrunnlag(
-        val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag,
+        val feil: no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilGrunnlag,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag
 }
