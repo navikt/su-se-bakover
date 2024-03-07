@@ -7,6 +7,8 @@ import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
+import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjonForRevurdering
+import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
@@ -38,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdater
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
@@ -346,8 +347,8 @@ sealed interface Revurdering :
         }
     }
 
-    fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
-        KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjonForRevurdering, OpprettetRevurdering> =
+        KunneIkkeLeggeTilBosituasjonForRevurdering.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     /**
      * Protected
@@ -441,7 +442,7 @@ sealed interface Revurdering :
      * Protected
      * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
      */
-    fun oppdaterFormueInternal(formue: FormueVilkår): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
+    fun oppdaterFormueInternal(formue: FormueVilkår): Either<KunneIkkeLeggeTilFormue.Konsistenssjekk, OpprettetRevurdering> {
         return BosituasjonOgFormue(
             bosituasjon = grunnlagsdata.bosituasjon,
             formue = formue.grunnlag,
@@ -485,23 +486,23 @@ sealed interface Revurdering :
      * Protected
      * TODO jah: Denne var protected. Bør kanskje ikke ligge på dette nivået.
      */
-    fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjonForRevurdering, OpprettetRevurdering> {
         return oppdaterBosituasjonInternal(bosituasjon)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
     }
 
-    private fun oppdaterBosituasjonInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    private fun oppdaterBosituasjonInternal(bosituasjon: List<Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjonForRevurdering, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(bosituasjon.minsteAntallSammenhengendePerioder())) {
-            return KunneIkkeLeggeTilBosituasjon.PerioderMangler.left()
+            return KunneIkkeLeggeTilBosituasjonForRevurdering.PerioderMangler.left()
         }
         return BosituasjonKonsistensProblem(bosituasjon).resultat
-            .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
+            .mapLeft { KunneIkkeLeggeTilBosituasjonForRevurdering.Konsistenssjekk(it.first()) }
             .flatMap {
                 grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(bosituasjon).let { grunnlagOgVilkår ->
                     oppdaterGrunnlag(grunnlagOgVilkår.grunnlagsdata)
                         .oppdaterFormueInternal(grunnlagOgVilkår.vilkårsvurderinger.formue)
                         .mapLeft {
-                            KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue(it)
+                            KunneIkkeLeggeTilBosituasjonForRevurdering.KunneIkkeOppdatereFormue(it.feil)
                         }
                 }
             }

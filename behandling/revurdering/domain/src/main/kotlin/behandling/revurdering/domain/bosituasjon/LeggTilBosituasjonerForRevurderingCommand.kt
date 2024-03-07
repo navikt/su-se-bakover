@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
+package behandling.revurdering.domain.bosituasjon
 
 import arrow.core.Either
 import arrow.core.raise.either
@@ -9,14 +9,14 @@ import person.domain.Person
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.time.Clock
 
-data class LeggTilBosituasjonerRequest(
+data class LeggTilBosituasjonerForRevurderingCommand(
     val behandlingId: BehandlingsId,
-    val bosituasjoner: List<LeggTilBosituasjonRequest>,
+    val bosituasjoner: List<LeggTilBosituasjonForRevurderingCommand>,
 ) {
     fun toDomain(
         clock: Clock,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, List<Bosituasjon.Fullstendig>> {
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering, List<Bosituasjon.Fullstendig>> {
         return either {
             bosituasjoner.map {
                 it.toDomain(

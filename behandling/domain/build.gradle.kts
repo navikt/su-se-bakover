@@ -3,7 +3,7 @@ dependencies {
     implementation(project(":satser"))
     implementation(project(":beregning"))
 
-    implementation(project(":vilkår:vurderinger"))
+    implementation(project(":vilkår:vurderinger:domain"))
     implementation(project(":vilkår:bosituasjon"))
     implementation(project(":vilkår:inntekt:domain"))
     implementation(project(":vilkår:formue:domain"))

@@ -6,6 +6,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjonForRevurdering
+import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -81,8 +83,11 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Bosituasjon.Fullstendig>) =
-        oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(
+        bosituasjon: List<Bosituasjon.Fullstendig>,
+    ): Either<KunneIkkeLeggeTilBosituasjonForRevurdering, OpprettetRevurdering> {
+        return oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
+    }
 
     override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<Revurdering.KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)

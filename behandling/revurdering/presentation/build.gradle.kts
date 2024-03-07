@@ -1,10 +1,14 @@
 dependencies {
     implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
+    implementation(project(":common:presentation"))
     implementation(project(":behandling:domain"))
-    implementation(project(":oppgave:domain"))
+    implementation(project(":behandling:revurdering:domain"))
 
     implementation(project(":vilkår:vurderinger:domain"))
+    implementation(project(":vilkår:vurderinger:presentation"))
     implementation(project(":common:domain"))
+    implementation(project(":person:domain"))
     implementation(project(":vilkår:common"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:pensjon:domain"))
@@ -19,10 +23,8 @@ dependencies {
     implementation(project(":vilkår:opplysningsplikt:domain"))
     implementation(project(":vilkår:familiegjenforening:domain"))
     implementation(project(":vilkår:bosituasjon"))
-    implementation(project(":vilkår:skatt:domain"))
-    implementation(project(":person:domain"))
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("behandling-søknadsbehandling-domain")
+    archiveBaseName.set("behandling-revurdering-presentation")
 }

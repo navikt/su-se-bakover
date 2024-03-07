@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.service
 
 import arrow.core.Either
+import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
+import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -33,8 +35,6 @@ import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatere
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
@@ -125,8 +125,8 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilBosituasjongrunnlag(
-        request: LeggTilBosituasjonerRequest,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse>
+        request: LeggTilBosituasjonerForRevurderingCommand,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuevilkårRequest,
@@ -194,7 +194,7 @@ data class RevurderingOgFeilmeldingerResponse(
 
 sealed interface KunneIkkeHentePersonEllerSaksbehandlerNavn {
     data object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn
-    data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn
+    // data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn
 }
 
 sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

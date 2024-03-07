@@ -2,8 +2,9 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":behandling:domain"))
 
-    implementation(project(":vilkår:vurderinger"))
+    implementation(project(":vilkår:vurderinger:domain"))
     implementation(project(":common:domain"))
+    implementation(project(":person:domain"))
     implementation(project(":vilkår:common"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:pensjon:domain"))
@@ -21,5 +22,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("behandling-revurering-domain")
+    archiveBaseName.set("behandling-revurdering-domain")
 }

@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServic
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.KunneIkkeLageFormueVerdier
 import vilkår.formue.domain.Verdier
+import vilkår.vurderinger.tilResultat
 import java.time.Clock
 import java.util.UUID
 

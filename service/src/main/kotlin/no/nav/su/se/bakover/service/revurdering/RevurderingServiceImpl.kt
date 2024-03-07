@@ -6,6 +6,9 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
+import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
+import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
+import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.Dokument
@@ -30,7 +33,6 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormue
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -68,8 +70,6 @@ import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekre
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.oppdaterTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
@@ -110,6 +110,7 @@ import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
+import kotlin.reflect.KClass
 
 class RevurderingServiceImpl(
     private val utbetalingService: UtbetalingService,
@@ -341,9 +342,9 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerForRevurderingCommand): Either<KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering, RevurderingOgFeilmeldingerResponse> {
         val revurdering =
-            hent(request.behandlingId as RevurderingId).getOrElse { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
+            hent(request.behandlingId as RevurderingId).getOrElse { return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.FantIkkeBehandling.left() }
 
         val bosituasjongrunnlag = request.toDomain(
             clock = clock,
@@ -354,7 +355,7 @@ class RevurderingServiceImpl(
         }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
-            KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon(it)
+            KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeLeggeTilBosituasjon(it)
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
@@ -377,7 +378,9 @@ class RevurderingServiceImpl(
                 }
 
                 is KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
-                    KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
+                    // TODO jah: Fjern cast når vi kan bytte den underliggende typen til Revurdering
+                    @Suppress("UNCHECKED_CAST")
+                    KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra as KClass<out Revurdering>, it.til as KClass<out Revurdering>)
                 }
             }
         }.map {

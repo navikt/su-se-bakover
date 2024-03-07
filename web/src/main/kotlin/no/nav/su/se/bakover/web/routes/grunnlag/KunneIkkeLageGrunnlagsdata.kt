@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.Behandlingsfeilresponser
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
+import vilkår.vurderinger.tilResultat
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {

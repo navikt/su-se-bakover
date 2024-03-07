@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.flatMap
 import arrow.core.getOrElse
+import behandling.revurdering.presentation.bosituasjon.LeggTilBosituasjonJsonRequest
+import behandling.revurdering.presentation.bosituasjon.tilResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -19,8 +21,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
-import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
@@ -45,7 +45,10 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                                 response.revurdering.id.value,
                                             )
                                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
-                                            Resultat.json(HttpStatusCode.OK, serialize(response.toJson(formuegrenserFactory)))
+                                            Resultat.json(
+                                                HttpStatusCode.OK,
+                                                serialize(response.toJson(formuegrenserFactory)),
+                                            )
                                         }
                                 }.getOrElse { it },
                         )

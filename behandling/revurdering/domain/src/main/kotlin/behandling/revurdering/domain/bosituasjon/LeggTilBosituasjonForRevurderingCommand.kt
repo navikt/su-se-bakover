@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
+package behandling.revurdering.domain.bosituasjon
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -15,7 +15,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-data class LeggTilBosituasjonRequest(
+data class LeggTilBosituasjonForRevurderingCommand(
     val periode: Periode,
     val epsFnr: String?,
     val delerBolig: Boolean?,
@@ -24,21 +24,21 @@ data class LeggTilBosituasjonRequest(
     fun toDomain(
         clock: Clock,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Bosituasjon.Fullstendig> {
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering, Bosituasjon.Fullstendig> {
         val log = LoggerFactory.getLogger(this::class.java)
 
         if ((epsFnr == null && delerBolig == null) || (epsFnr != null && delerBolig != null)) {
-            return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+            return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.UgyldigData.left()
         }
 
         if (epsFnr != null) {
             val eps = hentPerson(Fnr(epsFnr)).getOrElse {
-                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+                return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeSlåOppEPS.left()
             }
 
             val epsAlder = if (eps.getAlder(LocalDate.now(clock)) == null) {
                 log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
-                return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
+                return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.EpsAlderErNull.left()
             } else {
                 eps.getAlder(LocalDate.now(clock))!!
             }
@@ -66,7 +66,7 @@ data class LeggTilBosituasjonRequest(
                         fnr = eps.ident.fnr,
                     ).right()
 
-                    null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+                    null -> return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.UgyldigData.left()
                 }
             }
         }
@@ -87,6 +87,6 @@ data class LeggTilBosituasjonRequest(
             }
         }
 
-        return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+        return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.UgyldigData.left()
     }
 }
