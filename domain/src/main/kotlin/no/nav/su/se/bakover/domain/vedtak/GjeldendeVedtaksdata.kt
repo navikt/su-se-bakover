@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -351,21 +350,6 @@ private fun List<VedtakPåTidslinje>.personligOppmøteVilkår(): PersonligOppmø
                 ).slåSammenLikePerioder()
             } else {
                 PersonligOppmøteVilkår.IkkeVurdert
-            }
-        }
-}
-
-private fun List<VedtakPåTidslinje>.institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår {
-    return map { it.vilkårsvurderinger.institusjonsopphold }
-        .filterIsInstance<InstitusjonsoppholdVilkår.Vurdert>()
-        .flatMap { it.vurderingsperioder }
-        .let {
-            if (it.isNotEmpty()) {
-                InstitusjonsoppholdVilkår.Vurdert.create(
-                    it.toNonEmptyList(),
-                ).slåSammenLikePerioder()
-            } else {
-                InstitusjonsoppholdVilkår.IkkeVurdert
             }
         }
 }

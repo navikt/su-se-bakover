@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionExc
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
@@ -61,7 +62,7 @@ sealed interface LiveRun : ReguleringRunType {
                     )
                 }
 
-                val vedtak = VedtakSomKanRevurderes.from(
+                val vedtak = VedtakSomKanRevurderes.fromRegulering(
                     regulering = regulering,
                     utbetalingId = nyUtbetaling.utbetaling.id,
                     clock = clock,

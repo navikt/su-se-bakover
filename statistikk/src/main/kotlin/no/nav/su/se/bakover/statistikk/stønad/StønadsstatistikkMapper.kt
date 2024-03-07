@@ -86,9 +86,9 @@ private fun toDto(
             is VedtakInnvilgetRevurdering -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
             is VedtakInnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
             is Opphørsvedtak -> StønadstatistikkDto.Vedtaksresultat.OPPHØRT
-
             is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtaksresultat.STANSET
             is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtaksresultat.REGULERT
+            else -> throw IllegalStateException("Ikke tatt høyde for ${vedtak::class.simpleName} ved generering av statistikk")
         },
         behandlendeEnhetKode = "4815",
         ytelseVirkningstidspunkt = sak.førsteYtelsesdato!!,
@@ -114,6 +114,7 @@ private fun toDto(
             )
 
             is VedtakInnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
+            else -> throw IllegalStateException("Ikke tatt høyde for ${vedtak::class.simpleName} ved generering av statistikk")
         },
         versjon = gitCommit?.value,
         opphorsgrunn = when (vedtak) {
@@ -202,6 +203,7 @@ private fun vedtakstype(vedtak: VedtakSomKanRevurderes) = when (vedtak) {
 
     is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtakstype.STANS
     is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtakstype.REGULERING
+    else -> throw IllegalStateException("Ikke tatt høyde for ${vedtak::class.simpleName} ved generering av statistikk")
 }
 
 private fun stønadsklassifisering(

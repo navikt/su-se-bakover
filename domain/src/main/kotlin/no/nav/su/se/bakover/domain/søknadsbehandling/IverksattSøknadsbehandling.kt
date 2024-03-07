@@ -9,6 +9,7 @@ import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -26,6 +27,8 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
@@ -334,3 +337,13 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         }
     }
 }
+
+fun VedtakSomKanRevurderes.Companion.fromSøknadsbehandlingInnvilget(
+    søknadsbehandling: IverksattSøknadsbehandling.Innvilget,
+    utbetalingId: UUID30,
+    clock: Clock,
+) = VedtakInnvilgetSøknadsbehandling.fromSøknadsbehandling(
+    søknadsbehandling = søknadsbehandling,
+    utbetalingId = utbetalingId,
+    clock = clock,
+)

@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
+import no.nav.su.se.bakover.domain.revurdering.fromStans
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
@@ -243,7 +246,7 @@ fun vedtakIverksattAutomatiskRegulering(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
-        val vedtak = VedtakSomKanRevurderes.from(
+        val vedtak = VedtakSomKanRevurderes.fromRegulering(
             regulering = regulering,
             utbetalingId = utbetalingId,
             clock = clock,
@@ -296,7 +299,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             }
         }
 
-        val vedtak = VedtakSomKanRevurderes.from(
+        val vedtak = VedtakSomKanRevurderes.fromStans(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
             clock = clock,
@@ -346,7 +349,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             }
         }
 
-        val vedtak = VedtakSomKanRevurderes.from(
+        val vedtak = VedtakSomKanRevurderes.fromGjenopptak(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
             clock = clock,

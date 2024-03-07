@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.fromRevurderingInnvilget
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -30,7 +31,7 @@ class StønadsvedtakTest {
     @Test
     fun `vedtak for innvilget revurdering med årsak g-regulering skal sende brev`() {
         // Tidligere skulle vi ikke sende brev ved revurdering med årsak REGULER_GRUNNBELØP, men nå gir vi heller saksbehandler valget.
-        VedtakSomKanRevurderes.from(
+        VedtakSomKanRevurderes.fromRevurderingInnvilget(
             revurdering = iverksattRevurdering(
                 revurderingsårsak = Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.fromStans
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -280,7 +281,8 @@ class StansYtelseServiceImpl(
                     throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                 }
 
-                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
+                val vedtak =
+                    VedtakSomKanRevurderes.fromStans(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
 
                 revurderingRepo.lagre(
                     revurdering = iverksattRevurdering,

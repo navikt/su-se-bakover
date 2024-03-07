@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import satser.domain.SatsFactory
 import java.time.Clock
 
+// TODO jah: Bør heller lage en abstract function på VedtakSomKanRevurderes. Da slipper vi when-else
 fun VedtakSomKanRevurderes.lagDokumentKommando(
     clock: Clock,
     satsFactory: SatsFactory,
@@ -47,5 +48,6 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
         is VedtakGjenopptakAvYtelse -> throw IllegalStateException("Skal ikke sende brev for VedtakGjenopptakAvYtelse")
         is VedtakInnvilgetRegulering -> throw IllegalStateException("Skal ikke sende brev for VedtakInnvilgetRegulering")
         is VedtakStansAvYtelse -> throw IllegalStateException("Skal ikke sende brev for VedtakStansAvYtelse")
+        else -> throw java.lang.IllegalStateException("Ikke tatt høyde for ${this::class.simpleName} ved generering av dokumentkommando")
     }
 }

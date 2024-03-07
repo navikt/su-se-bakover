@@ -102,6 +102,7 @@ fun List<Vedtak>.toVedtaksammendrag(): List<Vedtaksammendrag> {
     }
 }
 
+// TODO jah: Kan løses ved en abstract function på Stønadsvedtak
 fun Stønadsvedtak.toVedtaksammendrag(): Vedtaksammendrag? {
     return when (this) {
         is VedtakAvslagBeregning,
@@ -114,6 +115,7 @@ fun Stønadsvedtak.toVedtaksammendrag(): Vedtaksammendrag? {
         is VedtakInnvilgetRevurdering -> toVedtaksammendrag(Vedtakstype.REVURDERING_INNVILGELSE)
         is VedtakInnvilgetSøknadsbehandling -> toVedtaksammendrag(Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE)
         is Opphørsvedtak -> toVedtaksammendrag(Vedtakstype.REVURDERING_OPPHØR)
+        else -> throw IllegalStateException("Vedtak er av ukjent type - ${this::class.simpleName}")
     }
 }
 

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
@@ -374,7 +375,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
 
-            val expectedVedtak = VedtakSomKanRevurderes.from(
+            val expectedVedtak = VedtakSomKanRevurderes.fromGjenopptak(
                 revurdering = response,
                 utbetalingId = simulertUtbetaling.id,
                 clock = clock,
@@ -397,7 +398,7 @@ internal class GjenopptakAvYtelseServiceTest {
             val statistikkEvent = eventCaptor.allValues[0]
             statistikkEvent.shouldBeType<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>().also {
                 it.vedtak.shouldBeEqualToIgnoringFields(
-                    VedtakSomKanRevurderes.from(
+                    VedtakSomKanRevurderes.fromGjenopptak(
                         revurdering = response,
                         utbetalingId = simulertUtbetaling.id,
                         clock = clock,

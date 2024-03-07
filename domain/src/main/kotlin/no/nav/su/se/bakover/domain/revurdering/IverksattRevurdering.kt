@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -21,6 +22,9 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurderi
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
@@ -143,3 +147,23 @@ sealed interface IverksattRevurdering : Revurdering {
         }
     }
 }
+
+fun VedtakSomKanRevurderes.Companion.fromOpphør(
+    revurdering: IverksattRevurdering.Opphørt,
+    utbetalingId: UUID30,
+    clock: Clock,
+) = VedtakOpphørMedUtbetaling.from(
+    revurdering = revurdering,
+    utbetalingId = utbetalingId,
+    clock = clock,
+)
+
+fun VedtakSomKanRevurderes.Companion.fromRevurderingInnvilget(
+    revurdering: IverksattRevurdering.Innvilget,
+    utbetalingId: UUID30,
+    clock: Clock,
+) = VedtakInnvilgetRevurdering.from(
+    revurdering = revurdering,
+    utbetalingId = utbetalingId,
+    clock = clock,
+)

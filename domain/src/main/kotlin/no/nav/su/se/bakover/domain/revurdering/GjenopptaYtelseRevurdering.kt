@@ -7,6 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -21,9 +22,12 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGje
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
+import java.time.Clock
 import java.util.UUID
 
 sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
@@ -188,4 +192,16 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
             }
         }
     }
+}
+
+fun VedtakSomKanRevurderes.Companion.fromGjenopptak(
+    revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
+    utbetalingId: UUID30,
+    clock: Clock,
+): VedtakGjenopptakAvYtelse {
+    return VedtakGjenopptakAvYtelse.from(
+        revurdering = revurdering,
+        utbetalingId = utbetalingId,
+        clock = clock,
+    )
 }

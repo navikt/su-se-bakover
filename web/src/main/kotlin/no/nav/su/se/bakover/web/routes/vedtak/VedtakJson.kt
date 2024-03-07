@@ -157,6 +157,7 @@ internal fun Stønadsvedtak.toVedtakTypeJson(): VedtakTypeJson = when (this) {
     is Opphørsvedtak -> VedtakTypeJson.OPPHØR
     is VedtakStansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
     is Avslagsvedtak -> VedtakTypeJson.AVSLAG
+    else -> throw IllegalStateException("Vedtak er av ukjent type - ${this::class.simpleName}")
 }
 
 private fun Dokumenttilstand.toJson(): String {

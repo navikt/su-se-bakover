@@ -85,3 +85,15 @@ data class VedtakInnvilgetRegulering private constructor(
     override fun erStans(): Boolean = false
     override fun erGjenopptak(): Boolean = false
 }
+
+fun VedtakSomKanRevurderes.Companion.fromRegulering(
+    regulering: IverksattRegulering,
+    utbetalingId: UUID30,
+    clock: Clock,
+): VedtakInnvilgetRegulering {
+    return VedtakInnvilgetRegulering.from(
+        regulering = regulering,
+        utbetalingId = utbetalingId,
+        clock = clock,
+    )
+}

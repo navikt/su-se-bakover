@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
@@ -230,7 +231,7 @@ class GjenopptaYtelseServiceImpl(
                             )
                         }
 
-                        val vedtak = VedtakSomKanRevurderes.from(
+                        val vedtak = VedtakSomKanRevurderes.fromGjenopptak(
                             revurdering = iverksattRevurdering,
                             utbetalingId = gjenopptak.utbetaling.id,
                             clock = clock,

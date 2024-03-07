@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.fromSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -69,7 +70,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         log.error("Kunne ikke iverksette innvilget søknadsbehandling ${iverksattBehandling.id}. Underliggende feil:$it.")
         return KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet(it).left()
     }
-    val vedtak = VedtakSomKanRevurderes.from(
+    val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandlingInnvilget(
         søknadsbehandling = iverksattBehandling,
         utbetalingId = simulertUtbetaling.id,
         clock = clock,

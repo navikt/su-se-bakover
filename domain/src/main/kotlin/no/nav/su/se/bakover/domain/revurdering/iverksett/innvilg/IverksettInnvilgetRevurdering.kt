@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.fromRevurderingInnvilget
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
@@ -54,7 +55,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
         }.mapLeft { feil ->
             KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(feil)
         }.map { simulertUtbetaling ->
-            VedtakSomKanRevurderes.from(
+            VedtakSomKanRevurderes.fromRevurderingInnvilget(
                 revurdering = iverksattRevurdering,
                 utbetalingId = simulertUtbetaling.id,
                 clock = clock,

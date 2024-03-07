@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.NySak
@@ -472,7 +473,7 @@ class TestDataHelper(
      * TODO jah: På sikt burde denne muligens først persistere en stans, men føler det er litt out of scope for denne PR.
      */
     fun persisterVedtakForGjenopptak(
-        stans: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse = persisterGjenopptakAvYtelseIverksatt(),
+        gjenopptak: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse = persisterGjenopptakAvYtelseIverksatt(),
         periode: Periode = stønadsperiode2021.periode,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinjeNy(periode = periode)),
@@ -480,9 +481,9 @@ class TestDataHelper(
     ): VedtakGjenopptakAvYtelse {
         oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
-            fnr = stans.fnr,
-            sakId = stans.sakId,
-            saksnummer = stans.saksnummer,
+            fnr = gjenopptak.fnr,
+            sakId = gjenopptak.sakId,
+            saksnummer = gjenopptak.saksnummer,
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = utbetalingslinjer,
         ).let {
@@ -491,7 +492,7 @@ class TestDataHelper(
                 databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering, null)
             }
         }
-        return VedtakSomKanRevurderes.from(stans, utbetalingId, clock).also {
+        return VedtakSomKanRevurderes.fromGjenopptak(gjenopptak, utbetalingId, clock).also {
             databaseRepos.vedtakRepo.lagre(it)
         }
     }
