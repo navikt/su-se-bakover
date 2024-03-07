@@ -1,0 +1,23 @@
+apiVersion: nais.io/v1
+kind: Naisjob
+metadata:
+  labels:
+    team: supstonad
+  name: su-datapakke-fritekstAvslag
+  namespace: supstonad
+spec:
+  # Run every 1st day of the month at 00:15
+  schedule: '15 0 1 * *'
+  image: {{ image }}
+  concurrencyPolicy: Replace
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /secret/supstonad/{{ secret_env }}
+  webproxy: true
+  env:
+     {{#each env}}
+      - name: {{@key}}
+        value: "{{this}}"
+     {{/each}}
