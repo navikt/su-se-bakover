@@ -56,7 +56,7 @@ fun hentAntallAvslagsvedtakUtenFritekst(datasource: DataSource): List<Avslagsved
                     result.add(
                         AvslagsvedtakUtenFritekst(
                             antall = it.getInt("count"),
-                            forMånedÅr = YearMonth.parse(it.getString("grupperingsdato")),
+                            yearMonth = YearMonth.parse(it.getString("grupperingsdato")),
                         ),
                     )
                 }

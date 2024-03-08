@@ -4,9 +4,9 @@ import java.time.YearMonth
 
 data class AvslagsvedtakUtenFritekst(
     val antall: Int,
-    val forMånedÅr: YearMonth,
+    val yearMonth: YearMonth,
 )
 
 fun List<AvslagsvedtakUtenFritekst>.toCSV(): String = this.joinToString(separator = "\n") {
-    "${it.antall},${it.forMånedÅr}"
+    "${it.antall},${it.yearMonth}"
 }
