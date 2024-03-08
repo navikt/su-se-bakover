@@ -11,6 +11,8 @@ on:
       - '.github/actions/push-image/**'
       - 'datapakker/**'
       - 'common/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
 
 permissions: {}
 
