@@ -3,7 +3,7 @@ kind: Naisjob
 metadata:
   labels:
     team: supstonad
-  name: su-datapakke-fritekstavslag
+  name: su-datapakke-fritekst
   namespace: supstonad
 spec:
   schedule: '*/5 * * * *'
