@@ -48,6 +48,7 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 2. kjør ønsket spørring mot databasen
 3. konfigurer GCP/BigQuery
 4. Lag en nais.yml & dockerfile for å kjøre jobben i nais
+5. Husk å oppdatere '.github/workflows/datapakker.yml'. Per nå dupliserer vi litt mye, så du kan gjerne gjøre noe smart istedenfor :)
 
 #### GCP
 1. Gå til `console.cloud.google.com`

@@ -27,31 +27,51 @@ jobs:
       - name: Build and test
         uses: ./.github/actions/build-and-test
         with:
-          gradle-arguments: :datapakker:soknad:build
-      - name: Push image
+          gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build
+      - name: Push image soknad
         uses: ./.github/actions/push-image
         with:
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/soknad/Dockerfile
-          image_suffix: 'datapakker-job'
+          image_suffix: 'datapakker-soknad-job'
+      - name: Push image fritekstAvslag
+        uses: ./.github/actions/push-image
+        with:
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          tag: ${{ github.sha }}
+          dockerfile: ./datapakker/fritekstAvslag/Dockerfile
+          image_suffix: 'datapakker-fritekstAvslag-job'
 
-  deploy_to_dev:
-    name: Deploy to dev
+  deploy_to_dev_soknad:
+    name: Deploy to dev soknad
     permissions:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
-      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-job:${{ github.sha }}
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: dev-fss
       vars: datapakker/soknad/nais-dev.json
       resource: datapakker/soknad/nais.yml
 
+  deploy_to_dev_fritekstAvslag:
+    name: Deploy to dev fritekstAvslag
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    needs: build-test-push-image
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstAvslag-job:${{ github.sha }}
+      cluster: dev-fss
+      vars: datapakker/fritekstAvslag/nais-dev.json
+      resource: datapakker/fritekstAvslag/nais.yml
 
-  deploy_to_prod:
+  deploy_to_prod_soknad:
     name: Deploy to prod
     permissions:
       contents: read
@@ -59,7 +79,20 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
-      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-job:${{ github.sha }}
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: prod-fss
       vars: datapakker/soknad/nais-prod.json
       resource: datapakker/soknad/nais.yml
+
+  deploy_to_prod_fritekstAvslag:
+    name: Deploy to prod
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    needs: build-test-push-image
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstAvslag-job:${{ github.sha }}
+      cluster: prod-fss
+      vars: datapakker/fritekstAvslag/nais-prod.json
+      resource: datapakker/fritekstAvslag/nais.yml

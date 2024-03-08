@@ -1,7 +1,7 @@
 FROM ghcr.io/navikt/baseimages/temurin:21
 
 COPY init-scripts/* /init-scripts/
-COPY datapakker/fritkestAvslag/build/libs/*.jar ./
+COPY datapakker/fritekstAvslag/build/libs/*.jar ./
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 \
                -XX:+HeapDumpOnOutOfMemoryError \
