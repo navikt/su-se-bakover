@@ -7,6 +7,7 @@ Slette alle cronjobber, jobber og podder med app=navn.
 Våre app navn:
 ```
 su-datapakke-soknad
+su-datapakke-fritekstAvslag
 ```
 
 ```
