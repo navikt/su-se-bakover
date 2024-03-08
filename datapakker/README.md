@@ -48,9 +48,13 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 1. Lag en connection mot databasen
 2. kjør ønsket spørring mot databasen
 3. konfigurer GCP/BigQuery
+   - kolonne navn må ikke inneholde æøå  
 4. Lag en nais.yml & dockerfile for å kjøre jobben i nais
-5. Husk å oppdatere '.github/workflows/datapakker.yml'. Per nå dupliserer vi litt mye, så du kan gjerne gjøre noe smart istedenfor :)
-6. Kopier build.gradle.kts i sin helhet og endre på navn og dependencies. jar-tasken er viktig, da den bygger en jar-fil som støttes av baseimages.
+5. Lag en PR i `github.com/navikt/vault-iac` for at appen skal ha tilgang til vault secrets
+   - Se for eksempel på `github.com/navikt/vault-iac/tree/master/terraform/teams/supstonad/apps`
+   - En annen i teamet kan approve PR'en
+6. Husk å oppdatere '.github/workflows/datapakker.yml'. Per nå dupliserer vi litt mye, så du kan gjerne gjøre noe smart istedenfor :)
+7. Kopier build.gradle.kts i sin helhet og endre på navn og dependencies. jar-tasken er viktig, da den bygger en jar-fil som støttes av baseimages.
 
 #### GCP
 1. Gå til `console.cloud.google.com`
