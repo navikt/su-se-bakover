@@ -63,7 +63,9 @@ subprojects {
             exclude("com.google.code.findbugs")
             exclude("io.swagger.core.v3")
         }
-        implementation("org.apache.avro:avro:1.11.3")
+        implementation("org.apache.avro:avro:1.11.3") {
+            exclude("org.apache.commons", "commons-compress")
+        }
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
         implementation("io.micrometer:micrometer-core:1.12.3")
         implementation("io.micrometer:micrometer-registry-prometheus:1.12.3")
@@ -72,7 +74,12 @@ subprojects {
         implementation("org.flywaydb:flyway-database-postgresql:10.9.1")
         implementation("com.zaxxer:HikariCP:5.1.0")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
-        implementation("org.postgresql:postgresql:42.7.2")
+        implementation("org.postgresql:postgresql:42.7.2") {
+            exclude("org.apache.commons", "commons-compress")
+        }
+        // Brukes av avro?
+        implementation("org.apache.commons:commons-compress:1.26.0")
+
 
         implementation(rootProject.libs.ktor.server.netty)
         implementation(rootProject.libs.ktor.server.auth.jwt) {
