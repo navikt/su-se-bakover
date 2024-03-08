@@ -50,6 +50,7 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 3. konfigurer GCP/BigQuery
 4. Lag en nais.yml & dockerfile for å kjøre jobben i nais
 5. Husk å oppdatere '.github/workflows/datapakker.yml'. Per nå dupliserer vi litt mye, så du kan gjerne gjøre noe smart istedenfor :)
+6. Kopier build.gradle.kts i sin helhet og endre på navn og dependencies. jar-tasken er viktig, da den bygger en jar-fil som støttes av baseimages.
 
 #### GCP
 1. Gå til `console.cloud.google.com`

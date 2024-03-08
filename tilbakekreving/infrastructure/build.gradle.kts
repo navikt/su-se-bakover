@@ -22,10 +22,13 @@ dependencies {
     implementation(rootProject.libs.cxf.rt.ws.security) {
         // https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHEVELOCITY-3116414
         exclude(group = "org.apache.velocity")
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
 
     testImplementation(project(":test-common"))
     testImplementation(project(":satser"))
+    // We exclude jdk15on because of security issues. We use jdk18on instead.
+    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
 }
 
 tasks.named<Jar>("jar") {

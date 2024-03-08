@@ -35,12 +35,15 @@ dependencies {
     implementation(rootProject.libs.cxf.rt.ws.security) {
         // https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHEVELOCITY-3116414
         exclude(group = "org.apache.velocity")
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    // We exclude jdk15on because of security issues. We use jdk18on instead.
+    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
 
     testImplementation(project(":test-common"))
     implementation(rootProject.libs.wiremock) {
@@ -61,5 +64,13 @@ configure<SourceSetContainer> {
         // For wsdl2java
         val wsdl2javaDir: Provider<Directory> = layout.buildDirectory.dir("generated-sources/wsdl2java")
         java.srcDir(wsdl2javaDir.map { it.asFile })
+    }
+}
+
+configurations {
+    all {
+        // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
+        // We exclude this and include jdk18on instead.
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
 }
