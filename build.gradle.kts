@@ -86,6 +86,9 @@ subprojects {
         implementation(rootProject.libs.ktor.server.forwarded.header)
         implementation(rootProject.libs.ktor.server.status.pages)
 
+        // We exclude jdk15on because of security issues. We use jdk18on instead.
+        implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+
         testRuntimeOnly(rootProject.libs.jupiter.engine)
 
         testImplementation(rootProject.libs.jupiter.api)
@@ -130,13 +133,6 @@ subprojects {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/10 https://github.com/advisories/GHSA-cgwf-w82q-5jrr")
                 version {
                     require("1.26.0")
-                }
-            }
-            implementation("org.bouncycastle:bcprov-jdk15on") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9")
-                version {
-                    // TODO jah: Regarding PR 8: This version is still affected, but no fix yet.
-                    require("1.70")
                 }
             }
             implementation("io.netty:netty-handler") {
@@ -236,6 +232,9 @@ configurations {
     all {
         // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
         exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+        // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
+        // We exclude this and include jdk18on instead.
+        exclude(group= "org.bouncycastle", module= "bcprov-jdk15on")
     }
 }
 
