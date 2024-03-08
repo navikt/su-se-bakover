@@ -129,7 +129,7 @@ subprojects {
             implementation("org.apache.commons:commons-compress") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/10 https://github.com/advisories/GHSA-cgwf-w82q-5jrr")
                 version {
-                    require("1.24.0")
+                    require("1.26.0")
                 }
             }
             implementation("org.bouncycastle:bcprov-jdk15on") {
