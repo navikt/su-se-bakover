@@ -1,35 +1,40 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.annuller
+package vilkår.utenlandsopphold.domain.registrer
 
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
 import java.time.Clock
 import java.util.UUID
 
-data class AnnullerUtenlandsoppholdCommand(
+data class RegistrerUtenlandsoppholdCommand(
     val sakId: UUID,
+    val periode: DatoIntervall,
+    val dokumentasjon: UtenlandsoppholdDokumentasjon,
+    val journalposter: List<JournalpostId>,
     val opprettetAv: NavIdentBruker.Saksbehandler,
+    val begrunnelse: String?,
     val correlationId: CorrelationId,
     val brukerroller: List<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
-    val annullererVersjon: Hendelsesversjon,
 ) {
-    /**
-     * @param nesteVersjon Versjonen den nye hendelsen skal få.
-     */
     fun toHendelse(
-        annullererHendelse: UtenlandsoppholdHendelse,
-        nesteVersjon: Hendelsesversjon,
         clock: Clock,
-    ): AnnullerUtenlandsoppholdHendelse {
-        return AnnullerUtenlandsoppholdHendelse.create(
-            annullererHendelse = annullererHendelse,
-            nesteVersjon = nesteVersjon,
-            utførtAv = opprettetAv,
+        nesteVersjon: Hendelsesversjon,
+    ): RegistrerUtenlandsoppholdHendelse {
+        return RegistrerUtenlandsoppholdHendelse.registrer(
+            sakId = sakId,
+            periode = periode,
+            dokumentasjon = dokumentasjon,
+            journalposter = journalposter,
+            begrunnelse = begrunnelse,
+            opprettetAv = opprettetAv,
             clock = clock,
+            nesteVersjon = nesteVersjon,
         )
     }
 

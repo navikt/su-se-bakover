@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain
+package vilkår.utenlandsopphold.domain
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import java.util.UUID
 
 interface UtenlandsoppholdRepo {

@@ -40,9 +40,9 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import java.util.UUID
 
 internal class SakPostgresRepo(

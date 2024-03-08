@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import vilkår.common.domain.Vurdering
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 
 internal data class UtenlandsoppholdVilkårJson(
     val vurderinger: List<VurderingsperiodeUtenlandsoppholdJson>,

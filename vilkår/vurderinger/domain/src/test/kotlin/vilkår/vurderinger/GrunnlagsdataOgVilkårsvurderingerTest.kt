@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.VurdertVilkår
@@ -38,6 +37,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
 import java.util.UUID

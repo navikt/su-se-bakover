@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.korriger
+package vilkår.utenlandsopphold.domain.korriger
 
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelse
 import java.time.Clock
 import java.util.UUID
 

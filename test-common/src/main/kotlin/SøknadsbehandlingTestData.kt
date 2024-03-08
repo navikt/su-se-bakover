@@ -59,7 +59,6 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -76,6 +75,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling

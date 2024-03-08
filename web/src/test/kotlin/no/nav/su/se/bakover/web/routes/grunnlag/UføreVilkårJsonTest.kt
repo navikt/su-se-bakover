@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import org.junit.jupiter.api.Test
@@ -23,6 +22,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 

@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
@@ -23,6 +22,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.VilkårEksistererIkke
 import vilkår.vurderinger.domain.Vilkårsvurderinger

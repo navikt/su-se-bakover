@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
 
 internal data class AnnullerUtenlandsoppholdJson(
     val ident: IdentJson,

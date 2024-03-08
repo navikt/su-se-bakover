@@ -3,7 +3,6 @@ package vilkår.vurderinger.domain
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vilkår
@@ -17,6 +16,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 
 interface Vilkårsvurderinger {
     val vilkår: Set<Vilkår>

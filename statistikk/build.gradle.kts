@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":vilkår:common"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:inntekt:domain"))
-    implementation(project(":vilkår:bosituasjon"))
+    implementation(project(":vilkår:bosituasjon:domain"))
     implementation(project(":vilkår:vurderinger:domain"))
 
     testImplementation(project(":økonomi:domain"))

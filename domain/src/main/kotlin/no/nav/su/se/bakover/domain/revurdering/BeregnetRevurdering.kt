@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdater
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
@@ -42,6 +41,7 @@ import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling

@@ -8,9 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import vilkår.common.domain.Vurdering
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.time.Clock
 import java.util.UUID
 

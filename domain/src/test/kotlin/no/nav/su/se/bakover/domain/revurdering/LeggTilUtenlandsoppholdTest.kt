@@ -24,10 +24,10 @@ import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 
 class LeggTilUtenlandsoppholdTest {
 

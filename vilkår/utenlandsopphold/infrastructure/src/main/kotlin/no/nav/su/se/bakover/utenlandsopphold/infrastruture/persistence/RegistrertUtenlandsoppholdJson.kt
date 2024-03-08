@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdDokumentasjonDatabaseJson.Companion.toJson
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 
 internal data class RegistrertUtenlandsoppholdJson(
     val periode: PeriodeJson,

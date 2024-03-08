@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain
+package vilkår.utenlandsopphold.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -8,19 +8,19 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.KunneIkkeAnnullereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.KunneIkkeAnnullereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import java.time.Clock
 import java.util.UUID
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.apply as applyAnnuller
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.apply as applyKorriger
+import vilkår.utenlandsopphold.domain.annuller.apply as applyAnnuller
+import vilkår.utenlandsopphold.domain.korriger.apply as applyKorriger
 
 /**
  * Alle utenlandsoppholdhendelser som er registrert på en sak.

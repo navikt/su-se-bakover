@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.UtenlandsoppholdDokumentasjonJson.Companion.toJson
+import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 
 data class RegistrerteUtenlandsoppholdJson(
     val utenlandsopphold: List<EttUtenlandsoppholdJson>,

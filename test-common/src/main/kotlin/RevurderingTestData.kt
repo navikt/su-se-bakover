@@ -53,7 +53,6 @@ import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.utbetaling.kvittering
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
@@ -70,6 +69,7 @@ import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock

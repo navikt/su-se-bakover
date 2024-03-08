@@ -14,13 +14,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.KunneIkkeValidereJournalposter
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.OverlappendePeriode
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.UtdatertSaksversjon
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.kunneIkkeBekrefteJournalposter
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.overlappendePerioder
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utdatertSaksversjon
+import vilkår.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.KunneIkkeValidereJournalposter
+import vilkår.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.OverlappendePeriode
+import vilkår.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.UtdatertSaksversjon
 
 fun Route.registerUtenlandsoppholdRoute(
     service: RegistrerUtenlandsoppholdService,

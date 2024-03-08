@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.korrigerUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
 import person.domain.PersonService
+import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
 
 class KorrigerUtenlandsoppholdService(
     private val sakRepo: SakRepo,

@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Test
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
@@ -64,6 +63,7 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import java.util.UUID
 
 internal class VedtakstidslinjeTest {

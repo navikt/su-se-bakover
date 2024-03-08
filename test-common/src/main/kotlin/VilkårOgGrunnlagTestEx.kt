@@ -12,7 +12,6 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurderingsperiode
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
@@ -27,6 +26,7 @@ import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata

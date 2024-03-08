@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":vilkår:personligoppmøte:domain"))
     implementation(project(":vilkår:opplysningsplikt:domain"))
     implementation(project(":vilkår:familiegjenforening:domain"))
-    implementation(project(":vilkår:bosituasjon"))
+    implementation(project(":vilkår:bosituasjon:domain"))
 }
 
 tasks.named<Jar>("jar") {

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain
+package vilkår.utenlandsopphold.domain
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt

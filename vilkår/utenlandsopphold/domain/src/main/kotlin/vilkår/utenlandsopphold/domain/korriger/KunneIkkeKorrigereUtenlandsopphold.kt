@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.korriger
+package vilkår.utenlandsopphold.domain.korriger
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.journal.JournalpostId

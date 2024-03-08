@@ -9,18 +9,18 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelser
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.AnnullerUtenlandsoppholdJson.Companion.toAnnullertUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.AnnullerUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.KorrigerUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.KorrigerUtenlandsoppholdJson.Companion.toKorrigerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toRegistrerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelser
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import java.time.Clock
 import java.util.UUID
 

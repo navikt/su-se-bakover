@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.nyUtenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import org.junit.jupiter.api.Test
+import vilkår.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import java.util.UUID
 
 internal class UtenlandsoppholdgrunnlagTest {

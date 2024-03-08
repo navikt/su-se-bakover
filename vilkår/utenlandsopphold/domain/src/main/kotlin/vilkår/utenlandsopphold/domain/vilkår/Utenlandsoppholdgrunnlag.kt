@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.vilkår
+package vilkår.utenlandsopphold.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.getOrElse

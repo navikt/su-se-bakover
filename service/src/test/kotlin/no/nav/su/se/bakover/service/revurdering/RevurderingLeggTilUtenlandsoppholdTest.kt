@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -27,6 +25,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 
 internal class RevurderingLeggTilUtenlandsoppholdTest {
 

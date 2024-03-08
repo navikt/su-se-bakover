@@ -22,10 +22,10 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import org.mockito.kotlin.mock
 import person.domain.PersonRepo
 import vilkår.skatt.domain.DokumentSkattRepo
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 
 data object MockDatabaseBuilder {
     fun build(

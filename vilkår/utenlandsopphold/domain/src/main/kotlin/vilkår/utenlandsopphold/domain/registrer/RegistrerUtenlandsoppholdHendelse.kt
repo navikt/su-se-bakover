@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.registrer
+package vilkår.utenlandsopphold.domain.registrer
 
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -9,10 +9,10 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.RegistrertUtenlandsopphold
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
 import java.time.Clock
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.registrer
+package vilkår.utenlandsopphold.domain.registrer
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.journal.JournalpostId

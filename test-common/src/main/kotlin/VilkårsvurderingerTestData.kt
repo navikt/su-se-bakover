@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
@@ -45,6 +44,7 @@ import vilkår.personligOppmøtevilkårAvslag
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 import java.util.UUID
 

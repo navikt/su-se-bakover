@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.nyUtenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import vilkår.common.domain.Vurdering
+import vilkår.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 
 fun nyVurderingsperiodeUtenlandsopphold(

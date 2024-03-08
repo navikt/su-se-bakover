@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.periode
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 
 internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
     private val utenlandsoppholdgrunnlagRepo: UtenlandsoppholdgrunnlagPostgresRepo,

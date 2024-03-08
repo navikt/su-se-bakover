@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain
+package vilkår.utenlandsopphold.domain
 
 import java.util.UUID
 

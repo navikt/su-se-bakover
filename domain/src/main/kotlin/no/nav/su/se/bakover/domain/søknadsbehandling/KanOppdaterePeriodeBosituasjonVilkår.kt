@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilV
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.VilkårsfeilVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.VurdertVilkår
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -29,6 +28,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.avslåPgaOpplysningsplikt
 import java.time.Clock

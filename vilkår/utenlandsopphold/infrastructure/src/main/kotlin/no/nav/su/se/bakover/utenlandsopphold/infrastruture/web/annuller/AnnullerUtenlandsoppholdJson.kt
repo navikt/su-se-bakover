@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
 import java.util.UUID
 
 data class AnnullerUtenlandsoppholdJson(

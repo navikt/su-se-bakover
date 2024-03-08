@@ -3,7 +3,6 @@ package behandling.søknadsbehandling.domain
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.erLik
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -16,6 +15,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 import vilkår.vurderinger.domain.kastHvisPerioderErUlike
 

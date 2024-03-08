@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdater
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
@@ -54,6 +53,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.vurderinger.domain.BosituasjonKonsistensProblem
 import vilkår.vurderinger.domain.BosituasjonOgFormue
 import vilkår.vurderinger.domain.Grunnlagsdata

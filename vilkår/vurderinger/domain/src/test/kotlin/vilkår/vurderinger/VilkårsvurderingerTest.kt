@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
-import no.nav.su.se.bakover.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn
@@ -41,6 +40,7 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre
+import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import java.util.UUID
 
 internal class VilkårsvurderingerTest {

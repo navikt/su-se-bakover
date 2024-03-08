@@ -14,17 +14,17 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelser
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.KunneIkkeAnnullereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import org.slf4j.LoggerFactory
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelser
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.annuller.KunneIkkeAnnullereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
+import vilkår.utenlandsopphold.domain.korriger.KunneIkkeKorrigereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
+import vilkår.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 
 /**
  * Utenlandsopphold har tre typer hendelser:

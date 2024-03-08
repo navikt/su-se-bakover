@@ -56,9 +56,9 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

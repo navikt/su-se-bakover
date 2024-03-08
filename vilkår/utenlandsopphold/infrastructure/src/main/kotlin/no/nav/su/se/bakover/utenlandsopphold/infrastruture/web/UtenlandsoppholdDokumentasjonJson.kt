@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
+import vilkår.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
 
 enum class UtenlandsoppholdDokumentasjonJson {
     Udokumentert,
