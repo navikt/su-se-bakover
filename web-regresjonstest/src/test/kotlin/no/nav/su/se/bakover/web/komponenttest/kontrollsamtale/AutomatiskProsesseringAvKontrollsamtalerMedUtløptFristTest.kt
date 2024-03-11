@@ -31,8 +31,6 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -69,6 +67,8 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import økonomi.domain.utbetaling.UtbetalingPublisher
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.LocalDate

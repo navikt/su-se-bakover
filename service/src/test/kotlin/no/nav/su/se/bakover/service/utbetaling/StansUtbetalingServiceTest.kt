@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -30,6 +29,7 @@ import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.UtbetalStansFeil
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import økonomi.domain.utbetaling.UtbetalingPublisher
 
 internal class StansUtbetalingServiceTest {
 

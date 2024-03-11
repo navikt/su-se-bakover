@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import person.domain.IdentClient
 import person.domain.PersonOppslag
@@ -23,6 +22,7 @@ import vilkår.skatt.domain.Skatteoppslag
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
 import økonomi.domain.simulering.SimuleringClient
+import økonomi.domain.utbetaling.UtbetalingPublisher
 
 interface ClientsBuilder {
     fun build(applicationConfig: ApplicationConfig): Clients

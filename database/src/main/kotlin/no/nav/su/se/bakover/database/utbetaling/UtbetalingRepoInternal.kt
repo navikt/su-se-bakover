@@ -17,11 +17,11 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.simulering.deserializeSimulering
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest

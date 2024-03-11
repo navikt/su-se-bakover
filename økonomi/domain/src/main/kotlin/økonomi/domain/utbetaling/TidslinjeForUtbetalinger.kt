@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.utbetaling
+package økonomi.domain.utbetaling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -12,9 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.minus
-import økonomi.domain.utbetaling.IngenUtbetalinger
-import økonomi.domain.utbetaling.Utbetaling
-import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
 /**

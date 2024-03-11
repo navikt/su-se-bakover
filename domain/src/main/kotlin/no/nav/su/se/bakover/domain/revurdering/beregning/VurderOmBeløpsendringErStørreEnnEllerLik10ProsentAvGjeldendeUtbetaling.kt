@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.revurdering.beregning
 import beregning.domain.Beregning
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

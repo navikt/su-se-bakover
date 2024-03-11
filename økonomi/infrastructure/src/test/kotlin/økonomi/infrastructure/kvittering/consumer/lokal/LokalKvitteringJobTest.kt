@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -33,6 +32,7 @@ import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer

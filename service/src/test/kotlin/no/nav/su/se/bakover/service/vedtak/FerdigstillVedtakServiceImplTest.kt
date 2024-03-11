@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -46,6 +45,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingRepo
 import java.time.Clock
 import java.time.LocalDate
 

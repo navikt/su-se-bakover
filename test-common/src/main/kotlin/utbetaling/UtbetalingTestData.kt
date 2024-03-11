@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.test.simulering.simuleringNy
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest

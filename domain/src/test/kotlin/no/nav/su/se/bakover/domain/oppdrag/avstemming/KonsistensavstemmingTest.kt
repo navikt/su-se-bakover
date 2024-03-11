@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -38,6 +37,7 @@ import økonomi.domain.Fagområde
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.ForrigeUtbetalingslinjeKoblendeListe
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest

@@ -1,9 +1,7 @@
-package no.nav.su.se.bakover.domain.oppdrag.utbetaling
+package økonomi.domain.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import økonomi.domain.utbetaling.Utbetaling
-import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
 /**
@@ -257,7 +255,7 @@ data class Utbetalinger(
     }
 }
 
-private infix operator fun List<Utbetaling>.plus(utbetaling: Utbetaling): Utbetalinger {
+infix operator fun List<Utbetaling>.plus(utbetaling: Utbetaling): Utbetalinger {
     val result = ArrayList<Utbetaling>(size + 1)
     result.addAll(this)
     result.add(utbetaling)

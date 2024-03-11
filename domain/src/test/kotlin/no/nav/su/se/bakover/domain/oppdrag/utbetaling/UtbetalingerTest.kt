@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeStans
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 
 internal class UtbetalingerTest {

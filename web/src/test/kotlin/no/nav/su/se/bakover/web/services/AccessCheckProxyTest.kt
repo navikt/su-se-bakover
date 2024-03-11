@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -26,6 +25,7 @@ import org.mockito.kotlin.verify
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonRepo
 import person.domain.PersonService
+import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
 internal class AccessCheckProxyTest {

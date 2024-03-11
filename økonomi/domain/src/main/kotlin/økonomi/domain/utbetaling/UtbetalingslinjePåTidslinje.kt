@@ -1,11 +1,10 @@
-package no.nav.su.se.bakover.domain.oppdrag.utbetaling
+package økonomi.domain.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 
 sealed interface UtbetalingslinjePåTidslinje {
@@ -98,7 +97,7 @@ fun List<UtbetalingslinjePåTidslinje>.krympTilPeriode(
     }
 }
 
-internal fun List<Utbetalingslinje>.mapTilTidslinje(): List<UtbetalingslinjePåTidslinje> {
+fun List<Utbetalingslinje>.mapTilTidslinje(): List<UtbetalingslinjePåTidslinje> {
     return this.map { it.mapTilTidslinje(null) }
 }
 
@@ -140,14 +139,14 @@ fun List<UtbetalingslinjePåTidslinje>.ekvivalentMed(
 
 /**
  *  Mapper utbetalingslinjer til objekter som kan plasseres på tidslinjen.
- *  For subtyper av [no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalingslinje.Endring] erstattes
- *  [no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalingslinje.Endring.fraOgMed] med
- *  [no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalingslinje.Endring.virkningsperiode] da dette gjenspeiler datoen
+ *  For subtyper av [økonomi.domain.utbetaling.Utbetalingslinje.Endring] erstattes
+ *  [økonomi.domain.utbetaling.Utbetalingslinje.Endring.fraOgMed] med
+ *  [økonomi.domain.utbetaling.Utbetalingslinje.Endring.virkningsperiode] da dette gjenspeiler datoen
  *  endringen effektueres hos oppdrag.
  *
  *  For typer som i praksis fører til at ingen ytelse utbetales, settes beløpet til 0.
  */
-internal fun Utbetalingslinje.mapTilTidslinje(nyPeriode: Periode? = null): UtbetalingslinjePåTidslinje {
+fun Utbetalingslinje.mapTilTidslinje(nyPeriode: Periode? = null): UtbetalingslinjePåTidslinje {
     return when (this) {
         is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
             kopiertFraId = id,

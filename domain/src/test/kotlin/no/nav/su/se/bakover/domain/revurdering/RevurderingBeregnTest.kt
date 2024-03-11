@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -23,6 +21,8 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import kotlin.math.abs
 
 internal class RevurderingBeregnTest {

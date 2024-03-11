@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -32,6 +31,7 @@ import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
+import økonomi.domain.utbetaling.ForrigeUtbetalingslinjeKoblendeListe
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest

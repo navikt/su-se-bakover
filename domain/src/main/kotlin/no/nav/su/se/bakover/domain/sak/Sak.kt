@@ -28,10 +28,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageId
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.tidslinje
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -59,6 +55,10 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
+import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
+import økonomi.domain.utbetaling.tidslinje
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -53,6 +52,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month

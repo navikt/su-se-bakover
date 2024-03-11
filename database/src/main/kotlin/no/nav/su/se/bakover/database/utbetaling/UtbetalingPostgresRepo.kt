@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.simulering.serializeSimulering
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.util.UUID

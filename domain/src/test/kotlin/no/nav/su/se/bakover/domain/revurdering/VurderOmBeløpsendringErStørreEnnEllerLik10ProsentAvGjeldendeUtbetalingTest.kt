@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -40,6 +39,7 @@ import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

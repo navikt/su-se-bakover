@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.test.utbetaling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 
 fun utbetalingslinjePåTidslinjeNy(
     periode: Periode = år(2021),

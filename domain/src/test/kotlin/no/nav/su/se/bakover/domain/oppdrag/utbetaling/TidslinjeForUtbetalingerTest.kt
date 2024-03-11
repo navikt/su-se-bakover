@@ -39,7 +39,9 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeOpphørt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 
 internal class TidslinjeForUtbetalingerTest {
 

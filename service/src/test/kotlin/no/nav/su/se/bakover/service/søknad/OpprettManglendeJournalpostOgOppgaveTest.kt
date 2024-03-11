@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -37,6 +36,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Year
 import java.util.UUID
 

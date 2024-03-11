@@ -14,6 +14,9 @@ import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjePåTidslinjeNy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
+import økonomi.domain.utbetaling.ekvivalentMedInnenforPeriode
+import økonomi.domain.utbetaling.krympTilPeriode
 
 internal class UtbetalingslinjePåTidslinjeKtTest {
 

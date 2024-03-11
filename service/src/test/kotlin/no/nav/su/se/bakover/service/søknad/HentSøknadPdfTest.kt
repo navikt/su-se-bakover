@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -28,6 +27,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.Person
+import økonomi.domain.utbetaling.Utbetalinger
 import java.nio.charset.StandardCharsets
 import java.time.Year
 import java.util.UUID

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import satser.domain.SatsFactory
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.util.UUID
 

@@ -11,12 +11,12 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.Fagområde
+import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import java.time.LocalDate
 
 sealed interface Avstemming {

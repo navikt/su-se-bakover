@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.Clock
 import java.time.LocalDate

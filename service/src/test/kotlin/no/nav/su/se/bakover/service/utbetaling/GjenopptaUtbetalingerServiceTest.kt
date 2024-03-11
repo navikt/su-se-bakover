@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -23,6 +22,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import økonomi.domain.utbetaling.UtbetalingFeilet
+import økonomi.domain.utbetaling.UtbetalingPublisher
 import java.time.LocalDate
 
 internal class GjenopptaUtbetalingerServiceTest {

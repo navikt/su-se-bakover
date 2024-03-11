@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -72,6 +71,7 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

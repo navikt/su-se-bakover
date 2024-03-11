@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrad
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 
 internal class UtbetalingsstrategiOpphørTest {

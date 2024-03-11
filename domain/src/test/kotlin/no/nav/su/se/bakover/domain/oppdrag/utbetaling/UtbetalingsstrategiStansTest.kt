@@ -42,6 +42,7 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest

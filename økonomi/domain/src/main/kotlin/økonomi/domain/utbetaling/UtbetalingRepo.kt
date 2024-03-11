@@ -1,10 +1,9 @@
-package no.nav.su.se.bakover.domain.oppdrag.utbetaling
+package økonomi.domain.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import økonomi.domain.avstemming.Avstemmingsnøkkel
-import økonomi.domain.utbetaling.Utbetaling
 import java.util.UUID
 
 interface UtbetalingRepo {

@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.Normal
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -59,6 +58,7 @@ import vilkår.vurderinger.domain.BosituasjonOgFormue
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.KunneIkkeLageGrunnlagsdata
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass

@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
@@ -26,6 +25,7 @@ import tilbakekreving.presentation.api.common.KravgrunnlagJson.Companion.toJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
 import vilkår.formue.domain.FormuegrenserFactory
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import java.time.Clock
 
 internal data class SakJson(

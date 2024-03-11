@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
@@ -52,6 +50,8 @@ import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.time.LocalDate

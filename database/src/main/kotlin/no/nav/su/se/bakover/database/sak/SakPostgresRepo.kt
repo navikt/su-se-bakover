@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.NySak
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
+import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
 internal class SakPostgresRepo(

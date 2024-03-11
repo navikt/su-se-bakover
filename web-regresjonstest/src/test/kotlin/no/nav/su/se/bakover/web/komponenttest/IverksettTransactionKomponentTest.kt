@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import økonomi.domain.utbetaling.UtbetalingPublisher
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.LocalDate
 import java.util.UUID
