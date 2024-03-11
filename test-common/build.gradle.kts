@@ -57,7 +57,9 @@ dependencies {
     // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml
     compileOnly("org.mockito.kotlin:mockito-kotlin:5.2.1")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
-    compileOnly("io.zonky.test:embedded-postgres:2.0.6")
+    compileOnly("io.zonky.test:embedded-postgres:2.0.6") {
+        exclude("org.apache.commons", "commons-compress")
+    }
     compileOnly(rootProject.libs.jupiter.api)
     api(rootProject.libs.wiremock) {
         exclude(group = "junit")

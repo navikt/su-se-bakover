@@ -113,9 +113,13 @@ subprojects {
             // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
         )
-        testImplementation("io.zonky.test:embedded-postgres:2.0.6")
+        testImplementation("io.zonky.test:embedded-postgres:2.0.6") {
+            exclude("org.apache.commons", "commons-compress")
+        }
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
-        testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
+        testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8") {
+            exclude("org.apache.commons", "commons-compress")
+        }
         testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
         testImplementation(rootProject.libs.ktor.server.test.host) {
             exclude(group = "junit")
@@ -134,12 +138,6 @@ subprojects {
                 because("Affected <= 6.6.0.202305301015-r https://github.com/navikt/su-se-bakover/security/dependabot/11 https://github.com/advisories/GHSA-3p86-9955-h393")
                 version {
                     require("6.7.0.202309050840-r")
-                }
-            }
-            implementation("org.apache.commons:commons-compress") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/10 https://github.com/advisories/GHSA-cgwf-w82q-5jrr")
-                version {
-                    require("1.26.0")
                 }
             }
             implementation("io.netty:netty-handler") {
