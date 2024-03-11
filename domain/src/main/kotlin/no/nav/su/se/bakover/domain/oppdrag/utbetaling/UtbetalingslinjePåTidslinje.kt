@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 

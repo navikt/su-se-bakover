@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.common.tid.periode.minus
 import økonomi.domain.utbetaling.IngenUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
 

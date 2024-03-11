@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import økonomi.domain.avstemming.Avstemmingsnøkkel

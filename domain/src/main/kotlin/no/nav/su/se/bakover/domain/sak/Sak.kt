@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.tidslinje
 import no.nav.su.se.bakover.domain.regulering.Regulering

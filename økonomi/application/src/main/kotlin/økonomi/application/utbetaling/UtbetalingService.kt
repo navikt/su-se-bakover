@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.service.utbetaling
+package økonomi.application.utbetaling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringFeilet

@@ -9,7 +9,7 @@ import io.kotest.matchers.string.shouldStartWith
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock

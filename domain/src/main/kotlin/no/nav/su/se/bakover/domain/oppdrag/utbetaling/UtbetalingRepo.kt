@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
 interface UtbetalingRepo {

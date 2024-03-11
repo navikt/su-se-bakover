@@ -208,7 +208,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import person.domain.KunneIkkeHentePerson

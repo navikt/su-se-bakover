@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering

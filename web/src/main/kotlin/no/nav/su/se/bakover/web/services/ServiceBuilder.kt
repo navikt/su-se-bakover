@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandli
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
+import økonomi.application.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl

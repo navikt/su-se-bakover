@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering

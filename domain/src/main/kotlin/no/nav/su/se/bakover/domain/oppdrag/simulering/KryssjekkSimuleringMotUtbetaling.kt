@@ -8,7 +8,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.Utbetalinger
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering

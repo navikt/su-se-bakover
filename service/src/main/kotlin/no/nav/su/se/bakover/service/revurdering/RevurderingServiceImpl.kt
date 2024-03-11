@@ -100,7 +100,7 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
