@@ -19,15 +19,15 @@ class PdfClient(private val baseUrl: String) : PdfGenerator {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
-        return genererPdf(pdfInnhold.toJson(), pdfInnhold.pdfTemplate.template())
+        return genererPdf(XmlValidString.create(pdfInnhold.toJson()), pdfInnhold.pdfTemplate.template())
             .mapLeft { KunneIkkeGenererePdf }
     }
 
-    private fun genererPdf(input: String, template: String): Either<ClientError, PdfA> {
+    private fun genererPdf(input: XmlValidString, template: String): Either<ClientError, PdfA> {
         val (_, response, result) = "$baseUrl$SU_PDF_GEN_PATH/$template".httpPost()
             .header("Content-Type", "application/json")
             .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal())
-            .body(input).response()
+            .body(input.value).response()
 
         return result.fold(
             {
@@ -38,5 +38,25 @@ class PdfClient(private val baseUrl: String) : PdfGenerator {
                 ClientError(response.statusCode, "Kall mot PdfClient feilet").left()
             },
         )
+    }
+}
+
+@JvmInline
+/**
+ * Removing all asci control characters from u0000 to u001F
+ * Internal for testing
+ */
+internal value class XmlValidString private constructor(
+    val value: String,
+) {
+    companion object {
+        fun create(unvalidated: String): XmlValidString {
+            val regexFilterLiteralControlCharacters = Regex("(\\\\u00[0-1][0-9A-F])")
+            val regexFilterControlCharacters = Regex("[\\x00-\\x1F]")
+            val sanitizedInput = unvalidated
+                .replace(regexFilterLiteralControlCharacters, "")
+                .replace(regexFilterControlCharacters, "")
+            return XmlValidString(sanitizedInput)
+        }
     }
 }
