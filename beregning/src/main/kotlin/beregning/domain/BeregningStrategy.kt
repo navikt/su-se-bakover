@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
+package beregning.domain
 
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype

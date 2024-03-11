@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import beregning.domain.BeregningStrategy
 import beregning.domain.EkvivalenteMånedsberegninger
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype

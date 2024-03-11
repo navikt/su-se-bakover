@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import beregning.domain.BeregningForMåned
+import beregning.domain.BeregningStrategy
 import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.extensions.positiveOrZero
 import no.nav.su.se.bakover.common.tid.periode.Måned

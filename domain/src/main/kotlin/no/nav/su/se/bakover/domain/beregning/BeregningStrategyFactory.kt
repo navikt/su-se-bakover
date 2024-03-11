@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.getOrElse
 import beregning.domain.Beregning
+import beregning.domain.utledBeregningsstrategi
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon

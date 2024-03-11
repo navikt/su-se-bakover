@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import beregning.domain.BeregningForMåned
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
+import beregning.domain.BeregningStrategy
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.FradragStrategy
