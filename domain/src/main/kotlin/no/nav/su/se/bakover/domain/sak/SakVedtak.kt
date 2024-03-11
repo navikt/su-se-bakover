@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.sak
 
 import beregning.domain.Beregning
+import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import vedtak.domain.Vedtak
 import java.time.Clock

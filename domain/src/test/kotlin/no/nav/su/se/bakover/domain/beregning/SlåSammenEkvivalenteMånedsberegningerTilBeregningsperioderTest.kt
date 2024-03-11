@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.beregning
 
 import beregning.domain.BeregningStrategy
 import beregning.domain.EkvivalenteMånedsberegninger
+import beregning.domain.MånedsberegningFactory
+import beregning.domain.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.desember

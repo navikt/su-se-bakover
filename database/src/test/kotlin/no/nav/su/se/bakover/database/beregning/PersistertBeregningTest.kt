@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.database.beregning
 
 import beregning.domain.Beregning
+import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import beregning.domain.Beregningsperiode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -12,8 +14,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksnummer

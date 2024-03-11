@@ -1,9 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
-
-import beregning.domain.EkvivalenteMånedsberegninger
-import beregning.domain.Månedsberegning
-import beregning.domain.likehetUtenDato
-import beregning.domain.sorterMånedsberegninger
+package beregning.domain
 
 /**
  * Join equivalent månedsberegninger to form distinct periods of ytelse and fradrag.

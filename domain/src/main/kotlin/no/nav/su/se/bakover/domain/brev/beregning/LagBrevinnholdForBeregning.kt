@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import beregning.domain.EkvivalenteMånedsberegninger
+import beregning.domain.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.common.extensions.norwegianLocale
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 import beregning.domain.Beregning as FaktiskBeregning

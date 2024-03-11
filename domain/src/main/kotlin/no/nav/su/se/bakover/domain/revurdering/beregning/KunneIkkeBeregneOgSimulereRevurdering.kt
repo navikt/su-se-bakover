@@ -11,7 +11,7 @@ sealed interface KunneIkkeBeregneOgSimulereRevurdering {
         KunneIkkeBeregneOgSimulereRevurdering
 
     data class UgyldigBeregningsgrunnlag(
-        val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
+        val reason: beregning.domain.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering
 
     data object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering

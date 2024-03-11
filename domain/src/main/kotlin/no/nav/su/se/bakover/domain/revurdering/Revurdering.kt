@@ -10,6 +10,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjonForRevurdering
 import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
+import beregning.domain.BeregningStrategyFactory
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.Normal
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering

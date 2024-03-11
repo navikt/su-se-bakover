@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingKanBeregnes
 

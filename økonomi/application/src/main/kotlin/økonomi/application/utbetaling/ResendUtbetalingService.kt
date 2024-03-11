@@ -5,12 +5,12 @@ import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentBeregningForGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling

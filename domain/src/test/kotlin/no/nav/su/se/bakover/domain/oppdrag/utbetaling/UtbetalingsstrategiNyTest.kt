@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
+import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import beregning.domain.Beregningsperiode
 import beregning.domain.Månedsberegning
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -31,8 +33,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke

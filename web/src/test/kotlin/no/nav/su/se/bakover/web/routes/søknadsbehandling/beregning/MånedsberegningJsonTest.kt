@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import beregning.domain.BeregningStrategy
+import beregning.domain.MånedsberegningFactory
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

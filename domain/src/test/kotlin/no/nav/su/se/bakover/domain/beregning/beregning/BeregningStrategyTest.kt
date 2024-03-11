@@ -1,18 +1,18 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy.BorAlene
 import beregning.domain.BeregningStrategy.BorMedVoksne
 import beregning.domain.BeregningStrategy.Eps67EllerEldre
 import beregning.domain.BeregningStrategy.EpsUnder67År
 import beregning.domain.BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+import beregning.domain.Beregningsgrunnlag
+import beregning.domain.Beregningsperiode
 import beregning.domain.fradrag.FradragStrategy
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag

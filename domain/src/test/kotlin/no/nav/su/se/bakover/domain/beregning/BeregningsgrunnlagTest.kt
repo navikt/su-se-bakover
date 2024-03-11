@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.left
+import beregning.domain.Beregningsgrunnlag
+import beregning.domain.UgyldigBeregningsgrunnlag
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april

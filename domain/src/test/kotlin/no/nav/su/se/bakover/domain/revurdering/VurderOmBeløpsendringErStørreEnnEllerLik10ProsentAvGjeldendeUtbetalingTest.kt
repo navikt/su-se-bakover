@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
+import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import beregning.domain.Beregningsperiode
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
@@ -18,8 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock

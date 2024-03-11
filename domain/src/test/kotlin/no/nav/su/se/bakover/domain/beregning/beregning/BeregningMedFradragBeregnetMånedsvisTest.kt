@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import arrow.core.left
 import beregning.domain.Beregning
+import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import beregning.domain.Beregningsperiode
 import beregning.domain.IngenMerknaderForAvslag
 import beregning.domain.Merknad
 import beregning.domain.finnFørsteMånedMedMerknadForAvslag
@@ -33,8 +35,6 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail

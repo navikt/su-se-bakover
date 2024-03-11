@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.application
 
+import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import io.ktor.client.HttpClient
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService

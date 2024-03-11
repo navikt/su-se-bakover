@@ -1,10 +1,5 @@
-package no.nav.su.se.bakover.domain.beregning
+package beregning.domain
 
-import beregning.domain.BeregningForMåned
-import beregning.domain.BeregningMedFradragBeregnetMånedsvis
-import beregning.domain.BeregningStrategy
-import beregning.domain.Merknad
-import beregning.domain.Månedsberegning
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
