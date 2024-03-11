@@ -78,7 +78,7 @@ subprojects {
             exclude("org.apache.commons", "commons-compress")
         }
         // Brukes av avro?
-        implementation("org.apache.commons:commons-compress:1.26.0")
+        implementation("org.apache.commons:commons-compress:1.26.1")
 
 
         implementation(rootProject.libs.ktor.server.netty)
