@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
-import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
+import vedtak.domain.Vedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.LocalDate
 import java.util.UUID
 

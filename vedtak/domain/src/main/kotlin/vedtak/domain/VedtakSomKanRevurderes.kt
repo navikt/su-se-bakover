@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.vedtak
+package vedtak.domain
 
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.behandling.Stønadsbehandling

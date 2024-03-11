@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.slf4j.LoggerFactory
+import vedtak.domain.Vedtak
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse

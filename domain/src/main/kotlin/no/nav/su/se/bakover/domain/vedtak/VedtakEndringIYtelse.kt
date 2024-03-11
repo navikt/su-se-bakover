@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 

@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import org.junit.jupiter.api.Test
+import vedtak.domain.VedtakSomKanRevurderes
 
 class StønadsvedtakTest {
 

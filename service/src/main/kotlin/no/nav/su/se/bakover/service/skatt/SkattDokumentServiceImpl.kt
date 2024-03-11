@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
-import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

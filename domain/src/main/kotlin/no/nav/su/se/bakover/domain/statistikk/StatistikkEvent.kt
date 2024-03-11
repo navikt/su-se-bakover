@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import vedtak.domain.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
@@ -85,7 +85,7 @@ sealed interface StatistikkEvent {
 
             sealed interface Iverksatt : Søknad {
 
-                val vedtak: no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+                val vedtak: vedtak.domain.Stønadsvedtak
 
                 data class Innvilget(
                     override val vedtak: VedtakInnvilgetSøknadsbehandling,

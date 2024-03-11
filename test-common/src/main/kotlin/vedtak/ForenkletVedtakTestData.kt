@@ -7,20 +7,20 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import vedtak.domain.Stønadsvedtak
+import vedtak.domain.Vedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import java.util.UUID
 
 fun forenkletVedtakSøknadsbehandling(

@@ -31,12 +31,12 @@ import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vedtak.domain.Vedtak
 
 internal class BekreftVilkårsvurdertKlageTest {
 

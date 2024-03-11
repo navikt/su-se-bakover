@@ -19,13 +19,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMåned
-import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
+import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
+import vedtak.domain.Vedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

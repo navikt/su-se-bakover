@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -49,6 +48,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import vedtak.domain.VedtakSomKanRevurderes
 
 internal class OppdaterRevurderingServiceTest {
     @Test

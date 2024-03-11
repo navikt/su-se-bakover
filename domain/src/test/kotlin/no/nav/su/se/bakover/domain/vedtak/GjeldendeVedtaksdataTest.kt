@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.vurderinger.domain.Grunnlagsdata
 

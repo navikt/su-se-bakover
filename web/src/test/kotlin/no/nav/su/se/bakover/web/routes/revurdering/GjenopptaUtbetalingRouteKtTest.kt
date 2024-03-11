@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersO
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
@@ -32,6 +31,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import vedtak.domain.VedtakSomKanRevurderes
 import java.util.UUID
 
 internal class GjenopptaUtbetalingRouteKtTest {

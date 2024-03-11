@@ -4,7 +4,7 @@ import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import vedtak.domain.Vedtak
 import java.time.Clock
 import java.util.UUID
 

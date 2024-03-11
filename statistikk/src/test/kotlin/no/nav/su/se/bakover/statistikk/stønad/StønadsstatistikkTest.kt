@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -36,6 +35,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
 

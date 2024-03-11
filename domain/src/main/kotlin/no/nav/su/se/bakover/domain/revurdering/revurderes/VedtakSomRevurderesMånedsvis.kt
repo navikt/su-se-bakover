@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 import java.util.UUID
 

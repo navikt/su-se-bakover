@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import vedtak.domain.Vedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse

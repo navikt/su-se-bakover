@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
+import vedtak.domain.Vedtak
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse

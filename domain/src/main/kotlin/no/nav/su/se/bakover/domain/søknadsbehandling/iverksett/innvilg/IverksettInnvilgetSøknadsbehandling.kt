@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttes
 import no.nav.su.se.bakover.domain.søknadsbehandling.fromSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.validerOverlappendeStønadsperioder
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import org.slf4j.LoggerFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger

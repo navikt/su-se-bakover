@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
 import person.domain.PersonRepo
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.utbetaling.Utbetaling
 import javax.sql.DataSource
 

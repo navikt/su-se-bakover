@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.Simulering
 
 /**

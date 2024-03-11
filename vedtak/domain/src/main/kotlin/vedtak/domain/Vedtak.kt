@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.vedtak.domain
+package vedtak.domain
 
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.behandling.Behandling

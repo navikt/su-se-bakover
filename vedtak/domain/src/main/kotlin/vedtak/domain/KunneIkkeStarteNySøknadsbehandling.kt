@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.vedtak.domain
+package vedtak.domain
 
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import person.domain.KunneIkkeHentePerson

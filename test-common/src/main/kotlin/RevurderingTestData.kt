@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -53,6 +52,7 @@ import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.utbetaling.kvittering
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering

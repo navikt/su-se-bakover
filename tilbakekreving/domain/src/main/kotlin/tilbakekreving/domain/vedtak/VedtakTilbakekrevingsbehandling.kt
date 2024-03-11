@@ -3,8 +3,8 @@ package tilbakekreving.domain.vedtak
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import vedtak.domain.Vedtak
 import java.util.UUID
 
 class VedtakTilbakekrevingsbehandling(

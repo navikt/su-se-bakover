@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import no.nav.su.se.bakover.vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
+import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal const val VEDTAK_PATH = "$SAK_PATH/{sakId}/vedtak"

@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID

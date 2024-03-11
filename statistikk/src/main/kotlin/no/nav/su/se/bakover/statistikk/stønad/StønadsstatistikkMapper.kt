@@ -20,13 +20,13 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.statistikk.SchemaValidator
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned

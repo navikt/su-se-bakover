@@ -39,12 +39,12 @@ import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vedtak.domain.Vedtak
 import java.util.UUID
 
 internal class VilkårsvurderKlageTest {

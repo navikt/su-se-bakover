@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsb
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
@@ -62,6 +61,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForve
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import vedtak.domain.Stønadsvedtak
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag

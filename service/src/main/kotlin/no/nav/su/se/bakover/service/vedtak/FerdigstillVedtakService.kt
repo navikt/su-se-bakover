@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.util.UUID

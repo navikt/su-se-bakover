@@ -20,7 +20,7 @@ import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
 /**
- * https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
+ * Begrepskatalogen: https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
  */
 interface Stønadsbehandling : Behandling {
     override val id: BehandlingsId

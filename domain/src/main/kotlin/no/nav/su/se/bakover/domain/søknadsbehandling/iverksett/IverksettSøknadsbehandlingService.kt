@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import vedtak.domain.Stønadsvedtak
 
 interface IverksettSøknadsbehandlingService {
     /**

@@ -88,14 +88,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -172,6 +170,8 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import vedtak.domain.Stønadsvedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.personligOppmøtevilkårAvslag

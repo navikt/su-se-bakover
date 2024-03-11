@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevu
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock

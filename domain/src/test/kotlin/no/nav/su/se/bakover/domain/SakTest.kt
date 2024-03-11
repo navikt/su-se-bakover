@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -58,6 +57,7 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID

@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlag

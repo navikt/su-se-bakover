@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersO
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
 import org.junit.jupiter.api.Test
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 

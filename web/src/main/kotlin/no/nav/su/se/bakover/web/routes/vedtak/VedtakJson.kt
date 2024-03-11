@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
@@ -14,12 +13,13 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.vedtak.domain.Vedtak
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
+import vedtak.domain.Stønadsvedtak
+import vedtak.domain.Vedtak
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 

@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import satser.domain.SatsFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 
 // TODO jah: Bør heller lage en abstract function på VedtakSomKanRevurderes. Da slipper vi when-else
