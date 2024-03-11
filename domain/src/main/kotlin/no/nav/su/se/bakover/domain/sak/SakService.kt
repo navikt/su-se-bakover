@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import dokument.domain.Dokument
+import dokument.domain.journalføring.Journalpost
+import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -13,8 +15,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.journalpost.Journalpost
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand

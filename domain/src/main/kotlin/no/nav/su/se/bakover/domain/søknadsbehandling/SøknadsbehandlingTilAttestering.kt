@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.AvslagGrunnetBeregning
+import behandling.domain.VurderAvslagGrunnetBeregning
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -15,8 +17,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag

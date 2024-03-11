@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.klage
 
 import dokument.domain.brev.BrevService
+import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService

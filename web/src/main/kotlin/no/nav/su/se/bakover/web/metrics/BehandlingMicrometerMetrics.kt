@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.metrics
 
+import behandling.domain.BehandlingMetrics
+import behandling.domain.BehandlingMetrics.UnderkjentHandlinger
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics.incrementCounter
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
 
 class BehandlingMicrometerMetrics : BehandlingMetrics {
 

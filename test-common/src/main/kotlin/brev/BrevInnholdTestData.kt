@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
-import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
+import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.jsonRequest.AvslagSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
@@ -24,7 +24,7 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
             ytelsePerMåned = 0,
             satsbeløpPerMåned = 0,
             epsFribeløp = 0,
-            fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true)),
+            fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), true)),
             sats = "høy",
         ),
     ),

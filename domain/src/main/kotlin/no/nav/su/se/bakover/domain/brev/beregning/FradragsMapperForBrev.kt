@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 internal data class BrukerFradragBenyttetIBeregningsperiode(
     private val fradragForBeregningsperiode: List<Fradrag>,
 ) {
-    val fradrag: List<Månedsfradrag> = fradragForBeregningsperiode
+    val fradrag: List<MånedsfradragForBrev> = fradragForBeregningsperiode
         .filter { it.tilhører == FradragTilhører.BRUKER }
         .filter { it.månedsbeløp > 0 }
         .toMånedsfradragPerType()
@@ -19,7 +19,7 @@ internal data class EpsFradragFraSaksbehandlerIBeregningsperiode(
     private val fradragFraSaksbehandler: List<Fradrag>,
     private val beregningsperiode: Periode,
 ) {
-    val fradrag: List<Månedsfradrag> = fradragFraSaksbehandler
+    val fradrag: List<MånedsfradragForBrev> = fradragFraSaksbehandler
         .filter { it.tilhører == FradragTilhører.EPS }
         .fradragStørreEnn0IPeriode(beregningsperiode)
 }
@@ -29,7 +29,7 @@ internal fun List<Fradrag>.fradragStørreEnn0IPeriode(periode: Periode) =
         .filter { it.månedsbeløp > 0 }
         .toMånedsfradragPerType()
 
-internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
+internal fun List<Fradrag>.toMånedsfradragPerType(): List<MånedsfradragForBrev> =
     this
         .groupBy {
             "${it.fradragstype}${
@@ -40,7 +40,7 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
             }"
         }
         .map { (_, fradrag) ->
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = fradrag[0]
                     .fradragstype
                     .toReadableTypeName(

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.nonEmptyListOf
+import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.test.beregning

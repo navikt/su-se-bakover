@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.dokumenttilstandForBrevvalg
+import behandling.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import beregning.domain.Beregning
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
-import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import økonomi.domain.simulering.Simulering
 import java.time.Clock

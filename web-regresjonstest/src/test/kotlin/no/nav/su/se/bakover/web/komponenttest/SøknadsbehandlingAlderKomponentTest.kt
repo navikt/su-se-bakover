@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
+import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.collections.shouldHaveSize
@@ -8,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus

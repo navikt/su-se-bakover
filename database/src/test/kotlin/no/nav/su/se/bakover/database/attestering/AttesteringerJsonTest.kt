@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.attestering
 
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

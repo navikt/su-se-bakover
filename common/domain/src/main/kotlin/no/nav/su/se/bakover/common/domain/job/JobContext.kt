@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.jobcontext
+package no.nav.su.se.bakover.common.domain.job
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned

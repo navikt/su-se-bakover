@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
 import arrow.core.Either
+import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId

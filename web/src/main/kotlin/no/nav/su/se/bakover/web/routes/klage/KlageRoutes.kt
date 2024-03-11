@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -35,8 +37,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg

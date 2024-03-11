@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.domain.dokument
+package behandling.domain.dokument
 
+import behandling.domain.Stønadsbehandling
 import dokument.domain.Dokumenttilstand
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 
 fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Stønadsbehandling): Dokumenttilstand {
     return when (this) {

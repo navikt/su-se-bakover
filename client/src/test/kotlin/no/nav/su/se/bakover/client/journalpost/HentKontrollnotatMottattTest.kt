@@ -2,6 +2,12 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.journalføring.ErKontrollNotatMottatt
+import dokument.domain.journalføring.JournalpostClientMetrics
+import dokument.domain.journalføring.JournalpostStatus
+import dokument.domain.journalføring.JournalpostTema
+import dokument.domain.journalføring.JournalpostType
+import dokument.domain.journalføring.KontrollnotatMottattJournalpost
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.februar
@@ -11,12 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
-import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test

@@ -5,6 +5,7 @@ import arrow.core.Tuple4
 import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
@@ -34,7 +35,6 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePostgresRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler

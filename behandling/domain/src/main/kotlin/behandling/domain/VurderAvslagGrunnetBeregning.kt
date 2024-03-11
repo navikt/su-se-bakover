@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package behandling.domain
 
 import arrow.core.getOrElse
 import beregning.domain.Beregning

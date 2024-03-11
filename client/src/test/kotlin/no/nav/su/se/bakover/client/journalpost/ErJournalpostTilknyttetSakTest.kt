@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.client.journalpost
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.journalføring.ErTilknyttetSak
+import dokument.domain.journalføring.JournalpostClientMetrics
+import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.auth.AzureAd
@@ -11,9 +14,6 @@ import no.nav.su.se.bakover.common.domain.auth.AccessToken
 import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

@@ -5,8 +5,8 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.BehandlingMedAttestering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
-import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.attestering.Attestering

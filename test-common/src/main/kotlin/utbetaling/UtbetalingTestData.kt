@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.test.utbetaling
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer

@@ -49,9 +49,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -59,7 +59,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(emptyList(), false),
+                    eps = FradragForBrev.Eps(emptyList(), false),
                 ),
                 sats = "høy",
             ),
@@ -106,9 +106,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -116,7 +116,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(emptyList(), false),
+                    eps = FradragForBrev.Eps(emptyList(), false),
                 ),
                 sats = "høy",
             ),
@@ -125,16 +125,16 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 8947,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 9999,
                             utenlandskInntekt = null,
                         ),
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.Sosialstønad.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -142,7 +142,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(emptyList(), false),
+                    eps = FradragForBrev.Eps(emptyList(), false),
                 ),
                 sats = "høy",
             ),
@@ -151,9 +151,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -161,7 +161,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(emptyList(), false),
+                    eps = FradragForBrev.Eps(emptyList(), false),
                 ),
                 sats = "høy",
             ),
@@ -209,9 +209,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 13067,
                 satsbeløpPerMåned = 19257,
                 epsFribeløp = 14810,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -219,9 +219,9 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(
+                    eps = FradragForBrev.Eps(
                         listOf(
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
@@ -239,9 +239,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 12067,
                 satsbeløpPerMåned = 19257,
                 epsFribeløp = 14810,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -249,16 +249,16 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(
+                    eps = FradragForBrev.Eps(
                         listOf(
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 20000,
                                 utenlandskInntekt = null,
                             ),
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
@@ -276,9 +276,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 13067,
                 satsbeløpPerMåned = 19257,
                 epsFribeløp = 14810,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -286,9 +286,9 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(
+                    eps = FradragForBrev.Eps(
                         listOf(
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
@@ -311,19 +311,19 @@ internal class LagBrevinnholdForBeregningTest {
             ytelsePerMåned = 100,
             satsbeløpPerMåned = 100,
             epsFribeløp = 100,
-            fradrag = Fradrag(
+            fradrag = FradragForBrev(
                 bruker = listOf(
-                    Månedsfradrag(
+                    MånedsfradragForBrev(
                         type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
                         beløp = 10,
                         utenlandskInntekt = null,
                     ),
-                    Månedsfradrag(
+                    MånedsfradragForBrev(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
                         beløp = 35,
                         utenlandskInntekt = null,
                     ),
-                    Månedsfradrag(
+                    MånedsfradragForBrev(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
                         beløp = 70,
                         utenlandskInntekt = UtenlandskInntekt.create(
@@ -333,14 +333,14 @@ internal class LagBrevinnholdForBeregningTest {
                         ),
                     ),
                 ),
-                eps = Fradrag.Eps(
+                eps = FradragForBrev.Eps(
                     listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
                             beløp = 20,
                             utenlandskInntekt = null,
                         ),
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
                             beløp = 70,
                             utenlandskInntekt = null,
@@ -441,9 +441,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 18257,
                 satsbeløpPerMåned = 19257,
                 epsFribeløp = 14810,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -451,7 +451,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(
+                    eps = FradragForBrev.Eps(
                         emptyList(),
                         true,
                     ),
@@ -508,9 +508,9 @@ internal class LagBrevinnholdForBeregningTest {
                 ytelsePerMåned = 15067,
                 satsbeløpPerMåned = 19257,
                 epsFribeløp = 14810,
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = listOf(
-                        Månedsfradrag(
+                        MånedsfradragForBrev(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false,
                             ),
@@ -518,23 +518,23 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null,
                         ),
                     ),
-                    eps = Fradrag.Eps(
+                    eps = FradragForBrev.Eps(
                         listOf(
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 6000,
                                 utenlandskInntekt = null,
                             ),
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Introduksjonsstønad.toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 6000,
                                 utenlandskInntekt = null,
                             ),
-                            Månedsfradrag(
+                            MånedsfradragForBrev(
                                 type = Fradragstype.Kontantstøtte.toReadableTypeName(
                                     utenlandsk = false,
                                 ),

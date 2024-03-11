@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.BehandlingMedOppgave
+import behandling.domain.BehandlingMetrics
+import behandling.domain.Stønadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
-import no.nav.su.se.bakover.behandling.BehandlingMedOppgave
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak

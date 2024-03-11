@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.journalføring.ErTilknyttetSak
+import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
@@ -12,8 +14,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import org.slf4j.LoggerFactory
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdHendelser
 import vilkår.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdCommand

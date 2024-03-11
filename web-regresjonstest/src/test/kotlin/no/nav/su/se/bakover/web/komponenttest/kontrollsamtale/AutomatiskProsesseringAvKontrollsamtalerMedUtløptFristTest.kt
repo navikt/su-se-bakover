@@ -3,6 +3,13 @@ package no.nav.su.se.bakover.web.komponenttest.kontrollsamtale
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.journalføring.ErKontrollNotatMottatt
+import dokument.domain.journalføring.JournalpostStatus
+import dokument.domain.journalføring.JournalpostTema
+import dokument.domain.journalføring.JournalpostType
+import dokument.domain.journalføring.KontrollnotatMottattJournalpost
+import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
+import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -11,6 +18,7 @@ import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.desember
@@ -23,14 +31,6 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
-import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
-import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -496,7 +496,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
     private enum class Feil(val forventetFeilmelding: String) {
         Oppgave("FIXME"),
         Utbetaling("class økonomi.domain.utbetaling.UtbetalingFeilet${"\$"}Protokollfeil"),
-        Journalpost("class no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt"),
+        Journalpost("class dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt"),
     }
 
     private fun journalpostKontrollnotat(id: JournalpostId): KontrollnotatMottattJournalpost {

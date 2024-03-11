@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.Opphørsgrunn
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering

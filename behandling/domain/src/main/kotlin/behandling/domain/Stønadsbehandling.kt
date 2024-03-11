@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.behandling
+package behandling.domain
 
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.BehandlingsId

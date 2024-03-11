@@ -77,9 +77,9 @@ internal enum class JournalpostTema {
     SUP,
 }
 
-internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostTema {
+internal fun JournalpostTema.toDomain(): dokument.domain.journalføring.JournalpostTema {
     return when (this) {
-        JournalpostTema.SUP -> no.nav.su.se.bakover.domain.journalpost.JournalpostTema.SUP
+        JournalpostTema.SUP -> dokument.domain.journalføring.JournalpostTema.SUP
     }
 }
 
@@ -88,10 +88,10 @@ internal enum class JournalpostStatus {
     FERDIGSTILT,
 }
 
-internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostStatus {
+internal fun JournalpostStatus.toDomain(): dokument.domain.journalføring.JournalpostStatus {
     return when (this) {
-        JournalpostStatus.JOURNALFOERT -> no.nav.su.se.bakover.domain.journalpost.JournalpostStatus.JOURNALFOERT
-        JournalpostStatus.FERDIGSTILT -> no.nav.su.se.bakover.domain.journalpost.JournalpostStatus.FERDIGSTILT
+        JournalpostStatus.JOURNALFOERT -> dokument.domain.journalføring.JournalpostStatus.JOURNALFOERT
+        JournalpostStatus.FERDIGSTILT -> dokument.domain.journalføring.JournalpostStatus.FERDIGSTILT
     }
 }
 
@@ -100,8 +100,8 @@ internal enum class JournalpostType {
     I,
 }
 
-internal fun JournalpostType.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostType {
+internal fun JournalpostType.toDomain(): dokument.domain.journalføring.JournalpostType {
     return when (this) {
-        JournalpostType.I -> no.nav.su.se.bakover.domain.journalpost.JournalpostType.INNKOMMENDE_DOKUMENT
+        JournalpostType.I -> dokument.domain.journalføring.JournalpostType.INNKOMMENDE_DOKUMENT
     }
 }

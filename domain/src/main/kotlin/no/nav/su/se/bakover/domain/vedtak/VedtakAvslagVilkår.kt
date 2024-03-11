@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.vurderinger.domain.krevMinstEttAvslag

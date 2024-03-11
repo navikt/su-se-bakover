@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.jobcontext.JobContextDb
-import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.UtløptFristForKontrollsamtaleDb.FeiletDb.Companion.toDb
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.UtløptFristForKontrollsamtaleDb.FeiletDb.Companion.toDomain

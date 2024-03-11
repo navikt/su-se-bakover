@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.merge
 import arrow.core.right
+import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag

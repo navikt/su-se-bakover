@@ -1,7 +1,7 @@
 package vedtak.domain
 
+import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import økonomi.domain.simulering.Simulering

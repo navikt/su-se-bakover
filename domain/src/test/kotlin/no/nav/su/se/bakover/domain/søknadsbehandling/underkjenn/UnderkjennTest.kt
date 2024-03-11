@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn
 
 import arrow.core.left
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttesteringAvslagBeregning

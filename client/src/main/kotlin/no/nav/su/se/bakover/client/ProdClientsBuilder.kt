@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.createJournalførBrevHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.createJournalførSøknadHttpClient
-import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import vilkår.skatt.infrastructure.client.SkatteClient
 import java.time.Clock
 

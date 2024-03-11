@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.BehandlingMetrics
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -13,8 +15,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService

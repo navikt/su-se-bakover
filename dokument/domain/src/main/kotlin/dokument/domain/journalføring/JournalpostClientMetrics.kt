@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.journalpost
+package dokument.domain.journalføring
 
 interface JournalpostClientMetrics {
     fun inkrementerBenyttetSkjema(skjema: BenyttetSkjema)

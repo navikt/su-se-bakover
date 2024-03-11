@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
+import behandling.domain.BehandlingMetrics
 import dokument.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver

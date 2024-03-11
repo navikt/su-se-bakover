@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package behandling.domain
 
 interface BehandlingMetrics {
     fun incrementUnderkjentCounter(handling: UnderkjentHandlinger)

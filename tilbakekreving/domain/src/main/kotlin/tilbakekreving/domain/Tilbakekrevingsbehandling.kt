@@ -1,7 +1,7 @@
 package tilbakekreving.domain
 
+import behandling.domain.BehandlingMedAttestering
 import dokument.domain.brev.Brevvalg
-import no.nav.su.se.bakover.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk

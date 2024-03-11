@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.metrics
 
+import dokument.domain.journalføring.JournalpostClientMetrics
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics.incrementCounter
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 
 class JournalpostClientMicrometerMetrics : JournalpostClientMetrics {
 

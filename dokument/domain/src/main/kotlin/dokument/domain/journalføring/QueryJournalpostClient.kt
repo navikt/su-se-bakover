@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.journalpost
+package dokument.domain.journalføring
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer

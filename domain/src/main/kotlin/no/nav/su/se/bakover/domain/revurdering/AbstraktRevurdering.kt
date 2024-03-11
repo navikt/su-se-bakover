@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import behandling.domain.Stønadsbehandling
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering

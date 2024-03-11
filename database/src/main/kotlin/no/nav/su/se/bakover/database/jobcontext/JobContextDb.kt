@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.jobcontext
 
-import no.nav.su.se.bakover.domain.jobcontext.JobContext
+import no.nav.su.se.bakover.common.domain.job.JobContext
 
 interface JobContextDb {
     fun id(): String

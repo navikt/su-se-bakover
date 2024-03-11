@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.application
 
+import behandling.domain.BehandlingMetrics
 import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -13,6 +14,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.client.ClientMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
@@ -22,8 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics

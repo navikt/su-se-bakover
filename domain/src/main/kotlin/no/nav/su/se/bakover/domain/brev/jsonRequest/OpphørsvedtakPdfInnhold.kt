@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import behandling.revurdering.domain.Opphørsgrunn
+import behandling.revurdering.domain.getDistinkteParagrafer
 import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode

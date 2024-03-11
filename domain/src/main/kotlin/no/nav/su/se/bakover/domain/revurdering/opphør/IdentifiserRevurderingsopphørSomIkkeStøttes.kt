@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.opphør
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.Merknad
@@ -11,7 +12,6 @@ import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.kronologisk
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 

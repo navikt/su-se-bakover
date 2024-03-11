@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test

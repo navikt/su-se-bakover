@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import behandling.domain.BehandlingMetrics
 import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -7,6 +8,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.client.ClientMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -20,8 +22,6 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics

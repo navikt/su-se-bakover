@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling.avslag
 
+import behandling.revurdering.domain.Opphørsgrunn
+import behandling.revurdering.domain.tilOpphørsgrunn
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn

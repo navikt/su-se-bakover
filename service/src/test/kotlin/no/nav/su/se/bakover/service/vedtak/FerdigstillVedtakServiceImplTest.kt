@@ -2,16 +2,16 @@ package no.nav.su.se.bakover.service.vedtak
 
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.BehandlingMedOppgave
+import behandling.domain.BehandlingMetrics
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak

@@ -7,7 +7,7 @@ data class Beregningsperiode(
     val ytelsePerMåned: Int,
     val satsbeløpPerMåned: Int,
     val epsFribeløp: Int,
-    val fradrag: Fradrag,
+    val fradrag: FradragForBrev,
     val periode: BrevPeriode,
     val sats: String,
 )

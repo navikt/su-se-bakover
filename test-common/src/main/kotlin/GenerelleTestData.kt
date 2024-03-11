@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import person.domain.Person
 import java.time.Clock
 import java.time.LocalDate

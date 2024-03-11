@@ -18,7 +18,7 @@ data class LagBrevinnholdForBeregning(
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
                 epsFribeløp = beregningsperiode.getFribeløpForEps().roundToInt(),
-                fradrag = Fradrag(
+                fradrag = FradragForBrev(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.fradrag()).fradrag,
                     eps = finnFradragForEps(beregningsperiode),
                 ),
@@ -40,7 +40,7 @@ data class LagBrevinnholdForBeregning(
      * exceedes the "fribeløp" for the specific month - otherwise no fradrag will actually be used for the calculation.
      * To determine the types for fradrag actually used, we need to "backtrack" to the original input fradrag.
      */
-    private fun finnFradragForEps(beregningsperiode: EkvivalenteMånedsberegninger): Fradrag.Eps {
+    private fun finnFradragForEps(beregningsperiode: EkvivalenteMånedsberegninger): FradragForBrev.Eps {
         // find all input-fradrag that are applicable for the period in question
         val epsFradragFraSaksbehandler = EpsFradragFraSaksbehandlerIBeregningsperiode(
             // found from the original input-fradrag
@@ -49,12 +49,12 @@ data class LagBrevinnholdForBeregning(
         ).fradrag
 
         return when (beregningsperiode.erFradragForEpsBenyttetIBeregning()) {
-            true -> Fradrag.Eps(
+            true -> FradragForBrev.Eps(
                 fradrag = epsFradragFraSaksbehandler,
                 // eps fradrag used in calculation excludes this (eps fradrag below fribeløp will not be used in beregning)
                 harFradragMedSumSomErLavereEnnFribeløp = false,
             )
-            false -> Fradrag.Eps(
+            false -> FradragForBrev.Eps(
                 // no fradrag for eps are actually used for the calculation, avoid display of all eps fradrag entirely
                 fradrag = emptyList(),
                 // fradrag for eps are present, but not included in actual beregning

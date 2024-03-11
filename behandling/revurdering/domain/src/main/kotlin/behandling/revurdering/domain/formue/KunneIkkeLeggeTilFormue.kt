@@ -1,6 +1,6 @@
 package behandling.revurdering.domain.formue
 
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
+import behandling.domain.Stønadsbehandling
 import vilkår.vurderinger.domain.Konsistensproblem
 
 sealed interface KunneIkkeLeggeTilFormue {

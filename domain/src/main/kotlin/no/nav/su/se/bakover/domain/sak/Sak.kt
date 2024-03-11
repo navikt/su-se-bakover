@@ -6,6 +6,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.revurdering.domain.Opphørsgrunn
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.regulering.Regulering

@@ -1,7 +1,7 @@
 package vedtak.domain
 
+import behandling.domain.Behandling
 import dokument.domain.Dokumenttilstand
-import no.nav.su.se.bakover.behandling.Behandling
 import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt

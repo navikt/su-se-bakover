@@ -31,7 +31,7 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
     data class Avslag(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
-        val avslag: no.nav.su.se.bakover.domain.behandling.avslag.Avslag,
+        val avslag: behandling.søknadsbehandling.domain.avslag.Avslag,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,

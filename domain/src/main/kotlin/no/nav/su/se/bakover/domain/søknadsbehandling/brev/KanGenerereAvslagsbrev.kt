@@ -3,9 +3,9 @@
 
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import behandling.søknadsbehandling.domain.avslag.Avslag
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag

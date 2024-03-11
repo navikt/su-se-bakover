@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.dokumenttilstandForBrevvalg
 import beregning.domain.Beregning
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.vurderinger.domain.krevAlleVilkårInnvilget

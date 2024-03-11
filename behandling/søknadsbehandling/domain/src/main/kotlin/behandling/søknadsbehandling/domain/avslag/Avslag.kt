@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling.avslag
+package behandling.søknadsbehandling.domain.avslag
 
 import beregning.domain.Beregning
 import vilkår.common.domain.Avslagsgrunn

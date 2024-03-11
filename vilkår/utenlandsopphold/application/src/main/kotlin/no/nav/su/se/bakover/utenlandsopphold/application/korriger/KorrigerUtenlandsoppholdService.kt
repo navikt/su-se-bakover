@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.utenlandsopphold.application.korriger
 
 import arrow.core.Either
+import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.audit.AuditLogger
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.korrigerUtenlandsopphold
 import person.domain.PersonService

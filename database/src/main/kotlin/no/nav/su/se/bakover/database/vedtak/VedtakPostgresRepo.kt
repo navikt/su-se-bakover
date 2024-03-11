@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.vedtak
 
+import behandling.domain.Stønadsbehandling
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
 import kotliquery.Row
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer

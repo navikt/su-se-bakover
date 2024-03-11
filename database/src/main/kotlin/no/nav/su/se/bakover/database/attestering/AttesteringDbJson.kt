@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.attestering
 
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

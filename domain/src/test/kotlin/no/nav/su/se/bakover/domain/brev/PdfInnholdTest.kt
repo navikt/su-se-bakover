@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.right
+import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
-import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
+import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
@@ -60,7 +60,7 @@ internal class PdfInnholdTest {
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
-                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), false)),
                     sats = "høy",
                 ),
             ),
@@ -186,7 +186,7 @@ internal class PdfInnholdTest {
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
-                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), false)),
                     sats = "høy",
                 ),
             ),

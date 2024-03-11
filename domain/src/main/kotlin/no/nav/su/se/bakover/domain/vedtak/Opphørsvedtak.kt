@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.revurdering.domain.Opphørsgrunn
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.Simulering

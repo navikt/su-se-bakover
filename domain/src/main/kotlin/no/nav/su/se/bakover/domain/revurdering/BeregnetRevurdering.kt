@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjonForRevurdering
 import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering

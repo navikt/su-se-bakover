@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt

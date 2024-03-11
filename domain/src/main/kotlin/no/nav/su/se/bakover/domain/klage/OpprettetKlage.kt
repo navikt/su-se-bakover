@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.right
+import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import java.time.LocalDate
 import java.util.UUID
 

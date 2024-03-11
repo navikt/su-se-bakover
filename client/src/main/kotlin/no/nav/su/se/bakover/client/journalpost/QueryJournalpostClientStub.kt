@@ -2,20 +2,20 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.right
+import dokument.domain.journalføring.ErKontrollNotatMottatt
+import dokument.domain.journalføring.ErTilknyttetSak
+import dokument.domain.journalføring.Journalpost
+import dokument.domain.journalføring.JournalpostStatus
+import dokument.domain.journalføring.JournalpostTema
+import dokument.domain.journalføring.JournalpostType
+import dokument.domain.journalføring.KontrollnotatMottattJournalpost
+import dokument.domain.journalføring.KunneIkkeHenteJournalposter
+import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
+import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
+import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
-import no.nav.su.se.bakover.domain.journalpost.Journalpost
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
-import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
-import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 
 data object QueryJournalpostClientStub : QueryJournalpostClient {
     override suspend fun erTilknyttetSak(

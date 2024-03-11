@@ -9,6 +9,9 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.brev.BrevService
+import dokument.domain.journalføring.Journalpost
+import dokument.domain.journalføring.KunneIkkeHenteJournalposter
+import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -22,9 +25,6 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
-import no.nav.su.se.bakover.domain.journalpost.Journalpost
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
-import no.nav.su.se.bakover.domain.journalpost.QueryJournalpostClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak

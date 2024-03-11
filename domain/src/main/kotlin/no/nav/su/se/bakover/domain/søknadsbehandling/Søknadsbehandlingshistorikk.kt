@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import behandling.domain.SaksbehandlingsHandling
+import behandling.domain.Saksbehandlingshendelse
+import behandling.domain.Saksbehandlingshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHandling
-import no.nav.su.se.bakover.domain.behandling.Saksbehandlingshendelse
-import no.nav.su.se.bakover.domain.behandling.Saksbehandlingshistorikk
 
 data class Søknadsbehandlingshendelse(
     override val tidspunkt: Tidspunkt,

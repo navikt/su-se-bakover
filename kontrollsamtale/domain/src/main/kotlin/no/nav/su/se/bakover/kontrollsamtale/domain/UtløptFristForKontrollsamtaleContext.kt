@@ -2,7 +2,10 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.journalføring.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.job.JobContext
+import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
@@ -13,9 +16,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.jobcontext.JobContext
-import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
-import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import org.slf4j.LoggerFactory

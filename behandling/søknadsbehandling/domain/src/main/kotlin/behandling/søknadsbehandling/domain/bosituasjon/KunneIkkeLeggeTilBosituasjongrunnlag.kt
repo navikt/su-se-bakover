@@ -1,6 +1,6 @@
 package behandling.søknadsbehandling.domain.bosituasjon
 
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
+import behandling.domain.Stønadsbehandling
 
 sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
     data class UgyldigTilstand(

@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.jobcontext
 
+import no.nav.su.se.bakover.common.domain.job.JobContext
+import no.nav.su.se.bakover.common.domain.job.JobContextId
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.jobcontext.JobContext
-import no.nav.su.se.bakover.domain.jobcontext.JobContextId
 
 class JobContextPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,

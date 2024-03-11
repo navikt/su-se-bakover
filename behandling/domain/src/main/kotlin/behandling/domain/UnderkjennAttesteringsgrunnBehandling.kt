@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.attestering
+package behandling.domain
 
 import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 

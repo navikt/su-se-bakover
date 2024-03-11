@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.statistikk.behandling
 
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
+import behandling.domain.Stønadsbehandling
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 

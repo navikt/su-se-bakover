@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.stønadsperiode
 
+import no.nav.su.se.bakover.common.domain.job.JobContextId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDb
-import no.nav.su.se.bakover.domain.jobcontext.JobContextId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 

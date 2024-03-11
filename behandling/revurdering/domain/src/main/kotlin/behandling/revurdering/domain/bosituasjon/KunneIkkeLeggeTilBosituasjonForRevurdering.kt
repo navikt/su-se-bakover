@@ -1,6 +1,6 @@
 package behandling.revurdering.domain.bosituasjon
 
-import no.nav.su.se.bakover.behandling.Stønadsbehandling
+import behandling.domain.Stønadsbehandling
 import vilkår.vurderinger.domain.Konsistensproblem
 import kotlin.reflect.KClass
 

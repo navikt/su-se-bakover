@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.right
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.attestering.UnderkjennAttesteringsgrunnBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent

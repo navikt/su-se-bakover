@@ -35,7 +35,7 @@ internal class FradragsMapperTest {
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Kapitalinntekt",
                 beløp = 5000,
                 utenlandskInntekt = null,
@@ -46,7 +46,7 @@ internal class FradragsMapperTest {
             fradragFraSaksbehandler = fradrag,
             beregningsperiode = periode,
         ).fradrag shouldBe listOf(
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Bidrag etter ekteskapsloven",
                 beløp = 3000,
                 utenlandskInntekt = null,
@@ -75,7 +75,7 @@ internal class FradragsMapperTest {
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
@@ -114,12 +114,12 @@ internal class FradragsMapperTest {
             fradrag,
             januar(2020),
         ).fradrag shouldBe listOf(
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Arbeidsinntekt",
                 beløp = 10000,
                 utenlandskInntekt = null,
             ),
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
@@ -130,7 +130,7 @@ internal class FradragsMapperTest {
             fradrag,
             periode,
         ).fradrag shouldBe listOf(
-            Månedsfradrag(
+            MånedsfradragForBrev(
                 type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
