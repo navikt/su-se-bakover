@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":vilkår:utenlandsopphold:domain"))
     implementation(project(":vilkår:vurderinger:domain"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":økonomi:application"))
 
     testImplementation(project(":test-common"))
     testImplementation(project(":vilkår:utenlandsopphold:domain"))

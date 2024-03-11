@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vedtak
+package no.nav.su.se.bakover.vedtak.application
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes

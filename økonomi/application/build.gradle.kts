@@ -1,14 +1,14 @@
 dependencies {
+    implementation(project(":behandling:common:domain"))
     implementation(project(":common:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":hendelse:domain"))
-    implementation(project(":service"))
     implementation(project(":domain"))
     implementation(project(":oppgave:domain"))
     implementation(project(":vedtak:domain"))
+    implementation(project(":vedtak:application"))
     implementation(project(":beregning"))
     implementation(project(":satser"))
-    implementation(project(":behandling:common:domain"))
 }
 
 tasks.named<Jar>("jar") {

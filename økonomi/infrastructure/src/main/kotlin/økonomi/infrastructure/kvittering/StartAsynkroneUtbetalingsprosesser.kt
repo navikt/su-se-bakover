@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import økonomi.application.kvittering.FerdigstillVedtakEtterMottattKvitteringKonsument
 import økonomi.application.kvittering.KnyttKvitteringTilSakOgUtbetalingKonsument
 import økonomi.application.kvittering.RåKvitteringService
+import økonomi.application.utbetaling.UtbetalingService
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumerV2
 import økonomi.infrastructure.kvittering.consumer.kvitteringXmlTilSaksnummerOgUtbetalingId
 import økonomi.infrastructure.kvittering.job.KvitteringshendelseJob

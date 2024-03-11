@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
+import økonomi.application.utbetaling.UtbetalingService
+import økonomi.application.utbetaling.UtbetalingServiceImpl
 import økonomi.domain.simulering.SimuleringClient
 import økonomi.domain.utbetaling.UtbetalingPublisher
 import økonomi.domain.utbetaling.UtbetalingRepo

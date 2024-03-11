@@ -28,11 +28,11 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vedtak.domain.VedtakSomKanRevurderes
+import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock

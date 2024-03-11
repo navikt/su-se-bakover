@@ -205,8 +205,7 @@ import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgave
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import nøkkeltall.domain.Nøkkeltall
 import person.domain.KunneIkkeHentePerson
@@ -225,6 +224,7 @@ import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
+import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering

@@ -23,6 +23,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import økonomi.application.utbetaling.FantIkkeUtbetaling
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 
