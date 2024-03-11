@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.nøkkeltall
 
-import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
+import nøkkeltall.domain.Nøkkeltall
 
 internal data class NøkkeltallJson(
     val søknader: SøknaderJson,

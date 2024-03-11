@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":grunnbeløp"))
     implementation(project(":hendelse:domain"))
+    implementation(project(":nøkkeltall:domain"))
     implementation(project(":oppgave:domain"))
     implementation(project(":person:domain"))
     implementation(project(":satser"))

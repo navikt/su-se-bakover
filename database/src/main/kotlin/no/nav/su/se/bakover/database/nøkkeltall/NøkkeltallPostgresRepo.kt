@@ -4,8 +4,8 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
-import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
-import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
+import nøkkeltall.domain.Nøkkeltall
+import nøkkeltall.domain.NøkkeltallRepo
 import java.time.Clock
 import java.time.LocalDate
 

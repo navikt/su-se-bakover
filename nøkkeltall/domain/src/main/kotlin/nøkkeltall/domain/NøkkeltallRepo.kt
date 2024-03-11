@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.nøkkeltall
+package nøkkeltall.domain
 
 interface NøkkeltallRepo {
     fun hentNøkkeltall(): Nøkkeltall
