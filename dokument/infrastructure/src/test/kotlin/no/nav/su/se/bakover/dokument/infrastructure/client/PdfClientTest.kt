@@ -99,7 +99,7 @@ internal class PdfClientTest {
 
     @Test
     fun `fjerner ikke unicodes etter 001F`() {
-        val input = " \\u0020\\u0021\\u0022\u0020\u0021\u0022!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~æøåÆØÅ "
+        val input = " \\u0020\\u0021\\u0022\u0020\u0021\u0022!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~æøåÆØÅ\\n\\t "
         XmlValidString.create(input).value shouldBe input
     }
 
