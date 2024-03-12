@@ -67,7 +67,7 @@ subprojects {
             exclude("org.apache.commons", "commons-compress")
         }
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-        implementation("io.micrometer:micrometer-core:1.12.3")
+        implementation("io.micrometer:micrometer-core:1.12.4")
         implementation("io.micrometer:micrometer-registry-prometheus:1.12.3")
         implementation("com.github.seratch:kotliquery:1.9.0")
         implementation("org.flywaydb:flyway-core:10.9.1")
