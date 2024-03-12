@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson

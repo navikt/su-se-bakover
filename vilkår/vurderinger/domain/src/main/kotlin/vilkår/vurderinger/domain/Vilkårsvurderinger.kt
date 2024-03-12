@@ -1,5 +1,6 @@
 package vilkår.vurderinger.domain
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
@@ -32,6 +33,7 @@ interface Vilkårsvurderinger {
     val erVurdert: Boolean get() = vilkår.none { it.vurdering is Vurdering.Uavklart }
     val avslagsgrunner: List<Avslagsgrunn> get() = vilkår.flatMap { it.avslagsgrunner }
 
+    fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår>
     fun uføreVilkårKastHvisAlder(): UføreVilkår
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold

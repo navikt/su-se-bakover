@@ -8,18 +8,9 @@ import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandlin
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
-import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.vurderinger.domain.VilkårEksistererIkke
 import vilkår.vurderinger.domain.Vilkårsvurderinger
-
-fun Vilkårsvurderinger.uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår> = when (this) {
-    is VilkårsvurderingerRevurdering.Alder -> VilkårEksistererIkke.left()
-    is VilkårsvurderingerRevurdering.Uføre -> uføre.right()
-    is VilkårsvurderingerSøknadsbehandling.Uføre -> uføre.right()
-    is VilkårsvurderingerSøknadsbehandling.Alder -> VilkårEksistererIkke.left()
-    else -> throw IllegalStateException("Ukjent vilkårsvurderings-implementasjon: $this")
-}
 
 fun Vilkårsvurderinger.flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår> = when (this) {
     is VilkårsvurderingerRevurdering.Alder -> VilkårEksistererIkke.left()

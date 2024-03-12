@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.Grunnlagsdata

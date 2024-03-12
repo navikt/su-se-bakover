@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtak
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår

@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTil
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.uføre.domain.Uføregrunnlag

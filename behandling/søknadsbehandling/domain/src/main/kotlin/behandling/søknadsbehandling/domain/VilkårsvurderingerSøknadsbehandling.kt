@@ -1,5 +1,8 @@
 package behandling.søknadsbehandling.domain
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
@@ -16,6 +19,7 @@ import vilkår.pensjon.domain.PensjonsVilkår
 import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
+import vilkår.vurderinger.domain.VilkårEksistererIkke
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 import vilkår.vurderinger.domain.kastHvisPerioderErUlike
 
@@ -36,7 +40,14 @@ sealed interface VilkårsvurderingerSøknadsbehandling : Vilkårsvurderinger {
 
     override fun uføreVilkårKastHvisAlder(): UføreVilkår = when (this) {
         is Uføre -> uføre
-        is Alder -> TODO("Kan ikke hente uføre vilkår. Vilkårsvurderinger for alder.")
+        is Alder -> throw IllegalArgumentException("Uførevilkår eksisterer ikke for alder.")
+    }
+
+    override fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår> {
+        return when (this) {
+            is Alder -> VilkårEksistererIkke.left()
+            is Uføre -> uføre.right()
+        }
     }
 
     data class Uføre(

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
 sealed interface Reguleringstype {

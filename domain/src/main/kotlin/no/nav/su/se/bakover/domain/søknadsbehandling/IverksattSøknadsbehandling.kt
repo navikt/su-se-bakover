@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering

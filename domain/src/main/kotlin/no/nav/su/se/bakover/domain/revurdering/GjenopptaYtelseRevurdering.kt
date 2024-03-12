@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
-import no.nav.su.se.bakover.domain.vilkår.uføreVilkår
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.simulering.Simulering
