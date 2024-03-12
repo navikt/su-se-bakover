@@ -27,10 +27,16 @@ fun Sak.oppdaterRevurdering(revurdering: AbstraktRevurdering): Sak {
     return this.copy(behandlinger = this.behandlinger.oppdaterRevurdering(revurdering))
 }
 
+/**
+ * @throws IllegalStateException hvis regulering med samme id finnes fra før.
+ */
 fun Sak.nyRegulering(regulering: Regulering): Sak {
     return this.copy(behandlinger = this.behandlinger.nyRegulering(regulering))
 }
 
+/**
+ * @throws IllegalStateException hvis regulering med samme id ikke finnes fra før.
+ */
 fun Sak.oppdaterRegulering(regulering: Regulering): Sak {
     return this.copy(behandlinger = this.behandlinger.oppdaterRegulering(regulering))
 }

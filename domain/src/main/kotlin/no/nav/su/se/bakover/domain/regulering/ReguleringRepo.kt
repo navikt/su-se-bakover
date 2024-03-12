@@ -8,7 +8,7 @@ import java.util.UUID
 interface ReguleringRepo {
     fun hent(id: ReguleringId): Regulering?
     fun hentReguleringerSomIkkeErIverksatt(): List<ReguleringSomKreverManuellBehandling>
-    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Regulering>
+    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): Reguleringer
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun defaultSessionContext(): SessionContext

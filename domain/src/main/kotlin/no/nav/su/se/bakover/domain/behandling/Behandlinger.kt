@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandlinger
@@ -13,7 +14,7 @@ import java.util.UUID
 data class Behandlinger(
     val søknadsbehandlinger: List<Søknadsbehandling>,
     val revurderinger: List<AbstraktRevurdering>,
-    val reguleringer: List<Regulering>,
+    val reguleringer: Reguleringer,
     val klager: List<Klage>,
     val tilbakekrevinger: Tilbakekrevingsbehandlinger,
 ) {
@@ -23,7 +24,13 @@ data class Behandlinger(
     val sakId: UUID? = søknadsbehandlinger.firstOrNull()?.sakId
 
     companion object {
-        fun empty(sakId: UUID) = Behandlinger(emptyList(), emptyList(), emptyList(), emptyList(), Tilbakekrevingsbehandlinger.empty(sakId = sakId))
+        fun empty(sakId: UUID) = Behandlinger(
+            søknadsbehandlinger = emptyList(),
+            revurderinger = emptyList(),
+            reguleringer = Reguleringer.empty(sakId = sakId),
+            klager = emptyList(),
+            tilbakekrevinger = Tilbakekrevingsbehandlinger.empty(sakId = sakId),
+        )
 
         fun List<Søknadsbehandling>.harBehandlingUnderArbeid(): Boolean = this.any { it.erÅpen() }
     }
@@ -64,22 +71,18 @@ data class Behandlinger(
         )
     }
 
+    /**
+     * @throws IllegalStateException hvis regulering med samme id finnes fra før.
+     */
     fun nyRegulering(regulering: Regulering): Behandlinger {
-        require(reguleringer.none { it.id == regulering.id }) {
-            "Regulering med id ${regulering.id} finnes fra før."
-        }
-        return this.copy(reguleringer = this.reguleringer + regulering)
+        return this.copy(reguleringer = reguleringer.nyRegulering(regulering))
     }
 
+    /**
+     * @throws IllegalStateException hvis regulering med samme id ikke finnes fra før.
+     */
     fun oppdaterRegulering(regulering: Regulering): Behandlinger {
-        require(reguleringer.any { it.id == regulering.id }) {
-            "Regulering med id ${regulering.id} finnes ikke fra før."
-        }
-        return this.copy(
-            reguleringer = this.reguleringer.map {
-                if (it.id == regulering.id) regulering else it
-            },
-        )
+        return this.copy(reguleringer = reguleringer.oppdaterRegulering(regulering))
     }
 
     fun nyKlage(klage: Klage): Behandlinger {
@@ -122,6 +125,7 @@ data class Behandlinger(
             }
         }
     }
+
     private fun requireSameFnr() {
         listOf(
             søknadsbehandlinger.map { it.fnr },

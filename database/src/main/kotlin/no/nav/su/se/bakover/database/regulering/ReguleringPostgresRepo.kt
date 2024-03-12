@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -90,14 +91,16 @@ internal class ReguleringPostgresRepo(
             }
         }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Regulering> =
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Reguleringer =
         dbMetrics.timeQuery("hentReguleringerForSakId") {
             sessionContext.withSession { session ->
                 """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid order by r.opprettet""".trimIndent()
                     .hentListe(
                         mapOf("sakid" to sakId),
                         session,
-                    ) { it.toRegulering(session) }
+                    ) { it.toRegulering(session) }.let {
+                        Reguleringer(sakId = sakId, behandlinger = it)
+                    }
             }
         }
 
@@ -219,7 +222,12 @@ internal class ReguleringPostgresRepo(
                             }.toString(),
                             "avsluttet" to when (regulering) {
                                 is AvsluttetRegulering -> {
-                                    serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt, regulering.avsluttetAv?.navIdent))
+                                    serialize(
+                                        AvsluttetReguleringJson(
+                                            regulering.avsluttetTidspunkt,
+                                            regulering.avsluttetAv?.navIdent,
+                                        ),
+                                    )
                                 }
 
                                 is IverksattRegulering -> null

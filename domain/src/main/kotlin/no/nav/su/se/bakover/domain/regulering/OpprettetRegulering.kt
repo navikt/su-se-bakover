@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
+import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory

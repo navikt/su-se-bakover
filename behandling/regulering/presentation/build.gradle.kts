@@ -5,5 +5,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("behandling-regulering-domain")
+    archiveBaseName.set("behandling-regulering-presentation")
 }

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.regulering
+package behandling.regulering.domain.simulering
 
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 

@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageId
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -80,7 +80,7 @@ data class Sak(
 ) {
     val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.søknadsbehandlinger
     val revurderinger: List<AbstraktRevurdering> = behandlinger.revurderinger
-    val reguleringer: List<Regulering> = behandlinger.reguleringer
+    val reguleringer: Reguleringer = behandlinger.reguleringer
     val klager: List<Klage> = behandlinger.klager
 
     fun info(): SakInfo {

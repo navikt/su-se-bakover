@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.regulering.beregn
 
 import arrow.core.getOrElse
+import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
