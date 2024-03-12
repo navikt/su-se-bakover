@@ -37,7 +37,7 @@ internal class KafkaStatistikkEventObserver(
                 is StatistikkEvent.Stønadsvedtak -> {
                     val sakinfo = event.vedtak.sakinfo()
                     personService.hentAktørIdMedSystembruker(sakinfo.fnr).fold(
-                        ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sakinfo.sakId}") },
+                        ifLeft = { log.error("Statistikk: Fant ikke aktørId for person med sakId: ${sakinfo.sakId}. Underliggende feil: $it", RuntimeException("Trigger stacktrace for enklere debug.")) },
                         ifRight = { aktørId ->
                             publiserEllerLoggFeil(
                                 event.toStønadstatistikkDto(
