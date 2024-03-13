@@ -29,8 +29,6 @@ internal fun Route.revurderingRoutes(
 
     beregnOgSimulerRevurdering(revurderingService, formuegrenserFactory)
 
-    oppdaterTilbakekrevingsbehandlingRoute(revurderingService, formuegrenserFactory)
-
     forhåndsvarslingRoute(revurderingService, formuegrenserFactory)
 
     sendRevurderingTilAttestering(revurderingService, formuegrenserFactory)

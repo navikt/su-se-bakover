@@ -152,7 +152,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             val actual = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
                 saksbehandler = saksbehandler,
-                skalUtsetteTilbakekreving = false,
             ).getOrFail().revurdering
 
             inOrder(

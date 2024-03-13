@@ -193,9 +193,7 @@ internal class RevurderingPostgresRepoTest {
                 tdh.revurderingRepo.lagre(iverksattInnvilget).also {
                     tdh.revurderingRepo.hent(iverksattInnvilget.id) shouldBe iverksattInnvilget
                 }
-                // TODO jah: Vi støtter ikke å lagre tilbakekreving i et steg, siden vi gjør det stegvis i databasen. Istedenfor å fikse dette, fjerner vi tilbakekreving fra revurdering når siste behandling er avsluttet i produksjon.
-                val iverksattOpphørtMedTilbakekreving = iverksattRevurdering(
-                    skalUtsetteTilbakekreving = true,
+                val iverksattOpphørt = iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
@@ -203,8 +201,8 @@ internal class RevurderingPostgresRepoTest {
                     utbetalingerKjørtTilOgMed = { 30.april(2021) },
                     clock = tdh.clock,
                 ).second.shouldBeType<IverksattRevurdering.Opphørt>()
-                tdh.revurderingRepo.lagre(iverksattOpphørtMedTilbakekreving).also {
-                    tdh.revurderingRepo.hent(iverksattOpphørtMedTilbakekreving.id) shouldBe iverksattOpphørtMedTilbakekreving
+                tdh.revurderingRepo.lagre(iverksattOpphørt).also {
+                    tdh.revurderingRepo.hent(iverksattOpphørt.id) shouldBe iverksattOpphørt
                 }
             }
         }

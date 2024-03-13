@@ -166,7 +166,6 @@ internal class GjeldendeVedtaksdataTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            skalUtsetteTilbakekreving = true,
         )
         val førsteSøknadsbehandlingsvedtak =
             sakMedRevurderingsvedtak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling

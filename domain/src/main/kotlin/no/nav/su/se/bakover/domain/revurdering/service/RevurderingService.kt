@@ -31,8 +31,6 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingComma
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
@@ -71,7 +69,6 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: RevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        skalUtsetteTilbakekreving: Boolean,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse>
 
     fun lagreOgSendForhåndsvarsel(
@@ -89,10 +86,6 @@ interface RevurderingService {
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
-
-    fun oppdaterTilbakekrevingsbehandling(
-        request: OppdaterTilbakekrevingsbehandlingRequest,
-    ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering>
 
     fun leggTilBrevvalg(
         request: LeggTilBrevvalgRequest,

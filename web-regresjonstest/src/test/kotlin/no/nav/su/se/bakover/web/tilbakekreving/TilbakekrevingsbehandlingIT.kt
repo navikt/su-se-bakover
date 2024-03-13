@@ -42,7 +42,6 @@ internal class TilbakekrevingsbehandlingIT {
                 tilogmed = 31.januar(2021).toString(),
                 client = this.client,
                 appComponents = appComponents,
-                skalUtsetteTilbakekreving = true,
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
@@ -226,7 +225,6 @@ internal class TilbakekrevingsbehandlingIT {
                 tilogmed = 31.januar(2021).toString(),
                 client = this.client,
                 appComponents = appComponents,
-                skalUtsetteTilbakekreving = true,
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
             verifiserKravgrunnlagPåSak(sakId, client, true, 2)
@@ -247,7 +245,6 @@ internal class TilbakekrevingsbehandlingIT {
                 tilogmed = 31.januar(2021).toString(),
                 client = this.client,
                 appComponents = appComponents,
-                skalUtsetteTilbakekreving = true,
                 leggTilFradrag = { fradragSakId, behandlingId, fraOgMed, tilOgMed ->
                     leggTilFradrag(
                         sakId = fradragSakId,

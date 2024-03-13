@@ -17,16 +17,12 @@ import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningV
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 
-/**
- * @param skalUtsetteTilbakekreving Brukes kun dersom beregnOgSimuler bruker default verdi.
- */
 internal fun opprettIverksattRevurdering(
     sakid: String,
     fraogmed: String,
     tilogmed: String,
     client: HttpClient,
     appComponents: AppComponents?,
-    skalUtsetteTilbakekreving: Boolean = false,
     leggTilUføregrunnlag: (sakId: String, behandlingId: String, fraOgMed: String, tilOgMed: String, uføregrad: Int, forventetInntekt: Int, url: String) -> String = { sakId, behandlingId, fraOgMed, tilOgMed, uføregrad, forventetInntekt, url ->
         leggTilUføregrunnlag(
             sakId = sakId,
@@ -92,7 +88,6 @@ internal fun opprettIverksattRevurdering(
             sakId = sakId,
             behandlingId = behandlingId,
             client = client,
-            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
         )
     },
     leggTilIngenForhåndsvarsel: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->

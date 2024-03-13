@@ -198,7 +198,6 @@ fun vedtakRevurderingIverksattInnvilget(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
-    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, VedtakInnvilgetRevurdering> {
     return iverksattRevurdering(
         clock = clock,
@@ -214,7 +213,6 @@ fun vedtakRevurderingIverksattInnvilget(
         saksbehandler = saksbehandler,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, _, _, vedtak) ->
         sak to vedtak.shouldBeType()
     }

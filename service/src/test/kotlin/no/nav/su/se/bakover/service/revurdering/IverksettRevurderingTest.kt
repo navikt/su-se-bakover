@@ -6,9 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.extensions.november
-import no.nav.su.se.bakover.common.tid.periode.desember
-import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
@@ -16,10 +13,8 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevu
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -29,7 +24,6 @@ import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
-import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -617,38 +611,5 @@ internal class IverksettRevurderingTest {
                 UtbetalingFeilet.Protokollfeil,
             ),
         ).left()
-    }
-
-    @Test
-    fun `feil ved åpent kravgrunnlag`() {
-        val clock = TikkendeKlokke()
-        val (sak, vedtakAvventerKravgrunnlag) = vedtakRevurdering(
-            clock = clock,
-            revurderingsperiode = mai(2021)..desember(2021),
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = mai(2021)..desember(2021),
-                    arbeidsinntekt = 5000.0,
-                ),
-            ),
-            utbetalingerKjørtTilOgMed = { 1.november(2021) },
-        )
-
-        val (sakMedTilAttestering, revurderingTilAttestering) = revurderingTilAttestering(
-            clock = clock,
-            sakOgVedtakSomKanRevurderes = sak to vedtakAvventerKravgrunnlag,
-        )
-
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sakMedTilAttestering
-            },
-        ).also {
-            it.revurderingService.iverksett(
-                revurderingTilAttestering.id,
-                attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
-                .left()
-        }
     }
 }

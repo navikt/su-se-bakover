@@ -68,7 +68,6 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
             )
             // Åpent kravgrunnlag der behandlingen ikke er startet. Denne skal ikke dukke opp.
             testDataHelper.persisterRevurderingIverksattOpphørt(
-                skalUtsetteTilbakekreving = true,
                 periode = september(2021),
             )
 
@@ -82,7 +81,6 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
 
             // Avsluttet kravgrunnlag der behandlingen ikke er startet. Denne skal dukke opp.
             val (sak3) = testDataHelper.persisterRevurderingIverksattOpphørt(
-                skalUtsetteTilbakekreving = true,
                 periode = desember(2021),
             )
             val (_, h3) = testDataHelper.emulerViMottarKravgrunnlagstatusendring(
@@ -154,7 +152,6 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
             )
             // Åpent kravgrunnlag der behandlingen ikke er startet. Denne forventer vi.
             val (sak9, _, _, _, _, h9) = testDataHelper.persisterRevurderingIverksattOpphørt(
-                skalUtsetteTilbakekreving = true,
                 periode = september(2021),
             )
             // Disse 2 behandlingene vil dekkes av ferdig, ikke åpen. Vi forventer ikke de.
@@ -166,7 +163,6 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
             )
             // Avsluttet kravgrunnlag der behandlingen ikke er startet. Vi forventer ikke at denne er åpen.
             val (sak10) = testDataHelper.persisterRevurderingIverksattOpphørt(
-                skalUtsetteTilbakekreving = true,
                 periode = desember(2021),
             )
             testDataHelper.emulerViMottarKravgrunnlagstatusendring(
