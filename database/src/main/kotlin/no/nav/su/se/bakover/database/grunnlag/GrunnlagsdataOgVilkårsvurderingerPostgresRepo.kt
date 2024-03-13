@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSessi
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
-import no.nav.su.se.bakover.domain.vilkår.flyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.vurderinger.domain.EksterneGrunnlag

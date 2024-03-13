@@ -45,6 +45,13 @@ sealed interface VilkårsvurderingerRevurdering : Vilkårsvurderinger {
         }
     }
 
+    override fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår> {
+        return when (this) {
+            is Alder -> VilkårEksistererIkke.left()
+            is Uføre -> flyktning.right()
+        }
+    }
+
     data class Uføre(
         val uføre: UføreVilkår,
         override val lovligOpphold: LovligOppholdVilkår,

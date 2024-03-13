@@ -35,6 +35,7 @@ interface Vilkårsvurderinger {
 
     fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår>
     fun uføreVilkårKastHvisAlder(): UføreVilkår
+    fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår>
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
     fun institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår = institusjonsopphold
