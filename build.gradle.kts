@@ -18,7 +18,7 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val kotestVersion = "5.8.0"
+    val kotestVersion = "5.8.1"
     val jacksonVersion = "2.16.2"
     val confluentVersion = "7.6.0"
     dependencies {
