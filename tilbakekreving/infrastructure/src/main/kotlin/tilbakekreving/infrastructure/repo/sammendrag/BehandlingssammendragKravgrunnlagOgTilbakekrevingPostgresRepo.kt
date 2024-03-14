@@ -138,7 +138,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     (h.data->'kravgrunnlag'->>'eksternTidspunkt')::timestamptz AS kravgrunnlagTidspunkt,
                     (h.data->'kravgrunnlag'->>'status') AS status,
                     (h.data->'kravgrunnlag'->>'eksternVedtakId') AS eksternVedtakId,
-                    (h.data->'kravgrunnlag'->>'revurderingId') AS revurderingId,
+                    (h.data->>'revurderingId') AS revurderingId,
                     h.hendelseId,
                      (SELECT MIN((elements->>'fraOgMed')::date)
                      FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS fraOgMed,
