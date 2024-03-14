@@ -48,7 +48,6 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
                 tilogmed = 31.januar(2021).toString(),
                 client = this.client,
                 appComponents = appComponents,
-                skalUtsetteTilbakekreving = true,
             ).let {
                 RevurderingJson.hentRevurderingId(it)
             }

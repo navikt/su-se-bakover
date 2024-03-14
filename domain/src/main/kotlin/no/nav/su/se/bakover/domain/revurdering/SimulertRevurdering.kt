@@ -140,8 +140,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
-    fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): SimulertRevurdering
-
     sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
         data object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
         data object BrevvalgMangler : KunneIkkeSendeInnvilgetRevurderingTilAttestering
@@ -191,10 +189,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : SimulertRevurdering {
         override val erOpphørt = false
-
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Innvilget {
-            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
-        }
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
@@ -288,10 +282,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
-        }
-
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Opphørt {
-            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 
         sealed interface KanIkkeSendeOpphørtRevurderingTilAttestering {

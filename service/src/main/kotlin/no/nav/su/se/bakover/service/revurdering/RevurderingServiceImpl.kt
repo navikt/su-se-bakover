@@ -65,9 +65,6 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.oppdaterTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
@@ -461,7 +458,6 @@ class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: RevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        skalUtsetteTilbakekreving: Boolean,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
         val sak = sakService.hentSakForRevurdering(revurderingId)
 
@@ -515,8 +511,6 @@ class RevurderingServiceImpl(
                     is BeregnetRevurdering.Innvilget -> {
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
-                            clock = clock,
-                            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                             simuler = { beregning, uføregrunnlag ->
                                 sak.lagNyUtbetaling(
                                     saksbehandler = saksbehandler,
@@ -547,8 +541,6 @@ class RevurderingServiceImpl(
                         // TODO simulering jah: er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
-                            clock = clock,
-                            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                             simuler = { opphørsperiode: Periode, behandler: NavIdentBruker.Saksbehandler ->
                                 sak.lagUtbetalingForOpphør(
                                     opphørsperiode = opphørsperiode,
@@ -686,15 +678,6 @@ class RevurderingServiceImpl(
                     KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                 }.map { it.generertDokument }
             }
-        }
-    }
-
-    override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering> {
-        val revurdering =
-            hent(request.revurderingId).getOrElse { throw IllegalArgumentException("Fant ikke revurdering ${request.revurderingId}") }
-
-        return revurdering.oppdaterTilbakekrevingsbehandling(request, clock).onRight {
-            revurderingRepo.lagre(it)
         }
     }
 

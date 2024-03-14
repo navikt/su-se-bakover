@@ -618,14 +618,12 @@ class TestDataHelper(
 
     /**
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
-     * @param skalUtsetteTilbakekreving Ignoreres dersom [sakOgRevurdering] sendes inn.
      * @param stønadsperiode Ignoreres dersom [sakOgVedtak] sendes inn.
      * @param revurderingsperiode Ignoreres dersom [sakOgRevurdering] sendes inn.
      * @param sakOgVedtak Dersom denne sendes inn, bør også [revurderingsperiode] sendes inn, hvis ikke defaulter den til 2021.
      * @param grunnlagsdataOverrides Gjelder kun for revurdering. Ignoreres dersom [sakOgRevurdering] sendes inn.
      */
     fun persisterIverksattRevurdering(
-        skalUtsetteTilbakekreving: Boolean = false,
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         revurderingsperiode: Periode = stønadsperiode.periode,
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
@@ -640,7 +638,6 @@ class TestDataHelper(
             iverksattRevurdering(
                 clock = clock,
                 sakOgVedtakSomKanRevurderes = it,
-                skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                 revurderingsperiode = revurderingsperiode,
                 grunnlagsdataOverrides = grunnlagsdataOverrides,
                 vilkårOverrides = vilkårOverrides,
@@ -839,7 +836,6 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingIverksattOpphørt(
-        skalUtsetteTilbakekreving: Boolean = false,
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         periode: Periode = stønadsperiode2021.periode,
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
@@ -851,14 +847,12 @@ class TestDataHelper(
     ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
         return persisterIverksattRevurdering(
             sakOgVedtak = sakOgVedtak,
-            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
             nesteKravgrunnlagVersjon = nesteKravgrunnlagVersjon,
         ) { (sak, vedtak) ->
             iverksattRevurdering(
                 clock = clock,
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = periode)),
-                skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                 revurderingsperiode = periode,
             )
         }

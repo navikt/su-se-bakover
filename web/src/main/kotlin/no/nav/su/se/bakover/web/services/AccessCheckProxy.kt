@@ -110,8 +110,6 @@ import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
@@ -770,13 +768,11 @@ open class AccessCheckProxy(
                 override fun beregnOgSimuler(
                     revurderingId: RevurderingId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    skalUtsetteTilbakekreving: Boolean,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
-                        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                     )
                 }
 
@@ -807,11 +803,6 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.sendTilAttestering(request)
-                }
-
-                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering> {
-                    assertHarTilgangTilRevurdering(request.revurderingId)
-                    return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
                 }
 
                 override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {

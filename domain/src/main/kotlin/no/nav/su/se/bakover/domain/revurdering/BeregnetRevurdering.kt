@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -156,9 +155,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
 
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            clock: Clock,
             simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
-            skalUtsetteTilbakekreving: Boolean,
         ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
             return simuler(
                 beregning,
@@ -177,22 +174,6 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
             ).mapLeft {
                 it
             }.map {
-                val tilbakekrevingsbehandling = when (it.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
-                    true -> {
-                        IkkeAvgjort(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(clock),
-                            sakId = sakId,
-                            revurderingId = id,
-                            periode = periode,
-                        )
-                    }
-
-                    false -> {
-                        IkkeBehovForTilbakekrevingUnderBehandling
-                    }
-                }
-
                 SimulertRevurdering.Innvilget(
                     id = id,
                     periode = periode,
@@ -208,7 +189,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                    tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
                 )
@@ -240,28 +221,10 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
 
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            clock: Clock,
             simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-            skalUtsetteTilbakekreving: Boolean,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, tilbakekrevingsbehandling) = simuler(periode, saksbehandler)
+            val simulertUtbetaling = simuler(periode, saksbehandler)
                 .getOrElse { return it.left() }
-                .let { simulering ->
-                    Pair(
-                        simulering,
-                        when (simulering.simulering.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
-                            true -> IkkeAvgjort(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                sakId = sakId,
-                                revurderingId = id,
-                                periode = periode,
-                            )
-
-                            false -> IkkeBehovForTilbakekrevingUnderBehandling
-                        },
-                    )
-                }
             return SimulertRevurdering.Opphørt(
                 id = id,
                 periode = periode,
@@ -277,7 +240,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             ).right()

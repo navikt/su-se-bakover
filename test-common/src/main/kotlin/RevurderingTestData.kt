@@ -15,9 +15,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -242,10 +239,6 @@ fun beregnetRevurdering(
     }
 }
 
-/**
- * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
- * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
- */
 fun simulertRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -263,8 +256,6 @@ fun simulertRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
-    skalUtsetteTilbakekreving: Boolean = false,
-    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -279,10 +270,8 @@ fun simulertRevurdering(
     ).let { (sak, beregnet) ->
         val simulert = when (beregnet) {
             is BeregnetRevurdering.Innvilget -> {
-                val simulert = beregnet.simuler(
+                beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    clock = clock,
-                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,
@@ -294,18 +283,11 @@ fun simulertRevurdering(
                         }
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(
-                    revurdering = simulert,
-                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
-                    skalTilbakekreve = skalTilbakekreve,
-                )
             }
 
             is BeregnetRevurdering.Opphørt -> {
-                val simulert = beregnet.simuler(
+                beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    clock = clock,
-                    skalUtsetteTilbakekreving = false,
                     simuler = { periode, saksbehandler ->
                         simulerOpphør(
                             sak = sak,
@@ -317,11 +299,6 @@ fun simulertRevurdering(
                         )
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(
-                    revurdering = simulert,
-                    skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
-                    skalTilbakekreve = skalTilbakekreve,
-                )
             }
         }.leggTilBrevvalg(brevvalg)
 
@@ -329,10 +306,6 @@ fun simulertRevurdering(
     }
 }
 
-/**
- * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
- * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
- */
 fun revurderingTilAttestering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -350,8 +323,6 @@ fun revurderingTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
-    skalUtsetteTilbakekreving: Boolean = false,
-    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -365,8 +336,6 @@ fun revurderingTilAttestering(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
-        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -415,48 +384,7 @@ fun revurderingUnderkjent(
     }
 }
 
-private fun oppdaterTilbakekrevingsbehandling(
-    revurdering: SimulertRevurdering,
-    skalUtsetteTilbakekreving: Boolean,
-    skalTilbakekreve: Boolean,
-): SimulertRevurdering {
-    return when (revurdering.simulering.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
-        true -> {
-            when (skalTilbakekreve) {
-                true -> revurdering.oppdaterTilbakekrevingsbehandling(
-                    tilbakekrevingsbehandling = Tilbakekrev(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        sakId = revurdering.sakId,
-                        revurderingId = revurdering.id,
-                        periode = revurdering.periode,
-                    ),
-                )
-
-                false -> revurdering.oppdaterTilbakekrevingsbehandling(
-                    tilbakekrevingsbehandling = IkkeTilbakekrev(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        sakId = revurdering.sakId,
-                        revurderingId = revurdering.id,
-                        periode = revurdering.periode,
-                    ),
-                )
-            }
-        }
-
-        false -> {
-            revurdering.oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-            )
-        }
-    }
-}
-
 /**
- * @param skalUtsetteTilbakekreving Dersom denne er true, vil vi ignorere [skalTilbakekreve]
- * @param skalTilbakekreve Avgjør saksbehandlervurderingen om bruker forstod eller burde ha forstått (bruker eller NAVs skyld). Dersom [skalUtsetteTilbakekreving] er satt, ignoreres denne.
- *
  * @param kravgrunnlagPåSakHendelseId må sendes med dersom denne revurderingen persisteres.
  */
 fun iverksattRevurdering(
@@ -477,8 +405,6 @@ fun iverksattRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
-    skalUtsetteTilbakekreving: Boolean = false,
-    skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
     kravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
@@ -495,8 +421,6 @@ fun iverksattRevurdering(
         saksbehandler = saksbehandler,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
-        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, tilAttestering) ->
         sak.iverksettRevurdering(
             revurderingId = tilAttestering.id,
@@ -534,7 +458,7 @@ fun iverksattRevurdering(
                             it.map { if (it.id == oversendtUtbetaling.id) oversendtUtbetaling else it }
                         }
                     }.let { Utbetalinger(it) },
-                    uteståendeKravgrunnlag = if (response.vedtak.behandling.simulering?.harFeilutbetalinger() == true && skalUtsetteTilbakekreving) {
+                    uteståendeKravgrunnlag = if (response.vedtak.behandling.simulering?.harFeilutbetalinger() == true) {
                         genererKravgrunnlagFraSimulering(
                             saksnummer = response.sak.saksnummer,
                             simulering = response.vedtak.behandling.simulering!!,
@@ -581,7 +505,6 @@ fun vedtakRevurdering(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
-    skalUtsetteTilbakekreving: Boolean = false,
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -596,7 +519,6 @@ fun vedtakRevurdering(
         attestant = attestant,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
     ).let {
         it.first to it.fourth
     }

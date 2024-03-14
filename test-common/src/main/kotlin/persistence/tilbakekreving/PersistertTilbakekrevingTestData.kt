@@ -67,7 +67,6 @@ class PersistertTilbakekrevingTestData(
 
     /**
      * Oppretter en søknadsbehandling for 2021 og revurderer med 1000 kroner uføregrunnlag for hele perioden.
-     * Setter skalUtsetteTilbakekreving til true (dvs.) vi ikke gjør noen tilbakekrevingsbehandling i revurderinga.
      * Setter klokka fram i tid, hvis ikke vil ikke søknadsbehandlingene bli utbetalt.
      */
     fun persisterOpprettetTilbakekrevingsbehandlingHendelse(
@@ -82,7 +81,6 @@ class PersistertTilbakekrevingTestData(
         ),
     ): Tuple8<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse, KravgrunnlagDetaljerPåSakHendelse, OpprettetTilbakekrevingsbehandlingHendelse, OppgaveHendelse> {
         return testDataHelper.persisterIverksattRevurdering(
-            skalUtsetteTilbakekreving = true,
             stønadsperiode = stønadsperiode,
             revurderingsperiode = revurderingsperiode,
             vilkårOverrides = vilkårOverrides,
@@ -294,7 +292,6 @@ class PersistertTilbakekrevingTestData(
                 fourth = it.fourth,
                 fifth = it.fifth.let { hendelser ->
                     val (_, _, _, _, _, oppdatertKravgrunnlag: KravgrunnlagDetaljerPåSakHendelse?) = testDataHelper.persisterRevurderingIverksattOpphørt(
-                        skalUtsetteTilbakekreving = true,
                         sakOgVedtak = sak to it.fourth,
                         nesteKravgrunnlagVersjon = hendelser.last().versjon.inc(),
                         periode = revurderingsperiode,
