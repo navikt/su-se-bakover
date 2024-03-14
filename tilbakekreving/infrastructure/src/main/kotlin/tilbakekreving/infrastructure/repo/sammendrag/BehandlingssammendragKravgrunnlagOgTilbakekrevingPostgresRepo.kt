@@ -42,7 +42,9 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             val kravgrunnlagstatus = row.string("status").toKravgrunnlagStatus()
             val kravgrunnlagTidspunkt = row.tidspunktOrNull("statusTidspunkt") ?: row.tidspunkt("kravgrunnlagTidspunkt")
             val tilbakekrevingstidspunkt = row.tidspunktOrNull("tilbakekrevingstidspunkt")
+            val revurderingId = row.uuidOrNull("revurderingId")
             when {
+                revurderingId != null -> null
                 tilbakekrevingstype == null && kravgrunnlagstatus.erAvsluttet() -> null
                 tilbakekrevingstype != null && tilbakekrevingstype in avsluttetTilbakekrevingstyper -> null
                 tilbakekrevingstype == null && !kravgrunnlagstatus.erAvsluttet() -> Behandlingssammendrag(
@@ -126,6 +128,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     (h.data->'kravgrunnlag'->>'eksternTidspunkt')::timestamptz AS kravgrunnlagTidspunkt,
                     (h.data->'kravgrunnlag'->>'status') AS status,
                     (h.data->'kravgrunnlag'->>'eksternVedtakId') AS eksternVedtakId,
+                    (h.data->'kravgrunnlag'->>'revurderingId') AS revurderingId,
                     h.hendelseId,
                      (SELECT MIN((elements->>'fraOgMed')::date)
                      FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS fraOgMed,
@@ -227,6 +230,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     kravgrunnlag.kravgrunnlagTidspunkt,
                     kravgrunnlag.fraOgMed,
                     kravgrunnlag.tilOgMed,
+                    kravgrunnlag.revurderingId,
                     status.statusTidspunkt,
                     sth.tilbakekrevingstype,
                     sth.tilbakekrevingstidspunkt
@@ -247,6 +251,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     kravgrunnlag.kravgrunnlagTidspunkt,
                     kravgrunnlag.fraOgMed,
                     kravgrunnlag.tilOgMed,
+                    kravgrunnlag.revurderingId,
                     status.status,
                     status.statusTidspunkt,
                     sth.tilbakekrevingstype,
