@@ -42,7 +42,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             val kravgrunnlagstatus = row.string("status").toKravgrunnlagStatus()
             val kravgrunnlagTidspunkt = row.tidspunktOrNull("statusTidspunkt") ?: row.tidspunkt("kravgrunnlagTidspunkt")
             val tilbakekrevingstidspunkt = row.tidspunktOrNull("tilbakekrevingstidspunkt")
-            val revurderingId = row.uuidOrNull("revurderingId")
+            val revurderingId = row.stringOrNull("revurderingId")
             when {
                 revurderingId != null -> null
                 tilbakekrevingstype == null && kravgrunnlagstatus.erAvsluttet() -> null
@@ -83,7 +83,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             val kravgrunnlagstatus = row.string("status").toKravgrunnlagStatus()
             val kravgrunnlagTidspunkt = row.tidspunktOrNull("statusTidspunkt") ?: row.tidspunkt("kravgrunnlagTidspunkt")
             val tilbakekrevingstidspunkt = row.tidspunktOrNull("tilbakekrevingstidspunkt")
-            val revurderingId = row.uuidOrNull("revurderingId")
+            val revurderingId = row.stringOrNull("revurderingId")
             when {
                 // Dette vil være tilbakekreving under revurdering. De blir alltid iverksatt.
                 // TODO jah: Kan vi finne en ikke-null verdi for behandlingStartet?
