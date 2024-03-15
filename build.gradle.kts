@@ -74,7 +74,7 @@ subprojects {
         implementation("org.flywaydb:flyway-database-postgresql:10.9.1")
         implementation("com.zaxxer:HikariCP:5.1.0")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
-        implementation("org.postgresql:postgresql:42.7.2") {
+        implementation("org.postgresql:postgresql:42.7.3") {
             exclude("org.apache.commons", "commons-compress")
         }
         // Brukes av avro?
