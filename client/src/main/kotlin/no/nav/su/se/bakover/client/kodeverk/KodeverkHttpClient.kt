@@ -45,7 +45,7 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
             { json ->
                 Either.catch {
                     deserialize<KodeverkResponse>(json).betydninger.getOrDefault(value, emptyList())
-                        .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
+                        .map { it.beskrivelser.nb.term }.firstOrNull().right()
                 }.getOrElse {
                     log.error("Feil i deserialisering av kodeverksresponse. response body={}", json, it)
                     return CouldNotGetKode.left()
