@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
 sealed interface Reguleringstype {
@@ -9,27 +10,26 @@ sealed interface Reguleringstype {
     data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
 }
 
-fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
+fun GjeldendeVedtaksdata.utledReguleringstype(ignoreFradrag: List<Fradragstype>): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
 
-    if (this.grunnlagsdata.fradragsgrunnlag.any { it.fradrag.skalJusteresVedGEndring() }) {
-        problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
+    this.grunnlagsdata.fradragsgrunnlag.filterNot {
+        it.fradrag.fradragstype in ignoreFradrag
+    }.let {
+        if (it.any { it.fradrag.skalJusteresVedGEndring() }) {
+            problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
+        }
     }
 
     if (this.harStans()) {
         problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }
 
-    this.vilkårsvurderinger.uføreVilkår().fold(
-        {
-            TODO("vilkårsvurdering_alder implementer regulering for alder")
-        },
-        {
-            if (it.grunnlag.harForventetInntektStørreEnn0()) {
-                problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
-            }
-        },
-    )
+    this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
+        if (it.grunnlag.harForventetInntektStørreEnn0()) {
+            problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
+        }
+    }
 
     if (this.delerAvPeriodenErOpphør()) {
         problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)

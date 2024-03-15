@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock
 import java.util.UUID
@@ -101,6 +102,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
+    ignoredFradrag: List<Fradragstype> = emptyList(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -110,7 +112,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, ignoredFradrag).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -121,6 +123,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
+    ignoredFradrag: List<Fradragstype> = emptyList(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
@@ -129,6 +132,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
+        ignoredFradrag = ignoredFradrag,
     ).getOrFail()
 
     return Pair(
