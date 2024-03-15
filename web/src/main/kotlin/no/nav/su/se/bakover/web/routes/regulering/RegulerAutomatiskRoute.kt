@@ -6,14 +6,20 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.readAllParts
+import io.ktor.http.content.streamProvider
 import io.ktor.server.application.call
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -35,6 +41,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.service.regulering.CsvRow
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -222,6 +229,47 @@ internal fun Route.reguler(
                     ),
                 )
             }
+        }
+    }
+
+    data class SupplementBody(
+        val csv: String,
+    )
+
+    post("$REGULERING_PATH/supplement") {
+        authorize(Brukerrolle.Drift) {
+            val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
+
+            isMultipart.whenever(
+                isTrue = {
+                    runBlocking {
+                        val part = call.receiveMultipart().readAllParts().single() as PartData.FileItem
+                        val fileBytes = part.streamProvider().readBytes()
+                        val csvData = String(fileBytes)
+
+                        val csvRows = csvData.split("\r\n").map {
+                            val (fnr, fom, tom, type, beløp) = it.split(";")
+                            CsvRow(fnr, fom, tom, type, beløp)
+                        }
+
+                        println(csvRows)
+                        call.svar(Resultat.okJson())
+                    }
+                },
+                isFalse = {
+                    runBlocking {
+                        call.withBody<SupplementBody> {
+                            val csvRows = it.csv.split("\n").map {
+                                val (fnr, fom, tom, type, beløp) = it.split(";")
+                                CsvRow(fnr, fom, tom, type, beløp)
+                            }
+                            println(csvRows)
+                        }
+
+                        call.svar(Resultat.okJson())
+                    }
+                },
+            )
         }
     }
 }
