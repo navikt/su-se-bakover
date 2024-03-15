@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
@@ -100,7 +101,10 @@ class ReguleringServiceImpl(
         fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
-        supplement: Supplement = Supplement(emptyList()),
+        /**
+         * Inneholder data for alle sakene
+         */
+        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -112,12 +116,12 @@ class ReguleringServiceImpl(
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
 
-            val sakensSupplement = supplement.filter { it.fnr == sak.fnr }
+            val sakensSupplement = Reguleringssupplement(supplement.filter { it.fnr == sak.fnr })
 
             val regulering = sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                ignoredFradrag = sakensSupplement.map { it.type },
+                supplement = sakensSupplement,
             ).getOrElse { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
@@ -207,7 +211,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, emptyList()).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, Reguleringssupplement.empty()).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering

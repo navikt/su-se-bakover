@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
 sealed interface Reguleringstype {
@@ -10,11 +9,11 @@ sealed interface Reguleringstype {
     data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
 }
 
-fun GjeldendeVedtaksdata.utledReguleringstype(ignoreFradrag: List<Fradragstype>): Reguleringstype {
+fun GjeldendeVedtaksdata.utledReguleringstype(supplement: Reguleringssupplement): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
 
     this.grunnlagsdata.fradragsgrunnlag.filterNot {
-        it.fradrag.fradragstype in ignoreFradrag
+        it.fradrag.fradragstype in supplement.map { it.type }
     }.let {
         if (it.any { it.fradrag.skalJusteresVedGEndring() }) {
             problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)

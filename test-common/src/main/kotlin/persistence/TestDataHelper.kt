@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -174,7 +175,6 @@ import vedtak.domain.Stønadsvedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårAvslag
 import vilkår.skatt.domain.Skattedokument
 import vilkår.vurderinger.domain.EksterneGrunnlag
@@ -503,7 +503,7 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        ignoredFradrag: List<Fradragstype> = emptyList(),
+        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
@@ -519,7 +519,7 @@ class TestDataHelper(
             sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                ignoredFradrag = ignoredFradrag,
+                supplement = supplement,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

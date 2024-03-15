@@ -1,10 +1,20 @@
-package no.nav.su.se.bakover.service.regulering
+package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
 
-data class SupplementInnhold(
+data class Reguleringssupplement(
+    private val supplement: List<ReguleringssupplementInnhold>,
+) : List<ReguleringssupplementInnhold> by supplement {
+
+    companion object {
+        fun empty() = Reguleringssupplement(emptyList())
+        fun from(innhold: ReguleringssupplementInnhold) = Reguleringssupplement(listOf(innhold))
+    }
+}
+
+data class ReguleringssupplementInnhold(
     val fnr: Fnr,
     val fom: LocalDate,
     val tom: LocalDate,
@@ -19,7 +29,3 @@ data class SupplementInnhold(
     val type: Fradragstype,
     val beløp: Int,
 )
-
-data class Supplement(
-    val supplement: List<SupplementInnhold>,
-) : List<SupplementInnhold> by supplement

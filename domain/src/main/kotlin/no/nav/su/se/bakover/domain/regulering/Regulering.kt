@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.common.domain.Vurdering
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.erGyldigTilstand
 import java.time.Clock
 import java.util.UUID
@@ -42,7 +42,7 @@ sealed interface Regulering : Reguleringsfelter {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
-            ignoredFradrag: List<Fradragstype>,
+            supplement: Reguleringssupplement,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstype =
                 gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
@@ -58,23 +58,43 @@ sealed interface Regulering : Reguleringsfelter {
                         return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
                     },
                     {
-                        gjeldendeVedtaksdata.utledReguleringstype(ignoredFradrag)
+                        gjeldendeVedtaksdata.utledReguleringstype(supplement)
                     },
                 )
 
-            return OpprettetRegulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
-                fnr = fnr,
-                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-                beregning = null,
-                simulering = null,
-                reguleringstype = reguleringstype,
-                sakstype = sakstype,
-            ).right()
+            return (reguleringstype == Reguleringstype.AUTOMATISK).whenever(
+                isFalse = {
+                    OpprettetRegulering(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                        fnr = fnr,
+                        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+                        beregning = null,
+                        simulering = null,
+                        reguleringstype = reguleringstype,
+                        sakstype = sakstype,
+                    ).right()
+                },
+                isTrue = {
+                    // TODO - her må vi oppdatere grunnlagene med det som kommer inn fra supplementet
+                    OpprettetRegulering(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                        fnr = fnr,
+                        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+                        beregning = null,
+                        simulering = null,
+                        reguleringstype = reguleringstype,
+                        sakstype = sakstype,
+                    ).right()
+                },
+            )
         }
     }
 

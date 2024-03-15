@@ -6,7 +6,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -24,7 +26,8 @@ internal class OpprettEllerOppdaterReguleringKtTest {
     fun `oppretter regulering fra søknadsbehandlingsvedtak`() {
         // TODO jah: Dette bør feile siden stønaden ikke har endret seg.
         val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
-        sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock, emptyList()).shouldBeRight()
+        sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock, Reguleringssupplement.empty())
+            .shouldBeRight()
     }
 
     @Test
@@ -48,7 +51,19 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             )
             ).first
 
-        val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock, listOf(Fradragstype.Alderspensjon))
+        val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
+            mai(2020),
+            fixedClock,
+            Reguleringssupplement.from(
+                ReguleringssupplementInnhold(
+                    fnr = fnr,
+                    fom = fixedLocalDate,
+                    tom = fixedLocalDate,
+                    type = Fradragstype.Alderspensjon,
+                    beløp = 300,
+                ),
+            ),
+        )
         actual.getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
     }
 
@@ -56,14 +71,16 @@ internal class OpprettEllerOppdaterReguleringKtTest {
     fun `oppretter regulering fra revurdering`() {
         // TODO jah: Dette bør feile siden stønaden ikke har endret seg.
         val sakMedÅpenRevurdering = opprettetRevurdering().first
-        sakMedÅpenRevurdering.opprettEllerOppdaterRegulering(mai(2020), fixedClock, emptyList()).shouldBeRight()
+        sakMedÅpenRevurdering.opprettEllerOppdaterRegulering(mai(2020), fixedClock, Reguleringssupplement.empty())
+            .shouldBeRight()
     }
 
     @Test
     fun `kan ikke regulere sak uten vedtak`() {
         val sakMedÅpenSøknadsbehandling = nySøknadsbehandlingMedStønadsperiode().first
-        sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock, emptyList()).shouldBe(
-            Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left(),
-        )
+        sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock, Reguleringssupplement.empty())
+            .shouldBe(
+                Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left(),
+            )
     }
 }

@@ -41,9 +41,9 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementInnhold
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.service.regulering.Supplement
-import no.nav.su.se.bakover.service.regulering.SupplementInnhold
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -249,8 +249,8 @@ internal fun Route.reguler(
         val type: String,
         val beløp: String,
     ) {
-        fun toSupplementInnhold(): Either<String, SupplementInnhold> {
-            return SupplementInnhold(
+        fun toSupplementInnhold(): Either<String, ReguleringssupplementInnhold> {
+            return ReguleringssupplementInnhold(
                 fnr = Fnr.tryCreate(fnr) ?: return "Ugyldig fnr".left(),
                 fom = LocalDate.parse(fom) ?: return "Ugyldig fom".left(),
                 tom = LocalDate.parse(tom) ?: return "Ugyldig tom".left(),
@@ -265,12 +265,12 @@ internal fun Route.reguler(
         }
     }
 
-    fun List<SupplementInnholdAsCsv>.toSupplement(): Either<String, Supplement> {
+    fun List<SupplementInnholdAsCsv>.toSupplement(): Either<String, Reguleringssupplement> {
         this.map { it.toSupplementInnhold() }.separateEither().let {
             if (it.first.isNotEmpty()) {
                 return "Feil ved parsing av CSV".left()
             }
-            return Supplement(it.second).right()
+            return Reguleringssupplement(it.second).right()
         }
     }
 
@@ -279,6 +279,7 @@ internal fun Route.reguler(
             // at den er multipart vil si at frontend har sendt inn supplementet som en fil
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
 
+            // TODO - burde ikke blokke tråden. Heller gjøre den async.
             isMultipart.whenever(
                 isTrue = {
                     runBlocking {
