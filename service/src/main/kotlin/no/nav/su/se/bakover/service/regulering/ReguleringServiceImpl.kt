@@ -100,6 +100,7 @@ class ReguleringServiceImpl(
         fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
+        supplement: Supplement = Supplement(emptyList()),
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -111,9 +112,12 @@ class ReguleringServiceImpl(
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
 
+            val sakensSupplement = supplement.filter { it.fnr == sak.fnr }
+
             val regulering = sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
+                ignoredFradrag = sakensSupplement.map { it.type },
             ).getOrElse { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
@@ -203,7 +207,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, emptyList()).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering

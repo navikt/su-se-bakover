@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
@@ -20,6 +21,7 @@ private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 fun Sak.opprettEllerOppdaterRegulering(
     fraOgMedMåned: Måned,
     clock: Clock,
+    ignoredFradrag: List<Fradragstype>,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
@@ -61,6 +63,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
+        ignoredFradrag = ignoredFradrag,
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }

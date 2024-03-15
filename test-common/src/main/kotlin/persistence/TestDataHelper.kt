@@ -174,6 +174,7 @@ import vedtak.domain.Stønadsvedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårAvslag
 import vilkår.skatt.domain.Skattedokument
 import vilkår.vurderinger.domain.EksterneGrunnlag
@@ -502,6 +503,7 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
+        ignoredFradrag: List<Fradragstype> = emptyList(),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
@@ -517,6 +519,7 @@ class TestDataHelper(
             sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
+                ignoredFradrag = ignoredFradrag,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

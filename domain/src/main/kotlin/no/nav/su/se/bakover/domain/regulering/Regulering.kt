@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.common.domain.Vurdering
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.erGyldigTilstand
 import java.time.Clock
 import java.util.UUID
@@ -41,6 +42,7 @@ sealed interface Regulering : Reguleringsfelter {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
+            ignoredFradrag: List<Fradragstype>,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstype =
                 gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
@@ -56,7 +58,7 @@ sealed interface Regulering : Reguleringsfelter {
                         return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
                     },
                     {
-                        gjeldendeVedtaksdata.utledReguleringstype()
+                        gjeldendeVedtaksdata.utledReguleringstype(ignoredFradrag)
                     },
                 )
 
