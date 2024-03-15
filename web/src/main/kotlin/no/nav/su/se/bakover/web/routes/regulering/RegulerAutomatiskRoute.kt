@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -41,10 +42,12 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.service.regulering.CsvRow
+import no.nav.su.se.bakover.service.regulering.Supplement
+import no.nav.su.se.bakover.service.regulering.SupplementInnhold
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
@@ -232,12 +235,48 @@ internal fun Route.reguler(
         }
     }
 
+    /**
+     * Brukes dersom CSV sendes inn som text
+     */
     data class SupplementBody(
         val csv: String,
     )
 
+    data class SupplementInnholdAsCsv(
+        val fnr: String,
+        val fom: String,
+        val tom: String,
+        val type: String,
+        val beløp: String,
+    ) {
+        fun toSupplementInnhold(): Either<String, SupplementInnhold> {
+            return SupplementInnhold(
+                fnr = Fnr.tryCreate(fnr) ?: return "Ugyldig fnr".left(),
+                fom = LocalDate.parse(fom) ?: return "Ugyldig fom".left(),
+                tom = LocalDate.parse(tom) ?: return "Ugyldig tom".left(),
+                type = try {
+                    val kategori = Fradragstype.Kategori.valueOf(type)
+                    Fradragstype.from(kategori, null)
+                } catch (e: Exception) {
+                    return "Ugyldig type".left()
+                },
+                beløp = beløp.toInt(),
+            ).right()
+        }
+    }
+
+    fun List<SupplementInnholdAsCsv>.toSupplement(): Either<String, Supplement> {
+        this.map { it.toSupplementInnhold() }.separateEither().let {
+            if (it.first.isNotEmpty()) {
+                return "Feil ved parsing av CSV".left()
+            }
+            return Supplement(it.second).right()
+        }
+    }
+
     post("$REGULERING_PATH/supplement") {
         authorize(Brukerrolle.Drift) {
+            // at den er multipart vil si at frontend har sendt inn supplementet som en fil
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
 
             isMultipart.whenever(
@@ -247,26 +286,36 @@ internal fun Route.reguler(
                         val fileBytes = part.streamProvider().readBytes()
                         val csvData = String(fileBytes)
 
-                        val csvRows = csvData.split("\r\n").map {
+                        val supplement = csvData.split("\r\n").map {
                             val (fnr, fom, tom, type, beløp) = it.split(";")
-                            CsvRow(fnr, fom, tom, type, beløp)
+                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
                         }
 
-                        println(csvRows)
-                        call.svar(Resultat.okJson())
+                        supplement.toSupplement().fold(
+                            { call.svar(HttpStatusCode.BadRequest.errorJson(it, "feil_ved_varsing_av_csv")) },
+                            {
+                                // TODO - call service
+                                call.svar(Resultat.okJson())
+                            },
+                        )
                     }
                 },
                 isFalse = {
                     runBlocking {
                         call.withBody<SupplementBody> {
-                            val csvRows = it.csv.split("\n").map {
+                            val supplement = it.csv.split("\n").map {
                                 val (fnr, fom, tom, type, beløp) = it.split(";")
-                                CsvRow(fnr, fom, tom, type, beløp)
+                                SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
                             }
-                            println(csvRows)
-                        }
 
-                        call.svar(Resultat.okJson())
+                            supplement.toSupplement().fold(
+                                { call.svar(HttpStatusCode.BadRequest.errorJson(it, "feil_ved_varsing_av_csv")) },
+                                {
+                                    // TODO - call service
+                                    call.svar(Resultat.okJson())
+                                },
+                            )
+                        }
                     }
                 },
             )
@@ -275,9 +324,7 @@ internal fun Route.reguler(
 }
 
 private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
-    val (resultat, f) = this
-        .map { it.toFradrag() }
-        .separateEither()
+    val (resultat, f) = this.map { it.toFradrag() }.separateEither()
 
     if (resultat.isNotEmpty()) return resultat.first().left()
 
