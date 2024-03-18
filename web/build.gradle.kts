@@ -76,7 +76,7 @@ dependencies {
 
     testImplementation(project(":test-common"))
 
-    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.awaitility:awaitility:4.2.1")
 }
 
 // Pluginen burde sette opp dette selv, men den virker discontinued.
