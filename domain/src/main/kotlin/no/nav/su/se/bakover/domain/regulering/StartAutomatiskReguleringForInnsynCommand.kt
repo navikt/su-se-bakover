@@ -18,6 +18,7 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val fraOgMedMåned: Måned,
     val virkningstidspunkt: LocalDate,
     val ikrafttredelse: LocalDate = virkningstidspunkt,
+    val supplement: Reguleringssupplement,
     val grunnbeløp: Int? = null,
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,

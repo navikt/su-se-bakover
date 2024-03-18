@@ -74,6 +74,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -1127,6 +1128,7 @@ open class AccessCheckProxy(
             reguleringService = object : ReguleringService {
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
+                    supplement: Reguleringssupplement,
                 ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
                     return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned)
                 }
@@ -1157,12 +1159,14 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
+                    supplement: Reguleringssupplement,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,
                         fradrag,
                         saksbehandler,
+                        supplement,
                     )
                 }
             },
