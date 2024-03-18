@@ -7,6 +7,7 @@ import arrow.core.right
 import arrow.core.separateEither
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
 import io.ktor.http.content.readAllParts
 import io.ktor.http.content.streamProvider
 import io.ktor.server.application.call
@@ -16,7 +17,6 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.whenever
@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -42,12 +41,10 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementInnhold
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
@@ -94,6 +91,8 @@ internal fun Route.reguler(
                         uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        // TODO -
+                        supplement = Reguleringssupplement.empty(),
                     ).fold(
                         ifLeft = {
                             when (it) {
@@ -102,10 +101,7 @@ internal fun Route.reguler(
                                     "regulering_allerede_ferdigstilt",
                                 )
 
-                                KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
-                                    "Fant ikke regulering",
-                                    "fant_ikke_regulering",
-                                )
+                                KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
 
                                 KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson(
                                     "Beregning feilet",
@@ -162,10 +158,7 @@ internal fun Route.reguler(
                         ifLeft = { feilmelding ->
                             call.svar(
                                 when (feilmelding) {
-                                    KunneIkkeAvslutte.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
-                                        "Fant ikke regulering",
-                                        "fant_ikke_regulering",
-                                    )
+                                    KunneIkkeAvslutte.FantIkkeRegulering -> fantIkkeRegulering
 
                                     KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
                                         "Ugyldig tilstand på reguleringen",
@@ -185,92 +178,121 @@ internal fun Route.reguler(
 
     post("$REGULERING_PATH/automatisk/dry") {
         authorize(Brukerrolle.Drift) {
-            /**
-             * @param fraOgMedMåned Måned i formatet yyyy-MM
-             * @param virkningstidspunkt Dato i formatet yyyy-MM-dd, hvis null settes den til fraOgMedMåned
-             * @param ikrafttredelse Dato i formatet yyyy-MM-dd, hvis null settes den til virkningstidspunkt
-             * @param grunnbeløp Hvis null, bruker vi bare eksisterende verdier
-             * @param garantipensjonOrdinær Hvis null, bruker vi bare eksisterende verdier
-             * @param garantipensjonHøy Hvis null, bruker vi bare eksisterende verdier
-             */
-            data class Body(
-                val fraOgMedMåned: String,
-                val virkningstidspunkt: String?,
-                val ikrafttredelse: String?,
-                val grunnbeløp: Int? = null,
-                val garantipensjonOrdinær: Int? = null,
-                val garantipensjonHøy: Int? = null,
-            ) {
-                fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
-                    val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
-                    val parsedVirkningstidspunkt =
-                        virkningstidspunkt?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
-                    val parsedIkrafttredelse =
-                        ikrafttredelse?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
-                    return StartAutomatiskReguleringForInnsynCommand(
-                        fraOgMedMåned = parsedFraOgMedMåned,
-                        virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
-                        ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
-                        grunnbeløp = grunnbeløp,
-                        garantipensjonOrdinær = garantipensjonOrdinær,
-                        garantipensjonHøy = garantipensjonHøy,
-                    ).right()
-                }
-            }
-            call.withBody<Body> { body ->
-                call.svar(
-                    body.toCommand().fold(
-                        { it },
-                        {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                reguleringService.startAutomatiskReguleringForInnsyn(
-                                    command = it,
+            val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
+
+            isMultipart.whenever(
+                isTrue = {
+                    launch {
+                        val parts = call.receiveMultipart()
+                        var reguleringsdato: String = ""
+                        var gVerdi: String = ""
+                        var csvData: String = ""
+
+                        parts.forEachPart {
+                            when (it) {
+                                is PartData.FileItem -> {
+                                    val fileBytes = it.streamProvider().readBytes()
+                                    csvData = String(fileBytes)
+                                }
+
+                                is PartData.FormItem -> {
+                                    when (it.name) {
+                                        "reguleringsdato" -> reguleringsdato = it.value
+                                        "gVerdi" -> gVerdi = it.value
+                                        else -> HttpStatusCode.BadRequest.errorJson(
+                                            "Multipart inneholder ukjent formdata",
+                                            "ukjent_formdata",
+                                        )
+                                    }
+                                }
+
+                                else -> HttpStatusCode.BadRequest.errorJson(
+                                    "Multipart inneholder ukjent type. aksepterer kun filer og formdata",
+                                    "ukjent_multipart_type",
                                 )
                             }
-                            Resultat.okJson()
-                        },
-                    ),
-                )
-            }
-        }
-    }
+                        }
 
-    /**
-     * Brukes dersom CSV sendes inn som text
-     */
-    data class SupplementBody(
-        val csv: String,
-    )
+                        val mappedCSV = csvData.split("\r\n").map {
+                            val (fnr, fom, tom, type, beløp) = it.split(";")
+                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
+                        }
 
-    data class SupplementInnholdAsCsv(
-        val fnr: String,
-        val fom: String,
-        val tom: String,
-        val type: String,
-        val beløp: String,
-    ) {
-        fun toSupplementInnhold(): Either<String, ReguleringssupplementInnhold> {
-            return ReguleringssupplementInnhold(
-                fnr = Fnr.tryCreate(fnr) ?: return "Ugyldig fnr".left(),
-                fom = LocalDate.parse(fom) ?: return "Ugyldig fom".left(),
-                tom = LocalDate.parse(tom) ?: return "Ugyldig tom".left(),
-                type = try {
-                    val kategori = Fradragstype.Kategori.valueOf(type)
-                    Fradragstype.from(kategori, null)
-                } catch (e: Exception) {
-                    return "Ugyldig type".left()
+                        val gruppertSupplement = mappedCSV.groupBy { it.fnr }
+                        val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
+
+                        val supplement = Reguleringssupplement(reguleringssupplementInnhold)
+
+                        // TODO - call service
+                        // TODO - handle left cases ved parsing av supplement
+                        print(supplement)
+                        print(reguleringsdato)
+                        print(gVerdi)
+                        call.svar(Resultat.okJson())
+                    }
                 },
-                beløp = beløp.toInt(),
-            ).right()
-        }
-    }
+                isFalse = {
+                    launch {
+                        /**
+                         * @param fraOgMedMåned Måned i formatet yyyy-MM
+                         * @param virkningstidspunkt Dato i formatet yyyy-MM-dd, hvis null settes den til fraOgMedMåned
+                         * @param ikrafttredelse Dato i formatet yyyy-MM-dd, hvis null settes den til virkningstidspunkt
+                         * @param grunnbeløp Hvis null, bruker vi bare eksisterende verdier
+                         * @param garantipensjonOrdinær Hvis null, bruker vi bare eksisterende verdier
+                         * @param garantipensjonHøy Hvis null, bruker vi bare eksisterende verdier
+                         */
+                        data class Body(
+                            val fraOgMedMåned: String,
+                            val csv: String,
+                            val virkningstidspunkt: String?,
+                            val ikrafttredelse: String?,
+                            val grunnbeløp: Int? = null,
+                            val garantipensjonOrdinær: Int? = null,
+                            val garantipensjonHøy: Int? = null,
+                        ) {
+                            fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
+                                val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
+                                val parsedVirkningstidspunkt =
+                                    virkningstidspunkt?.let {
+                                        LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
+                                    }
+                                val parsedIkrafttredelse =
+                                    ikrafttredelse?.let {
+                                        LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
+                                    }
+                                return StartAutomatiskReguleringForInnsynCommand(
+                                    fraOgMedMåned = parsedFraOgMedMåned,
+                                    virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
+                                    ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
+                                    grunnbeløp = grunnbeløp,
+                                    garantipensjonOrdinær = garantipensjonOrdinær,
+                                    garantipensjonHøy = garantipensjonHøy,
+                                    supplement = Reguleringssupplement(
+                                        csv.split("\n").map {
+                                            val (fnr, fom, tom, type, beløp) = it.split(";")
+                                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
+                                        }.groupBy { it.fnr }.toReguleringssupplementInnhold(),
+                                    ),
+                                ).right()
+                            }
+                        }
 
-    fun List<SupplementInnholdAsCsv>.toSupplement(): Either<String, Reguleringssupplement> {
-        this.map { it.toSupplementInnhold() }.separateEither().let {
-            if (it.first.isNotEmpty()) {
-                return "Feil ved parsing av CSV".left()
-            }
-            return Reguleringssupplement(it.second).right()
+                        call.withBody<Body> { body ->
+                            call.svar(
+                                body.toCommand().fold(
+                                    { it },
+                                    {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            reguleringService.startAutomatiskReguleringForInnsyn(command = it)
+                                        }
+                                        Resultat.okJson()
+                                    },
+                                ),
+                            )
+                        }
+                    }
+                },
+            )
         }
     }
 
@@ -279,43 +301,44 @@ internal fun Route.reguler(
             // at den er multipart vil si at frontend har sendt inn supplementet som en fil
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
 
-            // TODO - burde ikke blokke tråden. Heller gjøre den async.
             isMultipart.whenever(
                 isTrue = {
-                    runBlocking {
+                    launch {
                         val part = call.receiveMultipart().readAllParts().single() as PartData.FileItem
                         val fileBytes = part.streamProvider().readBytes()
                         val csvData = String(fileBytes)
 
-                        val supplement = csvData.split("\r\n").map {
+                        val mappedCSV = csvData.split("\r\n").map {
                             val (fnr, fom, tom, type, beløp) = it.split(";")
                             SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
                         }
 
-                        supplement.toSupplement().fold(
-                            { call.svar(HttpStatusCode.BadRequest.errorJson(it, "feil_ved_varsing_av_csv")) },
-                            {
-                                // TODO - call service
-                                call.svar(Resultat.okJson())
-                            },
-                        )
+                        val gruppertSupplement = mappedCSV.groupBy { it.fnr }
+                        val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
+
+                        val supplement = Reguleringssupplement(reguleringssupplementInnhold)
+
+                        // TODO - call service
+                        println(supplement)
+                        call.svar(Resultat.okJson())
                     }
                 },
                 isFalse = {
-                    runBlocking {
+                    launch {
                         call.withBody<SupplementBody> {
-                            val supplement = it.csv.split("\n").map {
+                            val mappedCSV = it.csv.split("\n").map {
                                 val (fnr, fom, tom, type, beløp) = it.split(";")
                                 SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
                             }
 
-                            supplement.toSupplement().fold(
-                                { call.svar(HttpStatusCode.BadRequest.errorJson(it, "feil_ved_varsing_av_csv")) },
-                                {
-                                    // TODO - call service
-                                    call.svar(Resultat.okJson())
-                                },
-                            )
+                            val gruppertSupplement = mappedCSV.groupBy { it.fnr }
+                            val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
+
+                            val supplement = Reguleringssupplement(reguleringssupplementInnhold)
+
+                            // TODO - call service
+                            println(supplement)
+                            call.svar(Resultat.okJson())
                         }
                     }
                 },
@@ -357,3 +380,8 @@ private fun List<UføregrunnlagJson>.toDomain(clock: Clock): Either<Resultat, Li
         )
     }.right()
 }
+
+val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
+    "Fant ikke regulering",
+    "fant_ikke_regulering",
+)

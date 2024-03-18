@@ -20,6 +20,7 @@ private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 fun Sak.opprettEllerOppdaterRegulering(
     fraOgMedMåned: Måned,
     clock: Clock,
+    reguleringssupplementFor: ReguleringssupplementFor?,
     supplement: Reguleringssupplement,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
@@ -62,6 +63,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
+        reguleringssupplementFor = reguleringssupplementFor,
         supplement = supplement,
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes

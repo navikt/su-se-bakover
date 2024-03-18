@@ -42,6 +42,7 @@ sealed interface Regulering : Reguleringsfelter {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
+            reguleringssupplementFor: ReguleringssupplementFor?,
             supplement: Reguleringssupplement,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstype =
@@ -58,7 +59,7 @@ sealed interface Regulering : Reguleringsfelter {
                         return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
                     },
                     {
-                        gjeldendeVedtaksdata.utledReguleringstype(supplement)
+                        gjeldendeVedtaksdata.utledReguleringstype(reguleringssupplementFor, supplement)
                     },
                 )
 

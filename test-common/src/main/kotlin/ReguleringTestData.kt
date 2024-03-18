@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
@@ -102,6 +103,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
+    supplementFor: ReguleringssupplementFor? = null,
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -112,7 +114,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplementFor, supplement).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -123,6 +125,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
+    supplementFor: ReguleringssupplementFor? = null,
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -132,6 +135,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
+        reguleringssupplementFor = supplementFor,
         supplement = supplement,
     ).getOrFail()
 

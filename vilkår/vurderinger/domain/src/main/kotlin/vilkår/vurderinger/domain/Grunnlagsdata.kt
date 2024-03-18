@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOv
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMedDeretterTilOgMed
@@ -184,6 +185,17 @@ data class Grunnlagsdata private constructor(
         fradragsgrunnlag = fradragsgrunnlag.map { it.copyWithNewId() },
         bosituasjon = bosituasjon.map { it.copyWithNewId() as Bosituasjon.Fullstendig },
     )
+
+    /**
+     * Gir et Map fra måned til fødselsnummer for eps innenfor dette grunnlaget.
+     */
+    fun epsForMåned(): Map<Måned, Fnr> {
+        return this.bosituasjon.filter { it.eps != null }.map {
+            it.periode.måneder() to it.eps!!
+        }.flatMap {
+            it.first.map { i -> i to it.second }
+        }.toMap()
+    }
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {
