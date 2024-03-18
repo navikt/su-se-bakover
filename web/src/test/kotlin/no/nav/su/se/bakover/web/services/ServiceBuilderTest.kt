@@ -77,7 +77,6 @@ internal class ServiceBuilderTest {
                 kafkaPublisher = mock(),
                 klageClient = mock(),
                 queryJournalpostClient = mock(),
-                tilbakekrevingClient = mock(),
                 skatteOppslag = mock(),
             ),
             behandlingMetrics = mock(),

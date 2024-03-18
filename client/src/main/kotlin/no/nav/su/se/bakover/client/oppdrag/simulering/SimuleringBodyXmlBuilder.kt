@@ -5,7 +5,6 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import økonomi.domain.utbetaling.Utbetaling
 
 internal fun buildXmlRequestBody(
@@ -20,9 +19,7 @@ internal fun buildXmlRequestBody(
 /**
  * https://confluence.adeo.no/display/OKSY/Inputdata+fra+fagrutinen+til+Oppdragssystemet
  *
- * Effekt av å sette
- * [SimulerBeregningRequest.SimuleringsPeriode.datoSimulerFom]
- * [SimulerBeregningRequest.SimuleringsPeriode.datoSimulerTom]
+ * Effekt av å sette datoSimulerFom og datoSimulerTom:
  *
  * Ingen satt:
  *  For nye (ikke utbetalt) perioder:

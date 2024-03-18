@@ -106,17 +106,13 @@ subprojects {
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.1")
         testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-        // Embedded database brukes av modulene: web og database
         testImplementation(
-            // select version() i preprod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
-            // select version() i prod 2023-11-02 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
-            // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
         )
         testImplementation("io.zonky.test:embedded-postgres:2.0.6") {
             exclude("org.apache.commons", "commons-compress")
         }
-        // Legger til manglende binaries for nye Mac's med M1 cpuer.
+        // Legger til manglende binaries for nye Mac's med M1 cpuer. (denne arver versjonen til embedded-postgres-binaries-bom)
         testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8") {
             exclude("org.apache.commons", "commons-compress")
         }
@@ -128,55 +124,12 @@ subprojects {
         }
 
         constraints {
-            implementation("org.xerial.snappy:snappy-java") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/12 https://github.com/advisories/GHSA-55g7-9cwv-5qfv")
-                version {
-                    require("1.1.10.4")
-                }
-            }
-            implementation("org.eclipse.jgit:org.eclipse.jgit") {
-                because("Affected <= 6.6.0.202305301015-r https://github.com/navikt/su-se-bakover/security/dependabot/11 https://github.com/advisories/GHSA-3p86-9955-h393")
-                version {
-                    require("6.7.0.202309050840-r")
-                }
-            }
-            implementation("io.netty:netty-handler") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/3 https://github.com/advisories/GHSA-6mjq-h674-j845")
-                version {
-                    require("4.1.98.Final")
-                }
-            }
             implementation("com.google.guava:guava") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/2 https://github.com/advisories/GHSA-7g45-4rm6-3mm3 https://github.com/navikt/su-se-bakover/security/dependabot/7 https://github.com/advisories/GHSA-5mg8-w23w-74h3")
                 version {
                     require("32.1.2-jre")
                 }
             }
-            implementation("com.google.j2objc:j2objc-annotations") {
-                because("Required by: com.google.guava:guava:32.1.2-jre")
-                version {
-                    require("2.8")
-                }
-            }
-            implementation("org.apache.santuario:xmlsec") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/17 https://github.com/advisories/GHSA-xfrj-6vvc-3xm2")
-                version {
-                    require("2.3.4")
-                }
-            }
-            implementation("com.squareup.okio:okio") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/19 https://github.com/advisories/GHSA-w33c-445m-f8w7")
-                version {
-                    require("3.4.0")
-                }
-            }
-            implementation("com.squareup.okio:okio-jvm") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/20 https://github.com/advisories/GHSA-w33c-445m-f8w7")
-                version {
-                    require("3.4.0")
-                }
-            }
-
         }
     }
 

@@ -10,13 +10,13 @@ class AssertXmlEqualsKtTest {
 
     @Test
     fun `gir ut en forståelig feilmelding, dersom daten i XML'en ikke er lik`() {
-        val xml1 = """
+        val expected = """
             <person>
                 <navn>Per</navn>
                 <alder>30</alder>
             </person>
         """.trimIndent()
-        val xml2 = """
+        val actual = """
             <person>
                 <navn>Per</navn>
                 <alder>31</alder>
@@ -24,22 +24,22 @@ class AssertXmlEqualsKtTest {
         """.trimIndent()
 
         assertThrows(AssertionError::class.java) {
-            xml2 shouldBeSimilarXmlTo xml1
+            actual shouldBeSimilarXmlTo expected
         }.message shouldBe """
             Expected XMLs to be similar, but found differences:
-            Expected text value '31' but was '30' - comparing <alder ...>31</alder> at /person[1]/alder[1]/text()[1] to <alder ...>30</alder> at /person[1]/alder[1]/text()[1] (DIFFERENT)
+            Expected text value '30' but was '31' - comparing <alder ...>30</alder> at /person[1]/alder[1]/text()[1] to <alder ...>31</alder> at /person[1]/alder[1]/text()[1] (DIFFERENT)
         """.trimIndent()
     }
 
     @Test
     fun `gir ut en forståelig feilmelding, dersom strukturen i XML'en ikke er lik`() {
-        val xml1 = """
+        val expected = """
             <person>
                 <navn>Per</navn>
                 <alder>30</alder>
             </person>
         """.trimIndent()
-        val xml2 = """
+        val actual = """
             <person>
                 <alder>30</alder>
                 <navn>Per</navn>
@@ -47,10 +47,10 @@ class AssertXmlEqualsKtTest {
         """.trimIndent()
 
         assertThrows(AssertionError::class.java) {
-            xml2 shouldBeSimilarXmlTo xml1
+            actual shouldBeSimilarXmlTo expected
         }.message shouldBe """
             Expected XMLs to be similar, but found differences:
-            Expected element tag name 'alder' but was 'navn' - comparing <alder...> at /person[1]/alder[1] to <navn...> at /person[1]/navn[1] (DIFFERENT)
+            Expected element tag name 'navn' but was 'alder' - comparing <navn...> at /person[1]/navn[1] to <alder...> at /person[1]/alder[1] (DIFFERENT)
         """.trimIndent()
     }
 

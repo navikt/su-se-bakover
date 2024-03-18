@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import person.domain.IdentClient
 import person.domain.PersonOppslag
@@ -46,7 +45,6 @@ data class Clients(
     val kafkaPublisher: KafkaPublisher,
     val klageClient: KlageClient,
     val queryJournalpostClient: QueryJournalpostClient,
-    val tilbakekrevingClient: TilbakekrevingClient,
     val skatteOppslag: Skatteoppslag,
 )
 

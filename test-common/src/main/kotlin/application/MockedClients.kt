@@ -32,6 +32,5 @@ fun mockedClients() = Clients(
     kafkaPublisher = mock(),
     klageClient = mock(),
     queryJournalpostClient = mock(),
-    tilbakekrevingClient = mock(),
     skatteOppslag = mock(),
 )

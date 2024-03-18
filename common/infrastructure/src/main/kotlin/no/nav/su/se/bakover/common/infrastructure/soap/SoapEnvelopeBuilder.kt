@@ -1,8 +1,8 @@
 @file:Suppress("HttpUrlsUsage")
 
-package no.nav.su.se.bakover.client.oppdrag.simulering
+package no.nav.su.se.bakover.common.infrastructure.soap
 
-internal fun buildXmlRequestSoapEnvelope(
+fun buildSoapEnvelope(
     action: String,
     messageId: String,
     serviceUrl: String,

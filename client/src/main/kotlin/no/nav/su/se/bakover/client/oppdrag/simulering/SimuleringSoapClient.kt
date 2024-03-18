@@ -7,6 +7,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
+import no.nav.su.se.bakover.common.infrastructure.soap.buildSoapEnvelope
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
@@ -52,7 +53,7 @@ internal class SimuleringSoapClient(
             sikkerLogg.error("Feil ved simulering: Kunne ikke hente SAML-token for saksnummer: $saksnummer. soapBody: $soapBody")
             return SimuleringFeilet.TekniskFeil.left()
         }.toString()
-        val soapRequest = buildXmlRequestSoapEnvelope(
+        val soapRequest = buildSoapEnvelope(
             action = ACTION,
             messageId = UUID.randomUUID().toString(),
             serviceUrl = baseUrl,

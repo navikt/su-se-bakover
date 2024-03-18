@@ -1,6 +1,6 @@
 package tilbakekreving.infrastructure.client
 
-import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
+import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import java.time.Clock
 
@@ -9,14 +9,14 @@ class TilbakekrevingClients(
 ) {
     companion object {
         fun create(
-            tilbakekrevingConfig: TilbakekrevingConfig,
+            baseUrl: String,
+            samlTokenProvider: SamlTokenProvider,
             clock: Clock,
         ): TilbakekrevingClients {
             return TilbakekrevingClients(
                 tilbakekrevingsklient = TilbakekrevingSoapClient(
-                    tilbakekrevingPortType = TilbakekrevingSoapClientConfig(
-                        tilbakekrevingConfig = tilbakekrevingConfig,
-                    ).tilbakekrevingSoapService(),
+                    baseUrl = baseUrl,
+                    samlTokenProvider = samlTokenProvider,
                     clock = clock,
                 ),
             )

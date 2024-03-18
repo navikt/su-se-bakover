@@ -29,10 +29,6 @@ internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId:
         }
 }
 
-internal fun AppComponents.sendTilbakekrevingsvedtakTilØkonomi() {
-    services.tilbakekrevingUnderRevurderingService.sendUteståendeTilbakekrevingsvedtak()
-}
-
 internal fun lagUtbetalingsKvittering(utbetalingsrequest: Utbetalingsrequest): String {
     val request = UtbetalingKvitteringConsumer.xmlMapper.readValue<UtbetalingRequest>(utbetalingsrequest.value)
     val kvittering = UtbetalingKvitteringResponse.Mmel(

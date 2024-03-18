@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientConfig
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -23,8 +21,8 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
-import no.nav.su.se.bakover.client.sts.StsSamlClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
+import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
@@ -38,6 +36,7 @@ data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
     private val metrics: ClientMetrics,
+    private val samlTokenProvider: SamlTokenProvider,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -117,11 +116,7 @@ data class ProdClientsBuilder(
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 baseUrl = applicationConfig.oppdrag.simulering.url,
-                samlTokenProvider = StsSamlClient(
-                    baseUrl = applicationConfig.clientsConfig.stsSamlUrl,
-                    serviceUser = serviceUser,
-                    clock = clock,
-                ),
+                samlTokenProvider = samlTokenProvider,
                 clock = clock,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
@@ -150,15 +145,6 @@ data class ProdClientsBuilder(
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,
             queryJournalpostClient = journalpostClient,
-            tilbakekrevingClient = TilbakekrevingUnderRevurderingSoapClient(
-                tilbakekrevingPortType = TilbakekrevingUnderRevurderingSoapClientConfig(
-                    tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,
-                    stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
-                    disableCNCheck = true,
-                    serviceUser = serviceUser,
-                ).tilbakekrevingSoapService(),
-                clock = clock,
-            ),
             skatteOppslag = SkatteClient(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
                 azureAd = oAuth,

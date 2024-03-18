@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.client.ClientMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.client.sts.StsSamlClient
+import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
@@ -91,6 +93,11 @@ fun Application.susebakover(
         råttKravgrunnlagMapper = mapRåttKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
+    samlTokenProvider: SamlTokenProvider = StsSamlClient(
+        baseUrl = applicationConfig.clientsConfig.stsSamlUrl,
+        serviceUser = applicationConfig.serviceUser,
+        clock = clock,
+    ),
     clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
         StubClientsBuilder(
             clock = clock,
@@ -101,6 +108,7 @@ fun Application.susebakover(
             jmsConfig,
             clock = clock,
             metrics = clientMetrics,
+            samlTokenProvider = samlTokenProvider,
         ).build(applicationConfig)
     },
     services: Services = run {
@@ -146,6 +154,7 @@ fun Application.susebakover(
             brevService = brevService,
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
+            samlTokenProvider = samlTokenProvider,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {

@@ -497,3 +497,25 @@ fun nyVurderinger(
         ),
     ),
 ): Vurderinger = Vurderinger(perioderVurderinger)
+
+/**
+ * @param perioderVurderinger ignoreres dersom [vurderinger] sendes inn.
+ */
+fun vurderingerMedKrav(
+    perioderVurderinger: Nel<Vurderinger.Periodevurdering> = nonEmptyListOf(
+        Vurderinger.Periodevurdering(
+            periode = januar(2021),
+            vurdering = Vurdering.SkalTilbakekreve,
+        ),
+    ),
+    vurderinger: Vurderinger = nyVurderinger(perioderVurderinger = perioderVurderinger),
+    kravgrunnlag: Kravgrunnlag = kravgrunnlag(
+        kravgrunnlagPåSakHendelseId = HendelseId.generer(),
+        behandler = saksbehandler.toString(),
+    ),
+): VurderingerMedKrav {
+    return VurderingerMedKrav.utledFra(
+        vurderinger = vurderinger,
+        kravgrunnlag = kravgrunnlag,
+    ).getOrFail()
+}
