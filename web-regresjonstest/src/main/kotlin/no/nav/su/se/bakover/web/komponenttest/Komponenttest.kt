@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHen
 import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
+import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -137,6 +138,7 @@ internal fun withKomptestApplication(
             brevService = services.brev,
             tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
             dbMetrics = dbMetricsStub,
+            samlTokenProvider = FakeSamlTokenProvider(),
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->
