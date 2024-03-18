@@ -233,7 +233,6 @@ class ReguleringServiceImpl(
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        supplement: Reguleringssupplement,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
@@ -247,8 +246,6 @@ class ReguleringServiceImpl(
         )
             .getOrElse { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
-        val supplementForBruker = supplement.getFor(sak.fnr)
-
         if (gjeldendeVedtaksdata.harStans()) {
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
@@ -257,7 +254,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, supplementForBruker, supplement).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, null, Reguleringssupplement.empty()).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering
