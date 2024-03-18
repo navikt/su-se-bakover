@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -305,7 +304,6 @@ internal class ReguleringServiceImplTest {
                 uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
                 fradrag = listOf(offentligPensjonGrunnlag(5000.0, periodeMaiDes)),
                 saksbehandler = saksbehandler,
-                Reguleringssupplement.empty(),
             ).getOrFail()
 
             iverksattRegulering.beregning.getFradrag() shouldBe listOf(
@@ -341,7 +339,6 @@ internal class ReguleringServiceImplTest {
                 uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
                 fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
                 saksbehandler = saksbehandler,
-                Reguleringssupplement.empty(),
             ) shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 

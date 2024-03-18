@@ -67,6 +67,5 @@ interface ReguleringService {
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        supplement: Reguleringssupplement,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 }

@@ -1161,14 +1161,12 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    supplement: Reguleringssupplement,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,
                         fradrag,
                         saksbehandler,
-                        supplement,
                     )
                 }
             },

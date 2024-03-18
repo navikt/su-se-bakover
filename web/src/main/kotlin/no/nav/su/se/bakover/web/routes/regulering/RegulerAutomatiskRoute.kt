@@ -8,7 +8,6 @@ import arrow.core.separateEither
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
-import io.ktor.http.content.readAllParts
 import io.ktor.http.content.streamProvider
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
@@ -17,6 +16,7 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.whenever
@@ -40,15 +40,12 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 // TODO - filnavnet er automatisk. vi har manuell route her inne også
@@ -91,8 +88,6 @@ internal fun Route.reguler(
                         uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        // TODO -
-                        supplement = Reguleringssupplement.empty(),
                     ).fold(
                         ifLeft = {
                             when (it) {
@@ -182,11 +177,11 @@ internal fun Route.reguler(
 
             isMultipart.whenever(
                 isTrue = {
-                    launch {
+                    runBlocking {
                         val parts = call.receiveMultipart()
-                        var reguleringsdato: String = ""
-                        var gVerdi: String = ""
-                        var csvData: String = ""
+                        var reguleringsdato = ""
+                        var gVerdi = ""
+                        var csvData = ""
 
                         parts.forEachPart {
                             when (it) {
@@ -213,81 +208,30 @@ internal fun Route.reguler(
                             }
                         }
 
-                        val mappedCSV = csvData.split("\r\n").map {
-                            val (fnr, fom, tom, type, beløp) = it.split(";")
-                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
-                        }
-
-                        val gruppertSupplement = mappedCSV.groupBy { it.fnr }
-                        val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
-
-                        val supplement = Reguleringssupplement(reguleringssupplementInnhold)
-
-                        // TODO - call service
-                        // TODO - handle left cases ved parsing av supplement
-                        print(supplement)
-                        print(reguleringsdato)
-                        print(gVerdi)
-                        call.svar(Resultat.okJson())
+                        parseCSVFromFile(csvData).fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                launch {
+                                    println(reguleringsdato)
+                                    println(gVerdi)
+                                    TODO("call service")
+                                }
+                                call.svar(Resultat.okJson())
+                            },
+                        )
                     }
                 },
                 isFalse = {
-                    launch {
-                        /**
-                         * @param fraOgMedMåned Måned i formatet yyyy-MM
-                         * @param virkningstidspunkt Dato i formatet yyyy-MM-dd, hvis null settes den til fraOgMedMåned
-                         * @param ikrafttredelse Dato i formatet yyyy-MM-dd, hvis null settes den til virkningstidspunkt
-                         * @param grunnbeløp Hvis null, bruker vi bare eksisterende verdier
-                         * @param garantipensjonOrdinær Hvis null, bruker vi bare eksisterende verdier
-                         * @param garantipensjonHøy Hvis null, bruker vi bare eksisterende verdier
-                         */
-                        data class Body(
-                            val fraOgMedMåned: String,
-                            val csv: String,
-                            val virkningstidspunkt: String?,
-                            val ikrafttredelse: String?,
-                            val grunnbeløp: Int? = null,
-                            val garantipensjonOrdinær: Int? = null,
-                            val garantipensjonHøy: Int? = null,
-                        ) {
-                            fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
-                                val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
-                                val parsedVirkningstidspunkt =
-                                    virkningstidspunkt?.let {
-                                        LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
+                    runBlocking {
+                        call.withBody<DryRunReguleringBody> { body ->
+                            body.toCommand().fold(
+                                ifLeft = { call.svar(it) },
+                                ifRight = {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        reguleringService.startAutomatiskReguleringForInnsyn(command = it)
                                     }
-                                val parsedIkrafttredelse =
-                                    ikrafttredelse?.let {
-                                        LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
-                                    }
-                                return StartAutomatiskReguleringForInnsynCommand(
-                                    fraOgMedMåned = parsedFraOgMedMåned,
-                                    virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
-                                    ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
-                                    grunnbeløp = grunnbeløp,
-                                    garantipensjonOrdinær = garantipensjonOrdinær,
-                                    garantipensjonHøy = garantipensjonHøy,
-                                    supplement = Reguleringssupplement(
-                                        csv.split("\n").map {
-                                            val (fnr, fom, tom, type, beløp) = it.split(";")
-                                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
-                                        }.groupBy { it.fnr }.toReguleringssupplementInnhold(),
-                                    ),
-                                ).right()
-                            }
-                        }
-
-                        call.withBody<Body> { body ->
-                            call.svar(
-                                body.toCommand().fold(
-                                    { it },
-                                    {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            reguleringService.startAutomatiskReguleringForInnsyn(command = it)
-                                        }
-                                        Resultat.okJson()
-                                    },
-                                ),
+                                    Resultat.okJson()
+                                },
                             )
                         }
                     }
@@ -303,42 +247,32 @@ internal fun Route.reguler(
 
             isMultipart.whenever(
                 isTrue = {
-                    launch {
-                        val part = call.receiveMultipart().readAllParts().single() as PartData.FileItem
-                        val fileBytes = part.streamProvider().readBytes()
-                        val csvData = String(fileBytes)
-
-                        val mappedCSV = csvData.split("\r\n").map {
-                            val (fnr, fom, tom, type, beløp) = it.split(";")
-                            SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
+                    runBlocking {
+                        call.withBody<SupplementBody> {
+                            parseCSVFromFile(it.csv).fold(
+                                ifLeft = { call.svar(it) },
+                                ifRight = {
+                                    launch {
+                                        TODO("call service")
+                                    }
+                                    call.svar(Resultat.okJson())
+                                },
+                            )
                         }
-
-                        val gruppertSupplement = mappedCSV.groupBy { it.fnr }
-                        val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
-
-                        val supplement = Reguleringssupplement(reguleringssupplementInnhold)
-
-                        // TODO - call service
-                        println(supplement)
-                        call.svar(Resultat.okJson())
                     }
                 },
                 isFalse = {
-                    launch {
+                    runBlocking {
                         call.withBody<SupplementBody> {
-                            val mappedCSV = it.csv.split("\n").map {
-                                val (fnr, fom, tom, type, beløp) = it.split(";")
-                                SupplementInnholdAsCsv(fnr, fom, tom, type, beløp)
-                            }
-
-                            val gruppertSupplement = mappedCSV.groupBy { it.fnr }
-                            val reguleringssupplementInnhold = gruppertSupplement.toReguleringssupplementInnhold()
-
-                            val supplement = Reguleringssupplement(reguleringssupplementInnhold)
-
-                            // TODO - call service
-                            println(supplement)
-                            call.svar(Resultat.okJson())
+                            parseCSVFromText(it.csv).fold(
+                                ifLeft = { call.svar(it) },
+                                ifRight = {
+                                    launch {
+                                        TODO("call service")
+                                    }
+                                    call.svar(Resultat.okJson())
+                                },
+                            )
                         }
                     }
                 },
