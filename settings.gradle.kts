@@ -8,7 +8,10 @@ rootProject.name = "su-se-bakover"
 
 include("application")
 include("behandling:domain")
+include("behandling:klage:application")
 include("behandling:klage:domain")
+include("behandling:klage:infrastructure")
+include("behandling:klage:presentation")
 include("behandling:regulering:application")
 include("behandling:regulering:domain")
 include("behandling:regulering:infrastructure")
