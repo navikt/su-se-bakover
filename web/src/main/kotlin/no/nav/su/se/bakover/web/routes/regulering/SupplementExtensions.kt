@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementInnhold
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
 
@@ -33,28 +32,21 @@ fun Map<String, List<SupplementInnholdAsCsv>>.toReguleringssupplementInnhold(): 
                     "feil_ved_parsing_av_fradragstype",
                 ).left()
             }
-            ReguleringssupplementInnhold.PerType(
+            ReguleringssupplementFor.PerType(
                 fradragsperiode = csv.map { csvInnslag ->
-                    ReguleringssupplementInnhold.Fradragsperiode(
+                    ReguleringssupplementFor.PerType.Fradragsperiode(
                         periode = Periode.create(
                             fraOgMed = LocalDate.parse(csvInnslag.fom),
                             tilOgMed = LocalDate.parse(csvInnslag.tom),
                         ),
-                        type = type,
                         beløp = csvInnslag.beløp.toInt(),
                     )
                 }.toNonEmptyList(),
                 type = type,
             )
-        }
+        }.toNonEmptyList()
 
-        val fradragPerTypeGruppert = alleFradragPerType.groupBy { it.type }
-
-        val alleInnhold = fradragPerTypeGruppert.values.map {
-            ReguleringssupplementInnhold(fnr = fnr, perType = it.toNonEmptyList())
-        }
-
-        ReguleringssupplementFor(fnr = fnr, innhold = alleInnhold)
+        ReguleringssupplementFor(fnr = fnr, perType = alleFradragPerType)
     }.right()
 }
 

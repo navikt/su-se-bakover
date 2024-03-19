@@ -13,12 +13,12 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementInnhold
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
@@ -44,6 +44,7 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
+    eksternSupplementRegulering: EksternSupplementRegulering = nyEksternSupplementRegulering(),
 ) = OpprettetRegulering(
     // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
@@ -58,6 +59,7 @@ fun opprettetRegulering(
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
     sakstype = sakstype,
+    eksternSupplementRegulering = eksternSupplementRegulering,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -106,7 +108,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    supplementFor: ReguleringssupplementFor? = null,
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -117,7 +118,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplementFor, supplement).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -128,7 +129,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    supplementFor: ReguleringssupplementFor? = null,
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -138,7 +138,6 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        reguleringssupplementFor = supplementFor,
         supplement = supplement,
     ).getOrFail()
 
@@ -207,36 +206,34 @@ fun nyReguleringssupplement(
     vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
 ): Reguleringssupplement = Reguleringssupplement(supplement = supplementFor.toList())
 
-fun nyReguleringssupplementFor(
-    fnr: Fnr = Fnr.generer(),
-    vararg innhold: ReguleringssupplementInnhold = arrayOf(nyReguleringssupplementInnhold()),
-): ReguleringssupplementFor = ReguleringssupplementFor(
-    fnr = fnr,
-    innhold = innhold.toList().toNonEmptyList(),
+fun nyEksternSupplementRegulering(
+    bruker: ReguleringssupplementFor? = null,
+    eps: List<ReguleringssupplementFor> = emptyList(),
+): EksternSupplementRegulering = EksternSupplementRegulering(
+    bruker = bruker,
+    eps = eps,
 )
 
-fun nyReguleringssupplementInnhold(
+fun nyReguleringssupplementFor(
     fnr: Fnr = Fnr.generer(),
-    vararg perType: ReguleringssupplementInnhold.PerType = arrayOf(nyReguleringssupplementInnholdPerType(Fradragstype.Alderspensjon)),
-): ReguleringssupplementInnhold = ReguleringssupplementInnhold(
+    vararg innhold: ReguleringssupplementFor.PerType = arrayOf(nyReguleringssupplementInnholdPerType()),
+): ReguleringssupplementFor = ReguleringssupplementFor(
     fnr = fnr,
-    perType = perType.toList().toNonEmptyList(),
+    perType = innhold.toList().toNonEmptyList(),
 )
 
 fun nyReguleringssupplementInnholdPerType(
     type: Fradragstype = Fradragstype.Alderspensjon,
-    vararg fradragsperiode: ReguleringssupplementInnhold.Fradragsperiode = arrayOf(nyFradragperiode()),
-): ReguleringssupplementInnhold.PerType = ReguleringssupplementInnhold.PerType(
+    vararg fradragsperiode: ReguleringssupplementFor.PerType.Fradragsperiode = arrayOf(nyFradragperiode()),
+): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
     fradragsperiode = fradragsperiode.toList().toNonEmptyList(),
     type = type,
 )
 
 fun nyFradragperiode(
     periode: Periode = stønadsperiode2021.periode,
-    type: Fradragstype = Fradragstype.Alderspensjon,
     beløp: Int = 1000,
-): ReguleringssupplementInnhold.Fradragsperiode = ReguleringssupplementInnhold.Fradragsperiode(
+): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
     periode = periode,
-    type = type,
     beløp = beløp,
 )

@@ -10,7 +10,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 /**
  * Et reguleringssupplement er data som mottas fra en ekstern kilde, for eksempel PESYS, som brukes for å justere
- * på utbetalingen.
+ * på utbetalingen. Denne vil være delt opp i en [ReguleringssupplementFor] per person (kan være både brukere og EPS).
  */
 data class Reguleringssupplement(
     private val supplement: List<ReguleringssupplementFor>,
@@ -23,15 +23,51 @@ data class Reguleringssupplement(
     }
 }
 
+/**
+ * Lager et objekt per person (kan være både brukere og EPS), uavhengig av hvor mange kilder vi bruker.
+ */
 data class ReguleringssupplementFor(
     val fnr: Fnr,
-    val innhold: List<ReguleringssupplementInnhold>,
+    val perType: NonEmptyList<PerType>,
 ) {
     init {
-        require(innhold.all { it.fnr == fnr })
+        perType.map { it.type }.let {
+            require(it.distinct() == it)
+        }
     }
 
-    val fradagstyper = innhold.map { it.type }
+    val fradagstyper = perType.map { it.type }
+    val perioder: NonEmptyList<Periode> = perType.flatMap { it.perioder }
+
+    /**
+     * Innenfor en person, har vi et objekt per fradragstype, men vi støtter flere ikke-overlappende perioder, dvs. hull mellom periodene.
+     * Dersom vi senere må ta høyde for overlapp av perioder, i forbindelse med overskrivende vedtak, trenger vi en diskriminator og tidslinjelogikk.
+     */
+    data class PerType(
+        val fradragsperiode: NonEmptyList<Fradragsperiode>,
+        /**
+         * TODO - per i dag, så henter vi bare fradragene som er i Pesys. Disse er bare et subset av Fradragstypene
+         * - Alderspensjon
+         * - AvtalefestetPensjon
+         * - AvtalefestetPensjonPrivat
+         * - Gjenlevendepensjon
+         * - Uføretrygd
+         */
+        val type: Fradragstype,
+    ) {
+        init {
+            // TODO jah: Vi antar at vi ikke kan få overlappende perioder innenfor et fnr+type
+            //  Hvis denne antagelsen ikke stemmer, må vi lage en tidslinje basert på et tidspunkt eller rekkefølge de har.
+            require(!fradragsperiode.map { it.periode }.harOverlappende())
+        }
+
+        val perioder: NonEmptyList<Periode> = fradragsperiode.map { it.periode }
+
+        data class Fradragsperiode(
+            val periode: Periode,
+            val beløp: Int,
+        )
+    }
 
     fun inneholderFradragForTypeOgMåned(
         type: Fradragstype,
@@ -56,50 +92,5 @@ data class ReguleringssupplementFor(
         return hentForType(type)?.perioder?.inneholder(perioder) ?: false
     }
 
-    fun hentForType(type: Fradragstype): ReguleringssupplementInnhold? {
-        return innhold.singleOrNull { it.type == type }
-    }
-}
-
-/**
- * Formatet som vi forventer å motta reguleringssupplementet i.
- */
-data class ReguleringssupplementInnhold(
-    val fnr: Fnr,
-    val perType: NonEmptyList<PerType>,
-) {
-    val type = perType.first().type
-
-    val perioder: NonEmptyList<Periode> = perType.flatMap { it.fradragsperiode.map { it.periode } }
-
-    init {
-        perType.map { it.type }.let {
-            require(it.distinct() == it)
-        }
-    }
-
-    data class PerType(
-        val fradragsperiode: NonEmptyList<Fradragsperiode>,
-        val type: Fradragstype,
-    ) {
-        init {
-            // TODO jah: Vi antar at vi ikke kan få overlappende perioder innenfor et fnr+type
-            //  Hvis denne antagelsen ikke stemmer, må vi lage en tidslinje basert på et tidspunkt eller rekkefølge de har.
-            require(!fradragsperiode.map { it.periode }.harOverlappende())
-        }
-    }
-
-    data class Fradragsperiode(
-        val periode: Periode,
-        /**
-         * TODO - per i dag, så henter vi bare fradragene som er i Pesys. Disse er bare et subset av Fradragstypene
-         * - Alderspensjon
-         * - AvtalefestetPensjon
-         * - AvtalefestetPensjonPrivat
-         * - Gjenlevendepensjon
-         * - Uføretrygd
-         */
-        val type: Fradragstype,
-        val beløp: Int,
-    )
+    fun hentForType(type: Fradragstype): PerType? = perType.singleOrNull { it.type == type }
 }

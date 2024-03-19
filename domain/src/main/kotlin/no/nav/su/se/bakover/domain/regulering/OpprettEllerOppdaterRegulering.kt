@@ -4,10 +4,14 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
+import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.epsTilPeriode
 import java.time.Clock
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
@@ -20,7 +24,7 @@ private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 fun Sak.opprettEllerOppdaterRegulering(
     fraOgMedMåned: Måned,
     clock: Clock,
-    reguleringssupplementFor: ReguleringssupplementFor?,
+    // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
     supplement: Reguleringssupplement,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
@@ -28,7 +32,11 @@ fun Sak.opprettEllerOppdaterRegulering(
             when (r.size) {
                 0 -> Triple(ReguleringId.generer(), Tidspunkt.now(clock), fraOgMedMåned)
 
-                1 -> Triple(r.first().id, r.first().opprettet, minOf(fraOgMedMåned, Måned.fra(r.first().periode.fraOgMed)))
+                1 -> Triple(
+                    r.first().id,
+                    r.first().opprettet,
+                    minOf(fraOgMedMåned, Måned.fra(r.first().periode.fraOgMed)),
+                )
 
                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
             }
@@ -63,9 +71,29 @@ fun Sak.opprettEllerOppdaterRegulering(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
-        reguleringssupplementFor = reguleringssupplementFor,
-        supplement = supplement,
+        eksternSupplementRegulering = utledReguleringssupplement(
+            brukerFnr = this.fnr,
+            bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+            supplement = supplement,
+        ),
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }
+}
+
+private fun utledReguleringssupplement(
+    brukerFnr: Fnr,
+    bosituasjon: List<Bosituasjon>,
+    supplement: Reguleringssupplement,
+): EksternSupplementRegulering {
+    val supplementForBruker = supplement.getFor(brukerFnr)
+    val epsTilPeriode: Map<Fnr, List<Periode>> = bosituasjon.epsTilPeriode()
+    val supplementForEps: List<ReguleringssupplementFor> = epsTilPeriode.mapNotNull { (eps, _) ->
+        supplement.getFor(eps)
+        // TODO jah: Bør vi her gå igjennom periodene og sammenligne de med periodene på bosituasjonen og forkaste fradrag som ikke gjelder for reguleringen?
+    }
+    return EksternSupplementRegulering(
+        bruker = supplementForBruker,
+        eps = supplementForEps,
+    )
 }

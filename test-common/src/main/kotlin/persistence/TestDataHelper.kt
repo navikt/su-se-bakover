@@ -54,7 +54,6 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -504,7 +503,6 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        supplementFor: ReguleringssupplementFor? = null,
         supplement: Reguleringssupplement = Reguleringssupplement.empty(),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
@@ -521,7 +519,6 @@ class TestDataHelper(
             sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                reguleringssupplementFor = supplementFor,
                 supplement = supplement,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)

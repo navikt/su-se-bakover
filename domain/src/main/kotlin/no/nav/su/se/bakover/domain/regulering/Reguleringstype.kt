@@ -12,19 +12,20 @@ sealed interface Reguleringstype {
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(
-    supplementForBruker: ReguleringssupplementFor?,
-    supplement: Reguleringssupplement,
+    eksternSupplementRegulering: EksternSupplementRegulering,
 ): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
     val epsFnrForMåned: Map<Måned, Fnr> = this.grunnlagsdata.epsForMåned()
     this.grunnlagsdata.fradragsgrunnlag.filterNot {
         val fradragsperiode = it.fradrag.periode
         if (it.fradrag.tilhørerBruker()) {
-            supplementForBruker?.inneholderFradragForTypeOgPeriode(it.fradragstype, fradragsperiode) ?: false
+            eksternSupplementRegulering.bruker?.inneholderFradragForTypeOgPeriode(it.fradragstype, fradragsperiode)
+                ?: false
         } else {
             fradragsperiode.måneder().all { måned ->
                 epsFnrForMåned[måned]?.let { epsFnr ->
-                    supplement.getFor(epsFnr)?.inneholderFradragForTypeOgMåned(it.fradragstype, måned)
+                    eksternSupplementRegulering.eps.find { it.fnr == epsFnr }
+                        ?.inneholderFradragForTypeOgMåned(it.fradragstype, måned)
                 } ?: false
             }
         }
