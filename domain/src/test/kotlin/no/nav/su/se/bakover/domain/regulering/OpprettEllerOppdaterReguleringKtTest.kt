@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nyReguleringssupplementFor
+import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -56,27 +58,13 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             )
             ).first
 
-        val supplementFor = ReguleringssupplementFor(
+        val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
-            innhold = listOf(
-                ReguleringssupplementInnhold(
-                    fnr = sakUtenÅpenBehandling.fnr,
-                    perType = nonEmptyListOf(
-                        ReguleringssupplementInnhold.PerType(
-                            fradragsperiode = nonEmptyListOf(
-                                ReguleringssupplementInnhold.Fradragsperiode(
-                                    periode = stønadsperiode2021.periode,
-                                    type = Fradragstype.Alderspensjon,
-                                    beløp = 300,
-                                ),
-                            ),
-                            type = Fradragstype.Alderspensjon,
-                        ),
-                    ),
-                ),
+            ReguleringssupplementInnhold(
+                fnr = sakUtenÅpenBehandling.fnr,
+                nonEmptyListOf(nyReguleringssupplementInnholdPerType()),
             ),
         )
-
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,

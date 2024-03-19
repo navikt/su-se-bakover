@@ -5,6 +5,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -17,12 +18,14 @@ import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementInnhold
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock
 import java.util.UUID
@@ -199,3 +202,41 @@ fun avsluttetRegulering(
         sakstype = sakstype,
     ).avslutt(avsluttetAv, avsluttetTidspunkt)
 }
+
+fun nyReguleringssupplement(
+    vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
+): Reguleringssupplement = Reguleringssupplement(supplement = supplementFor.toList())
+
+fun nyReguleringssupplementFor(
+    fnr: Fnr = Fnr.generer(),
+    vararg innhold: ReguleringssupplementInnhold = arrayOf(nyReguleringssupplementInnhold()),
+): ReguleringssupplementFor = ReguleringssupplementFor(
+    fnr = fnr,
+    innhold = innhold.toList().toNonEmptyList(),
+)
+
+fun nyReguleringssupplementInnhold(
+    fnr: Fnr = Fnr.generer(),
+    vararg perType: ReguleringssupplementInnhold.PerType = arrayOf(nyReguleringssupplementInnholdPerType(Fradragstype.Alderspensjon)),
+): ReguleringssupplementInnhold = ReguleringssupplementInnhold(
+    fnr = fnr,
+    perType = perType.toList().toNonEmptyList(),
+)
+
+fun nyReguleringssupplementInnholdPerType(
+    type: Fradragstype = Fradragstype.Alderspensjon,
+    vararg fradragsperiode: ReguleringssupplementInnhold.Fradragsperiode = arrayOf(nyFradragperiode()),
+): ReguleringssupplementInnhold.PerType = ReguleringssupplementInnhold.PerType(
+    fradragsperiode = fradragsperiode.toList().toNonEmptyList(),
+    type = type,
+)
+
+fun nyFradragperiode(
+    periode: Periode = stønadsperiode2021.periode,
+    type: Fradragstype = Fradragstype.Alderspensjon,
+    beløp: Int = 1000,
+): ReguleringssupplementInnhold.Fradragsperiode = ReguleringssupplementInnhold.Fradragsperiode(
+    periode = periode,
+    type = type,
+    beløp = beløp,
+)
