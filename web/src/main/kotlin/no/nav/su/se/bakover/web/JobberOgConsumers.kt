@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
-import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
@@ -298,13 +297,6 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
 
-        SendTilbakekrevingsvedtakForRevurdering(
-            tilbakekrevingService = services.tilbakekrevingUnderRevurderingService,
-            initialDelay = initialDelay.next(),
-            intervall = Duration.of(15, ChronoUnit.MINUTES),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
         SendPåminnelseNyStønadsperiodeJob(
             intervall = Duration.of(4, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
@@ -417,13 +409,6 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
-        ).schedule()
-
-        SendTilbakekrevingsvedtakForRevurdering(
-            tilbakekrevingService = services.tilbakekrevingUnderRevurderingService,
-            initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
-            runCheckFactory = runCheckFactory,
         ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(

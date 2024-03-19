@@ -1,1 +1,0 @@
-Holder CXF til en egen modul, da den har en del avhengigheter som sannsynligvis ikke er nødvendig for alle.

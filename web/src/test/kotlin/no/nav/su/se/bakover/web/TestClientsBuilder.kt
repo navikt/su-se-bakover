@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
-import no.nav.su.se.bakover.client.stubs.oppdrag.TilbakekrevingClientStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
@@ -63,7 +62,6 @@ data class TestClientsBuilder(
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,
         queryJournalpostClient = QueryJournalpostClientStub,
-        tilbakekrevingClient = TilbakekrevingClientStub(clock),
         skatteOppslag = SkatteClientStub(clock),
     )
 

@@ -1172,8 +1172,6 @@ open class AccessCheckProxy(
                     sessionContext: SessionContext?,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun sendUteståendeTilbakekrevingsvedtak() = kastKanKunKallesFraAnnenService()
-
                 override fun hentAvventerKravgrunnlag(sakId: UUID) = kastKanKunKallesFraAnnenService()
 
                 override fun hentAvventerKravgrunnlag(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()

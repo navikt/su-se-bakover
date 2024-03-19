@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.nonEmptyListOf
-import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -16,13 +14,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.utbetaling.Utbetalingslinje
-import java.math.BigDecimal
 import java.time.Clock
 
 internal class SimuleringRequestBuilderTest {
@@ -253,45 +247,5 @@ internal class SimuleringRequestBuilderTest {
 </ns2:simulerBeregningRequest>
         """
         actual.shouldBeSimilarXmlTo(expected, true)
-    }
-
-    @Suppress("unused")
-    private fun SimulerBeregningRequest.SimuleringsPeriode.assert(fraOgMed: String, tilOgMed: String) {
-        this.datoSimulerFom shouldBe fraOgMed
-        this.datoSimulerTom shouldBe tilOgMed
-    }
-
-    @Suppress("unused")
-    private fun Oppdragslinje.assert(oppdragslinje: UtbetalingRequest.Oppdragslinje) {
-        delytelseId shouldBe oppdragslinje.delytelseId
-        kodeEndringLinje shouldBe oppdragslinje.kodeEndringLinje.value
-        sats shouldBe BigDecimal(oppdragslinje.sats)
-        typeSats shouldBe oppdragslinje.typeSats.value
-        datoVedtakFom shouldBe oppdragslinje.datoVedtakFom
-        datoVedtakTom shouldBe oppdragslinje.datoVedtakTom
-        utbetalesTilId shouldBe oppdragslinje.utbetalesTilId
-        refDelytelseId shouldBe oppdragslinje.refDelytelseId
-        refFagsystemId shouldBe oppdragslinje.refFagsystemId
-        kodeKlassifik shouldBe oppdragslinje.kodeKlassifik
-        fradragTillegg.value() shouldBe oppdragslinje.fradragTillegg.value
-        saksbehId shouldBe oppdragslinje.saksbehId
-        brukKjoreplan shouldBe oppdragslinje.brukKjoreplan.value
-        attestant[0].attestantId shouldBe oppdragslinje.saksbehId
-        kodeStatusLinje?.value() shouldBe oppdragslinje.kodeStatusLinje?.value
-        datoStatusFom shouldBe oppdragslinje.datoStatusFom
-    }
-
-    @Suppress("unused")
-    private fun Oppdrag.assert(utbetalingsRequest: UtbetalingRequest.OppdragRequest) {
-        oppdragGjelderId shouldBe utbetalingsRequest.oppdragGjelderId
-        saksbehId shouldBe utbetalingsRequest.saksbehId
-        fagsystemId shouldBe utbetalingsRequest.fagsystemId
-        kodeEndring shouldBe utbetalingsRequest.kodeEndring.value
-        kodeFagomraade shouldBe utbetalingsRequest.kodeFagomraade
-        utbetFrekvens shouldBe utbetalingsRequest.utbetFrekvens.value
-        datoOppdragGjelderFom shouldBe utbetalingsRequest.datoOppdragGjelderFom
-        enhet[0].datoEnhetFom shouldBe utbetalingsRequest.oppdragsEnheter[0].datoEnhetFom
-        enhet[0].enhet shouldBe utbetalingsRequest.oppdragsEnheter[0].enhet
-        enhet[0].typeEnhet shouldBe utbetalingsRequest.oppdragsEnheter[0].typeEnhet
     }
 }

@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClient
-import no.nav.su.se.bakover.client.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingSoapClientConfig
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -147,15 +145,6 @@ data class ProdClientsBuilder(
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,
             queryJournalpostClient = journalpostClient,
-            tilbakekrevingClient = TilbakekrevingUnderRevurderingSoapClient(
-                tilbakekrevingPortType = TilbakekrevingUnderRevurderingSoapClientConfig(
-                    tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,
-                    stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
-                    disableCNCheck = true,
-                    serviceUser = serviceUser,
-                ).tilbakekrevingSoapService(),
-                clock = clock,
-            ),
             skatteOppslag = SkatteClient(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
                 azureAd = oAuth,

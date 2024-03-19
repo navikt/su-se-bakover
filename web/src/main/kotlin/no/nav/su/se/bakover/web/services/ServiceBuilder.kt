@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
@@ -159,14 +159,8 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
         )
 
-        val tilbakekrevingService = TilbakekrevingServiceImpl(
+        val tilbakekrevingService = TilbakekrevingUnderRevurderingServiceImpl(
             tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
-            tilbakekrevingClient = clients.tilbakekrevingClient,
-            vedtakService = vedtakService,
-            brevService = brevService,
-            sessionFactory = databaseRepos.sessionFactory,
-            clock = clock,
-            satsFactory = satsFactory,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
