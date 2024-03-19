@@ -294,6 +294,7 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
+        val eksternSupplementRegulering = deserialize<EksternSupplementReguleringJson>(string("supplement"))
 
         return lagRegulering(
             status = status,
@@ -310,6 +311,7 @@ internal class ReguleringPostgresRepo(
             reguleringstype = type,
             avsluttetReguleringJson = avsluttet,
             sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
         )
     }
 
@@ -334,6 +336,7 @@ internal class ReguleringPostgresRepo(
         reguleringstype: Reguleringstype,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
+        eksternSupplementRegulering: EksternSupplementReguleringJson,
     ): Regulering {
         val opprettetRegulering = OpprettetRegulering(
             id = id,
@@ -348,6 +351,7 @@ internal class ReguleringPostgresRepo(
             simulering = simulering,
             reguleringstype = reguleringstype,
             sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering.toDomain(),
         )
 
         return when (status) {

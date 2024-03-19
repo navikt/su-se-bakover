@@ -44,6 +44,7 @@ data class OpprettetRegulering(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val reguleringstype: Reguleringstype,
     override val sakstype: Sakstype,
+    override val eksternSupplementRegulering: EksternSupplementRegulering,
 ) : Regulering {
     override fun erÅpen() = true
 

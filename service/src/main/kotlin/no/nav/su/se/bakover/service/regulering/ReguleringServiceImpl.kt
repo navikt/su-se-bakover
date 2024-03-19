@@ -138,13 +138,10 @@ class ReguleringServiceImpl(
         supplement: Reguleringssupplement,
     ): Either<KunneIkkeOppretteRegulering, Regulering> {
         val sak = this
-        val supplementForBruker = supplement.getFor(sak.fnr)
-        // må også hente ut for eps
 
         val regulering = sak.opprettEllerOppdaterRegulering(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
-            reguleringssupplementFor = supplementForBruker,
             supplement = supplement,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
@@ -254,7 +251,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, null, Reguleringssupplement.empty()).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, Reguleringssupplement.empty()).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering

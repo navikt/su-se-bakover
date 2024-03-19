@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
@@ -323,3 +324,17 @@ fun List<Bosituasjon>.singleOrThrow(): Bosituasjon {
     }
     return this.first()
 }
+
+fun List<Bosituasjon>.epsForMåned(): Map<Måned, Fnr> {
+    return this.filter { it.eps != null }.map {
+        it.periode.måneder() to it.eps!!
+    }.flatMap {
+        it.first.map { i -> i to it.second }
+    }.toMap()
+}
+
+fun List<Bosituasjon>.epsTilPeriode(): Map<Fnr, List<Periode>> = this.filter { it.eps != null }
+    .groupBy { it.eps!! }
+    .mapValues { it.value.map { it.periode } }.mapValues {
+        it.value.minsteAntallSammenhengendePerioder()
+    }

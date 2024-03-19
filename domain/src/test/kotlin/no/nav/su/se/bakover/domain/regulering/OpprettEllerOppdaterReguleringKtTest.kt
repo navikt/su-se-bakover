@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nyFradragperiode
 import no.nav.su.se.bakover.test.nyReguleringssupplementFor
-import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -30,7 +30,6 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            ReguleringssupplementFor(sakUtenÅpenBehandling.fnr, emptyList()),
             Reguleringssupplement.empty(),
         )
             .shouldBeRight()
@@ -60,15 +59,14 @@ internal class OpprettEllerOppdaterReguleringKtTest {
 
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
-            ReguleringssupplementInnhold(
-                fnr = sakUtenÅpenBehandling.fnr,
-                nonEmptyListOf(nyReguleringssupplementInnholdPerType()),
+            ReguleringssupplementFor.PerType(
+                type = Fradragstype.Alderspensjon,
+                fradragsperiode = nonEmptyListOf(nyFradragperiode()),
             ),
         )
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            supplementFor,
             Reguleringssupplement(listOf(supplementFor)),
         )
         actual.getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
@@ -81,7 +79,6 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         sakMedÅpenRevurdering.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            ReguleringssupplementFor(sakMedÅpenRevurdering.fnr, emptyList()),
             Reguleringssupplement.empty(),
         )
             .shouldBeRight()
@@ -93,7 +90,6 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            ReguleringssupplementFor(sakMedÅpenSøknadsbehandling.fnr, emptyList()),
             Reguleringssupplement.empty(),
         )
             .shouldBe(
