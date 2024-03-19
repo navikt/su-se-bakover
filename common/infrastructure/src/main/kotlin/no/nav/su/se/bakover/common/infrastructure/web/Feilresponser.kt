@@ -161,6 +161,13 @@ data object Feilresponser {
         "ugyldig_input",
     )
 
+    val ukjentFormData = BadRequest.errorJson("Multipart inneholder ukjent formdata", "ukjent_formdata")
+
+    val ukjentMultipartType = BadRequest.errorJson(
+        "Multipart inneholder ukjent type. aksepterer kun filer og formdata",
+        "ukjent_multipart_type",
+    )
+
     val ugyldigFødselsnummer = BadRequest.errorJson(
         "Ugyldig fødselsnummer",
         "ugyldig_fødselsnummer",
@@ -234,6 +241,9 @@ data object Feilresponser {
         "Kunne ikke simulere",
         "kunne_ikke_simulere",
     )
+
+    val ukjentSimuleringFeil = InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
+    val ukjentBeregningFeil = InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
 
     val simuleringFørerTilFeilutbetaling = BadRequest.errorJson(
         message = "Simulering fører til feilutbetaling.",
@@ -325,7 +335,7 @@ data object Feilresponser {
 
     val sakAvventerKravgrunnlagForTilbakekreving = BadRequest.errorJson(
         message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
-        code = "åpent_kravgrunnlag_må_håndteres_før_ny_søknadsbehandling",
+        code = "åpent_kravgrunnlag_må_håndteres_før_ny_behandling",
     )
     val sakHarAlleredeSisteFødselsnummer = BadRequest.errorJson(
         message = "Saken har allerede siste fødselsnummer",
