@@ -1132,7 +1132,7 @@ open class AccessCheckProxy(
                     fraOgMedMåned: Måned,
                     supplement: Reguleringssupplement,
                 ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned)
+                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned, supplement)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(

@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.extensions.whenever
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -40,12 +40,15 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 // TODO - filnavnet er automatisk. vi har manuell route her inne også
@@ -56,23 +59,77 @@ internal fun Route.reguler(
 ) {
     post("$REGULERING_PATH/automatisk") {
         authorize(Brukerrolle.Drift) {
-            data class Body(val fraOgMedMåned: String)
-            call.withBody<Body> { body ->
-                when (val m = Måned.parse(body.fraOgMedMåned)) {
-                    null -> call.svar(ugyldigMåned)
-                    else -> {
-                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            reguleringService.startAutomatiskRegulering(m)
-                            call.svar(Resultat.okJson())
-                        } else {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                reguleringService.startAutomatiskRegulering(m)
+            val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
+
+            isMultipart.whenever(
+                isTrue = {
+                    runBlocking {
+                        val parts = call.receiveMultipart()
+                        var reguleringsdato = ""
+                        var csvData = ""
+
+                        parts.forEachPart {
+                            when (it) {
+                                is PartData.FileItem -> {
+                                    val fileBytes = it.streamProvider().readBytes()
+                                    csvData = String(fileBytes)
+                                }
+
+                                is PartData.FormItem -> {
+                                    when (it.name) {
+                                        "reguleringsdato" -> reguleringsdato = it.value
+                                        else -> Feilresponser.ukjentFormData
+                                    }
+                                }
+
+                                else -> Feilresponser.ukjentMultipartType
                             }
-                            call.svar(Resultat.okJson())
+                        }
+
+                        parseCSVFromFile(csvData).fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                val fraMåned =
+                                    Måned.parse(reguleringsdato) ?: return@runBlocking call.svar(ugyldigMåned)
+
+                                if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                    reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                    call.svar(Resultat.okJson())
+                                } else {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                    }
+                                    call.svar(Resultat.okJson())
+                                }
+                            },
+                        )
+                    }
+                },
+                isFalse = {
+                    runBlocking {
+                        call.withBody<AutomatiskReguleringBody> { body ->
+                            val fraMåned =
+                                Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
+                            val supplement = body.csv?.let {
+                                parseCSVFromText(it).fold(
+                                    ifLeft = { return@runBlocking call.svar(it) },
+                                    ifRight = { it },
+                                )
+                            } ?: Reguleringssupplement.empty()
+
+                            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                reguleringService.startAutomatiskRegulering(fraMåned, supplement)
+                                call.svar(Resultat.okJson())
+                            } else {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    reguleringService.startAutomatiskRegulering(fraMåned, supplement)
+                                }
+                                call.svar(Resultat.okJson())
+                            }
                         }
                     }
-                }
-            }
+                },
+            )
         }
     }
 
@@ -89,49 +146,7 @@ internal fun Route.reguler(
                         fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     ).fold(
-                        ifLeft = {
-                            when (it) {
-                                KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
-                                    "Reguleringen er allerede ferdigstilt",
-                                    "regulering_allerede_ferdigstilt",
-                                )
-
-                                KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
-
-                                KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson(
-                                    "Beregning feilet",
-                                    "beregning_feilet",
-                                )
-
-                                KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
-                                    "Simulering feilet",
-                                    "simulering_feilet",
-                                )
-
-                                KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
-                                    "Stanset ytelse må startes før den kan reguleres",
-                                    "stanset_ytelse_må_startes_før_den_kan_reguleres",
-                                )
-
-                                is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
-                                    "Kunne ikke ferdigstille regulering på grunn av ${it.feil}",
-                                    "kunne_ikke_ferdigstille_regulering",
-                                )
-
-                                KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
-                                    "Kan ikke regulere mens sak avventer kravgrunnlag",
-                                    "Kan_ikke_regulere_mens_sak_avventer_kravgrunnlag",
-                                )
-
-                                KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> HttpStatusCode.BadRequest.errorJson(
-                                    "Avventer kravgrunnlag",
-                                    "regulering_avventer_kravgrunnlag",
-                                )
-                            }.let { feilResultat ->
-                                call.svar(feilResultat)
-                            }
-                        },
+                        ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(Resultat.okJson())
@@ -194,28 +209,30 @@ internal fun Route.reguler(
                                     when (it.name) {
                                         "reguleringsdato" -> reguleringsdato = it.value
                                         "gVerdi" -> gVerdi = it.value
-                                        else -> HttpStatusCode.BadRequest.errorJson(
-                                            "Multipart inneholder ukjent formdata",
-                                            "ukjent_formdata",
-                                        )
+                                        else -> Feilresponser.ukjentFormData
                                     }
                                 }
 
-                                else -> HttpStatusCode.BadRequest.errorJson(
-                                    "Multipart inneholder ukjent type. aksepterer kun filer og formdata",
-                                    "ukjent_multipart_type",
-                                )
+                                else -> Feilresponser.ukjentMultipartType
                             }
                         }
 
                         parseCSVFromFile(csvData).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
-                                launch {
-                                    println(reguleringsdato)
-                                    println(gVerdi)
-                                    TODO("call service")
-                                }
+                                val command = StartAutomatiskReguleringForInnsynCommand(
+                                    fraOgMedMåned = Måned.fra(LocalDate.parse(reguleringsdato)),
+                                    virkningstidspunkt = LocalDate.parse(reguleringsdato),
+                                    supplement = it,
+                                    grunnbeløp = gVerdi.toIntOrNull() ?: return@runBlocking call.svar(
+                                        HttpStatusCode.BadRequest.errorJson(
+                                            "Kunne ikke parse grunnbeløp",
+                                            "feil_ved_parsning_av_grunnbeløp",
+                                        ),
+                                    ),
+                                )
+
+                                launch { reguleringService.startAutomatiskReguleringForInnsyn(command) }
                                 call.svar(Resultat.okJson())
                             },
                         )
@@ -242,7 +259,6 @@ internal fun Route.reguler(
 
     post("$REGULERING_PATH/supplement") {
         authorize(Brukerrolle.Drift) {
-            // at den er multipart vil si at frontend har sendt inn supplementet som en fil
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
 
             isMultipart.whenever(
@@ -319,3 +335,26 @@ val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke regulering",
     "fant_ikke_regulering",
 )
+
+internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
+    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
+        "Reguleringen er allerede ferdigstilt",
+        "regulering_allerede_ferdigstilt",
+    )
+
+    KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
+    KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.ukjentBeregningFeil
+    KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.ukjentSimuleringFeil
+    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+        "Stanset ytelse må startes før den kan reguleres",
+        "stanset_ytelse_må_startes_før_den_kan_reguleres",
+    )
+
+    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
+        "Kunne ikke ferdigstille regulering på grunn av ${this.feil}",
+        "kunne_ikke_ferdigstille_regulering",
+    )
+
+    KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
+    KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+}

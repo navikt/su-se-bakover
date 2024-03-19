@@ -52,7 +52,7 @@ sealed interface KunneIkkeAvslutte {
 interface ReguleringService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
-        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+        supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
 
     fun startAutomatiskReguleringForInnsyn(
