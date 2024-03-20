@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -511,7 +510,6 @@ internal class ReguleringServiceImplTest {
         val utbetalingMock = mock<UtbetalingService> {}
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
-        val tilbakekrevingMock = mock<TilbakekrevingUnderRevurderingService> {}
 
         ReguleringServiceImpl(
             reguleringRepo = reguleringMock,
@@ -519,7 +517,6 @@ internal class ReguleringServiceImplTest {
             utbetalingService = utbetalingMock,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            tilbakekrevingService = tilbakekrevingMock,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).startAutomatiskRegulering(mai(2022))
@@ -528,7 +525,6 @@ internal class ReguleringServiceImplTest {
         verifyNoInteractions(utbetalingMock)
         verifyNoInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
-        verifyNoInteractions(tilbakekrevingMock)
     }
 
     /**
@@ -612,9 +608,6 @@ internal class ReguleringServiceImplTest {
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),
             clock = clock,
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
             satsFactory = satsFactoryTestPåDato(),
         )
     }

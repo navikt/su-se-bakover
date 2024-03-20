@@ -96,10 +96,8 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -121,7 +119,6 @@ class RevurderingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
-    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val satsFactory: SatsFactory,
 ) : RevurderingService {
 
@@ -755,12 +752,6 @@ class RevurderingServiceImpl(
             periode = revurdering.periode,
             clock = clock,
         )
-
-        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId).ifNotEmpty {
-            return KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-                revurderingId = this.first().avgjort.revurderingId,
-            ).left()
-        }
 
         return when (revurdering) {
             is SimulertRevurdering -> {

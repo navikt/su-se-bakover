@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
@@ -159,10 +158,6 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
         )
 
-        val tilbakekrevingService = TilbakekrevingUnderRevurderingServiceImpl(
-            tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
-        )
-
         val stansAvYtelseService = StansYtelseServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
@@ -200,7 +195,6 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = formuegrenserFactory,
             sakService = sakService,
-            tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
         ).apply { addObserver(statistikkEventObserver) }
@@ -221,7 +215,6 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
-            tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
 
@@ -303,7 +296,6 @@ data object ServiceBuilder {
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
-            tilbakekrevingUnderRevurderingService = tilbakekrevingService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakRepo = databaseRepos.sak,

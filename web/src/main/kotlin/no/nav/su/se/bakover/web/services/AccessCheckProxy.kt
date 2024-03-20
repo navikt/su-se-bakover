@@ -61,7 +61,6 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -204,7 +203,6 @@ import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgave
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -1165,18 +1163,6 @@ open class AccessCheckProxy(
                         saksbehandler,
                     )
                 }
-            },
-            tilbakekrevingUnderRevurderingService = object : TilbakekrevingUnderRevurderingService {
-                override fun lagre(
-                    tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
-                    sessionContext: SessionContext?,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun hentAvventerKravgrunnlag(sakId: UUID) = kastKanKunKallesFraAnnenService()
-
-                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-
-                override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
                 override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {

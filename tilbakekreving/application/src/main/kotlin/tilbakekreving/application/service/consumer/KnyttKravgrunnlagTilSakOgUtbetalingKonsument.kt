@@ -10,18 +10,12 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
@@ -32,7 +26,6 @@ import java.time.Clock
 
 class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private val kravgrunnlagRepo: KravgrunnlagRepo,
-    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val sakService: SakService,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
@@ -104,7 +97,6 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             }
             when (kravgrunnlagPåSakHendelse) {
                 is KravgrunnlagDetaljerPåSakHendelse -> prosesserDetaljer(
-                    sak = sak,
                     hendelseId = hendelseId,
                     kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
                     correlationId = correlationId,
@@ -142,14 +134,10 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     }
 
     private fun prosesserDetaljer(
-        sak: Sak,
         hendelseId: HendelseId,
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
         correlationId: CorrelationId,
     ) {
-        val kravgrunnlag = kravgrunnlagPåSakHendelse.kravgrunnlag
-        val sakId = sak.id
-
         sessionFactory.withTransactionContext { tx ->
             kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
                 hendelse = kravgrunnlagPåSakHendelse,
@@ -161,21 +149,6 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 konsumentId = konsumentId,
                 context = tx,
             )
-            val revurderingId = kravgrunnlagPåSakHendelse.revurderingId
-            if (revurderingId != null) {
-                val revurdering = sak.hentRevurdering(RevurderingId(revurderingId)).getOrNull() as IverksattRevurdering
-
-                (revurdering.tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
-                    kravgrunnlag = kravgrunnlag,
-                    kravgrunnlagMottatt = Tidspunkt.now(clock),
-                    hentRevurdering = { revurdering },
-                )?.also { mottattKravgrunnlagForRevurdering ->
-                    // I en overgangsfase erstatter denne det den gamle kravgrunnlagkonsumeren gjorde. Disse plukkes opp av jobben [no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering]
-                    tilbakekrevingService.lagre(mottattKravgrunnlagForRevurdering, tx)
-                    log.info("Oppdaterte revurderingen sin tilbakekreving ${mottattKravgrunnlagForRevurdering.avgjort.id} til mottatt kravgrunnlag for revurdering ${mottattKravgrunnlagForRevurdering.avgjort.revurderingId}")
-                }
-                    ?: log.error("Knyttet kravgrunnlag til sak for revurdering $revurderingId, sak $sakId. Forventet: avventet kravgrunnlag, men typen var: ${revurdering.tilbakekrevingsbehandling::class}")
-            }
         }
     }
 }

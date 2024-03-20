@@ -172,7 +172,6 @@ data object SharedRegressionTestData {
                         sessionFactory = databaseRepos.sessionFactory,
                         personService = services.person,
                         hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                        tilbakekrevingUnderRevurderingService = services.tilbakekrevingUnderRevurderingService,
                         sakService = services.sak,
                         oppgaveService = services.oppgave,
                         oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,

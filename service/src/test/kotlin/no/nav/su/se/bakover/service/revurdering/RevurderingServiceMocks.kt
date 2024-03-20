@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -36,7 +35,6 @@ internal data class RevurderingServiceMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val observer: StatistikkEventObserver = mock(),
     val clock: Clock = TikkendeKlokke(),
-    val tilbakekrevingService: TilbakekrevingUnderRevurderingService = defaultMock(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
 ) {
     val revurderingService = RevurderingServiceImpl(
@@ -51,7 +49,6 @@ internal data class RevurderingServiceMocks(
         sessionFactory = sessionFactory,
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         sakService = sakService,
-        tilbakekrevingService = tilbakekrevingService,
         satsFactory = satsFactory,
     ).apply { addObserver(observer) }
 
@@ -66,7 +63,6 @@ internal data class RevurderingServiceMocks(
         ferdigstillVedtakService,
         sakService,
         annullerKontrollsamtaleService,
-        tilbakekrevingService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

@@ -35,10 +35,8 @@ import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -55,7 +53,6 @@ class ReguleringServiceImpl(
     private val vedtakService: VedtakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val tilbakekrevingService: TilbakekrevingUnderRevurderingService,
     private val satsFactory: SatsFactory,
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -141,24 +138,6 @@ class ReguleringServiceImpl(
                 return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
             }
 
-            tilbakekrevingService.hentAvventerKravgrunnlag(sak.id)
-                .ifNotEmpty {
-                    log.info("Regulering for saksnummer $saksnummer: Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
-                    return@map regulering.copy(
-                        reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
-                    ).right().onRight {
-                        if (isLiveRun) {
-                            LiveRun.Opprettet(
-                                sessionFactory = sessionFactory,
-                                lagreRegulering = reguleringRepo::lagre,
-                                lagreVedtak = vedtakService::lagreITransaksjon,
-                                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                                notifyObservers = { Unit },
-                            ).kjørSideffekter(it)
-                        }
-                    }
-                }
-
             if (isLiveRun) {
                 LiveRun.Opprettet(
                     sessionFactory = sessionFactory,
@@ -222,10 +201,6 @@ class ReguleringServiceImpl(
 
         if (gjeldendeVedtaksdata.harStans()) {
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
-        }
-
-        if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty()) {
-            return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
         }
 
         return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock).mapLeft {
