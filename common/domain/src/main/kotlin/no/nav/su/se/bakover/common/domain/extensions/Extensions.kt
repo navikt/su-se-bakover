@@ -108,3 +108,11 @@ fun <T> (() -> Boolean).whenever(isFalse: () -> T, isTrue: () -> T): T {
 fun <T> Boolean.whenever(isFalse: () -> T, isTrue: () -> T): T {
     return if (this) isTrue() else isFalse()
 }
+
+/**
+ * kaster exception dersom listen er tom
+ */
+fun <T, U> List<T>.whenSingleOrMultiple(isSingle: (T) -> List<U>, isMultiple: (List<T>) -> List<U>): List<U> {
+    require(this.isNotEmpty())
+    return if (this.size == 1) isSingle(this.single()) else isMultiple(this)
+}

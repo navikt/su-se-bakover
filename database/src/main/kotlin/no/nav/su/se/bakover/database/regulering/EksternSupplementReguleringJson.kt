@@ -50,13 +50,13 @@ data class PerTypeJson(
     val type: String,
 ) {
     fun toDomain(): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
-        fradragsperiode = fradragsperiode.map { it.toDomain() }.toNonEmptyList(),
+        fradragsperioder = fradragsperiode.map { it.toDomain() }.toNonEmptyList(),
         type = Fradragstype.from(Fradragstype.Kategori.valueOf(type), null),
     )
 
     companion object {
         fun ReguleringssupplementFor.PerType.toDbJson(): PerTypeJson = PerTypeJson(
-            fradragsperiode = fradragsperiode.map { it.toDbJson() },
+            fradragsperiode = fradragsperioder.map { it.toDbJson() },
             type = this.type.kategori.name,
         )
     }

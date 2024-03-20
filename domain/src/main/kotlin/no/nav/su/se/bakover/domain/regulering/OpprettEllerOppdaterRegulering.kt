@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.epsTilPeriode
+import java.math.BigDecimal
 import java.time.Clock
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
@@ -26,6 +27,7 @@ fun Sak.opprettEllerOppdaterRegulering(
     clock: Clock,
     // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
     supplement: Reguleringssupplement,
+    gVerdiØkning: BigDecimal,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
@@ -76,6 +78,7 @@ fun Sak.opprettEllerOppdaterRegulering(
             bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             supplement = supplement,
         ),
+        gVerdiØkning = gVerdiØkning,
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }

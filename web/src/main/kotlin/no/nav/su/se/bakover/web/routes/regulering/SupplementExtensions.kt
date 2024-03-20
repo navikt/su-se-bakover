@@ -33,7 +33,7 @@ fun Map<String, List<SupplementInnholdAsCsv>>.toReguleringssupplementInnhold(): 
                 ).left()
             }
             ReguleringssupplementFor.PerType(
-                fradragsperiode = csv.map { csvInnslag ->
+                fradragsperioder = csv.map { csvInnslag ->
                     ReguleringssupplementFor.PerType.Fradragsperiode(
                         periode = Periode.create(
                             fraOgMed = LocalDate.parse(csvInnslag.fom),

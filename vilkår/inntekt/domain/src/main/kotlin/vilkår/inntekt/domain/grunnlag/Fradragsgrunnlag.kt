@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import org.jetbrains.annotations.TestOnly
 import vilkår.common.domain.grunnlag.Grunnlag
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -184,4 +185,8 @@ data class Fradragsgrunnlag private constructor(
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
     }
+
+    fun oppdaterBeløpFraSupplement(beløp: BigDecimal): Fradragsgrunnlag = this.copy(
+        fradrag = fradrag.oppdaterBeløp(beløp),
+    )
 }

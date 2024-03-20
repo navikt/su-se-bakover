@@ -20,6 +20,7 @@ import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.math.BigDecimal
 import java.util.UUID
 
 internal class OpprettEllerOppdaterReguleringKtTest {
@@ -31,6 +32,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             mai(2020),
             fixedClock,
             Reguleringssupplement.empty(),
+            BigDecimal(100),
         )
             .shouldBeRight()
     }
@@ -47,7 +49,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Alderspensjon,
-                            månedsbeløp = 10000.0,
+                            månedsbeløp = 980.0,
                             periode = stønadsperiode2021.periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -61,13 +63,14 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperiode = nonEmptyListOf(nyFradragperiode()),
+                fradragsperioder = nonEmptyListOf(nyFradragperiode()),
             ),
         )
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
             Reguleringssupplement(listOf(supplementFor)),
+            BigDecimal(100),
         )
         actual.getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
     }
@@ -80,6 +83,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             mai(2020),
             fixedClock,
             Reguleringssupplement.empty(),
+            BigDecimal(100),
         )
             .shouldBeRight()
     }
@@ -91,6 +95,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             mai(2020),
             fixedClock,
             Reguleringssupplement.empty(),
+            BigDecimal(100),
         )
             .shouldBe(
                 Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left(),

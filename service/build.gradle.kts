@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":person:domain"))
     implementation(project(":satser"))
+    implementation(project(":grunnbeløp"))
     implementation(project(":statistikk"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":vedtak:application"))

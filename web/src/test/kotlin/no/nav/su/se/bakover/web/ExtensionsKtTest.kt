@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.extensions.isFirstNull
 import no.nav.su.se.bakover.common.extensions.isSecondNull
 import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.extensions.pickByCondition
+import no.nav.su.se.bakover.common.extensions.whenSingleOrMultiple
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.extensions.wheneverEitherIsNull
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
@@ -111,5 +112,23 @@ internal class ExtensionsKtTest {
     fun `whenever utfører true block dersom den er true`() {
         { true }.whenever(isFalse = { fail("true skal utføre isTrue blokken") }, isTrue = { })
         true.whenever(isFalse = { fail("true skal utføre isTrue blokken") }, isTrue = { })
+    }
+
+    @Test
+    fun `whenSingleOrMultiple kjører single blokken dersom det er bare 1 element i listen`() {
+        val list = listOf(1)
+        list.whenSingleOrMultiple(
+            isSingle = { list },
+            isMultiple = { fail("isMultiple skal ikke kjøre dersom listen bare har 1 element") },
+        )
+    }
+
+    @Test
+    fun `whenSingleOrMultiple kjører multiple blokken dersom det finnes flere element i listen`() {
+        val list = listOf(1, 2)
+        list.whenSingleOrMultiple(
+            isSingle = { fail("isSingle skal ikke kjøre dersom listen har flere elementer") },
+            isMultiple = { list },
+        )
     }
 }

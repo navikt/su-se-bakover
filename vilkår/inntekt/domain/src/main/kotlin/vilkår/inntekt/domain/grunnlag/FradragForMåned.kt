@@ -3,6 +3,7 @@ package vilkår.inntekt.domain.grunnlag
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
+import java.math.BigDecimal
 
 /**
  * Et fradrag for en spesifikk måned.
@@ -20,6 +21,18 @@ data class FradragForMåned(
     init {
         require(månedsbeløp >= 0.0) { "Fradrag kan ikke være negative" }
     }
+
+    override fun tilFradragForMåned(): List<FradragForMåned> = listOf(this)
+    override fun tilFradragForPeriode(): FradragForPeriode = FradragForPeriode(
+        fradragstype = fradragstype,
+        månedsbeløp = månedsbeløp,
+        periode = måned.tilPeriode(),
+        utenlandskInntekt = utenlandskInntekt,
+        tilhører = tilhører,
+    )
+
+    override fun oppdaterBeløp(beløp: BigDecimal): Fradrag = this.copy(månedsbeløp = beløp.toDouble())
+
     override val periode: Måned = måned
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
