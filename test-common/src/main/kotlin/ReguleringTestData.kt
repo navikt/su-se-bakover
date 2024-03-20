@@ -4,8 +4,8 @@ import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -27,6 +27,7 @@ import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simuleringsresultat
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -109,6 +110,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -118,7 +120,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement, gVerdiØkning).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -130,6 +132,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
     supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
@@ -139,6 +142,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
         supplement = supplement,
+        gVerdiØkning = gVerdiØkning,
     ).getOrFail()
 
     return Pair(
@@ -226,7 +230,7 @@ fun nyReguleringssupplementInnholdPerType(
     type: Fradragstype = Fradragstype.Alderspensjon,
     vararg fradragsperiode: ReguleringssupplementFor.PerType.Fradragsperiode = arrayOf(nyFradragperiode()),
 ): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
-    fradragsperiode = fradragsperiode.toList().toNonEmptyList(),
+    fradragsperioder = fradragsperiode.toList().toNonEmptyList(),
     type = type,
 )
 

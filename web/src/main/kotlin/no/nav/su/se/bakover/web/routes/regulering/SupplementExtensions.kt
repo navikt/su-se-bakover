@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.person.Fnr
@@ -33,7 +33,7 @@ fun Map<String, List<SupplementInnholdAsCsv>>.toReguleringssupplementInnhold(): 
                 ).left()
             }
             ReguleringssupplementFor.PerType(
-                fradragsperiode = csv.map { csvInnslag ->
+                fradragsperioder = csv.map { csvInnslag ->
                     ReguleringssupplementFor.PerType.Fradragsperiode(
                         periode = Periode.create(
                             fraOgMed = LocalDate.parse(csvInnslag.fom),

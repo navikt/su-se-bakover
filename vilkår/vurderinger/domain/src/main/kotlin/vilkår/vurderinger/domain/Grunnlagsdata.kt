@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import vilkår.bosituasjon.domain.grunnlag.epsForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterStønadsperiode

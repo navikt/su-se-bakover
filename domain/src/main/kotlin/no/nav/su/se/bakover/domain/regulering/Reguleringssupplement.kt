@@ -35,7 +35,7 @@ data class ReguleringssupplementFor(
             require(it.distinct() == it)
         }
     }
-
+    fun getForType(fradragstype: Fradragstype) = perType.find { it.type == fradragstype }
     val fradagstyper = perType.map { it.type }
     val perioder: NonEmptyList<Periode> = perType.flatMap { it.perioder }
 
@@ -44,7 +44,7 @@ data class ReguleringssupplementFor(
      * Dersom vi senere må ta høyde for overlapp av perioder, i forbindelse med overskrivende vedtak, trenger vi en diskriminator og tidslinjelogikk.
      */
     data class PerType(
-        val fradragsperiode: NonEmptyList<Fradragsperiode>,
+        val fradragsperioder: NonEmptyList<Fradragsperiode>,
         /**
          * TODO - per i dag, så henter vi bare fradragene som er i Pesys. Disse er bare et subset av Fradragstypene
          * - Alderspensjon
@@ -58,10 +58,10 @@ data class ReguleringssupplementFor(
         init {
             // TODO jah: Vi antar at vi ikke kan få overlappende perioder innenfor et fnr+type
             //  Hvis denne antagelsen ikke stemmer, må vi lage en tidslinje basert på et tidspunkt eller rekkefølge de har.
-            require(!fradragsperiode.map { it.periode }.harOverlappende())
+            require(!fradragsperioder.map { it.periode }.harOverlappende())
         }
 
-        val perioder: NonEmptyList<Periode> = fradragsperiode.map { it.periode }
+        val perioder: NonEmptyList<Periode> = fradragsperioder.map { it.periode }
 
         data class Fradragsperiode(
             val periode: Periode,

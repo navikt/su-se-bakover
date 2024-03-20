@@ -40,10 +40,12 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 
@@ -72,7 +74,10 @@ class ReguleringServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement) }
+        val gVerdiØkning =
+            BigDecimal(grunnbeløpsendringer.last().verdi).divide(BigDecimal(grunnbeløpsendringer[grunnbeløpsendringer.size - 2].verdi))
+
+        return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, gVerdiØkning) }
             .mapLeft {
                 log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
                 KunneIkkeOppretteRegulering.UkjentFeil
@@ -86,11 +91,15 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
+        val gVerdiØkning =
+            (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 2].verdi).toBigDecimal()
+
         Either.catch {
             start(
                 fraOgMedMåned = command.fraOgMedMåned,
                 isLiveRun = false,
                 satsFactory = command.satsFactory.gjeldende(LocalDate.now(clock)),
+                gVerdiØkning = gVerdiØkning,
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
@@ -106,6 +115,7 @@ class ReguleringServiceImpl(
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+        gVerdiØkning: BigDecimal,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -121,6 +131,7 @@ class ReguleringServiceImpl(
                 isLiveRun = isLiveRun,
                 satsFactory = satsFactory,
                 supplement = supplement,
+                gVerdiØkning = gVerdiØkning,
             )
         }
             .also {
@@ -133,6 +144,7 @@ class ReguleringServiceImpl(
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement,
+        gVerdiØkning: BigDecimal,
     ): Either<KunneIkkeOppretteRegulering, Regulering> {
         val sak = this
 
@@ -140,6 +152,7 @@ class ReguleringServiceImpl(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
             supplement = supplement,
+            gVerdiØkning = gVerdiØkning,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
             when (feil) {
@@ -226,7 +239,12 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock, Reguleringssupplement.empty()).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(
+            Måned.fra(fraOgMed),
+            clock,
+            Reguleringssupplement.empty(),
+            (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
+        ).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering

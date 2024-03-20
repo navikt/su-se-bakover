@@ -359,3 +359,8 @@ fun List<Bosituasjon>.epsTilPeriode(): Map<Fnr, List<Periode>> = this.filter { i
     .mapValues { it.value.map { it.periode } }.mapValues {
         it.value.minsteAntallSammenhengendePerioder()
     }
+
+fun List<Bosituasjon>.periodeTilEpsFnr(): Map<Periode, Fnr> = this.filter { it.eps != null }
+    .groupBy { it.periode }.mapValues {
+        it.value.single().eps!!
+    }
