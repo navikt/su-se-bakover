@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import person.domain.PersonService
 import tilbakekreving.application.service.TilbakekrevingServices
@@ -26,7 +25,6 @@ fun tilbakekrevingskomponenterMedClientStubs(
     sessionFactory: SessionFactory,
     personService: PersonService,
     hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    tilbakekrevingUnderRevurderingService: TilbakekrevingUnderRevurderingService,
     sakService: SakService,
     oppgaveService: OppgaveService,
     oppgaveHendelseRepo: OppgaveHendelseRepo,
@@ -56,7 +54,6 @@ fun tilbakekrevingskomponenterMedClientStubs(
             personService = personService,
             kravgrunnlagRepo = repos.kravgrunnlagRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-            tilbakekrevingService = tilbakekrevingUnderRevurderingService,
             sakService = sakService,
             oppgaveService = oppgaveService,
             tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,

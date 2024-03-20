@@ -41,7 +41,6 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalingsrequest
-import java.util.UUID
 
 internal class IverksettRevurderingTest {
 
@@ -89,9 +88,6 @@ internal class IverksettRevurderingTest {
             },
             vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
             clock = clock,
         )
@@ -157,9 +153,6 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
             clock = clock,
         )
 
@@ -225,9 +218,6 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
             clock = clock,
         )
 
@@ -293,9 +283,6 @@ internal class IverksettRevurderingTest {
             },
             vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
             clock = clock,
         )
@@ -366,9 +353,7 @@ internal class IverksettRevurderingTest {
             vedtakService = mock {
                 on { lagreITransaksjon(any(), anyOrNull()) } doThrow expectedException
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulerUtbetaling(
                     sak = sak,
@@ -421,9 +406,7 @@ internal class IverksettRevurderingTest {
             vedtakService = mock {
                 on { lagreITransaksjon(any(), anyOrNull()) } doThrow expectedException
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulerOpphør(
                     sak = sak,
@@ -483,9 +466,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock { },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             clock = clock,
         )
 
@@ -542,9 +523,7 @@ internal class IverksettRevurderingTest {
                     )
                 } doThrow expectedException
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             clock = clock,
         )
 
@@ -596,9 +575,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             annullerKontrollsamtaleService = mock {},
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             clock = clock,
         )
 

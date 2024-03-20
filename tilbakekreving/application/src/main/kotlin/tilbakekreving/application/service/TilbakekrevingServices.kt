@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
@@ -70,7 +69,6 @@ class TilbakekrevingServices(
             personService: PersonService,
             kravgrunnlagRepo: KravgrunnlagRepo,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-            tilbakekrevingService: TilbakekrevingUnderRevurderingService,
             sakService: SakService,
             oppgaveService: OppgaveService,
             tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
@@ -97,7 +95,6 @@ class TilbakekrevingServices(
                 ),
                 knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     kravgrunnlagRepo = kravgrunnlagRepo,
-                    tilbakekrevingService = tilbakekrevingService,
                     sakService = sakService,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     mapRåttKravgrunnlag = mapRåttKravgrunnlag,

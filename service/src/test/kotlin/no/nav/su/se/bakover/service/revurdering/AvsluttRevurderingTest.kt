@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -331,7 +330,6 @@ internal class AvsluttRevurderingTest {
         sakService: SakService = mock(),
         annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
-        tilbakekrevingService: TilbakekrevingUnderRevurderingService = mock(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
     ) =
         RevurderingServiceImpl(
@@ -346,7 +344,6 @@ internal class AvsluttRevurderingTest {
             sessionFactory = sessionFactory,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             sakService = sakService,
-            tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         )
 }

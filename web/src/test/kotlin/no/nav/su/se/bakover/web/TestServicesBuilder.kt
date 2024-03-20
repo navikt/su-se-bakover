@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -53,7 +52,6 @@ data object TestServicesBuilder {
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         regulerServices: ReguleringService = mock(),
-        tilbakekrevingService: TilbakekrevingUnderRevurderingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
         stansAvYtelseService: StansYtelseService = mock(),
@@ -85,7 +83,6 @@ data object TestServicesBuilder {
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         reguleringService = regulerServices,
-        tilbakekrevingUnderRevurderingService = tilbakekrevingService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,

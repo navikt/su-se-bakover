@@ -189,9 +189,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
         ).also {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(

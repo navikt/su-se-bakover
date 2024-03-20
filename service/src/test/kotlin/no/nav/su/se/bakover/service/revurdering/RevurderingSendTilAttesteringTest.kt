@@ -12,9 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -28,7 +25,6 @@ import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.createFromGrunnlag
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
@@ -36,7 +32,6 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -51,7 +46,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import vilkår.formue.domain.FormueVilkår
-import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {
 
@@ -72,9 +66,7 @@ internal class RevurderingSendTilAttesteringTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
             observer = mock(),
         ).also { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
@@ -123,9 +115,7 @@ internal class RevurderingSendTilAttesteringTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
         ).also {
             val result = it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -161,9 +151,7 @@ internal class RevurderingSendTilAttesteringTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -177,7 +165,6 @@ internal class RevurderingSendTilAttesteringTest {
             ) {
                 verify(mocks.revurderingRepo).hent(revurderingId)
                 verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
-                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.oppgaveService).oppdaterOppgave(
                     argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
                     argThat {
@@ -226,9 +213,7 @@ internal class RevurderingSendTilAttesteringTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
         ).also {
             val actual = it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -264,9 +249,7 @@ internal class RevurderingSendTilAttesteringTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
+
         ).also {
             val actual = it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -282,41 +265,6 @@ internal class RevurderingSendTilAttesteringTest {
             ).left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
-        }
-    }
-
-    @Test
-    fun `får ikke sendt til attestering dersom det eksisterer åpne kravgrunnlag for sak`() {
-        val (sak, simulert) = simulertRevurdering()
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn simulert
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
-                    AvventerKravgrunnlag(
-                        avgjort = Tilbakekrev(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            sakId = sakId,
-                            revurderingId = revurderingId,
-                            periode = år(2021),
-                        ),
-                    ),
-                )
-            },
-        ).let {
-            it.revurderingService.sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-                revurderingId,
-            ).left()
         }
     }
 }

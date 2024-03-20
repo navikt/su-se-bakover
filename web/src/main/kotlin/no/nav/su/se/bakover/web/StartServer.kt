@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingUnderRevurderingService
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
@@ -129,7 +128,6 @@ fun Application.susebakover(
         sessionFactory: SessionFactory,
         personService: PersonService,
         hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-        tilbakekrevingUnderRevurderingService: TilbakekrevingUnderRevurderingService,
         sakService: SakService,
         oppgaveService: OppgaveService,
         oppgaveHendelseRepo: OppgaveHendelseRepo,
@@ -138,13 +136,12 @@ fun Application.susebakover(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, tilbakekrevingUnderRevurderingService, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
             personService = personService,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-            tilbakekrevingUnderRevurderingService = tilbakekrevingUnderRevurderingService,
             sakService = sak,
             oppgaveService = oppgave,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
@@ -212,7 +209,6 @@ fun Application.susebakover(
         databaseRepos.sessionFactory,
         services.person,
         databaseRepos.hendelsekonsumenterRepo,
-        services.tilbakekrevingUnderRevurderingService,
         services.sak,
         services.oppgave,
         databaseRepos.oppgaveHendelseRepo,
