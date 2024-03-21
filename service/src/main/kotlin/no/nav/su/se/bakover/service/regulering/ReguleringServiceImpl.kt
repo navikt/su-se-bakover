@@ -77,10 +77,10 @@ class ReguleringServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        val gVerdiØkning =
-            BigDecimal(grunnbeløpsendringer.last().verdi).divide(BigDecimal(grunnbeløpsendringer[grunnbeløpsendringer.size - 2].verdi))
+        // TODO - manuellt lagt inn faktoren for 2023. Denne burde hentes fra Grunnbeløpsendring
+        val omregningsfaktor = BigDecimal(1.064076)
 
-        return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, gVerdiØkning) }
+        return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
                 log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
                 KunneIkkeOppretteRegulering.UkjentFeil
@@ -94,15 +94,15 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
-        val gVerdiØkning =
-            (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 2].verdi).toBigDecimal()
+        // TODO - manuellt lagt inn faktoren for 2023. Denne burde hentes fra Grunnbeløpsendring
+        val omregningsfaktor = BigDecimal(1.064076)
 
         Either.catch {
             start(
                 fraOgMedMåned = command.fraOgMedMåned,
                 isLiveRun = false,
                 satsFactory = command.satsFactory.gjeldende(LocalDate.now(clock)),
-                gVerdiØkning = gVerdiØkning,
+                omregningsfaktor = omregningsfaktor,
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
@@ -118,7 +118,7 @@ class ReguleringServiceImpl(
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement = Reguleringssupplement.empty(),
-        gVerdiØkning: BigDecimal,
+        omregningsfaktor: BigDecimal,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -134,7 +134,7 @@ class ReguleringServiceImpl(
                 isLiveRun = isLiveRun,
                 satsFactory = satsFactory,
                 supplement = supplement,
-                gVerdiØkning = gVerdiØkning,
+                omregningsfaktor = omregningsfaktor,
             )
         }
             .also {
@@ -147,7 +147,7 @@ class ReguleringServiceImpl(
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement,
-        gVerdiØkning: BigDecimal,
+        omregningsfaktor: BigDecimal,
     ): Either<KunneIkkeOppretteRegulering, Regulering> {
         val sak = this
 
@@ -155,7 +155,7 @@ class ReguleringServiceImpl(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
             supplement = supplement,
-            gVerdiØkning = gVerdiØkning,
+            omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
             when (feil) {

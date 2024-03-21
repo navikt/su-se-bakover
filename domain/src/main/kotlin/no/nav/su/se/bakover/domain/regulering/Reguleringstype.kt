@@ -9,6 +9,21 @@ sealed interface Reguleringstype {
     data object AUTOMATISK : Reguleringstype
 
     data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
+
+    companion object {
+        fun utledReguleringsTypeFrom(
+            reguleringstype1: Reguleringstype,
+            reguleringstype2: Reguleringstype,
+        ): Reguleringstype {
+            if (reguleringstype1 is MANUELL || reguleringstype2 is MANUELL) {
+                return MANUELL(
+                    ((reguleringstype1 as? MANUELL)?.problemer ?: emptySet()) +
+                        ((reguleringstype2 as? MANUELL)?.problemer ?: emptySet()),
+                )
+            }
+            return AUTOMATISK
+        }
+    }
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(

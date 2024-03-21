@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.extensions.wheneverEitherIsNull
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class ExtensionsKtTest {
@@ -130,5 +131,15 @@ internal class ExtensionsKtTest {
             isSingle = { fail("isSingle skal ikke kjøre dersom listen har flere elementer") },
             isMultiple = { list },
         )
+    }
+
+    @Test
+    fun `whenSingleOrMultiple kaster exception dersom listen er tom`() {
+        assertThrows<IllegalArgumentException> {
+            emptyList<String>().whenSingleOrMultiple(
+                isSingle = { emptyList() },
+                isMultiple = { emptyList<String>() },
+            )
+        }
     }
 }
