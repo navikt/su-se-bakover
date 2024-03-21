@@ -314,13 +314,13 @@ internal class VedtakPostgresRepo(
                     left join sak s on s.id = v.sakid
                   where
                     v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
-                    s.fnr in (:fnr) and
+                    s.fnr = ANY (:fnr) and
                     :dato >= fraogmed
                 """.trimIndent()
                     .hentListe(
                         mapOf(
                             "dato" to fraOgMed.fraOgMed,
-                            "fnr" to fødselsnumre.joinToString { "," },
+                            "fnr" to fødselsnumre.map { it.toString() },
                         ),
                         session,
                     ) {

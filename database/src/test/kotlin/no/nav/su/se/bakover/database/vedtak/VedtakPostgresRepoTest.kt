@@ -146,6 +146,19 @@ internal class VedtakPostgresRepoTest {
     }
 
     @Test
+    fun `henter alle vedtak fra en måned med fødselsnummere som er supplert`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource = dataSource)
+            val (sak, _, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
+
+            testDataHelper.vedtakRepo.hentForFødselsnumreOgFraOgMedMåned(
+                fødselsnumre = listOf(sak.fnr),
+                fraOgMed = januar(2021),
+            ).size shouldBe 1
+        }
+    }
+
+    @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for avslått søknadsbehandling`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
