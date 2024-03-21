@@ -20,6 +20,8 @@ private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 /**
  * Iverksatte regulering vil ikke bli oppdatert
  *
+ * @param omregningsfaktor Se https://www.nav.no/grunnbelopet F.eks fra 2022 (111477) ( til 2023 (118620kr) så var omregningsfaktoren 118620/111477 = 1.064076
+ *
  * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
  */
 fun Sak.opprettEllerOppdaterRegulering(
@@ -27,7 +29,7 @@ fun Sak.opprettEllerOppdaterRegulering(
     clock: Clock,
     // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
     supplement: Reguleringssupplement,
-    gVerdiØkning: BigDecimal,
+    omregningsfaktor: BigDecimal,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
@@ -78,7 +80,7 @@ fun Sak.opprettEllerOppdaterRegulering(
             bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             supplement = supplement,
         ),
-        gVerdiØkning = gVerdiØkning,
+        omregningsfaktor = omregningsfaktor,
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }

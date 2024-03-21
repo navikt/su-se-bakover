@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.domain.Stønadsbehandling
@@ -26,6 +28,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
+import vilkår.vurderinger.domain.erGyldigTilstand
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -86,25 +89,16 @@ sealed interface Regulering : Stønadsbehandling {
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
             eksternSupplementRegulering: EksternSupplementRegulering,
-            gVerdiØkning: BigDecimal,
+            omregningsfaktor: BigDecimal,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
-//            val reguleringstype =
-//                gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
-//                    { konsistensproblemer ->
-//                        val message =
-//                            "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-//                                " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-//                        if (konsistensproblemer.erGyldigTilstand()) {
-//                            log.info(message)
-//                        } else {
-//                            log.error(message)
-//                        }
-//                        return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
-//                    },
-//                    {
-//                        gjeldendeVedtaksdata.utledReguleringstype(eksternSupplementRegulering)
-//                    },
-//                )
+            val reguleringstypeVedGenerelleProblemer =
+                getReguleringstypeVedGenerelleProblemer(
+                    gjeldendeVedtaksdata,
+                    saksnummer,
+                    eksternSupplementRegulering,
+                ).getOrElse {
+                    return it.left()
+                }
             val fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag
             val bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
 
@@ -125,13 +119,14 @@ sealed interface Regulering : Stønadsbehandling {
                         fradragstype = fradragstype,
                         originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
                         periodeTilEps = bosituasjon.periodeTilEpsFnr(),
-                        gVerdiØkning = gVerdiØkning,
+                        omregningsfaktor = omregningsfaktor,
                     )
                     oppdaterteFradragsgrunnlag
                 }.let {
                     val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
                         Reguleringstype.MANUELL(
-                            problemer = it.filterIsInstance<Reguleringstype.MANUELL>().flatMap { it.problemer }.toSet(),
+                            problemer = it.map { it.first }.filterIsInstance<Reguleringstype.MANUELL>()
+                                .flatMap { it.problemer }.toSet(),
                         )
                     } else {
                         Reguleringstype.AUTOMATISK
@@ -139,9 +134,11 @@ sealed interface Regulering : Stønadsbehandling {
                     reguleringstype to it.flatMap { it.second }
                 }
 
-            println("$reguleringstypeVedSupplement, $oppdatereFradragsgrunnlaggKunForSøker")
-
-            // TODO må oppdatere grunnlagene med verdiene i supplementet
+            // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
+            val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
+                reguleringstype1 = reguleringstypeVedGenerelleProblemer,
+                reguleringstype2 = reguleringstypeVedSupplement,
+            )
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -149,13 +146,40 @@ sealed interface Regulering : Stønadsbehandling {
                 saksnummer = saksnummer,
                 saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
                 fnr = fnr,
-                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(
+                    grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata.copy(
+                        fradragsgrunnlag = oppdatereFradragsgrunnlaggKunForSøker,
+                    ),
+                ),
                 beregning = null,
                 simulering = null,
-                reguleringstype = reguleringstypeVedSupplement,
+                reguleringstype = reguleringstype,
                 sakstype = sakstype,
                 eksternSupplementRegulering = eksternSupplementRegulering,
             ).right()
+        }
+
+        private fun getReguleringstypeVedGenerelleProblemer(
+            gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+            saksnummer: Saksnummer,
+            eksternSupplementRegulering: EksternSupplementRegulering,
+        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
+            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
+                { konsistensproblemer ->
+                    val message =
+                        "Kunne ikke opprette regulering for saksnummer $saksnummer." +
+                            " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
+                    if (konsistensproblemer.erGyldigTilstand()) {
+                        log.info(message)
+                    } else {
+                        log.error(message)
+                    }
+                    return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
+                },
+                {
+                    gjeldendeVedtaksdata.utledReguleringstype(eksternSupplementRegulering).right()
+                },
+            )
         }
     }
 
@@ -172,7 +196,7 @@ fun utledReguleringstypeOgFradrag(
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     periodeTilEps: Map<Periode, Fnr>,
-    gVerdiØkning: BigDecimal,
+    omregningsfaktor: BigDecimal,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
 
@@ -183,12 +207,13 @@ fun utledReguleringstypeOgFradrag(
             fradragsgrunnlag.toNonEmptyList(),
             fradragtilhører,
             periodeTilEps,
-            gVerdiØkning,
+            omregningsfaktor,
         )
     }.let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
             Reguleringstype.MANUELL(
-                problemer = it.filterIsInstance<Reguleringstype.MANUELL>().flatMap { it.problemer }.toSet(),
+                problemer = it.map { it.first }.filterIsInstance<Reguleringstype.MANUELL>().flatMap { it.problemer }
+                    .toSet(),
             )
         } else {
             Reguleringstype.AUTOMATISK
@@ -209,7 +234,7 @@ fun utledReguleringstypeOgFradrag(
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     fradragTilhører: FradragTilhører,
     periodeTilEps: Map<Periode, Fnr>,
-    gVerdiØkning: BigDecimal,
+    omregningsfaktor: BigDecimal,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
@@ -220,7 +245,11 @@ fun utledReguleringstypeOgFradrag(
     ) {
         // Dette er den vanligste casen for manuell regulering, vi trenger ikke logge disse tilfellene.
         val regtype =
-            if (fradragstype.måJusteresManueltVedGEndring) Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) else Reguleringstype.AUTOMATISK
+            if (fradragstype.måJusteresManueltVedGEndring) {
+                Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
+            } else {
+                Reguleringstype.AUTOMATISK
+            }
         return regtype to originaleFradragsgrunnlag
     }
 
@@ -235,7 +264,7 @@ fun utledReguleringstypeOgFradrag(
         originaleFradragsgrunnlag.first(),
         fradragTilhører,
         periodeTilEps,
-        gVerdiØkning,
+        omregningsfaktor,
     ).let {
         it.first to nonEmptyListOf(it.second)
     }
@@ -253,12 +282,17 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
     periodeTilEps: Map<Periode, Fnr>,
-    gVerdiØkning: BigDecimal,
+    omregningsfaktor: BigDecimal,
 ): Pair<Reguleringstype, Fradragsgrunnlag> {
     require(originaleFradragsgrunnlag.fradragstype == fradragstype)
     require(originaleFradragsgrunnlag.fradrag.tilhører == fradragTilhører)
     require(supplement.bruker != null || supplement.eps.isNotEmpty())
 
+    if (originaleFradragsgrunnlag.utenlandskInntekt != null) {
+        return Reguleringstype.MANUELL(
+            setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+        ) to originaleFradragsgrunnlag
+    }
     if (!originaleFradragsgrunnlag.skalJusteresVedGEndring()) {
         return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
     }
@@ -279,54 +313,17 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
             setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
         ) to originaleFradragsgrunnlag
     }
+    val nåværendeFradragsbeløp = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
     val supplementBeløp = supplementForType.fradragsperioder.single().beløp.toBigDecimal()
 
-    val diffØkning =
-        supplementBeløp.divide(BigDecimal(originaleFradragsgrunnlag.månedsbeløp).setScale(2), RoundingMode.HALF_UP)
-    if (diffØkning.absoluttDiff(gVerdiØkning) > BigDecimal("1.01")) {
+    val forventetBeløpBasertPåGverdi = (nåværendeFradragsbeløp * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
+
+    val differanseSupplementOgForventet = supplementBeløp.subtract(forventetBeløpBasertPåGverdi).abs()
+
+    if (differanseSupplementOgForventet > BigDecimal.TEN) {
         return Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) to originaleFradragsgrunnlag
     }
 
-    return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(supplementBeløp)
-
-//    supplement.bruker?.let { supplementSøker ->
-//        supplementSøker.perType.flatMap { perType ->
-//            if (perType.type == fradragstype) {
-//                originaleFradragsgrunnlag.whenSingleOrMultiple(
-//                    isSingle = {
-//                        val grunnlaget = originaleFradragsgrunnlag.single()
-//                        perType.fradragsperioder.whenSingleOrMultiple(
-//                            isSingle = {
-//                                /**
-//                                 * Identifiser at typen er bare 1, og fradraget er bare 1, da kan vi direkte oppdatere
-//                                 * fradraget med det nye beløpet.
-//                                 *
-//                                 * TODO sjekk diffen på tilsvarende grunnalgsendringen
-//                                 *  - dersom diffen er høyere, går den til manuell.
-//                                 */
-//                                Reguleringstype.AUTOMATISK to listOf(grunnlaget.oppdaterBeløpFraSupplement(it.beløp))
-//                            },
-//                            isMultiple = {
-//                                /**
-//                                 * identifisert at vi har kun 1 fradragsgrunnlag, men flere fra supplementet.
-//                                 * Er dette et gyldig case???
-//                                 */
-//                                TODO()
-//                            },
-//                        )
-//                    },
-//                    isMultiple = {
-//                        /**
-//                         * identifisert at vi har flere fradrag av samme type der perioden, eller innholdet ikke matcher.
-//                         * Vi slår ikke sammen fradragene dersom perioden er lik, men beløpene er ulikt. Vi burde kanskje ha lagt dem til?
-//                         *
-//                         */
-//                        TODO()
-//                    },
-//                )
-//            } else {
-//                originaleFradragsgrunnlag
-//            }.toNonEmptyList()
-//        }
-//    }
+    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(supplementBeløp)
+    return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }

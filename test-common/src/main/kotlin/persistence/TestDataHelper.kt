@@ -522,7 +522,7 @@ class TestDataHelper(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
                 supplement = supplement,
-                gVerdiØkning = gVerdiØkning,
+                omregningsfaktor = gVerdiØkning,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

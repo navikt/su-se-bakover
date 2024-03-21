@@ -142,7 +142,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
         supplement = supplement,
-        gVerdiØkning = gVerdiØkning,
+        omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
     return Pair(
