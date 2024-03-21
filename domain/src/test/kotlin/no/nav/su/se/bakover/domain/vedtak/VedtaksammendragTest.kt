@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
@@ -173,6 +175,23 @@ class VedtaksammendragTest {
                     forenkletVedtakSøknadsbehandling(fødselsnummer = fødselsnummer),
                 ).tilInnvilgetForMånedEllerSenere(januar(2021))
             }.message shouldBe "Forsikrer oss om at en sak ikke har flere vedtak som er opprettet samtidig."
+        }
+
+        @Test
+        fun `henter sammendrag dersom fraOgMedEllerSenere er innenfor vedtaksperioden `() {
+            val fødselsnummer = Fnr.generer()
+            val sammendrag = forenkletVedtakSøknadsbehandling(fødselsnummer = fødselsnummer)
+            listOf(sammendrag).tilInnvilgetForMånedEllerSenere(februar(2021)) shouldBe InnvilgetForMånedEllerSenere(
+                fraOgMedEllerSenere = februar(2021),
+                sakInfo = listOf(
+                    SakInfo(
+                        sakId = sammendrag.sakId,
+                        saksnummer = sammendrag.saksnummer,
+                        fnr = fødselsnummer,
+                        type = Sakstype.UFØRE,
+                    ),
+                ),
+            )
         }
 
         @Test

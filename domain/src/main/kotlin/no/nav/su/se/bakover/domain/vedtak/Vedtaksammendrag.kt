@@ -55,7 +55,7 @@ fun List<Vedtaksammendrag>.tilInnvilgetForMånedEllerSenere(
     fraOgMedEllerSenere: Måned,
 ): InnvilgetForMånedEllerSenere {
     return this
-        .filter { it.periode >= fraOgMedEllerSenere }
+        .filter { it.periode.inneholder(fraOgMedEllerSenere) }
         .groupBy { it.fødselsnummer }
         .mapNotNull {
             require(it.value.map { it.opprettet }.distinct().size == it.value.size) {
