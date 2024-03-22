@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import java.time.LocalDate
@@ -18,7 +17,7 @@ import java.util.Locale
 open class DatoIntervall(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-) : Comparable<DatoIntervall> {
+) {
 
     init {
         require(fraOgMed <= tilOgMed) {
@@ -26,7 +25,7 @@ open class DatoIntervall(
         }
     }
 
-    override fun compareTo(other: DatoIntervall) = compareValuesBy(this, other, { it.fraOgMed }, { it.tilOgMed })
+    constructor(dato: LocalDate) : this(dato, dato)
 
     infix fun inneholder(dato: LocalDate): Boolean = dato in fraOgMed..tilOgMed
 
@@ -92,10 +91,22 @@ open class DatoIntervall(
         return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
     }
 
+    infix fun tilstøter(other: LocalDate): Boolean {
+        val dayBeforeStart = fraOgMed.minusDays(1)
+        val dayAfterEnd = tilOgMed.plusDays(1)
+        return other.isEqual(dayBeforeStart) || other.isEqual(dayAfterEnd)
+    }
+
     infix fun slåSammen(
         other: DatoIntervall,
     ): Either<DatoIntervallKanIkkeSlåsSammen, DatoIntervall> {
         return slåSammen(other) { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
+    }
+
+    infix fun slåSammen(
+        other: LocalDate,
+    ): Either<DatoIntervallKanIkkeSlåsSammen, DatoIntervall> {
+        return slåSammen(DatoIntervall(other, other)) { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
     }
 
     /**
@@ -116,6 +127,13 @@ open class DatoIntervall(
     }
 
     /**
+     * @return Liste med alle dager i [DatoIntervall], sortert og unike.
+     */
+    fun dager(): List<LocalDate> {
+        return (0 until antallDager()).map { fraOgMed.plusDays(it) }
+    }
+
+    /**
      * Periode i formatet "dd.MM.yyyy - dd.MM.yyyy".
      */
     fun ddMMyyyy(): String {
@@ -123,9 +141,14 @@ open class DatoIntervall(
         return "${this.fraOgMed.format(formatter)} - ${this.tilOgMed.format(formatter)}"
     }
 
-    override fun equals(other: Any?) = other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
+    override fun equals(other: Any?) =
+        other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
 
     override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
+
+    override fun toString(): String {
+        return "DatoIntervall(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
+    }
 
     data object DatoIntervallKanIkkeSlåsSammen
 }
@@ -141,19 +164,21 @@ fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall
 fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
     create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
 ): List<T> {
-    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<T>, datoIntervall: T ->
-        if (slåttSammen.isEmpty()) {
-            slåttSammen.add(datoIntervall)
-        } else if (slåttSammen.last().slåSammen(datoIntervall).isRight()) {
-            val last = slåttSammen.removeLast()
-            slåttSammen.add(
-                last.slåSammen(datoIntervall, create).getOrElse { throw IllegalStateException("Skulle gått bra") },
-            )
-        } else {
-            slåttSammen.add(datoIntervall)
+    return this.dager()
+        .fold(emptyList()) { acc, dato ->
+            if (acc.isEmpty()) {
+                listOf(DatoIntervall(dato, dato))
+            } else {
+                acc.last().slåSammen(dato).fold(
+                    { acc + listOf(DatoIntervall(dato, dato)) },
+                    { acc.dropLast(1) + it },
+                )
+            }.let {
+                it.map {
+                    create(it.fraOgMed, it.tilOgMed)
+                }
+            }
         }
-        slåttSammen
-    }
 }
 
 infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
@@ -175,4 +200,11 @@ fun List<DatoIntervall>.minAndMaxOfOrNull(): DatoIntervall? {
         fraOgMed = this.minOf { it.fraOgMed },
         tilOgMed = this.maxOf { it.tilOgMed },
     )
+}
+
+/**
+ * @return Liste med alle dager i alle [DatoIntervall] i listen, sortert og unike.
+ */
+fun <T : DatoIntervall> List<T>.dager(): List<LocalDate> {
+    return this.flatMap { it.dager() }.distinct().sorted()
 }

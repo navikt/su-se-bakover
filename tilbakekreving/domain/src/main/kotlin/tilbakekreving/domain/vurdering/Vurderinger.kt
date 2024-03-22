@@ -13,12 +13,12 @@ data class Vurderinger(
 ) : List<Vurderinger.Periodevurdering> by perioder {
     init {
         perioder.map { it.periode }.let {
-            require(it.sorted() == it) {
-                "Vurderingene må være sortert."
+            require(it.map { it.fraOgMed }.sorted() == it.map { it.fraOgMed }) {
+                "Vurderingene må være sortert på fraOgMed, men var: $it"
             }
             it.zipWithNext { a, b ->
                 require(!a.overlapper(b)) {
-                    "Perioder kan ikke overlappe."
+                    "Perioder kan ikke overlappe, men var: $it"
                 }
             }
         }
