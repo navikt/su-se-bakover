@@ -11,7 +11,7 @@ import java.time.Year
 
 data class Stønadsperiode private constructor(
     val periode: Periode,
-) : Comparable<Stønadsperiode> {
+) {
 
     infix fun inneholder(periode: Periode) = this.periode.inneholder(periode)
     infix fun inneholder(stønadsperiode: Stønadsperiode) = this.periode.inneholder(stønadsperiode.periode)
@@ -40,7 +40,6 @@ data class Stønadsperiode private constructor(
         data object FraOgMedDatoKanIkkeVæreFør2021 : UgyldigStønadsperiode
     }
 
-    override fun compareTo(other: Stønadsperiode) = periode.compareTo(other.periode)
     fun måneder() = periode.måneder()
     fun toYearRange(): YearRange = YearRange(Year.of(this.periode.fraOgMed.year), Year.of(this.periode.tilOgMed.year))
 }

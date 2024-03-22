@@ -27,7 +27,7 @@ import kotlin.collections.minus as setsMinus
 open class Periode protected constructor(
     fraOgMed: LocalDate,
     tilOgMed: LocalDate,
-) : DatoIntervall(fraOgMed, tilOgMed) {
+) : DatoIntervall(fraOgMed, tilOgMed), Comparable<Periode> {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
         validateOrThrow(fraOgMed, tilOgMed)
@@ -36,6 +36,8 @@ open class Periode protected constructor(
     init {
         validateOrThrow(fraOgMed, tilOgMed)
     }
+
+    override fun compareTo(other: Periode) = compareValuesBy(this, other, Periode::fraOgMed, Periode::tilOgMed)
 
     /**
      * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX

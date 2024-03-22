@@ -24,6 +24,8 @@ data class Måned private constructor(
             require(this.før(that))
         }
     }
+    // TODO - her vil vi ha en egen compareTo og comaprable på måned
+    // override fun compareTo(other: Måned): Int = this.årOgMåned.compareTo(other.årOgMåned)
 
     /**
      * Returns a range from this value up to but excluding the specified to value.

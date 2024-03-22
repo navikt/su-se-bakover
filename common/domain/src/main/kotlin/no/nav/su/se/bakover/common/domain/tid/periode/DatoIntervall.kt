@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import java.time.LocalDate
@@ -18,7 +17,7 @@ import java.util.Locale
 open class DatoIntervall(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-) : Comparable<DatoIntervall> {
+) {
 
     init {
         require(fraOgMed <= tilOgMed) {
@@ -26,7 +25,7 @@ open class DatoIntervall(
         }
     }
 
-    override fun compareTo(other: DatoIntervall) = compareValuesBy(this, other, { it.fraOgMed }, { it.tilOgMed })
+    // override fun compareTo(other: DatoIntervall) = compareValuesBy(this, other, { it.fraOgMed }, { it.tilOgMed })
 
     infix fun inneholder(dato: LocalDate): Boolean = dato in fraOgMed..tilOgMed
 
@@ -123,44 +122,45 @@ open class DatoIntervall(
         return "${this.fraOgMed.format(formatter)} - ${this.tilOgMed.format(formatter)}"
     }
 
-    override fun equals(other: Any?) = other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
+    override fun equals(other: Any?) =
+        other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
 
     override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
 
     data object DatoIntervallKanIkkeSlåsSammen
 }
 
-fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall> {
-    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
-}
+// fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall> {
+//    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
+// }
 
 /**
  * Finner minste antall sammenhengende datointervaller fra en liste med [DatoIntervall] ved å slå sammen elementer etter reglene
  * definert av [DatoIntervall.slåSammen].
  */
-fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
-    create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
-): List<T> {
-    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<T>, datoIntervall: T ->
-        if (slåttSammen.isEmpty()) {
-            slåttSammen.add(datoIntervall)
-        } else if (slåttSammen.last().slåSammen(datoIntervall).isRight()) {
-            val last = slåttSammen.removeLast()
-            slåttSammen.add(
-                last.slåSammen(datoIntervall, create).getOrElse { throw IllegalStateException("Skulle gått bra") },
-            )
-        } else {
-            slåttSammen.add(datoIntervall)
-        }
-        slåttSammen
-    }
-}
+// fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
+//    create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
+// ): List<T> {
+//    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<T>, datoIntervall: T ->
+//        if (slåttSammen.isEmpty()) {
+//            slåttSammen.add(datoIntervall)
+//        } else if (slåttSammen.last().slåSammen(datoIntervall).isRight()) {
+//            val last = slåttSammen.removeLast()
+//            slåttSammen.add(
+//                last.slåSammen(datoIntervall, create).getOrElse { throw IllegalStateException("Skulle gått bra") },
+//            )
+//        } else {
+//            slåttSammen.add(datoIntervall)
+//        }
+//        slåttSammen
+//    }
+// }
 
-infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
-    other.minsteAntallSammenhengendePerioder().all { this.minsteAntallSammenhengendePerioder() inneholder it }
-
-infix fun List<DatoIntervall>.inneholder(other: DatoIntervall): Boolean =
-    this.minsteAntallSammenhengendePerioder().any { it inneholder other }
+// infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
+//    other.minsteAntallSammenhengendePerioder().all { this.minsteAntallSammenhengendePerioder() inneholder it }
+//
+// infix fun List<DatoIntervall>.inneholder(other: DatoIntervall): Boolean =
+//    this.minsteAntallSammenhengendePerioder().any { it inneholder other }
 
 fun NonEmptyList<DatoIntervall>.minAndMaxOf(): DatoIntervall {
     return DatoIntervall(
