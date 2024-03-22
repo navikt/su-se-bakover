@@ -44,7 +44,7 @@ import org.mockito.kotlin.whenever
 import person.domain.PersonService
 import java.util.UUID
 
-internal class PersonhendelseServiceTest {
+internal class PersonhendelseServiceImplTest {
     @Test
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
@@ -66,7 +66,7 @@ internal class PersonhendelseServiceTest {
                 ),
             )
         }
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -114,7 +114,7 @@ internal class PersonhendelseServiceTest {
             doNothing().whenever(it).lagre(any<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>())
         }
         val oppgaveServiceMock: OppgaveService = mock()
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -151,7 +151,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn emptyList()
         }
         val personServiceMock = mock<PersonService>()
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
@@ -194,7 +194,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -248,7 +248,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,

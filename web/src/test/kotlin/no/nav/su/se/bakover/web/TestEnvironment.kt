@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.web
 
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.content.PartData
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.Clients
@@ -84,6 +87,24 @@ suspend fun ApplicationTestBuilder.defaultRequest(
             append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
         }
         setup()
+    }
+}
+
+suspend fun ApplicationTestBuilder.formdataRequest(
+    method: HttpMethod,
+    uri: String,
+    roller: List<Brukerrolle> = emptyList(),
+    formData: List<PartData> = formData {},
+): HttpResponse {
+    return this.client.submitFormWithBinaryData(
+        url = uri,
+        formData = formData,
+    ) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
+        }
     }
 }
 

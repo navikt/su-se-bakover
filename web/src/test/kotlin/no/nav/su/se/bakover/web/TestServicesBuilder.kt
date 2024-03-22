@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -59,10 +60,12 @@ data object TestServicesBuilder {
         kontrollsamtaleSetup: KontrollsamtaleSetup = object : KontrollsamtaleSetup {
             override val kontrollsamtaleService: KontrollsamtaleService = mock()
             override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock()
-            override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock()
+            override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService =
+                mock()
             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock()
         },
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
+        personhendelseService: PersonhendelseService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -87,5 +90,6 @@ data object TestServicesBuilder {
         skatteService = skatteService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,
         resendStatistikkhendelserService = resendStatistikkhendelserService,
+        personhendelseService = personhendelseService,
     )
 }

@@ -14,7 +14,8 @@ enum class SivilstandTyper {
     REGISTRERT_PARTNER,
     SEPARERT_PARTNER,
     SKILT_PARTNER,
-    GJENLEVENDE_PARTNER;
+    GJENLEVENDE_PARTNER,
+    ;
 
     companion object {
         fun fromString(value: String?): Either<UkjentSivilstandtype, SivilstandTyper?> {

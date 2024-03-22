@@ -15,7 +15,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import person.domain.SivilstandTyper
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-
 internal data object PersonhendelseMapper {
     internal fun map(
         message: ConsumerRecord<String, EksternPersonhendelse>,
@@ -40,7 +39,6 @@ internal data object PersonhendelseMapper {
             }
 
             OpplysningstypeForPersonhendelse.SIVILSTAND.value -> {
-
                 (
                     personhendelse.getSivilstand().map {
                         val type: String? = it.type
