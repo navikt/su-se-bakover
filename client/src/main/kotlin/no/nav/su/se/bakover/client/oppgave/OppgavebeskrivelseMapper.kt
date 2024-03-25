@@ -15,27 +15,43 @@ data object OppgavebeskrivelseMapper {
             "\n\n${config.utfall.lukkBeskrivelse()}"
     }
 
-    fun map(hendelser: NonEmptyCollection<Personhendelse.Hendelse>): String = hendelser.map {
-        map(it)
-    }.joinToString { "\n\n" }
+    fun map(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
+        personhendelser
+            .sortedBy { it.opprettet.instant }
+            .map { mapOne(it) }
+            .joinToString { "\n\n" }
 
-    fun map(hendelse: Personhendelse.Hendelse): String = when (hendelse) {
-        is Personhendelse.Hendelse.Dødsfall -> {
-            "Dødsfall\n" +
-                "\tDødsdato: ${hendelse.dødsdato ?: "Ikke oppgitt"}"
+    fun mapOne(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave): String =
+        when (val hendelse = personhendelse.hendelse) {
+            is Personhendelse.Hendelse.Dødsfall -> {
+                "Dødsfall\n" +
+                    "\tDødsdato: ${hendelse.dødsdato ?: "Ikke oppgitt"}\n" +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
+
+            is Personhendelse.Hendelse.Sivilstand -> {
+                "Endring i sivilstand\n" +
+                    "\tType: ${hendelse.type?.toReadableName() ?: "Ikke oppgitt"}\n" +
+                    "\tGyldig fra og med: ${hendelse.gyldigFraOgMed ?: "Ikke oppgitt"}\n" +
+                    "\tBekreftelsesdato: ${hendelse.bekreftelsesdato ?: "Ikke oppgitt"}\n" +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
+
+            is Personhendelse.Hendelse.UtflyttingFraNorge -> {
+                "Utflytting fra Norge\n" +
+                    "\tUtflyttingsdato: ${hendelse.utflyttingsdato ?: "Ikke oppgitt"}\n" +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
+
+            is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse\n" + personhendelse.leggTilMetadataBeskrivelse()
+            is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse\n" + personhendelse.leggTilMetadataBeskrivelse()
         }
-        is Personhendelse.Hendelse.Sivilstand -> {
-            "Endring i sivilstand\n" +
-                "\ttype: ${hendelse.type?.toReadableName() ?: "Ikke oppgitt"}\n" +
-                "\tGyldig fra og med: ${hendelse.gyldigFraOgMed ?: "Ikke oppgitt"}\n" +
-                "\tBekreftelsesdato: ${hendelse.bekreftelsesdato ?: "Ikke oppgitt"}"
-        }
-        is Personhendelse.Hendelse.UtflyttingFraNorge -> {
-            "Utflytting fra Norge\n" +
-                "\tUtflyttingsdato: ${hendelse.utflyttingsdato ?: "Ikke oppgitt"}"
-        }
-        is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse"
-        is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse"
+
+    private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggTilMetadataBeskrivelse(): String {
+        return "\tMottatt hendelsestidspunkt: ${this.opprettet.toOppgaveFormat()}\n" +
+            "\tEndringstype: ${this.endringstype}\n" +
+            "\tHendelseId: ${this.id}\n" +
+            "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import java.util.UUID
 
@@ -40,6 +41,7 @@ fun nyPersonhendelseKnyttetTilSak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakstype: Sakstype = Sakstype.UFØRE,
+    opprettet: Tidspunkt = fixedTidspunkt,
 ): Personhendelse.TilknyttetSak.IkkeSendtTilOppgave {
     return nyPersonhendelseIkkeKnyttetTilSak(
         endringstype = endringstype,
@@ -55,6 +57,7 @@ fun nyPersonhendelseKnyttetTilSak(
             fnr = fnr,
             type = sakstype,
         ),
+        opprettet = opprettet,
     )
 }
 
@@ -67,6 +70,7 @@ fun nyPersonhendelseSendtTilOppgave(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakstype: Sakstype = Sakstype.UFØRE,
     oppgaveId: OppgaveId = no.nav.su.se.bakover.test.oppgave.oppgaveId,
+    opprettet: Tidspunkt = fixedTidspunkt,
 ): Personhendelse.TilknyttetSak.SendtTilOppgave {
     return nyPersonhendelseKnyttetTilSak(
         endringstype = endringstype,
@@ -76,5 +80,6 @@ fun nyPersonhendelseSendtTilOppgave(
         saksnummer = saksnummer,
         fnr = fnr,
         sakstype = sakstype,
+        opprettet = opprettet,
     ).tilSendtTilOppgave(oppgaveId = oppgaveId)
 }

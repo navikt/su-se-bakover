@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -47,11 +48,12 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
-            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
 
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -86,11 +88,12 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
 
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -130,10 +133,11 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -168,10 +172,11 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -206,10 +211,11 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -276,12 +282,25 @@ internal class PersonhendelsePostgresRepoTest {
             val sak2 = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id2 = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id1, SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type)))
-            repo.lagre(hendelse.tilknyttSak(id2, SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type)))
+            repo.lagre(
+                hendelse.tilknyttSak(
+                    id1,
+                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
+                    fixedTidspunkt,
+                ),
+            )
+            repo.lagre(
+                hendelse.tilknyttSak(
+                    id2,
+                    SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
+                    fixedTidspunkt,
+                ),
+            )
 
             repo.hent(id1) shouldBe hendelse.tilknyttSak(
                 id = id1,
                 SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
+                fixedTidspunkt,
             )
             hentMetadata(id1, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -316,12 +335,17 @@ internal class PersonhendelsePostgresRepoTest {
             val id = UUID.randomUUID()
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+            val hendelseKnyttetTilSak =
+                hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt)
             repo.lagre(hendelseKnyttetTilSak)
             repo.lagre(nonEmptyListOf(hendelseKnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId"))))
 
             val oppdatertHendelse = repo.hent(id)
-            oppdatertHendelse shouldBe hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+            oppdatertHendelse shouldBe hendelse.tilknyttSak(
+                id,
+                SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                fixedTidspunkt,
+            )
                 .tilSendtTilOppgave(OppgaveId("oppgaveId"))
         }
     }
@@ -361,9 +385,10 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelse1KnyttetTilSak = hendelse1.tilknyttSak(id1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+            val hendelse1KnyttetTilSak =
+                hendelse1.tilknyttSak(id1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt)
             repo.lagre(hendelse1KnyttetTilSak)
-            repo.lagre(hendelse2.tilknyttSak(id2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
+            repo.lagre(hendelse2.tilknyttSak(id2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt))
 
             repo.lagre(nonEmptyListOf(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId"))))
 
@@ -371,6 +396,7 @@ internal class PersonhendelsePostgresRepoTest {
                 hendelse2.tilknyttSak(
                     id2,
                     SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                    fixedTidspunkt,
                 ),
             )
         }
@@ -413,9 +439,9 @@ internal class PersonhendelsePostgresRepoTest {
             )
 
             val hendelse1TilknyttetSak =
-                hendelse1.tilknyttSak(hendelseId1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+                hendelse1.tilknyttSak(hendelseId1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt)
             val hendelse2TilknyttetSak =
-                hendelse2.tilknyttSak(hendelseId2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+                hendelse2.tilknyttSak(hendelseId2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type), fixedTidspunkt)
             repo.lagre(hendelse1TilknyttetSak)
             repo.lagre(hendelse2TilknyttetSak)
 

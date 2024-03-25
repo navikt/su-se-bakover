@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -50,7 +51,7 @@ internal class PersonhendelsePostgresRepo(
                     mapOf(
                         "id" to personhendelse.id,
                         "sakId" to personhendelse.sakId,
-                        "opprettet" to tidspunkt,
+                        "opprettet" to personhendelse.opprettet,
                         "endret" to tidspunkt,
                         "endringstype" to personhendelse.endringstype.toDatabasetype(),
                         "hendelse" to serialize(personhendelse.hendelse.toJson()),
@@ -65,7 +66,6 @@ internal class PersonhendelsePostgresRepo(
     }
 
     override fun lagre(personhendelse: List<Personhendelse.TilknyttetSak.SendtTilOppgave>) {
-        // val endret = Tidspunkt.now(clock)
         val multiLineQuery: String = personhendelse.joinToString("\n") {
             "update personhendelse set oppgaveId = '${it.oppgaveId}', endret = :endret where id = '${it.id}';"
         }
@@ -132,6 +132,7 @@ internal class PersonhendelsePostgresRepo(
         saksnummer = Saksnummer(long("saksnummer")),
         metadata = deserialize<MetadataJson>(string("metadata")).toDomain(),
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
+        opprettet = tidspunkt("opprettet"),
     )
 
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
@@ -143,6 +144,7 @@ internal class PersonhendelsePostgresRepo(
         metadata = deserialize<MetadataJson>(string("metadata")).toDomain(),
         oppgaveId = oppgaveId,
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
+        opprettet = tidspunkt("opprettet"),
     )
 
     private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =

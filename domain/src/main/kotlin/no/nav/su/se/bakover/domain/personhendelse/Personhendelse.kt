@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import person.domain.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
@@ -17,31 +18,34 @@ sealed interface Personhendelse {
         OPPHØRT,
     }
 
-    abstract val endringstype: Endringstype
-    abstract val hendelse: Hendelse
-    abstract val metadata: Metadata
+    val endringstype: Endringstype
+    val hendelse: Hendelse
+    val metadata: Metadata
 
     data class IkkeTilknyttetSak(
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
         override val metadata: Metadata,
     ) : Personhendelse {
-        fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakInfo) = TilknyttetSak.IkkeSendtTilOppgave(
-            endringstype = endringstype,
-            hendelse = hendelse,
-            id = id,
-            sakId = sakIdSaksnummerFnr.sakId,
-            saksnummer = sakIdSaksnummerFnr.saksnummer,
-            metadata = metadata,
-            antallFeiledeForsøk = 0,
-        )
+        fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakInfo, opprettet: Tidspunkt) =
+            TilknyttetSak.IkkeSendtTilOppgave(
+                endringstype = endringstype,
+                hendelse = hendelse,
+                id = id,
+                sakId = sakIdSaksnummerFnr.sakId,
+                saksnummer = sakIdSaksnummerFnr.saksnummer,
+                metadata = metadata,
+                antallFeiledeForsøk = 0,
+                opprettet = opprettet,
+            )
     }
 
     sealed interface TilknyttetSak : Personhendelse {
-        abstract val id: UUID
-        abstract val sakId: UUID
-        abstract val saksnummer: Saksnummer
-        abstract val antallFeiledeForsøk: Int
+        val id: UUID
+        val sakId: UUID
+        val saksnummer: Saksnummer
+        val antallFeiledeForsøk: Int
+        val opprettet: Tidspunkt
 
         data class IkkeSendtTilOppgave(
             override val endringstype: Endringstype,
@@ -51,6 +55,7 @@ sealed interface Personhendelse {
             override val saksnummer: Saksnummer,
             override val metadata: Metadata,
             override val antallFeiledeForsøk: Int,
+            override val opprettet: Tidspunkt,
         ) : TilknyttetSak {
             fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
                 SendtTilOppgave(
@@ -62,6 +67,7 @@ sealed interface Personhendelse {
                     oppgaveId = oppgaveId,
                     metadata = metadata,
                     antallFeiledeForsøk = antallFeiledeForsøk,
+                    opprettet = opprettet,
                 )
         }
 
@@ -74,6 +80,7 @@ sealed interface Personhendelse {
             override val metadata: Metadata,
             val oppgaveId: OppgaveId,
             override val antallFeiledeForsøk: Int,
+            override val opprettet: Tidspunkt,
         ) : TilknyttetSak
     }
 

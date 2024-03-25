@@ -83,6 +83,7 @@ internal class PersonhendelseServiceTest {
                         fnr,
                         Sakstype.UFØRE,
                     ),
+                    opprettet = fixedTidspunkt,
                 )
             },
         )
@@ -164,7 +165,7 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    personhendelsestype = nonEmptySetOf(personhendelse.hendelse),
+                    personhendelse = nonEmptySetOf(personhendelse),
                     aktørId = AktørId("aktørId"),
                     clock = fixedClock,
                 )
@@ -224,7 +225,7 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    personhendelsestype = nonEmptySetOf(personhendelse.hendelse),
+                    personhendelse = nonEmptySetOf(personhendelse),
                     aktørId = AktørId("aktørId"),
                     clock = fixedClock,
                 )
@@ -274,5 +275,6 @@ internal class PersonhendelseServiceTest {
                 personidenter = listOf(UUID.randomUUID().toString()).toNonEmptyList(),
             ),
             antallFeiledeForsøk = 0,
+            opprettet = fixedTidspunkt,
         )
 }

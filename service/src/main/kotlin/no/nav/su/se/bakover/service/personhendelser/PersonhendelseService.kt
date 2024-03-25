@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -43,14 +44,10 @@ class PersonhendelseService(
         }.single()
         sikkerLogg.debug("Personhendelse for sak: $personhendelse")
         personhendelseRepo.lagre(
-            personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer),
+            personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer, Tidspunkt.now(clock)),
         )
     }
 
-    /*
-    TODO ai 02.09: Kan vurdere på sikt å lage kun en oppgave for flere personhendelser for samme bruker,
-        f.eks hvis endringstypen er ANNULERT eller KORRIGERT.
-     */
     fun opprettOppgaverForPersonhendelser() {
         val personhendelser = personhendelseRepo.hentPersonhendelserUtenOppgave()
         personhendelser.groupBy { it.sakId }
@@ -76,7 +73,7 @@ class PersonhendelseService(
                 oppgaveServiceImpl.opprettOppgaveMedSystembruker(
                     OppgaveConfig.Personhendelse(
                         saksnummer = sak.saksnummer,
-                        personhendelsestype = personhendelser.map { it.hendelse }.toNonEmptySet(),
+                        personhendelse = personhendelser.toNonEmptySet(),
                         aktørId = aktørId,
                         clock = clock,
                     ),
