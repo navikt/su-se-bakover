@@ -17,6 +17,7 @@ fun nyPersonhendelseIkkeKnyttetTilSak(
     aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     hendelseId: String = "hendelseId",
+    eksternOpprettet: Tidspunkt? = fixedTidspunkt,
 ): Personhendelse.IkkeTilknyttetSak {
     return Personhendelse.IkkeTilknyttetSak(
         endringstype = endringstype,
@@ -29,6 +30,7 @@ fun nyPersonhendelseIkkeKnyttetTilSak(
             partisjon = 0,
             master = "FREG",
             key = "someKey",
+            eksternOpprettet = eksternOpprettet,
         ),
     )
 }
@@ -42,6 +44,7 @@ fun nyPersonhendelseKnyttetTilSak(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakstype: Sakstype = Sakstype.UFØRE,
     opprettet: Tidspunkt = fixedTidspunkt,
+    eksternOpprettet: Tidspunkt? = fixedTidspunkt,
 ): Personhendelse.TilknyttetSak.IkkeSendtTilOppgave {
     return nyPersonhendelseIkkeKnyttetTilSak(
         endringstype = endringstype,
@@ -49,6 +52,7 @@ fun nyPersonhendelseKnyttetTilSak(
         fnr = fnr,
         aktørId = aktørId,
         hendelseId = id.toString(),
+        eksternOpprettet = eksternOpprettet,
     ).tilknyttSak(
         id = id,
         sakIdSaksnummerFnr = SakInfo(

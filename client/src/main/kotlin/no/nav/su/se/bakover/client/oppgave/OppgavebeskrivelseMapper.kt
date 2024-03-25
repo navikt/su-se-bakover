@@ -48,7 +48,7 @@ data object OppgavebeskrivelseMapper {
         }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggTilMetadataBeskrivelse(): String {
-        return "\tMottatt hendelsestidspunkt: ${this.opprettet.toOppgaveFormat()}\n" +
+        return "\tHendelsestidspunkt: ${(metadata.eksternOpprettet ?: opprettet).toOppgaveFormat()}\n" +
             "\tEndringstype: ${this.endringstype}\n" +
             "\tHendelseId: ${this.id}\n" +
             "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"

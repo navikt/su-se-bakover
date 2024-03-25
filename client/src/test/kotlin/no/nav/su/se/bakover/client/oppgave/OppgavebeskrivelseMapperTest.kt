@@ -4,10 +4,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import org.junit.jupiter.api.Test
 import person.domain.SivilstandTyper
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 /**
  * hvis du endrer på noen av expected, må du sjekke at indenten faktisk er tabs, or ikke spaces. Selv om du taster
@@ -18,11 +20,12 @@ internal class OppgavebeskrivelseMapperTest {
     fun `mapper dødsfallshendelser riktig`() {
         val nyHendelse = nyPersonhendelseKnyttetTilSak(
             hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
+            eksternOpprettet = fixedTidspunkt.plus(5, ChronoUnit.MINUTES),
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Dødsfall
             	Dødsdato: 2021-01-01
-            	Mottatt hendelsestidspunkt: 01.01.2021 02:02
+            	Hendelsestidspunkt: 01.01.2021 02:07
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere
@@ -32,6 +35,8 @@ internal class OppgavebeskrivelseMapperTest {
     @Test
     fun `mapper endringer i sivilstand riktig`() {
         val nyHendelse = nyPersonhendelseKnyttetTilSak(
+            opprettet = fixedTidspunkt.plus(10, ChronoUnit.MINUTES),
+            eksternOpprettet = null,
             hendelse = Personhendelse.Hendelse.Sivilstand(
                 type = SivilstandTyper.GIFT,
                 gyldigFraOgMed = LocalDate.now(fixedClock),
@@ -45,7 +50,7 @@ internal class OppgavebeskrivelseMapperTest {
             	Type: Gift
             	Gyldig fra og med: 2021-01-01
             	Bekreftelsesdato: Ikke oppgitt
-            	Mottatt hendelsestidspunkt: 01.01.2021 02:02
+            	Hendelsestidspunkt: 01.01.2021 02:12
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere
@@ -60,7 +65,7 @@ internal class OppgavebeskrivelseMapperTest {
         OppgavebeskrivelseMapper.mapOne(nyHendelse).trimIndent() shouldBe """
             Utflytting fra Norge
             	Utflyttingsdato: 2021-01-01
-            	Mottatt hendelsestidspunkt: 01.01.2021 02:02
+            	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere
@@ -74,7 +79,7 @@ internal class OppgavebeskrivelseMapperTest {
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Endring i bostedsadresse
-            	Mottatt hendelsestidspunkt: 01.01.2021 02:02
+            	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere
@@ -88,7 +93,7 @@ internal class OppgavebeskrivelseMapperTest {
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Endring i kontaktadresse
-            	Mottatt hendelsestidspunkt: 01.01.2021 02:02
+            	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere

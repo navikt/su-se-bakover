@@ -11,6 +11,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 sealed interface Personhendelse {
+
     enum class Endringstype {
         OPPRETTET,
         KORRIGERT,
@@ -146,5 +147,6 @@ sealed interface Personhendelse {
         val master: String,
         /** Kafkameldinger kommer som key-value pairs (keyen inneholder aktørid) */
         val key: String,
+        val eksternOpprettet: Tidspunkt?,
     )
 }

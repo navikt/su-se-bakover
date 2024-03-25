@@ -44,6 +44,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -52,8 +53,13 @@ internal class PersonhendelsePostgresRepoTest {
 
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
-                fixedTidspunkt,
+                sakIdSaksnummerFnr = SakInfo(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    type = sak.type,
+                ),
+                opprettet = fixedTidspunkt,
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -63,6 +69,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -83,6 +90,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -103,6 +111,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -128,6 +137,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -147,6 +157,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -167,6 +178,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -186,6 +198,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -206,6 +219,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -225,6 +239,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -273,6 +288,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
 
@@ -310,6 +326,7 @@ internal class PersonhendelsePostgresRepoTest {
                 master = "FREG",
                 key = "someKey",
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                eksternOpprettet = null,
             )
         }
     }
@@ -330,6 +347,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val id = UUID.randomUUID()
@@ -367,6 +385,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val id2 = UUID.randomUUID()
@@ -381,6 +400,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -421,6 +441,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
             val hendelseId2 = UUID.randomUUID()
@@ -435,6 +456,7 @@ internal class PersonhendelsePostgresRepoTest {
                     partisjon = 0,
                     master = "FREG",
                     key = "someKey",
+                    eksternOpprettet = null,
                 ),
             )
 
@@ -475,6 +497,35 @@ internal class PersonhendelsePostgresRepoTest {
             repo.hent(førsteHendelse.id)!!.antallFeiledeForsøk shouldBe 1
             repo.hent(andreHendelse.id)!!.antallFeiledeForsøk shouldBe 1
         }
+    }
+
+    @Test
+    fun `deserialiserer metadata uten ekstern opprettet`() {
+        //language=json
+        val hendelseId = UUID.randomUUID().toString()
+        val metadata = """{
+            "hendelseId":"$hendelseId",
+            "tidligereHendelseId":null,
+            "offset":1,
+            "partisjon":1,
+            "master":"FREG",
+            "key":"1232131",
+            "personidenter":["12345678901"]
+            }
+        """.trimIndent()
+        val expected = PersonhendelsePostgresRepo.MetadataJson(
+            hendelseId = hendelseId,
+            tidligereHendelseId = null,
+            offset = 1,
+            partisjon = 1,
+            master = "FREG",
+            key = "1232131",
+            personidenter = listOf("12345678901"),
+            eksternOpprettet = null,
+        )
+
+        val deserialisert = deserialize<PersonhendelsePostgresRepo.MetadataJson>(metadata)
+        deserialisert shouldBe expected
     }
 
     private fun hentMetadata(id: UUID, dataSource: DataSource): PersonhendelsePostgresRepo.MetadataJson? {

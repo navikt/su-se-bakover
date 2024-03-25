@@ -7,6 +7,7 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.common.extensions.orNull
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -91,6 +92,7 @@ internal data object PersonhendelseMapper {
                     partisjon = message.partition(),
                     master = personhendelse.getMaster(),
                     key = message.key().removeUnwantedJsonCharacters(),
+                    eksternOpprettet = personhendelse.opprettet.toTidspunkt(),
                 ),
             )
         }
