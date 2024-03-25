@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
@@ -21,7 +20,7 @@ class InnlesingPersonhendelserFraFilRouteKtTest {
     private val escapedDateField = "\$date"
 
     //language=json
-    val personhendelseJsonFileContent = """[
+    private val personhendelseJsonFileContent = """[
            {
               "_id":"ed418b70-dc7d-4033-bce3-bac16dad2ec2",
               "data":{
@@ -55,7 +54,7 @@ class InnlesingPersonhendelserFraFilRouteKtTest {
               "partition":0,
               "timestamp":{"$escapedDateField":"2021-01-01T08:15:48.126Z"}
            },
-                          {
+           {
               "_id":"0de6b9e2-01ac-49e2-a63f-5c013cde489c",
               "data":{
                  "hendelseId":"517a4474-0ce9-42f6-b7b1-65fec5a88cc8",
@@ -149,7 +148,7 @@ class InnlesingPersonhendelserFraFilRouteKtTest {
                 uri = "$DRIFT_PATH/personhendelser",
                 roller = listOf(Brukerrolle.Drift),
                 formData = formData {
-                    append("image", "file.json", ContentType.Application.Json) {
+                    append("csvFile", "file.json") {
                         this.append(personhendelseJsonFileContent)
                     }
                 },

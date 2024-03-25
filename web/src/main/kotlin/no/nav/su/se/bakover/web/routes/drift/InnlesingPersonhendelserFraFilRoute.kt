@@ -30,9 +30,7 @@ internal fun Route.innlesingPersonhendelserFraFilRoute(
 
             val parts = call.receiveMultipart()
 
-            val thePart = parts.readAllParts().single()
-
-            when (thePart) {
+            when (val thePart = parts.readAllParts().single()) {
                 is PartData.FileItem -> {
                     val fileBytes = thePart.streamProvider().readBytes()
                     val fileAsString = String(fileBytes)
