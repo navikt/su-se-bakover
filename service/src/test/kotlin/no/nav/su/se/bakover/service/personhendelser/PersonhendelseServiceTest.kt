@@ -83,7 +83,7 @@ internal class PersonhendelseServiceTest {
                         fnr,
                         Sakstype.UFØRE,
                     ),
-                    opprettet = fixedTidspunkt,
+                    fixedTidspunkt,
                 )
             },
         )
@@ -232,7 +232,13 @@ internal class PersonhendelseServiceTest {
             },
         )
 
-        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(argThat<List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>> { it shouldBe nonEmptyListOf(personhendelse) })
+        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(
+            argThat<List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>> {
+                it shouldBe nonEmptyListOf(
+                    personhendelse,
+                )
+            },
+        )
         verifyNoMoreInteractions(
             oppgaveServiceMock,
             personhendelseRepoMock,
@@ -255,10 +261,14 @@ internal class PersonhendelseServiceTest {
             partisjon = 0,
             master = "FREG",
             key = "someKey",
+            eksternOpprettet = null,
         ),
     )
 
-    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID(), saksnummer: Saksnummer = Saksnummer(2021)) =
+    private fun lagPersonhendelseTilknyttetSak(
+        sakId: UUID = UUID.randomUUID(),
+        saksnummer: Saksnummer = Saksnummer(2021),
+    ) =
         Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
@@ -273,6 +283,7 @@ internal class PersonhendelseServiceTest {
                 master = "FREG",
                 key = "key",
                 personidenter = listOf(UUID.randomUUID().toString()).toNonEmptyList(),
+                eksternOpprettet = null,
             ),
             antallFeiledeForsøk = 0,
             opprettet = fixedTidspunkt,

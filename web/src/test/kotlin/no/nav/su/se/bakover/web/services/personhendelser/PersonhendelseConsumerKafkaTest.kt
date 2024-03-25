@@ -13,6 +13,7 @@ import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -31,6 +32,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.slf4j.helpers.NOPLogger
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 private const val TOPIC = "kafkaTopic"
@@ -81,6 +83,7 @@ internal class PersonhendelseConsumerKafkaTest {
                     partisjon = PARTITION,
                     master = "FREG",
                     key = ident,
+                    eksternOpprettet = fixedTidspunkt.instant.truncatedTo(ChronoUnit.MILLIS).toTidspunkt(),
                 ),
             )
         }

@@ -321,6 +321,7 @@ internal class PersonhendelsePostgresRepo(
         val master: String,
         val key: String,
         val personidenter: List<String>,
+        val eksternOpprettet: Tidspunkt?,
     ) {
         companion object {
             fun Personhendelse.Metadata.toJson() = MetadataJson(
@@ -331,6 +332,7 @@ internal class PersonhendelsePostgresRepo(
                 master = master,
                 key = key,
                 personidenter = personidenter,
+                eksternOpprettet = eksternOpprettet,
             )
         }
 
@@ -342,6 +344,7 @@ internal class PersonhendelsePostgresRepo(
             partisjon = partisjon,
             master = master,
             key = key,
+            eksternOpprettet = eksternOpprettet,
         )
     }
 }
