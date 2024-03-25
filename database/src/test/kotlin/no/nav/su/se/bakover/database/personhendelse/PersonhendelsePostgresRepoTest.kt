@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -223,6 +224,34 @@ internal class PersonhendelsePostgresRepoTest {
     }
 
     @Test
+    fun `kan lagre et set med ulike hendelser`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+            val førsteHendelse = nyPersonhendelseKnyttetTilSak(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+            ).let {
+                repo.lagre(it)
+                it.tilSendtTilOppgave(OppgaveId("1"))
+            }
+            val andreHendelse = nyPersonhendelseKnyttetTilSak(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+            ).let {
+                repo.lagre(it)
+                it.tilSendtTilOppgave(OppgaveId("2"))
+            }
+            repo.lagre(listOf(førsteHendelse, andreHendelse))
+            repo.hent(førsteHendelse.id) shouldBe førsteHendelse
+            repo.hent(andreHendelse.id) shouldBe andreHendelse
+        }
+    }
+
+    @Test
     fun `lagring av duplikate hendelser ignoreres`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -289,7 +318,7 @@ internal class PersonhendelsePostgresRepoTest {
 
             val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
             repo.lagre(hendelseKnyttetTilSak)
-            repo.lagre(hendelseKnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
+            repo.lagre(nonEmptyListOf(hendelseKnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId"))))
 
             val oppdatertHendelse = repo.hent(id)
             oppdatertHendelse shouldBe hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
@@ -336,7 +365,7 @@ internal class PersonhendelsePostgresRepoTest {
             repo.lagre(hendelse1KnyttetTilSak)
             repo.lagre(hendelse2.tilknyttSak(id2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)))
 
-            repo.lagre(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
+            repo.lagre(nonEmptyListOf(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId"))))
 
             repo.hentPersonhendelserUtenOppgave() shouldBe listOf(
                 hendelse2.tilknyttSak(
@@ -352,6 +381,7 @@ internal class PersonhendelsePostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
             val hendelseId1 = UUID.randomUUID()
             val hendelse1 = Personhendelse.IkkeTilknyttetSak(
@@ -382,8 +412,6 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
 
-            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-
             val hendelse1TilknyttetSak =
                 hendelse1.tilknyttSak(hendelseId1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
             val hendelse2TilknyttetSak =
@@ -391,49 +419,35 @@ internal class PersonhendelsePostgresRepoTest {
             repo.lagre(hendelse1TilknyttetSak)
             repo.lagre(hendelse2TilknyttetSak)
 
-            repo.inkrementerAntallFeiledeForsøk(hendelse2TilknyttetSak)
-            repo.inkrementerAntallFeiledeForsøk(hendelse2TilknyttetSak)
-            repo.inkrementerAntallFeiledeForsøk(hendelse2TilknyttetSak)
+            repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(hendelse2TilknyttetSak))
+            repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(hendelse2TilknyttetSak))
+            repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(hendelse2TilknyttetSak))
 
-            repo.hentPersonhendelserUtenOppgave() shouldBe listOf(
-                hendelse1TilknyttetSak,
-            )
+            repo.hentPersonhendelserUtenOppgave() shouldBe listOf(hendelse1TilknyttetSak)
         }
     }
 
     @Test
-    fun `Kan inkrementere antall forsøk`() {
+    fun `inkrementer antall feilede forsøk for en liste av hendelser`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
-            val hendelse = Personhendelse.IkkeTilknyttetSak(
-                endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
-                metadata = Personhendelse.Metadata(
-                    hendelseId = hendelseId,
-                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
-                    tidligereHendelseId = null,
-                    offset = 0,
-                    partisjon = 0,
-                    master = "FREG",
-                    key = "someKey",
-                ),
-            )
-            val id = UUID.randomUUID()
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-
-            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
-            repo.lagre(hendelseKnyttetTilSak)
-            repo.inkrementerAntallFeiledeForsøk(hendelseKnyttetTilSak)
-            repo.inkrementerAntallFeiledeForsøk(hendelseKnyttetTilSak)
-
-            val oppdatertHendelse = repo.hent(id)
-            oppdatertHendelse shouldBe
-                hendelse
-                    .tilknyttSak(id, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
-                    .copy(
-                        antallFeiledeForsøk = 2,
-                    )
+            val førsteHendelse = nyPersonhendelseKnyttetTilSak(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+            ).also { repo.lagre(it) }
+            val andreHendelse = nyPersonhendelseKnyttetTilSak(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+            ).also { repo.lagre(it) }
+            repo.hent(førsteHendelse.id)!!.antallFeiledeForsøk shouldBe 0
+            repo.hent(andreHendelse.id)!!.antallFeiledeForsøk shouldBe 0
+            repo.inkrementerAntallFeiledeForsøk(listOf(førsteHendelse, andreHendelse))
+            repo.hent(førsteHendelse.id)!!.antallFeiledeForsøk shouldBe 1
+            repo.hent(andreHendelse.id)!!.antallFeiledeForsøk shouldBe 1
         }
     }
 

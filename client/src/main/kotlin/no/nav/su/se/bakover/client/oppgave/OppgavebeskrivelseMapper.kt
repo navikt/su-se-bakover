@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.NonEmptyCollection
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -14,7 +15,11 @@ data object OppgavebeskrivelseMapper {
             "\n\n${config.utfall.lukkBeskrivelse()}"
     }
 
-    fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
+    fun map(hendelser: NonEmptyCollection<Personhendelse.Hendelse>): String = hendelser.map {
+        map(it)
+    }.joinToString { "\n\n" }
+
+    fun map(hendelse: Personhendelse.Hendelse): String = when (hendelse) {
         is Personhendelse.Hendelse.Dødsfall -> {
             "Dødsfall\n" +
                 "\tDødsdato: ${hendelse.dødsdato ?: "Ikke oppgitt"}"

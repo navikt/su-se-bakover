@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppgave
 
+import arrow.core.NonEmptySet
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
@@ -111,7 +112,7 @@ sealed interface OppgaveConfig {
 
     data class Personhendelse(
         val saksnummer: Saksnummer,
-        val personhendelsestype: no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse,
+        val personhendelsestype: NonEmptySet<no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse>,
         override val aktørId: AktørId,
         override val clock: Clock,
     ) : OppgaveConfig {

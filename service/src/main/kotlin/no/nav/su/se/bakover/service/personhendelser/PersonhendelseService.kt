@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.service.personhendelser
 
+import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -48,37 +51,49 @@ class PersonhendelseService(
     TODO ai 02.09: Kan vurdere på sikt å lage kun en oppgave for flere personhendelser for samme bruker,
         f.eks hvis endringstypen er ANNULERT eller KORRIGERT.
      */
-    fun opprettOppgaverForPersonhendelser() =
-        personhendelseRepo.hentPersonhendelserUtenOppgave().forEach loop@{ personhendelse ->
-            val sak = sakRepo.hentSak(personhendelse.sakId)
-            if (sak == null) {
-                log.error("Fant ikke sak for personhendelse med id: ${personhendelse.id}")
-                return@loop // continue
+    fun opprettOppgaverForPersonhendelser() {
+        val personhendelser = personhendelseRepo.hentPersonhendelserUtenOppgave()
+        personhendelser.groupBy { it.sakId }
+            .forEach loop@{ (sakId, personhendelser) ->
+                val sak = sakRepo.hentSak(sakId)
+                if (sak == null) {
+                    log.error("Fant ikke sak for personhendelser med id'er: ${personhendelser.map { it.id }}")
+                    return@loop // continue
+                }
+                opprettOppgaveForSak(sak, personhendelser.toNonEmptyList())
             }
+    }
 
-            personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },
-                ifRight = { aktørId ->
-                    oppgaveServiceImpl.opprettOppgaveMedSystembruker(
-                        OppgaveConfig.Personhendelse(
-                            saksnummer = personhendelse.saksnummer,
-                            personhendelsestype = personhendelse.hendelse,
-                            aktørId = aktørId,
-                            clock = clock,
-                        ),
-                    ).map { oppgaveResponse ->
-                        log.info("Opprettet oppgave for personhendelse med id: ${personhendelse.id}")
-                        personhendelseRepo.lagre(
-                            personhendelse.tilSendtTilOppgave(oppgaveResponse.oppgaveId),
+    private fun opprettOppgaveForSak(
+        sak: Sak,
+        personhendelser: NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
+    ) {
+        val personhendelseIder = personhendelser.map { it.id }
+
+        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+            ifLeft = { log.error("Fant ikke person for personhendelser med id'er: $personhendelseIder") },
+            ifRight = { aktørId ->
+                oppgaveServiceImpl.opprettOppgaveMedSystembruker(
+                    OppgaveConfig.Personhendelse(
+                        saksnummer = sak.saksnummer,
+                        personhendelsestype = personhendelser.map { it.hendelse }.toNonEmptySet(),
+                        aktørId = aktørId,
+                        clock = clock,
+                    ),
+                ).map { oppgaveResponse ->
+                    log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")
+                    personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }
+                        .let { personhendelseRepo.lagre(it) }
+                }
+                    .mapLeft {
+                        log.error(
+                            "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
+                                personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString { ", " }
+                            }]",
                         )
+                        personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
                     }
-                        .mapLeft {
-                            log.error("Kunne ikke opprette oppgave for personhendelse med id: ${personhendelse.id}. Antall feilede forsøk: ${personhendelse.antallFeiledeForsøk + 1}")
-                            personhendelseRepo.inkrementerAntallFeiledeForsøk(
-                                personhendelse,
-                            )
-                        }
-                },
-            )
-        }
+            },
+        )
+    }
 }

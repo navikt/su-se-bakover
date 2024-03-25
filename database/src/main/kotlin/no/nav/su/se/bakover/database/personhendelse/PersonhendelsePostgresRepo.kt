@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
-import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -65,20 +64,18 @@ internal class PersonhendelsePostgresRepo(
         }
     }
 
-    override fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
-        dbMetrics.timeQuery("lagrePersonhendelseTilknyttetSakOgSendtTilOppgave") {
-            sessionFactory.withSession { session ->
-                """
-                update personhendelse set oppgaveId = :oppgaveId, endret = :endret where id = :id
-                """.trimIndent().insert(
-                    mapOf(
-                        "id" to personhendelse.id,
-                        "endret" to Tidspunkt.now(clock),
-                        "oppgaveId" to personhendelse.oppgaveId,
-                    ),
-                    session,
-                )
-            }
+    override fun lagre(personhendelse: List<Personhendelse.TilknyttetSak.SendtTilOppgave>) {
+        // val endret = Tidspunkt.now(clock)
+        val multiLineQuery: String = personhendelse.joinToString("\n") {
+            "update personhendelse set oppgaveId = '${it.oppgaveId}', endret = :endret where id = '${it.id}';"
+        }
+        sessionFactory.withSession { session ->
+            multiLineQuery.insert(
+                mapOf(
+                    "endret" to Tidspunkt.now(clock),
+                ),
+                session,
+            )
         }
     }
 
@@ -100,23 +97,12 @@ internal class PersonhendelsePostgresRepo(
         }
     }
 
-    override fun inkrementerAntallFeiledeForsøk(personhendelse: Personhendelse.TilknyttetSak) {
-        dbMetrics.timeQuery("inkrementerAntallFeiledeForsøkForPersonhendelseTilknyttetSak") {
-            sessionFactory.withSession { session ->
-                """
-                    update
-                        personhendelse
-                    set
-                        antallFeiledeForsøk = antallFeiledeForsøk + 1
-                    where
-                        id = :id
-                """.trimIndent().oppdatering(
-                    mapOf(
-                        "id" to personhendelse.id,
-                    ),
-                    session,
-                )
-            }
+    override fun inkrementerAntallFeiledeForsøk(personhendelse: List<Personhendelse.TilknyttetSak>) {
+        val multiLineQuery: String = personhendelse.joinToString("\n") {
+            "update personhendelse set antallFeiledeForsøk = antallFeiledeForsøk + 1 where id = '${it.id}';"
+        }
+        sessionFactory.withSession { session ->
+            multiLineQuery.insert(emptyMap(), session)
         }
     }
 
@@ -169,12 +155,15 @@ internal class PersonhendelsePostgresRepo(
         PersonhendelseType.DØDSFALL.value -> {
             deserialize<HendelseJson.DødsfallJson>(string("hendelse")).toDomain()
         }
+
         PersonhendelseType.UTFLYTTING_FRA_NORGE.value -> {
             deserialize<HendelseJson.UtflyttingFraNorgeJson>(string("hendelse")).toDomain()
         }
+
         PersonhendelseType.SIVILSTAND.value -> {
             deserialize<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
         }
+
         PersonhendelseType.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
         PersonhendelseType.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
@@ -287,6 +276,7 @@ internal class PersonhendelsePostgresRepo(
                 relatertVedSivilstand = relatertVedSivilstand?.let { Fnr(it) },
                 bekreftelsesdato = bekreftelsesdato,
             )
+
             is BostedsadresseJson -> Personhendelse.Hendelse.Bostedsadresse
             is KontaktadresseJson -> Personhendelse.Hendelse.Kontaktadresse
         }
@@ -314,6 +304,7 @@ internal class PersonhendelsePostgresRepo(
                     relatertVedSivilstand = relatertVedSivilstand?.toString(),
                     bekreftelsesdato = bekreftelsesdato,
                 )
+
                 is Personhendelse.Hendelse.Bostedsadresse -> BostedsadresseJson
                 is Personhendelse.Hendelse.Kontaktadresse -> KontaktadresseJson
             }
