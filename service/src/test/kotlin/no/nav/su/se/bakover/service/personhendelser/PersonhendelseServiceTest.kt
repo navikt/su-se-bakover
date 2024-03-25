@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.personhendelser
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -82,6 +83,7 @@ internal class PersonhendelseServiceTest {
                         fnr,
                         Sakstype.UFØRE,
                     ),
+                    opprettet = fixedTidspunkt,
                 )
             },
         )
@@ -127,7 +129,7 @@ internal class PersonhendelseServiceTest {
     @Test
     internal fun `kan opprette oppgaver for lagrede personhendelser`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
-        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
+        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id, saksnummer = sak.saksnummer)
 
         val sakRepoMock = mock<SakRepo> {
             on { hentSak(any<UUID>()) } doReturn sak
@@ -163,7 +165,7 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    personhendelsestype = personhendelse.hendelse,
+                    personhendelse = nonEmptySetOf(personhendelse),
                     aktørId = AktørId("aktørId"),
                     clock = fixedClock,
                 )
@@ -171,8 +173,8 @@ internal class PersonhendelseServiceTest {
         )
 
         verify(personhendelseRepoMock).lagre(
-            argThat<Personhendelse.TilknyttetSak.SendtTilOppgave> {
-                it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("123"))
+            argThat<List<Personhendelse.TilknyttetSak.SendtTilOppgave>> {
+                it shouldBe listOf(personhendelse.tilSendtTilOppgave(OppgaveId("123")))
             },
         )
         verifyNoMoreInteractions(
@@ -187,7 +189,7 @@ internal class PersonhendelseServiceTest {
     @Test
     internal fun `inkrementerer antall forsøk dersom oppretting av oppgave feiler`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
-        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
+        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id, saksnummer = sak.saksnummer)
 
         val sakRepoMock = mock<SakRepo> {
             on { hentSak(any<UUID>()) } doReturn sak
@@ -223,14 +225,14 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    personhendelsestype = personhendelse.hendelse,
+                    personhendelse = nonEmptySetOf(personhendelse),
                     aktørId = AktørId("aktørId"),
                     clock = fixedClock,
                 )
             },
         )
 
-        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> { it shouldBe personhendelse })
+        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(argThat<List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>> { it shouldBe nonEmptyListOf(personhendelse) })
         verifyNoMoreInteractions(
             oppgaveServiceMock,
             personhendelseRepoMock,
@@ -256,12 +258,12 @@ internal class PersonhendelseServiceTest {
         ),
     )
 
-    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID()) =
+    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID(), saksnummer: Saksnummer = Saksnummer(2021)) =
         Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
             id = UUID.randomUUID(),
-            saksnummer = Saksnummer(2021),
+            saksnummer = saksnummer,
             sakId = sakId,
             metadata = Personhendelse.Metadata(
                 hendelseId = UUID.randomUUID().toString(),
@@ -273,5 +275,6 @@ internal class PersonhendelseServiceTest {
                 personidenter = listOf(UUID.randomUUID().toString()).toNonEmptyList(),
             ),
             antallFeiledeForsøk = 0,
+            opprettet = fixedTidspunkt,
         )
 }

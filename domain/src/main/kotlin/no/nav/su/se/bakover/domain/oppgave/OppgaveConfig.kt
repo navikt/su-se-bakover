@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppgave
 
+import arrow.core.NonEmptySet
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
 import java.time.LocalDate
@@ -111,7 +113,7 @@ sealed interface OppgaveConfig {
 
     data class Personhendelse(
         val saksnummer: Saksnummer,
-        val personhendelsestype: no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse,
+        val personhendelse: NonEmptySet<IkkeSendtTilOppgave>,
         override val aktørId: AktørId,
         override val clock: Clock,
     ) : OppgaveConfig {
