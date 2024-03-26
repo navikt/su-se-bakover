@@ -13,9 +13,8 @@ import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer

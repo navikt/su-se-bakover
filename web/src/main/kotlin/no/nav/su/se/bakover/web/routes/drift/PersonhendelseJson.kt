@@ -237,7 +237,7 @@ internal data class PersonhendelseJson(
                 partisjon = partition,
                 master = data.master,
                 key = "Innlest fra fil uten key. _id: $id",
-                eksternOpprettet = this.data.opprettet.let { Tidspunkt.parse(it) }
+                eksternOpprettet = this.timestamp.date.let { Tidspunkt.parse(it) },
             ),
         ).right()
     }
