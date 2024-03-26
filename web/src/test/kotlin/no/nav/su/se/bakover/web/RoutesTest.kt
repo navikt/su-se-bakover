@@ -86,7 +86,6 @@ class RoutesTest {
                             override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
                                 throw RuntimeException("thrown exception")
 
-                            override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
                             override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
                                 throw RuntimeException("thrown exception")
 

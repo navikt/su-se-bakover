@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
@@ -36,7 +34,6 @@ import java.util.UUID
  */
 class OpprettOppgaverForInstitusjonsoppholdshendelser(
     private val oppgaveService: OppgaveService,
-    private val personService: PersonService,
     private val institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
@@ -205,10 +202,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         return OppgaveConfig.Institusjonsopphold(
             saksnummer = sakInfo.saksnummer,
             sakstype = sakInfo.type,
-            aktørId = personService.hentAktørIdMedSystembruker(sakInfo.fnr).getOrElse {
-                log.error("Klarte ikke hente aktørId med systembruker for saksnummer ${sakInfo.saksnummer}. Denne vil bli prøvd på nytt.")
-                return KunneIkkeHenteAktørId.left()
-            },
+            fnr = sakInfo.fnr,
             clock = clock,
         ).right()
     }

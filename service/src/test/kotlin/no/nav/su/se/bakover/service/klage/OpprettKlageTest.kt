@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -33,7 +32,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import person.domain.KunneIkkeHentePerson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -72,9 +70,6 @@ internal class OpprettKlageTest {
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
@@ -125,44 +120,6 @@ internal class OpprettKlageTest {
     }
 
     @Test
-    fun `kunne ikke hente aktør id`() {
-        val sakId = UUID.randomUUID()
-        val sak = nySakMedjournalførtSøknadOgOppgave(
-            sakId = sakId,
-        ).first
-
-        val mocks = KlageServiceMocks(
-            sakServiceMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            klageRepoMock = mock {
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            },
-            queryJournalpostClient = mock {
-                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
-            },
-        )
-        val request = NyKlageRequest(
-            sakId = sakId,
-            journalpostId = JournalpostId("j2"),
-            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.januar(2021),
-            clock = fixedClock,
-        )
-        mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
-
-        verify(mocks.sakServiceMock).hentSak(sakId)
-        runBlocking {
-            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
-        }
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
     fun `en opprettetKlage er en åpen klage`() {
         val klage = opprettetKlage().second
         klage.erÅpen() shouldBe true
@@ -181,9 +138,6 @@ internal class OpprettKlageTest {
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
@@ -205,12 +159,11 @@ internal class OpprettKlageTest {
         runBlocking {
             verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Saksbehandler(
                     saksnummer = sak.saksnummer,
-                    aktørId = AktørId("aktørId"),
+                    fnr = sak.fnr,
                     journalpostId = JournalpostId(value = "j2"),
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
@@ -249,9 +202,6 @@ internal class OpprettKlageTest {
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            },
-            personServiceMock = mock {
-                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
@@ -303,14 +253,13 @@ internal class OpprettKlageTest {
             argThat {
                 it shouldBe OppgaveConfig.Klage.Saksbehandler(
                     saksnummer = sak.saksnummer,
-                    aktørId = AktørId("aktørId"),
+                    fnr = sak.fnr,
                     journalpostId = JournalpostId(value = "1"),
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
                 )
             },
         )
-        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
     }
 }

@@ -33,7 +33,6 @@ internal data class KlageServiceMocks(
         klageRepo = klageRepoMock,
         vedtakService = vedtakServiceMock,
         brevService = brevServiceMock,
-        personService = personServiceMock,
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,

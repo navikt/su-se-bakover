@@ -139,26 +139,21 @@ class RevurderingServiceImpl(
     override fun opprettRevurdering(
         command: OpprettRevurderingCommand,
     ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
-        return sakService.hentSak(command.sakId).getOrNull()!!
-            .opprettRevurdering(
-                command = command,
-                clock = clock,
-            ).map {
-                val oppgaveResponse = personService.hentAktørId(it.fnr).getOrElse {
-                    return KunneIkkeOppretteRevurdering.FantIkkeAktørId(it).left()
-                }.let { aktørId ->
-                    oppgaveService.opprettOppgave(
-                        it.oppgaveConfig(aktørId),
-                    ).getOrElse {
-                        return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
-                    }
-                }
-                it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
-            }.map {
-                revurderingRepo.lagre(it.opprettetRevurdering)
-                observers.notify(it.statistikkHendelse)
-                it.opprettetRevurdering
+        return sakService.hentSak(command.sakId).getOrNull()!!.opprettRevurdering(
+            command = command,
+            clock = clock,
+        ).map {
+            val oppgaveResponse = oppgaveService.opprettOppgave(
+                it.oppgaveConfig(),
+            ).getOrElse {
+                return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
             }
+            it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
+        }.map {
+            revurderingRepo.lagre(it.opprettetRevurdering)
+            observers.notify(it.statistikkHendelse)
+            it.opprettetRevurdering
+        }
     }
 
     override fun leggTilUførevilkår(
@@ -263,10 +258,9 @@ class RevurderingServiceImpl(
         val revurdering =
             hent(request.behandlingId as RevurderingId).getOrElse { return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.FantIkkeBehandling.left() }
 
-        val vilkår = request.toVilkår(clock)
-            .getOrElse {
-                return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår(it).left()
-            }
+        val vilkår = request.toVilkår(clock).getOrElse {
+            return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår(it).left()
+        }
 
         return revurdering.oppdaterLovligOppholdOgMarkerSomVurdert(vilkår).mapLeft {
             KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.Domenefeil(it)
@@ -374,7 +368,10 @@ class RevurderingServiceImpl(
                 is KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
                     // TODO jah: Fjern cast når vi kan bytte den underliggende typen til Revurdering
                     @Suppress("UNCHECKED_CAST")
-                    KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra as KClass<out Revurdering>, it.til as KClass<out Revurdering>)
+                    KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
+                        it.fra as KClass<out Revurdering>,
+                        it.til as KClass<out Revurdering>,
+                    )
                 }
             }
         }.map {
@@ -442,14 +439,13 @@ class RevurderingServiceImpl(
     override fun oppdaterRevurdering(
         command: OppdaterRevurderingCommand,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-        return sakService.hentSakForRevurdering(command.revurderingId)
-            .oppdaterRevurdering(
-                command = command,
-                clock = clock,
-            ).map {
-                revurderingRepo.lagre(it)
-                it
-            }
+        return sakService.hentSakForRevurdering(command.revurderingId).oppdaterRevurdering(
+            command = command,
+            clock = clock,
+        ).map {
+            revurderingRepo.lagre(it)
+            it
+        }
     }
 
     override fun beregnOgSimuler(
@@ -492,12 +488,10 @@ class RevurderingServiceImpl(
 
                 val potensielleVarsel = listOf(
                     (
-                        eksisterendeUtbetalinger.isNotEmpty() &&
-                            !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                                nyBeregning = beregnetRevurdering.beregning,
-                            ).resultat &&
-                            !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
+                        eksisterendeUtbetalinger.isNotEmpty() && !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                            nyBeregning = beregnetRevurdering.beregning,
+                        ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
                         ) to Varselmelding.BeløpsendringUnder10Prosent,
                     gjeldendeVedtaksdata.let { gammel ->
                         (gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } && beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }) to Varselmelding.FradragOgFormueForEPSErFjernet
@@ -795,28 +789,23 @@ class RevurderingServiceImpl(
     }
 
     override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {
-        return hentEllerKast(request.revurderingId)
-            .let {
-                it as? LeggTilVedtaksbrevvalg
-                    ?: return KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand(it::class).left()
-            }
-            .let {
-                it.leggTilBrevvalg(request.toDomain()).right()
-                    .onRight { revurderingRepo.lagre(it) }
-            }
+        return hentEllerKast(request.revurderingId).let {
+            it as? LeggTilVedtaksbrevvalg ?: return KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand(it::class)
+                .left()
+        }.let {
+            it.leggTilBrevvalg(request.toDomain()).right().onRight { revurderingRepo.lagre(it) }
+        }
     }
 
     override fun lagBrevutkastForRevurdering(
         revurderingId: RevurderingId,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
-        return hent(revurderingId)
-            .mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
+        return hent(revurderingId).mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
             .flatMap { revurdering ->
                 brevService.lagDokument(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
                     .mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
-                    }
-                    .map { it.generertDokument }
+                    }.map { it.generertDokument }
             }
     }
 
@@ -992,8 +981,8 @@ class RevurderingServiceImpl(
         fritekst: String,
         avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
-        val revurdering = hent(revurderingId)
-            .getOrElse { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(revurderingId).getOrElse { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
 
         // Lager en midlertidig avsluttet revurdering for å konstruere brevet - denne skal ikke lagres
         val avsluttetRevurdering = revurdering.avslutt(

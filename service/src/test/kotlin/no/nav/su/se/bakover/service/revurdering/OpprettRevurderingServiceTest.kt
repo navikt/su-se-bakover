@@ -29,11 +29,9 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
@@ -52,7 +50,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.KunneIkkeHentePerson
 import vedtak.domain.VedtakSomKanRevurderes
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -67,9 +64,6 @@ internal class OpprettRevurderingServiceTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
             },
             revurderingRepo = mock(),
         ).also { mock ->
@@ -111,12 +105,11 @@ internal class OpprettRevurderingServiceTest {
                     *mock.all(),
                 ) {
                     verify(mock.sakService).hentSak(sak.id)
-                    verify(mock.personService).hentAktørId(argThat { it shouldBe fnr })
                     verify(mock.oppgaveService).opprettOppgave(
                         argThat {
                             it shouldBe OppgaveConfig.Revurderingsbehandling(
                                 saksnummer = saksnummer,
-                                aktørId = aktørId,
+                                fnr = sak.fnr,
                                 tilordnetRessurs = saksbehandler,
                                 clock = mock.clock,
                             )
@@ -206,9 +199,6 @@ internal class OpprettRevurderingServiceTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
             revurderingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
@@ -259,9 +249,6 @@ internal class OpprettRevurderingServiceTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
             revurderingRepo = mock(),
             clock = clock,
         ).also { mocks ->
@@ -285,49 +272,19 @@ internal class OpprettRevurderingServiceTest {
             }
 
             verify(mocks.sakService).hentSak(sak.id)
-            verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
             verify(mocks.revurderingRepo).defaultTransactionContext()
             verify(mocks.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
             verify(mocks.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = sak.saksnummer,
-                        aktørId = aktørId,
+                        fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
                     )
                 },
             )
             mocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `fant ikke aktør id`() {
-        val (sak, iverksatt) = iverksattSøknadsbehandlingUføre()
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-            },
-        ).also {
-            it.revurderingService.opprettRevurdering(
-                OpprettRevurderingCommand(
-                    sakId = sakId,
-                    periode = februar(2021).fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
-                        .toPeriode(),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-                ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId(KunneIkkeHentePerson.FantIkkePerson).left()
-
-            verify(it.sakService).hentSak(sakId)
-            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-            it.verifyNoMoreInteractions()
         }
     }
 
@@ -340,9 +297,6 @@ internal class OpprettRevurderingServiceTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
             },
         ).also { mocks ->
             val actual = mocks.revurderingService.opprettRevurdering(
@@ -360,12 +314,11 @@ internal class OpprettRevurderingServiceTest {
             )
             actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(KunneIkkeOppretteOppgave).left()
             verify(mocks.sakService).hentSak(sakId)
-            verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
             verify(mocks.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = saksnummer,
-                        aktørId = aktørId,
+                        fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
                     )
@@ -380,9 +333,6 @@ internal class OpprettRevurderingServiceTest {
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn nySakUføre().first.right()
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
             },
         ).also {
             it.revurderingService.opprettRevurdering(

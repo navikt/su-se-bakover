@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -67,13 +66,11 @@ internal class PersonhendelseServiceTest {
                 ),
             )
         }
-        val personServiceMock = mock<PersonService>()
         val personhendelseService = PersonhendelseService(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock,
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -101,7 +98,6 @@ internal class PersonhendelseServiceTest {
             sakRepoMock,
             oppgaveServiceMock,
             vedtakServiceMock,
-            personServiceMock,
         )
     }
 
@@ -118,13 +114,11 @@ internal class PersonhendelseServiceTest {
             doNothing().whenever(it).lagre(any<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>())
         }
         val oppgaveServiceMock: OppgaveService = mock()
-        val personServiceMock = mock<PersonService>()
         val personhendelseService = PersonhendelseService(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock,
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -143,7 +137,7 @@ internal class PersonhendelseServiceTest {
             },
         )
 
-        verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock, oppgaveServiceMock, vedtakServiceMock, personServiceMock)
+        verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock, oppgaveServiceMock, vedtakServiceMock)
     }
 
     @Test
@@ -161,7 +155,6 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock,
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
         )
@@ -196,9 +189,6 @@ internal class PersonhendelseServiceTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
-        }
 
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
@@ -209,20 +199,18 @@ internal class PersonhendelseServiceTest {
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock,
             clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
-        verify(personServiceMock).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
                     personhendelse = nonEmptySetOf(personhendelse),
-                    aktørId = AktørId("aktørId"),
+                    fnr = sak.fnr,
                     clock = fixedClock,
                 )
             },
@@ -237,7 +225,6 @@ internal class PersonhendelseServiceTest {
             oppgaveServiceMock,
             personhendelseRepoMock,
             sakRepoMock,
-            personServiceMock,
             vedtakServiceMock,
         )
     }
@@ -256,9 +243,6 @@ internal class PersonhendelseServiceTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
-        }
 
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
@@ -269,20 +253,18 @@ internal class PersonhendelseServiceTest {
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             vedtakService = vedtakServiceMock,
-            personService = personServiceMock,
             clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
-        verify(personServiceMock).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
                     personhendelse = nonEmptySetOf(personhendelse),
-                    aktørId = AktørId("aktørId"),
+                    fnr = sak.fnr,
                     clock = fixedClock,
                 )
             },
@@ -299,7 +281,6 @@ internal class PersonhendelseServiceTest {
             oppgaveServiceMock,
             personhendelseRepoMock,
             sakRepoMock,
-            personServiceMock,
             vedtakServiceMock,
         )
     }

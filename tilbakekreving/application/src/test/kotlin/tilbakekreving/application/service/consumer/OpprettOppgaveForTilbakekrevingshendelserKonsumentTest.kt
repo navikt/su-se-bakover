@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -35,7 +34,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.PersonService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
@@ -63,9 +61,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                 kravgrunnlagPåSakHendelseId = HendelseId.generer(),
             )
         }
-        val personService = mock<PersonService> {
-            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
-        }
         val oppgaveService = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
@@ -76,7 +71,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         val mockedServices = mockedServices(
             sakService = sakService,
             oppgaveService = oppgaveService,
-            personService = personService,
             hendelsekonsumenterRepo = konsumenterRepo,
             tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
             oppgaveHendelseRepo = oppgaveHendelse,
@@ -91,12 +85,11 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
         verify(sakService).hentSak(argShouldBe(sak.id))
         verify(tilbakekrevingsbehandlingRepo).hentHendelse(argShouldBe(hendelseId), anyOrNull())
         verify(oppgaveHendelse).hentHendelseForRelatert(argShouldBe(hendelseId), argShouldBe(sak.id), anyOrNull())
-        verify(personService).hentAktørIdMedSystembruker(argShouldBe(sak.fnr))
         verify(oppgaveService).opprettOppgaveMedSystembruker(
             argShouldBe(
                 OppgaveConfig.Tilbakekrevingsbehandling(
                     saksnummer = sak.saksnummer,
-                    aktørId = AktørId(aktørId = "aktørId"),
+                    fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
                 ),
@@ -189,7 +182,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
     private data class mockedServices(
         val sakService: SakService = mock(),
         val oppgaveService: OppgaveService = mock(),
-        val personService: PersonService = mock(),
         val oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
         val hendelseRepo: HendelseRepo = mock(),
         val hendelsekonsumenterRepo: HendelsekonsumenterRepo = mock(),
@@ -201,7 +193,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 sakService = sakService,
                 clock = clock,
-                personService = personService,
                 sessionFactory = sessionFactory,
                 oppgaveService = oppgaveService,
                 tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingRepo,
@@ -213,7 +204,6 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
             org.mockito.kotlin.verifyNoMoreInteractions(
                 sakService,
                 oppgaveService,
-                personService,
                 oppgaveHendelseRepo,
                 hendelseRepo,
                 hendelsekonsumenterRepo,

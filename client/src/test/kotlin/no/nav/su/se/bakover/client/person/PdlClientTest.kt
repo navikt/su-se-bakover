@@ -96,9 +96,8 @@ internal class PdlClientTest {
                     azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
                 ),
             )
-            client.aktørId(
+            client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
-                JwtToken.BrukerToken("ignored because of mock"),
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
     }
@@ -117,9 +116,8 @@ internal class PdlClientTest {
                     azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
                 ),
             )
-            client.aktørId(
+            client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
-                JwtToken.BrukerToken("ignored because of mock"),
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
     }
@@ -151,7 +149,7 @@ internal class PdlClientTest {
             }
                 """.trimIndent()
             val azureAdMock = mock<AzureAd> {
-                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                on { getSystemToken(any()) } doReturn "etOnBehalfOfToken"
             }
 
             stubFor(
@@ -165,9 +163,8 @@ internal class PdlClientTest {
                     azureAd = azureAdMock,
                 ),
             )
-            client.aktørId(
+            client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
-                JwtToken.BrukerToken("ignored because of mock"),
             ) shouldBe AktørId("2751637578706").right()
         }
     }
@@ -198,7 +195,7 @@ internal class PdlClientTest {
             }
                 """.trimIndent()
             val azureAdMock = mock<AzureAd> {
-                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                on { getSystemToken(any()) } doReturn "etOnBehalfOfToken"
             }
 
             stubFor(
@@ -212,9 +209,8 @@ internal class PdlClientTest {
                     azureAd = azureAdMock,
                 ),
             )
-            client.aktørId(
+            client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
-                JwtToken.BrukerToken("ignored because of mock"),
             ) shouldBe AktørId("2751637578706").right()
         }
     }

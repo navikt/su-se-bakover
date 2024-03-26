@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.PersonOppslag
+import person.domain.PersonService
 import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
 import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
@@ -35,7 +35,7 @@ import java.util.UUID
  */
 class SkattDokumentServiceImpl(
     private val pdfGenerator: PdfGenerator,
-    private val personOppslag: PersonOppslag,
+    private val personService: PersonService,
     private val dokumentSkattRepo: DokumentSkattRepo,
     private val journalførSkattDokumentService: JournalførSkattDokumentService,
     private val clock: Clock,
@@ -121,7 +121,7 @@ class SkattDokumentServiceImpl(
             skattegrunnlagSøker = skattegrunnlagSøker,
             skattegrunnlagEps = skattegrunnlagEps,
             hentNavn = {
-                personOppslag.person(it).map { it.navn }
+                personService.hentPerson(it).map { it.navn }
             },
             clock = clock,
         ).map {
@@ -155,7 +155,7 @@ class SkattDokumentServiceImpl(
                 },
             ),
             hentNavn = { fnr ->
-                personOppslag.person(fnr).getOrElse {
+                personService.hentPerson(fnr).getOrElse {
                     throw IllegalStateException("Feil ved henting av person. Denne var hentet for ikke så lenge siden. SkattDokumentServiceImpl.kt")
                 }.navn
             },

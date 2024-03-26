@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleJobPostgresRepo
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtalePostgresRepo
-import person.domain.PersonService
 import java.time.Clock
 
 interface KontrollsamtaleSetup {
@@ -30,7 +29,6 @@ interface KontrollsamtaleSetup {
     companion object {
         fun create(
             sakService: SakService,
-            personService: PersonService,
             brevService: BrevService,
             oppgaveService: OppgaveService,
             sessionFactory: PostgresSessionFactory,
@@ -48,7 +46,6 @@ interface KontrollsamtaleSetup {
             val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(jobContextPostgresRepo)
             val kontrollsamtaleService = KontrollsamtaleServiceImpl(
                 sakService = sakService,
-                personService = personService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
                 kontrollsamtaleRepo = kontrollsamtaleRepo,
@@ -75,7 +72,6 @@ interface KontrollsamtaleSetup {
                     clock = clock,
                     serviceUser = serviceUser,
                     oppgaveService = oppgaveService,
-                    personService = personService,
                     kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
                 )
             }

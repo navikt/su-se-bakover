@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 
 class KlageServiceImpl(
@@ -63,7 +62,6 @@ class KlageServiceImpl(
     private val klageRepo: KlageRepo,
     private val vedtakService: VedtakService,
     private val brevService: BrevService,
-    private val personService: PersonService,
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
@@ -106,14 +104,10 @@ class KlageServiceImpl(
                 }
             },
         )
-
-        val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
-            return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
-        }
         val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.Klage.Saksbehandler(
                 saksnummer = sak.saksnummer,
-                aktørId = aktørId,
+                fnr = sak.fnr,
                 journalpostId = request.journalpostId,
                 tilordnetRessurs = request.saksbehandler,
                 clock = clock,

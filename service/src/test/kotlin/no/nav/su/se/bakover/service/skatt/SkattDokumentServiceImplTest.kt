@@ -41,7 +41,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import person.domain.PersonOppslag
+import person.domain.PersonService
 import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
@@ -54,7 +54,7 @@ internal class SkattDokumentServiceImplTest {
     fun `lager skattemeldingspdf for søker uten eps`() {
         val vedtak = iverksattSøknadsbehandling().third
         val person = person()
-        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val personServiceMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
@@ -62,7 +62,7 @@ internal class SkattDokumentServiceImplTest {
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personServiceMock,
             dokumentSkattRepo = dokumentSkatt,
             journalførSkattDokumentService = mock(),
             clock = fixedClock,
@@ -71,7 +71,7 @@ internal class SkattDokumentServiceImplTest {
         val dokument = service.genererOgLagre(vedtak, tx)
 
         dokument.shouldBeRight()
-        verify(personMock).person(argThat { it shouldBe vedtak.fnr })
+        verify(personServiceMock).hentPerson(argThat { it shouldBe vedtak.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
@@ -92,7 +92,7 @@ internal class SkattDokumentServiceImplTest {
             },
         )
         verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value }, argThat { it shouldBe tx })
-        verifyNoMoreInteractions(personMock, pdfGeneratorMock, dokumentSkatt)
+        verifyNoMoreInteractions(personServiceMock, pdfGeneratorMock, dokumentSkatt)
     }
 
     @Test
@@ -107,7 +107,11 @@ internal class SkattDokumentServiceImplTest {
                 skatt = EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), nySkattegrunnlag(fnr = bosituasjon.fnr)),
             ),
         ).third
-        val personMock = mock<PersonOppslag> { on { this.person(any()) }.thenReturn(person.right(), eps.right()) }
+        val personMock = mock<PersonService> {
+            on {
+                this.hentPerson(any())
+            }.thenReturn(person.right(), eps.right())
+        }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
@@ -115,7 +119,7 @@ internal class SkattDokumentServiceImplTest {
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personMock,
             dokumentSkattRepo = dokumentSkatt,
             journalførSkattDokumentService = mock(),
             clock = fixedClock,
@@ -125,7 +129,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).person(captor.capture())
+        verify(personMock, times(2)).hentPerson(captor.capture())
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -170,7 +174,7 @@ internal class SkattDokumentServiceImplTest {
                 ),
             ),
         ).third
-        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
@@ -178,7 +182,7 @@ internal class SkattDokumentServiceImplTest {
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personMock,
             dokumentSkattRepo = dokumentSkatt,
             journalførSkattDokumentService = mock(),
             clock = fixedClock,
@@ -188,7 +192,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).person(captor.capture())
+        verify(personMock, times(2)).hentPerson(captor.capture())
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -233,7 +237,7 @@ internal class SkattDokumentServiceImplTest {
                 ),
             ),
         ).third
-        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
@@ -241,7 +245,7 @@ internal class SkattDokumentServiceImplTest {
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personMock,
             dokumentSkattRepo = dokumentSkatt,
             journalførSkattDokumentService = mock(),
             clock = fixedClock,
@@ -251,7 +255,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).person(captor.capture())
+        verify(personMock, times(2)).hentPerson(captor.capture())
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -292,7 +296,7 @@ internal class SkattDokumentServiceImplTest {
             eksterneGrunnlag = nyEksternGrunnlagHentetFeil(eps.ident.fnr),
         ).third
 
-        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
@@ -300,7 +304,7 @@ internal class SkattDokumentServiceImplTest {
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personMock,
             dokumentSkattRepo = dokumentSkatt,
             journalførSkattDokumentService = mock(),
             clock = fixedClock,
@@ -310,7 +314,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).person(captor.capture())
+        verify(personMock, times(2)).hentPerson(captor.capture())
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -351,14 +355,14 @@ internal class SkattDokumentServiceImplTest {
             ),
         ).third
         val person = person()
-        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
 
         val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personMock,
+            personService = personMock,
             clock = fixedClock,
         ).service
         val tx = TestSessionFactory.transactionContext
@@ -373,11 +377,11 @@ internal class SkattDokumentServiceImplTest {
         val pdfGenerator = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn PdfA("content".toByteArray()).right()
         }
-        val personOppslag = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personService = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
-        mockedServices(pdfGenerator = pdfGenerator, personOppslag = personOppslag).let {
+        mockedServices(pdfGenerator = pdfGenerator, personService = personService).let {
             it.service.genererSkattePdf(
                 request = GenererSkattPdfRequest(
                     skattegrunnlagSøkers = skattegrunnlag,
@@ -388,7 +392,7 @@ internal class SkattDokumentServiceImplTest {
                 ),
             ).shouldBeRight()
 
-            verify(personOppslag).person(argThat { it shouldBe skattegrunnlag.fnr })
+            verify(personService).hentPerson(argThat { it shouldBe skattegrunnlag.fnr })
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
                     it.right() shouldBe lagSkattegrunnlagsPdfInnholdFraFrioppslag(
@@ -403,7 +407,7 @@ internal class SkattDokumentServiceImplTest {
                 },
             )
         }
-        verifyNoMoreInteractions(pdfGenerator, personOppslag)
+        verifyNoMoreInteractions(pdfGenerator, personService)
     }
 
     @Test
@@ -415,8 +419,8 @@ internal class SkattDokumentServiceImplTest {
         val pdfGenerator = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
         }
-        val personOppslag = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personService = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val journalførSkattDokumentService = mock<JournalførSkattDokumentService> {
             on { journalfør(any<JournalførSkattedokumentUtenforSakCommand>()) } doReturn JournalpostId("journalpostId").right()
@@ -424,7 +428,7 @@ internal class SkattDokumentServiceImplTest {
 
         mockedServices(
             pdfGenerator = pdfGenerator,
-            personOppslag = personOppslag,
+            personService = personService,
             journalførSkattDokumentService = journalførSkattDokumentService,
         ).let {
             it.service.genererSkattePdfOgJournalfør(
@@ -438,7 +442,7 @@ internal class SkattDokumentServiceImplTest {
             ).shouldBeRight()
 
             val captor = argumentCaptor<Fnr>()
-            verify(personOppslag, times(2)).person(captor.capture())
+            verify(personService, times(2)).hentPerson(captor.capture())
             captor.allValues.size shouldBe 2
             captor.firstValue shouldBe person.ident.fnr
             captor.lastValue shouldBe epsFnr
@@ -538,21 +542,21 @@ internal class SkattDokumentServiceImplTest {
 
     private data class mockedServices(
         val pdfGenerator: PdfGenerator = mock(),
-        val personOppslag: PersonOppslag = mock(),
+        val personService: PersonService = mock(),
         val dokumentSkattRepo: DokumentSkattRepo = mock(),
         val journalførSkattDokumentService: JournalførSkattDokumentService = mock(),
         val clock: Clock = fixedClock,
     ) {
         val service = SkattDokumentServiceImpl(
             pdfGenerator = pdfGenerator,
-            personOppslag = personOppslag,
+            personService = personService,
             dokumentSkattRepo = dokumentSkattRepo,
             journalførSkattDokumentService = journalførSkattDokumentService,
             clock = fixedClock,
         )
 
         fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(pdfGenerator, personOppslag, dokumentSkattRepo)
+            verifyNoMoreInteractions(pdfGenerator, personService, dokumentSkattRepo)
         }
     }
 }

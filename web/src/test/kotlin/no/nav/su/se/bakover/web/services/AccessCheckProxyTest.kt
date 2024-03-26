@@ -90,7 +90,6 @@ internal class AccessCheckProxyTest {
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -118,7 +117,6 @@ internal class AccessCheckProxyTest {
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -145,7 +143,6 @@ internal class AccessCheckProxyTest {
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -172,7 +169,6 @@ internal class AccessCheckProxyTest {
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 

@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMåned
-import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -34,11 +32,9 @@ class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
-    private val personservice: PersonService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val clock: Clock,
 ) : VedtakService {
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
@@ -96,11 +92,6 @@ class VedtakServiceImpl(
             it as? Avslagsvedtak ?: return KunneIkkeStarteNySøknadsbehandling.VedtakErIkkeAvslag.left()
         }
 
-        val aktørId = personservice.hentAktørId(vedtak.fnr).getOrElse {
-            log.error("Feil ved henting av aktør id for opprettelse av oppgave for ny søknadsbehandling for vedtak $vedtakId. original feil $it")
-            return KunneIkkeStarteNySøknadsbehandling.FeilVedHentingAvPersonForOpprettelseAvOppgave(it).left()
-        }
-
         if (sak.harÅpenSøknadsbehandling()) {
             return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
         }
@@ -108,7 +99,7 @@ class VedtakServiceImpl(
         return vedtak.behandling.opprettNySøknadsbehandling(
             nyOppgaveId = oppgaveService.opprettOppgave(
                 OppgaveConfig.Søknad(
-                    aktørId = aktørId,
+                    fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     journalpostId = vedtak.behandling.søknad.journalpostId,
                     søknadId = vedtak.behandling.søknad.id,

@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseMetadata
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.infrastructure.repo.OpprettetTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
@@ -31,7 +30,6 @@ import java.util.UUID
 
 class OpprettOppgaveForTilbakekrevingshendelserKonsument(
     private val sakService: SakService,
-    private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingHendelseRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
@@ -106,14 +104,10 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
         correlationId: CorrelationId,
         tilordnetRessurs: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
-        val aktørId = personService.hentAktørIdMedSystembruker(sakInfo.fnr).getOrElse {
-            return KunneIkkeOppretteOppgave.FeilVedHentingAvPerson(it).left()
-        }
-
         val oppgaveResponse = oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Tilbakekrevingsbehandling(
                 saksnummer = sakInfo.saksnummer,
-                aktørId = aktørId,
+                fnr = sakInfo.fnr,
                 tilordnetRessurs = tilordnetRessurs,
                 clock = clock,
             ),

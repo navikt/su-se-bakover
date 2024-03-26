@@ -105,7 +105,7 @@ data object ServiceBuilder {
 
         val skattDokumentService = SkattDokumentServiceImpl(
             pdfGenerator = clients.pdfGenerator,
-            personOppslag = clients.personOppslag,
+            personService = personService,
             dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             journalførSkattDokumentService = JournalførSkattDokumentService(
                 journalførSkattedokumentPåSakClient = clients.journalførClients.skattedokumentPåSak,
@@ -142,7 +142,6 @@ data object ServiceBuilder {
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
-            personservice = personService,
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
@@ -169,7 +168,6 @@ data object ServiceBuilder {
 
         val kontrollsamtaleSetup = KontrollsamtaleSetup.create(
             sakService = sakService,
-            personService = personService,
             brevService = brevService,
             oppgaveService = oppgaveService,
             sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
@@ -225,7 +223,6 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             vedtakService = vedtakService,
             brevService = brevService,
-            personService = personService,
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
@@ -236,7 +233,6 @@ data object ServiceBuilder {
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
             klageRepo = databaseRepos.klageRepo,
             oppgaveService = oppgaveService,
-            personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )

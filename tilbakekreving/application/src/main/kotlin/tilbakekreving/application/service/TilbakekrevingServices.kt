@@ -112,8 +112,6 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     clock = clock,
                     sakService = sakService,
-                    personService = personService,
-                    sessionFactory = sessionFactory,
                 ),
                 råttKravgrunnlagService = RåttKravgrunnlagService(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -141,7 +139,6 @@ class TilbakekrevingServices(
                 ),
                 opprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
                     sakService = sakService,
-                    personService = personService,
                     oppgaveService = oppgaveService,
                     tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
                     oppgaveHendelseRepo = oppgaveHendelseRepo,

@@ -321,7 +321,7 @@ class SøknadTest {
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalpostId,
                             søknadId = actualNySøknad.id,
-                            aktørId = person.ident.aktørId,
+                            fnr = person.ident.fnr,
                             tilordnetRessurs = null,
                             clock = fixedClock,
                         )
@@ -432,7 +432,7 @@ class SøknadTest {
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalpostId,
                             søknadId = actualNySøknad.id,
-                            aktørId = person.ident.aktørId,
+                            fnr = sak.fnr,
                             tilordnetRessurs = null,
                             clock = fixedClock,
                         )

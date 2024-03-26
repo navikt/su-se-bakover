@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -34,7 +33,6 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private val clock: Clock,
     private val serviceUser: String,
     private val oppgaveService: OppgaveService,
-    private val personService: PersonService,
     private val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo,
 ) : UtløptFristForKontrollsamtaleService {
 
@@ -49,7 +47,8 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         // Oppretter en tom jobb dersom den ikke finnes. Denne e
         val initialContext = hentEllerOpprettContext(fristPåDato)
 
-        val innkalteKontrollsamtalerMedUtløptFrist = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
+        val innkalteKontrollsamtalerMedUtløptFrist =
+            kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
         return initialContext.uprosesserte { innkalteKontrollsamtalerMedUtløptFrist.map { it.id } }
             .ifEmpty {
                 log.debug("Fant ingen uprosesserte kontrollsamtaler med utløp: {}.", fristPåDato)
@@ -109,12 +108,6 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                     clock = clock,
                     lagreKontrollsamtale = { ks: Kontrollsamtale, transactionContext: TransactionContext ->
                         kontrollsamtaleService.lagre(ks, transactionContext)
-                    },
-                    hentAktørId = { fnr ->
-                        personService.hentAktørIdMedSystembruker(fnr)
-                            .mapLeft {
-                                UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
-                            }
                     },
                     opprettOppgave = { oppgaveConfig: OppgaveConfig ->
                         oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig)

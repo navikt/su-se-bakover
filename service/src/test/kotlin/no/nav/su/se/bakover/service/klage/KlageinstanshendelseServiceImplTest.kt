@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
@@ -29,7 +28,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.PersonService
 import java.util.UUID
 
 internal class KlageinstanshendelseServiceImplTest {
@@ -56,9 +54,6 @@ internal class KlageinstanshendelseServiceImplTest {
             on { hentKlage(any()) } doReturn klage
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
-        val personServiceMock: PersonService = mock {
-            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
-        }
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
@@ -74,17 +69,15 @@ internal class KlageinstanshendelseServiceImplTest {
         buildKlageinstanshendelseService(
             klageinstanshendelseRepo = klageinstanshendelseRepoMock,
             klageRepo = klageRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
         ).håndterUtfallFraKlageinstans { _, _, _ -> mappedKlageinstanshendelse.right() }
         verify(klageinstanshendelseRepoMock).hentUbehandlaKlageinstanshendelser()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
                     saksnummer = klage.saksnummer,
-                    aktørId = AktørId(aktørId = ""),
+                    fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                     utfall = KlageinstansUtfall.STADFESTELSE,
@@ -110,9 +103,6 @@ internal class KlageinstanshendelseServiceImplTest {
             on { hentKlage(any()) } doReturn klage
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
-        val personServiceMock: PersonService = mock {
-            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
-        }
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
@@ -128,19 +118,17 @@ internal class KlageinstanshendelseServiceImplTest {
         buildKlageinstanshendelseService(
             klageinstanshendelseRepo = klageinstanshendelseRepoMock,
             klageRepo = klageRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
         ).håndterUtfallFraKlageinstans { _, _, _ ->
             mappedKlageinstanshendelse.right()
         }
         verify(klageinstanshendelseRepoMock).hentUbehandlaKlageinstanshendelser()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.Handling(
                     saksnummer = klage.saksnummer,
-                    aktørId = AktørId(aktørId = ""),
+                    fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                     utfall = KlageinstansUtfall.RETUR,
@@ -192,13 +180,11 @@ internal class KlageinstanshendelseServiceImplTest {
         klageinstanshendelseRepo: KlageinstanshendelseRepo = mock(),
         klageRepo: KlageRepo = mock(),
         oppgaveService: OppgaveService = mock(),
-        personService: PersonService = mock(),
     ): KlageinstanshendelseService {
         return KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = klageinstanshendelseRepo,
             klageRepo = klageRepo,
             oppgaveService = oppgaveService,
-            personService = personService,
             clock = fixedClock,
             sessionFactory = TestSessionFactory(),
         )

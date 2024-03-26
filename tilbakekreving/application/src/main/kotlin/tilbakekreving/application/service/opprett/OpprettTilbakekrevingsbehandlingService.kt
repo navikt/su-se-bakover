@@ -4,10 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -20,8 +18,6 @@ class OpprettTilbakekrevingsbehandlingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
     private val sakService: SakService,
-    private val personService: PersonService,
-    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)

@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.person.AktørId
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
@@ -149,7 +147,6 @@ data class UtløptFristForKontrollsamtaleContext(
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         clock: Clock,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
-        hentAktørId: (fnr: Fnr) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, AktørId>,
         opprettOppgave: (oppgaveConfig: OppgaveConfig) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, OppgaveId>,
     ): UtløptFristForKontrollsamtaleContext {
         return Either.catch {
@@ -198,7 +195,6 @@ data class UtløptFristForKontrollsamtaleContext(
                             error = error,
                             clock = clock,
                             sakInfo = sak.info(),
-                            hentAktørId = hentAktørId,
                             opprettOppgave = opprettOppgave,
                             lagreContext = lagreContext,
                             tx = tx,
@@ -313,7 +309,6 @@ data class UtløptFristForKontrollsamtaleContext(
         error: Throwable,
         clock: Clock,
         sakInfo: SakInfo,
-        hentAktørId: (fnr: Fnr) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, AktørId>,
         opprettOppgave: (oppgaveConfig: OppgaveConfig) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, OppgaveId>,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         tx: TransactionContext,
@@ -324,13 +319,11 @@ data class UtløptFristForKontrollsamtaleContext(
             clock,
         ).let { ctx ->
             if (retryLimitReached(kontrollsamtale.id)) {
-                val aktørId = hentAktørId(sakInfo.fnr)
-                    .getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
                 val oppgaveId = opprettOppgave(
                     OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
                         saksnummer = sakInfo.saksnummer,
                         periode = kontrollsamtale.forventetMottattKontrollnotatIPeriode(),
-                        aktørId = aktørId,
+                        fnr = sakInfo.fnr,
                         clock = clock,
                     ),
                 ).getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
