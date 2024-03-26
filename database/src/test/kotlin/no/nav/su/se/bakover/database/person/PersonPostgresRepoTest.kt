@@ -194,7 +194,7 @@ internal class PersonPostgresRepoTest {
                     customVilkår = listOf(formueVilkår),
                 )
             }
-            val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak)).second
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak)).second
 
             Ctx(
                 dataSource,
@@ -246,7 +246,7 @@ internal class PersonPostgresRepoTest {
                 )
             }
 
-            val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak)) { (s, v) ->
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak)) { (s, v) ->
                 opprettetRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) {

@@ -42,6 +42,7 @@ fun nyPersonhendelseKnyttetTilSak(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    gjelderEps: Boolean = false,
     sakstype: Sakstype = Sakstype.UFØRE,
     opprettet: Tidspunkt = fixedTidspunkt,
     eksternOpprettet: Tidspunkt? = fixedTidspunkt,
@@ -61,6 +62,7 @@ fun nyPersonhendelseKnyttetTilSak(
             fnr = fnr,
             type = sakstype,
         ),
+        gjelderEps = gjelderEps,
         opprettet = opprettet,
     )
 }
@@ -72,6 +74,7 @@ fun nyPersonhendelseSendtTilOppgave(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    gjelderEps: Boolean = false,
     sakstype: Sakstype = Sakstype.UFØRE,
     oppgaveId: OppgaveId = no.nav.su.se.bakover.test.oppgave.oppgaveId,
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -83,6 +86,7 @@ fun nyPersonhendelseSendtTilOppgave(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
+        gjelderEps = gjelderEps,
         sakstype = sakstype,
         opprettet = opprettet,
     ).tilSendtTilOppgave(oppgaveId = oppgaveId)

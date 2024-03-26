@@ -30,6 +30,11 @@ class PersonhendelseService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+        prosesserNyHendelseForBruker(personhendelse)
+        prosesserNyHendelseForEps(personhendelse)
+    }
+
+    private fun prosesserNyHendelseForBruker(personhendelse: Personhendelse.IkkeTilknyttetSak) {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
         val eksisterendeSakIdOgNummer = vedtakService.hentForFødselsnumreOgFraOgMedMåned(
@@ -39,13 +44,32 @@ class PersonhendelseService(
             fødselsnumre.contains(it.fnr)
         }.ifEmpty {
             return Unit.also {
-                sikkerLogg.debug("Forkaster personhendelse som ikke er knyttet til aktiv/løpende sak: $personhendelse")
+                sikkerLogg.debug(
+                    "Forkaster personhendelse (bruker) som ikke er knyttet til aktiv/løpende sak: {}",
+                    personhendelse,
+                )
             }
         }.single()
-        sikkerLogg.debug("Personhendelse for sak: $personhendelse")
+        sikkerLogg.debug("Personhendelse (bruker) for sak: {}", personhendelse)
         personhendelseRepo.lagre(
-            personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer, Tidspunkt.now(clock)),
+            personhendelse = personhendelse.tilknyttSak(
+                UUID.randomUUID(),
+                eksisterendeSakIdOgNummer,
+                gjelderEps = false,
+                Tidspunkt.now(clock),
+            ),
         )
+    }
+
+    private fun prosesserNyHendelseForEps(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+        val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
+        val fraOgMedEllerSenere = Måned.now(clock)
+        sakRepo.hentSakInfoForEpsFnrFra(fødselsnumre, fraOgMedEllerSenere).forEach { sakInfo ->
+            sikkerLogg.debug("Personhendelse (EPS) for sak: {}", personhendelse)
+            personhendelseRepo.lagre(
+                personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), sakInfo, true, Tidspunkt.now(clock)),
+            )
+        }
     }
 
     fun opprettOppgaverForPersonhendelser() {

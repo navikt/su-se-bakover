@@ -28,7 +28,7 @@ sealed interface Personhendelse {
         override val hendelse: Hendelse,
         override val metadata: Metadata,
     ) : Personhendelse {
-        fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakInfo, opprettet: Tidspunkt) =
+        fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakInfo, gjelderEps: Boolean, opprettet: Tidspunkt) =
             TilknyttetSak.IkkeSendtTilOppgave(
                 endringstype = endringstype,
                 hendelse = hendelse,
@@ -38,6 +38,7 @@ sealed interface Personhendelse {
                 metadata = metadata,
                 antallFeiledeForsøk = 0,
                 opprettet = opprettet,
+                gjelderEps = gjelderEps,
             )
     }
 
@@ -47,6 +48,7 @@ sealed interface Personhendelse {
         val saksnummer: Saksnummer
         val antallFeiledeForsøk: Int
         val opprettet: Tidspunkt
+        val gjelderEps: Boolean
 
         data class IkkeSendtTilOppgave(
             override val endringstype: Endringstype,
@@ -57,6 +59,7 @@ sealed interface Personhendelse {
             override val metadata: Metadata,
             override val antallFeiledeForsøk: Int,
             override val opprettet: Tidspunkt,
+            override val gjelderEps: Boolean,
         ) : TilknyttetSak {
             fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
                 SendtTilOppgave(
@@ -69,6 +72,7 @@ sealed interface Personhendelse {
                     metadata = metadata,
                     antallFeiledeForsøk = antallFeiledeForsøk,
                     opprettet = opprettet,
+                    gjelderEps = gjelderEps,
                 )
         }
 
@@ -82,6 +86,7 @@ sealed interface Personhendelse {
             val oppgaveId: OppgaveId,
             override val antallFeiledeForsøk: Int,
             override val opprettet: Tidspunkt,
+            override val gjelderEps: Boolean,
         ) : TilknyttetSak
     }
 
@@ -139,6 +144,9 @@ sealed interface Personhendelse {
      * */
     data class Metadata(
         val hendelseId: String,
+        /**
+         * inneholder både fnr & aktørId (13 siffer)
+         */
         val personidenter: NonEmptyList<String>,
         val tidligereHendelseId: String?,
         val offset: Long,

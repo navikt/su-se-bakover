@@ -69,7 +69,7 @@ fun formuevilkårMedEps0Innvilget(
     bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
         Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = opprettet,
             periode = periode,
             fnr = epsFnr,
         ),

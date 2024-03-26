@@ -8,12 +8,19 @@ import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.test.bosituasjonEpsOver67
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
+import no.nav.su.se.bakover.test.fnrOver67
+import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
@@ -141,7 +148,8 @@ internal class SakPostgresRepoTest {
 
             val (_, opprettetRevurdering) =
                 testDataHelper.persisterRevurderingOpprettet(
-                    testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second },
+                    sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                        .let { it.first to it.second },
                 )
             val (_, tilAttesteringRevurdering) = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
             val (_, underkjentRevurdering) = testDataHelper.persisterRevurderingUnderkjentInnvilget()
@@ -229,6 +237,53 @@ internal class SakPostgresRepoTest {
                     behandlingStartet = klageTilAttestering.opprettet,
                     periode = null,
                 ),
+            )
+        }
+    }
+
+    @Test
+    fun `henter sakInfo for en gitt liste med eps fra en gitt måned `() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val clock = testDataHelper.clock
+            val repo = testDataHelper.sakRepo
+
+            val (sak, _, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                grunnlagsdataOverrides = listOf(
+                    bosituasjonEpsUnder67(opprettet = Tidspunkt.now(clock), fnr = fnrUnder67),
+                ),
+                vilkårOverrides = listOf(formuevilkårMedEps0Innvilget(opprettet = Tidspunkt.now(clock))),
+            )
+            testDataHelper.persisterIverksattRevurdering(
+                sakOgVedtak = (sak to vedtak),
+                grunnlagsdataOverrides = listOf(
+                    bosituasjonEpsOver67(opprettet = Tidspunkt.now(clock), fnr = fnrOver67),
+                ),
+                vilkårOverrides = listOf(formuevilkårMedEps0Innvilget(opprettet = Tidspunkt.now(clock))),
+            )
+
+            val sak2EpsFnr = Fnr.generer()
+            val (sak2, _, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                grunnlagsdataOverrides = listOf(
+                    bosituasjonEpsUnder67(opprettet = Tidspunkt.now(clock), fnr = sak2EpsFnr),
+                ),
+                vilkårOverrides = listOf(formuevilkårMedEps0Innvilget(opprettet = Tidspunkt.now(clock))),
+            )
+
+            // saken blir knyttet til samme eps fnr som første
+            val (sak3, _, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                grunnlagsdataOverrides = listOf(
+                    bosituasjonEpsUnder67(opprettet = Tidspunkt.now(clock), fnr = fnrUnder67),
+                ),
+                vilkårOverrides = listOf(formuevilkårMedEps0Innvilget(opprettet = Tidspunkt.now(clock))),
+            )
+
+            val fnrs = listOf(fnrUnder67, fnrOver67, sak2EpsFnr)
+            val fraMåned = januar(2021)
+            repo.hentSakInfoForEpsFnrFra(fnrs, fraMåned) shouldBe listOf(
+                SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
+                SakInfo(sak3.id, sak3.saksnummer, sak3.fnr, sak3.type),
             )
         }
     }

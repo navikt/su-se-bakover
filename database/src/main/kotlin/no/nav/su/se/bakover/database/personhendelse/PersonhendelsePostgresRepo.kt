@@ -133,6 +133,7 @@ internal class PersonhendelsePostgresRepo(
         metadata = deserialize<MetadataJson>(string("metadata")).toDomain(),
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
         opprettet = tidspunkt("opprettet"),
+        gjelderEps = boolean("gjelderEps"),
     )
 
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
@@ -145,6 +146,7 @@ internal class PersonhendelsePostgresRepo(
         oppgaveId = oppgaveId,
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
         opprettet = tidspunkt("opprettet"),
+        gjelderEps = boolean("gjelderEps"),
     )
 
     private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =

@@ -1283,6 +1283,8 @@ class TestDataHelper(
     fun persisterSøknadsbehandlingIverksattInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         kvittering: Kvittering? = kvittering(clock = clock),
+        grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+        vilkårOverrides: List<Vilkår> = emptyList(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
@@ -1294,6 +1296,8 @@ class TestDataHelper(
                 ),
                 sakOgSøknad = sak to søknad,
                 kvittering = kvittering,
+                customGrunnlag = grunnlagsdataOverrides,
+                customVilkår = vilkårOverrides,
             )
         },
     ): Tuple4<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling> {

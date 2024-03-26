@@ -51,7 +51,8 @@ data object OppgavebeskrivelseMapper {
         return "\tHendelsestidspunkt: ${(metadata.eksternOpprettet ?: opprettet).toOppgaveFormat()}\n" +
             "\tEndringstype: ${this.endringstype}\n" +
             "\tHendelseId: ${this.id}\n" +
-            "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"
+            "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}" +
+            if (this.gjelderEps) "\n\tGjelder EPS - ${this.metadata.personidenter.map { it }.joinToString(", ")}" else ""
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {
