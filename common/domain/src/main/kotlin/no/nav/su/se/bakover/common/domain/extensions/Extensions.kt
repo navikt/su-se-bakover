@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.extensions
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.Tuple4
 import arrow.core.toNonEmptyListOrNull
@@ -99,6 +100,18 @@ fun <A, B> Pair<A?, B?>.isEitherNull(): Boolean = isFirstNull() || isSecondNull(
 
 fun <A, B, C> Pair<A?, B?>.wheneverEitherIsNull(eitherIsNull: () -> C, eitherIsNotNull: (Pair<A, B>) -> C): C {
     return if (this.isEitherNull()) eitherIsNull() else eitherIsNotNull(Pair(this.first!!, this.second!!))
+}
+
+fun <A, B> List<Either<A, B>>.split(): Pair<List<A>, List<B>> {
+    val left = mutableListOf<A>()
+    val right = mutableListOf<B>()
+    this.forEach {
+        it.fold(
+            { left.add(it) },
+            { right.add(it) },
+        )
+    }
+    return Pair(left, right)
 }
 
 fun <T> (() -> Boolean).whenever(isFalse: () -> T, isTrue: () -> T): T {

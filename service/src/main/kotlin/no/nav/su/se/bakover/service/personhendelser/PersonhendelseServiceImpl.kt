@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.service.personhendelser
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.extensions.split
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -28,11 +32,14 @@ class PersonhendelseServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
-        prosesserNyHendelseForBruker(personhendelse)
-        prosesserNyHendelseForEps(personhendelse)
+        prosesserNyHendelseForBruker(personhendelse, true)
+        prosesserNyHendelseForEps(personhendelse, true)
     }
 
-    private fun prosesserNyHendelseForBruker(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+    private fun prosesserNyHendelseForBruker(
+        personhendelse: Personhendelse.IkkeTilknyttetSak,
+        isLiveRun: Boolean,
+    ): Either<Unit, Unit> {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
         val eksisterendeSakIdOgNummer = vedtakService.hentForFødselsnumreOgFraOgMedMåned(
@@ -41,7 +48,7 @@ class PersonhendelseServiceImpl(
         ).tilInnvilgetForMånedEllerSenere(fraOgMedEllerSenere).sakInfo.filter {
             fødselsnumre.contains(it.fnr)
         }.ifEmpty {
-            return Unit.also {
+            return Unit.left().also {
                 sikkerLogg.debug(
                     "Forkaster personhendelse (bruker) som ikke er knyttet til aktiv/løpende sak: {}",
                     personhendelse,
@@ -49,25 +56,36 @@ class PersonhendelseServiceImpl(
             }
         }.single()
         sikkerLogg.debug("Personhendelse (bruker) for sak: {}", personhendelse)
-        personhendelseRepo.lagre(
-            personhendelse = personhendelse.tilknyttSak(
-                UUID.randomUUID(),
-                eksisterendeSakIdOgNummer,
-                gjelderEps = false,
-                Tidspunkt.now(clock),
-            ),
-        )
+        if (isLiveRun) {
+            personhendelseRepo.lagre(
+                personhendelse = personhendelse.tilknyttSak(
+                    UUID.randomUUID(),
+                    eksisterendeSakIdOgNummer,
+                    gjelderEps = false,
+                    Tidspunkt.now(clock),
+                ),
+            )
+        }
+        return Unit.right()
     }
 
-    private fun prosesserNyHendelseForEps(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+    private fun prosesserNyHendelseForEps(
+        personhendelse: Personhendelse.IkkeTilknyttetSak,
+        isLiveRun: Boolean,
+    ): Either<Unit, Unit> {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
         sakRepo.hentSakInfoForEpsFnrFra(fødselsnumre, fraOgMedEllerSenere).forEach { sakInfo ->
             sikkerLogg.debug("Personhendelse (EPS) for sak: {}", personhendelse)
-            personhendelseRepo.lagre(
-                personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), sakInfo, true, Tidspunkt.now(clock)),
-            )
+            if (isLiveRun) {
+                personhendelseRepo.lagre(
+                    personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), sakInfo, true, Tidspunkt.now(clock)),
+                )
+            }
+            return Unit.right()
         }
+
+        return Unit.left()
     }
 
     override fun opprettOppgaverForPersonhendelser() {
@@ -81,6 +99,33 @@ class PersonhendelseServiceImpl(
                 }
                 opprettOppgaveForSak(sak, personhendelser.toNonEmptyList())
             }
+    }
+
+    override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): Pair<List<Unit>, List<Unit>> {
+        val seenFnr = mutableSetOf<String>()
+        // Vi prøver emulere produksjonskoden som slår sammen personhendelser på samme sak.
+        // Et mulig unntak vil være 2 som får SU som bor sammen. Da kan det hende vi får en ekstra oppgave på de.
+        // Men dette vil kun være et godt nok estimat
+        val filteredHendelser = personhendelser.filter { hendelse ->
+            val identer = hendelse.metadata.personidenter
+            val seenAny = identer.any { seenFnr.contains(it) }
+            seenFnr.addAll(identer)
+            !seenAny
+        }
+
+        val res = filteredHendelser.map {
+            val firstRes = prosesserNyHendelseForBruker(it, false)
+            val secondRes = prosesserNyHendelseForEps(it, false)
+
+            if (firstRes.isRight() || secondRes.isRight()) Unit.right() else Unit.left()
+        }
+
+        return res.split().let {
+            val forkastet = it.first
+            val success = it.second
+            log.info("Dry run for personhendelser: $success hadde blitt lagret og opprettet oppgave for, $forkastet hadde blitt forkastet")
+            success to forkastet
+        }
     }
 
     private fun opprettOppgaveForSak(

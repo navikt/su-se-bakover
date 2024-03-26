@@ -56,4 +56,39 @@ internal fun Route.innlesingPersonhendelserFraFilRoute(
             }
         }
     }
+
+    post("$DRIFT_PATH/personhendelser/dry") {
+        authorize(Brukerrolle.Drift) {
+            call.request.headers["content-type"]?.contains("multipart/form-data")
+                // TODO: return error if content-type is not multipart/form-data
+                ?: throw IllegalStateException("Missing content-type multipart/form-data")
+
+            val parts = call.receiveMultipart()
+
+            when (val thePart = parts.readAllParts().single()) {
+                is PartData.FileItem -> {
+                    val fileBytes = thePart.streamProvider().readBytes()
+                    val fileAsString = String(fileBytes)
+
+                    Either.catch {
+                        val personhendelser = deserializeList<PersonhendelseJson>(fileAsString).mapNotNull {
+                            it.toDomain().getOrNull()
+                        }
+                        personhendelseService.dryRunPersonhendelser(personhendelser)
+
+                        call.svar(Resultat.okJson())
+                    }.getOrElse {
+                        call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Deserialisering av personhendelser feilet",
+                                "deserialisering_av_personhendelser_feilet",
+                            ),
+                        )
+                    }
+                }
+
+                else -> call.svar(Feilresponser.ukjentMultipartType)
+            }
+        }
+    }
 }
