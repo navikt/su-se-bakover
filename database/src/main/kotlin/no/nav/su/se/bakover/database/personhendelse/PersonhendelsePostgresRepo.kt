@@ -34,7 +34,7 @@ internal class PersonhendelsePostgresRepo(
         dbMetrics.timeQuery("lagrePersonhendelseTilknyttetSakMenIkkeSendtTilOppgave") {
             sessionFactory.withSession { session ->
                 """
-                insert into personhendelse (id, sakId, opprettet, endret, endringstype, hendelse, oppgaveId, type, metadata)
+                insert into personhendelse (id, sakId, opprettet, endret, endringstype, hendelse, oppgaveId, type, metadata, gjelderEps)
                 values(
                     :id,
                     :sakId,
@@ -44,7 +44,8 @@ internal class PersonhendelsePostgresRepo(
                     to_jsonb(:hendelse::jsonb),
                     :oppgaveId,
                     :type,
-                    to_jsonb(:metadata::jsonb)
+                    to_jsonb(:metadata::jsonb),
+                    :gjelderEps
                 )
                 on conflict do nothing
                 """.trimIndent().insert(
@@ -58,6 +59,7 @@ internal class PersonhendelsePostgresRepo(
                         "oppgaveId" to null,
                         "type" to personhendelse.hendelse.toDatabasetype(),
                         "metadata" to serialize(personhendelse.metadata.toJson()),
+                        "gjelderEps" to personhendelse.gjelderEps,
                     ),
                     session,
                 )

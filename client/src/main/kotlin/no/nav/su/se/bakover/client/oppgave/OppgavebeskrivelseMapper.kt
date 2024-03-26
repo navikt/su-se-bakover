@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.NonEmptyCollection
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
+import no.nav.su.se.bakover.client.oppgave.OppgavebeskrivelseMapper.leggTilMetadataBeskrivelse
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -25,12 +26,14 @@ data object OppgavebeskrivelseMapper {
         when (val hendelse = personhendelse.hendelse) {
             is Personhendelse.Hendelse.Dødsfall -> {
                 "Dødsfall\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
                     "\tDødsdato: ${hendelse.dødsdato ?: "Ikke oppgitt"}\n" +
                     personhendelse.leggTilMetadataBeskrivelse()
             }
 
             is Personhendelse.Hendelse.Sivilstand -> {
                 "Endring i sivilstand\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
                     "\tType: ${hendelse.type?.toReadableName() ?: "Ikke oppgitt"}\n" +
                     "\tGyldig fra og med: ${hendelse.gyldigFraOgMed ?: "Ikke oppgitt"}\n" +
                     "\tBekreftelsesdato: ${hendelse.bekreftelsesdato ?: "Ikke oppgitt"}\n" +
@@ -39,20 +42,30 @@ data object OppgavebeskrivelseMapper {
 
             is Personhendelse.Hendelse.UtflyttingFraNorge -> {
                 "Utflytting fra Norge\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
                     "\tUtflyttingsdato: ${hendelse.utflyttingsdato ?: "Ikke oppgitt"}\n" +
                     personhendelse.leggTilMetadataBeskrivelse()
             }
 
-            is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse\n" + personhendelse.leggTilMetadataBeskrivelse()
-            is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse\n" + personhendelse.leggTilMetadataBeskrivelse()
+            is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
+            is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
         }
+
+    private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggtilGjelderEpsBeskrivelse(): String {
+        return if (this.gjelderEps) {
+            "\tGjelder EPS - ${
+                this.metadata.personidenter.map { it }.joinToString(", ")
+            }\n"
+        } else {
+            ""
+        }
+    }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggTilMetadataBeskrivelse(): String {
         return "\tHendelsestidspunkt: ${(metadata.eksternOpprettet ?: opprettet).toOppgaveFormat()}\n" +
             "\tEndringstype: ${this.endringstype}\n" +
             "\tHendelseId: ${this.id}\n" +
-            "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}" +
-            if (this.gjelderEps) "\n\tGjelder EPS - ${this.metadata.personidenter.map { it }.joinToString(", ")}" else ""
+            "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {

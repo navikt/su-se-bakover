@@ -98,11 +98,11 @@ internal class OppgavebeskrivelseMapperTest {
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Endring i kontaktadresse
+            	Gjelder EPS - aktørId, $fnr
             	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}
             	Tidligere hendelseid: Ingen tidligere
-            	Gjelder EPS - aktørId, $fnr
         """.trimIndent()
     }
 }
