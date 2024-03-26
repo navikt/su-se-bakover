@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -45,4 +46,12 @@ interface SakRepo {
         endretTidspunkt: Tidspunkt,
         sessionContext: SessionContext? = null,
     )
+
+    /**
+     * henter en sak, gitt en liste med eps fnr fra en gitt måned.
+     *
+     * TODO - når alder implementeres, kan denne matche for samme søkeren 2 ganger.
+     * merk også at dersom EPS er registrert på flere saker, vil du få flere også
+     */
+    fun hentSakInfoForEpsFnrFra(fnr: List<Fnr>, fraOgMed: Måned): List<SakInfo>
 }

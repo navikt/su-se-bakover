@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import org.junit.jupiter.api.Test
 import person.domain.SivilstandTyper
@@ -88,11 +90,15 @@ internal class OppgavebeskrivelseMapperTest {
 
     @Test
     fun `mapper kontaktadresse riktig`() {
+        val fnr = Fnr.generer()
         val nyHendelse = nyPersonhendelseKnyttetTilSak(
+            fnr = fnr,
             hendelse = Personhendelse.Hendelse.Kontaktadresse,
+            gjelderEps = true,
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Endring i kontaktadresse
+            	Gjelder EPS - aktørId, $fnr
             	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET
             	HendelseId: ${nyHendelse.id}

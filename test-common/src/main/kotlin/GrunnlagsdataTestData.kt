@@ -71,12 +71,13 @@ fun bosituasjonEpsOver67(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
+    fnr: Fnr = fnrOver67,
 ): Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre {
     return Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
         id = id,
         opprettet = opprettet,
         periode = periode,
-        fnr = fnrOver67,
+        fnr = fnr,
     )
 }
 
