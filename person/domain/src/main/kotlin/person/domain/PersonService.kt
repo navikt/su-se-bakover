@@ -8,7 +8,6 @@ import java.util.UUID
 interface PersonService {
     fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
-    fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
     fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
     fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
 

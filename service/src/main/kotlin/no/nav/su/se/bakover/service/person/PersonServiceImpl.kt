@@ -22,10 +22,6 @@ class PersonServiceImpl(
         return personOppslag.personMedSystembruker(fnr)
     }
 
-    override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return personOppslag.aktørId(fnr)
-    }
-
     override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return personOppslag.aktørIdMedSystembruker(fnr)
     }

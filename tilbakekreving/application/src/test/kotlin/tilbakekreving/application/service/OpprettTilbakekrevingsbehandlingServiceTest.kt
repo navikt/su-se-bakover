@@ -115,8 +115,6 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 tilgangstyring = tilgangstyringService,
                 sakService = sakService,
                 clock = clock,
-                personService = personService,
-                sessionFactory = sessionFactory,
             )
 
         fun verifyNoMoreInteractions() {

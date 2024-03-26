@@ -34,7 +34,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Year
@@ -128,49 +127,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     }
 
     @Test
-    fun `finner ikke person`() {
-        SøknadServiceOgMocks(
-            søknadRepo = mock {
-                on { hentSøknaderUtenJournalpost() } doReturn listOf(nySøknad)
-                on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn listOf(journalførtSøknad)
-            },
-            sakService = mock {
-                on { hentSak(sakId) } doReturn sak.right()
-            },
-            personService = mock {
-                on { hentPersonMedSystembruker(fnr) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-            },
-        ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-                journalpostResultat = listOf(
-                    KunneIkkeOppretteJournalpost(
-                        sakId,
-                        nySøknad.id,
-                        "Fant ikke person",
-                    ).left(),
-                ),
-                oppgaveResultat = listOf(
-                    KunneIkkeOppretteOppgave(
-                        sakId,
-                        journalførtSøknad.id,
-                        journalførtSøknad.journalpostId,
-                        "Fant ikke person",
-                    ).left(),
-                ),
-            )
-            inOrder(*it.allMocks()) {
-                verify(it.søknadRepo).hentSøknaderUtenJournalpost()
-                verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-                verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
-                verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-            }
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `opprett journalpost feiler`() {
         SøknadServiceOgMocks(
             søknadRepo = mock {
@@ -252,14 +208,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
                 verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
                 verify(it.oppgaveService).opprettOppgaveMedSystembruker(
                     argThat {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalførtSøknad.journalpostId,
                             søknadId = journalførtSøknad.id,
-                            aktørId = person.ident.aktørId,
+                            fnr = person.ident.fnr,
                             clock = fixedClock,
                             tilordnetRessurs = null,
                         )
@@ -336,14 +291,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
                 verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
                 verify(it.oppgaveService).opprettOppgaveMedSystembruker(
                     argThat {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalførtSøknad.journalpostId,
                             søknadId = journalførtSøknad.id,
-                            aktørId = person.ident.aktørId,
+                            fnr = sak.fnr,
                             clock = fixedClock,
                             tilordnetRessurs = null,
                         )

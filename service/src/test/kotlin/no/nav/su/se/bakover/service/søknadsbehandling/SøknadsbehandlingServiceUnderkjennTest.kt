@@ -12,11 +12,9 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -29,7 +27,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderk
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -51,7 +48,6 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
     private val fnr = Fnr.generer()
-    private val aktørId = AktørId("12345")
 
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),
@@ -69,15 +65,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ),
         stønadsperiode = Stønadsperiode.create(år(2021)),
     ).second as SøknadsbehandlingTilAttestering.Innvilget
-
-    private val oppgaveConfig = OppgaveConfig.Søknad(
-        sakstype = innvilgetBehandlingTilAttestering.sakstype,
-        journalpostId = innvilgetBehandlingTilAttestering.søknad.journalpostId,
-        søknadId = innvilgetBehandlingTilAttestering.søknad.id,
-        aktørId = aktørId,
-        tilordnetRessurs = innvilgetBehandlingTilAttestering.saksbehandler,
-        clock = fixedClock,
-    )
 
     @Test
     fun `Fant ikke behandling`() {

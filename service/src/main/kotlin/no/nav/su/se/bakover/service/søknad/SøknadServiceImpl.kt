@@ -157,13 +157,9 @@ class SøknadServiceImpl(
                     grunn = "Fant ikke sak",
                 ).left()
             }
-            val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
-                log.error("Fant ikke person med sakId ${sak.id}.")
-                return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
-            }
             opprettOppgave(
                 søknad = søknad,
-                person = person,
+                fnr = sak.fnr,
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
         }
@@ -176,7 +172,7 @@ class SøknadServiceImpl(
     ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(journalførtSøknad, person)
+            opprettOppgave(journalførtSøknad, sakInfo.fnr)
         }
     }
 
@@ -225,14 +221,14 @@ class SøknadServiceImpl(
 
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
-        person: Person,
+        fnr: Fnr,
         opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
         return opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
-                aktørId = person.ident.aktørId,
+                fnr = fnr,
                 clock = clock,
                 tilordnetRessurs = null,
                 sakstype = søknad.søknadInnhold.type(),

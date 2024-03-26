@@ -76,7 +76,6 @@ fun startJobberOgConsumers(
         personhendelseRepo = databaseRepos.personhendelseRepo,
         vedtakService = services.vedtakService,
         oppgaveServiceImpl = services.oppgave,
-        personService = services.person,
         clock = clock,
     )
     val runCheckFactory = RunCheckFactory(
@@ -156,7 +155,6 @@ fun startJobberOgConsumers(
             )
             val hendelseskonsument = OpprettOppgaverForInstitusjonsoppholdshendelser(
                 oppgaveService = services.oppgave,
-                personService = services.person,
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
                 oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
                 hendelseRepo = databaseRepos.hendelseRepo,

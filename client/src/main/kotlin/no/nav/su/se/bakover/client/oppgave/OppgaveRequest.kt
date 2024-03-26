@@ -5,7 +5,7 @@ import java.time.LocalDate
 internal data class OppgaveRequest(
     val journalpostId: String?,
     val saksreferanse: String,
-    val aktoerId: String,
+    val personident: String,
     val tema: String,
     val beskrivelse: String,
     val oppgavetype: String,

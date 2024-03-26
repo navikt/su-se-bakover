@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
@@ -535,11 +534,6 @@ open class AccessCheckProxy(
 
                 override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                    assertHarTilgangTilPerson(fnr)
-                    return services.person.hentAktørId(fnr)
-                }
-
                 override fun hentAktørIdMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
                 override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
@@ -727,7 +721,10 @@ open class AccessCheckProxy(
                         søknadsbehandlingId: SøknadsbehandlingId,
                     ): Either<FeilVedHentingAvGjeldendeVedtaksdataForPeriode, Pair<Periode, GrunnlagsdataOgVilkårsvurderinger>> {
                         assertHarTilgangTilSak(sakId)
-                        return service.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(sakId, søknadsbehandlingId)
+                        return service.hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
+                            sakId,
+                            søknadsbehandlingId,
+                        )
                     }
                 },
             ),

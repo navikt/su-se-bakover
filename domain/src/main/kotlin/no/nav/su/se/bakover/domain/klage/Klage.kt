@@ -133,7 +133,6 @@ sealed interface Klage : Klagefelter, BehandlingMedAttestering {
 
     sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
         data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
-        data object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
         data object KunneIkkeLageOppgave : KunneIkkeLeggeTilNyKlageinstansHendelse
     }
 }

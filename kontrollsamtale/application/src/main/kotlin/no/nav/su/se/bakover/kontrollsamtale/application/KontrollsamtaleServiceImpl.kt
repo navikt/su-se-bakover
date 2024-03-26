@@ -24,14 +24,12 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontro
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 class KontrollsamtaleServiceImpl(
     private val sakService: SakService,
-    private val personService: PersonService,
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
@@ -55,11 +53,6 @@ class KontrollsamtaleServiceImpl(
                 log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
             }
 
-        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
-            log.error("Fant ikke person for fnr: ${sak.fnr}")
-            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
-        }
-
         val dokument = lagDokument(fødselsnummer = sak.fnr, sakId = sakId, saksnummer = sak.saksnummer).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
             return it.left()
@@ -81,7 +74,7 @@ class KontrollsamtaleServiceImpl(
             oppgaveService.opprettOppgaveMedSystembruker(
                 config = OppgaveConfig.Kontrollsamtale(
                     saksnummer = sak.saksnummer,
-                    aktørId = person.ident.aktørId,
+                    fnr = sak.fnr,
                     clock = clock,
                 ),
             ).getOrElse {

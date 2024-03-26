@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
@@ -20,7 +20,7 @@ import java.util.UUID
 sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
     val saksreferanse: String
-    val aktørId: AktørId
+    val fnr: Fnr
     val behandlingstema: Behandlingstema?
     val oppgavetype: Oppgavetype
     val behandlingstype: Behandlingstype
@@ -35,7 +35,7 @@ sealed interface OppgaveConfig {
     data class Søknad(
         override val journalpostId: JournalpostId,
         val søknadId: UUID,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
         val sakstype: Sakstype,
@@ -53,7 +53,7 @@ sealed interface OppgaveConfig {
 
     data class AttesterSøknadsbehandling(
         val søknadId: UUID,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
@@ -68,7 +68,7 @@ sealed interface OppgaveConfig {
 
     data class Revurderingsbehandling(
         val saksnummer: Saksnummer,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
@@ -83,7 +83,7 @@ sealed interface OppgaveConfig {
 
     data class Tilbakekrevingsbehandling(
         val saksnummer: Saksnummer,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
@@ -98,7 +98,7 @@ sealed interface OppgaveConfig {
 
     data class AttesterRevurdering(
         val saksnummer: Saksnummer,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
@@ -114,7 +114,7 @@ sealed interface OppgaveConfig {
     data class Personhendelse(
         val saksnummer: Saksnummer,
         val personhendelse: NonEmptySet<IkkeSendtTilOppgave>,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
@@ -130,7 +130,7 @@ sealed interface OppgaveConfig {
     data class KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
         val saksnummer: Saksnummer,
         val periode: DatoIntervall,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
@@ -145,7 +145,7 @@ sealed interface OppgaveConfig {
 
     data class Kontrollsamtale(
         val saksnummer: Saksnummer,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
@@ -161,7 +161,7 @@ sealed interface OppgaveConfig {
     data class Institusjonsopphold(
         val saksnummer: Saksnummer,
         val sakstype: Sakstype,
-        override val aktørId: AktørId,
+        override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
@@ -200,7 +200,7 @@ sealed interface OppgaveConfig {
 
             data class Handling(
                 override val saksnummer: Saksnummer,
-                override val aktørId: AktørId,
+                override val fnr: Fnr,
                 override val tilordnetRessurs: NavIdentBruker?,
                 override val clock: Clock,
                 override val utfall: KlageinstansUtfall,
@@ -212,7 +212,7 @@ sealed interface OppgaveConfig {
 
             data class Informasjon(
                 override val saksnummer: Saksnummer,
-                override val aktørId: AktørId,
+                override val fnr: Fnr,
                 override val tilordnetRessurs: NavIdentBruker?,
                 override val clock: Clock,
                 override val utfall: KlageinstansUtfall,
@@ -231,7 +231,7 @@ sealed interface OppgaveConfig {
          */
         data class Saksbehandler(
             override val saksnummer: Saksnummer,
-            override val aktørId: AktørId,
+            override val fnr: Fnr,
             override val journalpostId: JournalpostId,
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
@@ -245,7 +245,7 @@ sealed interface OppgaveConfig {
          */
         data class Attestering(
             override val saksnummer: Saksnummer,
-            override val aktørId: AktørId,
+            override val fnr: Fnr,
             override val journalpostId: JournalpostId,
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,

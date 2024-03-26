@@ -39,7 +39,6 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
@@ -47,7 +46,7 @@ import java.util.UUID
 internal class KontrollsamtaleServiceImplTest {
 
     private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-    private val person = person()
+    private val person = person(fnr = sak.fnr)
     private val kontrollsamtale = planlagtKontrollsamtale()
 
     @Test
@@ -72,24 +71,6 @@ internal class KontrollsamtaleServiceImplTest {
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
-    }
-
-    @Test
-    fun `feiler hvis vi ikke finner person`() {
-        val personService = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            personService = personService,
-            clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
-            kontrollsamtale = kontrollsamtale,
-        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
     }
 
     @Test
@@ -200,7 +181,7 @@ internal class KontrollsamtaleServiceImplTest {
             argThat {
                 it shouldBe OppgaveConfig.Kontrollsamtale(
                     saksnummer = sak.saksnummer,
-                    aktørId = person.ident.aktørId,
+                    fnr = sak.fnr,
                     clock = fixedClock,
                 )
             },
@@ -339,7 +320,6 @@ internal class KontrollsamtaleServiceImplTest {
     ) {
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
             sakService = sakService,
-            personService = personService,
             brevService = brevService,
             oppgaveService = oppgaveService,
             sessionFactory = sessionFactory,

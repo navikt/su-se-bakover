@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
-import arrow.core.flatMap
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
@@ -34,7 +32,6 @@ class KlageinstanshendelseServiceImpl(
     private val klageinstanshendelseRepo: KlageinstanshendelseRepo,
     private val klageRepo: KlageRepo,
     private val oppgaveService: OppgaveService,
-    private val personService: PersonService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : KlageinstanshendelseService {
@@ -88,7 +85,6 @@ class KlageinstanshendelseServiceImpl(
             )
         }.onLeft {
             when (it) {
-                Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeHenteAktørId -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kunne ikke hente aktørId for id ${hendelse.id}")
                 is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kall mot oppgave feilet for id ${hendelse.id}")
                 is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for id ${hendelse.id}")
             }
@@ -132,41 +128,38 @@ class KlageinstanshendelseServiceImpl(
         avsluttetTidspunkt: Tidspunkt,
         journalpostIDer: List<JournalpostId>,
     ): Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
-        return personService.hentAktørIdMedSystembruker(fnr).map { aktørId ->
-            when (utfall) {
-                KlageinstansUtfall.TRUKKET,
-                KlageinstansUtfall.AVVIST,
-                KlageinstansUtfall.STADFESTELSE,
-                -> OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
-                    saksnummer = saksnummer,
-                    aktørId = aktørId,
-                    tilordnetRessurs = null,
-                    clock = clock,
-                    utfall = utfall,
-                    avsluttetTidspunkt = avsluttetTidspunkt,
-                    journalpostIDer = journalpostIDer,
-                )
+        return when (utfall) {
+            KlageinstansUtfall.TRUKKET,
+            KlageinstansUtfall.AVVIST,
+            KlageinstansUtfall.STADFESTELSE,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = clock,
+                utfall = utfall,
+                avsluttetTidspunkt = avsluttetTidspunkt,
+                journalpostIDer = journalpostIDer,
+            )
 
-                KlageinstansUtfall.RETUR,
-                KlageinstansUtfall.OPPHEVET,
-                KlageinstansUtfall.MEDHOLD,
-                KlageinstansUtfall.DELVIS_MEDHOLD,
-                KlageinstansUtfall.UGUNST,
-                -> OppgaveConfig.Klage.Klageinstanshendelse.Handling(
-                    saksnummer = saksnummer,
-                    aktørId = aktørId,
-                    tilordnetRessurs = null,
-                    clock = clock,
-                    utfall = utfall,
-                    avsluttetTidspunkt = avsluttetTidspunkt,
-                    journalpostIDer = journalpostIDer,
-                )
-            }
-        }.mapLeft { Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeHenteAktørId }
-            .flatMap {
-                oppgaveService.opprettOppgaveMedSystembruker(it).map {
-                    it.oppgaveId
-                }.mapLeft { Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
-            }
+            KlageinstansUtfall.RETUR,
+            KlageinstansUtfall.OPPHEVET,
+            KlageinstansUtfall.MEDHOLD,
+            KlageinstansUtfall.DELVIS_MEDHOLD,
+            KlageinstansUtfall.UGUNST,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = clock,
+                utfall = utfall,
+                avsluttetTidspunkt = avsluttetTidspunkt,
+                journalpostIDer = journalpostIDer,
+            )
+        }.let {
+            oppgaveService.opprettOppgaveMedSystembruker(it).map {
+                it.oppgaveId
+            }.mapLeft { Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
+        }
     }
 }

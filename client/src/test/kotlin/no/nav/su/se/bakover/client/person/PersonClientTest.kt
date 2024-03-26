@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -115,11 +114,11 @@ internal class PersonClientTest {
         @Test
         fun `andre kall med samme token hentes fra cache`() {
             val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.aktørId(fnr = mocks.fnr).also {
+            val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
                 it shouldBe mocks.aktørId.right()
             }.getOrFail()
-            verify(mocks.pdlClient).aktørId(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.aktørId(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
+            verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
+            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -140,10 +139,10 @@ internal class PersonClientTest {
         @Test
         fun `første kall med personbruker og andre kall med systembruker hentes fra cache`() {
             val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.aktørId(fnr = mocks.fnr).also {
+            val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
                 it shouldBe mocks.aktørId.right()
             }.getOrFail()
-            verify(mocks.pdlClient).aktørId(mocks.fnr, mocks.brukerTokenGenerator.first())
+            verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
             verifyNoMoreInteractions(mocks.pdlClient)
             mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
@@ -199,7 +198,6 @@ internal class PersonClientTest {
             on { hentKontaktinformasjon(fnr) } doReturn kontaktinformasjon.right()
         }
         val oauthMock: AzureAd = mock()
-        val tokenOppslagMock: TokenOppslag = mock()
 
         val hentBrukerToken = { brukerTokenGenerator.next() }
 
@@ -262,7 +260,6 @@ internal class PersonClientTest {
         val pdlClient: PdlClient = mock {
             on { person(any(), any()) } doReturn pdlData().right()
             on { personForSystembruker(any()) } doReturn pdlData().right()
-            on { aktørId(any(), any()) } doReturn aktørId.right()
             on { aktørIdMedSystembruker(any()) } doReturn aktørId.right()
         }
 

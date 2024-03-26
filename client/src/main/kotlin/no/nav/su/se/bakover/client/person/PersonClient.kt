@@ -74,13 +74,6 @@ internal class PersonClient(
         }
     }
 
-    override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        val brukerToken = hentBrukerToken()
-        return aktørIdCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.aktørId(fnr, brukerToken)
-        }
-    }
-
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return aktørIdCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
             pdlClient.aktørIdMedSystembruker(fnr)

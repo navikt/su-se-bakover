@@ -124,15 +124,6 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.lowercase() == "freg"
 
-    fun aktørId(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, AktørId> {
-        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
-            kallPDLMedOnBehalfOfToken<IdentResponseData>(fnr, hentIdenterQuery, token).map {
-                val identer = it.hentIdenter ?: return FantIkkePerson.left()
-                finnIdent(identer).aktørId
-            }
-        }
-    }
-
     fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return kallPDLMedSystembruker<IdentResponseData>(fnr, hentIdenterQuery).map {
             val identer = it.hentIdenter ?: return FantIkkePerson.left()

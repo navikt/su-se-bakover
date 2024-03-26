@@ -17,13 +17,13 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
@@ -74,7 +74,7 @@ internal class OppgaveHttpClientTest {
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
                     søknadId = søknadId,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
                 ),
@@ -138,7 +138,7 @@ internal class OppgaveHttpClientTest {
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
                     søknadId = søknadId,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
@@ -180,7 +180,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadId,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
                 ),
@@ -223,7 +223,7 @@ internal class OppgaveHttpClientTest {
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
                     søknadId = søknadId,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
                 ),
@@ -263,7 +263,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.Revurderingsbehandling(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
@@ -331,7 +331,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgaveMedSystembruker(
                 OppgaveConfig.Revurderingsbehandling(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
@@ -384,7 +384,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.AttesterRevurdering(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
@@ -428,7 +428,7 @@ internal class OppgaveHttpClientTest {
             client.opprettOppgave(
                 OppgaveConfig.AttesterRevurdering(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
@@ -467,7 +467,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                     utfall = KlageinstansUtfall.STADFESTELSE,
@@ -522,7 +522,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.Klage.Klageinstanshendelse.Handling(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                     utfall = KlageinstansUtfall.RETUR,
@@ -578,7 +578,7 @@ internal class OppgaveHttpClientTest {
             val actual = client.opprettOppgave(
                 OppgaveConfig.Klage.Klageinstanshendelse.Handling(
                     saksnummer = saksnummer,
-                    aktørId = AktørId(aktørId),
+                    fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                     utfall = KlageinstansUtfall.MEDHOLD,
@@ -616,7 +616,7 @@ internal class OppgaveHttpClientTest {
                 {
                     "journalpostId": ${jpostId?.let { "\"$it\"" }},
                     "saksreferanse": "$saksreferanse",
-                    "aktoerId": "$aktørId",
+                    "personident": "$fnr",
                     "tema": "SUP",
                     "beskrivelse": "$beskrivelse",
                     "oppgavetype": "$oppgavetype",

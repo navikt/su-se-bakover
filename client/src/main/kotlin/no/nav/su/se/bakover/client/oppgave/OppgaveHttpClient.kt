@@ -211,7 +211,7 @@ internal class OppgaveHttpClient(
                 OppgaveRequest(
                     journalpostId = config.journalpostId?.toString(),
                     saksreferanse = config.saksreferanse,
-                    aktoerId = config.aktørId.toString(),
+                    personident = config.fnr.toString(),
                     tema = Tema.SUPPLERENDE_STØNAD.value,
                     beskrivelse = beskrivelse,
                     oppgavetype = config.oppgavetype.toString(),

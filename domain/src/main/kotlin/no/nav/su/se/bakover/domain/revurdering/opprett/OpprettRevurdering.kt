@@ -43,7 +43,7 @@ fun Sak.opprettRevurdering(
         oppgaveConfig = {
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = saksnummer,
-                aktørId = it,
+                fnr = fnr,
                 tilordnetRessurs = command.saksbehandler,
                 clock = clock,
             )

@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMånedEllerSenere
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
@@ -24,7 +23,6 @@ class PersonhendelseService(
     private val personhendelseRepo: PersonhendelseRepo,
     private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
-    private val personService: PersonService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -91,30 +89,25 @@ class PersonhendelseService(
     ) {
         val personhendelseIder = personhendelser.map { it.id }
 
-        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-            ifLeft = { log.error("Fant ikke person for personhendelser med id'er: $personhendelseIder") },
-            ifRight = { aktørId ->
-                oppgaveServiceImpl.opprettOppgaveMedSystembruker(
-                    OppgaveConfig.Personhendelse(
-                        saksnummer = sak.saksnummer,
-                        personhendelse = personhendelser.toNonEmptySet(),
-                        aktørId = aktørId,
-                        clock = clock,
-                    ),
-                ).map { oppgaveResponse ->
-                    log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")
-                    personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }
-                        .let { personhendelseRepo.lagre(it) }
-                }
-                    .mapLeft {
-                        log.error(
-                            "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
-                                personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString { ", " }
-                            }]",
-                        )
-                        personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
-                    }
-            },
-        )
+        oppgaveServiceImpl.opprettOppgaveMedSystembruker(
+            OppgaveConfig.Personhendelse(
+                saksnummer = sak.saksnummer,
+                personhendelse = personhendelser.toNonEmptySet(),
+                fnr = sak.fnr,
+                clock = clock,
+            ),
+        ).map { oppgaveResponse ->
+            log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")
+            personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }
+                .let { personhendelseRepo.lagre(it) }
+        }
+            .mapLeft {
+                log.error(
+                    "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
+                        personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString { ", " }
+                    }]",
+                )
+                personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
+            }
     }
 }

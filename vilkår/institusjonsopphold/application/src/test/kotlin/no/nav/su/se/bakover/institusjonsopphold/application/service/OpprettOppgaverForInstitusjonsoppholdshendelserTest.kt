@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.institusjonsopphold.application.service
 
-import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -39,7 +38,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
@@ -94,64 +92,6 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
     }
 
     @Test
-    fun `returns early dersom vi ikke finner person ved opprettelse av oppgave for hendelse`() {
-        val sak = søknadsbehandlingIverksattInnvilget().first
-        val hendelse = nyInstitusjonsoppholdHendelse()
-        val correlationId = correlationId()
-        val hendelsekonsumenterRepo = mock<HendelsekonsumenterRepo> {
-            on {
-                hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-                    any(),
-                    any(),
-                    anyOrNull(),
-                    anyOrNull(),
-                )
-            } doReturn mapOf(
-                sak.id to nonEmptyListOf(
-                    hendelse.hendelseId,
-                ),
-            )
-        }
-        val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
-            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
-        }
-        val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
-            on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(hendelse))
-        }
-        val sakRepo = mock<SakRepo> {
-            on { hentSakInfo(any<UUID>()) } doReturn sak.info()
-        }
-        val personService = mock<PersonService> {
-            on { hentAktørIdMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-        val hendelseRepo = mock<HendelseRepo> {
-            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(2)
-        }
-        val testMocks = mockedServices(
-            sakRepo = sakRepo,
-            institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelsekonsumenterRepo = hendelsekonsumenterRepo,
-            oppgaveHendelseRepo = oppgaveHendelseRepo,
-            personService = personService,
-            hendelseRepo = hendelseRepo,
-        )
-        testMocks.createService().opprettOppgaverForHendelser(correlationId)
-        // Verifiserer at vi ikke har gjort noen sideeffekter
-        verify(hendelsekonsumenterRepo).hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-            argThat { it shouldBe HendelseskonsumentId("OpprettOppgaverForInstitusjonsoppholdshendelser") },
-            argThat { it shouldBe Hendelsestype("INSTITUSJONSOPPHOLD") },
-            anyOrNull(),
-            anyOrNull(),
-        )
-        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
-        verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
-        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
-        verify(personService).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
-        verify(hendelseRepo).hentSisteVersjonFraEntitetId(any(), anyOrNull())
-        testMocks.verifyNoMoreInteractions()
-    }
-
-    @Test
     fun `oppretter oppgaver for insthendelser som mangler oppgave`() {
         val sak = søknadsbehandlingIverksattInnvilget().first
         val hendelse = nyInstitusjonsoppholdHendelse()
@@ -172,9 +112,6 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         val sakRepo = mock<SakRepo> {
             on { hentSakInfo(any<UUID>()) } doReturn sak.info()
         }
-        val personService = mock<PersonService> {
-            on { hentAktørIdMedSystembruker(any()) } doReturn person.ident.aktørId.right()
-        }
         val oppgaveService = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
@@ -186,7 +123,6 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
-            personService = personService,
             hendelseRepo = hendelseRepo,
             oppgaveService = oppgaveService,
         )
@@ -201,15 +137,14 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
-        verify(personService).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
 
         verify(oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Institusjonsopphold(
-                    sak.saksnummer,
-                    sak.type,
-                    person.ident.aktørId,
-                    fixedClock,
+                    saksnummer = sak.saksnummer,
+                    sakstype = sak.type,
+                    fnr = person.ident.fnr,
+                    clock = fixedClock,
                 )
             },
         )
@@ -313,7 +248,6 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                 sakRepo = sakRepo,
                 clock = clock,
                 oppgaveService = oppgaveService,
-                personService = personService,
                 oppgaveHendelseRepo = oppgaveHendelseRepo,
                 hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                 hendelseRepo = hendelseRepo,
