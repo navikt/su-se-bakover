@@ -1271,6 +1271,11 @@ open class AccessCheckProxy(
                     // Driftsendepunkt ingen returdata
                     services.personhendelseService.opprettOppgaverForPersonhendelser()
                 }
+
+                override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): Pair<List<Unit>, List<Unit>> {
+                    // Driftsendepunkt - minimal returdata
+                    return services.personhendelseService.dryRunPersonhendelser(personhendelser)
+                }
             },
         )
     }
