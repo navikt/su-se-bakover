@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -364,20 +365,25 @@ internal class PersonhendelseServiceImplTest {
         val personhendelser = listOf(
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse1,
+                aktørId = AktørId("123"),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse1,
+                aktørId = AktørId("123"),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse2,
+                aktørId = AktørId("456"),
                 hendelse = Personhendelse.Hendelse.Bostedsadresse,
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse3,
+                aktørId = AktørId("789"),
                 hendelse = Personhendelse.Hendelse.Kontaktadresse,
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse4,
+                aktørId = AktørId("012"),
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             ),
         )

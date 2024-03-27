@@ -154,4 +154,5 @@ class PersonhendelseServiceImpl(
                 )
                 personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
             }
-    }}
+    }
+}

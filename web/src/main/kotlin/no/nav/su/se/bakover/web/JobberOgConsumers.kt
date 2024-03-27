@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
