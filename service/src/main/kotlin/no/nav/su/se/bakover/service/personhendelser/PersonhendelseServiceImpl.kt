@@ -123,7 +123,7 @@ class PersonhendelseServiceImpl(
         return res.split().let {
             val forkastet = it.first
             val success = it.second
-            log.info("Dry run for personhendelser: $success hadde blitt lagret og opprettet oppgave for, $forkastet hadde blitt forkastet")
+            log.info("Dry run for personhendelser: ${success.size} hadde blitt lagret og opprettet oppgave for, ${forkastet.size} hadde blitt forkastet")
             success to forkastet
         }
     }
