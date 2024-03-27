@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
@@ -71,13 +70,6 @@ fun startJobberOgConsumers(
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     dokumentKomponenter: Dokumentkomponenter,
 ) {
-    val personhendelseService = PersonhendelseService(
-        sakRepo = databaseRepos.sak,
-        personhendelseRepo = databaseRepos.personhendelseRepo,
-        vedtakService = services.vedtakService,
-        oppgaveServiceImpl = services.oppgave,
-        clock = clock,
-    )
     val runCheckFactory = RunCheckFactory(
         leaderPodLookup = clients.leaderPodLookup,
         applicationConfig = applicationConfig,
@@ -133,7 +125,7 @@ fun startJobberOgConsumers(
         )
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
-            personhendelseService = personhendelseService,
+            personhendelseService = services.personhendelseService,
         )
         KlageinstanshendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
@@ -244,7 +236,7 @@ fun startJobberOgConsumers(
         ).schedule()
 
         PersonhendelseOppgaveJob(
-            personhendelseService = personhendelseService,
+            personhendelseService = services.personhendelseService,
             initialDelay = initialDelay.next(),
             periode = if (isProd) {
                 Duration.of(1, ChronoUnit.DAYS)
@@ -368,7 +360,7 @@ fun startJobberOgConsumers(
         ).schedule()
 
         PersonhendelseOppgaveJob(
-            personhendelseService = personhendelseService,
+            personhendelseService = services.personhendelseService,
             periode = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             runCheckFactory = runCheckFactory,

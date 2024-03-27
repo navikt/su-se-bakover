@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
@@ -308,6 +309,13 @@ data object ServiceBuilder {
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,
                 statistikkEventObserver = statistikkEventObserver,
+            ),
+            personhendelseService = PersonhendelseServiceImpl(
+                sakRepo = databaseRepos.sak,
+                personhendelseRepo = databaseRepos.personhendelseRepo,
+                vedtakService = vedtakService,
+                oppgaveServiceImpl = oppgaveService,
+                clock = clock,
             ),
         )
     }

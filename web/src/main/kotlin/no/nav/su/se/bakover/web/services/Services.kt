@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -48,4 +49,5 @@ data class Services(
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
+    val personhendelseService: PersonhendelseService,
 )

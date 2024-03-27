@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
@@ -193,6 +194,7 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -1257,6 +1259,22 @@ open class AccessCheckProxy(
                 override fun resendStatistikkForVedtak(vedtakId: UUID, requiredType: KClass<*>?): Either<Unit, Unit> {
                     // Driftsendepunkt - returnerer ikke data, bare status
                     return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId, requiredType)
+                }
+            },
+            personhendelseService = object : PersonhendelseService {
+                override fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+                    // Driftsendepunkt ingen returdata
+                    services.personhendelseService.prosesserNyHendelse(personhendelse)
+                }
+
+                override fun opprettOppgaverForPersonhendelser() {
+                    // Driftsendepunkt ingen returdata
+                    services.personhendelseService.opprettOppgaverForPersonhendelser()
+                }
+
+                override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): Pair<List<Unit>, List<Unit>> {
+                    // Driftsendepunkt - minimal returdata
+                    return services.personhendelseService.dryRunPersonhendelser(personhendelser)
                 }
             },
         )

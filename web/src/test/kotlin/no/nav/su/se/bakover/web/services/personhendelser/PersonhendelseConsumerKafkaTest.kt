@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -57,7 +57,7 @@ internal class PersonhendelseConsumerKafkaTest {
                 kafkaConsumer.addRecord(generatePdlMelding(it))
             }
         }
-        val personhendelseService = mock<PersonhendelseService>()
+        val personhendelseService = mock<PersonhendelseServiceImpl>()
         PersonhendelseConsumer(
             consumer = kafkaConsumer,
             personhendelseService = personhendelseService,
@@ -103,7 +103,7 @@ internal class PersonhendelseConsumerKafkaTest {
             fail("Den forrige pollen førte til en exception, som skal gi oss en 60s delay.")
         }
 
-        val personhendelseService = mock<PersonhendelseService>()
+        val personhendelseService = mock<PersonhendelseServiceImpl>()
         PersonhendelseConsumer(
             consumer = kafkaConsumer,
             personhendelseService = personhendelseService,

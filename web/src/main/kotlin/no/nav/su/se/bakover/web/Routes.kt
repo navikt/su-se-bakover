@@ -87,6 +87,7 @@ internal fun Application.setupKtorRoutes(
                         søknadService = accessProtectedServices.søknad,
                         resendStatistikkhendelserService = accessProtectedServices.resendStatistikkhendelserService,
                         ferdigstillVedtakService = accessProtectedServices.ferdigstillVedtak,
+                        personhendelseService = accessProtectedServices.personhendelseService,
                     )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,

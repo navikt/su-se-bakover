@@ -161,6 +161,11 @@ data object Feilresponser {
         "ugyldig_input",
     )
 
+    val ukjentMultipartType = BadRequest.errorJson(
+        "Multipart inneholder ukjent type. aksepterer kun filer og formdata",
+        "ukjent_multipart_type",
+    )
+
     val ugyldigFødselsnummer = BadRequest.errorJson(
         "Ugyldig fødselsnummer",
         "ugyldig_fødselsnummer",

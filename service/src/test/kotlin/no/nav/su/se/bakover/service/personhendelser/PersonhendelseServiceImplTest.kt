@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.nyPersonhendelseIkkeKnyttetTilSak
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.sakinfo
@@ -35,16 +37,18 @@ import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import person.domain.PersonService
 import java.util.UUID
 
-internal class PersonhendelseServiceTest {
+internal class PersonhendelseServiceImplTest {
     @Test
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
@@ -66,7 +70,7 @@ internal class PersonhendelseServiceTest {
                 ),
             )
         }
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -77,7 +81,10 @@ internal class PersonhendelseServiceTest {
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
         verify(vedtakServiceMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
-        verify(sakRepoMock).hentSakInfoForEpsFnrFra(argThat { it shouldBe listOf(fnr) }, argThat { it shouldBe Måned.now(fixedClock) })
+        verify(sakRepoMock).hentSakInfoForEpsFnrFra(
+            argThat { it shouldBe listOf(fnr) },
+            argThat { it shouldBe Måned.now(fixedClock) },
+        )
         verify(personhendelseRepoMock).lagre(
             personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
                 it shouldBe nyPersonhendelse.tilknyttSak(
@@ -114,7 +121,7 @@ internal class PersonhendelseServiceTest {
             doNothing().whenever(it).lagre(any<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>())
         }
         val oppgaveServiceMock: OppgaveService = mock()
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -125,7 +132,10 @@ internal class PersonhendelseServiceTest {
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
         verify(vedtakServiceMock).hentForFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
-        verify(sakRepoMock).hentSakInfoForEpsFnrFra(argThat { it shouldBe listOf(fnr) }, argThat { it shouldBe Måned.now(fixedClock) })
+        verify(sakRepoMock).hentSakInfoForEpsFnrFra(
+            argThat { it shouldBe listOf(fnr) },
+            argThat { it shouldBe Måned.now(fixedClock) },
+        )
         verify(personhendelseRepoMock).lagre(
             personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
                 it shouldBe nyPersonhendelse.tilknyttSak(
@@ -151,7 +161,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn emptyList()
         }
         val personServiceMock = mock<PersonService>()
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
@@ -194,7 +204,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             vedtakService = vedtakServiceMock,
@@ -248,7 +258,7 @@ internal class PersonhendelseServiceTest {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
 
-        val personhendelseService = PersonhendelseService(
+        val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
@@ -282,6 +292,136 @@ internal class PersonhendelseServiceTest {
             personhendelseRepoMock,
             sakRepoMock,
             vedtakServiceMock,
+        )
+    }
+
+    @Test
+    fun `dryrunner personhendelser`() {
+        val fnrPersonhendelse1 = Fnr.generer()
+        val fnrPersonhendelse2 = Fnr.generer()
+        val fnrPersonhendelse3 = Fnr.generer()
+        val fnrPersonhendelse4 = Fnr.generer()
+
+        val sammendrag1 = Vedtaksammendrag(
+            opprettet = fixedTidspunkt,
+            periode = år(2021),
+            fødselsnummer = fnrPersonhendelse1,
+            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2021),
+        )
+        val sakInfo2 = SakInfo(
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2022),
+            fnr = fnrPersonhendelse2,
+            type = Sakstype.UFØRE,
+        )
+        val sammendrag3 = Vedtaksammendrag(
+            opprettet = fixedTidspunkt,
+            periode = år(2021),
+            fødselsnummer = fnrPersonhendelse3,
+            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2023),
+        )
+
+        /**
+         * forventer første & tredje kall er fordi pershondelsen er direkte på søkeren
+         */
+        val vedtakServiceMock = mock<VedtakService> {
+            on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) }
+                .thenReturn(listOf(sammendrag1))
+                .thenReturn(emptyList())
+                .thenReturn(listOf(sammendrag3))
+                .thenReturn(emptyList())
+        }
+
+        /**
+         * forventer andre kall er fordi personhendelsen skal være en eps
+         */
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakInfoForEpsFnrFra(any(), any()) }
+                .thenReturn(emptyList())
+                .thenReturn(listOf(sakInfo2))
+                .thenReturn(emptyList())
+                .thenReturn(emptyList())
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {}
+        val oppgaveServiceMock = mock<OppgaveService> {}
+        val personServiceMock = mock<PersonService>()
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            vedtakService = vedtakServiceMock,
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        /**
+         * merk at første 2 hendelser er knyttet til samme person
+         * vi vil at koden skal gruppere disse
+         */
+        val personhendelser = listOf(
+            nyPersonhendelseIkkeKnyttetTilSak(
+                fnr = fnrPersonhendelse1,
+                aktørId = AktørId("123"),
+            ),
+            nyPersonhendelseIkkeKnyttetTilSak(
+                fnr = fnrPersonhendelse1,
+                aktørId = AktørId("123"),
+            ),
+            nyPersonhendelseIkkeKnyttetTilSak(
+                fnr = fnrPersonhendelse2,
+                aktørId = AktørId("456"),
+                hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            ),
+            nyPersonhendelseIkkeKnyttetTilSak(
+                fnr = fnrPersonhendelse3,
+                aktørId = AktørId("789"),
+                hendelse = Personhendelse.Hendelse.Kontaktadresse,
+            ),
+            nyPersonhendelseIkkeKnyttetTilSak(
+                fnr = fnrPersonhendelse4,
+                aktørId = AktørId("012"),
+                hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
+            ),
+        )
+        val actual = personhendelseService.dryRunPersonhendelser(personhendelser)
+        actual.first.size shouldBe 3
+        actual.second.size shouldBe 1
+
+        val fnrCaptorVedtakService = argumentCaptor<List<Fnr>>()
+        verify(vedtakServiceMock, times(4)).hentForFødselsnumreOgFraOgMedMåned(
+            fnrCaptorVedtakService.capture(),
+            argThat { it shouldBe Måned.now(fixedClock) },
+        )
+        fnrCaptorVedtakService.allValues shouldBe listOf(
+            listOf(fnrPersonhendelse1),
+            listOf(fnrPersonhendelse2),
+            listOf(fnrPersonhendelse3),
+            listOf(fnrPersonhendelse4),
+        )
+
+        val fnrCaptorSakRepo = argumentCaptor<List<Fnr>>()
+        verify(sakRepoMock, times(4)).hentSakInfoForEpsFnrFra(
+            fnrCaptorSakRepo.capture(),
+            argThat { it shouldBe Måned.now(fixedClock) },
+        )
+
+        fnrCaptorSakRepo.allValues shouldBe listOf(
+            listOf(fnrPersonhendelse1),
+            listOf(fnrPersonhendelse2),
+            listOf(fnrPersonhendelse3),
+            listOf(fnrPersonhendelse4),
+        )
+
+        verifyNoMoreInteractions(
+            personhendelseRepoMock,
+            sakRepoMock,
+            oppgaveServiceMock,
+            vedtakServiceMock,
+            personServiceMock,
         )
     }
 

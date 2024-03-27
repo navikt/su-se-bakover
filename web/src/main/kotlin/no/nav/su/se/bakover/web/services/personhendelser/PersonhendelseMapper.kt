@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
@@ -15,22 +16,13 @@ import person.domain.SivilstandTyper
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 internal data object PersonhendelseMapper {
-    private enum class Opplysningstype(val value: String) {
-        DØDSFALL("DOEDSFALL_V1"),
-        UTFLYTTING_FRA_NORGE("UTFLYTTING_FRA_NORGE"),
-        SIVILSTAND("SIVILSTAND_V1"),
-        BOSTEDSADRESSE("BOSTEDSADRESSE_V1"),
-        KONTAKTADRESSE("KONTAKTADRESSE_V1"),
-        // https://github.com/navikt/pdl/blob/master/libs/contract-pdl-avro/src/main/java/no/nav/person/pdl/leesah/Opplysningstype.java
-    }
-
     internal fun map(
         message: ConsumerRecord<String, EksternPersonhendelse>,
     ): Either<KunneIkkeMappePersonhendelse, Personhendelse.IkkeTilknyttetSak> {
         val personhendelse: EksternPersonhendelse = message.value()
 
         return when (personhendelse.getOpplysningstype()) {
-            Opplysningstype.DØDSFALL.value -> {
+            OpplysningstypeForPersonhendelse.DØDSFALL.value -> {
                 Personhendelse.Hendelse.Dødsfall(
                     dødsdato = personhendelse.getDoedsfall().flatMap {
                         it.getDoedsdato()
@@ -38,7 +30,7 @@ internal data object PersonhendelseMapper {
                 ).right()
             }
 
-            Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
+            OpplysningstypeForPersonhendelse.UTFLYTTING_FRA_NORGE.value -> {
                 Personhendelse.Hendelse.UtflyttingFraNorge(
                     utflyttingsdato = personhendelse.getUtflyttingFraNorge().flatMap {
                         it.getUtflyttingsdato()
@@ -46,23 +38,13 @@ internal data object PersonhendelseMapper {
                 ).right()
             }
 
-            Opplysningstype.SIVILSTAND.value -> {
+            OpplysningstypeForPersonhendelse.SIVILSTAND.value -> {
                 (
                     personhendelse.getSivilstand().map {
+                        val type: String? = it.type
                         Personhendelse.Hendelse.Sivilstand(
-                            type = when (it.getType()) {
-                                "UOPPGITT" -> SivilstandTyper.UOPPGITT
-                                "UGIFT" -> SivilstandTyper.UGIFT
-                                "GIFT" -> SivilstandTyper.GIFT
-                                "ENKE_ELLER_ENKEMANN" -> SivilstandTyper.ENKE_ELLER_ENKEMANN
-                                "SKILT" -> SivilstandTyper.SKILT
-                                "SEPARERT" -> SivilstandTyper.SEPARERT
-                                "REGISTRERT_PARTNER" -> SivilstandTyper.REGISTRERT_PARTNER
-                                "SEPARERT_PARTNER" -> SivilstandTyper.SEPARERT_PARTNER
-                                "SKILT_PARTNER" -> SivilstandTyper.SKILT_PARTNER
-                                "GJENLEVENDE_PARTNER" -> SivilstandTyper.GJENLEVENDE_PARTNER
-                                null -> null
-                                else -> throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.getType()} for hendelsesid ${personhendelse.getHendelseId()}, partisjon ${message.partition()} og offset ${message.offset()}")
+                            type = SivilstandTyper.fromString(type).getOrElse {
+                                throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.value} for hendelsesid ${personhendelse.hendelseId}, partisjon ${message.partition()} og offset ${message.offset()}")
                             },
                             gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
                             relatertVedSivilstand = it.getRelatertVedSivilstand().map { fnr ->
@@ -74,8 +56,8 @@ internal data object PersonhendelseMapper {
                     ).right()
             }
 
-            Opplysningstype.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.right()
-            Opplysningstype.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.right()
+            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.right()
+            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.right()
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }
@@ -107,7 +89,7 @@ internal data object PersonhendelseMapper {
         }
 }
 
-internal sealed interface KunneIkkeMappePersonhendelse {
+sealed interface KunneIkkeMappePersonhendelse {
     data class IkkeAktuellOpplysningstype(
         val hendelseId: String,
         val opplysningstype: String,
