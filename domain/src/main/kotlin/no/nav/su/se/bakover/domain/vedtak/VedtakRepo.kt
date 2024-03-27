@@ -15,8 +15,8 @@ import java.util.UUID
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
-    fun hentForMåned(måned: Måned): List<Vedtaksammendrag>
-    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
+    fun hentForMåned(måned: Måned): List<VedtaksammendragForSak>
+    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
 
     /** Denne vil feile dersom vedtaket er lagret før. */
     fun lagre(vedtak: Vedtak)

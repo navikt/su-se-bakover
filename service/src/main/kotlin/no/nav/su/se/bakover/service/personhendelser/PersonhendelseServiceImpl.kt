@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMånedEllerSenere
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -42,31 +41,35 @@ class PersonhendelseServiceImpl(
     ): Either<Unit, Unit> {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
-        val eksisterendeSakIdOgNummer = vedtakService.hentForFødselsnumreOgFraOgMedMåned(
+        val vedtaksammendragForSak = vedtakService.hentForFødselsnumreOgFraOgMedMåned(
             fødselsnumre = fødselsnumre,
             fraOgMed = fraOgMedEllerSenere,
-        ).tilInnvilgetForMånedEllerSenere(fraOgMedEllerSenere).sakInfo.filter {
-            fødselsnumre.contains(it.fnr)
-        }.ifEmpty {
-            return Unit.left().also {
-                sikkerLogg.debug(
-                    "Forkaster personhendelse (bruker) som ikke er knyttet til aktiv/løpende sak: {}",
-                    personhendelse,
-                )
+        ).singleOrNull()
+
+        return when {
+            vedtaksammendragForSak == null || !vedtaksammendragForSak.erInnvilgetForMånedEllerSenere(fraOgMedEllerSenere) -> Unit.left()
+                .also {
+                    sikkerLogg.debug(
+                        "Forkaster personhendelse (bruker) som ikke er knyttet til aktiv/løpende sak: {}",
+                        personhendelse,
+                    )
+                }
+
+            else -> {
+                sikkerLogg.debug("Personhendelse (bruker) for sak: {}", personhendelse)
+                if (isLiveRun) {
+                    personhendelseRepo.lagre(
+                        personhendelse = personhendelse.tilknyttSak(
+                            UUID.randomUUID(),
+                            vedtaksammendragForSak.sakInfo(),
+                            gjelderEps = false,
+                            Tidspunkt.now(clock),
+                        ),
+                    )
+                }
+                Unit.right()
             }
-        }.single()
-        sikkerLogg.debug("Personhendelse (bruker) for sak: {}", personhendelse)
-        if (isLiveRun) {
-            personhendelseRepo.lagre(
-                personhendelse = personhendelse.tilknyttSak(
-                    UUID.randomUUID(),
-                    eksisterendeSakIdOgNummer,
-                    gjelderEps = false,
-                    Tidspunkt.now(clock),
-                ),
-            )
         }
-        return Unit.right()
     }
 
     private fun prosesserNyHendelseForEps(
@@ -75,6 +78,7 @@ class PersonhendelseServiceImpl(
     ): Either<Unit, Unit> {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
+        // TODO - her må vi bruke samme logikk som for brukeren
         sakRepo.hentSakInfoForEpsFnrFra(fødselsnumre, fraOgMedEllerSenere).forEach { sakInfo ->
             sikkerLogg.debug("Personhendelse (EPS) for sak: {}", personhendelse)
             if (isLiveRun) {

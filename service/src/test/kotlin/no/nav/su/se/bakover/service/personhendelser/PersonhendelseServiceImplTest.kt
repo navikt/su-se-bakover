@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.argThat
@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
+import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -60,13 +61,17 @@ internal class PersonhendelseServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock()
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn listOf(
-                Vedtaksammendrag(
-                    opprettet = fixedTidspunkt,
-                    periode = år(2021),
+                VedtaksammendragForSak(
                     fødselsnummer = fnr,
-                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
                     sakId = sakId,
                     saksnummer = Saksnummer(2021),
+                    vedtak = listOf(
+                        VedtaksammendragForSak.Vedtak(
+                            opprettet = fixedTidspunkt,
+                            periode = år(2021),
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
                 ),
             )
         }
@@ -302,13 +307,17 @@ internal class PersonhendelseServiceImplTest {
         val fnrPersonhendelse3 = Fnr.generer()
         val fnrPersonhendelse4 = Fnr.generer()
 
-        val sammendrag1 = Vedtaksammendrag(
-            opprettet = fixedTidspunkt,
-            periode = år(2021),
+        val sammendrag1 = VedtaksammendragForSak(
             fødselsnummer = fnrPersonhendelse1,
-            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(2021),
+            vedtak = listOf(
+                vedtaksammendragForSakVedtak(
+                    opprettet = fixedTidspunkt,
+                    periode = år(2021),
+                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                ),
+            ),
         )
         val sakInfo2 = SakInfo(
             sakId = UUID.randomUUID(),
@@ -316,13 +325,17 @@ internal class PersonhendelseServiceImplTest {
             fnr = fnrPersonhendelse2,
             type = Sakstype.UFØRE,
         )
-        val sammendrag3 = Vedtaksammendrag(
-            opprettet = fixedTidspunkt,
-            periode = år(2021),
+        val sammendrag3 = VedtaksammendragForSak(
             fødselsnummer = fnrPersonhendelse3,
-            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(2023),
+            vedtak = listOf(
+                vedtaksammendragForSakVedtak(
+                    opprettet = fixedTidspunkt,
+                    periode = år(2021),
+                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                ),
+            ),
         )
 
         /**

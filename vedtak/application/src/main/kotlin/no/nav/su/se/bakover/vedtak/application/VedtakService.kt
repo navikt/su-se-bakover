@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -32,7 +32,7 @@ interface VedtakService {
      */
     fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
-    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag>
+    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 
     fun startNySøknadsbehandlingForAvslag(sakId: UUID, vedtakId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>

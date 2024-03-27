@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -133,13 +134,17 @@ internal class VedtakPostgresRepoTest {
 
             vedtakRepo.hentForMåned(februar(2021)).also {
                 it.size shouldBe 1
-                it.first() shouldBe Vedtaksammendrag(
-                    opprettet = vedtakSomErAktivt.opprettet,
-                    periode = vedtakSomErAktivt.periode,
+                it.first() shouldBe VedtaksammendragForSak(
                     fødselsnummer = vedtakSomErAktivt.behandling.fnr,
-                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
                     sakId = vedtakSomErAktivt.sakId,
                     saksnummer = vedtakSomErAktivt.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakSomErAktivt.opprettet,
+                            periode = vedtakSomErAktivt.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
                 )
             }
         }

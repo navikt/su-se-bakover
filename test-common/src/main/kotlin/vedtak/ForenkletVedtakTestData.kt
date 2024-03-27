@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -29,7 +29,7 @@ fun forenkletVedtakSøknadsbehandling(
     fødselsnummer: Fnr = Fnr.generer(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
-): Vedtaksammendrag {
+): VedtaksammendragForSak {
     return forenkletVedtak(
         opprettet = opprettet,
         periode = periode,
@@ -46,7 +46,7 @@ fun forenkletVedtakOpphør(
     fødselsnummer: Fnr = Fnr.generer(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
-): Vedtaksammendrag {
+): VedtaksammendragForSak {
     return forenkletVedtak(
         opprettet = opprettet,
         periode = periode,
@@ -63,7 +63,7 @@ fun forenkletVedtakInnvilgetRevurdering(
     fødselsnummer: Fnr = Fnr.generer(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
-): Vedtaksammendrag {
+): VedtaksammendragForSak {
     return forenkletVedtak(
         opprettet = opprettet,
         periode = periode,
@@ -81,18 +81,48 @@ fun forenkletVedtak(
     vedtakstype: Vedtakstype,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
-): Vedtaksammendrag {
-    return Vedtaksammendrag(
-        opprettet = opprettet,
-        periode = periode,
+): VedtaksammendragForSak {
+    return VedtaksammendragForSak(
         fødselsnummer = fødselsnummer,
-        vedtakstype = vedtakstype,
         saksnummer = saksnummer,
         sakId = sakId,
+        vedtak = listOf(
+            VedtaksammendragForSak.Vedtak(
+                opprettet = opprettet,
+                periode = periode,
+                vedtakstype = vedtakstype,
+            ),
+        ),
     )
 }
 
-fun List<Vedtak>.toVedtaksammendrag(): List<Vedtaksammendrag> {
+fun vedtaksammendragForSak(
+    fødselsnummer: Fnr = Fnr.generer(),
+    sakId: UUID = UUID.randomUUID(),
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    vararg listeAvVedtak: VedtaksammendragForSak.Vedtak = arrayOf(vedtaksammendragForSakVedtak()),
+): VedtaksammendragForSak {
+    return VedtaksammendragForSak(
+        fødselsnummer = fødselsnummer,
+        saksnummer = saksnummer,
+        sakId = sakId,
+        vedtak = listeAvVedtak.toList(),
+    )
+}
+
+fun vedtaksammendragForSakVedtak(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    vedtakstype: Vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+): VedtaksammendragForSak.Vedtak {
+    return VedtaksammendragForSak.Vedtak(
+        opprettet = opprettet,
+        periode = periode,
+        vedtakstype = vedtakstype,
+    )
+}
+
+fun List<Vedtak>.toVedtaksammendrag(): List<VedtaksammendragForSak> {
     return this.mapNotNull {
         when (it) {
             is Klagevedtak -> null
@@ -103,7 +133,7 @@ fun List<Vedtak>.toVedtaksammendrag(): List<Vedtaksammendrag> {
 }
 
 // TODO jah: Kan løses ved en abstract function på Stønadsvedtak
-fun Stønadsvedtak.toVedtaksammendrag(): Vedtaksammendrag? {
+fun Stønadsvedtak.toVedtaksammendrag(): VedtaksammendragForSak? {
     return when (this) {
         is VedtakAvslagBeregning,
         is VedtakAvslagVilkår,
@@ -121,13 +151,17 @@ fun Stønadsvedtak.toVedtaksammendrag(): Vedtaksammendrag? {
 
 private fun VedtakSomKanRevurderes.toVedtaksammendrag(
     vedtakstype: Vedtakstype,
-): Vedtaksammendrag {
-    return Vedtaksammendrag(
-        opprettet = this.opprettet,
-        periode = this.periode,
+): VedtaksammendragForSak {
+    return VedtaksammendragForSak(
         fødselsnummer = this.fnr,
-        vedtakstype = vedtakstype,
         saksnummer = this.saksnummer,
         sakId = this.sakId,
+        vedtak = listOf(
+            VedtaksammendragForSak.Vedtak(
+                opprettet = this.opprettet,
+                periode = this.periode,
+                vedtakstype = vedtakstype,
+            ),
+        ),
     )
 }

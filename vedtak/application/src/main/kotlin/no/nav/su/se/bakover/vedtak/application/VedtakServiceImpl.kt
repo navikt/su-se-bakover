@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
-import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
+import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -63,14 +63,17 @@ class VedtakServiceImpl(
     }
 
     override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
-        return vedtakRepo.hentForMåned(måned).tilInnvilgetForMåned(måned)
+        return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
     }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
         return vedtakRepo.hentForUtbetaling(utbetalingId)
     }
 
-    override fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<Vedtaksammendrag> {
+    override fun hentForFødselsnumreOgFraOgMedMåned(
+        fødselsnumre: List<Fnr>,
+        fraOgMed: Måned,
+    ): List<VedtaksammendragForSak> {
         return vedtakRepo.hentForFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMed)
     }
 

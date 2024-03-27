@@ -62,7 +62,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørUtenUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
+import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vedtak.domain.Stønadsvedtak
@@ -258,7 +258,7 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentForMåned(måned: Måned): List<Vedtaksammendrag> {
+    override fun hentForMåned(måned: Måned): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentForMåned") {
             sessionFactory.withSession { session ->
                 """
@@ -277,20 +277,8 @@ internal class VedtakPostgresRepo(
                     :dato between fraogmed and tilogmed
                 """.trimIndent()
                     .hentListe(mapOf("dato" to måned.fraOgMed), session) {
-                        Vedtaksammendrag(
-                            opprettet = it.tidspunkt("opprettet"),
-                            periode = Periode.create(it.localDate("fraogmed"), it.localDate("tilogmed")),
-                            fødselsnummer = Fnr(it.string("fnr")),
-                            vedtakstype = when (val v = it.string("vedtaktype")) {
-                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE
-                                "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
-                                "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
-                                else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
-                            },
-                            sakId = it.uuid("sakid"),
-                            saksnummer = Saksnummer(it.long("saksnummer")),
-                        )
-                    }
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
             }
         }
     }
@@ -298,7 +286,7 @@ internal class VedtakPostgresRepo(
     override fun hentForFødselsnumreOgFraOgMedMåned(
         fødselsnumre: List<Fnr>,
         fraOgMed: Måned,
-    ): List<Vedtaksammendrag> {
+    ): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentForFødselsnumreOgFraOgMedMåned") {
             sessionFactory.withSession { session ->
                 """
@@ -324,20 +312,8 @@ internal class VedtakPostgresRepo(
                         ),
                         session,
                     ) {
-                        Vedtaksammendrag(
-                            opprettet = it.tidspunkt("opprettet"),
-                            periode = Periode.create(it.localDate("fraogmed"), it.localDate("tilogmed")),
-                            fødselsnummer = Fnr(it.string("fnr")),
-                            vedtakstype = when (val v = it.string("vedtaktype")) {
-                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE
-                                "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
-                                "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
-                                else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
-                            },
-                            sakId = it.uuid("sakid"),
-                            saksnummer = Saksnummer(it.long("saksnummer")),
-                        )
-                    }
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
             }
         }
     }
@@ -694,6 +670,36 @@ internal class VedtakPostgresRepo(
             tx,
         )
         lagreKlagevedtaksknytningTilKlage(vedtak, tx)
+    }
+
+    private fun Row.toVedtaksammendragForSak(): VedtaksammendragForSak {
+        return VedtaksammendragForSak(
+            fødselsnummer = Fnr(this.string("fnr")),
+            sakId = this.uuid("sakid"),
+            saksnummer = Saksnummer(this.long("saksnummer")),
+            vedtak = listOf(
+                VedtaksammendragForSak.Vedtak(
+                    opprettet = this.tidspunkt("opprettet"),
+                    periode = Periode.create(this.localDate("fraogmed"), this.localDate("tilogmed")),
+                    vedtakstype = when (val v = this.string("vedtaktype")) {
+                        "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE
+                        "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
+                        "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
+                        else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
+                    },
+                ),
+            ),
+        )
+    }
+
+    private fun List<VedtaksammendragForSak>.groupBySak(): List<VedtaksammendragForSak> {
+        return this.groupBy { it.sakId }.map { (_, liste) ->
+            require(liste.map { it.saksnummer }.distinct().size == 1)
+            require(liste.map { it.fødselsnummer }.distinct().size == 1)
+            liste.first().copy(
+                vedtak = liste.flatMap { it.vedtak },
+            )
+        }
     }
 }
 
