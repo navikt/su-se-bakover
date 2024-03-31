@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
+import behandling.klage.domain.KlageId
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.deserialize
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse

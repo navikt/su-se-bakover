@@ -6,6 +6,7 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate

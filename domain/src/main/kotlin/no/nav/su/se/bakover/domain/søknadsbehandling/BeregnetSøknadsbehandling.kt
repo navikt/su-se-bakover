@@ -8,6 +8,7 @@ import arrow.core.right
 import behandling.domain.AvslagGrunnetBeregning
 import behandling.domain.VurderAvslagGrunnetBeregning
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.avslag.ErAvslag
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering

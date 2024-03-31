@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import java.util.UUID

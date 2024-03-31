@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import behandling.domain.Stønadsbehandling
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
+import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg

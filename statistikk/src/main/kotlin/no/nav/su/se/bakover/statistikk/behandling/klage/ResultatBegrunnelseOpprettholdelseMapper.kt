@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.Klagehjemler
 
-internal fun Hjemler.toResultatBegrunnelse(): String {
+internal fun Klagehjemler.toResultatBegrunnelse(): String {
     return this.sorted().joinToString(",") { it.toJsonformat() }
 }
 

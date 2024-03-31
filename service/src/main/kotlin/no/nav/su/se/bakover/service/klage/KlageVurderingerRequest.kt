@@ -5,11 +5,11 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 
@@ -66,7 +66,7 @@ data class KlageVurderingerRequest(
                 }
         }
 
-        private fun hjemmelToDomain(hjemler: List<String>): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, Hjemler> {
+        private fun hjemmelToDomain(hjemler: List<String>): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, Klagehjemler> {
             return hjemler.map { hjemmel ->
                 when (hjemmel) {
                     // TODO jah: Flytt denne kontrakten til web?
@@ -87,8 +87,8 @@ data class KlageVurderingerRequest(
                     else -> return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }
             }.let {
-                if (it.isEmpty()) return Hjemler.empty().right()
-                Hjemler.tryCreate(
+                if (it.isEmpty()) return Klagehjemler.empty().right()
+                Klagehjemler.tryCreate(
                     it.toNonEmptyList(),
                 ).getOrElse {
                     return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()

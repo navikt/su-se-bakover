@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.Klagehjemler
 
 /**
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.
@@ -104,11 +106,11 @@ sealed interface VurderingerTilKlage {
                 )
             }
 
-            fun createOppretthold(hjemler: List<Hjemmel>): Either<Hjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
-                return Hjemler.tryCreate(hjemler).map {
+            fun createOppretthold(hjemler: List<Hjemmel>): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
+                return Klagehjemler.tryCreate(hjemler).map {
                     when (it) {
-                        is Hjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it)
-                        is Hjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it)
+                        is Klagehjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it)
+                        is Klagehjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it)
                     }
                 }
             }
@@ -142,12 +144,12 @@ sealed interface VurderingerTilKlage {
                 }
             }
 
-            data class Oppretthold(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt
+            data class Oppretthold(val hjemler: Klagehjemler.IkkeUtfylt) : Påbegynt
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
             data class Omgjør(val årsak: Årsak, val utfall: Utfall) : Utfylt
-            data class Oppretthold(val hjemler: Hjemler.Utfylt) : Utfylt
+            data class Oppretthold(val hjemler: Klagehjemler.Utfylt) : Utfylt
         }
 
         enum class Årsak {

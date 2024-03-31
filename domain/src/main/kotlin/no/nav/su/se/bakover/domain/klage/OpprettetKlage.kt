@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk

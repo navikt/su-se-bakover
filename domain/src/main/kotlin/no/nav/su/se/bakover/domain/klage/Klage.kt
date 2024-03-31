@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import behandling.domain.Behandling
 import behandling.domain.BehandlingMedAttestering
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk

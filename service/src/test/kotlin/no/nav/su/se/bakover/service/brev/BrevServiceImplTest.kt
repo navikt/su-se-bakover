@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.KunneIkkeLageDokument
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock

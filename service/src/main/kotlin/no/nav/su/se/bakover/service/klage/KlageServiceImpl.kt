@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.ErTilknyttetSak
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageSomKanVurderes
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering

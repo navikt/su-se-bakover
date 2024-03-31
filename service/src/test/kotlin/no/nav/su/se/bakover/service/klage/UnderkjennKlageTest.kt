@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.KlageId
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo

@@ -4,11 +4,11 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import behandling.søknadsbehandling.domain.avslag.Avslag
+import behandling.søknadsbehandling.domain.avslag.ErAvslag
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS

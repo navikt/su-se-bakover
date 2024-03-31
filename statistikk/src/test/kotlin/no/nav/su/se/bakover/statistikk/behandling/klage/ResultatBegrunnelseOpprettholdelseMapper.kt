@@ -1,27 +1,27 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
 import arrow.core.nonEmptyListOf
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.Klagehjemler
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import org.junit.jupiter.api.Test
 
 internal class ResultatBegrunnelseOpprettholdelseMapper {
 
     @Test
     fun `en paragraf`() {
-        Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)).toResultatBegrunnelse() shouldBe "SU_PARAGRAF_3"
+        Klagehjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)).toResultatBegrunnelse() shouldBe "SU_PARAGRAF_3"
     }
 
     @Test
     fun `to paragrafer`() {
-        Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_17))
+        Klagehjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_17))
             .toResultatBegrunnelse() shouldBe "SU_PARAGRAF_3,SU_PARAGRAF_17"
     }
 
     @Test
     fun `er sortert`() {
-        Hjemler.Utfylt.create(
+        Klagehjemler.Utfylt.create(
             nonEmptyListOf(
                 Hjemmel.SU_PARAGRAF_4,
                 Hjemmel.SU_PARAGRAF_17,

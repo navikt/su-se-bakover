@@ -3,6 +3,9 @@
 package no.nav.su.se.bakover.test
 
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -17,10 +20,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -366,7 +366,7 @@ fun utfyltVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId, fnr = fnr).first,
 ): Pair<Sak, VurdertKlage.Utfylt> {
@@ -417,7 +417,7 @@ fun bekreftetVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
@@ -529,7 +529,7 @@ fun vurdertKlageTilAttestering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Vurdert> {
@@ -620,7 +620,7 @@ fun underkjentKlageTilVurdering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -722,7 +722,7 @@ fun underkjentTilVurderingKlageTilAttestering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering> {
@@ -767,7 +767,7 @@ fun oversendtKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(

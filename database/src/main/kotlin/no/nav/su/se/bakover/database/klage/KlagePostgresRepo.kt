@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database.klage
 
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotliquery.Row
@@ -37,10 +39,8 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJso
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
-import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
@@ -722,43 +722,43 @@ internal class KlagePostgresRepo(
                 SU_PARAGRAF_21("su_paragraf_21"),
                 ;
 
-                fun toDomain(): no.nav.su.se.bakover.domain.klage.Hjemmel {
+                fun toDomain(): behandling.klage.domain.Hjemmel {
                     return when (this) {
-                        SU_PARAGRAF_3 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_3
-                        SU_PARAGRAF_4 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4
-                        SU_PARAGRAF_5 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5
-                        SU_PARAGRAF_6 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6
-                        SU_PARAGRAF_7 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7
-                        SU_PARAGRAF_8 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8
-                        SU_PARAGRAF_9 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9
-                        SU_PARAGRAF_10 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10
-                        SU_PARAGRAF_11 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_11
-                        SU_PARAGRAF_12 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12
-                        SU_PARAGRAF_13 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13
-                        SU_PARAGRAF_17 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_17
-                        SU_PARAGRAF_18 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18
-                        SU_PARAGRAF_21 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_21
+                        SU_PARAGRAF_3 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_3
+                        SU_PARAGRAF_4 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_4
+                        SU_PARAGRAF_5 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_5
+                        SU_PARAGRAF_6 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_6
+                        SU_PARAGRAF_7 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_7
+                        SU_PARAGRAF_8 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_8
+                        SU_PARAGRAF_9 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_9
+                        SU_PARAGRAF_10 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_10
+                        SU_PARAGRAF_11 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_11
+                        SU_PARAGRAF_12 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_12
+                        SU_PARAGRAF_13 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_13
+                        SU_PARAGRAF_17 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_17
+                        SU_PARAGRAF_18 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_18
+                        SU_PARAGRAF_21 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_21
                     }
                 }
 
                 companion object {
-                    fun Hjemler.toDatabasetype(): List<String> {
+                    fun Klagehjemler.toDatabasetype(): List<String> {
                         return this.map { hjemmel ->
                             when (hjemmel) {
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_3 -> SU_PARAGRAF_3
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4 -> SU_PARAGRAF_4
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5 -> SU_PARAGRAF_5
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6 -> SU_PARAGRAF_6
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7 -> SU_PARAGRAF_7
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> SU_PARAGRAF_8
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> SU_PARAGRAF_9
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> SU_PARAGRAF_10
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_11 -> SU_PARAGRAF_11
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12 -> SU_PARAGRAF_12
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13 -> SU_PARAGRAF_13
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_17 -> SU_PARAGRAF_17
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18 -> SU_PARAGRAF_18
-                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_21 -> SU_PARAGRAF_21
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_3 -> SU_PARAGRAF_3
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_4 -> SU_PARAGRAF_4
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_5 -> SU_PARAGRAF_5
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_6 -> SU_PARAGRAF_6
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_7 -> SU_PARAGRAF_7
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_8 -> SU_PARAGRAF_8
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_9 -> SU_PARAGRAF_9
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_10 -> SU_PARAGRAF_10
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_11 -> SU_PARAGRAF_11
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_12 -> SU_PARAGRAF_12
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_13 -> SU_PARAGRAF_13
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_17 -> SU_PARAGRAF_17
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_18 -> SU_PARAGRAF_18
+                                behandling.klage.domain.Hjemmel.SU_PARAGRAF_21 -> SU_PARAGRAF_21
                             }.toString()
                         }
                     }

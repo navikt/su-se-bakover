@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse

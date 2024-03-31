@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -12,7 +13,6 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.klage.KlageService

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.klage
+package behandling.klage.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -7,14 +7,14 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 
-sealed interface Hjemler : List<Hjemmel> {
+sealed interface Klagehjemler : List<Hjemmel> {
 
     companion object {
         fun empty(): IkkeUtfylt {
             return IkkeUtfylt.create()
         }
 
-        fun tryCreate(hjemler: List<Hjemmel>): Either<KunneIkkeLageHjemler, Hjemler> {
+        fun tryCreate(hjemler: List<Hjemmel>): Either<KunneIkkeLageHjemler, Klagehjemler> {
             return if (hjemler.isEmpty()) {
                 empty().right()
             } else {
@@ -27,7 +27,7 @@ sealed interface Hjemler : List<Hjemmel> {
 
     data class IkkeUtfylt private constructor(
         private val hjemler: List<Hjemmel> = emptyList(),
-    ) : Hjemler, List<Hjemmel> by hjemler {
+    ) : Klagehjemler, List<Hjemmel> by hjemler {
         companion object {
             fun create(): IkkeUtfylt {
                 return IkkeUtfylt()
@@ -40,7 +40,7 @@ sealed interface Hjemler : List<Hjemmel> {
      */
     data class Utfylt private constructor(
         private val hjemler: NonEmptyList<Hjemmel>,
-    ) : Hjemler, List<Hjemmel> by hjemler {
+    ) : Klagehjemler, List<Hjemmel> by hjemler {
         companion object {
             /**
              * Kun ment å brukes fra databaselaget og tester

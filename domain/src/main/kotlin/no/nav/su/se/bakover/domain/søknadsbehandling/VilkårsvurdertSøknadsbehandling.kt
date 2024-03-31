@@ -7,6 +7,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
+import behandling.søknadsbehandling.domain.avslag.ErAvslag
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering

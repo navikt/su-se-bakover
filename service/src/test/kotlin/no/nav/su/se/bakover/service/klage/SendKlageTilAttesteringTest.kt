@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage

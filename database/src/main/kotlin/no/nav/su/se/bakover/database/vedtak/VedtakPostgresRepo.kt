@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import behandling.domain.Stønadsbehandling
+import behandling.klage.domain.KlageId
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
@@ -37,7 +38,6 @@ import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering

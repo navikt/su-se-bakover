@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import io.kotest.matchers.shouldBe
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver

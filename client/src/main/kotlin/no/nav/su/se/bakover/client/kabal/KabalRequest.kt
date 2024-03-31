@@ -2,10 +2,10 @@
 
 package no.nav.su.se.bakover.client.kabal
 
+import behandling.klage.domain.Klagehjemler
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.Hjemler
 import java.time.LocalDate
 
 /**
@@ -86,23 +86,23 @@ internal data class KabalRequest(
         override fun toString(): String = this.verdi
 
         companion object {
-            fun Hjemler.toKabalHjemler(): List<Hjemmel> {
+            fun Klagehjemler.toKabalHjemler(): List<Hjemmel> {
                 return this.map {
                     when (it) {
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_3 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_7
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_11 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_11
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_12
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_13
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_17 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_17
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18
-                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_21 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_3 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_4 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_5 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_6 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_7 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_7
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_8 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_9 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_10 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_11 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_11
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_12 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_12
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_13 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_13
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_17 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_17
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_18 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_21 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21
                     }
                 }
             }

@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg

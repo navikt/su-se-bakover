@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

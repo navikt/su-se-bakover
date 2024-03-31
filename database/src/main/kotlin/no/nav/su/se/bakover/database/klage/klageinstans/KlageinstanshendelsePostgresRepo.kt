@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.klage.klageinstans
 
 import arrow.core.Either
+import behandling.klage.domain.KlageId
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse

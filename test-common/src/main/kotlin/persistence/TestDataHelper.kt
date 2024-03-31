@@ -6,6 +6,9 @@ import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
@@ -37,11 +40,8 @@ import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageId
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -1570,7 +1570,7 @@ class TestDataHelper(
             vurderinger = VurderingerTilKlage.Utfylt(
                 fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
-                    hjemler = Hjemler.Utfylt.create(
+                    hjemler = Klagehjemler.Utfylt.create(
                         nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
                     ),
                 ),
