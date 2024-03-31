@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.avbryt
+package behandling.søknadsbehandling.domain.avbryt
 
 sealed interface KunneIkkeLukkeSøknadsbehandling {
     data object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling

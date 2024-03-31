@@ -5,7 +5,7 @@ dependencies {
     implementation(project(":dokument:infrastructure"))
     implementation(project(":hendelse:domain"))
     implementation(project(":tilbakekreving:domain"))
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
 
     implementation(project(":common:infrastructure"))
     implementation(project(":hendelse:infrastructure"))

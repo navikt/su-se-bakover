@@ -2,7 +2,7 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
     implementation(project(":common:presentation"))
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
     implementation(project(":behandling:søknadsbehandling:domain"))
 
     implementation(project(":vilkår:vurderinger:domain"))

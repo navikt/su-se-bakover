@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
     implementation(project(":beregning"))
     implementation(project(":common:domain"))
     implementation(project(":common:domain"))

@@ -7,7 +7,7 @@ pluginManagement {
 rootProject.name = "su-se-bakover"
 
 include("application")
-include("behandling:domain")
+include("behandling:common:domain")
 include("behandling:klage:application")
 include("behandling:klage:domain")
 include("behandling:klage:infrastructure")

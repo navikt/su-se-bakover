@@ -3,7 +3,7 @@ dependencies {
     implementation(project(":domain"))
 
     implementation(project(":vedtak:domain"))
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
     implementation(project(":behandling:søknadsbehandling:domain"))
 
     implementation(project(":person:domain"))

@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
     implementation(project(":person:domain"))
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
     implementation(project(":satser"))
     implementation(project(":beregning"))
     implementation(project(":vilkår:uføre:domain"))

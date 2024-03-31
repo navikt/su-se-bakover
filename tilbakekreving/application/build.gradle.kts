@@ -2,7 +2,7 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":domain"))
 
-    implementation(project(":behandling:domain"))
+    implementation(project(":behandling:common:domain"))
 
     implementation(project(":hendelse:domain"))
 

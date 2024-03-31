@@ -14,5 +14,5 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("behandling-domain")
+    archiveBaseName.set("behandling-common-domain")
 }
