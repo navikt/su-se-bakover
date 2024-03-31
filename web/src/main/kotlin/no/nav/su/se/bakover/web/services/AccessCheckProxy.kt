@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import behandling.domain.Stønadsbehandling
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
@@ -55,7 +56,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast

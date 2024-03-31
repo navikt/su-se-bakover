@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -10,9 +12,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avvistKlage

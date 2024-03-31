@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.klage
+package behandling.klage.domain
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID

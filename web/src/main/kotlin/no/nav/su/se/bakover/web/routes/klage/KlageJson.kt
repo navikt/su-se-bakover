@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.klage
 
+import behandling.klage.domain.VurderingerTilKlage
 import common.presentation.attestering.AttesteringJson
 import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utledAvsluttet
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson

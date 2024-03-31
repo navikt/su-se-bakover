@@ -4,6 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VilkårsvurdertKlageFelter
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -13,12 +16,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.reflect.KClass
-
-interface VilkårsvurdertKlageFelter : Klagefelter {
-    val vilkårsvurderinger: VilkårsvurderingerTilKlage
-    val attesteringer: Attesteringshistorikk
-}
 
 sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
 
@@ -601,15 +598,4 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
             }
         }
     }
-}
-
-sealed interface KunneIkkeVilkårsvurdereKlage {
-    data object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage
-    data object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage
-    data object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage {
-        val til = VilkårsvurdertKlage::class
-    }
-
-    data object VedtakSkalIkkeSendeBrev : KunneIkkeVilkårsvurdereKlage
 }

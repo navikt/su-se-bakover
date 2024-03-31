@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.database.klage
 
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotliquery.Row
@@ -46,9 +48,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import java.time.LocalDate
 import java.util.UUID

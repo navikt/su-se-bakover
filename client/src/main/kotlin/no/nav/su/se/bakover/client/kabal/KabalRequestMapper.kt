@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.kabal
 
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.client.kabal.KabalRequest.Hjemmel.Companion.toKabalHjemler
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 
 internal data object KabalRequestMapper {
     fun map(

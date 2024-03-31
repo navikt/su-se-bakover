@@ -9,6 +9,9 @@ import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.UprosessertKlageinstanshendelse
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
@@ -46,10 +49,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering

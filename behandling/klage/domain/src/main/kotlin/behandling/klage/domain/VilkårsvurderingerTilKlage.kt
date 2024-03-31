@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.klage
+package behandling.klage.domain
 
 import java.util.UUID
 

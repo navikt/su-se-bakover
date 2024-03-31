@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.json.JSONObject
@@ -15,7 +16,7 @@ internal data object KlageinstanshendelseMapper {
         message: ConsumerRecord<String, String>,
         topic: String,
         clock: Clock,
-    ): Either<KunneIkkeMappeKlageinstanshendelse, no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse> {
+    ): Either<KunneIkkeMappeKlageinstanshendelse, UprosessertKlageinstanshendelse> {
         val key = message.key()
         val value = message.value()
 
@@ -27,10 +28,10 @@ internal data object KlageinstanshendelseMapper {
         val eventId = Either.catch { JSONObject(value).getString("eventId") }
             .getOrElse { return KunneIkkeMappeKlageinstanshendelse.FantIkkeEventId.left() }
 
-        return no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse(
+        return UprosessertKlageinstanshendelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
-            metadata = no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse.Metadata(
+            metadata = UprosessertKlageinstanshendelse.Metadata(
                 topic = topic,
                 hendelseId = eventId,
                 offset = message.offset(),

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VilkårsvurderingerTilKlage
 
 internal fun VilkårsvurderingerTilKlage?.toResultatBegrunnelse(): String? {
     if (this == null) return null

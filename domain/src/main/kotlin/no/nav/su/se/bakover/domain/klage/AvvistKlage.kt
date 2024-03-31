@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VilkårsvurdertKlageFelter
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

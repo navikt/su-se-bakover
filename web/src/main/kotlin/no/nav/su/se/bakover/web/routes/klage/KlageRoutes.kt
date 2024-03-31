@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VilkårsvurderingerTilKlage
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -49,7 +50,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest

@@ -1,8 +1,6 @@
-package no.nav.su.se.bakover.domain.klage
+package behandling.klage.domain
 
 import arrow.core.Either
-import behandling.klage.domain.Hjemmel
-import behandling.klage.domain.Klagehjemler
 
 /**
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.

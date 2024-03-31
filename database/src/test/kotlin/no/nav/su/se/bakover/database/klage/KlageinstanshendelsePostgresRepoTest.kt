@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.klage
 
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb

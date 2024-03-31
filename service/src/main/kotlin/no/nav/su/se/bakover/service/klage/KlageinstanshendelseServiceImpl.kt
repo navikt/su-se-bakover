@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -10,16 +11,15 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
-import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilNyKlageinstansHendelse
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -85,8 +85,8 @@ class KlageinstanshendelseServiceImpl(
             )
         }.onLeft {
             when (it) {
-                is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kall mot oppgave feilet for id ${hendelse.id}")
-                is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for id ${hendelse.id}")
+                is KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kall mot oppgave feilet for id ${hendelse.id}")
+                is KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for id ${hendelse.id}")
             }
             /* Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
              * de casene som intreffer og så må vi manuellt putte de til 'UPROSESSERT' vid senere tidspunkt.
@@ -127,7 +127,7 @@ class KlageinstanshendelseServiceImpl(
         utfall: KlageinstansUtfall,
         avsluttetTidspunkt: Tidspunkt,
         journalpostIDer: List<JournalpostId>,
-    ): Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
+    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (utfall) {
             KlageinstansUtfall.TRUKKET,
             KlageinstansUtfall.AVVIST,
@@ -159,7 +159,7 @@ class KlageinstanshendelseServiceImpl(
         }.let {
             oppgaveService.opprettOppgaveMedSystembruker(it).map {
                 it.oppgaveId
-            }.mapLeft { Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
+            }.mapLeft { KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
         }
     }
 }

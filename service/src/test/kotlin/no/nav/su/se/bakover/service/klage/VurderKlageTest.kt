@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage

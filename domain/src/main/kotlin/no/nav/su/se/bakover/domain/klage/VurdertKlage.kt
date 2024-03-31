@@ -5,6 +5,9 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.VilkårsvurdertKlageFelter
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

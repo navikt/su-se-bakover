@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.left
-import behandling.domain.Behandling
 import behandling.domain.BehandlingMedAttestering
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagefelter
+import behandling.klage.domain.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.reflect.KClass
 
 /**
  * Gyldige tilstandsoverganger klage:
@@ -131,66 +131,6 @@ sealed interface Klage : Klagefelter, BehandlingMedAttestering {
             )
         }
     }
-
-    sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
-        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
-        data object KunneIkkeLageOppgave : KunneIkkeLeggeTilNyKlageinstansHendelse
-    }
-}
-
-interface KlageSomKanVurderes {
-    fun vurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ): VurdertKlage
-}
-
-interface KanBekrefteKlagevurdering {
-    fun bekreftVurderinger(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): VurdertKlage.Bekreftet
-}
-
-interface KanLeggeTilFritekstTilAvvistBrev {
-    fun leggTilFritekstTilAvvistVedtaksbrev(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilAvvistVedtaksbrev: String,
-    ): AvvistKlage
-}
-
-interface Klagefelter : Behandling {
-    override val id: KlageId
-    override val opprettet: Tidspunkt
-    override val sakId: UUID
-    override val saksnummer: Saksnummer
-    override val fnr: Fnr
-    val journalpostId: JournalpostId
-    val oppgaveId: OppgaveId
-    val datoKlageMottatt: LocalDate
-    val saksbehandler: NavIdentBruker.Saksbehandler
-}
-
-sealed interface KunneIkkeLageBrevKommandoForKlage {
-    data object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevKommandoForKlage
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevKommandoForKlage
-}
-
-sealed interface KunneIkkeHenteFritekstTilBrev {
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeHenteFritekstTilBrev
-}
-
-sealed interface KunneIkkeBekrefteKlagesteg {
-    data object FantIkkeKlage : KunneIkkeBekrefteKlagesteg
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
-        KunneIkkeBekrefteKlagesteg
-}
-
-sealed interface KunneIkkeAvslutteKlage {
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeAvslutteKlage {
-        val til: KClass<AvsluttetKlage> = AvsluttetKlage::class
-    }
-
-    data object FantIkkeKlage : KunneIkkeAvslutteKlage
 }
 
 fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) =

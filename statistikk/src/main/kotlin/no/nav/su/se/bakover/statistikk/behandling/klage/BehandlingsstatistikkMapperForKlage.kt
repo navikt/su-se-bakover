@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus

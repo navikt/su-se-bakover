@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.services.klage.klageinstans
 
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt

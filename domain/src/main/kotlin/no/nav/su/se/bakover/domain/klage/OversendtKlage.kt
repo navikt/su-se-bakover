@@ -53,8 +53,8 @@ data class OversendtKlage(
 
     fun leggTilNyKlageinstanshendelse(
         tolketKlageinstanshendelse: TolketKlageinstanshendelse,
-        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
-    ): Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
         return lagOppgaveCallback().map { oppgaveId ->
             val oppdatertKlageinstanshendelser =
                 this.klageinstanshendelser.leggTilNyttVedtak(tolketKlageinstanshendelse.tilProsessert(oppgaveId))

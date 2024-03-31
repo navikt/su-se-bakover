@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.klage.klageinstans
 
+import behandling.klage.domain.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 
 /**
  * Brukes for å serialisere/deserialisere metadata-feltet i klageinstanshendelse-tabellen

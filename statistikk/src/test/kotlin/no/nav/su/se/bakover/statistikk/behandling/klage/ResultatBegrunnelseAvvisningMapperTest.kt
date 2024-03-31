@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
+import behandling.klage.domain.VilkårsvurderingerTilKlage
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

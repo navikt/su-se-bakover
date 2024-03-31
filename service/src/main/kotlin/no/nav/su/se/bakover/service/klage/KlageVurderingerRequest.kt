@@ -8,10 +8,10 @@ import arrow.core.right
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 
 /**
  * Prøver å unngå validering / mapping i web-laget så holder det til primitiver/objekter/arrays
