@@ -3,8 +3,6 @@ package vilkår.utenlandsopphold.domain.vilkår
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -84,10 +82,11 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
             ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(
@@ -98,10 +97,11 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
             fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
             ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

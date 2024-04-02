@@ -9,18 +9,31 @@ import no.nav.su.se.bakover.common.extensions.between
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
+import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.minus
 import java.time.LocalDate
 
 /**
- * Merk en tidslinje kan ha hull.
+ * Merk en tidslinje kan ha hull, men den garanterer at det ikke er overlapp mellom periodene og at den er sorter på fraOgMed.
  * @property periode Denne perioden vil strekke seg fra første til siste utbetalingsmåned. Merk at den kan ha hull, så funksjoner som gjeldendeForDato og krymp kan gi null.
  */
 data class TidslinjeForUtbetalinger private constructor(
     private val tidslinjeperioder: NonEmptyList<UtbetalingslinjePåTidslinje>,
 ) : List<UtbetalingslinjePåTidslinje> by tidslinjeperioder {
+
+    init {
+        tidslinjeperioder.map { it.periode }.let {
+            require(!it.harDuplikater()) {
+                "TidslinjeForUtbetalinger kan ikke ha duplikate perioder, men var: $it"
+            }
+            require(it.erSortertPåFraOgMed()) {
+                "TidslinjeForUtbetalinger må være sortert på fraOgMed, men var: $it"
+            }
+        }
+    }
 
     val periode = tidslinjeperioder.map { it.periode }.minAndMaxOf()
 
@@ -113,7 +126,8 @@ data class TidslinjeForUtbetalinger private constructor(
                             }
                         }
                     acc + inkluderElementer
-                }.sortedBy { it.periode }
+                    // init sjekker at de ikke overlapper
+                }.sortedBy { it.periode.fraOgMed }
             return sortedBy
                 .toNonEmptyList().let {
                     TidslinjeForUtbetalinger(it)
@@ -140,7 +154,9 @@ data class TidslinjeForUtbetalinger private constructor(
                         )
                     }
                     acc + inkluderElementer
-                }.sortedBy { it.periode }.also {
+                } // init sjekker at de ikke overlapper
+                .sortedBy { it.periode.fraOgMed }
+                .also {
                     require(
                         it.isNotEmpty() && it.map { it.periode }.minsteAntallSammenhengendePerioder()
                             .single() == nyPeriode,

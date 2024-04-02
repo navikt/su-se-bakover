@@ -21,7 +21,7 @@ interface Beregning : PeriodisertInformasjon {
     fun getBegrunnelse(): String?
 
     /**
-     * Sammenligner alle metodene  bortsett fraikke getId(), getOpprettet() og getBegrunnelse().
+     * Sammenligner alle metodene  bortsett fra: getId(), getOpprettet() og getBegrunnelse().
      * Laget for å kalles fra sub-klassene sine `override fun equals(other: Any?): Boolean` metoder.
      */
     fun equals(other: Beregning?): Boolean {

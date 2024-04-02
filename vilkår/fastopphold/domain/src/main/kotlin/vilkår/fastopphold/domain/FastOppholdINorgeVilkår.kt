@@ -2,8 +2,6 @@ package vilkår.fastopphold.domain
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -84,10 +82,11 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
             ): Either<UgyldigFastOppholdINorgeVikår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

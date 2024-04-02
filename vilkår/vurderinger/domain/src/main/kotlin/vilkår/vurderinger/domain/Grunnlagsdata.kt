@@ -7,6 +7,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMedDeretterTilOgMed
+import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
@@ -19,14 +22,12 @@ import java.time.Clock
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
 /**
  * Grunnlagene til vilkårene finnes under Vilkårsvurderinger
+ *
+ * @param fradragsgrunnlag Kan inneholde overlappende perioder; også innenfor en type. Den er sortert på fraOgMed, deretter tilOgMed. Merk at du ikke kan ha fradrag utenfor bosituasjonsperioden.
+ * @param bosituasjon Inneholder ikke overlappende perioder. Er sortert. Under søknadsbehandling vil den være tom fram til bosituasjonen er lagt til. Deretter en eller fler.
  */
 data class Grunnlagsdata private constructor(
     val fradragsgrunnlag: List<Fradragsgrunnlag>,
-
-    /**
-     * Under vilkårsvurdering/opprettet: Kan være null/tom/en/fler. (fler kun ved revurdering)
-     * Etter vilkårsvurdering: Skal være en. Senere kan den være fler hvis vi støtter sats per måned.
-     * */
     val bosituasjon: List<Bosituasjon>,
 ) {
     val eps: List<Fnr> = bosituasjon.mapNotNull { it.eps }.distinct().sortedBy { it.toString() }
@@ -47,12 +48,17 @@ data class Grunnlagsdata private constructor(
 
     init {
         val bosituasjonsperiode = bosituasjon.map { it.periode }
-        bosituasjonsperiode.zipWithNext { a, b ->
-            require(!a.overlapper(b)) {
-                "Bosituasjonsperioder i grunnlagsdata overlapper. Perioder: $bosituasjon"
-            }
+        require(!bosituasjonsperiode.harOverlappende()) {
+            "Bosituasjonsperioder i grunnlagsdata overlapper. Perioder: $bosituasjon"
+        }
+        require(bosituasjonsperiode.erSortertPåFraOgMed()) {
+            "Bosituasjonsperioder i grunnlagsdata er ikke sortert på fraOgMed. Perioder: $bosituasjon"
         }
         val fradragsperiode = fradragsgrunnlag.map { it.periode }
+        // Vi kan ha fradragsperioder som overlapper hverandre, også per type.
+        require(fradragsperiode.erSortertPåFraOgMedDeretterTilOgMed()) {
+            "Fradragsperioder i grunnlagsdata er ikke sortert på fraOgMed og tilOgMed. Perioder: $fradragsgrunnlag"
+        }
 
         if (fradragsperiode.isNotEmpty() && bosituasjonsperiode.isNotEmpty()) {
             require(bosituasjonsperiode inneholder fradragsperiode) {
@@ -109,8 +115,10 @@ data class Grunnlagsdata private constructor(
                 KunneIkkeLageGrunnlagsdata.Konsistenssjekk(it.first())
             }.map {
                 Grunnlagsdata(
-                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
-                    bosituasjon = bosituasjon.sortedBy { it.periode },
+                    fradragsgrunnlag = fradragsgrunnlag
+                        .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed }),
+                    // Init sjekker at disse ikke har overlapp
+                    bosituasjon = bosituasjon.sortedBy { it.periode.fraOgMed },
                 )
             }
         }
@@ -146,8 +154,10 @@ data class Grunnlagsdata private constructor(
                             KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
                         } else {
                             return Grunnlagsdata(
-                                fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
-                                bosituasjon = bosituasjon.sortedBy { it.periode },
+                                fradragsgrunnlag = fradragsgrunnlag
+                                    .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed }),
+                                // Init sjekker at disse ikke har overlapp
+                                bosituasjon = bosituasjon.sortedBy { it.periode.fraOgMed },
                             ).right()
                         }
                     }
@@ -158,8 +168,10 @@ data class Grunnlagsdata private constructor(
                 }
             }.map {
                 Grunnlagsdata(
-                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
-                    bosituasjon = bosituasjon.sortedBy { it.periode },
+                    fradragsgrunnlag = fradragsgrunnlag
+                        .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed }),
+                    // Init sjekker at disse ikke har overlapp
+                    bosituasjon = bosituasjon.sortedBy { it.periode.fraOgMed },
                 )
             }
         }

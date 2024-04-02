@@ -26,14 +26,13 @@ import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.tid.periode.erSortert
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
-import no.nav.su.se.bakover.common.tid.periode.komplement
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
@@ -910,7 +909,7 @@ internal class PeriodeTest {
         fun `sorter liste en måned`() {
             listOf(
                 januar(2021),
-            ).erSortert() shouldBe true
+            ).erSortertPåFraOgMed() shouldBe true
         }
 
         @Test
@@ -918,7 +917,7 @@ internal class PeriodeTest {
             listOf(
                 Periode.create(1.januar(2021), 28.februar(2021)),
                 Periode.create(1.januar(2021), 28.februar(2021)),
-            ).erSortert() shouldBe true
+            ).erSortertPåFraOgMed() shouldBe true
         }
 
         @Test
@@ -926,7 +925,7 @@ internal class PeriodeTest {
             listOf(
                 Periode.create(1.januar(2021), 28.februar(2021)),
                 Periode.create(1.april(2021), 31.mai(2021)),
-            ).erSortert() shouldBe true
+            ).erSortertPåFraOgMed() shouldBe true
         }
 
         @Test
@@ -934,7 +933,7 @@ internal class PeriodeTest {
             listOf(
                 Periode.create(1.april(2021), 31.mai(2021)),
                 Periode.create(1.januar(2021), 28.februar(2021)),
-            ).erSortert() shouldBe false
+            ).erSortertPåFraOgMed() shouldBe false
         }
 
         @Test
@@ -942,7 +941,7 @@ internal class PeriodeTest {
             listOf(
                 februar(2021),
                 januar(2021),
-            ).erSortert() shouldBe false
+            ).erSortertPåFraOgMed() shouldBe false
         }
 
         @Test
@@ -951,7 +950,7 @@ internal class PeriodeTest {
                 februar(2021),
                 januar(2021),
                 februar(2021),
-            ).erSortert() shouldBe false
+            ).erSortertPåFraOgMed() shouldBe false
         }
     }
 
@@ -1165,47 +1164,6 @@ internal class PeriodeTest {
                 år(2022),
                 år(2022),
             ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
-        }
-    }
-
-    @Nested
-    inner class Komplement {
-        @Test
-        fun `komplement av tom liste er tom`() {
-            emptyList<Periode>().komplement() shouldBe emptyList()
-        }
-
-        @Test
-        fun `komplement av en er en tom liste`() {
-            listOf(år(2021)).komplement() shouldBe emptyList()
-        }
-
-        @Test
-        fun `komplement av tilstøtende er tom liste`() {
-            listOf(år(2021), år(2022)).komplement() shouldBe emptyList()
-        }
-
-        @Test
-        fun `komplement av distinkte med hull`() {
-            listOf(år(2021), år(2023)).komplement() shouldBe listOf(år(2022))
-        }
-
-        @Test
-        fun `komplement av overlappende uten hull er tom liste`() {
-            listOf(
-                januar(2022).rangeTo(april(2022)),
-                februar((2022)).rangeTo(desember(2022)),
-            ).komplement() shouldBe emptyList()
-        }
-
-        @Test
-        fun `komplement av overlappende med hull`() {
-            listOf(
-                januar(2022).rangeTo(april(2022)),
-                februar((2022)).rangeTo(mai(2022)),
-                juli(2022).rangeTo(september(2022)),
-                juli((2022)).rangeTo(desember(2022)),
-            ).komplement() shouldBe listOf(juni(2022))
         }
     }
 }

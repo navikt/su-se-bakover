@@ -170,7 +170,7 @@ private fun List<VedtakPåTidslinje>.uføreVilkår(): UføreVilkår {
         )
     }.let {
         if (it.isNotEmpty()) {
-            UføreVilkår.Vurdert.fromVurderingsperioder(
+            UføreVilkår.Vurdert.tryCreate(
                 vurderingsperioder = it.toNonEmptyList(),
 
             )

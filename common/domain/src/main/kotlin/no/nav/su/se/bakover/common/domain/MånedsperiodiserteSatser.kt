@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.tid.periode.erSortert
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
@@ -91,7 +91,7 @@ data class Månedssatser<T>(
     init {
         satser.map { it.måned }.let {
             require(it.erSammenhengendeSortertOgUtenDuplikater()) {
-                "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
+                "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortertPåFraOgMed()}"
             }
         }
     }

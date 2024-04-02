@@ -3,13 +3,10 @@ package vilkår.flyktning.domain
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
@@ -83,10 +80,11 @@ sealed interface FlyktningVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
             ): Either<UgyldigFlyktningVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigFlyktningVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigFlyktningVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

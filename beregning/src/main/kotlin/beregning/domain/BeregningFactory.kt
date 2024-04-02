@@ -72,10 +72,9 @@ class BeregningFactory(val clock: Clock) {
 
         fun beregn(): Map<Måned, Månedsberegning> {
             val månedTilStrategi: Map<Måned, BeregningStrategy> = beregningsperioder
-                .sortedBy { it.periode() }
-                .fold(emptyMap()) { acc, beregningsperiode ->
+                .fold<Beregningsperiode, Map<Måned, BeregningStrategy>>(emptyMap()) { acc, beregningsperiode ->
                     acc + beregningsperiode.månedsoversikt()
-                }
+                }.toSortedMap()
 
             return månedTilStrategi.mapValues { (måned, strategi) ->
                 beregnMåned(

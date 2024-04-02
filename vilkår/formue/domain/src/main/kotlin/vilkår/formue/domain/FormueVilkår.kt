@@ -3,8 +3,6 @@ package vilkår.formue.domain
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -150,10 +148,11 @@ sealed interface FormueVilkår : Vilkår {
             private fun fromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeFormue>,
             ): Either<UgyldigFormuevilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigFormuevilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
