@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.common.domain.periode
 
-import io.kotest.matchers.ints.shouldBeGreaterThan
-import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.august
@@ -26,13 +24,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Test
 
 internal class DatoIntervallTest {
-
-    @Test
-    fun compareTo() {
-        DatoIntervall(1.januar(2021), 31.januar(2021)).compareTo(DatoIntervall(1.januar(2021), 31.januar(2021))) shouldBe 0
-        DatoIntervall(1.januar(2021), 31.januar(2021)).compareTo(DatoIntervall(1.januar(2021), 31.desember(2021))).shouldBeLessThan(0)
-        DatoIntervall(1.januar(2021), 31.januar(2021)).compareTo(DatoIntervall(1.januar(2021), 1.januar(2021))).shouldBeGreaterThan(0)
-    }
 
     @Test
     fun inneholder() {

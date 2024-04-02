@@ -215,12 +215,6 @@ internal class MånedTest {
     }
 
     @Test
-    fun `datoIntervall compareTo måned`() {
-        DatoIntervall(1.januar(2021), 31.januar(2021)).compareTo(januar(2021)) shouldBe 0
-        januar(2021).compareTo(DatoIntervall(1.januar(2021), 31.januar(2021))) shouldBe 0
-    }
-
-    @Test
     fun `datoIntervall skal ha samme hash som måned`() {
         januar(2021).hashCode() shouldBe DatoIntervall(1.januar(2021), 31.januar(2021)).hashCode()
         DatoIntervall(1.januar(2021), 31.januar(2021)).hashCode() shouldBe januar(2021).hashCode()

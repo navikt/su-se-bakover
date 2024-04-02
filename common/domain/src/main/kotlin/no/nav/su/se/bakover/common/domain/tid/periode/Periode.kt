@@ -27,7 +27,7 @@ import kotlin.collections.minus as setsMinus
 open class Periode protected constructor(
     fraOgMed: LocalDate,
     tilOgMed: LocalDate,
-) : DatoIntervall(fraOgMed, tilOgMed) {
+) : DatoIntervall(fraOgMed, tilOgMed), Comparable<Periode> {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
         validateOrThrow(fraOgMed, tilOgMed)
@@ -36,6 +36,8 @@ open class Periode protected constructor(
     init {
         validateOrThrow(fraOgMed, tilOgMed)
     }
+
+    override fun compareTo(other: Periode) = compareValuesBy(this, other, Periode::fraOgMed, Periode::tilOgMed)
 
     /**
      * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
@@ -198,7 +200,16 @@ fun List<Periode>.minAndMaxOfOrNull(): Periode? {
  * definert av [Periode.slåSammen].
  */
 fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
-    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> Periode.create(fraOgMed, tilOgMed) }
+    return this.måneder().fold(emptyList()) { acc, måned ->
+        if (acc.isEmpty()) {
+            listOf(måned.tilPeriode())
+        } else {
+            acc.last().slåSammen(måned.tilPeriode()).fold(
+                { acc + måned.tilPeriode() },
+                { acc.dropLast(1) + it },
+            )
+        }
+    }
 }
 
 fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {

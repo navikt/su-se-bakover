@@ -41,12 +41,12 @@ data class Kravgrunnlag(
 
     init {
         grunnlagsperioder.map { it.periode }.let {
-            require(it.sorted() == it) {
-                "Kravgrunnlagsperiodene må være sortert."
+            require(it.map { it.fraOgMed }.sorted() == it.map { it.fraOgMed }) {
+                "Kravgrunnlagsperiodene må være sortert på fraOgMed, men var: $it"
             }
             it.zipWithNext { a, b ->
                 require(!a.overlapper(b)) {
-                    "Perioder kan ikke overlappe."
+                    "Perioder kan ikke overlappe, men var: $it"
                 }
             }
         }
