@@ -22,9 +22,7 @@ data class VedtaksammendragForSak(
         }
     }
 
-    /** Disse kan overlappe, så det gir ikke mening og sortere de. */
-    val perioder = vedtak.map { it.periode }
-    val måneder = perioder.måneder()
+    val måneder = this.vedtak.map { it.periode }.måneder()
 
     data class Vedtak(
         val opprettet: Tidspunkt,

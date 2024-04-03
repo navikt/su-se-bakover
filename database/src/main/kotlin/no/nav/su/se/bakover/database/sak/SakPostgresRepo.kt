@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -320,32 +319,6 @@ internal class SakPostgresRepo(
                 require(it == 1) {
                     sikkerLogg.error("Forventet at vi oppdaterte 1 rad ved oppdatering av fødselsnummer, men vi oppdaterte $it rader. For sakId $sakId, gammeltFnr=$gammeltFnr, nyttFnr=$nyttFnr")
                     "Forventet at vi oppdaterte 1 rad ved oppdatering av fødselsnummer for sakId $sakId, men vi oppdaterte $it rader. Se sikkerlogg for fødselsnumrene."
-                }
-            }
-        }
-    }
-
-    override fun hentSakInfoForEpsFnrFra(fnr: List<Fnr>, fraOgMed: Måned): List<SakInfo> {
-        return dbMetrics.timeQuery("hentSakForEpsFnrFra") {
-            sessionFactory.withSession { session ->
-                """
-                    with behandlingIdOgFnr as (SELECT behandlingid, eps_fnr
-                           FROM grunnlag_bosituasjon
-                           WHERE :fraogmed >= fraogmed and eps_fnr = ANY (:fnr)),
-                    behandlingVedtak as (SELECT bv.sakId
-                                      FROM behandling_vedtak bv
-                                               join behandlingIdOgFnr be on bv.søknadsbehandlingid = be.behandlingid or
-                                                                            bv.revurderingid = be.behandlingid),
-                    sakInfo as (select s.id,s.saksnummer,s.fnr,s.type
-                             from sak s
-                                      join behandlingVedtak bv on s.id = bv.sakid)
-                    SELECT DISTINCT id, saksnummer, fnr, type FROM sakInfo
-                    ORDER BY saksnummer;
-                """.trimIndent().hentListe(
-                    mapOf("fraogmed" to fraOgMed.fraOgMed, "fnr" to fnr.map { it.toString() }),
-                    session,
-                ) {
-                    it.toSakInfo()
                 }
             }
         }
