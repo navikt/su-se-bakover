@@ -70,11 +70,15 @@ class VedtakServiceImpl(
         return vedtakRepo.hentForUtbetaling(utbetalingId)
     }
 
-    override fun hentForFødselsnumreOgFraOgMedMåned(
+    override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
         fødselsnumre: List<Fnr>,
         fraOgMed: Måned,
     ): List<VedtaksammendragForSak> {
-        return vedtakRepo.hentForFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMed)
+        return vedtakRepo.hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMed)
+    }
+
+    override fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak> {
+        return vedtakRepo.hentForEpsFødselsnumreOgFraOgMedMåned(fnr, fraOgMedEllerSenere)
     }
 
     override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> {

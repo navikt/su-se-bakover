@@ -155,7 +155,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilV
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -195,6 +194,7 @@ import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -991,10 +991,15 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-                override fun hentForFødselsnumreOgFraOgMedMåned(
+                override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
                     fødselsnumre: List<Fnr>,
                     fraOgMed: Måned,
-                ): List<VedtaksammendragForSak> = kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
+
+                override fun hentForEpsFødselsnumreOgFraOgMedMåned(
+                    fnr: List<Fnr>,
+                    fraOgMedEllerSenere: Måned,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> =
                     kastKanKunKallesFraAnnenService()
@@ -1272,7 +1277,7 @@ open class AccessCheckProxy(
                     services.personhendelseService.opprettOppgaverForPersonhendelser()
                 }
 
-                override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): Pair<List<Unit>, List<Unit>> {
+                override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): PersonhendelseServiceImpl.DryrunResult {
                     // Driftsendepunkt - minimal returdata
                     return services.personhendelseService.dryRunPersonhendelser(personhendelser)
                 }

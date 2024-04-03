@@ -619,9 +619,9 @@ class TestDataHelper(
     /**
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
      * @param stønadsperiode Ignoreres dersom [sakOgVedtak] sendes inn.
-     * @param revurderingsperiode Ignoreres dersom [sakOgRevurdering] sendes inn.
+     * @param revurderingsperiode Ignoreres dersom [revurdering] sendes inn.
      * @param sakOgVedtak Dersom denne sendes inn, bør også [revurderingsperiode] sendes inn, hvis ikke defaulter den til 2021.
-     * @param grunnlagsdataOverrides Gjelder kun for revurdering. Ignoreres dersom [sakOgRevurdering] sendes inn.
+     * @param grunnlagsdataOverrides Gjelder kun for revurdering. Ignoreres dersom [revurdering] sendes inn.
      */
     fun persisterIverksattRevurdering(
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -634,7 +634,7 @@ class TestDataHelper(
         nesteKravgrunnlagVersjon: Hendelsesversjon = Hendelsesversjon.ny(),
         grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
         vilkårOverrides: List<Vilkår> = emptyList(),
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
+        revurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
             iverksattRevurdering(
                 clock = clock,
                 sakOgVedtakSomKanRevurderes = it,
@@ -644,7 +644,7 @@ class TestDataHelper(
             )
         },
     ): Tuple6<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse, RåttKravgrunnlagHendelse?, KravgrunnlagDetaljerPåSakHendelse?> {
-        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
+        return revurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
             databaseRepos.vedtakRepo.lagre(vedtak)

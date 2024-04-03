@@ -32,7 +32,8 @@ interface VedtakService {
      */
     fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
-    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
+    fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
+    fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 
     fun startNySøknadsbehandlingForAvslag(sakId: UUID, vedtakId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>

@@ -283,7 +283,10 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentForFødselsnumreOgFraOgMedMåned(
+    /**
+     * Dette gjelder brukers FNR på saken.
+     */
+    override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
         fødselsnumre: List<Fnr>,
         fraOgMed: Måned,
     ): List<VedtaksammendragForSak> {
@@ -291,6 +294,7 @@ internal class VedtakPostgresRepo(
             sessionFactory.withSession { session ->
                 """
                   select
+                    distinct v.id,
                     v.opprettet,
                     v.fraogmed,
                     v.tilogmed,
@@ -303,7 +307,7 @@ internal class VedtakPostgresRepo(
                   where
                     v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
                     s.fnr = ANY (:fnr) and
-                    :dato >= fraogmed
+                    :dato <= tilogmed
                 """.trimIndent()
                     .hentListe(
                         mapOf(
@@ -314,6 +318,38 @@ internal class VedtakPostgresRepo(
                     ) {
                         it.toVedtaksammendragForSak()
                     }.groupBySak()
+            }
+        }
+    }
+
+    override fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak> {
+        return dbMetrics.timeQuery("hentSakForEpsFnrFra") {
+            sessionFactory.withSession { session ->
+                """
+                   select
+                    distinct v.id,
+                    v.opprettet,
+                    v.fraogmed,
+                    v.tilogmed,
+                    v.vedtaktype,
+                    s.fnr,
+                    s.id as sakid,
+                    s.saksnummer
+                  from vedtak v
+                    join sak s on s.id = v.sakid
+                    join behandling_vedtak bv ON bv.vedtakId = v.id
+                    join grunnlag_bosituasjon gb ON gb.behandlingId = bv.søknadsbehandlingid OR gb.behandlingId = bv.revurderingid
+                  where
+                    v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
+                    gb.eps_fnr = ANY (:fnr) and
+                    :fraogmed <= gb.tilogmed
+                  order by s.saksnummer, v.opprettet
+                """.trimIndent().hentListe(
+                    mapOf("fraogmed" to fraOgMedEllerSenere.fraOgMed, "fnr" to fnr.map { it.toString() }),
+                    session,
+                ) {
+                    it.toVedtaksammendragForSak()
+                }.groupBySak()
             }
         }
     }

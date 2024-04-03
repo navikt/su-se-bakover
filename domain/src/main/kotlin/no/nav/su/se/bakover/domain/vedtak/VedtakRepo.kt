@@ -16,7 +16,15 @@ interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
     fun hentForMåned(måned: Måned): List<VedtaksammendragForSak>
-    fun hentForFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
+    fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
+
+    /**
+     * henter en sak, gitt en liste med eps fnr fra en gitt måned.
+     *
+     * TODO - når alder implementeres, kan denne matche for samme søkeren 2 ganger.
+     * merk også at dersom EPS er registrert på flere saker, vil du få flere også
+     */
+    fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
 
     /** Denne vil feile dersom vedtaket er lagret før. */
     fun lagre(vedtak: Vedtak)
