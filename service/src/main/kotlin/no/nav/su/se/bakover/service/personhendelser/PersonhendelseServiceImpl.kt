@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -39,13 +40,18 @@ class PersonhendelseServiceImpl(
     private fun prosesserNyHendelseForBruker(
         personhendelse: Personhendelse.IkkeTilknyttetSak,
         isLiveRun: Boolean,
-    ): Either<Unit, Unit> {
+    ): PersonhendelseresultatBruker {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
         val vedtaksammendragForSak = vedtakService.hentForBrukerFødselsnumreOgFraOgMedMåned(
             fødselsnumre = fødselsnumre,
             fraOgMed = fraOgMedEllerSenere,
         ).singleOrNull()
+        if (vedtaksammendragForSak == null) {
+            return PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                identer = personhendelse.metadata.personidenter,
+            )
+        }
 
         return prosesserVedtaksammendragForSak(
             vedtaksammendragForSak = vedtaksammendragForSak,
@@ -53,29 +59,76 @@ class PersonhendelseServiceImpl(
             personhendelse = personhendelse,
             isLiveRun = isLiveRun,
             gjelderEps = false,
-        )
+        ).let {
+            it.fold(
+                {
+                    PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenAktiveVedtak(
+                        saksnummer = vedtaksammendragForSak.saksnummer,
+                        fnr = vedtaksammendragForSak.fødselsnummer,
+                        identer = personhendelse.metadata.personidenter,
+                    )
+                },
+                {
+                    PersonhendelseresultatBruker.TreffPåBruker(
+                        saksnummer = vedtaksammendragForSak.saksnummer,
+                        fnr = vedtaksammendragForSak.fødselsnummer,
+                        identer = personhendelse.metadata.personidenter,
+                    )
+                },
+            )
+        }
     }
 
     private fun prosesserNyHendelseForEps(
         personhendelse: Personhendelse.IkkeTilknyttetSak,
         isLiveRun: Boolean,
-    ): List<Either<Unit, Unit>> {
+    ): PersonhendelseresultatEps {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
         val fraOgMedEllerSenere = Måned.now(clock)
-        return vedtakService.hentForEpsFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMedEllerSenere).map {
-            prosesserVedtaksammendragForSak(it, fraOgMedEllerSenere, personhendelse, isLiveRun, gjelderEps = true)
+        val vedtaksammendragForSaker =
+            vedtakService.hentForEpsFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMedEllerSenere)
+        if (vedtaksammendragForSaker.isEmpty()) {
+            return PersonhendelseresultatEps.IkkeTreffPåEps(identer = personhendelse.metadata.personidenter)
+        }
+        return vedtaksammendragForSaker.map { vedtaksammendragForSak ->
+            prosesserVedtaksammendragForSak(
+                vedtaksammendragForSak,
+                fraOgMedEllerSenere,
+                personhendelse,
+                isLiveRun,
+                gjelderEps = true,
+            ) to vedtaksammendragForSak
+        }.map { (result, vedtaksammendragForSak) ->
+            result.fold(
+                {
+                    PersonhendelseresultatEps.TreffPåEps.IkkeAktivtVedtak(
+                        brukersSaksnummer = vedtaksammendragForSak.saksnummer,
+                        brukersFnr = vedtaksammendragForSak.fødselsnummer,
+                        identer = personhendelse.metadata.personidenter,
+                    )
+                },
+                {
+                    PersonhendelseresultatEps.TreffPåEps.AktivtVedtak(
+                        brukersSaksnummer = vedtaksammendragForSak.saksnummer,
+                        brukersFnr = vedtaksammendragForSak.fødselsnummer,
+                        identer = personhendelse.metadata.personidenter,
+                    )
+                },
+            )
+        }.let {
+            PersonhendelseresultatEps.TreffPåEnEllerFlereEps(it)
         }
     }
 
     private fun prosesserVedtaksammendragForSak(
-        vedtaksammendragForSak: VedtaksammendragForSak?,
+        vedtaksammendragForSak: VedtaksammendragForSak,
         fraOgMedEllerSenere: Måned,
         personhendelse: Personhendelse.IkkeTilknyttetSak,
         isLiveRun: Boolean,
         gjelderEps: Boolean,
     ): Either<Unit, Unit> {
         return when {
-            vedtaksammendragForSak == null || !vedtaksammendragForSak.erInnvilgetForMånedEllerSenere(fraOgMedEllerSenere) -> Unit.left()
+            !vedtaksammendragForSak.erInnvilgetForMånedEllerSenere(fraOgMedEllerSenere) -> Unit.left()
                 .also {
                     sikkerLogg.debug(
                         "Personhendelse - Forkaster hendelse som ikke er knyttet til aktiv/løpende sak. Hendelse: {}",
@@ -106,6 +159,64 @@ class PersonhendelseServiceImpl(
         }
     }
 
+    sealed interface PersonhendelseresultatBruker {
+        fun ikkeTreff(): Boolean = this is IkkeRelevantHendelseForBruker
+
+        fun unikeSaksnummer(): List<Saksnummer> = when (this) {
+            is IkkeRelevantHendelseForBruker -> emptyList()
+            is TreffPåBruker -> listOf(this.saksnummer)
+        }
+
+        sealed interface IkkeRelevantHendelseForBruker : PersonhendelseresultatBruker {
+            val identer: List<String>
+
+            /** Enten har vi ikke en sak, eller så har ikke den saken vedtak av typen søknad, endring, opphør. */
+            data class IngenSakEllerVedtak(override val identer: List<String>) : IkkeRelevantHendelseForBruker
+
+            /** Vi har en sak med vedtak av typen søknad, endring, opphør; men ingen av disse var aktive etter fraOgMed dato */
+            data class IngenAktiveVedtak(override val identer: List<String>, val saksnummer: Saksnummer, val fnr: Fnr) :
+                IkkeRelevantHendelseForBruker
+        }
+
+        data class TreffPåBruker(val saksnummer: Saksnummer, val fnr: Fnr, val identer: List<String>) :
+            PersonhendelseresultatBruker
+    }
+
+    sealed interface PersonhendelseresultatEps {
+        fun ikkeTreff(): Boolean
+
+        fun unikeSaksnummer(): List<Saksnummer> = when (this) {
+            is IkkeTreffPåEps -> emptyList()
+            is TreffPåEnEllerFlereEps -> this.treff.map { it.brukersSaksnummer }
+        }.distinct().sortedBy { it.nummer }
+
+        data class IkkeTreffPåEps(val identer: List<String>) : PersonhendelseresultatEps {
+            override fun ikkeTreff(): Boolean = true
+        }
+
+        data class TreffPåEnEllerFlereEps(val treff: List<TreffPåEps>) : PersonhendelseresultatEps {
+            override fun ikkeTreff(): Boolean = treff.all { it is TreffPåEps.IkkeAktivtVedtak }
+        }
+
+        sealed interface TreffPåEps {
+            val brukersSaksnummer: Saksnummer
+            val brukersFnr: Fnr
+            val identer: List<String>
+
+            data class AktivtVedtak(
+                override val brukersSaksnummer: Saksnummer,
+                override val brukersFnr: Fnr,
+                override val identer: List<String>,
+            ) : TreffPåEps
+
+            data class IkkeAktivtVedtak(
+                override val brukersSaksnummer: Saksnummer,
+                override val brukersFnr: Fnr,
+                override val identer: List<String>,
+            ) : TreffPåEps
+        }
+    }
+
     override fun opprettOppgaverForPersonhendelser() {
         val personhendelser = personhendelseRepo.hentPersonhendelserUtenOppgave()
         personhendelser.groupBy { it.sakId }
@@ -120,41 +231,52 @@ class PersonhendelseServiceImpl(
     }
 
     override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult {
-        val seenFnr = mutableSetOf<String>()
-        // Vi prøver emulere produksjonskoden som slår sammen personhendelser på samme sak.
-        // Et mulig unntak vil være 2 som får SU som bor sammen. Da kan det hende vi får en ekstra oppgave på de.
-        // Men dette vil kun være et godt nok estimat
-        val filteredHendelser = personhendelser.filter { hendelse ->
-            val identer = hendelse.metadata.personidenter
-            val seenAny = identer.any { seenFnr.contains(it) }
-            seenFnr.addAll(identer)
-            !seenAny
-        }
-
-        return filteredHendelser.fold(DryrunResult.empty()) { acc, element ->
+        return personhendelser.fold(DryrunResult.empty()) { acc, element ->
             val firstRes = prosesserNyHendelseForBruker(element, false)
             val secondRes = prosesserNyHendelseForEps(element, false)
-            when {
-                firstRes.isLeft() && secondRes.all { it.isLeft() } -> acc.incForkastet()
-                firstRes.isRight() -> acc.incBruker()
-                else -> acc.plusEps(secondRes.mapNotNull { it.getOrNull() }.size)
-            }
+            acc.leggTilHendelse(firstRes, secondRes)
         }.also {
             log.info("Dry run for personhendelser: $it")
+            sikkerLogg.info("Dry run for personhendelser: ${it.toSikkerloggString()}")
         }
     }
 
     data class DryrunResult(
-        val treffBruker: Int,
-        val treffEps: Int,
-        val forkastet: Int,
+        val perHendelse: List<DryRunResultPerHendelse>,
     ) {
         companion object {
-            fun empty() = DryrunResult(0, 0, 0)
+            fun empty() = DryrunResult(emptyList())
         }
-        fun incBruker() = copy(treffBruker = treffBruker + 1)
-        fun incForkastet() = copy(forkastet = forkastet + 1)
-        fun plusEps(eps: Int) = copy(treffEps = treffEps + eps)
+
+        fun leggTilHendelse(resultatBruker: PersonhendelseresultatBruker, resultatEps: PersonhendelseresultatEps) =
+            DryrunResult(perHendelse + DryRunResultPerHendelse(resultatBruker, resultatEps))
+
+        val antallForkastet: Int by lazy { perHendelse.count { it.ikkeTreff() } }
+        val antallBruker: Int by lazy { perHendelse.count { it.resultatBruker is PersonhendelseresultatBruker.TreffPåBruker } }
+        val antallEps: Int by lazy { perHendelse.count { it.resultatEps is PersonhendelseresultatEps.TreffPåEnEllerFlereEps } }
+        val antallOppgaver: Int by lazy {
+            oppgaver.size
+        }
+
+        val forkastet: List<DryRunResultPerHendelse> by lazy { perHendelse.filter { it.ikkeTreff() } }
+        val bruker: List<PersonhendelseresultatBruker> by lazy { perHendelse.map { it.resultatBruker } }
+        val eps: List<PersonhendelseresultatEps> by lazy { perHendelse.map { it.resultatEps } }
+        val oppgaver: List<Saksnummer> by lazy {
+            (bruker.flatMap { it.unikeSaksnummer() } + eps.flatMap { it.unikeSaksnummer() }).distinct().sortedBy { it.nummer }
+        }
+
+        data class DryRunResultPerHendelse(
+            val resultatBruker: PersonhendelseresultatBruker,
+            val resultatEps: PersonhendelseresultatEps,
+        ) {
+            fun ikkeTreff(): Boolean = resultatBruker.ikkeTreff() && resultatEps.ikkeTreff()
+        }
+
+        override fun toString() =
+            "DryrunResult(antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Se sikkerlogg for mer detaljer"
+
+        fun toSikkerloggString(): String =
+            "DryrunResult(antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Forkastet: $forkastet, Bruker: $bruker, Eps: $eps, Oppgaver: $oppgaver"
     }
 
     private fun opprettOppgaveForSak(

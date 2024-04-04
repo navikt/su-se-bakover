@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import arrow.core.right
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -351,9 +352,11 @@ internal class PersonhendelseServiceImplTest {
                 .thenReturn(emptyList())
                 .thenReturn(listOf(sammendrag3))
                 .thenReturn(emptyList())
+                .thenReturn(emptyList())
             on { hentForEpsFødselsnumreOgFraOgMedMåned(any(), any()) }
                 .thenReturn(emptyList())
                 .thenReturn(listOf(sammendrag2))
+                .thenReturn(emptyList())
                 .thenReturn(emptyList())
                 .thenReturn(emptyList())
         }
@@ -401,18 +404,139 @@ internal class PersonhendelseServiceImplTest {
             ),
         )
         val actual = personhendelseService.dryRunPersonhendelser(personhendelser)
-        actual shouldBe PersonhendelseServiceImpl.DryrunResult(
-            treffBruker = 2,
-            treffEps = 1,
-            forkastet = 1,
+        withClue(actual.perHendelse) {
+            actual.shouldBe(
+                PersonhendelseServiceImpl.DryrunResult(
+                    perHendelse = listOf(
+                        PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                            resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.TreffPåBruker(
+                                saksnummer = sammendrag1.saksnummer,
+                                fnr = sammendrag1.fødselsnummer,
+                                identer = personhendelser[0].metadata.personidenter,
+                            ),
+                            resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                                identer = personhendelser[0].metadata.personidenter,
+                            ),
+                        ),
+                        PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                            resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                                identer = personhendelser[1].metadata.personidenter,
+                            ),
+                            resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.TreffPåEnEllerFlereEps(
+                                listOf(
+                                    PersonhendelseServiceImpl.PersonhendelseresultatEps.TreffPåEps.AktivtVedtak(
+                                        brukersSaksnummer = sammendrag2.saksnummer,
+                                        brukersFnr = sammendrag2.fødselsnummer,
+                                        identer = personhendelser[1].metadata.personidenter,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                            resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.TreffPåBruker(
+                                saksnummer = sammendrag3.saksnummer,
+                                fnr = sammendrag3.fødselsnummer,
+                                identer = personhendelser[2].metadata.personidenter,
+                            ),
+                            resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                                identer = personhendelser[2].metadata.personidenter,
+                            ),
+                        ),
+                        PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                            resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                                identer = personhendelser[3].metadata.personidenter,
+                            ),
+                            resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                                identer = personhendelser[3].metadata.personidenter,
+                            ),
+                        ),
+                        PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                            resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                                identer = personhendelser[4].metadata.personidenter,
+                            ),
+                            resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                                identer = personhendelser[4].metadata.personidenter,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
+        actual.antallOppgaver shouldBe 3
+        actual.oppgaver shouldBe listOf(sammendrag1.saksnummer, sammendrag2.saksnummer, sammendrag3.saksnummer)
+        actual.antallBruker shouldBe 2
+        actual.bruker shouldBe listOf(
+            PersonhendelseServiceImpl.PersonhendelseresultatBruker.TreffPåBruker(
+                saksnummer = sammendrag1.saksnummer,
+                fnr = sammendrag1.fødselsnummer,
+                identer = personhendelser[0].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                identer = personhendelser[1].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatBruker.TreffPåBruker(
+                saksnummer = sammendrag3.saksnummer,
+                fnr = sammendrag3.fødselsnummer,
+                identer = personhendelser[2].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                identer = personhendelser[3].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                identer = personhendelser[4].metadata.personidenter,
+            ),
+        )
+        actual.antallEps shouldBe 1
+        actual.eps shouldBe listOf(
+            PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                identer = personhendelser[0].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatEps.TreffPåEnEllerFlereEps(
+                listOf(
+                    PersonhendelseServiceImpl.PersonhendelseresultatEps.TreffPåEps.AktivtVedtak(
+                        brukersSaksnummer = sammendrag2.saksnummer,
+                        brukersFnr = sammendrag2.fødselsnummer,
+                        identer = personhendelser[1].metadata.personidenter,
+                    ),
+                ),
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                identer = personhendelser[2].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                identer = personhendelser[3].metadata.personidenter,
+            ),
+            PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                identer = personhendelser[4].metadata.personidenter,
+            ),
+        )
+        actual.antallForkastet shouldBe 2
+        actual.forkastet shouldBe listOf(
+            PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                    identer = personhendelser[3].metadata.personidenter,
+                ),
+                resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                    identer = personhendelser[3].metadata.personidenter,
+                ),
+            ),
+            PersonhendelseServiceImpl.DryrunResult.DryRunResultPerHendelse(
+                resultatBruker = PersonhendelseServiceImpl.PersonhendelseresultatBruker.IkkeRelevantHendelseForBruker.IngenSakEllerVedtak(
+                    identer = personhendelser[4].metadata.personidenter,
+                ),
+                resultatEps = PersonhendelseServiceImpl.PersonhendelseresultatEps.IkkeTreffPåEps(
+                    identer = personhendelser[4].metadata.personidenter,
+                ),
+            ),
         )
 
         val fnrCaptorVedtakService = argumentCaptor<List<Fnr>>()
-        verify(vedtakServiceMock, times(4)).hentForBrukerFødselsnumreOgFraOgMedMåned(
+        verify(vedtakServiceMock, times(5)).hentForBrukerFødselsnumreOgFraOgMedMåned(
             fnrCaptorVedtakService.capture(),
             argThat { it shouldBe Måned.now(fixedClock) },
         )
         fnrCaptorVedtakService.allValues shouldBe listOf(
+            listOf(fnrPersonhendelse1),
             listOf(fnrPersonhendelse1),
             listOf(fnrPersonhendelse2),
             listOf(fnrPersonhendelse3),
@@ -420,12 +544,13 @@ internal class PersonhendelseServiceImplTest {
         )
 
         val fnrCaptorSakRepo = argumentCaptor<List<Fnr>>()
-        verify(vedtakServiceMock, times(4)).hentForEpsFødselsnumreOgFraOgMedMåned(
+        verify(vedtakServiceMock, times(5)).hentForEpsFødselsnumreOgFraOgMedMåned(
             fnrCaptorSakRepo.capture(),
             argThat { it shouldBe Måned.now(fixedClock) },
         )
 
         fnrCaptorSakRepo.allValues shouldBe listOf(
+            listOf(fnrPersonhendelse1),
             listOf(fnrPersonhendelse1),
             listOf(fnrPersonhendelse2),
             listOf(fnrPersonhendelse3),
