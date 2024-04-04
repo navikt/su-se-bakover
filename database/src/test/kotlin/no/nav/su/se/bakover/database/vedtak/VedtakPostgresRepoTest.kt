@@ -162,6 +162,19 @@ internal class VedtakPostgresRepoTest {
     }
 
     @Test
+    fun `henter alle vedtak knyttet til bruker som kun har en søknad som er innsendt`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource = dataSource)
+            val fnr = Fnr.generer()
+            testDataHelper.persisterJournalførtSøknadMedOppgave(fnr = fnr)
+            testDataHelper.vedtakRepo.hentForBrukerFødselsnumreOgFraOgMedMåned(
+                fødselsnumre = listOf(fnr),
+                fraOgMed = januar(2021),
+            ) shouldBe emptyList()
+        }
+    }
+
+    @Test
     fun `henter alle vedtak knyttet til bruker fra en måned med fødselsnummere som er supplert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource)
