@@ -1267,9 +1267,9 @@ open class AccessCheckProxy(
                 }
             },
             personhendelseService = object : PersonhendelseService {
-                override fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+                override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
                     // Driftsendepunkt ingen returdata
-                    services.personhendelseService.prosesserNyHendelse(personhendelse)
+                    services.personhendelseService.prosesserNyHendelse(fraOgMed, personhendelse)
                 }
 
                 override fun opprettOppgaverForPersonhendelser() {
@@ -1277,9 +1277,9 @@ open class AccessCheckProxy(
                     services.personhendelseService.opprettOppgaverForPersonhendelser()
                 }
 
-                override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): PersonhendelseServiceImpl.DryrunResult {
+                override fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): PersonhendelseServiceImpl.DryrunResult {
                     // Driftsendepunkt - minimal returdata
-                    return services.personhendelseService.dryRunPersonhendelser(personhendelser)
+                    return services.personhendelseService.dryRunPersonhendelser(fraOgMed, personhendelser)
                 }
             },
         )

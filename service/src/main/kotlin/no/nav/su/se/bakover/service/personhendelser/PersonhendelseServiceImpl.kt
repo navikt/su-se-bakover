@@ -31,18 +31,18 @@ class PersonhendelseServiceImpl(
 ) : PersonhendelseService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+    override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
         sikkerLogg.debug("Personhendelse - sjekker match på bruker og EPS. Hendelse: {}", personhendelse)
-        prosesserNyHendelseForBruker(personhendelse, true)
-        prosesserNyHendelseForEps(personhendelse, true)
+        prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
+        prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
     }
 
     private fun prosesserNyHendelseForBruker(
+        fraOgMedEllerSenere: Måned = Måned.now(clock),
         personhendelse: Personhendelse.IkkeTilknyttetSak,
         isLiveRun: Boolean,
     ): PersonhendelseresultatBruker {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
-        val fraOgMedEllerSenere = Måned.now(clock)
         val vedtaksammendragForSak = vedtakService.hentForBrukerFødselsnumreOgFraOgMedMåned(
             fødselsnumre = fødselsnumre,
             fraOgMed = fraOgMedEllerSenere,
@@ -80,11 +80,11 @@ class PersonhendelseServiceImpl(
     }
 
     private fun prosesserNyHendelseForEps(
+        fraOgMedEllerSenere: Måned = Måned.now(clock),
         personhendelse: Personhendelse.IkkeTilknyttetSak,
         isLiveRun: Boolean,
     ): PersonhendelseresultatEps {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
-        val fraOgMedEllerSenere = Måned.now(clock)
         val vedtaksammendragForSaker =
             vedtakService.hentForEpsFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMedEllerSenere)
         if (vedtaksammendragForSaker.isEmpty()) {
@@ -230,10 +230,10 @@ class PersonhendelseServiceImpl(
             }
     }
 
-    override fun dryRunPersonhendelser(personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult {
+    override fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult {
         return personhendelser.fold(DryrunResult.empty()) { acc, element ->
-            val firstRes = prosesserNyHendelseForBruker(element, false)
-            val secondRes = prosesserNyHendelseForEps(element, false)
+            val firstRes = prosesserNyHendelseForBruker(fraOgMed, element, false)
+            val secondRes = prosesserNyHendelseForEps(fraOgMed, element, false)
             acc.leggTilHendelse(firstRes, secondRes)
         }.also {
             log.info("Dry run for personhendelser: $it")

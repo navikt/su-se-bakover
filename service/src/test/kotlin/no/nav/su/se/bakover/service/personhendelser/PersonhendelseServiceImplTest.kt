@@ -81,7 +81,7 @@ internal class PersonhendelseServiceImplTest {
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
-        personhendelseService.prosesserNyHendelse(nyPersonhendelse)
+        personhendelseService.prosesserNyHendelse(Måned.now(fixedClock), nyPersonhendelse)
 
         verify(vedtakServiceMock).hentForBrukerFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
         verify(vedtakServiceMock).hentForEpsFødselsnumreOgFraOgMedMåned(
@@ -132,7 +132,7 @@ internal class PersonhendelseServiceImplTest {
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
-        personhendelseService.prosesserNyHendelse(nyPersonhendelse)
+        personhendelseService.prosesserNyHendelse(Måned.now(fixedClock), nyPersonhendelse)
 
         verify(vedtakServiceMock).hentForBrukerFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
         verify(vedtakServiceMock).hentForEpsFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
@@ -174,7 +174,7 @@ internal class PersonhendelseServiceImplTest {
         )
         val fnr = Fnr.generer()
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
-        personhendelseService.prosesserNyHendelse(nyPersonhendelse)
+        personhendelseService.prosesserNyHendelse(Måned.now(fixedClock), nyPersonhendelse)
         verify(vedtakServiceMock).hentForBrukerFødselsnumreOgFraOgMedMåned(listOf(fnr), Måned.now(fixedClock))
         verify(vedtakServiceMock).hentForEpsFødselsnumreOgFraOgMedMåned(
             argThat { it shouldBe listOf(fnr) },
@@ -403,7 +403,7 @@ internal class PersonhendelseServiceImplTest {
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             ),
         )
-        val actual = personhendelseService.dryRunPersonhendelser(personhendelser)
+        val actual = personhendelseService.dryRunPersonhendelser(Måned.now(fixedClock), personhendelser)
         withClue(actual.perHendelse) {
             actual.shouldBe(
                 PersonhendelseServiceImpl.DryrunResult(

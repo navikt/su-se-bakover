@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -17,6 +18,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
@@ -29,6 +31,7 @@ class PersonhendelseConsumer(
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
     private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
+    private val clock: Clock,
 ) {
 
     init {
@@ -103,7 +106,7 @@ class PersonhendelseConsumer(
                     }
                 },
                 ifRight = {
-                    personhendelseService.prosesserNyHendelse(it)
+                    personhendelseService.prosesserNyHendelse(Måned.now(clock = clock), personhendelse = it)
                     Unit.right()
                 },
             )

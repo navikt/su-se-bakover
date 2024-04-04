@@ -126,6 +126,7 @@ fun startJobberOgConsumers(
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = services.personhendelseService,
+            clock = clock,
         )
         KlageinstanshendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),

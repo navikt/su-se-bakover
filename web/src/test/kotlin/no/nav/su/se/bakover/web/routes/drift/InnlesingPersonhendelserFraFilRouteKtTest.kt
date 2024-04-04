@@ -148,6 +148,7 @@ class InnlesingPersonhendelserFraFilRouteKtTest {
                 uri = "$DRIFT_PATH/personhendelser",
                 roller = listOf(Brukerrolle.Drift),
                 formData = formData {
+                    append("fraOgMed", "2021-01-01")
                     append("csvFile", "file.json") {
                         this.append(personhendelseJsonFileContent)
                     }

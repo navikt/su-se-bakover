@@ -13,8 +13,11 @@ import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
+import no.nav.su.se.bakover.test.argShouldBe
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -67,10 +70,11 @@ internal class PersonhendelseConsumerKafkaTest {
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
             sikkerLogg = NOPLogger.NOP_LOGGER,
+            clock = fixedClock,
         )
         kafkaConsumer.lastComittedShouldBe(6)
         val hendelser = argumentCaptor<no.nav.su.se.bakover.domain.personhendelse.Personhendelse.IkkeTilknyttetSak>()
-        verify(personhendelseService, timeout(5000).times(6)).prosesserNyHendelse(hendelser.capture())
+        verify(personhendelseService, timeout(5000).times(6)).prosesserNyHendelse(argShouldBe(Måned.now(fixedClock)), hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
             no.nav.su.se.bakover.domain.personhendelse.Personhendelse.IkkeTilknyttetSak(
                 endringstype = no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Endringstype.OPPRETTET,
@@ -113,9 +117,10 @@ internal class PersonhendelseConsumerKafkaTest {
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
             sikkerLogg = NOPLogger.NOP_LOGGER,
+            clock = fixedClock,
         )
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
-        verify(personhendelseService, timeout(1000).times(0)).prosesserNyHendelse(any())
+        verify(personhendelseService, timeout(1000).times(0)).prosesserNyHendelse(argShouldBe(Måned.now(fixedClock)), any())
         verifyNoMoreInteractions(personhendelseService)
         kafkaConsumer.committed(setOf(topicPartion)) shouldBe mapOf()
         kafkaConsumer.shouldRebalance() shouldBe true
