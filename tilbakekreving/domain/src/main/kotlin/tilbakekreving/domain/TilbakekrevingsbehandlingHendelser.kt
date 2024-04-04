@@ -98,7 +98,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                         hendelseId to hendelse.toDomain(
                             fnr = fnr,
                             kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag() != kravgrunnlagsDetaljer.kravgrunnlag,
+                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId) != kravgrunnlagsDetaljer.kravgrunnlag,
                         ),
                     )
                 }
