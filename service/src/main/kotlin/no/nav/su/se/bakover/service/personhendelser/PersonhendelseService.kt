@@ -6,5 +6,5 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 interface PersonhendelseService {
     fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak)
     fun opprettOppgaverForPersonhendelser()
-    fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): PersonhendelseServiceImpl.DryrunResult
+    fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult
 }

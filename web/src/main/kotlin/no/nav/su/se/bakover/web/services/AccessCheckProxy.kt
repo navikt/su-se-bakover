@@ -193,8 +193,8 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
+import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -1277,7 +1277,10 @@ open class AccessCheckProxy(
                     services.personhendelseService.opprettOppgaverForPersonhendelser()
                 }
 
-                override fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): PersonhendelseServiceImpl.DryrunResult {
+                override fun dryRunPersonhendelser(
+                    fraOgMed: Måned,
+                    personhendelser: List<Personhendelse.IkkeTilknyttetSak>,
+                ): DryrunResult {
                     // Driftsendepunkt - minimal returdata
                     return services.personhendelseService.dryRunPersonhendelser(fraOgMed, personhendelser)
                 }

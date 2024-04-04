@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -159,64 +158,6 @@ class PersonhendelseServiceImpl(
         }
     }
 
-    sealed interface PersonhendelseresultatBruker {
-        fun ikkeTreff(): Boolean = this is IkkeRelevantHendelseForBruker
-
-        fun unikeSaksnummer(): List<Saksnummer> = when (this) {
-            is IkkeRelevantHendelseForBruker -> emptyList()
-            is TreffPåBruker -> listOf(this.saksnummer)
-        }
-
-        sealed interface IkkeRelevantHendelseForBruker : PersonhendelseresultatBruker {
-            val identer: List<String>
-
-            /** Enten har vi ikke en sak, eller så har ikke den saken vedtak av typen søknad, endring, opphør. */
-            data class IngenSakEllerVedtak(override val identer: List<String>) : IkkeRelevantHendelseForBruker
-
-            /** Vi har en sak med vedtak av typen søknad, endring, opphør; men ingen av disse var aktive etter fraOgMed dato */
-            data class IngenAktiveVedtak(override val identer: List<String>, val saksnummer: Saksnummer, val fnr: Fnr) :
-                IkkeRelevantHendelseForBruker
-        }
-
-        data class TreffPåBruker(val saksnummer: Saksnummer, val fnr: Fnr, val identer: List<String>) :
-            PersonhendelseresultatBruker
-    }
-
-    sealed interface PersonhendelseresultatEps {
-        fun ikkeTreff(): Boolean
-
-        fun unikeSaksnummer(): List<Saksnummer> = when (this) {
-            is IkkeTreffPåEps -> emptyList()
-            is TreffPåEnEllerFlereEps -> this.treff.map { it.brukersSaksnummer }
-        }.distinct().sortedBy { it.nummer }
-
-        data class IkkeTreffPåEps(val identer: List<String>) : PersonhendelseresultatEps {
-            override fun ikkeTreff(): Boolean = true
-        }
-
-        data class TreffPåEnEllerFlereEps(val treff: List<TreffPåEps>) : PersonhendelseresultatEps {
-            override fun ikkeTreff(): Boolean = treff.all { it is TreffPåEps.IkkeAktivtVedtak }
-        }
-
-        sealed interface TreffPåEps {
-            val brukersSaksnummer: Saksnummer
-            val brukersFnr: Fnr
-            val identer: List<String>
-
-            data class AktivtVedtak(
-                override val brukersSaksnummer: Saksnummer,
-                override val brukersFnr: Fnr,
-                override val identer: List<String>,
-            ) : TreffPåEps
-
-            data class IkkeAktivtVedtak(
-                override val brukersSaksnummer: Saksnummer,
-                override val brukersFnr: Fnr,
-                override val identer: List<String>,
-            ) : TreffPåEps
-        }
-    }
-
     override fun opprettOppgaverForPersonhendelser() {
         val personhendelser = personhendelseRepo.hentPersonhendelserUtenOppgave()
         personhendelser.groupBy { it.sakId }
@@ -230,7 +171,10 @@ class PersonhendelseServiceImpl(
             }
     }
 
-    override fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult {
+    override fun dryRunPersonhendelser(
+        fraOgMed: Måned,
+        personhendelser: List<Personhendelse.IkkeTilknyttetSak>,
+    ): DryrunResult {
         log.info("Starterdry run for personhendelser. Antall hendelser: ${personhendelser.size}. FraOgMed måned: $fraOgMed")
         return personhendelser.fold(DryrunResult.empty()) { acc, element ->
             val firstRes = prosesserNyHendelseForBruker(fraOgMed, element, false)
@@ -240,44 +184,6 @@ class PersonhendelseServiceImpl(
             log.info("Dry run resultat for personhendelser: $it")
             sikkerLogg.info("Dry run resultat for personhendelser: ${it.toSikkerloggString()}")
         }
-    }
-
-    data class DryrunResult(
-        val perHendelse: List<DryRunResultPerHendelse>,
-    ) {
-        companion object {
-            fun empty() = DryrunResult(emptyList())
-        }
-
-        fun leggTilHendelse(resultatBruker: PersonhendelseresultatBruker, resultatEps: PersonhendelseresultatEps) =
-            DryrunResult(perHendelse + DryRunResultPerHendelse(resultatBruker, resultatEps))
-
-        val antallForkastet: Int by lazy { perHendelse.count { it.ikkeTreff() } }
-        val antallBruker: Int by lazy { perHendelse.count { it.resultatBruker is PersonhendelseresultatBruker.TreffPåBruker } }
-        val antallEps: Int by lazy { perHendelse.count { it.resultatEps is PersonhendelseresultatEps.TreffPåEnEllerFlereEps } }
-        val antallOppgaver: Int by lazy {
-            oppgaver.size
-        }
-
-        val forkastet: List<DryRunResultPerHendelse> by lazy { perHendelse.filter { it.ikkeTreff() } }
-        val bruker: List<PersonhendelseresultatBruker> by lazy { perHendelse.map { it.resultatBruker } }
-        val eps: List<PersonhendelseresultatEps> by lazy { perHendelse.map { it.resultatEps } }
-        val oppgaver: List<Saksnummer> by lazy {
-            (bruker.flatMap { it.unikeSaksnummer() } + eps.flatMap { it.unikeSaksnummer() }).distinct().sortedBy { it.nummer }
-        }
-
-        data class DryRunResultPerHendelse(
-            val resultatBruker: PersonhendelseresultatBruker,
-            val resultatEps: PersonhendelseresultatEps,
-        ) {
-            fun ikkeTreff(): Boolean = resultatBruker.ikkeTreff() && resultatEps.ikkeTreff()
-        }
-
-        override fun toString() =
-            "DryrunResult(antallHendelser=${perHendelse.size}, $antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Se sikkerlogg for mer detaljer"
-
-        fun toSikkerloggString(): String =
-            "DryrunResult(antallHendelser=${perHendelse.size},antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Forkastet: $forkastet, Bruker: $bruker, Eps: $eps, Oppgaver: $oppgaver"
     }
 
     private fun opprettOppgaveForSak(
