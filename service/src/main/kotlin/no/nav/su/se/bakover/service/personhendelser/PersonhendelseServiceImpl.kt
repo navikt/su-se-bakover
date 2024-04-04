@@ -231,13 +231,14 @@ class PersonhendelseServiceImpl(
     }
 
     override fun dryRunPersonhendelser(fraOgMed: Måned, personhendelser: List<Personhendelse.IkkeTilknyttetSak>): DryrunResult {
+        log.info("Starterdry run for personhendelser. Antall hendelser: ${personhendelser.size}. FraOgMed måned: $fraOgMed")
         return personhendelser.fold(DryrunResult.empty()) { acc, element ->
             val firstRes = prosesserNyHendelseForBruker(fraOgMed, element, false)
             val secondRes = prosesserNyHendelseForEps(fraOgMed, element, false)
             acc.leggTilHendelse(firstRes, secondRes)
         }.also {
-            log.info("Dry run for personhendelser: $it")
-            sikkerLogg.info("Dry run for personhendelser: ${it.toSikkerloggString()}")
+            log.info("Dry run resultat for personhendelser: $it")
+            sikkerLogg.info("Dry run resultat for personhendelser: ${it.toSikkerloggString()}")
         }
     }
 
@@ -273,10 +274,10 @@ class PersonhendelseServiceImpl(
         }
 
         override fun toString() =
-            "DryrunResult(antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Se sikkerlogg for mer detaljer"
+            "DryrunResult(antallHendelser=${perHendelse.size}, $antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Se sikkerlogg for mer detaljer"
 
         fun toSikkerloggString(): String =
-            "DryrunResult(antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Forkastet: $forkastet, Bruker: $bruker, Eps: $eps, Oppgaver: $oppgaver"
+            "DryrunResult(antallHendelser=${perHendelse.size},antallForkastet=$antallForkastet, antallBruker=$antallBruker, antallEps=$antallEps, antallOppgaver=$antallOppgaver). Forkastet: $forkastet, Bruker: $bruker, Eps: $eps, Oppgaver: $oppgaver"
     }
 
     private fun opprettOppgaveForSak(
