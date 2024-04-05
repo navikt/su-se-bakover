@@ -70,6 +70,6 @@ data class Uføregrunnlag(
         }
 
         private fun List<Uføregrunnlag>.sisteUføregrunnlagErLikOgTilstøtende(other: Uføregrunnlag) =
-            this.last().let { it.tilstøter(other) && it.erLik(other) }
+            this.last().tilstøterOgErLik(other)
     }
 }

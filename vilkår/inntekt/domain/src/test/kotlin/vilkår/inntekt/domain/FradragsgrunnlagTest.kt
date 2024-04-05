@@ -17,9 +17,13 @@ import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedClock
@@ -426,4 +430,35 @@ internal class FradragsgrunnlagTest {
             it.id shouldNotBe grunnlag.id
         }
     }
+
+    /**
+     * Disabled inntil vi fikser sammenslåingen av fradrag
+     * se [slåSammenPeriodeOgFradrag] i [Fradragsgrunnlag.kt]
+     * vi sorterer periodene på fraOgMed uten å gruppere på type. Dette medfører at vi ikke kan gruppere ting dersom
+     * det er noe i mellom. en liten forbedring kan være å gruppere på type - uten at det er best case scenario.
+     *  Vi kan likevel ha perioder som ikke tilstøter hverandre
+     * Gjerne heller gjør om periodene til måneder, slik at vi får litt bedre hpndtering av tilstøtende perioder
+     */
+//    @Test
+//    fun `klarer ikke å slå sammen dersom en annen fradrag skiller dem`() {
+//        val f1 = nyFradragsgrunnlag(
+//            periode = januar(2021)..juni(2021),
+//            type = Fradragstype.Uføretrygd,
+//            månedsbeløp = 500.0,
+//        )
+//        val f2 = nyFradragsgrunnlag(
+//            periode = februar(2021)..juni(2021),
+//            type = Fradragstype.Dagpenger,
+//            månedsbeløp = 500.0,
+//        )
+//        val f3 = nyFradragsgrunnlag(
+//            periode = juli(2021)..desember(2021),
+//            type = Fradragstype.Uføretrygd,
+//            månedsbeløp = 500.0,
+//        )
+//
+//        listOf(f1, f2, f3).slåSammenPeriodeOgFradrag(fixedClock).let {
+//            it.size shouldBe 2
+//        }
+//    }
 }
