@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -18,6 +19,35 @@ import java.time.temporal.ChronoUnit
  * inn tab, så kan det være at intellij setter inn 4 spaces. bruk piltastene for å verifisere
  */
 internal class OppgavebeskrivelseMapperTest {
+
+    @Test
+    fun `mapper et set med personhendelser`() {
+        val dødsfallsHendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
+            eksternOpprettet = fixedTidspunkt.plus(5, ChronoUnit.MINUTES),
+        )
+        val utflyttingsHendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now(fixedClock)),
+        )
+
+        val alleHendelser = nonEmptyListOf(dødsfallsHendelse, utflyttingsHendelse)
+        OppgavebeskrivelseMapper.map(alleHendelser) shouldBe """
+            Dødsfall
+            	Dødsdato: 2021-01-01
+            	Hendelsestidspunkt: 01.01.2021 02:07
+            	Endringstype: OPPRETTET
+            	HendelseId: ${dødsfallsHendelse.id}
+            	Tidligere hendelseid: Ingen tidligere
+            
+            Utflytting fra Norge
+            	Utflyttingsdato: 2021-01-01
+            	Hendelsestidspunkt: 01.01.2021 02:02
+            	Endringstype: OPPRETTET
+            	HendelseId: ${utflyttingsHendelse.id}
+            	Tidligere hendelseid: Ingen tidligere
+        """.trimIndent()
+    }
+
     @Test
     fun `mapper dødsfallshendelser riktig`() {
         val nyHendelse = nyPersonhendelseKnyttetTilSak(

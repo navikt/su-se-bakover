@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.NonEmptyCollection
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
-import no.nav.su.se.bakover.client.oppgave.OppgavebeskrivelseMapper.leggTilMetadataBeskrivelse
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -17,10 +16,7 @@ data object OppgavebeskrivelseMapper {
     }
 
     fun map(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
-        personhendelser
-            .sortedBy { it.opprettet.instant }
-            .map { mapOne(it) }
-            .joinToString { "\n\n" }
+        personhendelser.sortedBy { it.opprettet.instant }.joinToString("\n\n") { mapOne(it) }
 
     fun mapOne(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave): String =
         when (val hendelse = personhendelse.hendelse) {

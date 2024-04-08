@@ -207,7 +207,7 @@ class PersonhendelseServiceImpl(
             .mapLeft {
                 log.error(
                     "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
-                        personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString { ", " }
+                        personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString(", ")
                     }]",
                 )
                 personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
