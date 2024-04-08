@@ -94,7 +94,7 @@ subprojects {
         implementation(rootProject.libs.ktor.server.status.pages)
 
         // We exclude jdk15on because of security issues. We use jdk18on instead.
-        implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+        implementation("org.bouncycastle:bcprov-jdk18on:1.78")
 
         testRuntimeOnly(rootProject.libs.jupiter.engine)
 
