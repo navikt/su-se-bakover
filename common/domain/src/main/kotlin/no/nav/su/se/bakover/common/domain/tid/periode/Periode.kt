@@ -165,6 +165,17 @@ open class Periode protected constructor(
     override fun toString(): String {
         return "Periode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
     }
+
+    operator fun plus(måned: Måned): Periode {
+        if (!this.tilstøter(måned) || måned.fraOgMed <= this.fraOgMed) {
+            throw IllegalArgumentException("Måneden $måned må være direkte etter perioden $this")
+        }
+
+        return create(
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed.plusMonths(1),
+        )
+    }
 }
 
 /**
@@ -241,7 +252,7 @@ fun Collection<Periode>.måneder(): List<Måned> {
 }
 
 /**
- * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ * Inputlisten med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
  *
  * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */

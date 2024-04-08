@@ -1,18 +1,25 @@
 package vilkår.inntekt.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.NonEmptyCollection
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
+import arrow.core.fold
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.tid.periode.måneder
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import org.jetbrains.annotations.TestOnly
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.Clock
@@ -25,7 +32,31 @@ data class Fradragsgrunnlag private constructor(
 ) : Grunnlag, Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
     override val periode: Periode = fradrag.periode
 
-    fun oppdaterFradragsperiode(
+    /**
+     * Sjekker om fradragsgrunnlaget kan slås sammen med et annet fradragsgrunnlag.
+     * For å kunne slås sammen må de ha samme fradragstype, utenlandskInntekt, tilhører, og månedsbeløp.
+     * I tillegg må periodene tilstøte eller overlappe.
+     */
+    fun kanSlåSammen(other: Fradragsgrunnlag): Boolean {
+        if (fradrag.fradragstype != other.fradragstype) {
+            return false
+        }
+        if (fradrag.utenlandskInntekt != other.utenlandskInntekt) {
+            return false
+        }
+        if (fradrag.tilhører != other.tilhører) {
+            return false
+        }
+        if (fradrag.månedsbeløp != other.månedsbeløp) {
+            return false
+        }
+        return periode.tilstøter(other.periode) || periode.overlapper(other.periode)
+    }
+
+    /*
+
+     */
+    fun oppdaterFradragsperiodeMedSnittHvisSnitt(
         oppdatertPeriode: Periode,
         clock: Clock,
     ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
@@ -108,7 +139,7 @@ data class Fradragsgrunnlag private constructor(
         ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
             return either {
                 this@oppdaterFradragsperiode.map {
-                    it.oppdaterFradragsperiode(oppdatertPeriode, clock).bind()
+                    it.oppdaterFradragsperiodeMedSnittHvisSnitt(oppdatertPeriode, clock).bind()
                 }
             }
         }
@@ -184,4 +215,43 @@ data class Fradragsgrunnlag private constructor(
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
     }
+}
+
+fun Collection<Fradragsgrunnlag>.slåSammen(clock: Clock): List<Fradragsgrunnlag> {
+    return this.toNonEmptyListOrNull()?.slåSammen(clock) ?: emptyList()
+}
+
+fun NonEmptyCollection<Fradragsgrunnlag>.slåSammen(clock: Clock): NonEmptyList<Fradragsgrunnlag> {
+    return this.groupBy { Triple(it.fradragstype, it.tilhører, it.utenlandskInntekt) }.map { (triple, liste) ->
+        val (fradragstype, tilhører, utenlandskinntekt) = triple
+        val månedTilFradragForMåned = liste.map { it.periode }.måneder().associateWith { måned ->
+            val f = liste.filter { it.periode.inneholder(måned) }
+            Fradragsgrunnlag.create(
+                opprettet = f.maxOf { it.opprettet.instant }.toTidspunkt(),
+                fradrag = FradragForMåned(
+                    fradragstype = fradragstype,
+                    månedsbeløp = f.sumOf { it.månedsbeløp },
+                    måned = måned,
+                    utenlandskInntekt = utenlandskinntekt,
+                    tilhører = tilhører,
+                ),
+            )
+        }
+
+        månedTilFradragForMåned.fold(mutableListOf<Fradragsgrunnlag>()) { acc, (måned, fradragsgrunnlag) ->
+            if (acc.isEmpty()) {
+                acc.add(fradragsgrunnlag)
+            } else if (acc.last().kanSlåSammen(fradragsgrunnlag)) {
+                acc.last().oppdaterFradragsperiodeMedSnittHvisSnitt(acc.last().periode + måned, clock)
+            } else {
+                acc.add(fradragsgrunnlag)
+            }
+            acc
+        }
+    }.flatten().sortedWith(
+        compareBy(
+            { it.fradragstype.kategori }, { it.tilhører }, { it.utenlandskInntekt == null },
+            { it.periode.fraOgMed },
+        ),
+    ).toNonEmptyList()
 }

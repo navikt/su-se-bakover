@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -1180,4 +1181,11 @@ internal class PeriodeTest {
         1.januar(2021).between(februar(2021)) shouldBe false
         1.januar(2021).between(år(2021)) shouldBe true
     }
+
+    @Test
+    fun `plusser 2 perioder som tilstøter og fraOgMed er mindre enn perioden den plusses på`(){
+        fail("Not implemented yet")
+    }
+
+
 }
