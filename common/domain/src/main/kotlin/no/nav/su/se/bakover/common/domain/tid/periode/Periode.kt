@@ -10,15 +10,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.extensions.erSisteDagIMåned
-import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
-import no.nav.su.se.bakover.common.extensions.sisteIForrigeMåned
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import java.time.LocalDate
 import java.time.Month
 import java.time.Period
 import java.time.YearMonth
-import java.util.LinkedList
 import kotlin.collections.minus as setsMinus
 
 /**
@@ -27,7 +24,7 @@ import kotlin.collections.minus as setsMinus
 open class Periode protected constructor(
     fraOgMed: LocalDate,
     tilOgMed: LocalDate,
-) : DatoIntervall(fraOgMed, tilOgMed), Comparable<Periode> {
+) : DatoIntervall(fraOgMed, tilOgMed) {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
         validateOrThrow(fraOgMed, tilOgMed)
@@ -36,8 +33,6 @@ open class Periode protected constructor(
     init {
         validateOrThrow(fraOgMed, tilOgMed)
     }
-
-    override fun compareTo(other: Periode) = compareValuesBy(this, other, Periode::fraOgMed, Periode::tilOgMed)
 
     /**
      * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
@@ -252,11 +247,30 @@ fun NonEmptyList<Periode>.måneder(): NonEmptyList<Måned> {
 }
 
 /**
- * Sjekker om periodene er sortert.
+ * Sjekker om periodene er sortert basert på fraOgMed.
  * Listen med perioder kan være usammenhengende og ha duplikator.
+ * Dersom den har overlappende perioder, gir ikke denne sjekken veldig mye mening. Bør brukes i sammenheng med [harOverlappende].
  */
-fun List<Periode>.erSortert(): Boolean {
-    return this.sorted() == this
+fun List<Periode>.erSortertPåFraOgMed(): Boolean {
+    return this.map { it.fraOgMed }.sorted() == this.map { it.fraOgMed }
+}
+
+/**
+ * Sjekker om periodene er sortert basert på fraOgMed og deretter tilOgMed.
+ * Listen med perioder kan være usammenhengende og ha duplikator.
+ * Dersom den har overlappende perioder, gir ikke denne sjekken veldig mye mening. Bør brukes i sammenheng med [harOverlappende].
+ */
+fun List<Periode>.erSortertPåFraOgMedDeretterTilOgMed(): Boolean {
+    return this == this.sorterPåFraOgMedDeretterTilOgMed()
+}
+
+/**
+ * Sorterer periodene først på fraOgMed og deretter tilOgMed.
+ * Listen med perioder kan være usammenhengende og ha duplikator.
+ * Dersom den har overlappende perioder, gir ikke denne sjekken veldig mye mening. Bør brukes i sammenheng med [harOverlappende].
+ */
+fun List<Periode>.sorterPåFraOgMedDeretterTilOgMed(): List<Periode> {
+    return this.sortedWith(compareBy<Periode> { it.fraOgMed }.thenBy { it.tilOgMed })
 }
 
 /**
@@ -293,7 +307,7 @@ fun List<Periode>.erSammenhengende(): Boolean {
  * @throws ArithmeticException dersom antall måneder er større enn en Int.
  */
 fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
-    return erSammenhengende() && erSortert() && !harDuplikater()
+    return erSammenhengende() && !harDuplikater() && erSortertPåFraOgMed()
 }
 
 fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
@@ -301,33 +315,7 @@ fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
 }
 
 fun List<Periode>.harOverlappende(): Boolean {
-    return this
-        .sorted()
-        .zipWithNext()
-        .any { (a, b) ->
-            a overlapper b
-        }
-}
-
-fun List<Periode>.komplement(): List<Periode> {
-    val result = mutableListOf<Periode>()
-    LinkedList(this.sorted()).let {
-        while (it.isNotEmpty()) {
-            val current = it.poll()
-            if (it.isNotEmpty()) {
-                val next = it.peek()
-                if (!(current overlapper next) && !(current tilstøter next)) {
-                    result.add(
-                        Periode.create(
-                            fraOgMed = current.tilOgMed.førsteINesteMåned(),
-                            tilOgMed = next.fraOgMed.sisteIForrigeMåned(),
-                        ),
-                    )
-                }
-            }
-        }
-    }
-    return result
+    return this.flatMap { it.måneder() } != this.flatMap { it.måneder() }.distinct()
 }
 
 fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))

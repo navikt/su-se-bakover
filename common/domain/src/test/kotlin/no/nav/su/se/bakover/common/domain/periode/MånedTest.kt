@@ -224,8 +224,6 @@ internal class MånedTest {
     fun `periode skal være lik måned`() {
         januar(2021) shouldBe Periode.create(1.januar(2021), 31.januar(2021))
         Periode.create(1.januar(2021), 31.januar(2021)) shouldBe januar(2021)
-        Periode.create(1.januar(2021), 31.januar(2021)).compareTo(januar(2021)) shouldBe 0
-        januar(2021).compareTo(Periode.create(1.januar(2021), 31.januar(2021))) shouldBe 0
     }
 
     @Test

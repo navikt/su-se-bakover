@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import java.time.LocalDate
@@ -123,7 +124,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                         }
                     }
                     acc + inkluderElementer
-                }.sortedBy { it.periode }
+                }.sortedBy { it.periode.fraOgMed }
                 .toNonEmptyList().let {
                     Tidslinje(it)
                 }
@@ -132,45 +133,32 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> verifyOverlappendeElementerIkkeErOpprettetSamtidig(
             input: NonEmptyList<T>,
         ) {
-            input
-                .sortedBy { it.periode }
-                .zipWithNext()
-                .forEach { (a, b) ->
-                    if (a.periode overlapper b.periode) {
-                        check(a.opprettet != b.opprettet) {
+            input.forEach { outerElement ->
+                input.forEach { innerElement ->
+                    if (outerElement != innerElement && outerElement.periode overlapper innerElement.periode) {
+                        check(outerElement.opprettet != innerElement.opprettet) {
                             """
-                                Kan ikke lage tidslinje fordi overlappende elementer har samme opprettet tidspunkt:
-                                {"periode":"${a.periode}", "opprettet":"${a.opprettet}"} vs.
-                                {"periode":"${b.periode}", "opprettet":"${b.opprettet}"}
+                    Kan ikke lage tidslinje fordi overlappende elementer har samme opprettet tidspunkt:
+                    {"periode":"${outerElement.periode}", "opprettet":"${outerElement.opprettet}"} vs.
+                    {"periode":"${innerElement.periode}", "opprettet":"${innerElement.opprettet}"}
                             """.trimIndent()
                         }
                     }
                 }
+            }
         }
 
         data object Validator {
             fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: Nel<T>) {
-                check(
-                    !elementer.map { it.periode }.harOverlappende(),
-                ) { "Tidslinje har elementer med overlappende perioder!" }
+                elementer.map { it.periode }.let {
+                    check(
+                        !it.harOverlappende(),
+                    ) { "Tidslinje har elementer med overlappende perioder: $it" }
+                    check(
+                        it.erSortertPåFraOgMed(),
+                    ) { "Tidslinje har elementer med overlappende perioder: $it" }
+                }
             }
         }
-
-        // TODO - disse var ikke i bruk noe sted. Er disse bare for debugging?
-//        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(elementer: List<T>): String {
-//            return elementer.joinToString(prefix = "[", postfix = "]") { elementLog(it) }
-//        }
-//
-//        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(element: T): String {
-//            val periode = element.periode
-//            val opprettet = element.opprettet
-//            val type = element::class.simpleName
-//            val id = when (element) {
-//                is VedtakPåTidslinje -> element.originaltVedtak.id
-//                // Legg til flere typer her etterhvert som '?' dukker opp i loggene.
-//                else -> "?"
-//            }
-//            return "{\"type\":\"$type\", \"periode\":\"$periode\", \"opprettet\":\"$opprettet\", \"id\":\"$id\"}"
-//        }
     }
 }

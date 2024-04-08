@@ -3,8 +3,6 @@ package vilkår.pensjon.domain
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -89,10 +87,11 @@ sealed interface PensjonsVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodePensjon>,
             ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(
@@ -103,10 +102,11 @@ sealed interface PensjonsVilkår : Vilkår {
             fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodePensjon>,
             ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

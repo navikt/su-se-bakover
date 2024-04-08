@@ -2,7 +2,6 @@ package vilkår.uføre.domain
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -80,20 +79,11 @@ sealed interface UføreVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeUføre>,
             ): Either<UgyldigUførevilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    UgyldigUførevilkår.OverlappendeVurderingsperioder
                 }
-
-                return Vurdert(vurderingsperioder).right()
-            }
-
-            fun fromVurderingsperioder(
-                vurderingsperioder: Nel<VurderingsperiodeUføre>,
-            ): Either<UgyldigUførevilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
-                }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

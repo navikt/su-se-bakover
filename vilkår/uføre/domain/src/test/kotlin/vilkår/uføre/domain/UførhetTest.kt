@@ -119,7 +119,7 @@ internal class UførhetTest {
             grunnlag = uføregrunnlagForventetInntekt12000(periode = februar(2021)),
         )
 
-        UføreVilkår.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.tryCreate(
             nonEmptyListOf(januar, februar),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -141,7 +141,7 @@ internal class UførhetTest {
             periode = Periode.create(1.april(2021), 31.august(2021)),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = Periode.create(1.april(2021), 31.august(2021))),
         )
-        UføreVilkår.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.tryCreate(
             nonEmptyListOf(janMars, aprAug),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -179,7 +179,7 @@ internal class UførhetTest {
             periode = april(2021),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = april(2021)),
         )
-        UføreVilkår.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.tryCreate(
             nonEmptyListOf(februar, april),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -220,7 +220,7 @@ internal class UførhetTest {
             periode = mars(2022),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = mars(2022)),
         )
-        UføreVilkår.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.tryCreate(
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -248,7 +248,7 @@ internal class UførhetTest {
             periode = mars(2022),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = mars(2022)),
         )
-        UføreVilkår.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.tryCreate(
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(

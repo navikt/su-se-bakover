@@ -11,7 +11,6 @@ import beregning.domain.Månedsberegning
 import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.kronologisk
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
@@ -119,10 +118,10 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
         }
 
         private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
-            val nyeFradrag = nyBeregning.getMånedsberegninger().kronologisk().flatMap { månedsberegning ->
+            val nyeFradrag = nyBeregning.getMånedsberegninger().flatMap { månedsberegning ->
                 månedsberegning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
             }
-            val tidligereFradrag = gjeldendeMånedsberegninger.kronologisk().flatMap { månedsberegning ->
+            val tidligereFradrag = gjeldendeMånedsberegninger.flatMap { månedsberegning ->
                 månedsberegning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
             }.mapNotNull {
                 it.copy(CopyArgs.Snitt(revurderingsperiode))

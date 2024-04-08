@@ -3,9 +3,7 @@ package vilkår.lovligopphold.domain
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
@@ -85,10 +83,11 @@ sealed interface LovligOppholdVilkår : Vilkår {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
             ): Either<KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
+                return vurderingsperioder.kronologisk().map {
+                    Vurdert(it)
+                }.mapLeft {
+                    KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder
                 }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(

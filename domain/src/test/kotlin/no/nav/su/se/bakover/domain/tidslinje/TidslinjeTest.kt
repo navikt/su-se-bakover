@@ -481,7 +481,7 @@ internal class TidslinjeTest {
                     Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),
                 ),
             )
-        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-12-31), Periode(fraOgMed=2021-01-01, tilOgMed=2021-12-31))"
 
         assertThrows<IllegalStateException> {
             Validator.valider(
@@ -491,7 +491,7 @@ internal class TidslinjeTest {
                     Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..juli(2021)),
                 ),
             )
-        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30), Periode(fraOgMed=2021-05-01, tilOgMed=2021-12-31), Periode(fraOgMed=2021-05-01, tilOgMed=2021-07-31))"
     }
 
     @Test
@@ -503,7 +503,7 @@ internal class TidslinjeTest {
                     Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021)),
                 ),
             )
-        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-12-31), Periode(fraOgMed=2021-05-01, tilOgMed=2021-12-31))"
 
         assertThrows<IllegalStateException> {
             Validator.valider(
@@ -513,12 +513,12 @@ internal class TidslinjeTest {
                     Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), august(2021)..desember(2021)),
                 ),
             )
-        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30), Periode(fraOgMed=2021-05-01, tilOgMed=2021-12-31), Periode(fraOgMed=2021-08-01, tilOgMed=2021-12-31))"
     }
 
     @Test
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
-        shouldThrowWithMessage<IllegalStateException>("Tidslinje har elementer med overlappende perioder!") {
+        shouldThrowWithMessage<IllegalStateException>("Tidslinje har elementer med overlappende perioder: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-12-31), Periode(fraOgMed=2021-06-01, tilOgMed=2021-10-31))") {
             Validator.valider(
                 nonEmptyListOf(
                     Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),

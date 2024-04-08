@@ -8,6 +8,7 @@ import java.util.UUID
 
 /**
  * Beregning gjelder for en periode som kan være lengre enn en måned, men er inndelt i månedsvise-beregninger.
+ * Garanterer at perioden inneholder alle måneder som er beregnet, at de er sammenhengende og at de er sortert.
  */
 data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
@@ -22,6 +23,10 @@ data class BeregningMedFradragBeregnetMånedsvis(
 
     init {
         require(fradrag.all { periode inneholder it.periode })
+        månedsberegninger.map { it.måned }.let {
+            require(periode.måneder().containsAll(it))
+            require(it.sorted() == it)
+        }
     }
 
     override fun getId(): UUID = id

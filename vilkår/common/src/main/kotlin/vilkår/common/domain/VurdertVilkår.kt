@@ -2,7 +2,7 @@ package vilkår.common.domain
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.erSortert
+import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
@@ -38,7 +38,8 @@ interface VurdertVilkår : Vilkår {
  * Skal kunne kalles fra undertyper av [Vilkår].
  */
 fun VurdertVilkår.kastHvisPerioderErUsortertEllerHarDuplikater() {
-    require(perioder.erSortert())
     require(!perioder.harDuplikater())
+    require(perioder.erSortertPåFraOgMed())
+
     // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
 }

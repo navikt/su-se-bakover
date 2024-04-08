@@ -17,7 +17,7 @@ data class Måned private constructor(
     // TODO jah: Lag/bruk PeriodeJson for serialisering/deserialisering og fjern Jackson-referanser.
     @JsonIgnore
     val årOgMåned: YearMonth,
-) : Periode(årOgMåned), Temporal by årOgMåned, TemporalAdjuster by årOgMåned {
+) : Periode(årOgMåned), Temporal by årOgMåned, TemporalAdjuster by årOgMåned, Comparable<Måned> {
     operator fun rangeTo(that: Måned): Periode {
         if (this == that) return this
         return create(this.fraOgMed, that.tilOgMed).also {
@@ -59,6 +59,9 @@ data class Måned private constructor(
             return factory.fra(YearMonth.of(year, month))
         }
 
+        /**
+         * @throws IllegalArgumentException dersom dato ikke er den 1. i måneden.
+         */
         fun fra(dato: LocalDate): Måned {
             require(dato.erFørsteDagIMåned()) {
                 "$dato må være den 1. i måneden for å mappes til en måned."
@@ -96,7 +99,13 @@ data class Måned private constructor(
         }
     }
 
+    /** Siden [Periode] og [DatoIntervall] kan delvis overlappe, er det unaturlig å sammenligne de med hverandre og med måned. */
+    override fun compareTo(other: Måned) = this.årOgMåned.compareTo(other.årOgMåned)
+
+    /** Vi ønsker samme equals som [Periode]. */
     override fun equals(other: Any?) = super.equals(other)
+
+    /** Vi ønsker samme hashCode som [Periode]. */
     override fun hashCode() = super.hashCode()
     override fun toString() = årOgMåned.toString()
 }
@@ -114,7 +123,5 @@ fun Periode.tilMåned(): Måned {
  * @throws NoSuchElementException dersom mappet er tomt.
  */
 fun <T> Map<Måned, T>.periode() = this.keys.toList().minAndMaxOf()
-
-fun LocalDate.toMåned() = Måned.fra(this)
 
 fun YearMonth.tilMåned() = Måned.fra(this)
