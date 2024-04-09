@@ -174,6 +174,14 @@ open class Periode protected constructor(
      * Plusser 1 måned på tilOgMed.
      */
     fun forlengMedEnMåned(): Periode = create(fraOgMed = fraOgMed, tilOgMed = tilOgMed.plusMonths(1).endOfMonth())
+
+    // TODO - test
+    fun forlengMedPeriode(periode: Periode): Periode {
+        require(this.tilOgMed.plusDays(1) == periode.fraOgMed) {
+            "Innkommende periode $periode sin fra og med må starte dagen etter denne periodens $this til og med."
+        }
+        return create(fraOgMed = fraOgMed, tilOgMed = periode.tilOgMed)
+    }
 }
 
 /**

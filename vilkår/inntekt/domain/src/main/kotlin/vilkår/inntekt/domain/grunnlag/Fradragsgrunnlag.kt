@@ -35,6 +35,8 @@ data class Fradragsgrunnlag private constructor(
      * Sjekker om fradragsgrunnlaget kan slås sammen med et annet fradragsgrunnlag.
      * For å kunne slås sammen må de ha samme fradragstype, utenlandskInntekt, tilhører, og månedsbeløp.
      * I tillegg må periodene tilstøte eller overlappe.
+     *
+     * Note on overlapp: Av historiske caser, må fradrag sjekke for overlapp, selv om vi skulle ønske at det ikke var nødvendig.
      */
     fun kanSlåSammen(other: Fradragsgrunnlag): Boolean {
         if (fradrag.fradragstype != other.fradragstype) {

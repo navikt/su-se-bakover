@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import satser.domain.Satskategori
 import vilkår.common.domain.grunnlag.Grunnlag
@@ -48,26 +47,26 @@ sealed interface Bosituasjon : Grunnlag {
     }
 
     companion object {
-        // TODO jah og ramzi: Denne må også fikses. Sorteringa garanterer ikke at vi finner alle som tilstøter. Se algoritme for Fradragsgrunnlag
-        fun List<Fullstendig>.slåSammenPeriodeOgBosituasjon(): List<Fullstendig> {
+        /**
+         * Denne er skreddersydd for [GjeldendeVedtaksdata] som allerede har generert nye IDer og tidspunkt.
+         * Gjenbruker den første eksisterende id og opprettet per gruppering (tilstøter og er lik)
+         * [Collection<Fullstendig>] kan ikke ha overlappende perioder, men kan ha hull.
+         */
+        fun Collection<Fullstendig>.slåSammenPeriodeOgBosituasjon(): List<Fullstendig> {
+            require(!this.map { it.periode }.harOverlappende()) {
+                "Kan ikke slå sammen bosituasjoner med overlappende perioder: ${this.map { it.periode }}"
+            }
             return this.sortedBy { it.periode.fraOgMed }
-                .fold(mutableListOf<MutableList<Fullstendig>>()) { acc, bosituasjon ->
+                .fold(mutableListOf()) { acc, bosituasjon ->
                     if (acc.isEmpty()) {
-                        acc.add(mutableListOf(bosituasjon))
-                    } else if (acc.last().sisteBosituasjonsgrunnlagErLikOgTilstøtende(bosituasjon)) {
-                        acc.last().add(bosituasjon)
+                        acc.add(bosituasjon)
+                    } else if (acc.last().kanSlåSammen(bosituasjon)) {
+                        acc[acc.lastIndex] = acc.last().oppdaterPeriode(acc.last().periode.forlengMedPeriode(bosituasjon.periode))
                     } else {
-                        acc.add(mutableListOf(bosituasjon))
+                        acc.add(bosituasjon)
                     }
                     acc
-                }.map {
-                    val periode = it.map { it.periode }.minAndMaxOf()
-                    it.first().oppdaterPeriode(periode)
                 }
-        }
-
-        private fun List<Fullstendig>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Fullstendig): Boolean {
-            return this.last().let { it.tilstøter(other) && it.erLik(other) }
         }
 
         fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
@@ -109,6 +108,12 @@ sealed interface Bosituasjon : Grunnlag {
     sealed interface Fullstendig : Bosituasjon, KanPlasseresPåTidslinje<Fullstendig> {
         abstract override val satskategori: Satskategori
 
+        /**
+         * Sammenligner alle felter minus id, opprettet og sjekker at periodene tilstøter.
+         * Det gir ikke mening og kalle denne hvis de overlapper, men det vil returneres false.
+         * */
+        fun kanSlåSammen(other: Bosituasjon): Boolean
+
         sealed interface EktefellePartnerSamboer : Fullstendig {
             val fnr: Fnr
             override val eps: Fnr? get() = fnr
@@ -123,6 +128,9 @@ sealed interface Bosituasjon : Grunnlag {
                 ) : EktefellePartnerSamboer {
                     override val satskategori: Satskategori = Satskategori.ORDINÆR
 
+                    override fun kanSlåSammen(other: Bosituasjon) = other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
+
+                    // TODO jah og ramzi: Slett
                     override fun erLik(other: Grunnlag): Boolean {
                         if (other !is UførFlyktning) {
                             return false
@@ -151,7 +159,9 @@ sealed interface Bosituasjon : Grunnlag {
                 ) : EktefellePartnerSamboer {
 
                     override val satskategori: Satskategori = Satskategori.HØY
+                    override fun kanSlåSammen(other: Bosituasjon) = other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
 
+                    // TODO jah og ramzi: Slett
                     override fun erLik(other: Grunnlag): Boolean {
                         if (other !is IkkeUførFlyktning) {
                             return false
@@ -182,6 +192,9 @@ sealed interface Bosituasjon : Grunnlag {
 
                 override val satskategori: Satskategori = Satskategori.ORDINÆR
 
+                override fun kanSlåSammen(other: Bosituasjon) = other is SektiSyvEllerEldre && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
+
+                // TODO jah og ramzi: Slett
                 override fun erLik(other: Grunnlag): Boolean {
                     if (other !is SektiSyvEllerEldre) {
                         return false
@@ -216,6 +229,9 @@ sealed interface Bosituasjon : Grunnlag {
                 return false
             }
 
+            override fun kanSlåSammen(other: Bosituasjon) = other is Enslig && this.periode.tilstøter(other.periode)
+
+            // TODO jah og ramzi: Slett
             override fun erLik(other: Grunnlag): Boolean {
                 return other is Enslig
             }
@@ -245,6 +261,9 @@ sealed interface Bosituasjon : Grunnlag {
                 return false
             }
 
+            override fun kanSlåSammen(other: Bosituasjon) = other is DelerBoligMedVoksneBarnEllerAnnenVoksen && this.periode.tilstøter(other.periode)
+
+            // TODO jah og ramzi: Slett
             override fun erLik(other: Grunnlag): Boolean {
                 return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
             }
@@ -275,14 +294,12 @@ sealed interface Bosituasjon : Grunnlag {
             override val periode: Periode,
         ) : Ufullstendig {
             override val eps: Fnr? get() = null
-            override fun harEPS(): Boolean {
-                return false
-            }
+            override fun harEPS(): Boolean = false
 
+            // TODO jah og ramzi: Slett
             override fun erLik(other: Grunnlag): Boolean {
                 return other is HarIkkeEps
             }
-
             override fun copyWithNewId(): HarIkkeEps = this.copy(id = UUID.randomUUID())
         }
 
@@ -294,13 +311,12 @@ sealed interface Bosituasjon : Grunnlag {
             override val periode: Periode,
             val fnr: Fnr,
         ) : Ufullstendig {
-            override val eps: Fnr? get() = fnr
-            override fun harEPS(): Boolean {
-                return true
-            }
+            override val eps: Fnr get() = fnr
+            override fun harEPS(): Boolean = true
 
             override fun copyWithNewId(): HarEps = this.copy(id = UUID.randomUUID())
 
+            // TODO jah og ramzi: Slett
             override fun erLik(other: Grunnlag): Boolean {
                 return other is HarEps
             }
