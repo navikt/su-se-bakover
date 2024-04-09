@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.måneder
-import no.nav.su.se.bakover.common.tid.toTidspunkt
 import org.jetbrains.annotations.TestOnly
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.Clock
@@ -235,17 +234,18 @@ data class Fradragsgrunnlag private constructor(
     }
 }
 
-fun Collection<Fradragsgrunnlag>.slåSammen(): List<Fradragsgrunnlag> {
-    return this.toNonEmptyListOrNull()?.slåSammen() ?: emptyList()
+fun Collection<Fradragsgrunnlag>.slåSammen(clock: Clock): List<Fradragsgrunnlag> {
+    return this.toNonEmptyListOrNull()?.slåSammen(clock) ?: emptyList()
 }
 
-fun NonEmptyCollection<Fradragsgrunnlag>.slåSammen(): NonEmptyList<Fradragsgrunnlag> {
+fun NonEmptyCollection<Fradragsgrunnlag>.slåSammen(clock: Clock): NonEmptyList<Fradragsgrunnlag> {
+    val tidspunktNow = Tidspunkt.now(clock)
     return this.groupBy { Triple(it.fradragstype, it.tilhører, it.utenlandskInntekt) }.map { (triple, liste) ->
         val (fradragstype, tilhører, utenlandskinntekt) = triple
         val månedTilFradragForMåned = liste.map { it.periode }.måneder().associateWith { måned ->
             val f = liste.filter { it.periode.inneholder(måned) }
             Fradragsgrunnlag.create(
-                opprettet = f.maxOf { it.opprettet.instant }.toTidspunkt(),
+                opprettet = tidspunktNow,
                 fradrag = FradragForMåned(
                     fradragstype = fradragstype,
                     månedsbeløp = f.sumOf { it.månedsbeløp },

@@ -10,8 +10,10 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
+import java.util.UUID
 
 fun nyFradragsgrunnlag(
+    id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     type: Fradragstype = Fradragstype.Kontantstøtte,
     månedsbeløp: Double = 200.0,
@@ -19,6 +21,7 @@ fun nyFradragsgrunnlag(
     utenlandskInntekt: UtenlandskInntekt? = null,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ): Fradragsgrunnlag = Fradragsgrunnlag.create(
+    id = id,
     opprettet = opprettet,
     fradrag = if (periode.erMåned()) {
         FradragFactory.nyMånedsperiode(

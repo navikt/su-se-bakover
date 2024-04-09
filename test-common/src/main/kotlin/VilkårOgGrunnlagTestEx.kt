@@ -293,7 +293,7 @@ fun List<Bosituasjon>.shouldBeEqualToExceptId(expected: List<Bosituasjon>) {
 }
 
 fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
-    this.shouldBeEqualToIgnoringFields(expected, Fradragsgrunnlag::id)
+    this.shouldBe(expected.copy(id = this.id))
     this.id shouldNotBe expected.id
 }
 

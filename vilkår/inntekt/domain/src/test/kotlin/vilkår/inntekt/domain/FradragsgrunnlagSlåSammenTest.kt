@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.september
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
@@ -151,7 +152,7 @@ internal class FradragsgrunnlagSlåSammenTest {
             se4, se5, se6,
             sbu7, sbu8, sbu9,
             seu10, seu11, seu12,
-        ).slåSammen()
+        ).slåSammen(fixedClock)
 
         actual.shouldBeEqualToExceptId(
             listOf(
@@ -210,7 +211,7 @@ internal class FradragsgrunnlagSlåSammenTest {
             nyFradragsgrunnlag(periode = februar(2021)),
         )
         val expected1 = listOf(nyFradragsgrunnlag(periode = januar(2021)..februar(2021)))
-        val actual1 = input1.slåSammen()
+        val actual1 = input1.slåSammen(fixedClock)
         actual1.shouldBeEqualToExceptId(expected1)
 
         val input2 = listOf(
@@ -220,7 +221,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         val expected2 = listOf(
             nyFradragsgrunnlag(periode = januar(2021)..februar(2021)),
         )
-        val actual2 = input2.slåSammen()
+        val actual2 = input2.slåSammen(fixedClock)
         actual2.shouldBeEqualToExceptId(expected2)
     }
 
@@ -229,7 +230,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
             nyFradragsgrunnlag(periode = april(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..april(2021)),
             ),
@@ -239,7 +240,7 @@ internal class FradragsgrunnlagSlåSammenTest {
 
             nyFradragsgrunnlag(periode = april(2021)),
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..april(2021)),
             ),
@@ -251,7 +252,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = desember(2020)),
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = desember(2020)..mars(2021)),
             ),
@@ -259,7 +260,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
             nyFradragsgrunnlag(periode = desember(2020)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = desember(2020)..mars(2021)),
             ),
@@ -271,7 +272,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
             nyFradragsgrunnlag(periode = april(2021)..mai(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..mai(2021)),
             ),
@@ -279,7 +280,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = april(2021)..mai(2021)),
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..mai(2021)),
             ),
@@ -291,7 +292,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = januar(2021)),
             nyFradragsgrunnlag(periode = mars(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)),
                 nyFradragsgrunnlag(periode = mars(2021)),
@@ -301,7 +302,7 @@ internal class FradragsgrunnlagSlåSammenTest {
         listOf(
             nyFradragsgrunnlag(periode = mars(2021)),
             nyFradragsgrunnlag(periode = januar(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)),
                 nyFradragsgrunnlag(periode = mars(2021)),
@@ -316,7 +317,7 @@ internal class FradragsgrunnlagSlåSammenTest {
             nyFradragsgrunnlag(periode = mars(2021)..april(2021)),
             nyFradragsgrunnlag(periode = mai(2021)..juni(2021)),
             nyFradragsgrunnlag(periode = august(2021)..september(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..februar(2021)),
                 nyFradragsgrunnlag(periode = mars(2021), månedsbeløp = 400.0),
@@ -329,7 +330,7 @@ internal class FradragsgrunnlagSlåSammenTest {
             nyFradragsgrunnlag(periode = mai(2021)..juni(2021)),
             nyFradragsgrunnlag(periode = januar(2021)..mars(2021)),
             nyFradragsgrunnlag(periode = mars(2021)..april(2021)),
-        ).slåSammen().shouldBeEqualToExceptId(
+        ).slåSammen(fixedClock).shouldBeEqualToExceptId(
             listOf(
                 nyFradragsgrunnlag(periode = januar(2021)..februar(2021)),
                 nyFradragsgrunnlag(periode = mars(2021), månedsbeløp = 400.0),

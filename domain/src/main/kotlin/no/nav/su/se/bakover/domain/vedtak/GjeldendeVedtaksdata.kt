@@ -16,7 +16,7 @@ import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
-import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
+import vilkår.inntekt.domain.grunnlag.slåSammen
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
@@ -51,7 +51,7 @@ data class GjeldendeVedtaksdata(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = vedtakPåTidslinje.flatMap {
                     it.grunnlagsdata.fradragsgrunnlag
-                }.slåSammenPeriodeOgFradrag(clock),
+                }.slåSammen(clock),
                 bosituasjon = vedtakPåTidslinje.flatMap {
                     it.grunnlagsdata.bosituasjonSomFullstendig()
                 }.slåSammenPeriodeOgBosituasjon(),
