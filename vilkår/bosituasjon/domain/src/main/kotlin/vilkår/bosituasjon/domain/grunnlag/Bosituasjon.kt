@@ -1,6 +1,7 @@
 package vilkår.bosituasjon.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -28,23 +29,26 @@ sealed interface Bosituasjon : Grunnlag {
      */
     fun harEPS(): Boolean
 
-    fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Fullstendig {
+    /**
+     * Når vi endrer til å støtte flere bosituasjoner under søknadsbehandling, må denne endres.
+     */
+    fun oppdaterStønadsperiode(nyPeriode: Stønadsperiode): Fullstendig {
+        return oppdaterPeriode(nyPeriode.periode)
+    }
+
+    fun oppdaterPeriode(nyPeriode: Periode): Fullstendig {
         return when (this) {
-            is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> this.copy(periode = oppdatertPeriode)
-            is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> this.copy(periode = oppdatertPeriode)
-            is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> this.copy(periode = oppdatertPeriode)
-            is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> this.copy(periode = oppdatertPeriode)
-            is Fullstendig.Enslig -> this.copy(periode = oppdatertPeriode)
-            is Ufullstendig -> throw IllegalStateException("Tillatter ikke ufullstendige bosituasjoner")
+            is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> this.copy(periode = nyPeriode)
+            is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> this.copy(periode = nyPeriode)
+            is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> this.copy(periode = nyPeriode)
+            is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> this.copy(periode = nyPeriode)
+            is Fullstendig.Enslig -> this.copy(periode = nyPeriode)
+            is Ufullstendig -> throw IllegalStateException("oppdaterStønadsperiode for bosituasjon: Tillater ikke ufullstendige bosituasjoner")
         }
     }
 
     companion object {
-        // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-        fun List<Fullstendig>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Fullstendig> {
-            return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
-        }
-
+        // TODO jah og ramzi: Denne må også fikses. Sorteringa garanterer ikke at vi finner alle som tilstøter. Se algoritme for Fradragsgrunnlag
         fun List<Fullstendig>.slåSammenPeriodeOgBosituasjon(): List<Fullstendig> {
             return this.sortedBy { it.periode.fraOgMed }
                 .fold(mutableListOf<MutableList<Fullstendig>>()) { acc, bosituasjon ->
@@ -58,7 +62,7 @@ sealed interface Bosituasjon : Grunnlag {
                     acc
                 }.map {
                     val periode = it.map { it.periode }.minAndMaxOf()
-                    it.first().oppdaterBosituasjonsperiode(periode)
+                    it.first().oppdaterPeriode(periode)
                 }
         }
 

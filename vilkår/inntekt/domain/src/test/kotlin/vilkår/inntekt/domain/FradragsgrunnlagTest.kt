@@ -5,6 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -24,9 +25,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
-import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -34,7 +33,6 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
-import vilkår.inntekt.domain.grunnlag.slåSammen
 import vilkår.vurderinger.domain.fjernFradragEPS
 import vilkår.vurderinger.domain.fjernFradragForEPSHvisEnslig
 import java.util.UUID
@@ -104,7 +102,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fradrag med periode som er lik stønadsperiode, blir oppdatert til å gjelde for hele stønadsperioden`() {
-        val oppdatertPeriode = år(2022)
+        val oppdatertPeriode = Stønadsperiode.create(år(2022))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -117,15 +115,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiodeMedSnittHvisSnitt(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `fraOgMed blir kuttet og satt lik stønadsperiode FOM når oppdatertPeriode er etter fraOgMed `() {
-        val oppdatertPeriode = Periode.create(1.mai(2021), 31.desember(2021))
+        val oppdatertPeriode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021)))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -138,15 +136,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiodeMedSnittHvisSnitt(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `tilOgMed blir kuttet og satt lik stønadsperiode TOM når oppdatertPeriode er før tilOgMed `() {
-        val oppdatertPeriode = Periode.create(1.januar(2021), 31.august(2021))
+        val oppdatertPeriode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021)))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -159,15 +157,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiodeMedSnittHvisSnitt(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `fradrag med deler av periode i 2022, oppdaterer periode til å gjelde for 2021, får fradragene til å gjelde for hele 2021`() {
-        val oppdatertPeriode = år(2021)
+        val oppdatertPeriode = Stønadsperiode.create(år(2021))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -180,10 +178,10 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiodeMedSnittHvisSnitt(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
@@ -460,180 +458,5 @@ internal class FradragsgrunnlagTest {
             it.shouldBeEqualToIgnoringFields(grunnlag, Fradragsgrunnlag::id)
             it.id shouldNotBe grunnlag.id
         }
-    }
-
-
-    @Test
-    fun `slåSammen()`(){
-        fail("Not implemented")
-    }
-
-    @Test
-    fun `slår sammen fradrag som er like og tilstøter NYE MÅTEN`() {
-        val dagpengerAlene = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 99.0,
-            type = Fradragstype.Dagpenger,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = null,
-        )
-        //----------- BRUKER SOSIALSTØNAD --------------
-        val sb1 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 1.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = null,
-        )
-        val sb2 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 2.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = null,
-        )
-        val sb3 = nyFradragsgrunnlag(
-            periode = februar(2021),
-            månedsbeløp = 3.5,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = null,
-        )
-        //----------- ------------------ --------------
-        //----------- EPS SOSIALSTØNAD --------------
-        val se4 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 4.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = null,
-        )
-        val se5 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 5.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = null,
-        )
-        val se6 = nyFradragsgrunnlag(
-            periode = februar(2021),
-            månedsbeløp = 6.5,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = null,
-        )
-        //----------- ------------------ --------------
-        //----------- BRUKER SOSIALSTØNAD UTENLANDSINNTEKT --------------
-        val sbu7 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 7.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        val sbu8 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 8.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        val sbu9 = nyFradragsgrunnlag(
-            periode = februar(2021),
-            månedsbeløp = 9.5,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.BRUKER,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        //----------- ------------------ -----------------------------
-        //----------- EPS SOSIALSTØNAD UTENLANDSINNTEKT --------------
-        val seu10 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 10.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        val seu11 = nyFradragsgrunnlag(
-            periode = januar(2021),
-            månedsbeløp = 11.0,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        val seu12 = nyFradragsgrunnlag(
-            periode = februar(2021),
-            månedsbeløp = 12.5,
-            type = Fradragstype.Sosialstønad,
-            tilhører = FradragTilhører.EPS,
-            utenlandskInntekt = UtenlandskInntekt.create(
-                beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-            ),
-        )
-        //----------- ------------------ -----------------------------
-
-        val actual = listOf(
-            dagpengerAlene,
-            sb1, sb2, sb3,
-            se4, se5, se6,
-            sbu7, sbu8, sbu9,
-            seu10, seu11, seu12,
-        ).slåSammen(clock = fixedClock)
-
-
-        /**
-         * TODO - må fikse at fraragene blir FradragForMåned/FradragForPeriode der det skal gjelde
-         */
-        actual.shouldBeEqualToExceptId(
-            listOf(
-                dagpengerAlene.copy(id = UUID.randomUUID()),
-                nyFradragsgrunnlag(
-                    periode = januar(2021),
-                    månedsbeløp = 3.0,
-                    type = Fradragstype.Sosialstønad,
-                    tilhører = FradragTilhører.BRUKER,
-                    utenlandskInntekt = null,
-                ),
-                sb3.copy(id = UUID.randomUUID()),
-                nyFradragsgrunnlag(
-                    periode = januar(2021),
-                    månedsbeløp = 4.0,
-                    type = Fradragstype.Sosialstønad,
-                    tilhører = FradragTilhører.EPS,
-                    utenlandskInntekt = null,
-                ),
-                se6.copy(id = UUID.randomUUID()),
-                nyFradragsgrunnlag(
-                    periode = januar(2021),
-                    månedsbeløp = 15.0,
-                    type = Fradragstype.Sosialstønad,
-                    tilhører = FradragTilhører.BRUKER,
-                    utenlandskInntekt = UtenlandskInntekt.create(
-                        beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-                    ),
-                ),
-                sbu9.copy(id = UUID.randomUUID()),
-                nyFradragsgrunnlag(
-                    periode = januar(2021),
-                    månedsbeløp = 21.0,
-                    type = Fradragstype.Sosialstønad,
-                    tilhører = FradragTilhører.EPS,
-                    utenlandskInntekt = UtenlandskInntekt.create(
-                        beløpIUtenlandskValuta = 7, valuta = "ValutisValutas", kurs = 1.0,
-                    ),
-                ),
-                seu12.copy(id = UUID.randomUUID()),
-            ),
-        )
     }
 }

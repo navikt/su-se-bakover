@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test.grunnlag
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -19,11 +20,21 @@ fun nyFradragsgrunnlag(
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ): Fradragsgrunnlag = Fradragsgrunnlag.create(
     opprettet = opprettet,
-    fradrag = FradragFactory.nyFradragsperiode(
-        fradragstype = type,
-        månedsbeløp = månedsbeløp,
-        periode = periode,
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = tilhører,
-    ),
+    fradrag = if (periode.erMåned()) {
+        FradragFactory.nyMånedsperiode(
+            fradragstype = type,
+            månedsbeløp = månedsbeløp,
+            måned = periode as Måned,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører,
+        )
+    } else {
+        FradragFactory.nyFradragsperiode(
+            fradragstype = type,
+            månedsbeløp = månedsbeløp,
+            periode = periode,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører,
+        )
+    },
 )

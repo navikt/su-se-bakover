@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import io.kotest.assertions.fail
+import io.kotest.assertions.withClue
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -298,8 +299,10 @@ fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
 
 @JvmName("shouldBeEqualToExceptIdGrunnlagFradragsgrunnlag")
 fun List<Fradragsgrunnlag>.shouldBeEqualToExceptId(expected: List<Fradragsgrunnlag>) {
-    this.zip(expected).map { (actual, expected) ->
-        actual.shouldBeEqualToExceptId(expected)
+    withClue("Actual: $this, Expected: $expected") {
+        this.zip(expected).map { (actual, expected) ->
+            actual.shouldBeEqualToExceptId(expected)
+        }
     }
 }
 

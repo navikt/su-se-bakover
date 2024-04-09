@@ -116,6 +116,10 @@ open class Periode protected constructor(
         )
     }
 
+    fun erMåned(): Boolean {
+        return getAntallMåneder() == 1
+    }
+
     companion object {
 
         fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode = tryCreate(fraOgMed, tilOgMed).getOrElse {
@@ -166,16 +170,10 @@ open class Periode protected constructor(
         return "Periode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
     }
 
-    operator fun plus(måned: Måned): Periode {
-        if (!this.tilstøter(måned) || måned.fraOgMed <= this.fraOgMed) {
-            throw IllegalArgumentException("Måneden $måned må være direkte etter perioden $this")
-        }
-
-        return create(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed.plusMonths(1),
-        )
-    }
+    /**
+     * Plusser 1 måned på tilOgMed.
+     */
+    fun forlengMedEnMåned(): Periode = create(fraOgMed = fraOgMed, tilOgMed = tilOgMed.plusMonths(1).endOfMonth())
 }
 
 /**

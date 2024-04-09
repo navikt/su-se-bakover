@@ -81,7 +81,7 @@ internal class BosituasjonKonsistensProblemTest {
             periode = år(2021),
         )
 
-        gjeldendeBosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode) shouldBe gjeldendeBosituasjon.copy(
+        gjeldendeBosituasjon.oppdaterPeriode(oppdatertPeriode) shouldBe gjeldendeBosituasjon.copy(
             periode = oppdatertPeriode,
         )
     }

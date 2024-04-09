@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -1183,9 +1182,17 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `plusser 2 perioder som tilstøter og fraOgMed er mindre enn perioden den plusses på`(){
-        fail("Not implemented yet")
+    fun `forlenger måneden med 1 måned`() {
+        januar(2021).forlengMedEnMåned() shouldBe januar(2021)..februar(2021)
+        februar(2021).forlengMedEnMåned() shouldBe februar(2021)..mars(2021)
+        mars(2021).forlengMedEnMåned() shouldBe mars(2021)..april(2021)
+        april(2021).forlengMedEnMåned() shouldBe april(2021)..mai(2021)
+        mai(2021).forlengMedEnMåned() shouldBe mai(2021)..juni(2021)
+        juni(2021).forlengMedEnMåned() shouldBe juni(2021)..juli(2021)
+        juli(2021).forlengMedEnMåned() shouldBe juli(2021)..august(2021)
+        august(2021).forlengMedEnMåned() shouldBe august(2021)..september(2021)
+        september(2021).forlengMedEnMåned() shouldBe september(2021)..oktober(2021)
+        november(2021).forlengMedEnMåned() shouldBe november(2021)..desember(2021)
+        desember(2021).forlengMedEnMåned() shouldBe desember(2021)..januar(2022)
     }
-
-
 }
