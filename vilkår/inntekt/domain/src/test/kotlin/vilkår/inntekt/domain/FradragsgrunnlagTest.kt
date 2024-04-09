@@ -30,7 +30,6 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
-import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import vilkår.vurderinger.domain.fjernFradragEPS
@@ -255,34 +254,6 @@ internal class FradragsgrunnlagTest {
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
-    }
-
-    @Test
-    fun `slår sammen fradrag som er like og tilstøtende`() {
-        val f1 = nyFradragsgrunnlag(periode = januar(2021))
-        val f2 = nyFradragsgrunnlag(periode = februar(2021))
-        val f3 = nyFradragsgrunnlag(
-            periode = mars(2021),
-            type = Fradragstype.Sosialstønad,
-            månedsbeløp = 300.0,
-        )
-
-        val actual = listOf(f1, f2, f3).slåSammenPeriodeOgFradrag(clock = fixedClock)
-        actual.size shouldBe 2
-        actual.first().fradrag shouldBe FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.Kontantstøtte,
-            månedsbeløp = 200.0,
-            periode = Periode.create(1.januar(2021), 28.februar(2021)),
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        )
-        actual.last().fradrag shouldBe FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.Sosialstønad,
-            månedsbeløp = 300.0,
-            periode = mars(2021),
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        )
     }
 
     @Test
