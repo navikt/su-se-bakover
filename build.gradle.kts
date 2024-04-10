@@ -109,7 +109,7 @@ subprojects {
         testImplementation(
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
         )
-        testImplementation("io.zonky.test:embedded-postgres:2.0.6") {
+        testImplementation("io.zonky.test:embedded-postgres:2.0.7") {
             exclude("org.apache.commons", "commons-compress")
         }
         // Legger til manglende binaries for nye Mac's med M1 cpuer. (denne arver versjonen til embedded-postgres-binaries-bom)
