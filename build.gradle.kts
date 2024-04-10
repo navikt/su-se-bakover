@@ -105,7 +105,7 @@ subprojects {
         testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.1")
-        testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+        testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
         testImplementation(
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
         )
