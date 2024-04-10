@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter
 
 fun min(a: LocalDate, b: LocalDate): LocalDate = if (a < b) a else b
 fun max(a: LocalDate, b: LocalDate): LocalDate = if (a > b) a else b
+fun max(a: LocalDate, b: LocalDate, c: LocalDate): LocalDate = listOf(a, b, c).maxOf { it }
 
 fun LocalDate.førsteINesteMåned(): LocalDate {
     return this.plusMonths(1).startOfMonth()
