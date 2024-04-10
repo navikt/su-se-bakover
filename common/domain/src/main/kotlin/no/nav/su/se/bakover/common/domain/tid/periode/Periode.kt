@@ -7,11 +7,12 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
-import no.nav.su.se.bakover.common.extensions.endOfMonth
-import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.extensions.erSisteDagIMåned
-import no.nav.su.se.bakover.common.extensions.startOfMonth
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.between
+import no.nav.su.se.bakover.common.domain.tid.endOfMonth
+import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import java.time.LocalDate
 import java.time.Month
 import java.time.Period
@@ -155,8 +156,10 @@ open class Periode protected constructor(
         data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode
     }
 
+    /** Bruker [DatoIntervall] sin equals */
     override fun equals(other: Any?) = super.equals(other)
 
+    /** Bruker [DatoIntervall] sin hashCode */
     override fun hashCode() = super.hashCode()
 
     override fun toString(): String {
@@ -318,19 +321,10 @@ fun List<Periode>.harOverlappende(): Boolean {
     return this.flatMap { it.måneder() } != this.flatMap { it.måneder() }.distinct()
 }
 
-fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
-fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
-fun mars(year: Int) = Måned.fra(YearMonth.of(year, Month.MARCH))
-fun april(year: Int) = Måned.fra(YearMonth.of(year, Month.APRIL))
-fun mai(year: Int) = Måned.fra(YearMonth.of(year, Month.MAY))
-fun juni(year: Int) = Måned.fra(YearMonth.of(year, Month.JUNE))
-fun juli(year: Int) = Måned.fra(YearMonth.of(year, Month.JULY))
-fun august(year: Int) = Måned.fra(YearMonth.of(year, Month.AUGUST))
-fun september(year: Int) = Måned.fra(YearMonth.of(year, Month.SEPTEMBER))
-fun oktober(year: Int) = Måned.fra(YearMonth.of(year, Month.OCTOBER))
-fun november(year: Int) = Måned.fra(YearMonth.of(year, Month.NOVEMBER))
-fun desember(year: Int) = Måned.fra(YearMonth.of(year, Month.DECEMBER))
 fun år(year: Int) = Periode.create(
     fraOgMed = YearMonth.of(year, Month.JANUARY).atDay(1),
     tilOgMed = YearMonth.of(year, Month.DECEMBER).atEndOfMonth(),
 )
+
+// TODO jah: Bytt bruken av denne til å bruke Periode.inneholder(LocalDate) og slett denne.
+fun LocalDate.between(periode: Periode) = this.between(periode.fraOgMed, periode.tilOgMed)

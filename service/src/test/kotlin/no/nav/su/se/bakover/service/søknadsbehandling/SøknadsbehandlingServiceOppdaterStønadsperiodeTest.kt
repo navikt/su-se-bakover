@@ -4,8 +4,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.TestSessionFactory

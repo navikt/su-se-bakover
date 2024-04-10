@@ -1,7 +1,7 @@
 package satser.domain.supplerendestønad
 
 import grunnbeløp.domain.GrunnbeløpForMåned
-import no.nav.su.se.bakover.common.extensions.avrund
+import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.garantipensjon.GarantipensjonForMåned

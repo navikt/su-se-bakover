@@ -5,11 +5,11 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.august
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.domain.tid.august
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai

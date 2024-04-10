@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.søknad
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.extensions.ddMMyyyy
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import person.domain.Person

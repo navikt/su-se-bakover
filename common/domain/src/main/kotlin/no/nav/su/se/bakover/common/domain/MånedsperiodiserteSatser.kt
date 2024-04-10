@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.common.domain
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater

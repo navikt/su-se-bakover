@@ -5,11 +5,11 @@ import io.kotest.assertions.arrow.core.shouldHaveSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april

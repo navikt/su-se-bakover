@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling

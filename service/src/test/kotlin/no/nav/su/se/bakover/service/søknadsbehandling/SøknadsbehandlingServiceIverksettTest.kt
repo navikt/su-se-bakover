@@ -14,7 +14,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr

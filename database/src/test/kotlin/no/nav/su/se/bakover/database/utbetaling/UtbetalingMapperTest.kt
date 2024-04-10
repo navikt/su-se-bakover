@@ -5,7 +5,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.idag
+import no.nav.su.se.bakover.common.domain.tid.idag
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.januar

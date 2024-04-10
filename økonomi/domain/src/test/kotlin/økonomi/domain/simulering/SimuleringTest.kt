@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april

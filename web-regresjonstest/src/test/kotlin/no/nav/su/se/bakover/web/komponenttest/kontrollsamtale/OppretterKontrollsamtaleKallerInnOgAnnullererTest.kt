@@ -4,11 +4,11 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
-import no.nav.su.se.bakover.common.extensions.endOfMonth
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.domain.tid.endOfMonth
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl

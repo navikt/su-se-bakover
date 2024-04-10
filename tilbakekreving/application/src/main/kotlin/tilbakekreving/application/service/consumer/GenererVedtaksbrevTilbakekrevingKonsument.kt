@@ -13,8 +13,8 @@ import dokument.domain.brev.Brevvalg
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak

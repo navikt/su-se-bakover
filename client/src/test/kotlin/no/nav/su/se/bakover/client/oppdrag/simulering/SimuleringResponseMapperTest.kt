@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april

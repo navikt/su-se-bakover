@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.pdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.extensions.trimWhitespace
+import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjørMedFeilIÅrsgrunnlag

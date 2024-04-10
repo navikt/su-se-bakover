@@ -6,11 +6,11 @@ import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.oktober
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer

@@ -1,7 +1,7 @@
 package tilbakekreving.infrastructure.repo
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.november
-import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.november
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember

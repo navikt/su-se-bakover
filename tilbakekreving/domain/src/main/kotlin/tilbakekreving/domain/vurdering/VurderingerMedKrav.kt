@@ -5,7 +5,7 @@ import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.math.BigDecimal

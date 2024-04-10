@@ -7,8 +7,8 @@ import beregning.domain.Beregningsperiode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode

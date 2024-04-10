@@ -4,8 +4,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.periode.Periode

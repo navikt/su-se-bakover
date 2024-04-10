@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.job.JobContext
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt

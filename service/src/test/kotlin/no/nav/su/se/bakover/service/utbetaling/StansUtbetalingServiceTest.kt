@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.test.TestSessionFactory

@@ -1,16 +1,16 @@
-package no.nav.su.se.bakover.common.domain.periode
+package no.nav.su.se.bakover.common.domain.tid.periode
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.august
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.august
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember

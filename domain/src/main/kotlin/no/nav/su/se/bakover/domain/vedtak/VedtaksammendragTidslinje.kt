@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.whenever
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.tid.periode.Måned
 
 /**

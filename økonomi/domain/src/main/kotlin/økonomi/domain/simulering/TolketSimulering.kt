@@ -4,7 +4,7 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf

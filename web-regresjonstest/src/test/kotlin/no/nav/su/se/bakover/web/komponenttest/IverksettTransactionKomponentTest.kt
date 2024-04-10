@@ -6,9 +6,9 @@ import arrow.core.right
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.endOfMonth
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.domain.tid.endOfMonth
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering

@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMapNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.revurdering.flyktning
 
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId

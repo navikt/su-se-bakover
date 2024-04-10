@@ -3,7 +3,7 @@ package tilbakekreving.presentation.consumer
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import java.time.format.DateTimeFormatter
 

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.avstemming
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.endOfDay
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.startOfDay
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.endOfDay
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.startOfDay
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test

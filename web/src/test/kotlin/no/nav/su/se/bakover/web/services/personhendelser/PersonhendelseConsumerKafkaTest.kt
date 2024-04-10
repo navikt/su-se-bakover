@@ -10,8 +10,8 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.toTidspunkt

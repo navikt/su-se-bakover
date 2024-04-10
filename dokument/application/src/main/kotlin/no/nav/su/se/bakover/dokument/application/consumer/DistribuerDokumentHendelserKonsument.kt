@@ -8,7 +8,7 @@ import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokument
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.extensions.mapOneIndexed
+import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak

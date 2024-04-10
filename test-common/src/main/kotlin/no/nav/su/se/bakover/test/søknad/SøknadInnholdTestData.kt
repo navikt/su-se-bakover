@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.test.søknad
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Ektefelle

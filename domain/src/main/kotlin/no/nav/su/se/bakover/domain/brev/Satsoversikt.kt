@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.getOrElse
 import beregning.domain.utledBeregningsstrategi
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.ddMMyyyy
-import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling

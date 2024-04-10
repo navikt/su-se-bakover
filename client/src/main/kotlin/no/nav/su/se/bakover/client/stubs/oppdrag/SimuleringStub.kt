@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.idag
+import no.nav.su.se.bakover.common.domain.tid.idag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType

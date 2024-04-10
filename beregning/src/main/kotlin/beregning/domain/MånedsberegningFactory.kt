@@ -1,7 +1,7 @@
 package beregning.domain
 
-import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo
-import no.nav.su.se.bakover.common.extensions.positiveOrZero
+import no.nav.su.se.bakover.common.domain.extensions.limitedUpwardsTo
+import no.nav.su.se.bakover.common.domain.extensions.positiveOrZero
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.sum

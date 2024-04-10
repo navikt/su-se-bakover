@@ -5,7 +5,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import behandling.søknadsbehandling.domain.avslag.Avslag
 import behandling.søknadsbehandling.domain.avslag.ErAvslag
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand

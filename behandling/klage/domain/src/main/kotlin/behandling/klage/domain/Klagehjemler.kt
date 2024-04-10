@@ -5,7 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 
 sealed interface Klagehjemler : List<Hjemmel> {
 

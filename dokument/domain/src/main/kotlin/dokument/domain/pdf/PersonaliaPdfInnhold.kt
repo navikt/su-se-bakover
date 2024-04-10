@@ -1,7 +1,7 @@
 package dokument.domain.pdf
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.extensions.ddMMyyyy
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.person.Fnr
 import java.time.Clock
 import java.time.LocalDate

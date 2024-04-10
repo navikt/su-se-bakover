@@ -6,11 +6,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.toPeriode
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -31,7 +30,6 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
@@ -51,7 +49,6 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import vedtak.domain.VedtakSomKanRevurderes
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OpprettRevurderingServiceTest {
@@ -189,9 +186,6 @@ internal class OpprettRevurderingServiceTest {
             sakOgVedtakSomKanRevurderes = sak2 to vedtakForFørsteJanuarLagetNå,
         )
 
-        val fraOgMedDatoFebruar = fixedLocalDate.plus(1, ChronoUnit.MONTHS)
-        val fraOgMedDatoApril = fixedLocalDate.plus(3, ChronoUnit.MONTHS)
-
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak3.right()
@@ -208,7 +202,7 @@ internal class OpprettRevurderingServiceTest {
 
                 OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = fraOgMedDatoFebruar.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
+                    periode = februar(2021)..desember(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -221,7 +215,7 @@ internal class OpprettRevurderingServiceTest {
             val revurderingForApril = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = fraOgMedDatoApril.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
+                    periode = april(2021)..desember(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -255,8 +249,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sak.id,
-                    periode = februar(2021).fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed)
-                        .toPeriode(),
+                    periode = februar(2021)..desember(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -290,7 +283,7 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kunne ikke opprette oppgave`() {
-        val (sak, iverksatt) = iverksattSøknadsbehandlingUføre()
+        val (sak, _) = iverksattSøknadsbehandlingUføre()
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -302,8 +295,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = februar(2021).fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
-                        .toPeriode(),
+                    periode = februar(2021)..desember(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -375,7 +367,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = 1.januar(2021).rangeTo(sakMedNyStønadsperiode.third.periode.tilOgMed).toPeriode(),
+                    periode = januar(2021)..desember(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,

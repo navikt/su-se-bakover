@@ -5,8 +5,8 @@ import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.minus

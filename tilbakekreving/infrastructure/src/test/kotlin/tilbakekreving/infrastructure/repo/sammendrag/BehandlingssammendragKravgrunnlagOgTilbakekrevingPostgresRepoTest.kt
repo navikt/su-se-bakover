@@ -3,7 +3,7 @@ package tilbakekreving.infrastructure.repo.sammendrag
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember

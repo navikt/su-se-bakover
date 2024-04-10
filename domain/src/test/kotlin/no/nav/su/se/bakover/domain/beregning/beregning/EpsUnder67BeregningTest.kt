@@ -8,10 +8,10 @@ import beregning.domain.Beregningsperiode
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.arbeidsinntekt

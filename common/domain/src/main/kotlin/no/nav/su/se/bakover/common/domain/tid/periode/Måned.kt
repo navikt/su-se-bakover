@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
 import com.fasterxml.jackson.annotation.JsonIgnore
-import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
@@ -125,3 +125,21 @@ fun Periode.tilMåned(): Måned {
 fun <T> Map<Måned, T>.periode() = this.keys.toList().minAndMaxOf()
 
 fun YearMonth.tilMåned() = Måned.fra(this)
+
+/**
+ * @throws IllegalArgumentException dersom dato ikke er den 1. i måneden.
+ */
+fun LocalDate.toMåned(): Måned = Måned.fra(this)
+
+fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
+fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
+fun mars(year: Int) = Måned.fra(YearMonth.of(year, Month.MARCH))
+fun april(year: Int) = Måned.fra(YearMonth.of(year, Month.APRIL))
+fun mai(year: Int) = Måned.fra(YearMonth.of(year, Month.MAY))
+fun juni(year: Int) = Måned.fra(YearMonth.of(year, Month.JUNE))
+fun juli(year: Int) = Måned.fra(YearMonth.of(year, Month.JULY))
+fun august(year: Int) = Måned.fra(YearMonth.of(year, Month.AUGUST))
+fun september(year: Int) = Måned.fra(YearMonth.of(year, Month.SEPTEMBER))
+fun oktober(year: Int) = Måned.fra(YearMonth.of(year, Month.OCTOBER))
+fun november(year: Int) = Måned.fra(YearMonth.of(year, Month.NOVEMBER))
+fun desember(year: Int) = Måned.fra(YearMonth.of(year, Month.DECEMBER))

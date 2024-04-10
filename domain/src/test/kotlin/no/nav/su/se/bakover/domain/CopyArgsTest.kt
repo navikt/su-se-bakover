@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CopyArgs
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.oktober
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.juli

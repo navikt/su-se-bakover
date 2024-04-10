@@ -6,10 +6,10 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
+import no.nav.su.se.bakover.common.domain.extensions.pickByCondition
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.extensions.mapOneIndexed
-import no.nav.su.se.bakover.common.extensions.pickByCondition
-import no.nav.su.se.bakover.common.extensions.whenever
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService

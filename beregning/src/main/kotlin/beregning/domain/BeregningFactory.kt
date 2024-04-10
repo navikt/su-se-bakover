@@ -1,7 +1,7 @@
 package beregning.domain
 
 import beregning.domain.fradrag.FradragStrategy
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.git
 
-import no.nav.su.se.bakover.common.extensions.trimWhitespace
+import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 
 @JvmInline
 value class GitCommit(val value: String) {

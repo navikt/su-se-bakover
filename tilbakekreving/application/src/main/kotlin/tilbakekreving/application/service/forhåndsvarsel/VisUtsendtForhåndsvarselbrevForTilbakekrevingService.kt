@@ -5,9 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.extensions.isFirstNull
-import no.nav.su.se.bakover.common.extensions.isSecondNull
-import no.nav.su.se.bakover.common.extensions.wheneverEitherIsNull
+import no.nav.su.se.bakover.common.domain.extensions.isFirstNull
+import no.nav.su.se.bakover.common.domain.extensions.isSecondNull
+import no.nav.su.se.bakover.common.domain.wheneverEitherIsNull
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarsel
 import tilbakekreving.domain.forhåndsvarsel.VisUtsendtForhåndsvarselbrevCommand

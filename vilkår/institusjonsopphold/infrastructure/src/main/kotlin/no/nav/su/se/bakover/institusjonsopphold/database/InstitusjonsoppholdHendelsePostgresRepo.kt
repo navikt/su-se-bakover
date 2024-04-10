@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.institusjonsopphold.database
 
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse

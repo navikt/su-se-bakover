@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.august
-import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.domain.tid.august
+import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år

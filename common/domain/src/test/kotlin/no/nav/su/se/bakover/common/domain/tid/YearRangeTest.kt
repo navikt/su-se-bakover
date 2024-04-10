@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.common.domain
+package no.nav.su.se.bakover.common.domain.tid
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.YearRange
+import no.nav.su.se.bakover.common.tid.erI
 import no.nav.su.se.bakover.common.tid.isIncrementingByOne
 import no.nav.su.se.bakover.common.tid.min
 import no.nav.su.se.bakover.common.tid.rangeTo
@@ -88,5 +89,13 @@ internal class YearRangeTest {
         fun `starter etter ender etter`() {
             min(YearRange(2022, 2024), YearRange(2021, 2023)) shouldBe YearRange(2021, 2023)
         }
+    }
+
+    @Test
+    fun erI() {
+        Year.of(2021) erI Year.of(2020)..Year.of(2022) shouldBe true
+        Year.of(2021) erI Year.of(2021)..Year.of(2021) shouldBe true
+        Year.of(2021) erI Year.of(2022)..Year.of(2023) shouldBe false
+        Year.of(2021) erI Year.of(2019)..Year.of(2020) shouldBe false
     }
 }

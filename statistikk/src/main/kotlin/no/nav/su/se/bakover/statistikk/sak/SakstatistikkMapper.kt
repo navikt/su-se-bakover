@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.statistikk.sak
 import arrow.core.Either
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.serialize

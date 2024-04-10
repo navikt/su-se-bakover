@@ -10,7 +10,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession

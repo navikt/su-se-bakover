@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.common.domain.periode
+package no.nav.su.se.bakover.common.domain.tid.periode
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test

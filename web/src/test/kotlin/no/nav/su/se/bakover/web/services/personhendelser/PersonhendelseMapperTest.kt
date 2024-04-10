@@ -12,7 +12,7 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse

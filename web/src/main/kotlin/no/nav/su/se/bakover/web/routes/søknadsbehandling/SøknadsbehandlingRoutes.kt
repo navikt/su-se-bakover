@@ -20,7 +20,8 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.extensions.enumContains
+import no.nav.su.se.bakover.common.domain.extensions.enumContains
+import no.nav.su.se.bakover.common.domain.extensions.toUUID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -38,7 +39,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId

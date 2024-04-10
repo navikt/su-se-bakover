@@ -13,7 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad

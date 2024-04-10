@@ -5,10 +5,10 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
-import no.nav.su.se.bakover.common.extensions.between
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.between
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf

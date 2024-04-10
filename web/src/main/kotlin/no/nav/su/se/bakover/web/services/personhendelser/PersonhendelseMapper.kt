@@ -5,8 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
-import no.nav.su.se.bakover.common.extensions.orNull
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.orNull
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse

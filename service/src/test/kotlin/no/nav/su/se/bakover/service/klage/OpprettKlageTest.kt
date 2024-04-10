@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage

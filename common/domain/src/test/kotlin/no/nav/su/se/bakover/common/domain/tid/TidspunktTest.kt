@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.common.domain
+package no.nav.su.se.bakover.common.domain.tid
 
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
@@ -8,13 +8,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.extensions.endOfDay
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.startOfDay
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.between
 import no.nav.su.se.bakover.common.tid.compareTo
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import org.junit.jupiter.api.Test
@@ -200,4 +196,33 @@ internal class TidspunktTest {
         val tidspunkt: Tidspunkt,
         val other: String = "other values",
     )
+
+    @Test
+    fun `instants between others`() {
+        val sept5 = 5.september(2020).startOfDay()
+        sept5.between(
+            fraOgMed = 5.september(2020).startOfDay(),
+            tilOgMed = 5.september(2020).endOfDay(),
+        ) shouldBe true
+
+        sept5.between(
+            fraOgMed = 4.september(2020).startOfDay(),
+            tilOgMed = 5.september(2020).startOfDay(),
+        ) shouldBe true
+
+        sept5.between(
+            fraOgMed = 1.september(2020).startOfDay(),
+            tilOgMed = 10.september(2020).startOfDay(),
+        ) shouldBe true
+
+        sept5.between(
+            fraOgMed = 1.januar(2020).startOfDay(),
+            tilOgMed = 10.januar(2020).startOfDay(),
+        ) shouldBe false
+
+        sept5.between(
+            fraOgMed = 1.desember(2020).startOfDay(),
+            tilOgMed = 10.desember(2020).startOfDay(),
+        ) shouldBe false
+    }
 }

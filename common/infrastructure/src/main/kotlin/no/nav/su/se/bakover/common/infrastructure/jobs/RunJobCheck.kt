@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.jobs
 
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup

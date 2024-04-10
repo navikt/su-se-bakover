@@ -9,7 +9,7 @@ import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.whenever
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned

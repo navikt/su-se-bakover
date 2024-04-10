@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer

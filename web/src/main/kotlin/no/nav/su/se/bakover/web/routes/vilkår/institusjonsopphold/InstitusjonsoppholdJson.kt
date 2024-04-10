@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.heleBehandlingsperiodenMåHaVurderinger

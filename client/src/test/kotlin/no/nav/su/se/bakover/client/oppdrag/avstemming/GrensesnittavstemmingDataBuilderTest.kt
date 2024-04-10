@@ -5,11 +5,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.extensions.idag
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.tid.idag
+import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt

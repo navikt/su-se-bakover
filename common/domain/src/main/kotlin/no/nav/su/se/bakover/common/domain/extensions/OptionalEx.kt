@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.common.extensions
+package no.nav.su.se.bakover.common.domain.extensions
 
 import java.util.Optional
 

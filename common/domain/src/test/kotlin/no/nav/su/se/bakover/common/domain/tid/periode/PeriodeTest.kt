@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.common.domain.periode
+package no.nav.su.se.bakover.common.domain.tid.periode
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -7,22 +7,23 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.august
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.november
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.august
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.november
+import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
+import no.nav.su.se.bakover.common.tid.periode.between
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
@@ -1165,5 +1166,18 @@ internal class PeriodeTest {
                 år(2022),
             ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
         }
+    }
+
+    @Test
+    fun between() {
+        31.desember(2021).between(januar(2021)) shouldBe false
+        1.januar(2021).between(januar(2021)) shouldBe true
+        2.januar(2021).between(januar(2021)) shouldBe true
+        30.januar(2021).between(januar(2021)) shouldBe true
+        31.januar(2021).between(januar(2021)) shouldBe true
+        1.februar(2021).between(januar(2021)) shouldBe false
+
+        1.januar(2021).between(februar(2021)) shouldBe false
+        1.januar(2021).between(år(2021)) shouldBe true
     }
 }

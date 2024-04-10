@@ -5,10 +5,10 @@ import arrow.core.right
 import dokument.domain.brev.Brevvalg
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.fixedClock
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
 import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad

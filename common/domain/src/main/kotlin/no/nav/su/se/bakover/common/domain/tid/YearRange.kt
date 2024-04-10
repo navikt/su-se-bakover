@@ -97,3 +97,5 @@ fun min(a: YearRange, b: YearRange): YearRange = when {
     a.start > b.start -> b
     else -> if (a.endInclusive <= b.endInclusive) a else b
 }
+
+infix fun Year.erI(yearRange: YearRange): Boolean = yearRange.any { it == this }

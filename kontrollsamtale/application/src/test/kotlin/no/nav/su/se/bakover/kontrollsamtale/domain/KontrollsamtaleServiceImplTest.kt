@@ -6,7 +6,7 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
