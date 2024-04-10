@@ -8,6 +8,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.Temporal
@@ -90,4 +91,12 @@ fun ZonedDateTime.toTidspunkt() = this.toInstant().toTidspunkt()
 
 operator fun Instant.compareTo(tidspunkt: Tidspunkt): Int {
     return this.truncatedTo(tidspunktPresisjon).compareTo(tidspunkt.instant)
+}
+
+fun Tidspunkt.fixedClock(): Clock = Clock.fixed(instant, ZoneOffset.UTC)
+
+fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Boolean {
+    return (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(
+        tilOgMed.instant,
+    )
 }

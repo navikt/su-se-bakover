@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.statistikk.behandling.revurdering.revurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering

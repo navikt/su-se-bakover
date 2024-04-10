@@ -4,9 +4,9 @@ import no.nav.su.se.bakover.common.domain.Knekkpunkt
 import no.nav.su.se.bakover.common.domain.Knekkpunkt.Companion.compareTo
 import no.nav.su.se.bakover.common.domain.RåSats
 import no.nav.su.se.bakover.common.domain.RåSatser
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.periodisert
-import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import satser.domain.Satskategori

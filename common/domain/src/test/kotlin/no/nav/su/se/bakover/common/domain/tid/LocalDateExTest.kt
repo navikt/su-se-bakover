@@ -1,24 +1,6 @@
-package no.nav.su.se.bakover.common.domain
+package no.nav.su.se.bakover.common.domain.tid
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.august
-import no.nav.su.se.bakover.common.extensions.between
-import no.nav.su.se.bakover.common.extensions.ddMMyyyy
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.endOfDay
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.isEqualOrBefore
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.november
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.september
-import no.nav.su.se.bakover.common.extensions.startOfDay
-import no.nav.su.se.bakover.common.extensions.toBrevformat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.DateTimeException
@@ -26,8 +8,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.ZoneOffset
 
-internal class UtilsKtTest {
-
+internal class LocalDateExTest {
     @Test
     fun `convenient dates`() {
         1.januar(2010) shouldBe LocalDate.of(2010, Month.JANUARY, 1)
@@ -58,41 +39,12 @@ internal class UtilsKtTest {
     }
 
     @Test
-    fun `instants between others`() {
-        val sept5 = 5.september(2020).startOfDay()
-        sept5.between(
-            fraOgMed = 5.september(2020).startOfDay(),
-            tilOgMed = 5.september(2020).endOfDay(),
-        ) shouldBe true
-
-        sept5.between(
-            fraOgMed = 4.september(2020).startOfDay(),
-            tilOgMed = 5.september(2020).startOfDay(),
-        ) shouldBe true
-
-        sept5.between(
-            fraOgMed = 1.september(2020).startOfDay(),
-            tilOgMed = 10.september(2020).startOfDay(),
-        ) shouldBe true
-
-        sept5.between(
-            fraOgMed = 1.januar(2020).startOfDay(),
-            tilOgMed = 10.januar(2020).startOfDay(),
-        ) shouldBe false
-
-        sept5.between(
-            fraOgMed = 1.desember(2020).startOfDay(),
-            tilOgMed = 10.desember(2020).startOfDay(),
-        ) shouldBe false
-    }
-
-    @Test
     fun `Formatterer dato til format ddMMyyyy`() {
         1.januar(2020).ddMMyyyy() shouldBe "01.01.2020"
     }
 
     @Test
-    fun `isEqualOrBefore`() {
+    fun `is equal or before`() {
         1.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe true
         1.januar(2021).isEqualOrBefore(2.januar(2021)) shouldBe true
         2.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe false

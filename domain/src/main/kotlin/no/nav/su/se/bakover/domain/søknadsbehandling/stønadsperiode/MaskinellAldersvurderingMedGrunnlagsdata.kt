@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import person.domain.Person
 import vilkår.uføre.domain.UFØRETRYGD_MAX_ALDER
 import java.time.LocalDate

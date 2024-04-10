@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.extensions.toBrevformat
+import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import no.nav.su.se.bakover.common.sorterPåPeriode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 

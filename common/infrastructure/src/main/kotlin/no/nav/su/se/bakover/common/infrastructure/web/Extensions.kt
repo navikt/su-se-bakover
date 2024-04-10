@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.extensions.toUUID
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
@@ -80,11 +81,6 @@ fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Principal?):
     } else {
         (principal as JWTPrincipal).payload.getClaim("name").asString()
     }
-}
-
-fun String.toUUID(): Either<String, UUID> {
-    return Either.catch { UUID.fromString(this@toUUID) }
-        .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
 }
 
 fun ApplicationCall.lesUUID(param: String): Either<String, UUID> {

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 
 fun List<VedtakPåTidslinje>.institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår {

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.domain.job.JobContext
 import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
+import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt

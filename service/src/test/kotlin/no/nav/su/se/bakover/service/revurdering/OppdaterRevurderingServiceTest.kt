@@ -5,8 +5,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.toPeriode
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
@@ -240,7 +238,7 @@ internal class OppdaterRevurderingServiceTest {
             val actual = it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
-                    periode = 1.mai(2021).rangeTo(revurdering.periode.tilOgMed).toPeriode(),
+                    periode = mai(2021)..desember(2021),
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
@@ -303,7 +301,7 @@ internal class OppdaterRevurderingServiceTest {
             it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.second.id,
-                    periode = 1.mai(2021).rangeTo(sakMedNyStønadsperiode.second.periode.tilOgMed).toPeriode(),
+                    periode = mai(2021)..desember(2022),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Test",
                     saksbehandler = saksbehandler,

@@ -4,8 +4,8 @@ import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mapSecond
+import no.nav.su.se.bakover.common.domain.extensions.mapSecond
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling

@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.web.stans
 
 import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt

@@ -9,7 +9,7 @@ import beregning.domain.Merknad
 import beregning.domain.finnFørsteMånedMedMerknadForAvslag
 import beregning.domain.finnMånederMedMerknadForAvslag
 import beregning.domain.harAlleMånederMerknadForAvslag
-import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import vilkår.common.domain.Vurdering
 import java.time.Clock
 import java.time.LocalDate

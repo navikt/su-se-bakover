@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.common.infrastructure.jobs
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.november
-import no.nav.su.se.bakover.common.extensions.oktober
+import no.nav.su.se.bakover.common.domain.tid.november
+import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.test.fixedClock

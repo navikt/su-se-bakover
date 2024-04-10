@@ -10,8 +10,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.extensions.endOfDay
-import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.domain.tid.endOfDay
+import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet

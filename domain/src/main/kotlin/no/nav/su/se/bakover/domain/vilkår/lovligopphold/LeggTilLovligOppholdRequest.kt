@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår.lovligopphold
 
 import no.nav.su.se.bakover.common.domain.BehandlingsId
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.common.domain.Vurdering

@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.extensions.norwegianLocale
-import no.nav.su.se.bakover.common.extensions.toBrevformat
+import no.nav.su.se.bakover.common.domain.norwegianLocale
+import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import java.text.NumberFormat

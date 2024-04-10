@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.institusjonsopphold.application.service
 
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.extensions.whenever
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo

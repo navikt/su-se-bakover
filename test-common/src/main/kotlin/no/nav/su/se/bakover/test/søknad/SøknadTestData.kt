@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test.søknad
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.mapSecond
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr

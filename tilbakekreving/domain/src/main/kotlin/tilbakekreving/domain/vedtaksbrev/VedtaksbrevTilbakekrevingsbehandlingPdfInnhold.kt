@@ -3,7 +3,7 @@ package tilbakekreving.domain.vedtaksbrev
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.extensions.toBrevformat
+import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import tilbakekreving.domain.vedtaksbrev.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
 import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
 import tilbakekreving.domain.vurdering.VurderingerMedKrav

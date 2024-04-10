@@ -5,22 +5,22 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.endOfDay
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.fixedClock
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.juni
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.oktober
-import no.nav.su.se.bakover.common.extensions.startOfDay
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.endOfDay
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.startOfDay
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.fixedClock
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -439,14 +439,22 @@ internal class AvstemmingPostgresRepoTest {
                                         id = UUID.randomUUID(),
                                         opprettet = fixedTidspunkt,
                                         vurdering = Vurdering.Innvilget,
-                                        grunnlag = uføregrunnlag(opprettet = fixedTidspunkt, periode = p1, uføregrad = Uføregrad.parse(50)),
+                                        grunnlag = uføregrunnlag(
+                                            opprettet = fixedTidspunkt,
+                                            periode = p1,
+                                            uføregrad = Uføregrad.parse(50),
+                                        ),
                                         periode = p1,
                                     ),
                                     VurderingsperiodeUføre.create(
                                         id = UUID.randomUUID(),
                                         opprettet = fixedTidspunkt,
                                         vurdering = Vurdering.Innvilget,
-                                        grunnlag = uføregrunnlag(opprettet = fixedTidspunkt, periode = p2, uføregrad = Uføregrad.parse(40)),
+                                        grunnlag = uføregrunnlag(
+                                            opprettet = fixedTidspunkt,
+                                            periode = p2,
+                                            uføregrad = Uføregrad.parse(40),
+                                        ),
                                         periode = p2,
                                     ),
                                 ),

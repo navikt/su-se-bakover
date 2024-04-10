@@ -6,13 +6,11 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.extensions.april
-import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.extensions.mars
-import no.nav.su.se.bakover.common.extensions.toPeriode
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -285,7 +283,7 @@ internal class OppdaterStønadsperiodeTest {
 
     @Test
     fun `stønadsperiode som krysser over 2 år, gir en YearRange på start og slutt året`() {
-        Stønadsperiode.create((1.mai(2021)..30.april(2022)).toPeriode()).toYearRange() shouldBe
+        Stønadsperiode.create(mai(2021)..april(2022)).toYearRange() shouldBe
             YearRange(Year.of(2021), Year.of(2022))
     }
 }

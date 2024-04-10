@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.BehandlingsId
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession

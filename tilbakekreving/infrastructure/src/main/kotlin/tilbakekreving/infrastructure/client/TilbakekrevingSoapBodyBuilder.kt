@@ -3,7 +3,7 @@
 package tilbakekreving.infrastructure.client
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.domain.extensions.toStringWithDecimals
+import no.nav.su.se.bakover.common.domain.toStringWithDecimals
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory

@@ -1,7 +1,7 @@
 package grunnbeløp.domain
 
-import no.nav.su.se.bakover.common.extensions.avrund
-import no.nav.su.se.bakover.common.extensions.isEqualOrBefore
+import no.nav.su.se.bakover.common.domain.extensions.avrund
+import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.math.BigDecimal
 import java.time.LocalDate

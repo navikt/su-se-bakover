@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import dokument.domain.Dokumenttilstand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.fromRevurderingInnvilget
