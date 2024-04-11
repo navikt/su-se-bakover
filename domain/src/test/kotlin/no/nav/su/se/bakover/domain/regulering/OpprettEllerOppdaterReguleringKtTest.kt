@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
@@ -82,7 +84,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Alderspensjon,
                             månedsbeløp = 1000.0,
-                            periode = stønadsperiode2021.periode,
+                            periode = januar(2021)..juni(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -93,7 +95,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Alderspensjon,
                             månedsbeløp = 995.0,
-                            periode = stønadsperiode2021.periode,
+                            periode = juli(2021)..desember(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),

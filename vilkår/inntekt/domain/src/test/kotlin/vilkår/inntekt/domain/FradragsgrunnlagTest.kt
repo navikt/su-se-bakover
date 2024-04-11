@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar

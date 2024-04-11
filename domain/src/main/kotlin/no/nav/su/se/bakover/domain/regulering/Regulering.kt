@@ -11,7 +11,6 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.absoluttDiff
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker

@@ -177,15 +177,15 @@ class ReguleringServiceImpl(
             return KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
         }
 
-            if (isLiveRun) {
-                LiveRun.Opprettet(
-                    sessionFactory = sessionFactory,
-                    lagreRegulering = reguleringRepo::lagre,
-                    lagreVedtak = vedtakService::lagreITransaksjon,
-                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                    notifyObservers = { Unit },
-                ).kjørSideffekter(regulering)
-            }
+        if (isLiveRun) {
+            LiveRun.Opprettet(
+                sessionFactory = sessionFactory,
+                lagreRegulering = reguleringRepo::lagre,
+                lagreVedtak = vedtakService::lagreITransaksjon,
+                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                notifyObservers = { Unit },
+            ).kjørSideffekter(regulering)
+        }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun, satsFactory)
