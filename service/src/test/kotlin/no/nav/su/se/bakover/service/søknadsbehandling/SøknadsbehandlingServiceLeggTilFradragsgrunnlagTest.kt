@@ -5,6 +5,10 @@ import arrow.core.left
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -12,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
@@ -59,7 +64,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request, saksbehandler = saksbehandler)
-            .getOrElse { fail { "uventet respons" } }
+            .getOrElse { fail("$it") }
 
         actual shouldBe VilkårsvurdertSøknadsbehandling.Innvilget(
             id = behandling.id,
@@ -90,7 +95,9 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
                 it shouldBe behandling.copy(
-                    grunnlagsdataOgVilkårsvurderinger = behandling.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(fradragsgrunnlag),
+                    grunnlagsdataOgVilkårsvurderinger = behandling.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
+                        fradragsgrunnlag,
+                    ),
                     søknadsbehandlingsHistorikk =
                     behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),
@@ -208,6 +215,28 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             request,
             saksbehandler = saksbehandler,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
+
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
+    }
+
+    @Test
+    fun `innsending av fradrag må være slått sammen`() {
+        val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> { on { hent(any()) } doReturn behandling }
+        val søknadsbehandlingService = createSøknadsbehandlingService(søknadsbehandlingRepo = søknadsbehandlingRepoMock)
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = behandling.id,
+            fradragsgrunnlag = listOf(
+                nyFradragsgrunnlag(periode = januar(2021)..juni(2021)),
+                nyFradragsgrunnlag(periode = juli(2021)..desember(2021)),
+            ),
+        )
+
+        søknadsbehandlingService.leggTilFradragsgrunnlag(
+            request = request,
+            saksbehandler = saksbehandler,
+        ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
     }

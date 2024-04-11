@@ -80,6 +80,8 @@ internal fun Route.leggTilFradragRevurdering(
                                         is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
                                             it.feil.tilResultat()
                                         }
+
+                                        KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen -> Feilresponser.fradragMåSlåesSammen
                                     }
                                 }.map {
                                     call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)

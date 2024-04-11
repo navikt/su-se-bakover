@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fradragMåSlåesSammen
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -128,6 +129,8 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
         is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
             Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
         }
+
+        KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen -> fradragMåSlåesSammen
     }
 }
 

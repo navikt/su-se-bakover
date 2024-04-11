@@ -12,4 +12,5 @@ sealed interface KunneIkkeLeggeTilFradragsgrunnlag {
     ) : KunneIkkeLeggeTilFradragsgrunnlag
 
     data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag
+    data object FradrageneMåSlåsSammen : KunneIkkeLeggeTilFradragsgrunnlag
 }

@@ -103,6 +103,7 @@ import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -299,6 +300,10 @@ class RevurderingServiceImpl(
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering =
             hent(request.behandlingId as RevurderingId).getOrElse { return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left() }
+
+        if (request.fradragsgrunnlag.size != request.fradragsgrunnlag.slåSammen(clock).size) {
+            return KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen.left()
+        }
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
             when (it) {

@@ -96,6 +96,7 @@ import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.inntekt.domain.grunnlag.slåSammen
 import vilkår.skatt.application.SkatteService
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
@@ -454,6 +455,10 @@ class SøknadsbehandlingServiceImpl(
 
                 null -> return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
             }
+
+        if (request.fradragsgrunnlag.size != request.fradragsgrunnlag.slåSammen(clock).size) {
+            return KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen.left()
+        }
 
         val oppdatertBehandling =
             søknadsbehandling.oppdaterFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag, clock)

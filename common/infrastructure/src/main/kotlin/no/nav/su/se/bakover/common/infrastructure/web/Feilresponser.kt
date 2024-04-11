@@ -323,6 +323,11 @@ data object Feilresponser {
         "kunne_ikke_legge_til_fradragsgrunnlag",
     )
 
+    val fradragMåSlåesSammen = BadRequest.errorJson(
+        "Fradrag som inneholder samme beløp, type, og tilhørighet må slås sammen til ett fradrag",
+        "like_fradrag_må_slåes_sammen",
+    )
+
     val harIkkeEktefelle = BadRequest.errorJson(
         "Kan ikke ha formue for eps når søker ikke har eps",
         "har_ikke_ektefelle",
