@@ -242,8 +242,8 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
                 fradragsperioder = nonEmptyListOf(
-                    nyFradragperiode(beløp = 1050, periode = januar(2021)),
-                    nyFradragperiode(beløp = 1050, periode = februar(2021)),
+                    nyFradragperiode(beløp = 1050, fraOgMed = januar(2021).fraOgMed, tilOgMed = januar(2021).tilOgMed),
+                    nyFradragperiode(beløp = 1050, fraOgMed = februar(2021).fraOgMed, tilOgMed = februar(2021).tilOgMed),
                 ),
             ),
         )

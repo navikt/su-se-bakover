@@ -86,7 +86,7 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromFile(csvData).fold(
+                        parseCSVFromString(csvData).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val fraMåned =
@@ -111,7 +111,7 @@ internal fun Route.reguler(
                             val fraMåned =
                                 Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                             val supplement = body.csv?.let {
-                                parseCSVFromText(it).fold(
+                                parseCSVFromString(it).fold(
                                     ifLeft = { return@runBlocking call.svar(it) },
                                     ifRight = { it },
                                 )
@@ -217,7 +217,7 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromFile(csvData).fold(
+                        parseCSVFromString(csvData).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val command = StartAutomatiskReguleringForInnsynCommand(
@@ -265,7 +265,7 @@ internal fun Route.reguler(
                 isTrue = {
                     runBlocking {
                         call.withBody<SupplementBody> {
-                            parseCSVFromFile(it.csv).fold(
+                            parseCSVFromString(it.csv).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
                                     launch {
@@ -280,7 +280,7 @@ internal fun Route.reguler(
                 isFalse = {
                     runBlocking {
                         call.withBody<SupplementBody> {
-                            parseCSVFromText(it.csv).fold(
+                            parseCSVFromString(it.csv).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
                                     launch {

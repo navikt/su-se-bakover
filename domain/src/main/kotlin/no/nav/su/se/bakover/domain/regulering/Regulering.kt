@@ -306,7 +306,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
             setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
         ) to originaleFradragsgrunnlag
 
-    if (supplementForType.perioder.size > 1) {
+    if (supplementForType.fradragsperioder.size > 1) {
         // TODO jah: Vurder logging her
         return Reguleringstype.MANUELL(
             setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),

@@ -46,7 +46,7 @@ data class DryRunReguleringBody(
             garantipensjonOrdinær = garantipensjonOrdinær,
             garantipensjonHøy = garantipensjonHøy,
             supplement = if (csv != null) {
-                parseCSVFromText(csv).fold(
+                parseCSVFromString(csv).fold(
                     ifLeft = { return it.left() },
                     ifRight = { it },
                 )

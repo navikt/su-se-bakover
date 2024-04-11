@@ -29,6 +29,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simuleringsresultat
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetRegulering(
@@ -235,9 +236,41 @@ fun nyReguleringssupplementInnholdPerType(
 )
 
 fun nyFradragperiode(
-    periode: Periode = stønadsperiode2021.periode,
+    fraOgMed: LocalDate = stønadsperiode2021.periode.fraOgMed,
+    tilOgMed: LocalDate? = stønadsperiode2021.periode.tilOgMed,
+    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
     beløp: Int = 1000,
+    eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
 ): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
-    periode = periode,
+    fraOgMed = fraOgMed,
+    tilOgMed = tilOgMed,
+    vedtakstype = vedtakstype,
     beløp = beløp,
+    eksterndata = eksterndata,
 )
+
+fun nyEksterndata(
+    fnr: String = "11111111111",
+    sakstype: String = "UFOREP",
+    vedtakstype: String = "REGULERING",
+    fraOgMed: String = "01.05.2021",
+    tilOgMed: String? = null,
+    bruttoYtelse: String = "10000",
+    nettoYtelse: String = "11000",
+    ytelseskomponenttype: String = "ST",
+    bruttoYtelseskomponent: String = "10000",
+    nettoYtelseskomponent: String = "11000",
+): ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata {
+    return ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
+        fnr = fnr,
+        sakstype = sakstype,
+        vedtakstype = vedtakstype,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        bruttoYtelse = bruttoYtelse,
+        nettoYtelse = nettoYtelse,
+        ytelseskomponenttype = ytelseskomponenttype,
+        bruttoYtelseskomponent = bruttoYtelseskomponent,
+        nettoYtelseskomponent = nettoYtelseskomponent,
+    )
+}

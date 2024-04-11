@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.test.dokumentUtenFil
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class DokumentMedMetadataUtenFilTest {
+class DokumentMedEksterndataUtenFilTest {
     @Test
     fun `dokument mappes til DokumentUtenFil korrekt`() {
         dokumentMedMetadataVedtak(

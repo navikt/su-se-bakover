@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.database.regulering
 
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.regulering.FradragsperiodeJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.PerTypeJson.Companion.toDbJson
@@ -10,6 +8,7 @@ import no.nav.su.se.bakover.database.regulering.ReguleringssupplementForJson.Com
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.time.LocalDate
 
 internal data class EksternSupplementReguleringJson(
     val bruker: ReguleringssupplementForJson?,
@@ -63,19 +62,63 @@ data class PerTypeJson(
 }
 
 data class FradragsperiodeJson(
-    val periode: PeriodeJson,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate?,
+    val vedtakstype: String,
     val beløp: Int,
+    val eksterndata: EksternData,
 ) {
     fun toDomain(): ReguleringssupplementFor.PerType.Fradragsperiode =
         ReguleringssupplementFor.PerType.Fradragsperiode(
-            periode = periode.toPeriode(),
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
             beløp = beløp,
+            vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.valueOf(vedtakstype),
+            eksterndata = ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
+                fnr = eksterndata.fnr,
+                sakstype = eksterndata.sakstype,
+                vedtakstype = eksterndata.vedtakstype,
+                fraOgMed = eksterndata.fraOgMed,
+                tilOgMed = eksterndata.tilOgMed,
+                bruttoYtelse = eksterndata.bruttoYtelse,
+                nettoYtelse = eksterndata.nettoYtelse,
+                ytelseskomponenttype = eksterndata.ytelseskomponenttype,
+                bruttoYtelseskomponent = eksterndata.bruttoYtelseskomponent,
+                nettoYtelseskomponent = eksterndata.nettoYtelseskomponent,
+            ),
         )
+
+    data class EksternData(
+        val fnr: String,
+        val sakstype: String,
+        val vedtakstype: String,
+        val fraOgMed: String,
+        val tilOgMed: String?,
+        val bruttoYtelse: String,
+        val nettoYtelse: String,
+        val ytelseskomponenttype: String,
+        val bruttoYtelseskomponent: String,
+        val nettoYtelseskomponent: String,
+    )
 
     companion object {
         fun ReguleringssupplementFor.PerType.Fradragsperiode.toDbJson(): FradragsperiodeJson = FradragsperiodeJson(
-            periode = periode.toJson(),
+            fraOgMed = this.fraOgMed,
+            tilOgMed = tilOgMed,
             beløp = beløp,
+            vedtakstype = vedtakstype.toString(),
+            eksterndata = EksternData(
+                fnr = eksterndata.fnr,
+                sakstype = eksterndata.sakstype,
+                vedtakstype = eksterndata.vedtakstype,
+                fraOgMed = eksterndata.fraOgMed,
+                tilOgMed = eksterndata.tilOgMed,
+                bruttoYtelse = eksterndata.bruttoYtelse,
+                nettoYtelse = eksterndata.nettoYtelse,
+                ytelseskomponenttype = eksterndata.ytelseskomponenttype,
+                bruttoYtelseskomponent = eksterndata.bruttoYtelseskomponent,
+                nettoYtelseskomponent = eksterndata.nettoYtelseskomponent,
+            ),
         )
     }
 }
