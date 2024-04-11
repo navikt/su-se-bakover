@@ -116,6 +116,10 @@ open class Periode protected constructor(
         )
     }
 
+    fun erMåned(): Boolean {
+        return getAntallMåneder() == 1
+    }
+
     companion object {
 
         fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode = tryCreate(fraOgMed, tilOgMed).getOrElse {
@@ -164,6 +168,18 @@ open class Periode protected constructor(
 
     override fun toString(): String {
         return "Periode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
+    }
+
+    /**
+     * Plusser 1 måned på tilOgMed.
+     */
+    fun forlengMedEnMåned(): Periode = create(fraOgMed = fraOgMed, tilOgMed = tilOgMed.plusMonths(1).endOfMonth())
+
+    fun forlengMedPeriode(periode: Periode): Periode {
+        require(this.tilOgMed.plusDays(1) == periode.fraOgMed) {
+            "Innkommende periode $periode sin fra og med må starte dagen etter denne periodens $this til og med."
+        }
+        return create(fraOgMed = fraOgMed, tilOgMed = periode.tilOgMed)
     }
 }
 
@@ -241,7 +257,7 @@ fun Collection<Periode>.måneder(): List<Måned> {
 }
 
 /**
- * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ * Inputlisten med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
  *
  * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */

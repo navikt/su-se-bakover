@@ -2,6 +2,7 @@ package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 
 /**
@@ -20,9 +21,20 @@ data class FradragForMåned(
     init {
         require(månedsbeløp >= 0.0) { "Fradrag kan ikke være negative" }
     }
+
     override val periode: Måned = måned
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(måned = it.tilMåned()) }
+    }
+
+    fun nyPeriode(periode: Periode): FradragForPeriode {
+        return FradragForPeriode(
+            fradragstype = fradragstype,
+            månedsbeløp = månedsbeløp,
+            periode = periode,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører,
+        )
     }
 }

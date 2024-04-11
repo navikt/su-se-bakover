@@ -1,18 +1,24 @@
 package vilkår.inntekt.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.NonEmptyCollection
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
+import arrow.core.fold
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.tid.periode.måneder
 import org.jetbrains.annotations.TestOnly
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.Clock
@@ -25,18 +31,59 @@ data class Fradragsgrunnlag private constructor(
 ) : Grunnlag, Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
     override val periode: Periode = fradrag.periode
 
-    fun oppdaterFradragsperiode(
-        oppdatertPeriode: Periode,
+    /**
+     * Sjekker om fradragsgrunnlaget kan slås sammen med et annet fradragsgrunnlag.
+     * For å kunne slås sammen må de ha samme fradragstype, utenlandskInntekt, tilhører, og månedsbeløp.
+     * I tillegg må periodene tilstøte eller overlappe.
+     *
+     * Note on overlapp: Av historiske caser, må fradrag sjekke for overlapp, selv om vi skulle ønske at det ikke var nødvendig.
+     */
+    fun kanSlåSammen(other: Fradragsgrunnlag): Boolean {
+        if (fradrag.fradragstype != other.fradragstype) {
+            return false
+        }
+        if (fradrag.utenlandskInntekt != other.utenlandskInntekt) {
+            return false
+        }
+        if (fradrag.tilhører != other.tilhører) {
+            return false
+        }
+        if (fradrag.månedsbeløp != other.månedsbeløp) {
+            return false
+        }
+        return periode.tilstøter(other.periode) || periode.overlapper(other.periode)
+    }
+
+    fun nyFradragsperiode(
+        periode: Periode,
+    ): Fradragsgrunnlag {
+        return this.copy(
+            fradrag = when (val f = this.fradrag) {
+                is FradragForMåned -> f.nyPeriode(periode)
+                is FradragForPeriode -> f.copy(periode = periode)
+                is Fradragsgrunnlag -> throw IllegalStateException("Fradraget til Fradragsgrunnlag kan ikke være Fradragsgrunnlag (rekursjon).")
+                else -> throw IllegalStateException("Ukjent fradragstype: ${this::class.simpleName}")
+            },
+        )
+    }
+
+    /**
+     * Denne funksjonen er skreddersydd for endring av stønadsperiode under søknadsbehandling.
+     * Dersom vi har lagt inn fradrag for en sub-periode og den nye stønadsperioden overlapper denne sub-perioden, vil snittet være den nye fradragsperioden.
+     * Dersom den nye stønadsperioden ikke overlapper, vil vi ta med oss alle fradragene og sette den nye stønadsperioden som fradragsperiode.
+     */
+    fun oppdaterStønadsperiode(
+        nyStønadsperiode: Stønadsperiode,
         clock: Clock,
     ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
-        return this.copyInternal(CopyArgs.Snitt(oppdatertPeriode)).flatMap {
+        return this.copyInternal(CopyArgs.Snitt(nyStønadsperiode.periode)).flatMap {
             it?.right() ?: tryCreate(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 fradrag = FradragFactory.nyFradragsperiode(
                     fradragstype = this.fradrag.fradragstype,
                     månedsbeløp = this.fradrag.månedsbeløp,
-                    periode = oppdatertPeriode,
+                    periode = nyStønadsperiode.periode,
                     utenlandskInntekt = this.fradrag.utenlandskInntekt,
                     tilhører = this.fradrag.tilhører,
                 ),
@@ -101,14 +148,16 @@ data class Fradragsgrunnlag private constructor(
             return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
         }
 
-        // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-        fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
-            oppdatertPeriode: Periode,
+        /**
+         * Dersom en av List<Fradragsgrunnlag> er ugyldig, vil vi feile.
+         */
+        fun List<Fradragsgrunnlag>.oppdaterStønadsperiode(
+            oppdatertPeriode: Stønadsperiode,
             clock: Clock,
         ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
             return either {
-                this@oppdaterFradragsperiode.map {
-                    it.oppdaterFradragsperiode(oppdatertPeriode, clock).bind()
+                this@oppdaterStønadsperiode.map {
+                    it.oppdaterStønadsperiode(oppdatertPeriode, clock).bind()
                 }
             }
         }
@@ -121,34 +170,6 @@ data class Fradragsgrunnlag private constructor(
             return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
         }
 
-        fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(clock: Clock): List<Fradragsgrunnlag> {
-            return this.sortedBy { it.periode.fraOgMed }
-                .fold(mutableListOf<MutableList<Fradragsgrunnlag>>()) { acc, fradragsgrunnlag ->
-                    if (acc.isEmpty()) {
-                        acc.add(mutableListOf(fradragsgrunnlag))
-                    } else if (acc.last().sisteFradragsgrunnlagErLikOgTilstøtende(fradragsgrunnlag)) {
-                        acc.last().add(fradragsgrunnlag)
-                    } else {
-                        acc.add(mutableListOf(fradragsgrunnlag))
-                    }
-                    acc
-                }.map {
-                    val periode = it.map { it.periode }.minAndMaxOf()
-
-                    tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = it.first().fradragstype,
-                            månedsbeløp = it.first().månedsbeløp,
-                            periode = periode,
-                            utenlandskInntekt = it.first().utenlandskInntekt,
-                            tilhører = it.first().tilhører,
-                        ),
-                    ).getOrElse { throw IllegalStateException(it.toString()) }
-                }
-        }
-
         /**
          * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
          */
@@ -158,9 +179,6 @@ data class Fradragsgrunnlag private constructor(
                 Fradragstype.BeregnetFradragEPS,
                 Fradragstype.UnderMinstenivå,
             ).contains(fradrag.fradragstype)
-
-        private fun List<Fradragsgrunnlag>.sisteFradragsgrunnlagErLikOgTilstøtende(other: Fradragsgrunnlag) =
-            this.last().let { it.tilstøter(other) && it.erLik(other) }
     }
 
     sealed interface UgyldigFradragsgrunnlag {
@@ -184,4 +202,47 @@ data class Fradragsgrunnlag private constructor(
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
     }
+}
+
+fun Collection<Fradragsgrunnlag>.slåSammen(clock: Clock): List<Fradragsgrunnlag> {
+    return this.toNonEmptyListOrNull()?.slåSammen(clock) ?: emptyList()
+}
+
+fun NonEmptyCollection<Fradragsgrunnlag>.slåSammen(clock: Clock): NonEmptyList<Fradragsgrunnlag> {
+    val tidspunktNow = Tidspunkt.now(clock)
+    return this.groupBy { Triple(it.fradragstype, it.tilhører, it.utenlandskInntekt) }.map { (triple, liste) ->
+        val (fradragstype, tilhører, utenlandskinntekt) = triple
+        val månedTilFradragForMåned = liste.map { it.periode }.måneder().associateWith { måned ->
+            val f = liste.filter { it.periode.inneholder(måned) }
+            Fradragsgrunnlag.create(
+                opprettet = tidspunktNow,
+                fradrag = FradragForMåned(
+                    fradragstype = fradragstype,
+                    månedsbeløp = f.sumOf { it.månedsbeløp },
+                    måned = måned,
+                    utenlandskInntekt = utenlandskinntekt,
+                    tilhører = tilhører,
+                ),
+            )
+        }
+
+        månedTilFradragForMåned.fold(mutableListOf<Fradragsgrunnlag>()) { acc, (_, fradragsgrunnlag) ->
+            if (acc.isEmpty()) {
+                acc.add(fradragsgrunnlag)
+                // Vi forsikrer oss tidligere om at disse ikke kan overlappe. Og siden månedene er sortert, vil det bli riktig med forlendMedEnMåned().
+            } else if (acc.last().kanSlåSammen(fradragsgrunnlag)) {
+                acc[acc.lastIndex] = acc.last().nyFradragsperiode(acc.last().periode.forlengMedEnMåned())
+            } else {
+                acc.add(fradragsgrunnlag)
+            }
+            acc
+        }
+    }.flatten().sortedWith(
+        compareBy(
+            { it.fradragstype.kategori },
+            { it.tilhører },
+            { it.utenlandskInntekt == null },
+            { it.periode.fraOgMed },
+        ),
+    ).toNonEmptyList()
 }

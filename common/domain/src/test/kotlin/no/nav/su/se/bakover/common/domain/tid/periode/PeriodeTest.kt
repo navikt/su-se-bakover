@@ -1180,4 +1180,38 @@ internal class PeriodeTest {
         1.januar(2021).between(februar(2021)) shouldBe false
         1.januar(2021).between(år(2021)) shouldBe true
     }
+
+    @Test
+    fun `forlenger måneden med 1 måned`() {
+        januar(2021).forlengMedEnMåned() shouldBe januar(2021)..februar(2021)
+        februar(2021).forlengMedEnMåned() shouldBe februar(2021)..mars(2021)
+        mars(2021).forlengMedEnMåned() shouldBe mars(2021)..april(2021)
+        april(2021).forlengMedEnMåned() shouldBe april(2021)..mai(2021)
+        mai(2021).forlengMedEnMåned() shouldBe mai(2021)..juni(2021)
+        juni(2021).forlengMedEnMåned() shouldBe juni(2021)..juli(2021)
+        juli(2021).forlengMedEnMåned() shouldBe juli(2021)..august(2021)
+        august(2021).forlengMedEnMåned() shouldBe august(2021)..september(2021)
+        september(2021).forlengMedEnMåned() shouldBe september(2021)..oktober(2021)
+        november(2021).forlengMedEnMåned() shouldBe november(2021)..desember(2021)
+        desember(2021).forlengMedEnMåned() shouldBe desember(2021)..januar(2022)
+    }
+
+    @Test
+    fun `forlenger med periode`() {
+        val p1 = Periode.create(1.januar(2021), 31.januar(2021))
+        val p2 = Periode.create(1.februar(2021), 28.februar(2021))
+        val p3 = Periode.create(1.mars(2021), 31.mars(2021))
+
+        p1.forlengMedPeriode(p2) shouldBe januar(2021)..februar(2021)
+        p2.forlengMedPeriode(p3) shouldBe februar(2021)..mars(2021)
+
+        assertThrows<IllegalArgumentException> {
+            // kan ikke forlenge med periode som er den samme
+            p1.forlengMedPeriode(p1)
+            // p1 sin tilOgMed må tilstøte p3 sin fraOgMed
+            p1.forlengMedPeriode(p3)
+            // kan ikke forlenge med periode som starter før
+            p2.forlengMedPeriode(p1)
+        }
+    }
 }

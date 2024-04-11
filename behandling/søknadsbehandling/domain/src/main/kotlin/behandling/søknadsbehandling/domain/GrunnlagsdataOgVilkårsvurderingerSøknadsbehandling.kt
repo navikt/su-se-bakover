@@ -138,8 +138,8 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
         clock: Clock,
     ): Either<KunneIkkeLageGrunnlagsdata, GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling> {
         return GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
-            grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                oppdatertPeriode = stønadsperiode.periode,
+            grunnlagsdata = grunnlagsdata.oppdaterStønadsperiode(
+                nyPeriode = stønadsperiode,
                 clock = clock,
             ).getOrElse { return it.left() },
             vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(

@@ -13,7 +13,7 @@ interface Grunnlag {
 
     fun tilstøter(other: Grunnlag) = this.periode.tilstøter(other.periode)
 
-    /** unnlater å sjekke på ID og opprettet */
+    /** unnlater å sjekke på ID, opprettet og periode */
     fun erLik(other: Grunnlag): Boolean
 
     fun tilstøterOgErLik(other: Grunnlag) = this.tilstøter(other) && this.erLik(other)

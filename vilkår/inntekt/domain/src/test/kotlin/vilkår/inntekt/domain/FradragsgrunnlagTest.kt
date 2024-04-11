@@ -5,6 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -29,7 +30,6 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
-import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import vilkår.vurderinger.domain.fjernFradragEPS
@@ -101,7 +101,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `fradrag med periode som er lik stønadsperiode, blir oppdatert til å gjelde for hele stønadsperioden`() {
-        val oppdatertPeriode = år(2022)
+        val oppdatertPeriode = Stønadsperiode.create(år(2022))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -114,15 +114,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiode(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `fraOgMed blir kuttet og satt lik stønadsperiode FOM når oppdatertPeriode er etter fraOgMed `() {
-        val oppdatertPeriode = Periode.create(1.mai(2021), 31.desember(2021))
+        val oppdatertPeriode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021)))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -135,15 +135,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiode(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `tilOgMed blir kuttet og satt lik stønadsperiode TOM når oppdatertPeriode er før tilOgMed `() {
-        val oppdatertPeriode = Periode.create(1.januar(2021), 31.august(2021))
+        val oppdatertPeriode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021)))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -156,15 +156,15 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiode(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
     fun `fradrag med deler av periode i 2022, oppdaterer periode til å gjelde for 2021, får fradragene til å gjelde for hele 2021`() {
-        val oppdatertPeriode = år(2021)
+        val oppdatertPeriode = Stønadsperiode.create(år(2021))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -177,10 +177,10 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        fradragsgrunnlag.oppdaterFradragsperiode(
-            oppdatertPeriode = oppdatertPeriode,
+        fradragsgrunnlag.oppdaterStønadsperiode(
+            nyStønadsperiode = oppdatertPeriode,
             clock = fixedClock,
-        ).getOrFail().periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
@@ -254,34 +254,6 @@ internal class FradragsgrunnlagTest {
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
-    }
-
-    @Test
-    fun `slår sammen fradrag som er like og tilstøtende`() {
-        val f1 = nyFradragsgrunnlag(periode = januar(2021))
-        val f2 = nyFradragsgrunnlag(periode = februar(2021))
-        val f3 = nyFradragsgrunnlag(
-            periode = mars(2021),
-            type = Fradragstype.Sosialstønad,
-            månedsbeløp = 300.0,
-        )
-
-        val actual = listOf(f1, f2, f3).slåSammenPeriodeOgFradrag(clock = fixedClock)
-        actual.size shouldBe 2
-        actual.first().fradrag shouldBe FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.Kontantstøtte,
-            månedsbeløp = 200.0,
-            periode = Periode.create(1.januar(2021), 28.februar(2021)),
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        )
-        actual.last().fradrag shouldBe FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.Sosialstønad,
-            månedsbeløp = 300.0,
-            periode = mars(2021),
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        )
     }
 
     @Test

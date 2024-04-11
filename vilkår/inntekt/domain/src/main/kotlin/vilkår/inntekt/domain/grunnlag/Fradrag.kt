@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.KopierbarForSnitt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 
 /**
- * TODO: Dette burde egentlig vært et beregningsfradrag
+ * TODO: Dette burde egentlig vært et beregningsfradrag, mens Fradragsgrunnlag ikke refererer til denne.
  */
 interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype

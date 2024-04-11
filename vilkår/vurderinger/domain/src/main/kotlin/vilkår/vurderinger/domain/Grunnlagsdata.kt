@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -13,9 +14,8 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
-import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterStønadsperiode
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 
@@ -70,18 +70,19 @@ data class Grunnlagsdata private constructor(
     /**
      * Kaster dersom ikke alle bosituasjonene er fullstendig.
      */
-    // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-    fun oppdaterGrunnlagsperioder(
-        oppdatertPeriode: Periode,
+    fun oppdaterStønadsperiode(
+        nyPeriode: Stønadsperiode,
         clock: Clock,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-        require(bosituasjon.size <= 1) {
-            "Denne er kun beregnet på Søknadsbehandling med 1 bosituasjon, siden oppdaterBosituasjonsperiode vil sette alle bosituasjonene til samme periode."
-        }
         return tryCreate(
-            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode, clock)
+            fradragsgrunnlag = fradragsgrunnlag.oppdaterStønadsperiode(nyPeriode, clock)
                 .getOrElse { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
-            bosituasjon = bosituasjonSomFullstendig().oppdaterBosituasjonsperiode(oppdatertPeriode),
+            bosituasjon = when {
+                bosituasjon.isEmpty() -> emptyList()
+                bosituasjon.size == 1 -> listOf(bosituasjon.single().oppdaterStønadsperiode(nyPeriode))
+                // TODO jah: Dersom vi legger inn støtte for flere bosituasjoner under søknadsbehandling, så må dette kravet sees over.
+                else -> throw IllegalStateException("Denne er kun beregnet på Søknadsbehandling med 1 bosituasjon, siden oppdaterBosituasjonsperiode vil sette alle bosituasjonene til samme periode.")
+            },
         )
     }
 

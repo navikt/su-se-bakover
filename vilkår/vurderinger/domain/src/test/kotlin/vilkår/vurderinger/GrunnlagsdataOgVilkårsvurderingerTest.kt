@@ -8,6 +8,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -191,8 +192,8 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `oppdaterGrunnlagsperioder på tomme lister`() {
         val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList())
 
-        tomGrunnlagsdata.oppdaterGrunnlagsperioder(
-            oppdatertPeriode = januar(2021),
+        tomGrunnlagsdata.oppdaterStønadsperiode(
+            nyPeriode = Stønadsperiode.create(januar(2021)),
             clock = fixedClock,
         ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
     }
@@ -200,7 +201,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `oppdaterer periodene på grunnlagene`() {
         val forrigePeriode = år(2021)
-        val oppdatertPeriode = januar(2021)
+        val oppdatertPeriode = Stønadsperiode.create(januar(2021))
         val fradragsgrunnlag = Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -220,15 +221,15 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val grunnlagsdata =
             Grunnlagsdata.create(fradragsgrunnlag = listOf(fradragsgrunnlag), bosituasjon = listOf(bosiutasjongrunnlag))
 
-        val actual = grunnlagsdata.oppdaterGrunnlagsperioder(
-            oppdatertPeriode = oppdatertPeriode,
+        val actual = grunnlagsdata.oppdaterStønadsperiode(
+            nyPeriode = oppdatertPeriode,
             clock = fixedClock,
         ).getOrFail()
 
         actual.fradragsgrunnlag.size shouldBe 1
-        actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode
+        actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode.periode
         actual.bosituasjon.size shouldBe 1
-        actual.bosituasjon.first().periode shouldBe oppdatertPeriode
+        actual.bosituasjon.first().periode shouldBe oppdatertPeriode.periode
     }
 
     @Test
