@@ -15,6 +15,9 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -25,7 +28,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -234,9 +236,12 @@ data class Sak(
     /**
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
-    fun hentIkkeOpphørtePerioder(): List<Periode> =
-        vedtakstidslinje()?.filterNot { it.erOpphør() }?.map { it.periode }?.minsteAntallSammenhengendePerioder()
-            ?: emptyList()
+    fun hentIkkeOpphørtePerioder(): SlåttSammenIkkeOverlappendePerioder =
+        vedtakstidslinje()
+            ?.filterNot { it.erOpphør() }
+            ?.map { it.periode }
+            ?.minsteAntallSammenhengendePerioder()
+            ?: EmptyPerioder
 
     fun vedtakstidslinje(
         fraOgMed: Måned,

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.common
 
 import no.nav.su.se.bakover.common.domain.norwegianLocale
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import java.text.NumberFormat
 import java.time.LocalDate
 import kotlin.math.abs

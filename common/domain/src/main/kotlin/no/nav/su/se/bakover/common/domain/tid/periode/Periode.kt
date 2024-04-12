@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
@@ -12,6 +11,9 @@ import no.nav.su.se.bakover.common.domain.tid.between
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import java.time.LocalDate
 import java.time.Month
@@ -84,11 +86,11 @@ open class Periode protected constructor(
         }
     }
 
-    infix operator fun minus(other: Periode): List<Periode> {
+    infix operator fun minus(other: Periode): IkkeOverlappendePerioder {
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
-    infix operator fun minus(other: Collection<Periode>): List<Periode> {
+    infix operator fun minus(other: Collection<Periode>): IkkeOverlappendePerioder {
         return (måneder() - other.toList().måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
@@ -210,37 +212,16 @@ fun List<Periode>.minAndMaxOfOrNull(): Periode? {
 }
 
 /**
- * Finner minste antall sammenhengende perioder fra en liste med [Periode] ved å slå sammen elementer etter reglene
- * definert av [Periode.slåSammen].
- */
-fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
-    return this.måneder().fold(emptyList()) { acc, måned ->
-        if (acc.isEmpty()) {
-            listOf(måned.tilPeriode())
-        } else {
-            acc.last().slåSammen(måned.tilPeriode()).fold(
-                { acc + måned.tilPeriode() },
-                { acc.dropLast(1) + it },
-            )
-        }
-    }
-}
-
-fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
-    return (this as List<Periode>).minsteAntallSammenhengendePerioder().toNonEmptyList()
-}
-
-/**
  * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
  * perioder i [this] til en minimum antall sammenhengende perioder.
  */
-infix operator fun Iterable<Periode>.minus(other: Iterable<Periode>): List<Periode> {
+infix operator fun Iterable<Periode>.minus(other: Iterable<Periode>): IkkeOverlappendePerioder {
     return (flatMap { it.måneder() }.toSet().setsMinus(other.flatMap { it.måneder() }.toSet()))
         .toList()
         .minsteAntallSammenhengendePerioder()
 }
 
-infix operator fun Iterable<Periode>.minus(other: Periode): List<Periode> {
+infix operator fun Iterable<Periode>.minus(other: Periode): IkkeOverlappendePerioder {
     return (flatMap { it.måneder() }.toSet() - other.måneder())
         .toList()
         .minsteAntallSammenhengendePerioder()
@@ -288,8 +269,8 @@ fun List<Periode>.erSortertPåFraOgMedDeretterTilOgMed(): Boolean {
  * Listen med perioder kan være usammenhengende og ha duplikator.
  * Dersom den har overlappende perioder, gir ikke denne sjekken veldig mye mening. Bør brukes i sammenheng med [harOverlappende].
  */
-fun List<Periode>.sorterPåFraOgMedDeretterTilOgMed(): List<Periode> {
-    return this.sortedWith(compareBy<Periode> { it.fraOgMed }.thenBy { it.tilOgMed })
+fun List<Periode>.sorterPåFraOgMedDeretterTilOgMed(): Perioder {
+    return Perioder.create(this.sortedWith(compareBy<Periode> { it.fraOgMed }.thenBy { it.tilOgMed }))
 }
 
 /**
