@@ -117,7 +117,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.27.456789",
+    "kontrollfelt":"2021-02-01-02.03.42.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -125,21 +125,21 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "betaltSkattForYtelsesgruppen":"6192",
-        "bruttoTidligereUtbetalt":"20946",
+        "betaltSkattForYtelsesgruppen":"1192",
+        "bruttoTidligereUtbetalt":"10946",
         "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"12383",
-        "nettoFeilutbetaling": "6191",
+        "bruttoFeilutbetaling":"2383",
+        "nettoFeilutbetaling": "1191",
         "skatteProsent":"50",
-        "skattFeilutbetaling":"6192",
+        "skattFeilutbetaling":"1192"
       }
     ],
-        "summertBetaltSkattForYtelsesgruppen": "6192",
-    "summertBruttoTidligereUtbetalt": 20946,
+    "summertBetaltSkattForYtelsesgruppen": "1192",
+    "summertBruttoTidligereUtbetalt": 10946,
     "summertBruttoNyUtbetaling": 8563,
-    "summertBruttoFeilutbetaling": 12383,
-    "summertNettoFeilutbetaling": 6191,
-    "summertSkattFeilutbetaling": 6192,
+    "summertBruttoFeilutbetaling": 2383,
+    "summertNettoFeilutbetaling": 1191,
+    "summertSkattFeilutbetaling": 1192,
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"FORHÅNDSVARSLET",

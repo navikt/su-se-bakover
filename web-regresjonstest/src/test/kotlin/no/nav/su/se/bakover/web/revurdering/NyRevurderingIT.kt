@@ -53,7 +53,7 @@ internal class NyRevurderingIT {
                             expectedUtbetalinger = """
                                 [
                                     {
-                                        "beløp":20946,
+                                        "beløp":10946,
                                         "fraOgMed": "2021-01-01",
                                         "tilOgMed": "2021-04-30",
                                         "type": "NY"
@@ -65,7 +65,7 @@ internal class NyRevurderingIT {
                                         "type": "NY"
                                     },
                                     {
-                                        "beløp":20946,
+                                        "beløp":10946,
                                         "fraOgMed": "2021-08-01",
                                         "tilOgMed": "2021-12-31",
                                         "type": "NY"

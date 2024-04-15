@@ -2,12 +2,15 @@ package no.nav.su.se.bakover.web.sak.hent
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.test.application.defaultRequest
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -23,6 +26,22 @@ internal fun hentSak(sakId: String, client: HttpClient): String {
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ).apply {
+            status shouldBe HttpStatusCode.OK
+        }.bodyAsText()
+    }
+}
+
+internal fun hentSakForFnr(fnr: String, sakstype: String = "uføre", client: HttpClient): String {
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Post,
+            "/saker/søk",
+            listOf(Brukerrolle.Saksbehandler),
+            client = client,
+        ) {
+            //language=json
+            setBody("""{"fnr":"$fnr", "type": "$sakstype", "saksnummer":null}""")
+        }.apply {
             status shouldBe HttpStatusCode.OK
         }.bodyAsText()
     }
@@ -63,5 +82,24 @@ internal fun hentSøknad(sakJson: String, søknadId: String): String? {
                 (it as JSONObject).get("id").toString() == søknadId
             }?.toString()
         }
+    }
+}
+
+internal fun hentReguleringer(sakJson: String): String {
+    return JSONObject(sakJson).getJSONArray("reguleringer").toString()
+}
+
+internal fun String.hentReguleringMedId(id: String): String = hentReguleringer(this).let {
+    JSONArray(it).filter {
+        JSONObject(it.toString()).get("id").toString() == id
+    }.let {
+        it.whenever(
+            isEmpty = {
+                throw IllegalArgumentException("Fant ikke regulering med id $id")
+            },
+            isNotEmpty = {
+                it.first().toString()
+            },
+        )
     }
 }

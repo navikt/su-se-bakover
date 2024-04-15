@@ -75,7 +75,7 @@ class GjenopptaStansEtterRevurdering {
                     .toString() shouldBe """{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}"""
                 JSONObject(it).getString("status").toString() shouldBe "SIMULERT_GJENOPPTAK"
                 JSONObject(it).getJSONObject("simulering").getJSONArray("periodeOppsummering")
-                    .toString() shouldBe """[{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20946,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20946,"sumTilUtbetaling":20946,"sumReduksjonFeilkonto":0}]"""
+                    .toString() shouldBe """[{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":10946,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":10946,"sumTilUtbetaling":10946,"sumReduksjonFeilkonto":0}]"""
                 RevurderingJson.hentRevurderingId(it)
             }
             iverksettGjenopptak(

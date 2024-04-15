@@ -26,7 +26,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     verifiserRespons: Boolean = true,
     utførSideeffekter: Boolean = true,
     saksversjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.27.456789",
+    expectedKontrollfelt: String = "2021-02-01-02.03.42.456789",
 ): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
@@ -103,8 +103,9 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     expectedVersjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.27.456789",
+    expectedKontrollfelt: String = "2021-02-01-02.03.42.456789",
 ) {
+    //language=json
     val expected = """
 {
   "id":"ignoreres-siden-denne-opprettes-av-tjenesten",
@@ -122,21 +123,21 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
           "fraOgMed":"2021-01-01",
           "tilOgMed":"2021-01-31"
         },
-        "betaltSkattForYtelsesgruppen":"6192",
-        "bruttoTidligereUtbetalt":"20946",
+        "betaltSkattForYtelsesgruppen":"1192",
+        "bruttoTidligereUtbetalt":"10946",
         "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"12383",
-        "nettoFeilutbetaling": "6191",
+        "bruttoFeilutbetaling":"2383",
+        "nettoFeilutbetaling": "1191",
         "skatteProsent":"50",
-        "skattFeilutbetaling":"6192",
+        "skattFeilutbetaling":"1192"
       }
     ],
-    "summertBetaltSkattForYtelsesgruppen": "6192",
-    "summertBruttoTidligereUtbetalt": 20946,
+    "summertBetaltSkattForYtelsesgruppen": "1192",
+    "summertBruttoTidligereUtbetalt": 10946,
     "summertBruttoNyUtbetaling": 8563,
-    "summertBruttoFeilutbetaling": 12383,
-    "summertNettoFeilutbetaling": 6191,
-    "summertSkattFeilutbetaling": 6192,
+    "summertBruttoFeilutbetaling": 2383,
+    "summertNettoFeilutbetaling": 1191,
+    "summertSkattFeilutbetaling": 1192,
     "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
   },
   "status":"OPPRETTET",
@@ -148,7 +149,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
   "avsluttetTidspunkt": null,
-  "notat": null,
+  "notat": null
 }"""
     actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "opprettet")
     JSONObject(actual).has("id") shouldBe true

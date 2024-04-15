@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -49,15 +50,16 @@ class AppComponents private constructor(
             clock: Clock,
             applicationConfig: ApplicationConfig,
             dataSource: DataSource,
+            satsFactory: SatsFactoryForSupplerendeStønad,
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
             serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
             tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter,
             dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter,
         ): AppComponents {
-            val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
+            val databaseRepos = repoBuilder(dataSource, clock, satsFactory)
             val clients = clientBuilder(databaseRepos, clock)
-            val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactoryTest)
+            val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactory)
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
                 services = services,
@@ -81,6 +83,107 @@ class AppComponents private constructor(
                 consumers = consumers,
                 tilbakekrevingskomponenter = tilbakekrevingskomponenter,
                 dokumentHendelseKomponenter = dokumenterKomponenter,
+            )
+        }
+
+        internal fun from(
+            dataSource: DataSource,
+            clockParam: Clock,
+            utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
+            satsFactoryParam: SatsFactoryForSupplerendeStønad = satsFactoryTest,
+            applicationConfig: ApplicationConfig,
+        ): AppComponents {
+            return instance(
+                clock = clockParam,
+                dataSource = dataSource,
+                satsFactory = satsFactoryParam,
+                repoBuilder = { ds, clock, satsFactory ->
+                    SharedRegressionTestData.databaseRepos(
+                        dataSource = ds,
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    )
+                },
+                clientBuilder = { db, clock ->
+                    TestClientsBuilder(
+                        clock = clock,
+                        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        databaseRepos = db,
+                    ).build(applicationConfig)
+                },
+                serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
+                    run {
+                        val satsFactoryIdag = satsFactory.gjeldende(LocalDate.now(clock))
+                        val formuegrenserFactoryIDag = FormuegrenserFactory.createFromGrunnbeløp(
+                            grunnbeløpFactory = satsFactoryIdag.grunnbeløpFactory,
+                            tidligsteTilgjengeligeMåned = satsFactoryIdag.tidligsteTilgjengeligeMåned,
+                        )
+                        ServiceBuilder.build(
+                            databaseRepos = databaseRepos,
+                            clients = clients,
+                            behandlingMetrics = mock(),
+                            søknadMetrics = mock(),
+                            clock = clock,
+                            satsFactory = satsFactoryIdag,
+                            formuegrenserFactory = formuegrenserFactoryIDag,
+                            applicationConfig = applicationConfig(),
+                            dbMetrics = dbMetricsStub,
+                        )
+                    }
+                },
+                applicationConfig = applicationConfig,
+                tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
+                    tilbakekrevingskomponenterMedClientStubs(
+                        clock = clockParam,
+                        sessionFactory = databaseRepos.sessionFactory,
+                        personService = services.person,
+                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        sakService = services.sak,
+                        oppgaveService = services.oppgave,
+                        oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
+                        mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
+                        hendelseRepo = databaseRepos.hendelseRepo,
+                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+                        brevService = services.brev,
+                    )
+                },
+                dokumentKomponenterBuilder = { databaseRepos, services, clients ->
+                    val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
+                        clock = clockParam,
+                        sessionFactory = databaseRepos.sessionFactory,
+                        hendelseRepo = databaseRepos.hendelseRepo,
+                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+                    )
+                    Dokumentkomponenter(
+                        repos = repos,
+                        services = DokumentServices(
+                            clock = clockParam,
+                            sessionFactory = repos.sessionFactory,
+                            hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                            sakService = services.sak,
+                            dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                            journalførBrevClient = clients.journalførClients.brev,
+                            dokDistFordeling = clients.dokDistFordeling,
+                            journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
+                                sakService = services.sak,
+                                journalførBrevClient = clients.journalførClients.brev,
+                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                                sessionFactory = repos.sessionFactory,
+                                clock = clockParam,
+                            ),
+                            distribuerDokumentHendelserKonsument = DistribuerDokumentHendelserKonsument(
+                                sakService = services.sak,
+                                dokDistFordeling = clients.dokDistFordeling,
+                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
+                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
+                                sessionFactory = repos.sessionFactory,
+                                clock = clockParam,
+                            ),
+                        ),
+                    )
+                },
             )
         }
     }
@@ -184,6 +287,7 @@ internal fun withKomptestApplication(
             appComponents = AppComponents.instance(
                 clock = clock,
                 dataSource = dataSource,
+                satsFactory = satsFactoryTest,
                 repoBuilder = repoBuilder,
                 clientBuilder = clientsBuilder,
                 serviceBuilder = serviceBuilder,

@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -36,6 +38,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
+import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
@@ -43,9 +46,12 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO - filnavnet er automatisk. vi har manuell route her inne også
 internal fun Route.reguler(
     reguleringService: ReguleringService,
     clock: Clock,
+    runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REGULERING_PATH/automatisk") {
         authorize(Brukerrolle.Drift) {
@@ -54,10 +60,15 @@ internal fun Route.reguler(
                 when (val m = Måned.parse(body.fraOgMedMåned)) {
                     null -> call.svar(ugyldigMåned)
                     else -> {
-                        CoroutineScope(Dispatchers.IO).launch {
+                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
                             reguleringService.startAutomatiskRegulering(m)
+                            call.svar(Resultat.okJson())
+                        } else {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                reguleringService.startAutomatiskRegulering(m)
+                            }
+                            call.svar(Resultat.okJson())
                         }
-                        call.svar(Resultat.okJson())
                     }
                 }
             }
@@ -125,7 +136,7 @@ internal fun Route.reguler(
                         },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                            call.svar(Resultat.okJson())
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
                 }

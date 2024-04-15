@@ -34,7 +34,7 @@ internal class NySøknadsbehandlingIT {
                 expectedUtbetalinger = """
                     [
                         {
-                         "beløp":20946,
+                         "beløp":10946,
                          "fraOgMed":"2021-01-01",
                          "tilOgMed":"2021-12-31",
                          "type":"NY"

@@ -21,28 +21,16 @@ internal fun leggTilFradrag(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     body: () -> String =
         {
+            //language=json
             """
                 {
                   "fradrag": [
                     {
-                      "periode": {
-                        "fraOgMed": "$fraOgMed",
-                        "tilOgMed": "$tilOgMed"
-                      },
-                      "type": "Arbeidsinntekt",
-                      "beløp": 5000.0,
+                      "periode": {"fraOgMed": "$fraOgMed","tilOgMed": "$tilOgMed"},
+                      "type": "PrivatPensjon",
+                      "beløp": 10000.0,
                       "utenlandskInntekt": null,
                       "tilhører": "BRUKER"
-                    },
-                    {
-                      "periode": {
-                        "fraOgMed": "$fraOgMed",
-                        "tilOgMed": "$tilOgMed"
-                      },
-                      "type": "PrivatPensjon",
-                      "beløp": 24950.0,
-                      "utenlandskInntekt": null,
-                      "tilhører": "EPS"
                     }
                   ]
                 }

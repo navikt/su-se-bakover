@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOpphol
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
+import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilInstitusjonsopphold
@@ -138,6 +139,15 @@ internal fun opprettInnvilgetSøknadsbehandling(
             client = client,
         )
     },
+    fradrag: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilFradrag(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            client = client,
+        )
+    },
     beregn: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         beregn(
             sakId = sakId,
@@ -193,6 +203,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
         leggTilBosituasjon(sakId, behandlingId),
         leggTilFormue(sakId, behandlingId),
         leggTilPersonligOppmøte(sakId, behandlingId),
+        fradrag(sakId, behandlingId),
         beregn(sakId, behandlingId),
         simuler(sakId, behandlingId),
         sendTilAttestering(sakId, behandlingId),

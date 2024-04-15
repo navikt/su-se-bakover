@@ -104,7 +104,7 @@ internal fun Application.setupKtorRoutes(
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
-                    reguleringRoutes(accessProtectedServices.reguleringService, clock)
+                    reguleringRoutes(accessProtectedServices.reguleringService, clock, applicationConfig.runtimeEnvironment, formuegrenserFactoryIDag)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
                         revurderingService = accessProtectedServices.revurdering,

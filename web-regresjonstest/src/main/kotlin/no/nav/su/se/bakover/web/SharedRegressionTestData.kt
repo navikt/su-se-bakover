@@ -26,10 +26,6 @@ import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.dokument.application.DokumentServices
-import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
-import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
-import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.JournalførBrevFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.JournalførSøknadFakeClient
@@ -42,7 +38,6 @@ import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
@@ -125,105 +120,14 @@ data object SharedRegressionTestData {
     internal fun withTestApplicationAndEmbeddedDb(
         clock: Clock = fixedClock,
         utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
+        satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
         withMigratedDb { dataSource ->
-            val appComponents = AppComponents.instance(
-                clock = clock,
-                dataSource = dataSource,
-                repoBuilder = { ds, clock, satsFactory ->
-                    databaseRepos(
-                        dataSource = ds,
-                        clock = clock,
-                        satsFactory = satsFactory,
-                    )
-                },
-                clientBuilder = { db, clock ->
-                    TestClientsBuilder(
-                        clock = clock,
-                        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-                        databaseRepos = db,
-                    ).build(applicationConfig)
-                },
-                serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
-                    run {
-                        val satsFactoryIdag = satsFactory.gjeldende(LocalDate.now(clock))
-                        val formuegrenserFactoryIDag = FormuegrenserFactory.createFromGrunnbeløp(
-                            grunnbeløpFactory = satsFactoryIdag.grunnbeløpFactory,
-                            tidligsteTilgjengeligeMåned = satsFactoryIdag.tidligsteTilgjengeligeMåned,
-                        )
-                        ServiceBuilder.build(
-                            databaseRepos = databaseRepos,
-                            clients = clients,
-                            behandlingMetrics = mock(),
-                            søknadMetrics = mock(),
-                            clock = clock,
-                            satsFactory = satsFactoryIdag,
-                            formuegrenserFactory = formuegrenserFactoryIDag,
-                            applicationConfig = applicationConfig(),
-                            dbMetrics = dbMetricsStub,
-                        )
-                    }
-                },
-                applicationConfig = applicationConfig,
-                tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
-                    tilbakekrevingskomponenterMedClientStubs(
-                        clock = clock,
-                        sessionFactory = databaseRepos.sessionFactory,
-                        personService = services.person,
-                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                        sakService = services.sak,
-                        oppgaveService = services.oppgave,
-                        oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-                        mapRåttKravgrunnlagPåSakHendelse = mapRåttKravgrunnlagPåSakHendelse,
-                        hendelseRepo = databaseRepos.hendelseRepo,
-                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
-                        brevService = services.brev,
-                    )
-                },
-                dokumentKomponenterBuilder = { databaseRepos, services, clients ->
-                    val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
-                        clock = clock,
-                        sessionFactory = databaseRepos.sessionFactory,
-                        hendelseRepo = databaseRepos.hendelseRepo,
-                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                        dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
-                    )
-                    Dokumentkomponenter(
-                        repos = repos,
-                        services = DokumentServices(
-                            clock = clock,
-                            sessionFactory = repos.sessionFactory,
-                            hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
-                            sakService = services.sak,
-                            dokumentHendelseRepo = repos.dokumentHendelseRepo,
-                            journalførBrevClient = clients.journalførClients.brev,
-                            dokDistFordeling = clients.dokDistFordeling,
-                            journalførtDokumentHendelserKonsument = JournalførDokumentHendelserKonsument(
-                                sakService = services.sak,
-                                journalførBrevClient = clients.journalførClients.brev,
-                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
-                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
-                                sessionFactory = repos.sessionFactory,
-                                clock = clock,
-                            ),
-                            distribuerDokumentHendelserKonsument = DistribuerDokumentHendelserKonsument(
-                                sakService = services.sak,
-                                dokDistFordeling = clients.dokDistFordeling,
-                                hendelsekonsumenterRepo = repos.hendelsekonsumenterRepo,
-                                dokumentHendelseRepo = repos.dokumentHendelseRepo,
-                                sessionFactory = repos.sessionFactory,
-                                clock = clock,
-                            ),
-                        ),
-                    )
-                },
-            )
+            val appComponents = AppComponents.from(dataSource, clock, utbetalingerKjørtTilOgMed, satsFactory, applicationConfig)
             testApplication {
                 application {
-                    testSusebakover(
-                        appComponents = appComponents,
-                    )
+                    testSusebakover(appComponents = appComponents)
                 }
                 test(appComponents)
             }

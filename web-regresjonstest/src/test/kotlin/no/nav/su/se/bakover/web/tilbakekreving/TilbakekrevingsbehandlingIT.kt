@@ -152,24 +152,24 @@ internal class TilbakekrevingsbehandlingIT {
                       "tilOgMed":"2021-01-31"
                     },
                     "vurdering":"SkalIkkeTilbakekreve",
-                    "betaltSkattForYtelsesgruppen":6192,
-                    "bruttoTidligereUtbetalt":20946,
+                    "betaltSkattForYtelsesgruppen":1192,
+                    "bruttoTidligereUtbetalt":10946,
                     "bruttoNyUtbetaling":8563,
                     "bruttoSkalTilbakekreve":0,
                     "nettoSkalTilbakekreve":0,
-                    "bruttoSkalIkkeTilbakekreve":12383,
+                    "bruttoSkalIkkeTilbakekreve":2383,
                     "skatteProsent":"50"
                   }
                 ],
                 "eksternKravgrunnlagId":"123456",
                 "eksternVedtakId":"654321",
-                "eksternKontrollfelt":"2021-02-01-02.03.27.456789",
+                "eksternKontrollfelt":"2021-02-01-02.03.42.456789",
                 "bruttoSkalTilbakekreveSummert":0,
                 "nettoSkalTilbakekreveSummert":0,
-                "bruttoSkalIkkeTilbakekreveSummert":12383,
-                "betaltSkattForYtelsesgruppenSummert":6192,
+                "bruttoSkalIkkeTilbakekreveSummert":2383,
+                "betaltSkattForYtelsesgruppenSummert":1192,
                 "bruttoNyUtbetalingSummert":8563,
-                "bruttoTidligereUtbetaltSummert":20946
+                "bruttoTidligereUtbetaltSummert":10946
               }
                 """.trimIndent(),
                 expectedNotat = notat,
