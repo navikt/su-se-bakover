@@ -1,6 +1,7 @@
 package vilkår.common.domain
 
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.LocalDate
@@ -24,9 +25,17 @@ interface Vilkår {
      * Vurderte vilkår vil ha en eller flere [Periode], mens ikke-vurderte vilkår vil ikke ha en [Periode].
      * Periodene vil være sortert og vil ikke ha duplikater.
      * De skal også være slått sammen, der det er mulig.
+     * Obs: Periodene kan fremdeles ha hull. TODO jah: Antar de kan ha hull i tidslinja, men vi får ikke lage vedtak med hull enda.
+     */
+    val perioderSlåttSammen: SlåttSammenIkkeOverlappendePerioder
+
+    /**
+     * Vurderte vilkår vil ha en eller flere [Periode], mens ikke-vurderte vilkår vil ikke ha en [Periode].
+     * Periodene vil være sortert og vil ikke ha duplikater.
+     * Periodene er bevart slik de ble lagt inn.
      * Obs: Periodene kan fremdeles ha hull.
      */
-    val perioder: IkkeOverlappendePerioder
+    val perioderIkkeSlåttSammen: IkkeOverlappendePerioder
 
     fun hentTidligesteDatoForAvslag(): LocalDate?
 

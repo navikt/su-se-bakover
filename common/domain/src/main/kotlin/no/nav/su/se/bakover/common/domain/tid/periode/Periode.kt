@@ -12,8 +12,9 @@ import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import java.time.LocalDate
 import java.time.Month
@@ -63,14 +64,14 @@ open class Periode protected constructor(
     }
 
     infix fun fullstendigOverlapp(other: Periode): Boolean =
-        this fullstendigOverlapp listOf(other)
+        this fullstendigOverlapp other.tilPerioder()
 
     /**
      * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
      * Dvs. at de må inneholde de nøyaktige samme måneder.
      */
-    infix fun fullstendigOverlapp(other: List<Periode>): Boolean =
-        this.måneder().toSet() == other.flatMap { it.måneder() }.toSet()
+    infix fun fullstendigOverlapp(other: Perioder): Boolean =
+        this.måneder() == other.måneder()
 
     /**
      * Perioden som overlapper begge perioder eller ingenting hvis periodene ikke overlapper i det heletatt. (se mengdelære).
@@ -86,11 +87,11 @@ open class Periode protected constructor(
         }
     }
 
-    infix operator fun minus(other: Periode): IkkeOverlappendePerioder {
+    infix operator fun minus(other: Periode): SlåttSammenIkkeOverlappendePerioder {
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
-    infix operator fun minus(other: Collection<Periode>): IkkeOverlappendePerioder {
+    infix operator fun minus(other: Collection<Periode>): SlåttSammenIkkeOverlappendePerioder {
         return (måneder() - other.toList().måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
@@ -121,6 +122,8 @@ open class Periode protected constructor(
     fun erMåned(): Boolean {
         return getAntallMåneder() == 1
     }
+
+    fun tilPerioder() = NonEmptySlåttSammenIkkeOverlappendePerioder.create(this)
 
     companion object {
 
@@ -214,14 +217,16 @@ fun List<Periode>.minAndMaxOfOrNull(): Periode? {
 /**
  * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
  * perioder i [this] til en minimum antall sammenhengende perioder.
+ *
+ * @return En sortert, slått sammen og ikke-overlappende liste med perioder.
  */
-infix operator fun Iterable<Periode>.minus(other: Iterable<Periode>): IkkeOverlappendePerioder {
+infix operator fun Iterable<Periode>.minus(other: Iterable<Periode>): SlåttSammenIkkeOverlappendePerioder {
     return (flatMap { it.måneder() }.toSet().setsMinus(other.flatMap { it.måneder() }.toSet()))
         .toList()
         .minsteAntallSammenhengendePerioder()
 }
 
-infix operator fun Iterable<Periode>.minus(other: Periode): IkkeOverlappendePerioder {
+infix operator fun Iterable<Periode>.minus(other: Periode): SlåttSammenIkkeOverlappendePerioder {
     return (flatMap { it.måneder() }.toSet() - other.måneder())
         .toList()
         .minsteAntallSammenhengendePerioder()
@@ -312,6 +317,10 @@ fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
 
 fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return this.keys.toList().erSammenhengendeSortertOgUtenDuplikater()
+}
+
+fun List<Periode>.harIkkeOverlappende(): Boolean {
+    return !harOverlappende()
 }
 
 fun List<Periode>.harOverlappende(): Boolean {

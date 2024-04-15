@@ -96,10 +96,7 @@ sealed interface UføreVilkår : Vilkår {
 
             return if (overlapp) {
                 val vurderingerMedOverlapp = lagTidslinje(stønadsperiode.periode).vurderingsperioder
-                val manglendePerioder =
-                    listOf(stønadsperiode.periode)
-                        .minus(vurderingerMedOverlapp.map { it.periode })
-                        .sortedBy { it.fraOgMed }.toSet()
+                val manglendePerioder = stønadsperiode.periode.minus(vurderingerMedOverlapp.map { it.periode })
                 val paired: List<Pair<Periode, VurderingsperiodeUføre?>> = vurderingerMedOverlapp.map {
                     it.periode to it
                 }.plus(

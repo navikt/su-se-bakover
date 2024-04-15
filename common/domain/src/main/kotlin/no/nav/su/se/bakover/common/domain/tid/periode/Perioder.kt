@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.common.domain.tid.periode
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder.Companion.nonEmptyMinsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import java.time.LocalDate
 
 /**
  * Generelt grensesnitt for en liste med perioder.
@@ -10,6 +12,12 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
  */
 sealed interface Perioder : List<Periode> {
     val perioder: List<Periode>
+
+    /** Den første datoen i periodene eller null. Dette vil være den første dagen i gitte måned. */
+    val fraOgMed: LocalDate?
+
+    /** Den siste datoen i periodene eller null. Dette vil være den siste dagen i gitte måned. */
+    val tilOgMed: LocalDate?
     // TODO jah: Flytt List<Periode>-funksjoner hit.
 
     /**
@@ -30,3 +38,6 @@ sealed interface Perioder : List<Periode> {
         }
     }
 }
+
+fun List<Periode>.tilPerioder(): Perioder = Perioder.create(this)
+fun NonEmptyList<Periode>.tilPerioder(): NonEmptyPerioder = NonEmptyPerioder.create(this)

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.harOverlappende
+import no.nav.su.se.bakover.common.tid.periode.harIkkeOverlappende
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.IkkeVurdertVilkår
 import vilkår.common.domain.Inngangsvilkår
@@ -41,7 +41,7 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()
-            require(!vurderingsperioder.harOverlappende())
+            require(perioderIkkeSlåttSammen.harIkkeOverlappende())
         }
 
         override val grunnlag: List<Utenlandsoppholdgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }

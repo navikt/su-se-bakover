@@ -26,19 +26,22 @@ open class NonEmptyIkkeOverlappendePerioder protected constructor(
         }
 
         /**
-         * @param perioder Må være sortert på fraOgMed, ikke overlappe og ikke være slått sammen. Se også [NonEmptySlåttSammenIkkeOverlappendePerioder].
+         * @param perioder Må være sortert på fraOgMed, ikke overlappe.
+         *
+         * @return Dersom periodene allerede er slått sammen; [NonEmptySlåttSammenIkkeOverlappendePerioder], ellers [NonEmptyIkkeOverlappendePerioder
          */
         fun create(perioder: NonEmptyList<Periode>): NonEmptyIkkeOverlappendePerioder {
             require(!perioder.harOverlappende()) {
                 "Periodene skal ikke overlappe, men var: $perioder. Bruk heller NonEmptyOverlappendePerioder"
             }
-            require(perioder.minsteAntallSammenhengendePerioder().perioder.size < perioder.size) {
-                "Tilstøtende perioder kan ikke være slått sammen, men var: $perioder. Bruk heller NonEmptySlåttSammenIkkeOverlappendePerioder"
-            }
             require(perioder.sortedBy { it.fraOgMed } == perioder) {
                 "Periodene skal være sortert på fraOgMed, men var $perioder"
             }
-            return NonEmptyIkkeOverlappendePerioder(perioder)
+            return if (perioder.minsteAntallSammenhengendePerioder().perioder.size < perioder.size) {
+                NonEmptyIkkeOverlappendePerioder(perioder)
+            } else {
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(perioder)
+            }
         }
     }
     override fun toString() = "NonEmptyIkkeOverlappendePerioder(perioder=$perioder)"

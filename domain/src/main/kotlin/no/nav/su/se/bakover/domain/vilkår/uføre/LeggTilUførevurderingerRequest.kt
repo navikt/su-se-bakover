@@ -60,7 +60,7 @@ data class LeggTilUførevurderingerRequest(
                     }
                 }.map {
                     // Denne sjekken vil og fange opp: VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden, derfor kjører vi den etterpå.
-                    if (!(behandlingsperiode fullstendigOverlapp vurderinger.map { it.periode })) {
+                    if (!(behandlingsperiode fullstendigOverlapp it.perioderIkkeSlåttSammen)) {
                         return UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger.left()
                     }
                     it

@@ -101,7 +101,7 @@ data object VilkårEksistererIkke
  */
 fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
     // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
-    vilkår.map { Pair(it.vilkår, it.perioder) }.zipWithNext { a, b ->
+    vilkår.map { Pair(it.vilkår, it.perioderSlåttSammen) }.zipWithNext { a, b ->
         // Vilkår med tomme perioder har ikke blitt vurdert enda.
         if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
             require(a.second == b.second) {

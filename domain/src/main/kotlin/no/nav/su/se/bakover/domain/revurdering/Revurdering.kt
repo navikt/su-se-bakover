@@ -316,7 +316,7 @@ sealed interface Revurdering :
     }
 
     private fun oppdaterFlyktningVilkårInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
-        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+        if (!periode.fullstendigOverlapp(vilkår.perioderSlåttSammen)) {
             return KunneIkkeLeggeTilFlyktningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         if (Sakstype.UFØRE != sakstype) {
@@ -374,7 +374,7 @@ sealed interface Revurdering :
     }
 
     private fun oppdaterPersonligOppmøteVilkårInternal(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
-        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+        if (!periode.fullstendigOverlapp(vilkår.perioderSlåttSammen)) {
             return KunneIkkeLeggeTilPersonligOppmøteVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
@@ -421,7 +421,7 @@ sealed interface Revurdering :
                 KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
             }
 
-            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) -> {
+            !periode.fullstendigOverlapp(utenlandsopphold.perioderIkkeSlåttSammen) -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
             }
 
@@ -532,7 +532,7 @@ sealed interface Revurdering :
     }
 
     private fun oppdaterFastOppholdINorgeInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
-        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+        if (!periode.fullstendigOverlapp(vilkår.perioderSlåttSammen)) {
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         if (!vilkår.vurderingsperioder.all {
@@ -551,7 +551,7 @@ sealed interface Revurdering :
     fun oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(
         vilkår: InstitusjonsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert, OpprettetRevurdering> {
-        if (vilkår.perioder.size != 1 || vilkår.perioder.first() != periode) {
+        if (vilkår.perioderSlåttSammen.size != 1 || vilkår.perioderSlåttSammen.first() != periode) {
             // TODO jah: vilkår.perioder.size != 1 - Vi støtter foreløpig ikke hull i revurderingsperioden
             return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
