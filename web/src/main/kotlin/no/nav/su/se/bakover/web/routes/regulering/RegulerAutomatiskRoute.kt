@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -38,7 +37,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
-import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
@@ -51,7 +49,6 @@ internal fun Route.reguler(
     reguleringService: ReguleringService,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
-    formuegrenserFactory: FormuegrenserFactory,
 ) {
     post("$REGULERING_PATH/automatisk") {
         authorize(Brukerrolle.Drift) {
@@ -136,7 +133,7 @@ internal fun Route.reguler(
                         },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
+                            call.svar(Resultat.okJson())
                         },
                     )
                 }
