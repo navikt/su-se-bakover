@@ -5,11 +5,10 @@ import arrow.core.getOrElse
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
@@ -132,17 +131,6 @@ data class GjeldendeVedtaksdata(
 
     fun vedtaksperioder(): List<Periode> {
         return vedtakPåTidslinje.map { it.periode }
-    }
-
-    /**
-     * ##NB! Skal ikke brukes til å utlede perioder for nye vedtak, grunnlagsdata, vilkår eller lignende.
-     *
-     * Returnerer en periode som representerer tidsintervallet fra start av tidligste vedtak på tidslinjen til og med slutt på seneste vedtak på tidslinjen.
-     * Perioden som returneres vil være kontinuerlig, men det er ingen garanti for at grunnlag/vilkår er kontinuerlig for hele denne perioden.
-     * @throws NoSuchElementException hvis det ikke eksisterer noen vedtak
-     */
-    fun periodeFørsteTilOgMedSeneste(): Periode {
-        return vedtaksperioder().minsteAntallSammenhengendePerioder().minAndMaxOf()
     }
 
     /**

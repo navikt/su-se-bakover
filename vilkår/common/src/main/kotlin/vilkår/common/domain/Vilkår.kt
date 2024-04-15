@@ -1,5 +1,6 @@
 package vilkår.common.domain
 
+import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.time.LocalDate
@@ -25,7 +26,7 @@ interface Vilkår {
      * De skal også være slått sammen, der det er mulig.
      * Obs: Periodene kan fremdeles ha hull.
      */
-    val perioder: List<Periode>
+    val perioder: IkkeOverlappendePerioder
 
     fun hentTidligesteDatoForAvslag(): LocalDate?
 

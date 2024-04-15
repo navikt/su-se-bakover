@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.common.domain.tidslinje
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.KopierbarForTidslinje
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.OriginaltTidsstempel
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 
 /**
  * Egenskaper som kreves for at et element skal kunne periodiseres av [Tidslinje].
@@ -28,6 +28,7 @@ interface KanPlasseresPåTidslinje<out Type> : KanPlasseresPåTidslinjeMedSegSel
 /**
  * Fjerner angitte perioder fra dette objektet
  * @param perioder Periodene som skal fjernes fra dette elementet
+ * @return liste med perioder - selvom vi starter med kun én [Periode] kan vi ende opp med å fjerne måneder inni perioden, slik at vi skaper hull.
  *
  * TODO jah: Her trenger vi egentlig ikke å assosiere med tidslinje. Det hadde holdt med KopierbarForTidslinje og PeriodisertInformasjon
  */

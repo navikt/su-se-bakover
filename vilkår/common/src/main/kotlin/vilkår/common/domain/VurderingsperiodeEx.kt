@@ -7,14 +7,16 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder.Companion.nonEmptyMinsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 
-fun Nel<Vurderingsperiode>.minsteAntallSammenhengendePerioder() =
-    this.map { it.periode }.minsteAntallSammenhengendePerioder()
+fun Nel<Vurderingsperiode>.minsteAntallSammenhengendePerioder(): NonEmptySlåttSammenIkkeOverlappendePerioder {
+    return this.map { it.periode }.nonEmptyMinsteAntallSammenhengendePerioder()
+}
 
 fun Periode.inneholderAlle(vurderingsperioder: NonEmptyList<Vurderingsperiode>): Boolean {
     return vurderingsperioder.all { this inneholder it.periode }

@@ -2,12 +2,13 @@ package vilkår.bosituasjon.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import satser.domain.Satskategori
 import vilkår.common.domain.grunnlag.Grunnlag
 import java.util.UUID
@@ -69,15 +70,15 @@ sealed interface Bosituasjon : Grunnlag {
                 }
         }
 
-        fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
+        fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): SlåttSammenIkkeOverlappendePerioder {
             return map { it.periode }.minsteAntallSammenhengendePerioder()
         }
 
-        fun List<Bosituasjon>.perioderMedEPS(): List<Periode> {
+        fun List<Bosituasjon>.perioderMedEPS(): SlåttSammenIkkeOverlappendePerioder {
             return filter { it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
         }
 
-        fun List<Fullstendig>.perioderUtenEPS(): List<Periode> {
+        fun List<Fullstendig>.perioderUtenEPS(): SlåttSammenIkkeOverlappendePerioder {
             return filter { !it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
         }
 

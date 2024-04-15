@@ -153,17 +153,11 @@ open class DatoIntervall(
     data object DatoIntervallKanIkkeSlåsSammen
 }
 
-fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall> {
-    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
-}
-
 /**
  * Finner minste antall sammenhengende datointervaller fra en liste med [DatoIntervall] ved å slå sammen elementer etter reglene
  * definert av [DatoIntervall.slåSammen].
  */
-fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
-    create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
-): List<T> {
+fun List<DatoIntervall>.minsteAntallSammenhengendeDatoIntervall(): List<DatoIntervall> {
     return this.dager()
         .fold(emptyList()) { acc, dato ->
             if (acc.isEmpty()) {
@@ -175,17 +169,17 @@ fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
                 )
             }.let {
                 it.map {
-                    create(it.fraOgMed, it.tilOgMed)
+                    DatoIntervall(it.fraOgMed, it.tilOgMed)
                 }
             }
         }
 }
 
 infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
-    other.minsteAntallSammenhengendePerioder().all { this.minsteAntallSammenhengendePerioder() inneholder it }
+    other.minsteAntallSammenhengendeDatoIntervall().all { this.minsteAntallSammenhengendeDatoIntervall() inneholder it }
 
 infix fun List<DatoIntervall>.inneholder(other: DatoIntervall): Boolean =
-    this.minsteAntallSammenhengendePerioder().any { it inneholder other }
+    this.minsteAntallSammenhengendeDatoIntervall().any { it inneholder other }
 
 fun NonEmptyList<DatoIntervall>.minAndMaxOf(): DatoIntervall {
     return DatoIntervall(

@@ -1,6 +1,7 @@
 package vilkår.common.domain
 
 import arrow.core.Nel
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
@@ -20,7 +21,7 @@ interface VurdertVilkår : Vilkår {
             else -> Vurdering.Uavklart
         }
 
-    override val perioder: Nel<Periode> get() = vurderingsperioder.minsteAntallSammenhengendePerioder()
+    override val perioder: NonEmptySlåttSammenIkkeOverlappendePerioder get() = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
     override fun hentTidligesteDatoForAvslag(): LocalDate? {
         return vurderingsperioder.filter { it.vurdering == Vurdering.Avslag }.map { it.periode.fraOgMed }

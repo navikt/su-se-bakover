@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -36,7 +37,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.minus
 import no.nav.su.se.bakover.common.tid.periode.måneder
 import no.nav.su.se.bakover.common.tid.periode.november

@@ -81,7 +81,6 @@ internal class GjeldendeVedtaksdataTest {
             Periode.create(1.januar(2021), 30.april(2021)),
             Periode.create(1.mai(2021), 31.desember(2021)),
         )
-        data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
         data.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
             listOf(
                 fradragSøknadsbehandling.nyFradragsperiode(januar(2021)..april(2021)).copy(
@@ -137,7 +136,6 @@ internal class GjeldendeVedtaksdataTest {
             Periode.create(1.januar(2021), 31.mars(2021)),
             Periode.create(1.mai(2021), 31.desember(2021)),
         )
-        data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
         data.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
             listOf(
                 fradragSøknadsbehandling.copy(opprettet = Tidspunkt.parse("2021-01-01T01:03:28.456789Z")),
@@ -163,9 +161,6 @@ internal class GjeldendeVedtaksdataTest {
             data.garantertSammenhengendePeriode()
         }
         data.vedtaksperioder() shouldBe emptyList()
-        assertThrows<NoSuchElementException> {
-            data.periodeFørsteTilOgMedSeneste()
-        }
     }
 
     @Test
@@ -278,16 +273,14 @@ internal class GjeldendeVedtaksdataTest {
             periode = år(2021),
             vedtakListe = nonEmptyListOf(søknadsbehandlingJanuar, søknadsbehandlingFebruar, søknadsbehandlingMars),
             clock = fixedClock,
-        ).let {
-            it.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
-                listOf(
-                    nyFradragsgrunnlag(
-                        periode = januar(2021)..mars(2021),
-                        månedsbeløp = 400.0,
-                        opprettet = fixedTidspunkt,
-                    ),
+        ).grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
+            listOf(
+                nyFradragsgrunnlag(
+                    periode = januar(2021)..mars(2021),
+                    månedsbeløp = 400.0,
+                    opprettet = fixedTidspunkt,
                 ),
-            )
-        }
+            ),
+        )
     }
 }

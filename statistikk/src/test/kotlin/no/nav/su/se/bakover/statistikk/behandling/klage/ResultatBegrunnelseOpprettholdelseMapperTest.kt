@@ -6,7 +6,7 @@ import behandling.klage.domain.Klagehjemler
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-internal class ResultatBegrunnelseOpprettholdelseMapper {
+internal class ResultatBegrunnelseOpprettholdelseMapperTest {
 
     @Test
     fun `en paragraf`() {
