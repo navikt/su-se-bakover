@@ -36,6 +36,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 101351,
                     ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
+                    omregningsfaktor = BigDecimal(1.014951),
                 ),
                 faktor = Faktor(0.5),
             ).also {
@@ -53,6 +54,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 101351,
                     ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
+                    omregningsfaktor = BigDecimal(1.014951),
                 ),
                 faktor = Faktor(0.5),
             )
@@ -66,6 +68,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 101351,
                     ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
+                    omregningsfaktor = BigDecimal(1.014951),
                 ),
                 faktor = Faktor(0.5),
             )
@@ -79,6 +82,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 101351,
                     ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
+                    omregningsfaktor = BigDecimal(1.014951),
                 ),
                 faktor = Faktor(0.5),
             )
@@ -92,6 +96,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 106399,
                     ikrafttredelse = 21.mai(2021),
                     virkningstidspunkt = 1.mai(2021),
+                    omregningsfaktor = BigDecimal(1.049807),
                 ),
                 faktor = Faktor(0.5),
             ).also {
@@ -108,6 +113,7 @@ internal class FormuegrenserFactoryTest {
                     grunnbeløpPerÅr = 111477,
                     ikrafttredelse = 20.mai(2022),
                     virkningstidspunkt = 1.mai(2022),
+                    omregningsfaktor = BigDecimal(1.047726),
                 ),
                 faktor = Faktor(0.5),
             )

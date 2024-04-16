@@ -210,6 +210,7 @@ internal class ReguleringPostgresRepoTest {
                         grunnbeløpPerÅr = 101351,
                         ikrafttredelse = 4.september(2020),
                         virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(value = 2.48),

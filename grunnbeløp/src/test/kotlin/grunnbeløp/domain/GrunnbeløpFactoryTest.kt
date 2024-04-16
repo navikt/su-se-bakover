@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import org.junit.jupiter.api.Test
 import satser.domain.supplerendestønad.grunnbeløpsendringer
+import java.math.BigDecimal
 
 internal class GrunnbeløpFactoryTest {
 
@@ -27,6 +28,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 92576,
             ikrafttredelse = 1.mai(2016),
             virkningstidspunkt = 1.mai(2016),
+            omregningsfaktor = BigDecimal(1.027846),
         ).also {
             it.halvtGrunnbeløpPerÅrAvrundet() shouldBe 46288
         }
@@ -39,6 +41,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 93634,
             ikrafttredelse = 1.mai(2017),
             virkningstidspunkt = 1.mai(2017),
+            omregningsfaktor = BigDecimal(1.011428),
         ).also {
             it.halvtGrunnbeløpPerÅrAvrundet() shouldBe 46817
         }
@@ -51,6 +54,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 93634,
             ikrafttredelse = 1.mai(2017),
             virkningstidspunkt = 1.mai(2017),
+            omregningsfaktor = BigDecimal(1.011428),
         )
     }
 
@@ -61,6 +65,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 96883,
             ikrafttredelse = 1.mai(2018),
             virkningstidspunkt = 1.mai(2018),
+            omregningsfaktor = BigDecimal(1.034699),
         )
     }
 
@@ -71,6 +76,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 96883,
             ikrafttredelse = 1.mai(2018),
             virkningstidspunkt = 1.mai(2018),
+            omregningsfaktor = BigDecimal(1.034699),
         )
     }
 
@@ -81,6 +87,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
             virkningstidspunkt = 1.mai(2019),
+            omregningsfaktor = BigDecimal(1.030707),
         )
     }
 
@@ -91,6 +98,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
             virkningstidspunkt = 1.mai(2019),
+            omregningsfaktor = BigDecimal(1.030707),
         )
     }
 
@@ -101,6 +109,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 4.september(2020),
             virkningstidspunkt = 1.mai(2020),
+            omregningsfaktor = BigDecimal(1.014951),
         )
     }
 
@@ -111,6 +120,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 4.september(2020),
             virkningstidspunkt = 1.mai(2020),
+            omregningsfaktor = BigDecimal(1.014951),
         )
     }
 
@@ -121,6 +131,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 106399,
             ikrafttredelse = 21.mai(2021),
             virkningstidspunkt = 1.mai(2021),
+            omregningsfaktor = BigDecimal(1.049807),
         )
     }
 
@@ -131,6 +142,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 106399,
             ikrafttredelse = 21.mai(2021),
             virkningstidspunkt = 1.mai(2021),
+            omregningsfaktor = BigDecimal(1.049807),
         )
     }
 
@@ -145,6 +157,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
             virkningstidspunkt = 1.mai(2019),
+            omregningsfaktor = BigDecimal(1.030707),
         )
         GrunnbeløpFactory(
             tidligsteTilgjengeligeMåned = januar(2016),
@@ -155,6 +168,7 @@ internal class GrunnbeløpFactoryTest {
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 4.september(2020),
             virkningstidspunkt = 1.mai(2020),
+            omregningsfaktor = BigDecimal(1.014951),
         )
     }
 }

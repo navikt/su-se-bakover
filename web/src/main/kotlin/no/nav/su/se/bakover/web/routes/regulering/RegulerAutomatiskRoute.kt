@@ -65,7 +65,7 @@ internal fun Route.reguler(
                 isTrue = {
                     runBlocking {
                         val parts = call.receiveMultipart()
-                        var reguleringsdato = ""
+                        var fraOgMedMåned = ""
                         var csvData = ""
 
                         parts.forEachPart {
@@ -77,7 +77,7 @@ internal fun Route.reguler(
 
                                 is PartData.FormItem -> {
                                     when (it.name) {
-                                        "reguleringsdato" -> reguleringsdato = it.value
+                                        "fraOgMedMåned" -> fraOgMedMåned = it.value
                                         else -> Feilresponser.ukjentFormData
                                     }
                                 }
@@ -90,7 +90,7 @@ internal fun Route.reguler(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val fraMåned =
-                                    Måned.parse(reguleringsdato) ?: return@runBlocking call.svar(ugyldigMåned)
+                                    Måned.parse(fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
 
                                 if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
                                     reguleringService.startAutomatiskRegulering(fraMåned, it)
@@ -138,7 +138,6 @@ internal fun Route.reguler(
             data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
             call.withReguleringId { id ->
                 call.withBody<Body> { body ->
-
                     sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
                     reguleringService.regulerManuelt(
                         reguleringId = ReguleringId(id),
@@ -257,6 +256,9 @@ internal fun Route.reguler(
         }
     }
 
+    /**
+     * Denne routen er ment for å kunne ettersende reguleringssupplement
+     */
     post("$REGULERING_PATH/supplement") {
         authorize(Brukerrolle.Drift) {
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false

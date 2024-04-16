@@ -81,6 +81,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 101351,
                         ikrafttredelse = 4.september(2020),
                         virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -112,6 +113,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 101351,
                         ikrafttredelse = 4.september(2020),
                         virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -143,6 +145,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 106399,
                         ikrafttredelse = 21.mai(2021),
                         virkningstidspunkt = 1.mai(2021),
+                        omregningsfaktor = BigDecimal(1.049807),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -174,6 +177,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 106399,
                         ikrafttredelse = 21.mai(2021),
                         virkningstidspunkt = 1.mai(2021),
+                        omregningsfaktor = BigDecimal(1.049807),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -205,6 +209,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 111477,
                         ikrafttredelse = 20.mai(2022),
                         virkningstidspunkt = 1.mai(2022),
+                        omregningsfaktor = BigDecimal(1.047726),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -236,6 +241,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 111477,
                         ikrafttredelse = 20.mai(2022),
                         virkningstidspunkt = 1.mai(2022),
+                        omregningsfaktor = BigDecimal(1.047726),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -267,6 +273,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 118620,
                         ikrafttredelse = 26.mai(2023),
                         virkningstidspunkt = 1.mai(2023),
+                        omregningsfaktor = BigDecimal(1.064076),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -298,6 +305,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 118620,
                         ikrafttredelse = 26.mai(2023),
                         virkningstidspunkt = 1.mai(2023),
+                        omregningsfaktor = BigDecimal(1.064076),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -357,6 +365,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                             grunnbeløpPerÅr = 99858,
                             ikrafttredelse = 1.mai(2019),
                             virkningstidspunkt = 1.mai(2019),
+                            omregningsfaktor = BigDecimal(1.030707),
                         ),
                         minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                             faktor = Faktor(2.48),
@@ -388,6 +397,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 grunnbeløpPerÅr = 106399,
                 ikrafttredelse = 21.mai(2021),
                 virkningstidspunkt = 1.mai(2021),
+                omregningsfaktor = BigDecimal(1.049807),
             )
             val gammelMai = satsFactoryTest.gjeldende(førDate).høyUføre(forMåned).grunnbeløp
 
@@ -396,6 +406,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 grunnbeløpPerÅr = 101351,
                 ikrafttredelse = 4.september(2020),
                 virkningstidspunkt = 1.mai(2020),
+                omregningsfaktor = BigDecimal(1.014951),
             )
 
             satsFactoryTest.gjeldende(LocalDate.now(fixedClock)).høyUføre(forMåned).grunnbeløp shouldBe gammelMai
@@ -430,18 +441,21 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 grunnbeløpPerÅr = 99858,
                 ikrafttredelse = 1.mai(2019),
                 virkningstidspunkt = 1.mai(2019),
+                omregningsfaktor = BigDecimal(1.030707),
             )
             factorySeptember20TilMai21.høyUføre(januar(2022)).grunnbeløp shouldBe GrunnbeløpForMåned(
                 måned = januar(2022),
                 grunnbeløpPerÅr = 101351,
                 ikrafttredelse = 4.september(2020),
                 virkningstidspunkt = 1.mai(2020),
+                omregningsfaktor = BigDecimal(1.014951),
             )
             factoryMai21TilMai22.høyUføre(januar(2022)).grunnbeløp shouldBe GrunnbeløpForMåned(
                 måned = januar(2022),
                 grunnbeløpPerÅr = 106399,
                 ikrafttredelse = 21.mai(2021),
                 virkningstidspunkt = 1.mai(2021),
+                omregningsfaktor = BigDecimal(1.049807),
             )
         }
 
@@ -460,9 +474,9 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                     GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 1.mai(2022), 20),
                 ),
                 grunnbeløpsendringer = nonEmptyListOf(
-                    Grunnbeløpsendring(1.november(2021), 30.desember(2021), 10),
-                    Grunnbeløpsendring(1.desember(2021), 31.desember(2021), 20),
-                    Grunnbeløpsendring(1.februar(2022), 2.januar(2022), 30),
+                    Grunnbeløpsendring(1.november(2021), 30.desember(2021), 10, BigDecimal(1.049807)),
+                    Grunnbeløpsendring(1.desember(2021), 31.desember(2021), 20, BigDecimal(1.049807)),
+                    Grunnbeløpsendring(1.februar(2022), 2.januar(2022), 30, BigDecimal(1.049807)),
                 ),
                 minsteÅrligYtelseForUføretrygdedeOrdinær = nonEmptyListOf(
                     MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
@@ -517,6 +531,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                     grunnbeløpPerÅr = 20,
                     ikrafttredelse = 31.desember(2021),
                     virkningstidspunkt = 1.desember(2021),
+                    omregningsfaktor = BigDecimal(1.049807),
                 )
                 it.høyUføre(november(2021)) shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = november(2021),
@@ -526,6 +541,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         grunnbeløpPerÅr = 10,
                         ikrafttredelse = 30.desember(2021),
                         virkningstidspunkt = 1.november(2021),
+                        omregningsfaktor = BigDecimal(1.049807),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(4.0),

@@ -74,8 +74,7 @@ class ReguleringServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        // TODO - manuellt lagt inn faktoren for 2023. Denne burde hentes fra Grunnbeløpsendring
-        val omregningsfaktor = BigDecimal(1.064076)
+        val omregningsfaktor = satsFactory.grunnbeløp(Måned.now(clock)).omregningsfaktor
 
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
@@ -91,8 +90,7 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
-        // TODO - manuellt lagt inn faktoren for 2023. Denne burde hentes fra Grunnbeløpsendring
-        val omregningsfaktor = BigDecimal(1.064076)
+        val omregningsfaktor = satsFactory.grunnbeløp(Måned.now(clock)).omregningsfaktor
 
         Either.catch {
             start(
