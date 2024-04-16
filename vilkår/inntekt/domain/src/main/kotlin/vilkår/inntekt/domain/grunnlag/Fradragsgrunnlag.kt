@@ -117,7 +117,7 @@ data class Fradragsgrunnlag private constructor(
         }.right()
     }
 
-    fun fjernFradragEPS(perioder: List<Periode>): List<Fradragsgrunnlag> {
+    fun fjernFradragEPS(perioder: SlåttSammenIkkeOverlappendePerioder): List<Fradragsgrunnlag> {
         return when (tilhørerEps()) {
             true -> {
                 fjernPerioder(perioder = perioder)

@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -196,10 +198,9 @@ sealed interface KunneIkkeLageGrunnlagsdata {
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
 fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
-    return if (bosituasjon.harEPS()) this else fjernFradragEPS(listOf(bosituasjon.periode))
+    return if (bosituasjon.harEPS()) this else fjernFradragEPS(NonEmptySlåttSammenIkkeOverlappendePerioder.create(bosituasjon.periode))
 }
-
-fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: List<Periode>): List<Fradragsgrunnlag> {
+fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: SlåttSammenIkkeOverlappendePerioder): List<Fradragsgrunnlag> {
     return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
 }
 

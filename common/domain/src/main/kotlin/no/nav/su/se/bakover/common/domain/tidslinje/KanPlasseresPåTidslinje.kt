@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common.domain.tidslinje
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.KopierbarForTidslinje
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.OriginaltTidsstempel
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
@@ -33,7 +34,7 @@ interface KanPlasseresPåTidslinje<out Type> : KanPlasseresPåTidslinjeMedSegSel
  * TODO jah: Her trenger vi egentlig ikke å assosiere med tidslinje. Det hadde holdt med KopierbarForTidslinje og PeriodisertInformasjon
  */
 @Suppress("UNCHECKED_CAST")
-fun <T> KanPlasseresPåTidslinjeMedSegSelv<T>.fjernPerioder(perioder: List<Periode>): List<T> {
+fun <T> KanPlasseresPåTidslinjeMedSegSelv<T>.fjernPerioder(perioder: SlåttSammenIkkeOverlappendePerioder): List<T> {
     return when {
         this.periode overlapper perioder -> {
             this.periode.måneder()

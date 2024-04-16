@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
@@ -88,7 +89,7 @@ data class VurderingsperiodeFormue private constructor(
         return grunnlag.harEPSFormue()
     }
 
-    fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<VurderingsperiodeFormue> {
+    fun leggTilTomEPSFormueHvisDetMangler(perioder: SlåttSammenIkkeOverlappendePerioder): Nel<VurderingsperiodeFormue> {
         val uendret = fjernPerioder(perioder)
         val endret = leggTilTomEPSFormueHvisDetMangler().fjernPerioder(
             perioder = uendret.map { it.periode }
@@ -107,7 +108,7 @@ data class VurderingsperiodeFormue private constructor(
      * EPS for alle periodene, og alle periodene identifisert i første steg maskeres ut. Syr deretter sammen periodene
      * med/uten endring til en komplett oversikt for [periode].
      */
-    fun fjernEPSFormue(perioder: List<Periode>): Nel<VurderingsperiodeFormue> {
+    fun fjernEPSFormue(perioder: SlåttSammenIkkeOverlappendePerioder): Nel<VurderingsperiodeFormue> {
         val uendret = fjernPerioder(perioder = perioder)
         val endret =
             fjernEPSFormue().fjernPerioder(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())

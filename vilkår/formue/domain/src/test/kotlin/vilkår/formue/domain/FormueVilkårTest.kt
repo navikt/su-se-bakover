@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
@@ -134,7 +136,7 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.fjernEPSFormue(
-                listOf(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
                     Periode.create(1.februar(2021), 31.mars(2021)),
                     mai(2021),
                 ),
@@ -169,7 +171,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
+            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
                 nyttVilkår.vurderingsperioder shouldHaveSize 1
 
                 nyttVilkår.vurderingsperioder[0].let {
@@ -188,7 +190,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
                 .erLik(opprinneligVilkår)
         }
     }
@@ -201,7 +203,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(emptyList()).erLik(opprinneligVilkår)
+            opprinneligVilkår.fjernEPSFormue(EmptyPerioder).erLik(opprinneligVilkår)
         }
     }
 
@@ -213,7 +215,7 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022))))
+            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.februar(2022), 31.juli(2022))))
                 .erLik(opprinneligVilkår)
         }
     }
@@ -227,7 +229,11 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe false
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(februar(2021))).let {
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    februar(2021),
+                ),
+            ).let {
                 it.grunnlag shouldHaveSize 3
                 it.grunnlag[0].erLik(opprinneligVilkår.grunnlag.single())
                 it.grunnlag[0].harEPSFormue() shouldBe false
@@ -248,7 +254,7 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe false
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
                 .let {
                     opprinneligVilkår.harEPSFormue() shouldBe false
                     it.grunnlag shouldHaveSize 1
@@ -267,7 +273,7 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe true
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
                 .let {
                     opprinneligVilkår.harEPSFormue() shouldBe true
                     it.erLik(opprinneligVilkår) shouldBe true

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.Validator
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
@@ -51,7 +52,7 @@ private data class Tidslinjeobjekt(
         is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
     }
 
-    fun fjernPeriode(): List<Tidslinjeobjekt> = fjernPerioder(listOf(periode))
+    fun fjernPeriode(): List<Tidslinjeobjekt> = fjernPerioder(NonEmptySlåttSammenIkkeOverlappendePerioder.create(periode))
 }
 
 internal class TidslinjeTest {
@@ -566,7 +567,7 @@ internal class TidslinjeTest {
         fun `maskerer en enkelt verdi for en gitt periode og justerer tidslinjen i henhold`() {
             val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
 
-            a.fjernPerioder(listOf(februar(2021))).lagTidslinje()!!.krympTilPeriode(
+            a.fjernPerioder(NonEmptySlåttSammenIkkeOverlappendePerioder.create(februar(2021))).lagTidslinje()!!.krympTilPeriode(
                 januar(2021)..mars(2021),
             ) shouldBe listOf(
                 Tidslinjeobjekt(a.opprettet, januar(2021)),
@@ -606,7 +607,7 @@ internal class TidslinjeTest {
         fun `maskering for perioder som ikke overlapper elementer`() {
             val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
 
-            a.fjernPerioder(listOf(desember(2022)..mars(2023))) shouldBe listOf(a)
+            a.fjernPerioder(NonEmptySlåttSammenIkkeOverlappendePerioder.create(desember(2022)..mars(2023))) shouldBe listOf(a)
         }
     }
 }

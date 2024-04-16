@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -282,13 +284,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        val bosituasjonUtenEPS = Bosituasjon.Ufullstendig.HarIkkeEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = år(2021),
-        )
-
-        listOf(f1, f2).fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f2)
+        listOf(f1, f2).fjernFradragEPS(NonEmptySlåttSammenIkkeOverlappendePerioder.create(år(2021))) shouldBe listOf(f2)
     }
 
     @Test
@@ -344,7 +340,7 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
         listOf(fBruker, fEps).fjernFradragEPS(
-            listOf(
+            NonEmptySlåttSammenIkkeOverlappendePerioder.create(
                 februar(2021),
                 juni(2021),
             ),
@@ -396,7 +392,7 @@ internal class FradragsgrunnlagTest {
             utenlandskInntekt = null,
             tilhører = FradragTilhører.EPS,
         )
-        listOf(fBruker, fEps).fjernFradragEPS(emptyList()).let {
+        listOf(fBruker, fEps).fjernFradragEPS(EmptyPerioder).let {
             it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
         }
     }
@@ -417,7 +413,7 @@ internal class FradragsgrunnlagTest {
             utenlandskInntekt = null,
             tilhører = FradragTilhører.EPS,
         )
-        listOf(fBruker, fEps).fjernFradragEPS(listOf(år(2023))).let {
+        listOf(fBruker, fEps).fjernFradragEPS(NonEmptySlåttSammenIkkeOverlappendePerioder.create(år(2023))).let {
             it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
         }
     }

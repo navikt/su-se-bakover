@@ -5,6 +5,7 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
@@ -35,21 +36,21 @@ sealed interface FormueVilkår : Vilkår {
         return grunnlag.any { it.harEPSFormue() }
     }
 
-    fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): FormueVilkår
+    fun leggTilTomEPSFormueHvisDetMangler(perioder: SlåttSammenIkkeOverlappendePerioder): FormueVilkår
 
     /**
      * @param perioder vi ønsker å fjerne formue for EPS for. Eventuell formue for EPS som ligger utenfor
      * periodene bevares.
      */
-    fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår
+    fun fjernEPSFormue(perioder: SlåttSammenIkkeOverlappendePerioder): FormueVilkår
 
     data object IkkeVurdert : FormueVilkår, IkkeVurdertVilkår {
         override val grunnlag: List<Formuegrunnlag> = emptyList()
         override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
         override fun slåSammenLikePerioder(): IkkeVurdert = this
-        override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): FormueVilkår = this
+        override fun leggTilTomEPSFormueHvisDetMangler(perioder: SlåttSammenIkkeOverlappendePerioder): FormueVilkår = this
         override fun lagTidslinje(periode: Periode): IkkeVurdert = this
-        override fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår = this
+        override fun fjernEPSFormue(perioder: SlåttSammenIkkeOverlappendePerioder): FormueVilkår = this
         override fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
             formuegrenserFactory: FormuegrenserFactory,
@@ -87,7 +88,7 @@ sealed interface FormueVilkår : Vilkår {
             )
         }
 
-        override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Vurdert {
+        override fun leggTilTomEPSFormueHvisDetMangler(perioder: SlåttSammenIkkeOverlappendePerioder): Vurdert {
             return Vurdert(
                 vurderingsperioder = vurderingsperioder.flatMap {
                     it.leggTilTomEPSFormueHvisDetMangler(perioder)
@@ -95,7 +96,7 @@ sealed interface FormueVilkår : Vilkår {
             )
         }
 
-        override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
+        override fun fjernEPSFormue(perioder: SlåttSammenIkkeOverlappendePerioder): Vurdert {
             return Vurdert(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
         }
 
