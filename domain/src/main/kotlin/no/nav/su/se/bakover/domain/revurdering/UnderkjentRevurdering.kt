@@ -206,7 +206,7 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
                         saksbehandler = utførtAv,
                         fritekst = fritekst,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
                     )
                 },
             ).right()
@@ -285,7 +285,7 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
                         saksbehandler = utførtAv,
                         fritekst = fritekst,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
                     )
                 },
             ).right()

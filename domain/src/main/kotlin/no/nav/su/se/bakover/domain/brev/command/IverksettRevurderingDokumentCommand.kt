@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.brev.command
 import behandling.revurdering.domain.Opphørsgrunn
 import beregning.domain.Beregning
 import dokument.domain.GenererDokumentCommand
-import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -45,12 +44,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         val ordinærtRevurderingBrev: Inntekt,
         val tilbakekreving: Tilbakekreving,
         val satsoversikt: Satsoversikt,
-    ) : IverksettRevurderingDokumentCommand by ordinærtRevurderingBrev {
-
-        fun erstattBruttoMedNettoFeilutbetaling(netto: Månedsbeløp): TilbakekrevingAvPenger {
-            return copy(tilbakekreving = Tilbakekreving(netto.månedbeløp))
-        }
-    }
+    ) : IverksettRevurderingDokumentCommand by ordinærtRevurderingBrev
 
     data class Opphør(
         override val fødselsnummer: Fnr,

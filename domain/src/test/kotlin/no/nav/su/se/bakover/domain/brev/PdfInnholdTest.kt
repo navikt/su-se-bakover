@@ -4,6 +4,7 @@ import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -318,7 +319,7 @@ internal class PdfInnholdTest {
             fødselsnummer = fnr,
             saksbehandler = saksbehandler,
             bruttoTilbakekreving = 5000000,
-            tilbakekreving = Tilbakekreving(listOf(MånedBeløp(januar(2021), Beløp.invoke(1000)))),
+            tilbakekreving = Tilbakekreving(Månedsbeløp(listOf(MånedBeløp(januar(2021), Beløp.invoke(1000))))),
         )
 
         val expected = """

@@ -83,7 +83,7 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
                     saksbehandler = utførtAv,
                     fritekst = fritekst,
                     bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
                 )
             },
         ).right()

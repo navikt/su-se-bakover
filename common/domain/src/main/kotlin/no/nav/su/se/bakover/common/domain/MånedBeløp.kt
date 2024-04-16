@@ -1,39 +1,34 @@
 package no.nav.su.se.bakover.common
 
 import no.nav.su.se.bakover.common.domain.norwegianLocale
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.måneder
 import java.text.NumberFormat
 import java.time.LocalDate
 import kotlin.math.abs
 
+/**
+ * En sortert liste av månedsbeløp, hvor det kun kan eksistere 1 element for hver måned. Støtter i teorien hull, men usikker på om det er ønskelig.
+ * TODO jah: Undersøk om det er ønskelig å støtte hull.
+ * @param månedbeløp Månedene kan ikke overlappe og må være sortert.
+ */
 data class Månedsbeløp(
     val månedbeløp: List<MånedBeløp>,
 ) : List<MånedBeløp> by månedbeløp {
 
-    /**
-     * @throws NoSuchElementException eller IllegalArgumentException dersom det ikke finnes en sammenhengende periode.
-     */
-    val periodeUnsafe get() = månedbeløp.map { it.periode }.minsteAntallSammenhengendePerioder().single()
+    /** Periodene i rekkefølgen de er innsendt. Ikke sammenslått. Denne vil gjøre validering av overlapp og sortering. Kan i teorien inneholde hull. */
+    val perioder = IkkeOverlappendePerioder.create(månedbeløp.map { it.periode })
 
-    init {
-        månedbeløp.map { it.periode }.let {
-            require(
-                it.distinct() == it,
-            ) { "Det kan kun eksistere 1 element for hver måned" }
-        }
-    }
+    val fraOgMed: LocalDate? = perioder.fraOgMed
+    val tilOgMed: LocalDate? = perioder.tilOgMed
 
     fun sum(): Int {
         return månedbeløp.sumOf { it.beløp.sum() }
     }
 
-    fun senesteDato(): LocalDate {
-        return månedbeløp.maxOf { it.periode.tilOgMed }
-    }
-
     fun måneder(): List<Måned> {
-        return månedbeløp.map { it.periode }.distinct()
+        return perioder.måneder()
     }
 
     operator fun plus(other: Månedsbeløp): Månedsbeløp {
@@ -50,8 +45,6 @@ data class MånedBeløp(
         return beløp.sum()
     }
 }
-
-fun List<MånedBeløp>.sorterPåPeriode(): List<MånedBeløp> = this.sortedBy { it.periode }
 
 @JvmInline
 value class Beløp private constructor(

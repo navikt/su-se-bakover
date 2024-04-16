@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
-import no.nav.su.se.bakover.common.sorterPåPeriode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
 data class BrevTilbakekrevingInfo(
@@ -12,7 +11,7 @@ data class BrevTilbakekrevingInfo(
 )
 
 data class Tilbakekreving(
-    private val månedBeløp: List<MånedBeløp>,
+    private val månedBeløp: Månedsbeløp,
 ) {
     init {
         require(månedBeløp.isNotEmpty()) {
@@ -28,8 +27,8 @@ data class Tilbakekreving(
     }
 
     // TODO jah: Flytt formateringen nærmere PdfInnhold? Kanskje pdfgen har denne funksjonaliteten? ref. https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
-    val periodeStart = månedBeløp.sorterPåPeriode().first().periode.fraOgMed.toBrevformat()
-    val periodeSlutt = månedBeløp.sorterPåPeriode().last().periode.tilOgMed.toBrevformat()
+    val periodeStart = månedBeløp.fraOgMed!!.toBrevformat()
+    val periodeSlutt = månedBeløp.tilOgMed!!.toBrevformat()
 }
 
 // TODO jah: Flytt formateringen nærmere PdfInnhold? ref. https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt

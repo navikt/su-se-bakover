@@ -29,7 +29,7 @@ internal fun lagTilbakekrevingDokumentKommando(
             beregning = beregning,
             satsFactory = satsFactory,
         ),
-        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
         satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
     )
 }
