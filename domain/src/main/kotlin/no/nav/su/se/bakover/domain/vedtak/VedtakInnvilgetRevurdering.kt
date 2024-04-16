@@ -80,9 +80,8 @@ data class VedtakInnvilgetRevurdering private constructor(
     override fun erGjenopptak(): Boolean = false
 
     /**
-     *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
-     *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
-     *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
+     * Brevutsending skjer i [no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService]
+     * TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
      */
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
@@ -90,7 +89,7 @@ data class VedtakInnvilgetRevurdering private constructor(
                 require(!behandling.skalSendeVedtaksbrev())
             }
 
-            Dokumenttilstand.IKKE_GENERERT_ENDA -> !behandling.avventerKravgrunnlag()
+            Dokumenttilstand.IKKE_GENERERT_ENDA -> true
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,
             Dokumenttilstand.JOURNALFØRT,

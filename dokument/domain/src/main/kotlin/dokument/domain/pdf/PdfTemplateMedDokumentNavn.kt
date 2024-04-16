@@ -51,14 +51,6 @@ sealed interface PdfTemplateMedDokumentNavn {
         override val dokumentNavn = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
     }
 
-    /**
-     * Knyttet til tilbakekreving under revurdering. Skal utfases.
-     */
-    data object ForhåndsvarselTilbakekreving : PdfTemplateMedDokumentNavn {
-        override val pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekreving
-        override val dokumentNavn = "Varsel om mulig tilbakekreving"
-    }
-
     data object ForhåndsvarselTilbakekrevingsbehandling : PdfTemplateMedDokumentNavn {
         override val pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekrevingsbehandling
         override val dokumentNavn = "Varsel om mulig tilbakekreving"

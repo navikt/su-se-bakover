@@ -50,8 +50,6 @@ data class AvsluttetRevurdering private constructor(
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
 
-    override fun skalTilbakekreve() = false
-
     override val beregning = underliggendeRevurdering.beregning
 
     override val simulering = underliggendeRevurdering.simulering

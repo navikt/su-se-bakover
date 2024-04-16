@@ -46,7 +46,6 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
     either {
-        validerKravgrunnlag().bind()
         validerFeilutbetalinger(søknadsbehandling).bind()
         validerGjeldendeVedtak(søknadsbehandling).bind()
     }.onLeft {
@@ -109,12 +108,4 @@ private fun validerFeilutbetalinger(søknadsbehandling: SøknadsbehandlingTilAtt
         return KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling.left()
     }
     return Unit.right()
-}
-
-private fun Sak.validerKravgrunnlag(): Either<KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving, Unit> {
-    return if (avventerKravgrunnlag()) {
-        KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-    } else {
-        Unit.right()
-    }
 }

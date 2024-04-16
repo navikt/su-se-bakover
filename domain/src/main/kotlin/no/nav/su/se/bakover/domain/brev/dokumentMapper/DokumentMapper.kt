@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -40,7 +39,6 @@ fun PdfA.tilDokument(
         )
 
         is ForhåndsvarselDokumentCommand,
-        is ForhåndsvarselTilbakekrevingDokumentCommand,
         is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
         is InnkallingTilKontrollsamtaleDokumentCommand,
         is PåminnelseNyStønadsperiodeDokumentCommand,

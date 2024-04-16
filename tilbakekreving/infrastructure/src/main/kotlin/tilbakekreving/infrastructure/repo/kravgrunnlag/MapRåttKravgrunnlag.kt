@@ -10,7 +10,10 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.time.Clock
 
-/** DEPRECATED: Skal kun brukes i forbindelse med historiske rå kravgrunnlag på tilbakekrevinger under revurderinger. Disse forholdt seg aldri til statusendringene. */
+/**
+ * Historisk.
+ * Brukes for å hente ut/visning av oversendte vedtak fra tilbakekrevinger under revurderinger.
+ * */
 typealias MapRåttKravgrunnlag = (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>
 typealias MapRåttKravgrunnlagTilHendelse = (
     råttKravgrunnlag: RåttKravgrunnlagHendelse,

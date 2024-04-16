@@ -78,21 +78,13 @@ data class VedtakOpphørMedUtbetaling private constructor(
         )
     }
 
-    /** Sjekker både saksbehandlers og attestants simulering. */
-    fun førteTilFeilutbetaling(periode: Periode): Boolean =
-        behandling.simulering.harFeilutbetalinger(periode) || simulering.harFeilutbetalinger(periode)
-
-    /**
-     *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
-     *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
-     */
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
             Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
                 require(!behandling.skalSendeVedtaksbrev())
             }
 
-            Dokumenttilstand.IKKE_GENERERT_ENDA -> !behandling.avventerKravgrunnlag().also {
+            Dokumenttilstand.IKKE_GENERERT_ENDA -> true.also {
                 require(behandling.skalSendeVedtaksbrev())
             }
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.

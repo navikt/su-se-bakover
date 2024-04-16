@@ -3,20 +3,14 @@ package tilbakekreving.presentation.consumer
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
-import arrow.core.toNonEmptyListOrNone
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
-import økonomi.domain.utbetaling.Utbetaling
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -37,13 +31,6 @@ internal fun KravgrunnlagRootDto.toHendelse(
             val sak = hentSak(saksnummer).getOrElse {
                 return it.left()
             }
-            val revurdering = hentUtbetaling(
-                sak = sak,
-                utbetalingId = kravgrunnlag.utbetalingId,
-                hendelseId = tidligereHendelseId,
-            ).getOrElse {
-                return it.left()
-            }
             sak to KravgrunnlagDetaljerPåSakHendelse(
                 hendelseId = hendelseId,
                 versjon = sak.versjon.inc(),
@@ -51,7 +38,8 @@ internal fun KravgrunnlagRootDto.toHendelse(
                 hendelsestidspunkt = hendelsesTidspunkt,
                 tidligereHendelseId = tidligereHendelseId,
                 kravgrunnlag = kravgrunnlag,
-                revurderingId = revurdering?.id?.value,
+                // Vi støtter ikke lenger tilbakekreving under revurdering, så denne ville alltid blitt null fra nå.
+                revurderingId = null,
             )
         }
     }
@@ -115,70 +103,14 @@ internal fun KravgrunnlagRootDto.toDomain(
                         skatteProsent = BigDecimal(tilbakekrevingsbeløpForYtelse.skattProsent),
                     )
                 },
-                eksternTidspunkt = Tidspunkt.create(kontrollfeltFormatter.parse(kravgrunnlagDto.kontrollfelt, Instant::from)),
+                eksternTidspunkt = Tidspunkt.create(
+                    kontrollfeltFormatter.parse(
+                        kravgrunnlagDto.kontrollfelt,
+                        Instant::from,
+                    ),
+                ),
                 hendelseId = hendelseId,
             )
-        }
-    }
-}
-
-fun hentUtbetaling(
-    sak: Sak,
-    utbetalingId: UUID30,
-    hendelseId: HendelseId,
-): Either<Throwable, IverksattRevurdering?> {
-    val saksnummer = sak.saksnummer
-    val utbetaling =
-        sak.utbetalinger.filter { it.id == utbetalingId }.toNonEmptyListOrNone()
-            .getOrElse {
-                return IllegalStateException("Kunne ikke prosessere kravgrunnlag: Fant ikke utbetaling med id $utbetalingId på sak $saksnummer og hendelse $hendelseId. Kanskje den ikke er opprettet enda? Prøver igjen ved neste kjøring.").left()
-            }.single()
-    return when (utbetaling) {
-        is Utbetaling.SimulertUtbetaling,
-        is Utbetaling.UtbetalingForSimulering,
-        is Utbetaling.OversendtUtbetaling.UtenKvittering,
-        -> return IllegalStateException("Kunne ikke prosessere kravgrunnlag: Utbetalingen skal ikke være i tilstanden ${utbetaling::class.simpleName} for utbetalingId ${utbetaling.id} og hendelse $hendelseId").left()
-
-        is Utbetaling.OversendtUtbetaling.MedKvittering -> {
-            finnRevurderingKnyttetTilKravgrunnlag(
-                sak = sak,
-                utbetalingId = utbetaling.id,
-            ).getOrElse { return it.left() }.right()
-        }
-    }
-}
-
-private fun finnRevurderingKnyttetTilKravgrunnlag(
-    sak: Sak,
-    utbetalingId: UUID30,
-): Either<Throwable, IverksattRevurdering?> {
-    val avventerKravgrunnlag = sak.revurderinger
-        .filterIsInstance<IverksattRevurdering>()
-        .filter { it.tilbakekrevingsbehandling is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag }
-
-    return when (avventerKravgrunnlag.size) {
-        0 -> null.right()
-        1 -> {
-            val revurdering = avventerKravgrunnlag.single()
-            val matcherUtbetalingId = sak.vedtakListe
-                .filterIsInstance<Revurderingsvedtak>()
-                .any { it.behandling.id == revurdering.id && it.utbetalingId == utbetalingId }
-
-            if (matcherUtbetalingId) {
-                revurdering.right()
-            } else {
-                IllegalStateException(
-                    "Mottok et kravgrunnlag med utbetalingId $utbetalingId som ikke matcher revurderingId ${revurdering.id}(avventer kravgrunnlag) på sak ${sak.id}. Denne kommer sannsynligvis til å feile igjen.",
-                    RuntimeException("Trigger stacktrace"),
-                ).left()
-            }
-        }
-
-        else -> {
-            IllegalStateException(
-                "Fant flere revurderinger med tilbakekrevingsbehandling av typen Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag på sak ${sak.id}. Denne kommer sannsynligvis til å feile igjen.",
-                RuntimeException("Trigger stacktrace"),
-            ).left()
         }
     }
 }

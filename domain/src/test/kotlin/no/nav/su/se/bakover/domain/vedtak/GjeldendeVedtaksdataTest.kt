@@ -194,7 +194,7 @@ internal class GjeldendeVedtaksdataTest {
             stønadsperiode = Stønadsperiode.create(januar(2021)..april(2021)),
             grunnlagsdataOverrides = listOf(fradragRevurdering),
             vilkårOverrides = listOf(
-                // Merk at dette skal nå gi et vanlig opphør med tilbakekreving (siden vi har fjernet avkorting)
+                // Merk at dette skal nå gi et vanlig opphør (siden vi har fjernet tilbakekreving under revurdering og avkorting)
                 utenlandsoppholdAvslag(periode = revurderingsperiode),
             ),
         )

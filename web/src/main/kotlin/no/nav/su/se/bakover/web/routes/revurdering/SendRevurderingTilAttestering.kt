@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.brevvalgMang
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.gReguleringKanIkkeFøreTilOpphør
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.tilbakekrevingsbehandlingErIkkeFullstendig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -68,23 +67,15 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "feilutbetalinger_støttes_ikke",
         )
         is KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke -> BadRequest.errorJson(feilmeldinger.map { it.toJson() })
-        is KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> {
-            BadRequest.errorJson(
-                message = "Iverksatt revurdering:${this.revurderingId} har åpent kravgrunnlag for tilbakekreving. Tilbakekrevingsvedtak må fattes før ny revurdering kan gjennomføres.",
-                code = "åpent_kravgrunnlag_må_håndteres_før_ny_revurdering",
-            )
-        }
         is KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget -> {
             when (this.feil) {
                 SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.BrevvalgMangler -> brevvalgMangler
-                SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> tilbakekrevingsbehandlingErIkkeFullstendig
             }
         }
         is KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt -> {
             when (this.feil) {
                 SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.BrevvalgMangler -> brevvalgMangler
                 SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> gReguleringKanIkkeFøreTilOpphør
-                SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> tilbakekrevingsbehandlingErIkkeFullstendig
             }
         }
     }

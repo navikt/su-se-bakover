@@ -15,10 +15,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -51,15 +48,9 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-
     override fun erÅpen() = true
 
     abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): UnderkjentRevurdering
-
-    override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
-
-    fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): UnderkjentRevurdering
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -153,15 +144,10 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
         override val simulering: Simulering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering {
         override val erOpphørt = false
-
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Innvilget {
-            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
-        }
 
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -180,7 +166,6 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
-            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
         )
@@ -189,26 +174,12 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
         ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
-            return tilbakekrevingsbehandling.skalTilbakekreve().fold(
-                {
-                    ForhåndsvarselDokumentCommand(
-                        fødselsnummer = fnr,
-                        saksnummer = saksnummer,
-                        saksbehandler = utførtAv,
-                        fritekst = fritekst,
+            return ForhåndsvarselDokumentCommand(
+                fødselsnummer = fnr,
+                saksnummer = saksnummer,
+                saksbehandler = utførtAv,
+                fritekst = fritekst,
 
-                    )
-                },
-                {
-                    ForhåndsvarselTilbakekrevingDokumentCommand(
-                        fødselsnummer = fnr,
-                        saksnummer = saksnummer,
-                        saksbehandler = utførtAv,
-                        fritekst = fritekst,
-                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
-                    )
-                },
             ).right()
         }
 
@@ -242,15 +213,10 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering {
         override val erOpphørt = true
-
-        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling): Opphørt {
-            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
-        }
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -269,25 +235,11 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
             utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
         ): Either<Revurdering.UgyldigTilstand, GenererDokumentCommand> {
-            return tilbakekrevingsbehandling.skalTilbakekreve().fold(
-                {
-                    ForhåndsvarselDokumentCommand(
-                        fødselsnummer = fnr,
-                        saksnummer = saksnummer,
-                        saksbehandler = utførtAv,
-                        fritekst = fritekst,
-                    )
-                },
-                {
-                    ForhåndsvarselTilbakekrevingDokumentCommand(
-                        fødselsnummer = fnr,
-                        saksnummer = saksnummer,
-                        saksbehandler = utførtAv,
-                        fritekst = fritekst,
-                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
-                    )
-                },
+            return ForhåndsvarselDokumentCommand(
+                fødselsnummer = fnr,
+                saksnummer = saksnummer,
+                saksbehandler = utførtAv,
+                fritekst = fritekst,
             ).right()
         }
 
@@ -314,7 +266,6 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
                 ).right()

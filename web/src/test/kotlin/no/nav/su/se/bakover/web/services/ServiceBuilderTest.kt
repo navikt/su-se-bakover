@@ -44,7 +44,6 @@ internal class ServiceBuilderTest {
                 klageRepo = mock(),
                 klageinstanshendelseRepo = mock(),
                 reguleringRepo = defaultMock(),
-                tilbakekrevingRepo = mock(),
                 sendPåminnelseNyStønadsperiodeJobRepo = mock(),
                 hendelseRepo = mock(),
                 utenlandsoppholdRepo = mock(),

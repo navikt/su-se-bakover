@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -94,13 +93,6 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is ForhåndsvarselTilbakekrevingDokumentCommand -> ForhåndsvarselTilbakekrevingPdfInnhold.fromBrevCommand(
-                command = command,
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                clock = clock,
-            )
-
             is FritekstDokumentCommand -> FritekstPdfInnhold.fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
@@ -145,13 +137,6 @@ fun fromBrevCommand(
             )
 
             is IverksettRevurderingDokumentCommand.Inntekt -> RevurderingAvInntektPdfInnhold.fromBrevCommand(
-                command = command,
-                personalia = personalia().bind(),
-                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
-                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
-            )
-
-            is IverksettRevurderingDokumentCommand.TilbakekrevingAvPenger -> RevurderingMedTilbakekrevingAvPengerPdfInnhold.fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),

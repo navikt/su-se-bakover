@@ -16,8 +16,6 @@ sealed interface KunneIkkeIverksetteRevurdering {
         ) : Saksfeil
         data object FantIkkeRevurdering : Saksfeil
 
-        data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : Saksfeil
-
         data class UgyldigTilstand(
             val fra: KClass<out AbstraktRevurdering>,
             val til: KClass<out AbstraktRevurdering>,

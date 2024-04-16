@@ -85,11 +85,6 @@ sealed interface Revurdering :
     override val fnr: Fnr get() = sakinfo.fnr
     override val sakstype: Sakstype get() = sakinfo.type
 
-    /**
-     * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
-     */
-    fun skalTilbakekreve(): Boolean
-
     fun lagForhåndsvarsel(
         utførtAv: Saksbehandler,
         fritekst: String,

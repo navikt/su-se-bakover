@@ -2,18 +2,12 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
-import no.nav.su.se.bakover.common.Beløp
-import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
-import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
@@ -27,7 +21,6 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import kotlin.text.Typography.nbsp
 
 internal class PdfInnholdTest {
 
@@ -307,51 +300,6 @@ internal class PdfInnholdTest {
         JSONAssert.assertEquals(
             expected,
             actual,
-            true,
-        )
-    }
-
-    @Test
-    fun `brev for forhåndsvarsel med tilbakekreving`() {
-        val forhåndsvarsel = ForhåndsvarselTilbakekrevingDokumentCommand(
-            fritekst = "fri",
-            saksnummer = saksnummer,
-            fødselsnummer = fnr,
-            saksbehandler = saksbehandler,
-            bruttoTilbakekreving = 5000000,
-            tilbakekreving = Tilbakekreving(Månedsbeløp(listOf(MånedBeløp(januar(2021), Beløp.invoke(1000))))),
-        )
-
-        val expected = """
-            {
-                "personalia": {
-                    "dato": "01.01.2021",
-                    "fødselsnummer": "$fnr",
-                    "fornavn": "Tore",
-                    "etternavn": "Strømøy",
-                    "saksnummer": 12345676
-                },
-                "sakstype": "UFØRE",
-                "erAldersbrev": false,
-                "saksbehandlerNavn": "saks",
-                "fritekst": "fri",
-                "bruttoTilbakekreving":"5${nbsp}000${nbsp}000",
-                "tilbakekreving": [{"periode": "1. januar 2021 - 31. januar 2021", "beløp":"1${nbsp}000", "tilbakekrevingsgrad": "100%"}],
-                "periodeStart": "1. januar 2021",
-                "periodeSlutt": "31. januar 2021",
-                "dato": "1. januar 2021",
-            }
-        """.trimIndent()
-
-        JSONAssert.assertEquals(
-            expected,
-            serialize(
-                forhåndsvarsel.tilPdfInnhold(
-                    clock = fixedClock,
-                    hentPerson = { person().right() },
-                    hentNavnForIdent = { "saks".right() },
-                ).getOrFail(),
-            ),
             true,
         )
     }

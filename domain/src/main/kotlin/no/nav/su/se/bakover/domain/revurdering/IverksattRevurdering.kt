@@ -15,12 +15,12 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.HistoriskSendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
@@ -42,14 +42,8 @@ sealed interface IverksattRevurdering : Revurdering {
     abstract override val beregning: Beregning
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet
+    val sendtTilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
-
-    fun avventerKravgrunnlag(): Boolean {
-        return tilbakekrevingsbehandling.avventerKravgrunnlag()
-    }
-
-    override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -70,7 +64,7 @@ sealed interface IverksattRevurdering : Revurdering {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet,
+        override val sendtTilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering {
@@ -114,7 +108,7 @@ sealed interface IverksattRevurdering : Revurdering {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet,
+        override val sendtTilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering {

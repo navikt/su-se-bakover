@@ -55,8 +55,6 @@ data class OpprettetRevurdering(
 
     override fun erÅpen() = true
 
-    override fun skalTilbakekreve() = false
-
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)

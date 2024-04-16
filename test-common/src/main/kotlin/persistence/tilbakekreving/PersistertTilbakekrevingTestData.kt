@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
@@ -42,7 +41,6 @@ import vilkår.common.domain.Vilkår
 import økonomi.domain.utbetaling.Utbetaling
 
 class PersistertTilbakekrevingTestData(
-    databaseRepos: DatabaseRepos,
     sessionFactory: SessionFactory,
     private val hendelseRepo: HendelseRepo,
     kravgrunnlagPostgresRepo: KravgrunnlagPostgresRepo,
@@ -51,7 +49,6 @@ class PersistertTilbakekrevingTestData(
     private val testDataHelper: TestDataHelper,
 ) {
     val clock = testDataHelper.clock
-    val tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo
     val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,

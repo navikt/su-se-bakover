@@ -1,24 +1,20 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.HistoriskSendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.genererKravgrunnlagFraSimulering
-import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagEndringXml
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import java.util.UUID
 
 internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
@@ -28,15 +24,14 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
 
-            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(sakOgVedtak = sak to vedtak)
-
-            (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
+            val (_, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
+            val revurdering = vedtak.behandling
+            (testDataHelper.revurderingRepo.hent(revurdering.id) as IverksattRevurdering.Innvilget).sendtTilbakekrevingsvedtak shouldBe null
         }
     }
 
     @Test
-    fun `kan lagre og hente tilbakekrevingsbehandlinger`() {
+    fun `kan hente tilbakekrevingsbehandlinger`() {
         withMigratedDb { dataSource ->
             // Får da feilutbetalingen for januar
             val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
@@ -45,135 +40,58 @@ internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
                 revurderingsperiode = januar(2021),
             )
 
-            val ikkeAvgjort = IkkeAvgjort(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = revurdering.sakId,
-                revurderingId = revurdering.id,
-                periode = revurdering.periode,
+            testDataHelper.revurderingRepo.lagre(revurdering)
+
+            val tilbakekrevingRepo = TilbakekrevingUnderRevurderingPostgresRepo(
+                råttKravgrunnlagMapper = KravgrunnlagDtoMapper::toKravgrunnlag,
             )
-
-            testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = ikkeAvgjort))
-
-            val tilbakekrevingRepo = testDataHelper.tilbakekreving.tilbakekrevingRepo as TilbakekrevingUnderRevurderingPostgresRepo
+            val id = UUID.randomUUID()
             testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                //language=PostgreSQL
+                """INSERT INTO revurdering_tilbakekreving
+                   (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand, kravgrunnlag, kravgrunnlagMottatt, tilbakekrevingsvedtakForsendelse)
+                   VALUES (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, 'tilbakekrev', 'sendt_tilbakekrevingsvedtak', :kravgrunnlag, :kravgrunnlagMottatt, :tilbakekrevingsvedtakForsendelse)
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to id,
+                        "opprettet" to fixedTidspunkt,
+                        "sakId" to revurdering.sakId,
+                        "revurderingId" to revurdering.id.value,
+                        "fraOgMed" to revurdering.periode.fraOgMed,
+                        "tilOgMed" to revurdering.periode.tilOgMed,
+                        "kravgrunnlag" to kravgrunnlagEndringXml,
+                        "kravgrunnlagMottatt" to fixedTidspunkt,
+                        "tilbakekrevingsvedtakForsendelse" to """
+                        {
+                            "requestXml": "requestXml",
+                            "requestSendt": "$fixedTidspunkt",
+                            "responseXml": "responseXml"
+                        }
+                        """.trimIndent(),
+
+                    ),
+                    session,
+                )
+                val actual = tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurderingId = revurdering.id,
                     session = session,
-                ) shouldBe ikkeAvgjort
-            }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-            val forsto = ikkeAvgjort.tilbakekrev()
-            testDataHelper.sessionFactory.withTransaction { tx ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                    tilbakrekrevingsbehanding = forsto,
-                    tx = tx,
-                )
-            }
-
-            testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(revurdering.id, session) shouldBe forsto
-            }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-            val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
-            testDataHelper.sessionFactory.withTransaction { tx ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                    tilbakrekrevingsbehanding = kunneIkkeForstå,
-                    tx = tx,
-                )
-            }
-            testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                )!!
+                actual shouldBe HistoriskSendtTilbakekrevingsvedtak(
+                    id = id,
+                    opprettet = fixedTidspunkt,
+                    sakId = revurdering.sakId,
                     revurderingId = revurdering.id,
-                    session = session,
-                ) shouldBe kunneIkkeForstå
-            }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-            val avventerKravgrunnlag = kunneIkkeForstå.fullførBehandling()
-            testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                    tilbakrekrevingsbehanding = avventerKravgrunnlag,
-                    session = session,
+                    periode = revurdering.periode,
+                    kravgrunnlag = actual.kravgrunnlag,
+                    kravgrunnlagMottatt = fixedTidspunkt,
+                    tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
+                        requestXml = "requestXml",
+                        responseXml = "responseXml",
+                        tidspunkt = fixedTidspunkt,
+                    ),
+                    avgjørelse = HistoriskSendtTilbakekrevingsvedtak.AvgjørelseTilbakekrevingUnderRevurdering.Tilbakekrev,
                 )
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurderingId = revurdering.id,
-                    session = session,
-                ) shouldBe avventerKravgrunnlag
             }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe listOf(
-                avventerKravgrunnlag,
-            )
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-            val iverksatt = revurdering.tilAttestering(
-                saksbehandler = saksbehandler,
-            ).getOrFail().tilIverksatt(
-                attestant = attestant,
-                clock = clock,
-            ).getOrFail()
-
-            val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
-                kravgrunnlag = genererKravgrunnlagFraSimulering(
-                    saksnummer = iverksatt.saksnummer,
-                    simulering = iverksatt.simulering,
-                    // Vi har ikke laget et vedtak her.
-                    utbetalingId = UUID30.randomUUID(),
-                    clock = clock,
-                    // TODO jah: Feltet brukes ikke til noe i dette tilfellet. Denne fila skal slettes når vi fjerner den gamle tilbakekrevingsrutinen.
-                    kravgrunnlagPåSakHendelseId = HendelseId.generer(),
-                ),
-                kravgrunnlagMottatt = fixedTidspunkt,
-                hentRevurdering = { iverksatt },
-            )
-            testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                    tilbakrekrevingsbehanding = mottattKravgrunnlag,
-                    session = session,
-                )
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurderingId = revurdering.id,
-                    session = session,
-                ) shouldBe mottattKravgrunnlag
-            }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe listOf(
-                mottattKravgrunnlag,
-            )
-
-            val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
-                tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
-                    requestXml = "requestXml",
-                    responseXml = "responseXml",
-                    tidspunkt = fixedTidspunkt,
-                ),
-            )
-            testDataHelper.sessionFactory.withSession { session ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                    tilbakrekrevingsbehanding = besvartKravgrunnlag,
-                    session = session,
-                )
-                tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurderingId = revurdering.id,
-                    session = session,
-                ) shouldBe besvartKravgrunnlag
-            }
-
-            tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-            tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
         }
     }
 }

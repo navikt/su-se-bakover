@@ -19,7 +19,6 @@ fun mockedDatabaseRepos() = DatabaseRepos(
     klageRepo = mock(),
     klageinstanshendelseRepo = mock(),
     reguleringRepo = mock(),
-    tilbakekrevingRepo = mock(),
     sendPåminnelseNyStønadsperiodeJobRepo = mock(),
     hendelseRepo = mock(),
     utenlandsoppholdRepo = mock(),

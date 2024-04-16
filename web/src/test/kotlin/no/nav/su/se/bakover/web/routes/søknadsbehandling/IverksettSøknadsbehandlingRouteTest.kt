@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.header
 import io.ktor.client.request.patch
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -21,14 +19,12 @@ import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
-import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import økonomi.domain.utbetaling.UtbetalingFeilet
 import java.util.UUID
 
 internal class IverksettSøknadsbehandlingRouteTest {
@@ -92,34 +88,6 @@ internal class IverksettSøknadsbehandlingRouteTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-            }
-        }
-    }
-
-    @Test
-    fun `Feiler dersom man ikke får sendt til utbetaling`() {
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock(),
-                            iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(
-                                    UtbetalingFeilet.Protokollfeil,
-                                )
-                                    .left()
-                            },
-                        ),
-                    ),
-                )
-            }
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
-            ).apply {
-                status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain "Kunne ikke utføre utbetaling"
             }
         }
     }
