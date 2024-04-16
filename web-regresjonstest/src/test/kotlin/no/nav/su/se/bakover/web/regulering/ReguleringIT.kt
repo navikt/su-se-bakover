@@ -136,8 +136,9 @@ internal class ReguleringIT {
     }
 
     @Test
-    fun `automatisk regulering med supplement`() {
+    fun `automatisk regulering med supplement - 1 går automatisk, 1 går til manuell`() {
         val fnrForSakSomSkalReguleresGjennomSupplement = Fnr.generer().toString()
+        val fnrForSakSomIkkeSkalReguleresPgaInntektsendring = Fnr.generer().toString()
         withMigratedDb { dataSource ->
             testApplication {
                 val appComponents = AppComponents.from(
@@ -164,6 +165,23 @@ internal class ReguleringIT {
                         )
                     },
                 )
+
+                opprettInnvilgetSøknadsbehandling(
+                    fnr = fnrForSakSomIkkeSkalReguleresPgaInntektsendring,
+                    client = this.client,
+                    appComponents = appComponents,
+                    fradrag = { sakId, behandlingId ->
+                        leggTilFradrag(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            client = this.client,
+                            body = {
+                                //language=json
+                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Alderspensjon","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "BRUKER"}]}""".trimIndent()
+                            },
+                        )
+                    },
+                )
             }
 
             testApplication {
@@ -181,14 +199,22 @@ internal class ReguleringIT {
                     supplement = """
                         FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK
                         $fnrForSakSomSkalReguleresGjennomSupplement;UFOREP;REGULERING;01.05.2021;;10500;10500;UT_ORDINER;10500;10500
+                        $fnrForSakSomIkkeSkalReguleresPgaInntektsendring;ALDER;REGULERING;01.05.2021;;10900;10900;GP;10900;10900
                     """.trimIndent(),
                 )
                 val sakSomSkalHaBlittRegulertAutomatiskGjennomSupplement =
                     hentSakForFnr(fnrForSakSomSkalReguleresGjennomSupplement, client = this.client)
-                val reguleringen = ReguleringJson.hentSingleReglering(
+                val automatiskRegulert = ReguleringJson.hentSingleReglering(
                     hentReguleringer(sakSomSkalHaBlittRegulertAutomatiskGjennomSupplement),
                 )
-                verifyAutomatiskRegulertMedSupplement(reguleringen, fnrForSakSomSkalReguleresGjennomSupplement)
+                val sakSomIkkeSkalHaBlittAutomatiskRegulertPgaInnteksendring =
+                    hentSakForFnr(fnrForSakSomIkkeSkalReguleresPgaInntektsendring, client = this.client)
+                val manuellRegulering = ReguleringJson.hentSingleReglering(
+                    hentReguleringer(sakSomIkkeSkalHaBlittAutomatiskRegulertPgaInnteksendring),
+                )
+
+                verifyAutomatiskRegulertMedSupplement(automatiskRegulert, fnrForSakSomSkalReguleresGjennomSupplement)
+                verifyManuellReguleringMedSupplement(manuellRegulering, fnrForSakSomIkkeSkalReguleresPgaInntektsendring)
             }
         }
     }
