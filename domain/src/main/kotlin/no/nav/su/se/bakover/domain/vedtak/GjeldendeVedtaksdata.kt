@@ -6,6 +6,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -43,6 +44,9 @@ data class GjeldendeVedtaksdata(
     private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje().krympTilPeriode(periode)
 
     private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje ?: emptyList()
+
+    /** Periodene til vedtakene. Sortert uten overlapp. Kan inneholde hull og trenger ikke være slått sammen. */
+    val vedtaksperioder = IkkeOverlappendePerioder.create(vedtakPåTidslinje.map { it.periode })
 
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
@@ -120,7 +124,7 @@ data class GjeldendeVedtaksdata(
     }
 
     fun tidslinjeForVedtakErSammenhengende(): Boolean {
-        return vedtaksperioder().minsteAntallSammenhengendePerioder().count() == 1
+        return vedtaksperioder.minsteAntallSammenhengendePerioder().count() == 1
     }
 
     fun harVedtakIHelePerioden(): Boolean {
@@ -129,16 +133,12 @@ data class GjeldendeVedtaksdata(
             periode == garantertSammenhengendePeriode()
     }
 
-    fun vedtaksperioder(): List<Periode> {
-        return vedtakPåTidslinje.map { it.periode }
-    }
-
     /**
      * Returnerer en periode hvor det garanteres at tidslinjen er kontinuerlig.
      * @throws IllegalStateException dersom tidslinjen ikke er kontinuerlig.
      */
     fun garantertSammenhengendePeriode(): Periode {
-        return vedtaksperioder().minsteAntallSammenhengendePerioder().singleOrNull()
+        return vedtaksperioder.minsteAntallSammenhengendePerioder().singleOrNull()
             ?: throw IllegalStateException("Tidslinjen er ikke sammenhengende, kunne ikke generere sammenhengende periode for alle data")
     }
 }

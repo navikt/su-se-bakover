@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion.toDatabaseJson
-import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Companion.toDatabaseJson
-import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Utbetaling.Companion.toDatabaseJson
-import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Utbetaling.Detaljer.Companion.toDatabaseJson
+import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.SimuleringsperiodeJson.Companion.toDatabaseJson
+import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.SimuleringsperiodeJson.Utbetaling.Companion.toDatabaseJson
+import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.SimuleringsperiodeJson.Utbetaling.Detaljer.Companion.toDatabaseJson
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import økonomi.domain.simulering.Simulering
@@ -40,12 +40,12 @@ internal fun Simulering?.serializeNullableSimulering(): String? {
     return this?.serializeSimulering()
 }
 
-internal data class SimuleringDatabaseJson(
+private data class SimuleringDatabaseJson(
     val gjelderId: String,
     val gjelderNavn: String,
     val datoBeregnet: String,
     val nettoBeløp: Int,
-    val periodeList: List<Periode>,
+    val periodeList: List<SimuleringsperiodeJson>,
     val rawResponse: String = "Simuleringen utført før feltet rawResponse ble lagt til",
 ) {
     fun toDomain(): Simulering {
@@ -72,7 +72,7 @@ internal data class SimuleringDatabaseJson(
         }
     }
 
-    data class Periode(
+    data class SimuleringsperiodeJson(
         @JsonAlias("fraOgMed", "fom")
         val fraOgMed: String,
         @JsonAlias("tilOgMed", "tom")
@@ -113,8 +113,8 @@ internal data class SimuleringDatabaseJson(
         }
 
         companion object {
-            fun SimulertMåned.toDatabaseJson(): Periode {
-                return Periode(
+            fun SimulertMåned.toDatabaseJson(): SimuleringsperiodeJson {
+                return SimuleringsperiodeJson(
                     fraOgMed = this.måned.fraOgMed.toString(),
                     tilOgMed = this.måned.tilOgMed.toString(),
                     utbetaling = this.utbetaling?.let { listOf(it.toDatabaseJson()) } ?: emptyList(),

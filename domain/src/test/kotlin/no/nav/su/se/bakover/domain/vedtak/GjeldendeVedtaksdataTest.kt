@@ -77,7 +77,7 @@ internal class GjeldendeVedtaksdataTest {
         data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurderingsVedtak
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
         data.garantertSammenhengendePeriode() shouldBe år(2021)
-        data.vedtaksperioder() shouldBe listOf(
+        data.vedtaksperioder shouldBe listOf(
             Periode.create(1.januar(2021), 30.april(2021)),
             Periode.create(1.mai(2021), 31.desember(2021)),
         )
@@ -132,7 +132,7 @@ internal class GjeldendeVedtaksdataTest {
         assertThrows<IllegalStateException> {
             data.garantertSammenhengendePeriode()
         }
-        data.vedtaksperioder() shouldBe listOf(
+        data.vedtaksperioder shouldBe listOf(
             Periode.create(1.januar(2021), 31.mars(2021)),
             Periode.create(1.mai(2021), 31.desember(2021)),
         )
@@ -160,7 +160,7 @@ internal class GjeldendeVedtaksdataTest {
         assertThrows<IllegalStateException> {
             data.garantertSammenhengendePeriode()
         }
-        data.vedtaksperioder() shouldBe emptyList()
+        data.vedtaksperioder shouldBe emptyList()
     }
 
     @Test
