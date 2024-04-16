@@ -110,17 +110,17 @@ sealed interface Regulering : Stønadsbehandling {
              *  Eventuelt gjøre periodene om til måneder, oppdatere beløpene. Merk at samme problem stilling med perioder i pesys vs våres fortsatt gjelder.
              *
              */
-                val (reguleringstypeVedSupplement, oppdatereFradragsgrunnlaggKunForSøker) = fradrag
+                val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = fradrag
                 .groupBy { it.fradragstype }
                 .map { (fradragstype, fradragsgrunnlag) ->
-                    val oppdaterteFradragsgrunnlag = utledReguleringstypeOgFradrag(
+                    val fradragEtterSupplementSjekk = utledReguleringstypeOgFradrag(
                         eksternSupplementRegulering = eksternSupplementRegulering,
                         fradragstype = fradragstype,
                         originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
                         periodeTilEps = bosituasjon.periodeTilEpsFnr(),
                         omregningsfaktor = omregningsfaktor,
                     )
-                    oppdaterteFradragsgrunnlag
+                    fradragEtterSupplementSjekk
                 }.let {
                     val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
                         Reguleringstype.MANUELL(
@@ -147,7 +147,7 @@ sealed interface Regulering : Stønadsbehandling {
                 fnr = fnr,
                 grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata.copy(
-                        fradragsgrunnlag = oppdatereFradragsgrunnlaggKunForSøker,
+                        fradragsgrunnlag = fradragEtterSupplementSjekk,
                     ),
                 ),
                 beregning = null,

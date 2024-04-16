@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 internal fun regulerAutomatisk(
     fraOgMed: Måned,
     client: HttpClient,
+    body: String = """{"fraOgMedMåned": "$fraOgMed"}""",
 ) {
     return runBlocking {
         val correlationId = CorrelationId.generate()
@@ -29,7 +30,7 @@ internal fun regulerAutomatisk(
             listOf(Brukerrolle.Drift),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"fraOgMedMåned": "$fraOgMed"}""") }.apply {
+        ) { setBody(body) }.apply {
             withClue("automatiskReguler feilet: ${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
             }
@@ -162,7 +163,6 @@ fun verifyManuellReguleringMedSupplement(
     actual: String,
     expectedFnr: String,
 ) {
-    println(expectedFnr)
     //language=json
     val expected = """{
         "id":"ignored",
@@ -182,6 +182,45 @@ fun verifyManuellReguleringMedSupplement(
         "erFerdigstilt":false,
         "avsluttet":null
     }
+    """.trimIndent()
+
+    actual.shouldBeSimilarJsonTo(
+        expected,
+        "id",
+        "sakId",
+        "beregning.id",
+        "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id",
+        "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id",
+        "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id",
+    )
+}
+
+fun verifyAutomatiskRegulertForEPS(
+    actual: String,
+    expectedSøkersFnr: String,
+    expectedEpsFnr: String,
+) {
+    println(expectedSøkersFnr)
+    println(expectedEpsFnr)
+    //language=json
+    val expected = """{
+        "id":"ignored",
+        "sakId":"ignored",
+        "saksnummer":2021,
+        "fnr":"$expectedSøkersFnr",
+        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+        "sakstype":"uføre",
+        "reguleringstype":"AUTOMATISK",
+        "saksbehandler":"srvsupstonad",
+        "reguleringsstatus":"IVERKSATT",
+        "opprettet":"2021-05-21T01:02:03.456789Z",
+        "årsakForManuell":null,
+        "grunnlagsdataOgVilkårsvurderinger":{"familiegjenforening":null,"fradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"personligOppmøte":{"vurderinger":[{"vurdering":"MøttPersonlig","resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"},"formue":{"vurderinger":[{"grunnlag":{"søkersFormue":{"innskudd":0,"verdipapir":0,"pengerSkyldt":0,"verdiKjøretøy":0,"verdiIkkePrimærbolig":0,"depositumskonto":0,"kontanter":0,"verdiEiendommer":0},"epsFormue":{"innskudd":0,"verdipapir":0,"pengerSkyldt":0,"verdiKjøretøy":0,"verdiIkkePrimærbolig":0,"depositumskonto":0,"kontanter":0,"verdiEiendommer":0}},"opprettet":"2021-01-01T01:02:03.456789Z","id":"ignored","resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"formuegrenser":[{"beløp":53200,"gyldigFra":"2021-05-01"},{"beløp":50676,"gyldigFra":"2020-05-01"}],"resultat":"VilkårOppfylt"},"fastOpphold":{"vurderinger":[{"resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"},"flyktning":{"vurderinger":[{"resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"},"utenlandsopphold":{"vurderinger":[{"status":"SkalHoldeSegINorge","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"status":"SkalHoldeSegINorge"},"lovligOpphold":{"vurderinger":[{"resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"},"opplysningsplikt":{"vurderinger":[{"beskrivelse":"TilstrekkeligDokumentasjon","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]},"bosituasjon":[{"delerBolig":null,"sats":"ORDINÆR","fnr":"$expectedEpsFnr","ektemakeEllerSamboerUførFlyktning":true,"type":"EPS_UFØR_FLYKTNING","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"uføre":{"vurderinger":[{"grunnlag":{"forventetInntekt":0,"opprettet":"2021-01-01T01:02:03.456789Z","uføregrad":100,"id":"ignored","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}},"opprettet":"2021-01-01T01:02:03.456789Z","id":"ignored","resultat":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"},"pensjon":null,"institusjonsopphold":{"vurderingsperioder":[{"vurdering":"VilkårOppfylt","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"resultat":"VilkårOppfylt"}},
+        "beregning":{"begrunnelse":null,"fraOgMed":"2021-05-01","fradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}],"opprettet":"2021-05-21T01:02:03.456789Z","tilOgMed":"2021-12-31","id":"ignored","månedsberegninger":[{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-05-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}}],"beløp":20216,"tilOgMed":"2021-05-31","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-06-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}}],"beløp":20216,"tilOgMed":"2021-06-30","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-07-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}}],"beløp":20216,"tilOgMed":"2021-07-31","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-08-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}}],"beløp":20216,"tilOgMed":"2021-08-31","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-09-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}}],"beløp":20216,"tilOgMed":"2021-09-30","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-10-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}}],"beløp":20216,"tilOgMed":"2021-10-31","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-11-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}}],"beløp":20216,"tilOgMed":"2021-11-30","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]},{"satsbeløp":20216,"grunnbeløp":106399,"fraOgMed":"2021-12-01","epsInputFradrag":[{"beløp":10500,"tilhører":"EPS","utenlandskInntekt":null,"type":"Uføretrygd","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}}],"fradrag":[{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}}],"beløp":20216,"tilOgMed":"2021-12-31","sats":"ORDINÆR","epsFribeløp":20215.81,"merknader":[]}]},
+        "simulering":{"totalOppsummering":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":161728,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":161728,"sumTilUtbetaling":161728,"sumReduksjonFeilkonto":0},"periodeOppsummering":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0},{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31","sumEtterbetaling":0,"sumFeilutbetaling":0,"sumFramtidigUtbetaling":20216,"sumTidligereUtbetalt":0,"sumTotalUtbetaling":20216,"sumTilUtbetaling":20216,"sumReduksjonFeilkonto":0}]},
+        "erFerdigstilt":true,
+        "avsluttet":null
+      }
     """.trimIndent()
 
     actual.shouldBeSimilarJsonTo(

@@ -19,6 +19,10 @@ import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
 import no.nav.su.se.bakover.web.søknadsbehandling.GrunnlagJson
 import no.nav.su.se.bakover.web.søknadsbehandling.ReguleringJson
+import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.bosituasjonEpsJson
+import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
+import no.nav.su.se.bakover.web.søknadsbehandling.formue.formueEpsJson
+import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
 import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -26,7 +30,7 @@ import org.junit.jupiter.api.Test
 internal class ReguleringIT {
 
     @Test
-    fun `automatisk regulering`() {
+    fun `automatisk regulering - uten supplement`() {
         val fnrForSakSomSkalReguleres = Fnr.generer().toString()
         withMigratedDb { dataSource ->
             testApplication {
@@ -35,9 +39,7 @@ internal class ReguleringIT {
                     clockParam = fixedClock,
                     applicationConfig = applicationConfig(),
                 )
-                application {
-                    testSusebakover(appComponents = appComponents)
-                }
+                application { testSusebakover(appComponents = appComponents) }
                 opprettInnvilgetSøknadsbehandling(
                     fnr = fnrForSakSomSkalReguleres,
                     client = this.client,
@@ -51,9 +53,7 @@ internal class ReguleringIT {
                     clockParam = fixedClockAt(21.mai(2021)),
                     applicationConfig = applicationConfig(),
                 )
-                application {
-                    testSusebakover(appComponents = appComponents)
-                }
+                application { testSusebakover(appComponents = appComponents) }
                 val fnrForSakSomIkkeSkalBliRegulert = Fnr.generer().toString()
                 opprettInnvilgetSøknadsbehandling(
                     fnr = fnrForSakSomIkkeSkalBliRegulert,
@@ -125,12 +125,7 @@ internal class ReguleringIT {
                 )
                 val iverksattReg =
                     hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client).hentReguleringMedId(reguleringsId)
-                verifyRegulering(
-                    iverksattReg,
-                    expectedId = reguleringsId,
-                    expectedSakId = sakId,
-                    expectedFnr = fnrForSakSomSkalReguleres,
-                )
+                verifyRegulering(iverksattReg, reguleringsId, sakId, fnrForSakSomSkalReguleres)
             }
         }
     }
@@ -146,9 +141,7 @@ internal class ReguleringIT {
                     clockParam = fixedClock,
                     applicationConfig = applicationConfig(),
                 )
-                application {
-                    testSusebakover(appComponents = appComponents)
-                }
+                application { testSusebakover(appComponents = appComponents) }
                 opprettInnvilgetSøknadsbehandling(
                     fnr = fnrForSakSomSkalReguleresGjennomSupplement,
                     client = this.client,
@@ -190,9 +183,7 @@ internal class ReguleringIT {
                     clockParam = fixedClockAt(21.mai(2021)),
                     applicationConfig = applicationConfig(),
                 )
-                application {
-                    testSusebakover(appComponents = appComponents)
-                }
+                application { testSusebakover(appComponents = appComponents) }
                 regulerAutomatiskMultipart(
                     fraOgMed = mai(2021),
                     client = this.client,
@@ -217,5 +208,83 @@ internal class ReguleringIT {
                 verifyManuellReguleringMedSupplement(manuellRegulering, fnrForSakSomIkkeSkalReguleresPgaInntektsendring)
             }
         }
+    }
+
+    @Test
+    fun `regulerer automatisk med supplement for EPS - default request`() {
+        val søkersFnr = Fnr.generer().toString()
+        val epsFnr = Fnr.generer().toString()
+        withMigratedDb { dataSource ->
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = fixedClock,
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+
+                opprettInnvilgetSøknadsbehandling(
+                    fnr = søkersFnr,
+                    client = this.client,
+                    appComponents = appComponents,
+                    leggTilBosituasjon = { sakId, behandlingId ->
+                        leggTilBosituasjon(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            body = { bosituasjonEpsJson(epsFnr) },
+                            client = this.client,
+                        )
+                    },
+                    leggTilFormue = { sakId, behandlingId ->
+                        leggTilFormue(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            body = { formueEpsJson() },
+                            client = this.client,
+                        )
+                    },
+                    fradrag = { sakId, behandlingId ->
+                        leggTilFradrag(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            client = this.client,
+                            body = {
+                                //language=json
+                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Uføretrygd","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "EPS"}]}""".trimIndent()
+                            },
+                        )
+                    },
+                )
+            }
+
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = fixedClockAt(21.mai(2021)),
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+                val fraOgMed = mai(year = 2021)
+                regulerAutomatisk(
+                    fraOgMed = fraOgMed,
+                    client = this.client,
+                    //language=json
+                    body = """{
+                      "fraOgMedMåned": "$fraOgMed",
+                      "csv": "FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK\r\n$epsFnr;UFOREP;REGULERING;01.05.2021;;10500;10500;UT_ORDINER;10500;10500"
+                    }
+                    """.trimIndent(),
+                )
+                val sak = hentSakForFnr(søkersFnr, client = this.client)
+                val regulering = ReguleringJson.hentSingleReglering(hentReguleringer(sak))
+
+                verifyAutomatiskRegulertForEPS(regulering, søkersFnr, epsFnr)
+            }
+        }
+    }
+
+    @Test
+    fun `kan kjøre gjennom supplement etter at reguleringen er gjort`() {
+        TODO()
     }
 }
