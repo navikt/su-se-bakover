@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 
 data class Verdier private constructor(
     val verdiIkkePrimærbolig: Int,
@@ -87,7 +87,7 @@ data class Verdier private constructor(
             ).right()
         }
 
-        fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): List<Periode> {
+        fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): SlåttSammenIkkeOverlappendePerioder {
             return map { it.periode }.minsteAntallSammenhengendePerioder()
         }
     }

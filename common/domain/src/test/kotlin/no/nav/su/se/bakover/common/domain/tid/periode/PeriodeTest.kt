@@ -212,7 +212,7 @@ internal class PeriodeTest {
     @Test
     fun `overlapper fler perioder`() {
         år(2021) fullstendigOverlapp
-            listOf(år(2021)) shouldBe true
+            listOf(år(2021)).tilPerioder() shouldBe true
 
         år(2021) fullstendigOverlapp
             listOf(
@@ -228,13 +228,13 @@ internal class PeriodeTest {
                 oktober(2021),
                 november(2021),
                 desember(2021),
-            ) shouldBe true
+            ).tilPerioder() shouldBe true
 
         år(2021) fullstendigOverlapp
             listOf(
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe true
+            ).tilPerioder() shouldBe true
 
         år(2021) fullstendigOverlapp
             listOf(
@@ -242,37 +242,37 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe true
+            ).tilPerioder() shouldBe true
 
         år(2021) fullstendigOverlapp
             listOf(
                 Periode.create(1.februar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         år(2021) fullstendigOverlapp
             listOf(
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 30.november(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         år(2021) fullstendigOverlapp
             listOf(
                 Periode.create(1.januar(2021), 31.mai(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         Periode.create(1.februar(2021), 31.desember(2021)) fullstendigOverlapp
             listOf(
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         Periode.create(1.januar(2021), 30.november(2021)) fullstendigOverlapp
             listOf(
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         Periode.create(1.januar(2021), 30.november(2021)) fullstendigOverlapp
             listOf(
@@ -280,14 +280,14 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 30.juni(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
                 Periode.create(1.juli(2021), 31.desember(2021)),
-            ) shouldBe false
+            ).tilPerioder() shouldBe false
 
         år(2021) fullstendigOverlapp
             listOf(
                 år(2021),
                 år(2021),
                 år(2021),
-            ) shouldBe true
+            ).tilPerioder() shouldBe true
     }
 
     @Test

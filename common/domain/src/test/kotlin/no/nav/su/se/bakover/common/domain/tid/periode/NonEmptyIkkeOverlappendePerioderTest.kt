@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
@@ -32,10 +33,9 @@ internal class NonEmptyIkkeOverlappendePerioderTest {
     }
 
     @Test
-    fun `kaster hvis periodene er slått sammen`() {
-        shouldThrow<IllegalArgumentException> {
-            NonEmptyIkkeOverlappendePerioder.create(januar(2021)..februar(2021))
-        }.message shouldBe "Tilstøtende perioder kan ikke være slått sammen, men var: NonEmptyList(Periode(fraOgMed=2021-01-01, tilOgMed=2021-02-28)). Bruk heller NonEmptySlåttSammenIkkeOverlappendePerioder"
+    fun `gir NonEmptySlåttSammenzkkeOverlappendePerioder dersom periodene allerede er slått sammen`() {
+        NonEmptyIkkeOverlappendePerioder.create(januar(2021)..februar(2021)) shouldBe
+            NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 28.februar(2021)))
     }
 
     @Test

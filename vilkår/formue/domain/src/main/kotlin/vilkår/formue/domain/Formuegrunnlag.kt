@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -128,7 +129,7 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
     return this.first()
 }
 
-fun List<Formuegrunnlag>.perioderMedEPS(): List<Periode> {
+fun List<Formuegrunnlag>.perioderMedEPS(): SlåttSammenIkkeOverlappendePerioder {
     return filter { it.harEPSFormue() }.map { it.periode }.minsteAntallSammenhengendePerioder()
 }
 

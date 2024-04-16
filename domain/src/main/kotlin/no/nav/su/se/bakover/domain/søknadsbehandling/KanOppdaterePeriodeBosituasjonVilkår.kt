@@ -56,14 +56,14 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, Kan
         tidspunkt: Tidspunkt,
         handling: SøknadsbehandlingsHandling,
     ): Either<VilkårsfeilVedSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
-        if (!periode.inneholder(vilkår.perioder)) {
+        if (!periode.inneholder(vilkår.perioderSlåttSammen)) {
             return VilkårsfeilVedSøknadsbehandling.VurderingsperiodeUtenforBehandlingsperiode.left()
         }
-        if (!vilkår.perioder.erSammenhengendeSortertOgUtenDuplikater()) {
+        if (!vilkår.perioderSlåttSammen.erSammenhengendeSortertOgUtenDuplikater()) {
             // TODO jah: Dette bør være en generell ting som gjelder for alle vilkårsvurderinger -  bør flyttes inn i VilkårsvurdertSøknadsbehandling
             throw IllegalStateException("Vilkårsvurderingens perioder er ikke sammenhengende, sortert og uten duplikater. Saksnummer: ${this.saksnummer}, behandlingId: ${this.id}")
         }
-        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+        if (!periode.fullstendigOverlapp(vilkår.perioderSlåttSammen)) {
             return VilkårsfeilVedSøknadsbehandling.MåVurdereHelePerioden.left()
         }
         if (!vilkår.vurderingsperioder.all {

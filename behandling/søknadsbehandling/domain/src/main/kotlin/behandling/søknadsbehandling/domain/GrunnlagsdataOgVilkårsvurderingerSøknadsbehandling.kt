@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -158,8 +158,11 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
     ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
         // TODO jah: Dette er sjekker som alltid bør gjøres før man får en instans av denne typen.
         //  både for ctor og copy (kun init som kan garantere dette).
-        //  det blir litt for omfattende i denne omgangen.
-        require(vilkår.perioder.erSammenhengendeSortertOgUtenDuplikater()) {
+        //  Vi har aldri støttet hull, så vi vil ikke ha det i databasen.
+        require(vilkår.perioderSlåttSammen.size == 1) {
+            "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering."
+        }
+        require(vilkår.perioderIkkeSlåttSammen.erSammenhengende()) {
             "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering."
         }
         // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.

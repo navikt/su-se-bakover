@@ -177,7 +177,7 @@ internal class OppdaterRevurderingServiceTest {
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
                 )
                 oppdatertRevurdering.vilkårsvurderinger.erLik(sak.søknadsbehandlinger.single().vilkårsvurderinger)
-                oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(oppdatertPeriode) }
+                oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioderSlåttSammen == listOf(oppdatertPeriode) }
                 oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
                     mapOf(
                         Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,

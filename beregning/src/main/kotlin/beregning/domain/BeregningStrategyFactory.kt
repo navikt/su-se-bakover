@@ -20,7 +20,7 @@ class BeregningStrategyFactory(
 
         require(grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.isNotEmpty()) { "Bosituasjon er påkrevet for å kunne beregne." }
 
-        val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
+        val delperioder: List<Beregningsperiode> = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
             Beregningsperiode(
                 periode = it.periode,
                 strategy = (it as Bosituasjon.Fullstendig).utledBeregningsstrategi(satsFactory, sakstype),
@@ -44,7 +44,7 @@ class BeregningStrategyFactory(
             }
         }
 
-        require(totalBeregningsperiode.fullstendigOverlapp(delperioder.map { it.periode() }))
+        require(totalBeregningsperiode.fullstendigOverlapp(delperioder.perioder()))
 
         return BeregningFactory(clock).ny(
             fradrag = fradrag,

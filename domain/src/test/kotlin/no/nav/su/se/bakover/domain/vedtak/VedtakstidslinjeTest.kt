@@ -478,7 +478,7 @@ internal class VedtakstidslinjeTest {
                 a.grunnlagsdata.bosituasjon.all { it is Bosituasjon.Fullstendig.Enslig } shouldBe true
                 a.grunnlagsdata.fradragsgrunnlag.all { it.periode == førstePeriode } shouldBe true
                 a.grunnlagsdata.fradragsgrunnlag.all { it.månedsbeløp == 5000.0 } shouldBe true
-                a.vilkårsvurderinger.vilkår.map { it.perioder.single() }.all { it == førstePeriode } shouldBe true
+                a.vilkårsvurderinger.vilkår.map { it.perioderSlåttSammen.single() }.all { it == førstePeriode } shouldBe true
                 a.vilkårsvurderinger.erLik(første.behandling.vilkårsvurderinger)
                 a.originaltVedtak shouldBe første
             }
@@ -489,7 +489,7 @@ internal class VedtakstidslinjeTest {
                 b.grunnlagsdata.bosituasjon.all { it is Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre } shouldBe true
                 b.grunnlagsdata.fradragsgrunnlag.all { it.periode == senestePeriode } shouldBe true
                 b.grunnlagsdata.fradragsgrunnlag.all { it.månedsbeløp == 1000.0 } shouldBe true
-                b.vilkårsvurderinger.vilkår.map { it.perioder.single() }.all { it == senestePeriode } shouldBe true
+                b.vilkårsvurderinger.vilkår.map { it.perioderSlåttSammen.single() }.all { it == senestePeriode } shouldBe true
                 b.vilkårsvurderinger.erLik(andre.behandling.vilkårsvurderinger)
                 b.originaltVedtak shouldBe andre
             }

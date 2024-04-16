@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.common.domain.tidslinje.fjernPerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -163,10 +164,10 @@ data class Fradragsgrunnlag private constructor(
         }
 
         fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-        fun List<Fradragsgrunnlag>.perioder(): List<Periode> =
+        fun List<Fradragsgrunnlag>.perioder(): SlåttSammenIkkeOverlappendePerioder =
             map { it.periode }.minsteAntallSammenhengendePerioder()
 
-        fun List<Fradragsgrunnlag>.allePerioderMedEPS(): List<Periode> {
+        fun List<Fradragsgrunnlag>.allePerioderMedEPS(): SlåttSammenIkkeOverlappendePerioder {
             return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
         }
 

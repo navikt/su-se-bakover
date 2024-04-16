@@ -1,8 +1,8 @@
 package vilkår.common.domain
 
 import arrow.core.Nel
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptyIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
@@ -21,14 +21,18 @@ interface VurdertVilkår : Vilkår {
             else -> Vurdering.Uavklart
         }
 
-    override val perioder: NonEmptySlåttSammenIkkeOverlappendePerioder get() = vurderingsperioder.minsteAntallSammenhengendePerioder()
+    override val perioderSlåttSammen: NonEmptySlåttSammenIkkeOverlappendePerioder get() = vurderingsperioder.minsteAntallSammenhengendePerioder()
+    override val perioderIkkeSlåttSammen: NonEmptyIkkeOverlappendePerioder
+        get() = NonEmptyIkkeOverlappendePerioder.create(
+            vurderingsperioder.map { it.periode },
+        )
 
     override fun hentTidligesteDatoForAvslag(): LocalDate? {
         return vurderingsperioder.filter { it.vurdering == Vurdering.Avslag }.map { it.periode.fraOgMed }
             .minByOrNull { it }
     }
 
-    fun minsteAntallSammenhengendePerioder(): List<Periode> {
+    fun minsteAntallSammenhengendePerioder(): NonEmptySlåttSammenIkkeOverlappendePerioder {
         return vurderingsperioder.minsteAntallSammenhengendePerioder()
     }
 
@@ -39,8 +43,8 @@ interface VurdertVilkår : Vilkår {
  * Skal kunne kalles fra undertyper av [Vilkår].
  */
 fun VurdertVilkår.kastHvisPerioderErUsortertEllerHarDuplikater() {
-    require(!perioder.harDuplikater())
-    require(perioder.erSortertPåFraOgMed())
+    require(!perioderSlåttSammen.harDuplikater())
+    require(perioderSlåttSammen.erSortertPåFraOgMed())
 
     // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
 }

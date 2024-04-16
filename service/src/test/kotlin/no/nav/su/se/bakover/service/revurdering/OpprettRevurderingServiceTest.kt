@@ -88,7 +88,7 @@ internal class OpprettRevurderingServiceTest {
                 )
                 opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all {
-                    it.perioder == listOf(
+                    it.perioderSlåttSammen == listOf(
                         søknadsbehandling.periode,
                     )
                 }

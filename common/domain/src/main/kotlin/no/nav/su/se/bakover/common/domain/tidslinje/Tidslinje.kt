@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptyIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.between
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
-import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import java.time.LocalDate
 
 /**
@@ -32,7 +32,12 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
     private val tidslinjeperioder: NonEmptyList<T>,
 ) : List<T> by tidslinjeperioder {
 
-    private val periode = this.tidslinjeperioder.map { it.periode }.minAndMaxOf()
+    /** Sortert og uten overlapp. Merk at disse kan ha hull og tilstøtende perioder. */
+    private val perioder = NonEmptyIkkeOverlappendePerioder.create(this.tidslinjeperioder.map { it.periode })
+
+    @Suppress("unused")
+    private val fraOgMed: LocalDate = perioder.fraOgMed
+    private val tilOgMed: LocalDate = perioder.tilOgMed
 
     init {
         valider(this.tidslinjeperioder)
@@ -86,7 +91,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
      * [krympTilPeriode]
      */
     fun fjernMånederFør(fraOgMed: Måned): Tidslinje<T>? =
-        Periode.tryCreate(fraOgMed.fraOgMed, periode.tilOgMed).fold(
+        Periode.tryCreate(fraOgMed.fraOgMed, this.tilOgMed).fold(
             { null },
             { krympTilPeriode(it) },
         )
