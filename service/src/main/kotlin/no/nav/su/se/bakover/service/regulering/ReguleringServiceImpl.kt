@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
@@ -74,7 +75,7 @@ class ReguleringServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        val omregningsfaktor = satsFactory.grunnbeløp(Måned.now(clock)).omregningsfaktor
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
@@ -90,7 +91,7 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
-        val omregningsfaktor = satsFactory.grunnbeløp(Måned.now(clock)).omregningsfaktor
+        val omregningsfaktor = satsFactory.grunnbeløp(command.fraOgMedMåned).omregningsfaktor
 
         Either.catch {
             start(
@@ -257,6 +258,63 @@ class ReguleringServiceImpl(
         }
     }
 
+    override fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement) {
+        /**
+         * TODO
+         *  - Hent alle reguleringer som ikke er ferdigstilt
+         *  - For hver regulering:
+         *    - Hent saken
+         *    - oppdater reguleringen med supplementet
+         *    - Ferdigstill og iverksett reguleringen dersom den er automatisk
+         *      - ellers knytt supplement
+         *    - lagre reguleringen
+         */
+
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
+
+        val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
+        reguleringerSomKanOppdateres.forEach { reguleringssammendrag ->
+            log.info("Oppdatering av regulering for sak ${reguleringssammendrag.saksnummer} starter...")
+
+            Either.catch {
+                val sak: Sak = Either.catch {
+                    sakService.hentSak(reguleringssammendrag.saksnummer)
+                        .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+                }.getOrElse {
+                    log.error(
+                        "Regulering for saksnummer ${reguleringssammendrag.saksnummer}: Klarte ikke hente sak",
+                        it,
+                    )
+                    return@forEach
+                }
+
+                val regulering = sak.reguleringer.hent(reguleringssammendrag.reguleringId)
+                    ?: throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
+
+                val søkersSupplement = supplement.getFor(regulering.fnr)
+                val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
+
+                val eksternSupplementRegulering = EksternSupplementRegulering(søkersSupplement, epsSupplement)
+                val oppdatertRegulering =
+                    regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
+
+                if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+                    ferdigstillOgIverksettRegulering(oppdatertRegulering, sak, true, satsFactory)
+                        .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
+                        .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
+                } else {
+                    log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
+                    regulering.right()
+                }
+            }.mapLeft {
+                log.error("Feil ved oppdatering av regulering for saksnummer ${reguleringssammendrag.saksnummer}", it)
+            }
+        }
+    }
+
+    /**
+     * Lagrer reguleringen
+     */
     private fun ferdigstillOgIverksettRegulering(
         regulering: OpprettetRegulering,
         sak: Sak,
@@ -320,11 +378,7 @@ class ReguleringServiceImpl(
                         notifyObservers = { Unit },
                     ).kjørSideffekter(
                         regulering.copy(
-                            reguleringstype = Reguleringstype.MANUELL(
-                                setOf(
-                                    ÅrsakTilManuellRegulering.UtbetalingFeilet,
-                                ),
-                            ),
+                            reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.UtbetalingFeilet)),
                         ),
                     )
                 }
@@ -362,8 +416,8 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
-        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+    override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
+        return reguleringRepo.hentStatusForÅpneManuelleReguleringer()
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {

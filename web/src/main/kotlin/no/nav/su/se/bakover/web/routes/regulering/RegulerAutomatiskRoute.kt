@@ -99,7 +99,7 @@ internal fun Route.reguler(
                                     CoroutineScope(Dispatchers.IO).launch {
                                         reguleringService.startAutomatiskRegulering(fraMåned, it)
                                     }
-                                    call.svar(Resultat.okJson())
+                                    call.svar(Resultat.accepted())
                                 }
                             },
                         )
@@ -124,7 +124,7 @@ internal fun Route.reguler(
                                 CoroutineScope(Dispatchers.IO).launch {
                                     reguleringService.startAutomatiskRegulering(fraMåned, supplement)
                                 }
-                                call.svar(Resultat.okJson())
+                                call.svar(Resultat.accepted())
                             }
                         }
                     }
@@ -193,7 +193,7 @@ internal fun Route.reguler(
                 isTrue = {
                     runBlocking {
                         val parts = call.receiveMultipart()
-                        var reguleringsdato = ""
+                        var fraOgMedMåned = ""
                         var gVerdi = ""
                         var csvData = ""
 
@@ -206,7 +206,7 @@ internal fun Route.reguler(
 
                                 is PartData.FormItem -> {
                                     when (it.name) {
-                                        "reguleringsdato" -> reguleringsdato = it.value
+                                        "fraOgMedMåned" -> fraOgMedMåned = it.value
                                         "gVerdi" -> gVerdi = it.value
                                         else -> Feilresponser.ukjentFormData
                                     }
@@ -220,8 +220,8 @@ internal fun Route.reguler(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val command = StartAutomatiskReguleringForInnsynCommand(
-                                    fraOgMedMåned = Måned.fra(LocalDate.parse(reguleringsdato)),
-                                    virkningstidspunkt = LocalDate.parse(reguleringsdato),
+                                    fraOgMedMåned = Måned.fra(LocalDate.parse(fraOgMedMåned)),
+                                    virkningstidspunkt = LocalDate.parse(fraOgMedMåned),
                                     supplement = it,
                                     grunnbeløp = gVerdi.toIntOrNull() ?: return@runBlocking call.svar(
                                         HttpStatusCode.BadRequest.errorJson(
@@ -231,8 +231,10 @@ internal fun Route.reguler(
                                     ),
                                 )
 
-                                launch { reguleringService.startAutomatiskReguleringForInnsyn(command) }
-                                call.svar(Resultat.okJson())
+                                launch {
+                                    reguleringService.startAutomatiskReguleringForInnsyn(command)
+                                }
+                                call.svar(Resultat.accepted())
                             },
                         )
                     }
@@ -246,7 +248,7 @@ internal fun Route.reguler(
                                     CoroutineScope(Dispatchers.IO).launch {
                                         reguleringService.startAutomatiskReguleringForInnsyn(command = it)
                                     }
-                                    Resultat.okJson()
+                                    Resultat.accepted()
                                 },
                             )
                         }
@@ -266,29 +268,65 @@ internal fun Route.reguler(
             isMultipart.whenever(
                 isTrue = {
                     runBlocking {
-                        call.withBody<SupplementBody> {
-                            parseCSVFromString(it.csv).fold(
-                                ifLeft = { call.svar(it) },
-                                ifRight = {
-                                    launch {
-                                        TODO("call service")
+                        val parts = call.receiveMultipart()
+                        var fraOgMedMåned = ""
+                        var csvData = ""
+
+                        parts.forEachPart {
+                            when (it) {
+                                is PartData.FileItem -> {
+                                    val fileBytes = it.streamProvider().readBytes()
+                                    csvData = String(fileBytes)
+                                }
+
+                                is PartData.FormItem -> {
+                                    when (it.name) {
+                                        "fraOgMedMåned" -> fraOgMedMåned = it.value
+                                        else -> Feilresponser.ukjentFormData
                                     }
-                                    call.svar(Resultat.okJson())
-                                },
-                            )
+                                }
+
+                                else -> Feilresponser.ukjentMultipartType
+                            }
                         }
+
+                        parseCSVFromString(csvData).fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                val fraMåned =
+                                    Måned.parse(fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
+
+                                if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                    reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                    call.svar(Resultat.okJson())
+                                } else {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                    }
+                                    call.svar(Resultat.accepted())
+                                }
+                            },
+                        )
                     }
                 },
                 isFalse = {
                     runBlocking {
-                        call.withBody<SupplementBody> {
-                            parseCSVFromString(it.csv).fold(
+                        call.withBody<SupplementBody> { body ->
+                            parseCSVFromString(body.csv).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
-                                    launch {
-                                        TODO("call service")
+                                    val fraMåned =
+                                        Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
+
+                                    if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                        reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
+                                        call.svar(Resultat.okJson())
+                                    } else {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
+                                        }
+                                        call.svar(Resultat.accepted())
                                     }
-                                    call.svar(Resultat.okJson())
                                 },
                             )
                         }

@@ -59,7 +59,7 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hentReguleringerSomIkkeErIverksatt(): List<ReguleringSomKreverManuellBehandling> =
+    override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
                 """

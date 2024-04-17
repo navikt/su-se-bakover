@@ -284,7 +284,58 @@ internal class ReguleringIT {
     }
 
     @Test
-    fun `kan kjøre gjennom supplement etter at reguleringen er gjort`() {
-        TODO()
+    fun `kan ettersende supplement`() {
+        val fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt = Fnr.generer().toString()
+        withMigratedDb { dataSource ->
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = fixedClock,
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+                opprettInnvilgetSøknadsbehandling(
+                    fnr = fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt,
+                    client = this.client,
+                    appComponents = appComponents,
+                    fradrag = { sakId, behandlingId ->
+                        leggTilFradrag(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            client = this.client,
+                            body = {
+                                //language=json
+                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Alderspensjon","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "BRUKER"}]}""".trimIndent()
+                            },
+                        )
+                    },
+                )
+            }
+
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = fixedClockAt(21.mai(2021)),
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+                regulerAutomatisk(fraOgMed = mai(2021), client = this.client)
+                val sakFørEttersendelse = hentSakForFnr(fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt, client = this.client)
+                val reguleringFørEttersendelse = ReguleringJson.hentSingleReglering(hentReguleringer(sakFørEttersendelse))
+                verifyReguleringFørEttersendelse(reguleringFørEttersendelse, fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt)
+
+                ettersendSupplement(
+                    fraOgMed = mai(2021),
+                    supplement = """
+                        FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK
+                        $fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt;ALDER;REGULERING;01.05.2021;;10500;10500;UT_ORDINER;10500;10500
+                    """.trimIndent(),
+                    client = this.client,
+                )
+                val sakEtterEttersendelse = hentSakForFnr(fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt, client = this.client)
+                val reguleringEtterEttersendelse = ReguleringJson.hentSingleReglering(hentReguleringer(sakEtterEttersendelse))
+                verifyReguleringEtterEttersendelse(reguleringEtterEttersendelse, fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt)
+            }
+        }
     }
 }

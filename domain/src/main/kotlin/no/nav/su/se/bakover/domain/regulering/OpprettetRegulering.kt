@@ -28,6 +28,7 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -47,6 +48,35 @@ data class OpprettetRegulering(
     override val eksternSupplementRegulering: EksternSupplementRegulering,
 ) : Regulering {
     override fun erÅpen() = true
+
+    override fun oppdaterMedSupplement(
+        eksternSupplementRegulering: EksternSupplementRegulering,
+        omregningsfaktor: BigDecimal,
+    ): OpprettetRegulering {
+        /**
+         * Burde vi kanskje ta inn disse som er gjeldende på saken istedenfor?
+         */
+        val fradrag = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag
+        val bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjonSomFullstendig()
+
+        val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = Regulering.utledReguleringstypeOgFradragVedHjelpAvSupplement(
+            fradrag = fradrag,
+            bosituasjon = bosituasjon,
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            omregningsfaktor = omregningsfaktor,
+        )
+        return this.copy(
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    bosituasjon = bosituasjon,
+                    fradragsgrunnlag = fradragEtterSupplementSjekk,
+                ).getOrElse { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") },
+                vilkårsvurderinger = vilkårsvurderinger,
+            ),
+            reguleringstype = reguleringstypeVedSupplement,
+        )
+    }
 
     /**
      * Skal ikke sende brev ved regulering.

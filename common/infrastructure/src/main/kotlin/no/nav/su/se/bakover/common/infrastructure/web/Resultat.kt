@@ -40,6 +40,7 @@ data class Resultat private constructor(
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
 
         fun okJson() = json(HttpStatusCode.OK, """{"status": "OK"}""")
+        fun accepted() = json(HttpStatusCode.Accepted, """{"status": "Accepted"}""")
     }
 }
 

@@ -60,7 +60,7 @@ interface ReguleringService {
     )
 
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
-    fun hentStatus(): List<ReguleringSomKreverManuellBehandling>
+    fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
         reguleringId: ReguleringId,
@@ -68,4 +68,6 @@ interface ReguleringService {
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
+
+    fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement)
 }

@@ -1148,8 +1148,8 @@ open class AccessCheckProxy(
                     return services.reguleringService.avslutt(reguleringId, avsluttetAv)
                 }
 
-                override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
-                    return services.reguleringService.hentStatus()
+                override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
+                    return services.reguleringService.hentStatusForÅpneManuelleReguleringer()
                 }
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
@@ -1168,6 +1168,13 @@ open class AccessCheckProxy(
                         fradrag,
                         saksbehandler,
                     )
+                }
+
+                override fun oppdaterReguleringerMedSupplement(
+                    fraOgMedMåned: Måned,
+                    supplement: Reguleringssupplement,
+                ) {
+                    return services.reguleringService.oppdaterReguleringerMedSupplement(fraOgMedMåned, supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {

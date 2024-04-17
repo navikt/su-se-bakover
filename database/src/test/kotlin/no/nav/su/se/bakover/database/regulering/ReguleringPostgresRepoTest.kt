@@ -43,7 +43,7 @@ internal class ReguleringPostgresRepoTest {
                 reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)),
             ).also { repo.lagre(it) }
 
-            val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
+            val hentRegulering = repo.hentStatusForÅpneManuelleReguleringer()
 
             hentRegulering.size shouldBe 1
             hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
@@ -82,7 +82,7 @@ internal class ReguleringPostgresRepoTest {
             )
             testDataHelper.persisterReguleringIverksatt()
 
-            val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
+            val hentRegulering = repo.hentStatusForÅpneManuelleReguleringer()
 
             hentRegulering.size shouldBe 1
             hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
