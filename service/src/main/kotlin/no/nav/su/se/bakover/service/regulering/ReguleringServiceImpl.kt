@@ -259,17 +259,6 @@ class ReguleringServiceImpl(
     }
 
     override fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement) {
-        /**
-         * TODO
-         *  - Hent alle reguleringer som ikke er ferdigstilt
-         *  - For hver regulering:
-         *    - Hent saken
-         *    - oppdater reguleringen med supplementet
-         *    - Ferdigstill og iverksett reguleringen dersom den er automatisk
-         *      - ellers knytt supplement
-         *    - lagre reguleringen
-         */
-
         val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
