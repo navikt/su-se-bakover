@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -61,13 +60,13 @@ internal data class KravgrunnlagDbJson(
 }
 
 /**
- * [Deprecated] - denne brukes av den gamle kravgrunnlag under revurdering rutinen og kan slettes sammen med den.
+ * Historisk.
+ * Da vi hadde tilbakekreving under revurdering, startet vi med å kun lagre kravgrunnlagsXMLen vi mottok fra Oppdrag i databasetabellen 'revurdering_tilbakekreving'.
+ * På et tidspunkt, mens vi laget en egen behandling for dette støttet vi fremdeles den gamle løsninga.
+ * Da endret vi til å lagre [tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse], slik at vi i 'revurdering_tilbakekreving' kun trengte en serialisert versjon av [KravgrunnlagDbJson].
  */
 fun mapDbJsonToKravgrunnlag(value: String): Either<Throwable, Kravgrunnlag> {
     return Either.catch {
         deserialize<KravgrunnlagDbJson>(value).toDomain()
     }
-}
-fun mapKravgrunnlagToDbJson(kravgrunnlag: Kravgrunnlag): String {
-    return serialize(kravgrunnlag.toDbJson())
 }

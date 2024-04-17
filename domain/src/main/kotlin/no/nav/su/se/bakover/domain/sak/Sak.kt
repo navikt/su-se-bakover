@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -482,11 +481,6 @@ data class Sak(
 
         data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) :
             KunneIkkeOppdatereStønadsperiode
-    }
-
-    fun avventerKravgrunnlag(): Boolean {
-        return revurderinger.filterIsInstance<IverksattRevurdering>()
-            .any { it.tilbakekrevingsbehandling.avventerKravgrunnlag() }
     }
 
     /**

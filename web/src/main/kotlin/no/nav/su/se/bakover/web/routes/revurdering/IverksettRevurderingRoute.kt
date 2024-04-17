@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -62,7 +61,6 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is KunneIkkeIverksetteRevurdering.Saksfeil -> {
         when (this) {
             is KunneIkkeIverksetteRevurdering.Saksfeil.FantIkkeRevurdering -> fantIkkeRevurdering
-            is KunneIkkeIverksetteRevurdering.Saksfeil.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
             is KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand -> ugyldigTilstand(fra, til)
             is KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil -> underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak

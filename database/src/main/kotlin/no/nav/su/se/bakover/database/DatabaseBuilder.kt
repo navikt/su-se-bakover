@@ -222,7 +222,6 @@ data object DatabaseBuilder {
         val klageRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelseRepo)
 
         val tilbakekrevingRepo = TilbakekrevingUnderRevurderingPostgresRepo(
-            sessionFactory = sessionFactory,
             råttKravgrunnlagMapper = råttKravgrunnlagMapper,
         )
         val reguleringRepo = ReguleringPostgresRepo(
@@ -324,7 +323,6 @@ data object DatabaseBuilder {
             klageRepo = klageRepo,
             klageinstanshendelseRepo = klageinstanshendelseRepo,
             reguleringRepo = reguleringRepo,
-            tilbakekrevingRepo = tilbakekrevingRepo,
             sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(
                 JobContextPostgresRepo(sessionFactory),
             ),

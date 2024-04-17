@@ -2,15 +2,13 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
-import økonomi.domain.utbetaling.UtbetalingFeilet
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteSøknadsbehandling
-    data class KunneIkkeGenerereVedtaksbrev(val underliggendeFeil: KunneIkkeLageDokument) :
-        KunneIkkeIverksetteSøknadsbehandling
+    data class KunneIkkeGenerereVedtaksbrev(
+        val underliggendeFeil: KunneIkkeLageDokument,
+    ) : KunneIkkeIverksetteSøknadsbehandling
 
-    data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteSøknadsbehandling
     data object SimuleringFørerTilFeilutbetaling : KunneIkkeIverksetteSøknadsbehandling
 
     /**
@@ -21,8 +19,6 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data class OverlappendeStønadsperiode(
         val underliggendeFeil: StøtterIkkeOverlappendeStønadsperioder,
     ) : KunneIkkeIverksetteSøknadsbehandling
-
-    data object InneholderUfullstendigeBosituasjoner : KunneIkkeIverksetteSøknadsbehandling
 
     data class KontrollsimuleringFeilet(val underliggende: no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet) : KunneIkkeIverksetteSøknadsbehandling
 }

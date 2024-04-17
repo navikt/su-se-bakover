@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingUnderRevurderingRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -40,7 +39,6 @@ data class DatabaseRepos(
     val klageRepo: KlageRepo,
     val klageinstanshendelseRepo: KlageinstanshendelseRepo,
     val reguleringRepo: ReguleringRepo,
-    val tilbakekrevingRepo: TilbakekrevingUnderRevurderingRepo,
     val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo,
     val hendelseRepo: HendelseRepo,
     val utenlandsoppholdRepo: UtenlandsoppholdRepo,

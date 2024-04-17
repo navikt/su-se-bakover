@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -32,7 +31,6 @@ sealed interface RevurderingTilAttestering : Revurdering {
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
 
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -58,14 +56,11 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering {
 
         override val erOpphørt = false
-
-        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
@@ -94,7 +89,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                         Tidspunkt.now(clock),
                     ),
                 ),
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
+                sendtTilbakekrevingsvedtak = null,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
@@ -118,13 +113,10 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering {
         override val erOpphørt = true
-
-        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -167,7 +159,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                             Tidspunkt.now(clock),
                         ),
                     ),
-                    tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
+                    sendtTilbakekrevingsvedtak = null,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
                 )
@@ -205,7 +197,6 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
@@ -225,7 +216,6 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )

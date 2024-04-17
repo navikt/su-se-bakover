@@ -14,13 +14,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeTilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.Tilbakekrev
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFradrag
@@ -57,7 +51,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
 
     override fun erÅpen() = true
 
@@ -67,25 +60,11 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<UgyldigTilstand, GenererDokumentCommand> {
-        return tilbakekrevingsbehandling.skalTilbakekreve().fold(
-            {
-                ForhåndsvarselDokumentCommand(
-                    fødselsnummer = fnr,
-                    saksnummer = saksnummer,
-                    saksbehandler = utførtAv,
-                    fritekst = fritekst,
-                )
-            },
-            {
-                ForhåndsvarselTilbakekrevingDokumentCommand(
-                    fødselsnummer = fnr,
-                    saksnummer = saksnummer,
-                    saksbehandler = utførtAv,
-                    fritekst = fritekst,
-                    bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp()),
-                )
-            },
+        return ForhåndsvarselDokumentCommand(
+            fødselsnummer = fnr,
+            saksnummer = saksnummer,
+            saksbehandler = utførtAv,
+            fritekst = fritekst,
         ).right()
     }
 
@@ -141,7 +120,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
     }
 
     sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
-        data object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
         data object BrevvalgMangler : KunneIkkeSendeInnvilgetRevurderingTilAttestering
     }
 
@@ -184,30 +162,14 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : SimulertRevurdering {
         override val erOpphørt = false
 
-        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
-
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeSendeInnvilgetRevurderingTilAttestering, RevurderingTilAttestering.Innvilget> {
-            val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
-                is Tilbakekrev,
-                is IkkeTilbakekrev,
-                is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving,
-                -> {
-                    tilbakekrevingsbehandling
-                }
-
-                is IkkeAvgjort -> {
-                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
-                }
-            }
-
             if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
                 return KunneIkkeSendeInnvilgetRevurderingTilAttestering.BrevvalgMangler.left()
             }
@@ -227,7 +189,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             ).right()
@@ -263,13 +224,10 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        override val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : SimulertRevurdering, LeggTilVedtaksbrevvalg {
         override val erOpphørt = true
-
-        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -286,7 +244,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
 
         sealed interface KanIkkeSendeOpphørtRevurderingTilAttestering {
             data object KanIkkeSendeEnOpphørtGReguleringTilAttestering : KanIkkeSendeOpphørtRevurderingTilAttestering
-            data object TilbakekrevingsbehandlingErIkkeFullstendig : KanIkkeSendeOpphørtRevurderingTilAttestering
             data object BrevvalgMangler : KanIkkeSendeOpphørtRevurderingTilAttestering
         }
 
@@ -295,19 +252,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         ): Either<KanIkkeSendeOpphørtRevurderingTilAttestering, RevurderingTilAttestering.Opphørt> {
             if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                 return KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
-            }
-
-            val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
-                is Tilbakekrev,
-                is IkkeTilbakekrev,
-                is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving,
-                -> {
-                    tilbakekrevingsbehandling
-                }
-
-                is IkkeAvgjort -> {
-                    return KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
-                }
             }
 
             if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
@@ -329,7 +273,6 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             ).right()

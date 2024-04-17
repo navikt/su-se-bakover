@@ -232,7 +232,6 @@ class TestDataHelper(
         DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory), sessionFactory)
 
     val tilbakekreving = PersistertTilbakekrevingTestData(
-        databaseRepos = databaseRepos,
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,
         kravgrunnlagPostgresRepo = kravgrunnlagPostgresRepo,
@@ -452,11 +451,15 @@ class TestDataHelper(
         sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering().let {
             Tuple4(it.first, it.second, it.third, it.fourth)
         },
-    ): Pair<VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
+    ): Triple<Sak, VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return sakOgRevurdering.let { (sak, _, utbetaling, vedtak) ->
             databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling, null)
             databaseRepos.sak.hentSak(sak.id)!!.let { persistertSak ->
-                persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetRevurdering to persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering
+                Triple(
+                    persistertSak,
+                    persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetRevurdering,
+                    persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
+                )
             }
         }
     }
@@ -1032,6 +1035,7 @@ class TestDataHelper(
         }
     }
 
+    @Suppress("unused")
     fun persisterIverksattSøknadsbehandlingAvslag(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->

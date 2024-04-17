@@ -71,11 +71,6 @@ data object Feilresponser {
         "vilkår_kun_relevant_for_uføre",
     )
 
-    val søknadHarBehandlingFraFør = BadRequest.errorJson(
-        "Søknad har en behandling fra før",
-        "søknad_har_behandling_fra_før",
-    )
-
     val fantIkkeAktørId = NotFound.errorJson(
         "Fant ikke aktør id",
         "fant_ikke_aktør_id",
@@ -84,11 +79,6 @@ data object Feilresponser {
     val kunneIkkeOppretteOppgave = InternalServerError.errorJson(
         "Kunne ikke opprette oppgave",
         "kunne_ikke_opprette_oppgave",
-    )
-
-    val tilbakekrevingsbehandlingErIkkeFullstendig = BadRequest.errorJson(
-        message = "Behandling av tilbakekreving er ikke fullstendig og må fullføres først.",
-        code = "tilbakekrevingsbehandling_er_ikke_fullstendig",
     )
 
     val gReguleringKanIkkeFøreTilOpphør = BadRequest.errorJson(
@@ -176,11 +166,6 @@ data object Feilresponser {
         "feil_ved_generering_av_dokument",
     )
 
-    val behandlingErIUgyldigTilstand = InternalServerError.errorJson(
-        "Behandlingen er i ugyldig tilstand for avslag",
-        "behandling_i_ugyldig_tilstand_for_avslag",
-    )
-
     val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",
@@ -206,11 +191,6 @@ data object Feilresponser {
         "ugyldig_statusovergang_kontrollsamtale",
     )
 
-    val fantIkkeGjeldendeUtbetaling = NotFound.errorJson(
-        "Fant ikke gjeldende utbetaling",
-        "fant_ikke_gjeldende_utbetaling",
-    )
-
     val kunneIkkeUtbetale = InternalServerError.errorJson(
         "Kunne ikke utføre utbetaling",
         "kunne_ikke_utbetale",
@@ -221,23 +201,9 @@ data object Feilresponser {
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
 
-    val feilVedHentingAvSaksbehandlerNavn = InternalServerError.errorJson(
-        "Feil ved henting av saksbehandler navn",
-        "feil_ved_henting_av_saksbehandler_navn",
-    )
-    val feilVedHentingAvAttestantNavn = InternalServerError.errorJson(
-        "Feil ved henting av attestant navn",
-        "feil_ved_henting_av_attestant_navn",
-    )
-
     val feilVedHentingAvVedtakDato = InternalServerError.errorJson(
         "Feil ved henting av vedtak dato",
         "feil_ved_henting_av_vedtak_dato",
-    )
-
-    val kunneIkkeSimulere = InternalServerError.errorJson(
-        "Kunne ikke simulere",
-        "kunne_ikke_simulere",
     )
 
     val simuleringFørerTilFeilutbetaling = BadRequest.errorJson(
@@ -253,11 +219,6 @@ data object Feilresponser {
     val kryssjekkTidslinjeSimuleringFeilet = InternalServerError.errorJson(
         "Kryssjekk av utbetalingstidslinjer og simulering feilet",
         "kryssjekk_utbetalingstidslinjer_simulering_feilet",
-    )
-
-    val skalIkkeSendesBrev = InternalServerError.errorJson(
-        "Skal ikke sendes brev",
-        "skal_ikke_sendes_brev",
     )
 
     val utdatertVersjon = BadRequest.errorJson(
@@ -328,15 +289,6 @@ data object Feilresponser {
         "like_fradrag_må_slåes_sammen",
     )
 
-    val harIkkeEktefelle = BadRequest.errorJson(
-        "Kan ikke ha formue for eps når søker ikke har eps",
-        "har_ikke_ektefelle",
-    )
-
-    val sakAvventerKravgrunnlagForTilbakekreving = BadRequest.errorJson(
-        message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
-        code = "åpent_kravgrunnlag_må_håndteres_før_ny_søknadsbehandling",
-    )
     val sakHarAlleredeSisteFødselsnummer = BadRequest.errorJson(
         message = "Saken har allerede siste fødselsnummer",
         code = "sak_har_allerede_siste_fødselsnummer",
@@ -360,10 +312,6 @@ data object Feilresponser {
         val kunneIkkeLageBrevutkast = InternalServerError.errorJson(
             "Kunne ikke lage brevutkast",
             "kunne_ikke_lage_brevutkast",
-        )
-        val kanIkkeSendeBrevIDenneTilstanden = InternalServerError.errorJson(
-            "Kan ikke sende brev i denne tilstanden",
-            "kan_ikke_sende_brev_i_denne_tilstanden",
         )
     }
 

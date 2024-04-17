@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt.lagRevurderingInntektDokumentKommando
 import no.nav.su.se.bakover.domain.revurdering.brev.opphør.lagRevurderingOpphørtDokumentKommando
-import no.nav.su.se.bakover.domain.revurdering.brev.tilbakekreving.lagTilbakekrevingDokumentKommando
 import satser.domain.SatsFactory
 import java.time.Clock
 
@@ -24,13 +23,13 @@ fun Revurdering.lagDokumentKommando(
     return when (this) {
         is OpprettetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for opprettet revurdering ${this.id}")
         is BeregnetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for beregnet revurdering ${this.id}")
-        is SimulertRevurdering.Innvilget -> inntektMedEllerUtenTilbakekreving(satsFactory)
+        is SimulertRevurdering.Innvilget -> lagKommando(satsFactory)
         is SimulertRevurdering.Opphørt -> opphør(satsFactory, clock)
-        is RevurderingTilAttestering.Innvilget -> inntektMedEllerUtenTilbakekreving(satsFactory)
+        is RevurderingTilAttestering.Innvilget -> lagKommando(satsFactory)
         is RevurderingTilAttestering.Opphørt -> opphør(satsFactory, clock)
-        is IverksattRevurdering.Innvilget -> inntektMedEllerUtenTilbakekreving(satsFactory)
+        is IverksattRevurdering.Innvilget -> lagKommando(satsFactory)
         is IverksattRevurdering.Opphørt -> opphør(satsFactory, clock)
-        is UnderkjentRevurdering.Innvilget -> inntektMedEllerUtenTilbakekreving(satsFactory)
+        is UnderkjentRevurdering.Innvilget -> lagKommando(satsFactory)
         is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock)
         is AvsluttetRevurdering -> AvsluttRevurderingDokumentCommand(
             fødselsnummer = this.fnr,
@@ -41,45 +40,24 @@ fun Revurdering.lagDokumentKommando(
     }
 }
 
-private fun Revurdering.inntektMedEllerUtenTilbakekreving(satsFactory: SatsFactory): IverksettRevurderingDokumentCommand {
-    return if (this.skalTilbakekreve()) {
-        lagTilbakekrevingDokumentKommando(
-            revurdering = this,
-            // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
-            beregning = this.beregning!!,
-            simulering = this.simulering!!,
-            satsFactory = satsFactory,
-        )
-    } else {
-        lagRevurderingInntektDokumentKommando(
-            revurdering = this,
-            // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
-            beregning = this.beregning!!,
-            satsFactory = satsFactory,
-        )
-    }
+private fun Revurdering.lagKommando(satsFactory: SatsFactory): IverksettRevurderingDokumentCommand {
+    return lagRevurderingInntektDokumentKommando(
+        revurdering = this,
+        // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
+        beregning = this.beregning!!,
+        satsFactory = satsFactory,
+    )
 }
 
 private fun Revurdering.opphør(
     satsFactory: SatsFactory,
     clock: Clock,
 ): IverksettRevurderingDokumentCommand {
-    return if (this.skalTilbakekreve()) {
-        lagTilbakekrevingDokumentKommando(
-            revurdering = this,
-            // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
-            beregning = this.beregning!!,
-            // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
-            simulering = this.simulering!!,
-            satsFactory = satsFactory,
-        )
-    } else {
-        lagRevurderingOpphørtDokumentKommando(
-            revurdering = this,
-            // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
-            beregning = this.beregning!!,
-            satsFactory = satsFactory,
-            clock = clock,
-        )
-    }
+    return lagRevurderingOpphørtDokumentKommando(
+        revurdering = this,
+        // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
+        beregning = this.beregning!!,
+        satsFactory = satsFactory,
+        clock = clock,
+    )
 }

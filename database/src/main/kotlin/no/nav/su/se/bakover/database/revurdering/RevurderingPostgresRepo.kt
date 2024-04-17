@@ -45,9 +45,6 @@ import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingUnderRevurderingPostgresRepo
 import no.nav.su.se.bakover.dokument.infrastructure.database.BrevvalgDbJson.Companion.toJson
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingFerdigbehandlet
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.TilbakekrevingsbehandlingUnderRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -66,6 +63,7 @@ import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMå
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.HistoriskSendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.vurderinger.domain.Grunnlagsdata
@@ -99,7 +97,6 @@ private data class RevurderingDb(
     val beregning: Beregning?,
     val simulering: Simulering?,
     val avsluttet: AvsluttetRevurderingDatabaseJson?,
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering?,
 )
 
 private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
@@ -179,7 +176,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                     tidspunktAvsluttet = this.avsluttetTidspunkt,
                     avsluttetAv = this.avsluttetAv?.navIdent,
                 ),
-                tilbakekrevingsbehandling = null,
             )
         }
 
@@ -189,7 +185,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = null,
                 avsluttet = null,
-                tilbakekrevingsbehandling = null,
             )
         }
 
@@ -199,7 +194,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = null,
                 avsluttet = null,
-                tilbakekrevingsbehandling = null,
             )
         }
 
@@ -209,7 +203,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -219,7 +212,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -229,7 +221,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = null,
                 simulering = null,
                 avsluttet = null,
-                tilbakekrevingsbehandling = null,
             )
         }
 
@@ -239,7 +230,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -249,7 +239,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -259,7 +248,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -269,7 +257,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -279,7 +266,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
 
@@ -289,7 +275,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 beregning = this.beregning,
                 simulering = this.simulering,
                 avsluttet = null,
-                tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
     }
@@ -462,7 +447,6 @@ internal class RevurderingPostgresRepo(
                         tidspunktAvsluttet = this.avsluttetTidspunkt,
                         avsluttetAv = this.avsluttetAv?.navIdent,
                     ),
-                    tilbakekrevingsbehandling = null,
                 )
             }
 
@@ -472,7 +456,6 @@ internal class RevurderingPostgresRepo(
                     beregning = null,
                     simulering = this.simulering,
                     avsluttet = null,
-                    tilbakekrevingsbehandling = null,
                 )
             }
 
@@ -482,7 +465,6 @@ internal class RevurderingPostgresRepo(
                     beregning = null,
                     simulering = this.simulering,
                     avsluttet = null,
-                    tilbakekrevingsbehandling = null,
                 )
             }
         }
@@ -502,7 +484,6 @@ internal class RevurderingPostgresRepo(
                         tidspunktAvsluttet = this.avsluttetTidspunkt,
                         avsluttetAv = this.avsluttetAv?.navIdent,
                     ),
-                    tilbakekrevingsbehandling = null,
                 )
             }
 
@@ -512,7 +493,6 @@ internal class RevurderingPostgresRepo(
                     beregning = null,
                     simulering = this.simulering,
                     avsluttet = null,
-                    tilbakekrevingsbehandling = null,
                 )
             }
 
@@ -522,7 +502,6 @@ internal class RevurderingPostgresRepo(
                     beregning = null,
                     simulering = this.simulering,
                     avsluttet = null,
-                    tilbakekrevingsbehandling = null,
                 )
             }
         }
@@ -611,7 +590,7 @@ internal class RevurderingPostgresRepo(
             revurderingsårsak = revurderingsårsak,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
-            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            tilbakekrevingsvedtak = tilbakekrevingsbehandling,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalg,
         )
@@ -735,60 +714,6 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-
-        when (val tilbakekrevingsbehandling = revurdering.tilbakekrevingsbehandling) {
-            is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling -> {
-                when (tilbakekrevingsbehandling) {
-                    is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.IkkeBehovForTilbakekreving -> {
-                        tilbakekrevingRepo.slettForRevurderingId(
-                            revurderingId = revurdering.base.id,
-                            session = session,
-                        )
-                    }
-
-                    is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.Avgjort -> {
-                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                            tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
-                            tx = session,
-                        )
-                    }
-
-                    is TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling.VurderTilbakekreving.IkkeAvgjort -> {
-                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                            tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
-                            tx = session,
-                        )
-                    }
-                }
-            }
-
-            is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet -> {
-                when (tilbakekrevingsbehandling) {
-                    is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag -> {
-                        throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
-                    }
-
-                    is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak -> {
-                        throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
-                    }
-
-                    is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag -> {
-                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
-                            tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
-                            session = session,
-                        )
-                    }
-
-                    is TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
-                        // noop
-                    }
-                }
-            }
-
-            else -> {
-                // noop
-            }
-        }
     }
 
     private fun lagRevurdering(
@@ -807,7 +732,7 @@ internal class RevurderingPostgresRepo(
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
-        tilbakekrevingsbehandling: TilbakekrevingsbehandlingUnderRevurdering?,
+        tilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         sakinfo: SakInfo,
         brevvalgRevurdering: BrevvalgRevurdering,
     ): AbstraktRevurdering {
@@ -827,8 +752,6 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -848,8 +771,6 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -869,8 +790,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet
-                    ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
+                sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -890,8 +810,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.Ferdigbehandlet
-                    ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
+                sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -911,8 +830,6 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -932,8 +849,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
@@ -953,8 +868,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
@@ -974,8 +887,6 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? TilbakekrevingsbehandlingUnderRevurdering.UnderBehandling
-                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )

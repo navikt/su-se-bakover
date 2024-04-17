@@ -153,7 +153,6 @@ internal data class SimulertRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson
 
@@ -173,7 +172,6 @@ internal data class TilAttesteringJson(
     val simulering: SimuleringJson?,
     val beregning: BeregningJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson
 
@@ -213,7 +211,6 @@ internal data class UnderkjentRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson
 
@@ -317,7 +314,6 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            tilbakekrevingsbehandling = tilbakekrevingsbehandling.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
         )
 
@@ -344,10 +340,6 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            tilbakekrevingsbehandling = when (this) {
-                is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.toJson()
-                is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.toJson()
-            },
             brevvalg = brevvalgRevurdering.toJson(),
         )
 
@@ -375,8 +367,8 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             tilbakekrevingsbehandling = when (this) {
-                is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
-                is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
+                is IverksattRevurdering.Innvilget -> sendtTilbakekrevingsvedtak.toJson()
+                is IverksattRevurdering.Opphørt -> sendtTilbakekrevingsvedtak.toJson()
             },
             brevvalg = brevvalgRevurdering.toJson(),
         )
@@ -404,10 +396,6 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            tilbakekrevingsbehandling = when (this) {
-                is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
-                is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
-            },
             brevvalg = brevvalgRevurdering.toJson(),
         )
 

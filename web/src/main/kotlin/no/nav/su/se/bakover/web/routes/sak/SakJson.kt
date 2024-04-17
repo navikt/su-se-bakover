@@ -44,6 +44,7 @@ internal data class SakJson(
     val vedtakPåTidslinje: List<VedtakPåTidslinjeJson>,
     val utenlandsopphold: RegistrerteUtenlandsoppholdJson,
     val versjon: Long,
+    // TODO jah: Kan denne inneholde historiske tilbakekrevinger utført under revurdering også? Evt. et eget felt for det?
     val tilbakekrevinger: List<TilbakekrevingsbehandlingJson>,
     val uteståendeKravgrunnlag: KravgrunnlagJson?,
 ) {

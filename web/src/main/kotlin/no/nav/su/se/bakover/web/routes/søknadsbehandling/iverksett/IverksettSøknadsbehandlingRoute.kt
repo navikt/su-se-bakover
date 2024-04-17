@@ -71,15 +71,12 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
 internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-        is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
-        KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
         KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
             message = "Simulering fører til feilutbetaling.",
             code = "simulering_fører_til_feilutbetaling",
         )
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
-        is KunneIkkeIverksetteSøknadsbehandling.InneholderUfullstendigeBosituasjoner -> Feilresponser.inneholderUfullstendigeBosituasjoner
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
     }
 }

@@ -14,7 +14,6 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
@@ -42,27 +41,19 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.personopplysninger
-import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
-import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -613,43 +604,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }.message shouldBe "Mock: utbetaler ikke dersom vi ikke kan lagre vedtaket"
 
             verify(utbetalingMedCallback, never()).sendUtbetaling()
-        }
-    }
-
-    // TODO jah: Denne kan tilpasses og enables etter vi har åpnet for parallelle behandlinger.
-    @Disabled("Dette er ikke et case vi kan provosere frem lenger, siden oppdaterStønadsperiode(...) vil stoppe oss.")
-    @Test
-    fun `feil ved åpent kravgrunnlag`() {
-        val clock: Clock = TikkendeKlokke()
-        val (sak, søknadsbehandling) = vedtakRevurdering(
-            clock = clock,
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0),
-            ),
-            utbetalingerKjørtTilOgMed = { 31.desember(2021) },
-        ).let { (sak, _) ->
-            tilAttesteringSøknadsbehandling(
-                clock = clock,
-                sakOgSøknad = Pair(
-                    first = sak,
-                    second = nySøknadJournalførtMedOppgave(
-                        sakId = sak.id,
-                        søknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(sak.fnr)),
-                    ),
-                ),
-            )
-        }
-
-        ServiceAndMocks(
-            clock = clock,
-            sakOgSøknadsbehandling = Pair(sak, søknadsbehandling),
-        ).also {
-            it.service.iverksett(
-                IverksettSøknadsbehandlingCommand(
-                    behandlingId = søknadsbehandling.id,
-                    attestering = attesteringIverksatt(),
-                ),
-            ) shouldBe KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
         }
     }
 }

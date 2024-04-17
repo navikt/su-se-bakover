@@ -52,7 +52,9 @@ data object KravgrunnlagDtoMapper {
     }
 
     /**
-     * TODO jah: Denne skal slettes etter vi fjerner den gamle tilbakekreving under revurderinger-rutinen.
+     * Historisk.
+     * Da vi hadde tilbakekreving under revurdering, lagret vi kun kravgrunnlagsXMLen vi mottok fra Oppdrag i databasetabellen 'revurdering_tilbakekreving'.
+     * Denne brukes for å mappe det kravgrunnlaget til domenemodellen vår, slik at vi kan vise det i frontend.
      */
     fun toKravgrunnlag(råttKravgrunnlag: RåttKravgrunnlag): Either<Throwable, Kravgrunnlag> {
         return toDto(råttKravgrunnlag.melding)

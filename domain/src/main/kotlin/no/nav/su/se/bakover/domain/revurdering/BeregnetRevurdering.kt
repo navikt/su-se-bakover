@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekrevingUnderRevurdering.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -48,8 +47,6 @@ import java.util.UUID
 
 sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
     abstract override val beregning: Beregning
-
-    override fun skalTilbakekreve() = false
 
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,
@@ -189,7 +186,6 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
                 )
@@ -240,7 +236,6 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             ).right()
