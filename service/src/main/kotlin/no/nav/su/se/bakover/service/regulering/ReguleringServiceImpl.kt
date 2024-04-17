@@ -287,7 +287,7 @@ class ReguleringServiceImpl(
                 val oppdatertRegulering =
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
-                if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+                if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
                     ferdigstillOgIverksettRegulering(oppdatertRegulering, sak, true, satsFactory)
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }

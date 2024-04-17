@@ -297,11 +297,11 @@ internal fun Route.reguler(
                                     Måned.parse(fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
 
                                 if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                    reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                    reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
                                     call.svar(Resultat.okJson())
                                 } else {
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        reguleringService.startAutomatiskRegulering(fraMåned, it)
+                                        reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
                                     }
                                     call.svar(Resultat.accepted())
                                 }
