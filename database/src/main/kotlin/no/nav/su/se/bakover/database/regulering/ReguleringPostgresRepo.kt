@@ -294,7 +294,10 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
-        val eksternSupplementRegulering = deserialize<EksternSupplementReguleringJson>(string("supplement"))
+        // TODO - må migrere inn en ny kolonne som kan ha supplementet
+        // vi vil også ha en ny tabell som skal ha hele CSV'en.
+        // suppllementet i hver revurdering vil peke til CSV'en den ble hentet fra
+        val eksternSupplementRegulering = EksternSupplementReguleringJson(bruker = null, eps = emptyList())
 
         return lagRegulering(
             status = status,
