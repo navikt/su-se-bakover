@@ -4,11 +4,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.avsluttetRegulering
 import no.nav.su.se.bakover.test.iverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.opprettetRegulering
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 internal class ReguleringTest {
 
-    internal class erÅpen {
+    @Nested
+    internal inner class erÅpen {
         @Test
         fun `opprettet skal være åpen`() {
             opprettetRegulering().erÅpen() shouldBe true

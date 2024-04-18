@@ -4,6 +4,7 @@ import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -12,17 +13,23 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simuleringsresultat
+import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetRegulering(
@@ -39,6 +46,7 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
+    eksternSupplementRegulering: EksternSupplementRegulering = nyEksternSupplementRegulering(),
 ) = OpprettetRegulering(
     // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
@@ -53,6 +61,7 @@ fun opprettetRegulering(
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
     sakstype = sakstype,
+    eksternSupplementRegulering = eksternSupplementRegulering,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -101,6 +110,8 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
+    supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -110,7 +121,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement, gVerdiØkning).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -121,6 +132,8 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
+    supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
@@ -129,6 +142,8 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
+        supplement = supplement,
+        omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
     return Pair(
@@ -190,4 +205,72 @@ fun avsluttetRegulering(
         reguleringstype = reguleringstype,
         sakstype = sakstype,
     ).avslutt(avsluttetAv, avsluttetTidspunkt)
+}
+
+fun nyReguleringssupplement(
+    vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
+): Reguleringssupplement = Reguleringssupplement(supplement = supplementFor.toList())
+
+fun nyEksternSupplementRegulering(
+    bruker: ReguleringssupplementFor? = null,
+    eps: List<ReguleringssupplementFor> = emptyList(),
+): EksternSupplementRegulering = EksternSupplementRegulering(
+    bruker = bruker,
+    eps = eps,
+)
+
+fun nyReguleringssupplementFor(
+    fnr: Fnr = Fnr.generer(),
+    vararg innhold: ReguleringssupplementFor.PerType = arrayOf(nyReguleringssupplementInnholdPerType()),
+): ReguleringssupplementFor = ReguleringssupplementFor(
+    fnr = fnr,
+    perType = innhold.toList().toNonEmptyList(),
+)
+
+fun nyReguleringssupplementInnholdPerType(
+    type: Fradragstype = Fradragstype.Alderspensjon,
+    vararg fradragsperiode: ReguleringssupplementFor.PerType.Fradragsperiode = arrayOf(nyFradragperiode()),
+): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
+    fradragsperioder = fradragsperiode.toList().toNonEmptyList(),
+    type = type,
+)
+
+fun nyFradragperiode(
+    fraOgMed: LocalDate = stønadsperiode2021.periode.fraOgMed,
+    tilOgMed: LocalDate? = stønadsperiode2021.periode.tilOgMed,
+    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
+    beløp: Int = 1000,
+    eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
+): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
+    fraOgMed = fraOgMed,
+    tilOgMed = tilOgMed,
+    vedtakstype = vedtakstype,
+    beløp = beløp,
+    eksterndata = eksterndata,
+)
+
+fun nyEksterndata(
+    fnr: String = "11111111111",
+    sakstype: String = "UFOREP",
+    vedtakstype: String = "REGULERING",
+    fraOgMed: String = "01.05.2021",
+    tilOgMed: String? = null,
+    bruttoYtelse: String = "10000",
+    nettoYtelse: String = "11000",
+    ytelseskomponenttype: String = "ST",
+    bruttoYtelseskomponent: String = "10000",
+    nettoYtelseskomponent: String = "11000",
+): ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata {
+    return ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
+        fnr = fnr,
+        sakstype = sakstype,
+        vedtakstype = vedtakstype,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        bruttoYtelse = bruttoYtelse,
+        nettoYtelse = nettoYtelse,
+        ytelseskomponenttype = ytelseskomponenttype,
+        bruttoYtelseskomponent = bruttoYtelseskomponent,
+        nettoYtelseskomponent = nettoYtelseskomponent,
+    )
 }

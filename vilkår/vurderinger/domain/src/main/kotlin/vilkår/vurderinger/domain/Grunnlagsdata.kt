@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOv
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMedDeretterTilOgMed
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.common.tid.periode.inneholder
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.bosituasjon.domain.grunnlag.epsForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterStønadsperiode
 import vilkår.uføre.domain.Uføregrunnlag
@@ -184,6 +186,11 @@ data class Grunnlagsdata private constructor(
         fradragsgrunnlag = fradragsgrunnlag.map { it.copyWithNewId() },
         bosituasjon = bosituasjon.map { it.copyWithNewId() as Bosituasjon.Fullstendig },
     )
+
+    /**
+     * Gir et Map fra måned til fødselsnummer for eps innenfor dette grunnlaget.
+     */
+    fun epsForMåned(): Map<Måned, Fnr> = this.bosituasjon.epsForMåned()
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {

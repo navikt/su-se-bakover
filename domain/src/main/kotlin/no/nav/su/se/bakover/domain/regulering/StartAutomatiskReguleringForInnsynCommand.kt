@@ -7,6 +7,7 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy
 import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
 import satser.domain.supplerendestønad.grunnbeløpsendringer
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -18,20 +19,23 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val fraOgMedMåned: Måned,
     val virkningstidspunkt: LocalDate,
     val ikrafttredelse: LocalDate = virkningstidspunkt,
+    val supplement: Reguleringssupplement,
     val grunnbeløp: Int? = null,
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,
+    val omregningsfaktor: BigDecimal? = null,
 ) {
 
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(
-            grunnbeløpsendringer = if (this.grunnbeløp == null) {
+            grunnbeløpsendringer = if (this.grunnbeløp == null || this.omregningsfaktor == null) {
                 grunnbeløpsendringer
             } else {
                 grunnbeløpsendringer + Grunnbeløpsendring(
                     virkningstidspunkt = this.virkningstidspunkt,
                     ikrafttredelse = this.ikrafttredelse,
                     verdi = this.grunnbeløp,
+                    omregningsfaktor = this.omregningsfaktor,
                 )
             },
             garantipensjonsendringerOrdinær = if (this.garantipensjonOrdinær == null) {

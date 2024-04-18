@@ -14,8 +14,10 @@ import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -282,5 +284,30 @@ internal class GjeldendeVedtaksdataTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `slår sammen like & tilstøtende grunnlag ved init`() {
+        val vedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+            customGrunnlag = listOf(
+                nyFradragsgrunnlag(
+                    periode = januar(2021)..juni(2021),
+                    type = Fradragstype.Uføretrygd,
+                    månedsbeløp = 500.0,
+                ),
+                nyFradragsgrunnlag(
+                    periode = juli(2021)..desember(2021),
+                    type = Fradragstype.Uføretrygd,
+                    månedsbeløp = 500.0,
+                ),
+            ),
+        ).second
+        GjeldendeVedtaksdata(
+            periode = år(2021),
+            vedtakListe = nonEmptyListOf(vedtak),
+            clock = fixedClock,
+        ).let {
+            it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
+        }
     }
 }

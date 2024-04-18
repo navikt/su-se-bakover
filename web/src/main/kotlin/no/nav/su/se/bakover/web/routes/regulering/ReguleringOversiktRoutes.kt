@@ -16,7 +16,7 @@ internal fun Route.reguleringOversiktRoutes(
 ) {
     get("$REGULERING_PATH/status") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.svar(Resultat.json(HttpStatusCode.OK, reguleringService.hentStatus().toJson()))
+            call.svar(Resultat.json(HttpStatusCode.OK, reguleringService.hentStatusForÅpneManuelleReguleringer().toJson()))
         }
     }
 

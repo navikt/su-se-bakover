@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import satser.domain.SatsFactory
 import satser.domain.garantipensjon.GarantipensjonFactory
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeFactory
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
@@ -31,26 +32,29 @@ import java.time.ZoneId
  * Da må vi skrive om denne logikken. På sikt bør nok disse gjøres om til en lenket liste, som modellerer virkeligheten bedre.
  */
 
+/**
+ * kan finne litt info her https://www.nav.no/grunnbelopet
+ */
 val grunnbeløpsendringer = nonEmptyListOf(
-    Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
-    Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
-    Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812),
-    Grunnbeløpsendring(1.mai(2008), 1.mai(2008), 70256),
-    Grunnbeløpsendring(1.mai(2009), 1.mai(2009), 72881),
-    Grunnbeløpsendring(1.mai(2010), 1.mai(2010), 75641),
-    Grunnbeløpsendring(1.mai(2011), 1.mai(2011), 79216),
-    Grunnbeløpsendring(1.mai(2012), 1.mai(2012), 82122),
-    Grunnbeløpsendring(1.mai(2013), 1.mai(2013), 85245),
-    Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
-    Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
-    Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
-    Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
-    Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
-    Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
-    Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
-    Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
-    Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
-    Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620),
+    Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699, BigDecimal(1.032682)),
+    Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892, BigDecimal(1.036129)),
+    Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812, BigDecimal(1.062329)),
+    Grunnbeløpsendring(1.mai(2008), 1.mai(2008), 70256, BigDecimal(1.051548)),
+    Grunnbeløpsendring(1.mai(2009), 1.mai(2009), 72881, BigDecimal(1.037363)),
+    Grunnbeløpsendring(1.mai(2010), 1.mai(2010), 75641, BigDecimal(1.037870)),
+    Grunnbeløpsendring(1.mai(2011), 1.mai(2011), 79216, BigDecimal(1.047263)),
+    Grunnbeløpsendring(1.mai(2012), 1.mai(2012), 82122, BigDecimal(1.036685)),
+    Grunnbeløpsendring(1.mai(2013), 1.mai(2013), 85245, BigDecimal(1.038029)),
+    Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370, BigDecimal(1.036659)),
+    Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068, BigDecimal(1.019214)),
+    Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576, BigDecimal(1.027846)),
+    Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634, BigDecimal(1.011428)),
+    Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883, BigDecimal(1.034699)),
+    Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858, BigDecimal(1.030707)),
+    Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351, BigDecimal(1.014951)),
+    Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399, BigDecimal(1.049807)),
+    Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477, BigDecimal(1.047726)),
+    Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620, BigDecimal(1.064076)),
 )
 
 val garantipensjonsendringerOrdinær = nonEmptyListOf(

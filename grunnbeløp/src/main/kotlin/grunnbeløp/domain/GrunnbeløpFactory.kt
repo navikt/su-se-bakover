@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.periodisert
 import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import java.math.BigDecimal
 import java.time.LocalDate
 /**
  * Fra lov om supplerende stønad (https://lovdata.no/dokument/NL/lov/2005-04-29-21):
@@ -81,6 +82,8 @@ data class Grunnbeløpsendring(
     val ikrafttredelse: LocalDate,
     /** grunnbeløpet */
     val verdi: Int,
+    /** Omregningsfaktoren viser hvor mye grunnbeløpet har økt fra året før. */
+    val omregningsfaktor: BigDecimal,
 )
 
 private fun NonEmptyList<Grunnbeløpsendring>.periodiserIftVirkningstidspunkt(
@@ -102,6 +105,7 @@ private fun NonEmptyList<Grunnbeløpsendring>.periodiserIftVirkningstidspunkt(
                 grunnbeløpPerÅr = it.verdi.verdi,
                 ikrafttredelse = it.verdi.ikrafttredelse,
                 virkningstidspunkt = it.verdi.virkningstidspunkt,
+                omregningsfaktor = it.verdi.omregningsfaktor,
             )
         }
 }

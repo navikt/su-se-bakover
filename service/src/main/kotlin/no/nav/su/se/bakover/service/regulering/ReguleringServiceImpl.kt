@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
@@ -39,10 +41,12 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 
@@ -66,8 +70,14 @@ class ReguleringServiceImpl(
 
     override fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
+        /**
+         * Inneholder data for alle sakene
+         */
+        supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return Either.catch { start(fraOgMedMåned, true, satsFactory) }
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
+
+        return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
                 log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
                 KunneIkkeOppretteRegulering.UkjentFeil
@@ -81,11 +91,14 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
+        val omregningsfaktor = satsFactory.grunnbeløp(command.fraOgMedMåned).omregningsfaktor
+
         Either.catch {
             start(
                 fraOgMedMåned = command.fraOgMedMåned,
                 isLiveRun = false,
                 satsFactory = command.satsFactory.gjeldende(LocalDate.now(clock)),
+                omregningsfaktor = omregningsfaktor,
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
@@ -100,6 +113,8 @@ class ReguleringServiceImpl(
         fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
+        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+        omregningsfaktor: BigDecimal,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -110,54 +125,74 @@ class ReguleringServiceImpl(
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
-
-            val regulering = sak.opprettEllerOppdaterRegulering(
+            sak.kjørForSak(
                 fraOgMedMåned = fraOgMedMåned,
-                clock = clock,
-            ).getOrElse { feil ->
-                // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-                when (feil) {
-                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
-                    )
+                isLiveRun = isLiveRun,
+                satsFactory = satsFactory,
+                supplement = supplement,
+                omregningsfaktor = omregningsfaktor,
+            )
+        }
+            .also {
+                logResultat(it)
+            }
+    }
 
-                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                    )
+    private fun Sak.kjørForSak(
+        fraOgMedMåned: Måned,
+        isLiveRun: Boolean,
+        satsFactory: SatsFactory,
+        supplement: Reguleringssupplement,
+        omregningsfaktor: BigDecimal,
+    ): Either<KunneIkkeOppretteRegulering, Regulering> {
+        val sak = this
 
-                    else -> TODO("fjern meg")
-                }
+        val regulering = sak.opprettEllerOppdaterRegulering(
+            fraOgMedMåned = fraOgMedMåned,
+            clock = clock,
+            supplement = supplement,
+            omregningsfaktor = omregningsfaktor,
+        ).getOrElse { feil ->
+            // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+            when (feil) {
+                Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
+                )
 
-                return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+                Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                )
+
+                else -> TODO("fjern meg")
             }
 
-            // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
-            if (!sak.blirBeregningEndret(regulering, satsFactory, clock)) {
-                // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-                log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
-                return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
-            }
+            return KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+        }
 
-            if (isLiveRun) {
-                LiveRun.Opprettet(
-                    sessionFactory = sessionFactory,
-                    lagreRegulering = reguleringRepo::lagre,
-                    lagreVedtak = vedtakService::lagreITransaksjon,
-                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                    notifyObservers = { Unit },
-                ).kjørSideffekter(regulering)
-            }
+        // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
+        if (!sak.blirBeregningEndret(regulering, satsFactory, clock)) {
+            // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+            log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
+            return KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
+        }
 
-            if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun, satsFactory)
-                    .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                    .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
-            } else {
-                log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
-                regulering.right()
-            }
-        }.also {
-            logResultat(it)
+        if (isLiveRun) {
+            LiveRun.Opprettet(
+                sessionFactory = sessionFactory,
+                lagreRegulering = reguleringRepo::lagre,
+                lagreVedtak = vedtakService::lagreITransaksjon,
+                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                notifyObservers = { Unit },
+            ).kjørSideffekter(regulering)
+        }
+
+        return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun, satsFactory)
+                .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
+                .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
+        } else {
+            log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
+            regulering.right()
         }
     }
 
@@ -203,7 +238,12 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(
+            Måned.fra(fraOgMed),
+            clock,
+            Reguleringssupplement.empty(),
+            (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
+        ).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering
@@ -218,6 +258,52 @@ class ReguleringServiceImpl(
         }
     }
 
+    override fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement) {
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
+
+        val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
+        reguleringerSomKanOppdateres.forEach { reguleringssammendrag ->
+            log.info("Oppdatering av regulering for sak ${reguleringssammendrag.saksnummer} starter...")
+
+            Either.catch {
+                val sak: Sak = Either.catch {
+                    sakService.hentSak(reguleringssammendrag.saksnummer)
+                        .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+                }.getOrElse {
+                    log.error(
+                        "Regulering for saksnummer ${reguleringssammendrag.saksnummer}: Klarte ikke hente sak",
+                        it,
+                    )
+                    return@forEach
+                }
+
+                val regulering = sak.reguleringer.hent(reguleringssammendrag.reguleringId)
+                    ?: throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
+
+                val søkersSupplement = supplement.getFor(regulering.fnr)
+                val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
+
+                val eksternSupplementRegulering = EksternSupplementRegulering(søkersSupplement, epsSupplement)
+                val oppdatertRegulering =
+                    regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
+
+                if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+                    ferdigstillOgIverksettRegulering(oppdatertRegulering, sak, true, satsFactory)
+                        .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
+                        .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
+                } else {
+                    log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
+                    regulering.right()
+                }
+            }.mapLeft {
+                log.error("Feil ved oppdatering av regulering for saksnummer ${reguleringssammendrag.saksnummer}", it)
+            }
+        }
+    }
+
+    /**
+     * Lagrer reguleringen
+     */
     private fun ferdigstillOgIverksettRegulering(
         regulering: OpprettetRegulering,
         sak: Sak,
@@ -281,11 +367,7 @@ class ReguleringServiceImpl(
                         notifyObservers = { Unit },
                     ).kjørSideffekter(
                         regulering.copy(
-                            reguleringstype = Reguleringstype.MANUELL(
-                                setOf(
-                                    ÅrsakTilManuellRegulering.UtbetalingFeilet,
-                                ),
-                            ),
+                            reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.UtbetalingFeilet)),
                         ),
                     )
                 }
@@ -323,8 +405,8 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
-        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+    override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
+        return reguleringRepo.hentStatusForÅpneManuelleReguleringer()
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {

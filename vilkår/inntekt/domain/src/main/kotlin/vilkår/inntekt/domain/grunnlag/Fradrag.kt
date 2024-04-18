@@ -2,11 +2,12 @@ package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.KopierbarForSnitt
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
+import java.math.BigDecimal
 
 /**
  * TODO: Dette burde egentlig vært et beregningsfradrag, mens Fradragsgrunnlag ikke refererer til denne.
  */
-interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
+sealed interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?
@@ -21,6 +22,8 @@ interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     }
 
     fun skalJusteresVedGEndring() = fradragstype.måJusteresManueltVedGEndring
+
+    fun oppdaterBeløp(beløp: BigDecimal): Fradrag
 }
 
 enum class FradragTilhører {

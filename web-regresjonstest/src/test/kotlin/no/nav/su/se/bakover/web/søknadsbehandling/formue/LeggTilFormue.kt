@@ -21,18 +21,8 @@ internal fun leggTilFormue(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     måInnhenteMerInformasjon: Boolean = false,
-    client: HttpClient,
-): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/formuegrunnlag",
-            listOf(brukerrolle),
-            client = client,
-        ) {
-            setBody(
-                //language=JSON
-                """
+    body: () -> String = {
+        """
                 [
                   {
                         "periode": {
@@ -54,8 +44,18 @@ internal fun leggTilFormue(
                         "måInnhenteMerInformasjon": $måInnhenteMerInformasjon
                   }
                 ]
-                """.trimIndent(),
-            )
+        """.trimIndent()
+    },
+    client: HttpClient,
+): String {
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Post,
+            "/saker/$sakId/behandlinger/$behandlingId/formuegrunnlag",
+            listOf(brukerrolle),
+            client = client,
+        ) {
+            setBody(body())
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
@@ -63,4 +63,21 @@ internal fun leggTilFormue(
             }
         }.bodyAsText()
     }
+}
+
+/**
+ * hardkodet defaults
+ */
+fun formueEpsJson(): String {
+    //language=json
+    return """[
+              {
+                "periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},
+                "epsFormue": {"verdiIkkePrimærbolig": 0,"verdiEiendommer": 0,"verdiKjøretøy": 0,"innskudd": 0,"verdipapir": 0,"pengerSkyldt": 0,"kontanter": 0,"depositumskonto": 0},
+                "søkersFormue": {"verdiIkkePrimærbolig": 0,"verdiEiendommer": 0,"verdiKjøretøy": 0,"innskudd": 0,"verdipapir": 0,"pengerSkyldt": 0,"kontanter": 0,"depositumskonto": 0},
+                "begrunnelse": "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
+                "måInnhenteMerInformasjon": false
+              }
+            ]
+    """.trimIndent()
 }

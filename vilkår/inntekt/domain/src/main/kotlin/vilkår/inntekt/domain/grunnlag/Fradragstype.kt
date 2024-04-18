@@ -15,6 +15,9 @@ sealed class Fradragstype {
         return kategori.toString()
     }
 
+    /**
+     * Merk at disse serialisere/deserialiseres direkte til basen, så anbefaler ikke rename av disse.
+     */
     enum class Kategori {
         Alderspensjon,
         Annet,

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.måneder
 import org.jetbrains.annotations.TestOnly
 import vilkår.common.domain.grunnlag.Grunnlag
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -63,7 +64,6 @@ data class Fradragsgrunnlag private constructor(
                 is FradragForMåned -> f.nyPeriode(periode)
                 is FradragForPeriode -> f.copy(periode = periode)
                 is Fradragsgrunnlag -> throw IllegalStateException("Fradraget til Fradragsgrunnlag kan ikke være Fradragsgrunnlag (rekursjon).")
-                else -> throw IllegalStateException("Ukjent fradragstype: ${this::class.simpleName}")
             },
         )
     }
@@ -203,6 +203,10 @@ data class Fradragsgrunnlag private constructor(
             copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
         }
     }
+
+    fun oppdaterBeløpFraSupplement(beløp: BigDecimal): Fradragsgrunnlag = this.copy(
+        fradrag = fradrag.oppdaterBeløp(beløp),
+    )
 }
 
 fun Collection<Fradragsgrunnlag>.slåSammen(clock: Clock): List<Fradragsgrunnlag> {

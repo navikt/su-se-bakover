@@ -24,6 +24,7 @@ internal fun leggTilBosituasjon(
     tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     body: () -> String = {
+        //language=json
         """
                   {
                       "bosituasjoner": [
@@ -59,4 +60,24 @@ internal fun leggTilBosituasjon(
             }
         }.bodyAsText()
     }
+}
+
+/**
+ * hardkodet defaults med untakk av epsFnr
+ */
+fun bosituasjonEpsJson(epsFnr: String): String {
+    //language=json
+    return """
+                  {
+                      "bosituasjoner": [
+                          {
+                            "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"},
+                            "epsFnr": "$epsFnr",
+                            "delerBolig": null,
+                            "erEPSUførFlyktning": true,
+                            "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
+                          }
+                      ]
+                  }
+                """
 }

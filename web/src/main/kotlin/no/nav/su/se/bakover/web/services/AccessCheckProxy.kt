@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -1129,8 +1130,9 @@ open class AccessCheckProxy(
             reguleringService = object : ReguleringService {
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
+                    supplement: Reguleringssupplement,
                 ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned)
+                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned, supplement)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
@@ -1146,8 +1148,8 @@ open class AccessCheckProxy(
                     return services.reguleringService.avslutt(reguleringId, avsluttetAv)
                 }
 
-                override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
-                    return services.reguleringService.hentStatus()
+                override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
+                    return services.reguleringService.hentStatusForÅpneManuelleReguleringer()
                 }
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
@@ -1166,6 +1168,13 @@ open class AccessCheckProxy(
                         fradrag,
                         saksbehandler,
                     )
+                }
+
+                override fun oppdaterReguleringerMedSupplement(
+                    fraOgMedMåned: Måned,
+                    supplement: Reguleringssupplement,
+                ) {
+                    return services.reguleringService.oppdaterReguleringerMedSupplement(fraOgMedMåned, supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {

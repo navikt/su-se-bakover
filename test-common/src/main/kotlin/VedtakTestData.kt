@@ -58,8 +58,8 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    sakId: UUID = UUID.randomUUID(),
-    fnr: Fnr = Fnr.generer(),
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
         sakInfo = SakInfo(
             sakId = sakId,

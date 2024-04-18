@@ -59,7 +59,7 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hentReguleringerSomIkkeErIverksatt(): List<ReguleringSomKreverManuellBehandling> =
+    override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
                 """
@@ -294,6 +294,10 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
+        // TODO - må migrere inn en ny kolonne som kan ha supplementet
+        // vi vil også ha en ny tabell som skal ha hele CSV'en.
+        // supplementet i hver regulering vil peke til CSV'en den ble hentet fra
+        val eksternSupplementRegulering = EksternSupplementReguleringJson(bruker = null, eps = emptyList())
 
         return lagRegulering(
             status = status,
@@ -310,6 +314,7 @@ internal class ReguleringPostgresRepo(
             reguleringstype = type,
             avsluttetReguleringJson = avsluttet,
             sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
         )
     }
 
@@ -334,6 +339,7 @@ internal class ReguleringPostgresRepo(
         reguleringstype: Reguleringstype,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
+        eksternSupplementRegulering: EksternSupplementReguleringJson,
     ): Regulering {
         val opprettetRegulering = OpprettetRegulering(
             id = id,
@@ -348,6 +354,7 @@ internal class ReguleringPostgresRepo(
             simulering = simulering,
             reguleringstype = reguleringstype,
             sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering.toDomain(),
         )
 
         return when (status) {

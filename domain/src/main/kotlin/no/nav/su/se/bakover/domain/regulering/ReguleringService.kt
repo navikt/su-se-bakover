@@ -50,14 +50,17 @@ sealed interface KunneIkkeAvslutte {
 }
 
 interface ReguleringService {
-    fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+    fun startAutomatiskRegulering(
+        fraOgMedMåned: Måned,
+        supplement: Reguleringssupplement,
+    ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     )
 
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
-    fun hentStatus(): List<ReguleringSomKreverManuellBehandling>
+    fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
         reguleringId: ReguleringId,
@@ -65,4 +68,6 @@ interface ReguleringService {
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
+
+    fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement)
 }

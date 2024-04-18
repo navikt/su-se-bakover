@@ -7,29 +7,34 @@ sealed interface Reguleringstype {
     data object AUTOMATISK : Reguleringstype
 
     data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
+
+    companion object {
+        fun utledReguleringsTypeFrom(
+            reguleringstype1: Reguleringstype,
+            reguleringstype2: Reguleringstype,
+        ): Reguleringstype {
+            if (reguleringstype1 is MANUELL || reguleringstype2 is MANUELL) {
+                return MANUELL(
+                    ((reguleringstype1 as? MANUELL)?.problemer ?: emptySet()) +
+                        ((reguleringstype2 as? MANUELL)?.problemer ?: emptySet()),
+                )
+            }
+            return AUTOMATISK
+        }
+    }
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
-
-    if (this.grunnlagsdata.fradragsgrunnlag.any { it.fradrag.skalJusteresVedGEndring() }) {
-        problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
-    }
-
     if (this.harStans()) {
         problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }
 
-    this.vilkårsvurderinger.uføreVilkår().fold(
-        {
-            TODO("vilkårsvurdering_alder implementer regulering for alder")
-        },
-        {
-            if (it.grunnlag.harForventetInntektStørreEnn0()) {
-                problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
-            }
-        },
-    )
+    this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
+        if (it.grunnlag.harForventetInntektStørreEnn0()) {
+            problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
+        }
+    }
 
     if (this.delerAvPeriodenErOpphør()) {
         problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)
