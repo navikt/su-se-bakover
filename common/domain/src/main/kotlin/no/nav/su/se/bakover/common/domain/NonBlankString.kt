@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.common.domain
 
-import java.lang.IllegalArgumentException
-
 /**
  * A string that is guaranteed to be non-blank.
  */
