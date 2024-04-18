@@ -78,7 +78,7 @@ internal fun Route.reguler(
                                 is PartData.FormItem -> {
                                     when (it.name) {
                                         "fraOgMedMåned" -> fraOgMedMåned = it.value
-                                        else -> Feilresponser.ukjentFormData
+                                        else -> Feilresponser.ukjentMultipartFormDataField
                                     }
                                 }
 
@@ -208,7 +208,7 @@ internal fun Route.reguler(
                                     when (it.name) {
                                         "fraOgMedMåned" -> fraOgMedMåned = it.value
                                         "gVerdi" -> gVerdi = it.value
-                                        else -> Feilresponser.ukjentFormData
+                                        else -> Feilresponser.ukjentMultipartFormDataField
                                     }
                                 }
 
@@ -282,7 +282,7 @@ internal fun Route.reguler(
                                 is PartData.FormItem -> {
                                     when (it.name) {
                                         "fraOgMedMåned" -> fraOgMedMåned = it.value
-                                        else -> Feilresponser.ukjentFormData
+                                        else -> Feilresponser.ukjentMultipartFormDataField
                                     }
                                 }
 

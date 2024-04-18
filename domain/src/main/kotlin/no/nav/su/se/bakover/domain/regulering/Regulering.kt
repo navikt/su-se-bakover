@@ -20,8 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.bosituasjon.domain.grunnlag.periodeTilEpsFnr
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -46,6 +44,7 @@ fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat()
  */
 data class EksternSupplementRegulering(
     val bruker: ReguleringssupplementFor?,
+    // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
     val eps: List<ReguleringssupplementFor>,
 ) {
     fun hentForEps(fnr: Fnr): ReguleringssupplementFor? = eps.find { it.fnr == fnr }
@@ -70,6 +69,8 @@ sealed interface Regulering : Stønadsbehandling {
     val eksternSupplementRegulering: EksternSupplementRegulering
 
     fun erÅpen(): Boolean
+
+    // TODO jah - Bør nok lagre at det er denne vi har brukt og
     fun oppdaterMedSupplement(
         eksternSupplementRegulering: EksternSupplementRegulering,
         omregningsfaktor: BigDecimal,
@@ -79,45 +80,6 @@ sealed interface Regulering : Stønadsbehandling {
     val erFerdigstilt: Boolean
 
     companion object {
-
-        fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
-            fradrag: List<Fradragsgrunnlag>,
-            bosituasjon: List<Bosituasjon.Fullstendig>,
-            eksternSupplementRegulering: EksternSupplementRegulering,
-            omregningsfaktor: BigDecimal,
-        ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
-            /**
-             * TODO
-             *  Perioden vi får inn per type vil potensielt være lenger enn våres periode, eller kortere, fordi at Pesys, legger på
-             *  tilOgMed til siste dagen i året. Våres periode følger naturligvis stønadsperioden, som vil kunne gjelde over pesys sin tilOgMed
-             *  vi kan få samme fradrag flere ganger. hull i perioden er en mulighet. kan prøve å slå sammen fradragene til 1.
-             *  hvis ikke det lar seg gjøre, kan vi sette reguleringen til manuell.
-             *  Eventuelt gjøre periodene om til måneder, oppdatere beløpene. Merk at samme problem stilling med perioder i pesys vs våres fortsatt gjelder.
-             */
-            return fradrag
-                .groupBy { it.fradragstype }
-                .map { (fradragstype, fradragsgrunnlag) ->
-                    val fradragEtterSupplementSjekk = utledReguleringstypeOgFradrag(
-                        eksternSupplementRegulering = eksternSupplementRegulering,
-                        fradragstype = fradragstype,
-                        originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
-                        periodeTilEps = bosituasjon.periodeTilEpsFnr(),
-                        omregningsfaktor = omregningsfaktor,
-                    )
-                    fradragEtterSupplementSjekk
-                }.let {
-                    val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
-                        Reguleringstype.MANUELL(
-                            problemer = it.map { it.first }.filterIsInstance<Reguleringstype.MANUELL>()
-                                .flatMap { it.problemer }.toSet(),
-                        )
-                    } else {
-                        Reguleringstype.AUTOMATISK
-                    }
-                    reguleringstype to it.flatMap { it.second }
-                }
-        }
-
         /**
          * @param clock Brukes kun dersom [opprettet] ikke sendes inn.
          */
@@ -137,7 +99,6 @@ sealed interface Regulering : Stønadsbehandling {
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
                     saksnummer,
-                    eksternSupplementRegulering,
                 ).getOrElse {
                     return it.left()
                 }
@@ -163,10 +124,8 @@ sealed interface Regulering : Stønadsbehandling {
                 saksnummer = saksnummer,
                 saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
                 fnr = fnr,
-                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(
-                    grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata.copy(
-                        fradragsgrunnlag = fradragEtterSupplementSjekk,
-                    ),
+                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
+                    fradragEtterSupplementSjekk,
                 ),
                 beregning = null,
                 simulering = null,
@@ -179,7 +138,6 @@ sealed interface Regulering : Stønadsbehandling {
         private fun getReguleringstypeVedGenerelleProblemer(
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             saksnummer: Saksnummer,
-            eksternSupplementRegulering: EksternSupplementRegulering,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
             return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
                 { konsistensproblemer ->
@@ -194,7 +152,7 @@ sealed interface Regulering : Stønadsbehandling {
                     return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
                 },
                 {
-                    gjeldendeVedtaksdata.utledReguleringstype(eksternSupplementRegulering).right()
+                    gjeldendeVedtaksdata.utledReguleringstype().right()
                 },
             )
         }

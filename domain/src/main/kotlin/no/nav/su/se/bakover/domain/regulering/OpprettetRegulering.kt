@@ -59,7 +59,7 @@ data class OpprettetRegulering(
         val fradrag = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag
         val bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjonSomFullstendig()
 
-        val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = Regulering.utledReguleringstypeOgFradragVedHjelpAvSupplement(
+        val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradragVedHjelpAvSupplement(
             fradrag = fradrag,
             bosituasjon = bosituasjon,
             eksternSupplementRegulering = eksternSupplementRegulering,

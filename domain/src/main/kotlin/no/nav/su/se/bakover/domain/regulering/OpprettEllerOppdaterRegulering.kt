@@ -95,7 +95,6 @@ private fun utledReguleringssupplement(
     val epsTilPeriode: Map<Fnr, List<Periode>> = bosituasjon.epsTilPeriode()
     val supplementForEps: List<ReguleringssupplementFor> = epsTilPeriode.mapNotNull { (eps, _) ->
         supplement.getFor(eps)
-        // TODO jah: Bør vi her gå igjennom periodene og sammenligne de med periodene på bosituasjonen og forkaste fradrag som ikke gjelder for reguleringen?
     }
     return EksternSupplementRegulering(
         bruker = supplementForBruker,

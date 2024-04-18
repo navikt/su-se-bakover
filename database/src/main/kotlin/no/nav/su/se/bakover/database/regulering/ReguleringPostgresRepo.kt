@@ -296,7 +296,7 @@ internal class ReguleringPostgresRepo(
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
         // TODO - må migrere inn en ny kolonne som kan ha supplementet
         // vi vil også ha en ny tabell som skal ha hele CSV'en.
-        // suppllementet i hver revurdering vil peke til CSV'en den ble hentet fra
+        // supplementet i hver regulering vil peke til CSV'en den ble hentet fra
         val eksternSupplementRegulering = EksternSupplementReguleringJson(bruker = null, eps = emptyList())
 
         return lagRegulering(

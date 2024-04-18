@@ -151,7 +151,7 @@ data object Feilresponser {
         "ugyldig_input",
     )
 
-    val ukjentFormData = BadRequest.errorJson("Multipart inneholder ukjent formdata", "ukjent_formdata")
+    val ukjentMultipartFormDataField = BadRequest.errorJson("Multipart inneholder ukjent formdata", "ukjent_formdata")
 
     val ukjentMultipartType = BadRequest.errorJson(
         "Multipart inneholder ukjent type. aksepterer kun filer og formdata",

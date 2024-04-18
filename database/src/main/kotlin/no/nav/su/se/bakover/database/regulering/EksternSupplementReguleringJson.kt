@@ -73,6 +73,7 @@ data class FradragsperiodeJson(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             beløp = beløp,
+            // TODO - DB type i neste PR
             vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.valueOf(vedtakstype),
             eksterndata = ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
                 fnr = eksterndata.fnr,

@@ -23,12 +23,6 @@ sealed interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
 
     fun skalJusteresVedGEndring() = fradragstype.måJusteresManueltVedGEndring
 
-    // TODO - test
-    fun tilFradragForMåned(): List<FradragForMåned>
-
-    // TODO - test
-    fun tilFradragForPeriode(): FradragForPeriode
-
     fun oppdaterBeløp(beløp: BigDecimal): Fradrag
 }
 

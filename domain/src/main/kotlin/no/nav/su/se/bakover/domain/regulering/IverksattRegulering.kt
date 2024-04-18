@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import beregning.domain.Beregning
 import økonomi.domain.simulering.Simulering
+import java.math.BigDecimal
 
 data class IverksattRegulering(
     /**
@@ -20,5 +21,12 @@ data class IverksattRegulering(
      */
     override fun skalSendeVedtaksbrev(): Boolean {
         return false
+    }
+
+    override fun oppdaterMedSupplement(
+        eksternSupplementRegulering: EksternSupplementRegulering,
+        omregningsfaktor: BigDecimal,
+    ): OpprettetRegulering {
+        throw IllegalStateException("Kan ikke oppdatere iverksatt regulering $id med nytt supplement")
     }
 }

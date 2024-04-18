@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
@@ -26,30 +24,8 @@ sealed interface Reguleringstype {
     }
 }
 
-fun GjeldendeVedtaksdata.utledReguleringstype(
-    eksternSupplementRegulering: EksternSupplementRegulering,
-): Reguleringstype {
+fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
-    val epsFnrForMåned: Map<Måned, Fnr> = this.grunnlagsdata.epsForMåned()
-    this.grunnlagsdata.fradragsgrunnlag.filterNot {
-        val fradragsperiode = it.fradrag.periode
-        if (it.fradrag.tilhørerBruker()) {
-            eksternSupplementRegulering.bruker?.inneholderFradragForTypeOgPeriode(it.fradragstype, fradragsperiode)
-                ?: false
-        } else {
-            fradragsperiode.måneder().all { måned ->
-                epsFnrForMåned[måned]?.let { epsFnr ->
-                    eksternSupplementRegulering.eps.find { it.fnr == epsFnr }
-                        ?.inneholderFradragForTypeOgMåned(it.fradragstype, måned)
-                } ?: false
-            }
-        }
-    }.let {
-        if (it.any { it.fradrag.skalJusteresVedGEndring() }) {
-            problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
-        }
-    }
-
     if (this.harStans()) {
         problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }

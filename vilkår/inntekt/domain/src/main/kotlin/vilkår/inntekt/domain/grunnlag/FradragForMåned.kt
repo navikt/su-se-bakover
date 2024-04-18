@@ -23,15 +23,6 @@ data class FradragForMåned(
         require(månedsbeløp >= 0.0) { "Fradrag kan ikke være negative" }
     }
 
-    override fun tilFradragForMåned(): List<FradragForMåned> = listOf(this)
-    override fun tilFradragForPeriode(): FradragForPeriode = FradragForPeriode(
-        fradragstype = fradragstype,
-        månedsbeløp = månedsbeløp,
-        periode = måned.tilPeriode(),
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = tilhører,
-    )
-
     override fun oppdaterBeløp(beløp: BigDecimal): Fradrag = this.copy(månedsbeløp = beløp.toDouble())
 
     override val periode: Måned = måned
