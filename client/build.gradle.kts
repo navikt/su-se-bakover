@@ -32,7 +32,7 @@ dependencies {
     implementation(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
-    implementation("org.jetbrains.kotlinx:atomicfu:0.23.2")
+    implementation("org.jetbrains.kotlinx:atomicfu:0.24.0")
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
 }
 
