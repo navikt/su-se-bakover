@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.regulering
 
 import grunnbeløp.domain.Grunnbeløpsendring
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import satser.domain.garantipensjon.GarantipensjonFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy

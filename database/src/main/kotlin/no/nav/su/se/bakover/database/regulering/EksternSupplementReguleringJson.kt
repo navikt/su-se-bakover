@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.regulering
 
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import java.time.LocalDate
 
 internal data class EksternSupplementReguleringJson(

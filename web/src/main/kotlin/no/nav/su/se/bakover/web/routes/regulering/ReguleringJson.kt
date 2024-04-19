@@ -87,5 +87,5 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
 )
 
 internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
-    return this.map { it.toString() }.toSet()
+    return map { it.name }.toSet()
 }

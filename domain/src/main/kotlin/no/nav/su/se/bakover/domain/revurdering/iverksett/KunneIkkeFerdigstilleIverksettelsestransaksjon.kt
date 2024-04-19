@@ -5,15 +5,10 @@ import økonomi.domain.utbetaling.UtbetalingFeilet
 sealed interface KunneIkkeFerdigstilleIverksettelsestransaksjon {
     data class KunneIkkeLeggeUtbetalingPåKø(
         val utbetalingFeilet: UtbetalingFeilet,
-    ) : KunneIkkeFerdigstilleIverksettelsestransaksjon {
-        override fun toString() = "KunneIkkeLeggeUtbetalingPåKø"
-    }
+    ) : KunneIkkeFerdigstilleIverksettelsestransaksjon
 
     data class KunneIkkeKlargjøreUtbetaling(
         val underliggende: økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling,
     ) : KunneIkkeFerdigstilleIverksettelsestransaksjon
-
-    data class UkjentFeil(val throwable: Throwable) : KunneIkkeFerdigstilleIverksettelsestransaksjon {
-        override fun toString() = "UkjentFeil(throwable=${throwable::class.simpleName})"
-    }
+    data class UkjentFeil(val throwable: Throwable) : KunneIkkeFerdigstilleIverksettelsestransaksjon
 }

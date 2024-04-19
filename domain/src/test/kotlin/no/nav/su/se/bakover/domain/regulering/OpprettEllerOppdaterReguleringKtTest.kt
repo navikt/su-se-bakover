@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.desember
@@ -11,8 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -72,7 +71,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         ).getOrFail()
 
         actual.let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
             it.grunnlagsdata.fradragsgrunnlag.single().månedsbeløp shouldBe 995
         }
     }
@@ -126,7 +125,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 995.0
@@ -170,7 +169,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
         }
@@ -225,7 +224,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1050
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 1000
@@ -266,7 +265,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
         }

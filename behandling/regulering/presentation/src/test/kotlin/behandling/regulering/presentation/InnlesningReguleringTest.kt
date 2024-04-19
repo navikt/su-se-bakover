@@ -4,11 +4,10 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.mai
-import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.april
-import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyEksterndata
 import no.nav.su.se.bakover.test.nyFradragperiodeRegulering
@@ -31,7 +30,7 @@ class InnlesningReguleringTest {
                     ReguleringssupplementFor.PerType(
                         type = Fradragstype.Uføretrygd,
                         vedtak = nonEmptyListOf(
-                            Eksternvedtak.Endring(
+                            ReguleringssupplementFor.PerType.Eksternvedtak.Endring(
                                 måned = april(2024),
                                 beløp = 14241,
                                 fradrag = nonEmptyListOf(
@@ -73,11 +72,9 @@ class InnlesningReguleringTest {
                                     ),
                                 ),
                             ),
-                            Eksternvedtak.Regulering(
-                                periode = PeriodeMedOptionalTilOgMed(
-                                    fraOgMed = 1.mai(2024),
-                                    tilOgMed = null,
-                                ),
+                            ReguleringssupplementFor.PerType.Eksternvedtak.Regulering(
+                                fraOgMed = 1.mai(2024),
+                                tilOgMed = null,
                                 beløp = 16255,
                                 fradrag = nonEmptyListOf(
                                     nyFradragperiodeRegulering(
