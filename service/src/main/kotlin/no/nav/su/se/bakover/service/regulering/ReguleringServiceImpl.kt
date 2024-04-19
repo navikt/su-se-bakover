@@ -9,6 +9,7 @@ import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsyn
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -430,10 +432,17 @@ class ReguleringServiceImpl(
             }
         }.mapLeft {
             log.error(
-                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
+            )
+            sikkerLogg.error(
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
                 it,
             )
-            KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
+            if (it is KunneIkkeFerdigstilleIverksettelsestransaksjon) {
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(it)
+            } else {
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it))
+            }
         }.map {
             regulering
         }

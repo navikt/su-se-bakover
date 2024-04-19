@@ -58,7 +58,7 @@ sealed interface LiveRun : ReguleringRunType {
                     tx,
                 ).getOrElse {
                     throw IverksettTransactionException(
-                        "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
+                        "Kunne ikke klargjøre utbetaling. Underliggende feil:$it.",
                         KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeKlargjøreUtbetaling(it),
                     )
                 }
@@ -73,7 +73,12 @@ sealed interface LiveRun : ReguleringRunType {
                 lagreVedtak(vedtak, tx)
 
                 nyUtbetaling.sendUtbetaling()
-                    .getOrElse { throw RuntimeException(it.toString()) }
+                    .getOrElse {
+                        throw IverksettTransactionException(
+                            "Kunne ikke sende utbetaling til oppdrag (legge den på kø). Underliggende feil:$it.",
+                            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(it),
+                        )
+                    }
 
                 vedtak
             }
