@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -221,7 +222,13 @@ fun utledReguleringstypeOgFradrag(
         // Dette er den vanligste casen for manuell regulering, vi trenger ikke logge disse tilfellene.
         val regtype =
             if (fradragstype.måJusteresManueltVedGEndring) {
-                Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
+                manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragstype = fradragstype,
+                        fradragTilhører = fradragTilhører,
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                )
             } else {
                 Reguleringstype.AUTOMATISK
             }
@@ -230,7 +237,13 @@ fun utledReguleringstypeOgFradrag(
 
     if (originaleFradragsgrunnlag.size > 1) {
         log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt.")
-        return Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) to originaleFradragsgrunnlag
+        return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
+            ),
+        ) to originaleFradragsgrunnlag
     }
 
     return utledReguleringstypeOgFradragForEttFradragsgrunnlag(
@@ -264,8 +277,12 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     require(supplement.bruker != null || supplement.eps.isNotEmpty())
 
     if (originaleFradragsgrunnlag.utenlandskInntekt != null) {
-        return Reguleringstype.MANUELL(
-            setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+        return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                begrunnelse = "Fradraget er utenlandsinntekt og går til manuell regulering",
+            ),
         ) to originaleFradragsgrunnlag
     }
     if (!originaleFradragsgrunnlag.skalJusteresVedGEndring()) {
@@ -278,32 +295,61 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     }
 
     val supplementForType: ReguleringssupplementFor.PerType =
-        supplementFor.getForType(fradragstype) ?: return Reguleringstype.MANUELL(
-            setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+        supplementFor.getForType(fradragstype) ?: return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                begrunnelse = "Vi fant et supplement for $fradragTilhører, men ikke for ${fradragstype.kategori}.",
+            ),
         ) to originaleFradragsgrunnlag
-
-    if (supplementForType.reguleringsvedtak.size > 1) {
-        return Reguleringstype.MANUELL(
-            // TODO jah: Utvid til egen feil for dette med begrunnelse.
-            setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+    val antallEksterneReguleringsvedtak = supplementForType.reguleringsvedtak.size
+    if (antallEksterneReguleringsvedtak > 1) {
+        return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                eksterneReguleringsvedtakperioder = supplementForType.reguleringsvedtak.map { it.periode },
+                begrunnelse = "Vi fant et supplement for $fradragTilhører og denne ${fradragstype.kategori}, men siden vi fant mer enn en vedtaksperiode ($antallEksterneReguleringsvedtak), går den til manuell.",
+            ),
         ) to originaleFradragsgrunnlag
     }
-    val nåværendeFradragsbeløp = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
-    val pesysBeløpApril = supplementForType.endringsvedtak.beløp
-    if (BigDecimal(pesysBeløpApril).subtract(nåværendeFradragsbeløp).abs() > BigDecimal.ONE) {
-        // TODO jah: Utvid til egen feil for dette med begrunnelse.
-        return Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) to originaleFradragsgrunnlag
+    val vårtBeløpFørRegulering = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
+    val eksterntBeløpFørRegulering = supplementForType.endringsvedtak.beløp
+    val akseptertDifferanseFørRegulering = BigDecimal.ONE
+    val diffFørRegulering = BigDecimal(eksterntBeløpFørRegulering).subtract(vårtBeløpFørRegulering).abs()
+    if (diffFørRegulering > akseptertDifferanseFørRegulering) {
+        return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                vårtBeløpFørRegulering = vårtBeløpFørRegulering,
+                eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
+                begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer en differanse på $akseptertDifferanseFørRegulering, men den var $diffFørRegulering",
+            ),
+        ) to originaleFradragsgrunnlag
     }
-    val supplementBeløp = supplementForType.reguleringsvedtak.single().beløp.toBigDecimal()
+    val eksterntBeløpEtterRegulering = supplementForType.reguleringsvedtak.single().beløp.toBigDecimal()
 
-    val forventetBeløpBasertPåGverdi = (nåværendeFradragsbeløp * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
+    val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
 
-    val differanseSupplementOgForventet = supplementBeløp.subtract(forventetBeløpBasertPåGverdi).abs()
+    val differanseSupplementOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
 
-    if (differanseSupplementOgForventet > BigDecimal.TEN) {
-        return Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) to originaleFradragsgrunnlag
+    val akseptertDifferanseEtterRegulering = BigDecimal.TEN
+    if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
+        return manuellReg(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
+                fradragstype = fradragstype,
+                fradragTilhører = fradragTilhører,
+                forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,
+                eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering,
+                begrunnelse = "Vi forventet at beløpet skulle være $forventetBeløpBasertPåGverdi etter regulering, men det var $eksterntBeløpEtterRegulering. Vi aksepterer en differanse på $akseptertDifferanseEtterRegulering, men den var $differanseSupplementOgForventet",
+            ),
+        ) to originaleFradragsgrunnlag
     }
 
-    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(supplementBeløp)
+    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(eksterntBeløpEtterRegulering)
     return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }
+
+private fun manuellReg(årsak: ÅrsakTilManuellRegulering): Reguleringstype.MANUELL =
+    Reguleringstype.MANUELL(setOf(årsak))

@@ -1,11 +1,22 @@
 package no.nav.su.se.bakover.common.infrastructure
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+data class PeriodeMedOptionalTilOgMedJson(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate?,
+) {
+    companion object {
+        fun PeriodeMedOptionalTilOgMed.toJson(): PeriodeMedOptionalTilOgMedJson =
+            PeriodeMedOptionalTilOgMedJson(fraOgMed, tilOgMed)
+    }
+}
 
 data class PeriodeJson(
     val fraOgMed: String,

@@ -40,7 +40,7 @@ internal class ReguleringPostgresRepoTest {
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             testDataHelper.persisterReguleringIverksatt()
             regulering.copy(
-                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)),
+                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt)),
             ).also { repo.lagre(it) }
 
             val hentRegulering = repo.hentStatusForÅpneManuelleReguleringer()

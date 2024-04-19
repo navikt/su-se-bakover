@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -138,7 +138,7 @@ internal class ReguleringServiceImplTest {
         fun `OffentligPensjon gir manuell`() {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+                setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt),
             )
         }
 
@@ -146,7 +146,7 @@ internal class ReguleringServiceImplTest {
         fun `NAVytelserTilLivsopphold gir manuell`() {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+                setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt),
             )
         }
 
@@ -157,7 +157,7 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset),
+                setOf(ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset),
             )
         }
 
@@ -353,7 +353,7 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                    KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
+                    KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere,
                 ).left(),
             )
         }
