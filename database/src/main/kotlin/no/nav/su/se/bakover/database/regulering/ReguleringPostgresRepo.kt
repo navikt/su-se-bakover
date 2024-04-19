@@ -297,6 +297,7 @@ internal class ReguleringPostgresRepo(
         // TODO - må migrere inn en ny kolonne som kan ha supplementet
         // vi vil også ha en ny tabell som skal ha hele CSV'en.
         // supplementet i hver regulering vil peke til CSV'en den ble hentet fra
+        // TODO - fiks når vi må lagre dem inn i basen
         val eksternSupplementRegulering = EksternSupplementReguleringJson(bruker = null, eps = emptyList())
 
         return lagRegulering(

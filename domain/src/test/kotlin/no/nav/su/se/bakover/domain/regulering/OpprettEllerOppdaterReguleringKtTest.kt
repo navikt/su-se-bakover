@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.tid.desember
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.desember
-import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
@@ -14,7 +16,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nyFradragperiode
+import no.nav.su.se.bakover.test.nyEksternvedtakEndring
+import no.nav.su.se.bakover.test.nyEksternvedtakRegulering
 import no.nav.su.se.bakover.test.nyReguleringssupplementFor
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -74,7 +77,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
     }
 
     @Test
-    fun `dersom det eksisterer 2 like reguleringsfradrag, går den til manuell behandling`() {
+    fun `dersom det eksisterer 2 reguleringsvedtak går den til manuell behandling`() {
         val sakUtenÅpenBehandling = (
             iverksattSøknadsbehandlingUføre(
                 customGrunnlag = listOf(
@@ -108,7 +111,11 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(nyFradragperiode(beløp = 1050)),
+                vedtak = nonEmptyListOf(
+                    nyEksternvedtakRegulering(tilOgMed = 31.mai(2021)),
+                    nyEksternvedtakRegulering(fraOgMed = 1.juni(2021), null),
+                    nyEksternvedtakEndring(),
+                ),
             ),
         )
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
@@ -148,7 +155,10 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(nyFradragperiode(beløp = 1050)),
+                vedtak = nonEmptyListOf(
+                    nyEksternvedtakRegulering(),
+                    nyEksternvedtakEndring(),
+                ),
             ),
         )
 
@@ -200,7 +210,10 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(nyFradragperiode(beløp = 1050)),
+                vedtak = nonEmptyListOf(
+                    nyEksternvedtakRegulering(beløp = 1050),
+                    nyEksternvedtakEndring(beløp = 995),
+                ),
             ),
         )
 
@@ -215,48 +228,6 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1050
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 1000
-        }
-    }
-
-    @Test
-    fun `dersom supplement har flere perioder for et gitt fradrag i reguleringen, går den til manuell`() {
-        val sakUtenÅpenBehandling = (
-            iverksattSøknadsbehandlingUføre(
-                customGrunnlag = listOf(
-                    Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragForPeriode(
-                            fradragstype = Fradragstype.Alderspensjon,
-                            månedsbeløp = 1000.0,
-                            periode = stønadsperiode2021.periode,
-                            utenlandskInntekt = UtenlandskInntekt.create(100, "SEK", 1.0),
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                ),
-            )
-            ).first
-        val supplementFor = nyReguleringssupplementFor(
-            fnr = sakUtenÅpenBehandling.fnr,
-            ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(
-                    nyFradragperiode(beløp = 1050, fraOgMed = januar(2021).fraOgMed, tilOgMed = januar(2021).tilOgMed),
-                    nyFradragperiode(beløp = 1050, fraOgMed = februar(2021).fraOgMed, tilOgMed = februar(2021).tilOgMed),
-                ),
-            ),
-        )
-        val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
-            mai(2020),
-            fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
-            BigDecimal("1.064076"),
-        )
-        actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt))
-            it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
-            it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
         }
     }
 
@@ -284,7 +255,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(nyFradragperiode(beløp = 1200)),
+                vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1200), nyEksternvedtakEndring()),
             ),
         )
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
@@ -336,7 +307,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
                 type = Fradragstype.Alderspensjon,
-                fradragsperioder = nonEmptyListOf(nyFradragperiode(beløp = 1050)),
+                vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1050), nyEksternvedtakEndring(beløp = 995)),
             ),
         )
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(

@@ -6,11 +6,15 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.april
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
@@ -229,16 +233,59 @@ fun nyReguleringssupplementFor(
 
 fun nyReguleringssupplementInnholdPerType(
     type: Fradragstype = Fradragstype.Alderspensjon,
-    vararg fradragsperiode: ReguleringssupplementFor.PerType.Fradragsperiode = arrayOf(nyFradragperiode()),
+    vedtak: List<ReguleringssupplementFor.PerType.Eksternvedtak> = listOf(
+        nyEksternvedtakEndring(),
+        nyEksternvedtakRegulering(),
+    ),
 ): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
-    fradragsperioder = fradragsperiode.toList().toNonEmptyList(),
+    vedtak = vedtak.toNonEmptyList(),
     type = type,
 )
 
-fun nyFradragperiode(
-    fraOgMed: LocalDate = stønadsperiode2021.periode.fraOgMed,
-    tilOgMed: LocalDate? = stønadsperiode2021.periode.tilOgMed,
+fun nyEksternvedtakRegulering(
+    fraOgMed: LocalDate = 1.mai(2021),
+    tilOgMed: LocalDate? = null,
+    beløp: Int = 1000,
+    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeRegulering(beløp = beløp, fraOgMed = fraOgMed, tilOgMed = tilOgMed)),
+): ReguleringssupplementFor.PerType.Eksternvedtak.Regulering {
+    return ReguleringssupplementFor.PerType.Eksternvedtak.Regulering(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        fradrag = fradrag.toNonEmptyList(),
+        beløp = beløp,
+    )
+}
+
+fun nyEksternvedtakEndring(
+    måned: Måned = april(2021),
+    beløp: Int = 1000,
+    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeEndring(beløp = beløp, fraOgMed = måned.fraOgMed, tilOgMed = måned.tilOgMed)),
+): ReguleringssupplementFor.PerType.Eksternvedtak.Endring {
+    return ReguleringssupplementFor.PerType.Eksternvedtak.Endring(
+        måned = måned,
+        fradrag = fradrag.toNonEmptyList(),
+        beløp = beløp,
+    )
+}
+
+fun nyFradragperiodeEndring(
+    fraOgMed: LocalDate = 1.april(2021),
+    tilOgMed: LocalDate = 30.april(2021),
     vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
+    beløp: Int = 1000,
+    eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
+): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
+    fraOgMed = fraOgMed,
+    tilOgMed = tilOgMed,
+    vedtakstype = vedtakstype,
+    beløp = beløp,
+    eksterndata = eksterndata,
+)
+
+fun nyFradragperiodeRegulering(
+    fraOgMed: LocalDate = 1.mai(2021),
+    tilOgMed: LocalDate? = null,
+    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering,
     beløp: Int = 1000,
     eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
 ): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(

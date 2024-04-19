@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
@@ -41,9 +43,6 @@ data class PesysUtrekkFromCsv(
     /** NETTO_YK: Eksempel: 26062 */
     val nettoYtelseskomponent: String,
 ) {
-    fun toDomain() {
-    }
-
     val fradragstype: Fradragstype? = when (sakstype) {
         "UFOREP" -> Fradragstype.Uføretrygd
         "ALDER" -> Fradragstype.Alderspensjon
@@ -55,6 +54,11 @@ data class PesysUtrekkFromCsv(
         "REGULERING" -> ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering
         "ENDRING" -> ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring
         else -> null
+    }
+
+    fun fraOgMedToDomain(): LocalDate = LocalDate.parse(fraOgMed, DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+    fun tilOgMedToDomain(): LocalDate? = tilOgMed?.let {
+        LocalDate.parse(it, DateTimeFormatter.ofPattern("dd.MM.yyyy"))
     }
 }
 
@@ -69,38 +73,80 @@ private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold
             "feil_ved_parsing_av_fnr",
         ).left()
 
-        val alleFradragGruppert = csv.groupBy { it.fradragstype }.filterKeys { it != null }.mapKeys { it.key!! }
-
-        val alleFradragPerType = alleFradragGruppert.map { (fradragstype, csv) ->
-
-            ReguleringssupplementFor.PerType(
-                fradragsperioder = csv.mapNotNull { csvInnslag ->
-                    val vedtakstype = csvInnslag.vedtakstypeToDomain() ?: return@mapNotNull null
-                    ReguleringssupplementFor.PerType.Fradragsperiode(
-                        fraOgMed = LocalDate.parse(csvInnslag.fraOgMed, DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                        tilOgMed = csvInnslag.tilOgMed?.let {
-                            LocalDate.parse(it, DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-                        },
-                        beløp = csvInnslag.nettoYtelse.toInt(),
+        csv.grupperPåFradragstype().map { (fradragstype, gruppertPåFradragstype) ->
+            gruppertPåFradragstype.grupperPåVedtakstype().map { (vedtakstype, gruppertPåVedtak) ->
+                gruppertPåVedtak.grupperPåPeriode().map { (periode, gruppertPåPeriode) ->
+                    gruppertPåPeriode.toEksternvedtak(
                         vedtakstype = vedtakstype,
-                        eksterndata = ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
-                            fnr = csvInnslag.fnr,
-                            sakstype = csvInnslag.sakstype,
-                            vedtakstype = csvInnslag.vedtakstype,
-                            fraOgMed = csvInnslag.fraOgMed,
-                            tilOgMed = csvInnslag.tilOgMed,
-                            bruttoYtelse = csvInnslag.bruttoYtelse,
-                            nettoYtelse = csvInnslag.nettoYtelse,
-                            ytelseskomponenttype = csvInnslag.ytelseskomponenttype,
-                            bruttoYtelseskomponent = csvInnslag.bruttoYtelseskomponent,
-                            nettoYtelseskomponent = csvInnslag.nettoYtelseskomponent,
-                        ),
+                        fraOgMed = periode.first,
+                        tilOgMed = periode.second,
                     )
-                }.toNonEmptyList(),
-                type = fradragstype,
-            )
-        }.toNonEmptyList()
-
-        ReguleringssupplementFor(fnr = fnr, perType = alleFradragPerType)
+                }
+            }.flatten().let {
+                ReguleringssupplementFor.PerType(
+                    type = fradragstype,
+                    vedtak = it.toNonEmptyList(),
+                )
+            }
+        }.let {
+            ReguleringssupplementFor(fnr, it.toNonEmptyList())
+        }
     }.right()
+}
+
+private fun List<PesysUtrekkFromCsv>.grupperPåFradragstype(): Map<Fradragstype, List<PesysUtrekkFromCsv>> =
+    this.groupBy { it.fradragstype }.filterKeys { it != null }.mapKeys { it.key!! }
+
+private fun List<PesysUtrekkFromCsv>.grupperPåVedtakstype(): Map<ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype, List<PesysUtrekkFromCsv>> =
+    this.groupBy { it.vedtakstypeToDomain() }.filterKeys { it != null }.mapKeys { it.key!! }
+
+private fun List<PesysUtrekkFromCsv>.grupperPåPeriode(): Map<Pair<LocalDate, LocalDate?>, List<PesysUtrekkFromCsv>> =
+    this.groupBy { Pair(it.fraOgMedToDomain(), it.tilOgMedToDomain()) }
+
+private fun List<PesysUtrekkFromCsv>.toEksternvedtak(
+    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype,
+    fraOgMed: LocalDate,
+    tilOgMed: LocalDate?,
+): ReguleringssupplementFor.PerType.Eksternvedtak {
+    return when (vedtakstype) {
+        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering -> ReguleringssupplementFor.PerType.Eksternvedtak.Regulering(
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            fradrag = this.toFradragsperiode().toNonEmptyList(),
+            beløp = this.first().nettoYtelse.toInt(),
+        )
+
+        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring -> ReguleringssupplementFor.PerType.Eksternvedtak.Endring(
+            måned = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed!!).tilMåned(),
+            fradrag = this.toFradragsperiode().toNonEmptyList(),
+            beløp = this.first().nettoYtelse.toInt(),
+        )
+    }
+}
+
+private fun List<PesysUtrekkFromCsv>.toFradragsperiode(): List<ReguleringssupplementFor.PerType.Fradragsperiode> {
+    return this.map { it.toFradragsperiode() }
+}
+
+private fun PesysUtrekkFromCsv.toFradragsperiode(): ReguleringssupplementFor.PerType.Fradragsperiode {
+    return ReguleringssupplementFor.PerType.Fradragsperiode(
+        fraOgMed = LocalDate.parse(this.fraOgMed, DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+        tilOgMed = this.tilOgMed?.let {
+            LocalDate.parse(it, DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        },
+        beløp = this.nettoYtelse.toInt(),
+        vedtakstype = this.vedtakstypeToDomain()!!,
+        eksterndata = ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
+            fnr = this.fnr,
+            sakstype = this.sakstype,
+            vedtakstype = this.vedtakstype,
+            fraOgMed = this.fraOgMed,
+            tilOgMed = this.tilOgMed,
+            bruttoYtelse = this.bruttoYtelse,
+            nettoYtelse = this.nettoYtelse,
+            ytelseskomponenttype = this.ytelseskomponenttype,
+            bruttoYtelseskomponent = this.bruttoYtelseskomponent,
+            nettoYtelseskomponent = this.nettoYtelseskomponent,
+        ),
+    )
 }

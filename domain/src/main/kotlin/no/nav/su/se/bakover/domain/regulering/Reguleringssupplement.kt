@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.inneholder
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
 
@@ -38,16 +38,13 @@ data class ReguleringssupplementFor(
     }
 
     fun getForType(fradragstype: Fradragstype) = perType.find { it.type == fradragstype }
-    val fradagstyper = perType.map { it.type }
-    // TODO - må muligens ha en smartere periodehåndtering
-    // val perioder: NonEmptyList<Periode> = perType.flatMap { it.perioder }
 
     /**
      * Innenfor en person, har vi et objekt per fradragstype, men vi støtter flere ikke-overlappende perioder, dvs. hull mellom periodene.
      * Dersom vi senere må ta høyde for overlapp av perioder, i forbindelse med overskrivende vedtak, trenger vi en diskriminator og tidslinjelogikk.
      */
     data class PerType(
-        val fradragsperioder: NonEmptyList<Fradragsperiode>,
+        val vedtak: NonEmptyList<Eksternvedtak>,
         /**
          * TODO - per i dag, så henter vi bare fradragene som er i Pesys. Disse er bare et subset av Fradragstypene
          * - Alderspensjon
@@ -58,22 +55,82 @@ data class ReguleringssupplementFor(
          */
         val type: Fradragstype,
     ) {
+        val endringsvedtak: Eksternvedtak.Endring = vedtak.filterIsInstance<Eksternvedtak.Endring>().single()
+        val reguleringsvedtak: List<Eksternvedtak.Regulering> = vedtak.filterIsInstance<Eksternvedtak.Regulering>()
+
         init {
-            // TODO jah: Vi antar at vi ikke kan få overlappende perioder innenfor et fnr+type
-            //  Hvis denne antagelsen ikke stemmer, må vi lage en tidslinje basert på et tidspunkt eller rekkefølge de har.
-            // TODO - må muligens ha en smartere periodehåndtering
-            // require(!fradragsperioder.map { it.periode }.harOverlappende())
+            require(!vedtak.overlapper()) {
+                "Vedtakene til Pesys kan ikke overlappe, men var ${vedtak.map { Pair(it.fraOgMed, it.tilOgMed) }}"
+            }
         }
 
-        // TODO - må muligens ha en smartere periodehåndtering
-        // val perioder: NonEmptyList<Periode> = fradragsperioder.map { it.periode }
+        sealed interface Eksternvedtak {
+            val fraOgMed: LocalDate
+            val tilOgMed: LocalDate?
+            val fradrag: NonEmptyList<Fradragsperiode>
+            val beløp: Int
 
-        // TODO tester
-        fun inneholder(periode: Periode): Boolean = fradragsperioder.any { it.inneholder(periode) }
+            fun overlapper(other: Eksternvedtak): Boolean {
+                val thisEnd = tilOgMed ?: LocalDate.MAX
+                val otherEnd = other.tilOgMed ?: LocalDate.MAX
 
-        // TODO tester
-        fun inneholder(periode: List<Periode>): Boolean =
-            fradragsperioder.any { p1 -> periode.all { p1.inneholder(it) } }
+                return this.fraOgMed <= otherEnd && other.fraOgMed <= thisEnd
+            }
+
+            fun overlapper(other: List<Eksternvedtak>): Boolean {
+                return other.any { it.overlapper(this) }
+            }
+
+            data class Regulering(
+                override val fraOgMed: LocalDate,
+                override val tilOgMed: LocalDate?,
+                override val fradrag: NonEmptyList<Fradragsperiode>,
+                override val beløp: Int,
+            ) : Eksternvedtak {
+                init {
+                    require(fradrag.all { it.fraOgMed == fraOgMed }) {
+                        "Forventet tilOgMed $fraOgMed, men var ${fradrag.map { fraOgMed }}"
+                    }
+                    require(fradrag.all { it.tilOgMed == tilOgMed }) {
+                        "Forventet tilOgMed $tilOgMed, men var ${fradrag.map { tilOgMed }}"
+                    }
+                    require(fradrag.all { it.beløp == beløp }) {
+                        "Forventet beløp $beløp, men var ${fradrag.map { beløp }}"
+                    }
+                    require(fradrag.all { it.vedtakstype == Fradragsperiode.Vedtakstype.Regulering }) {
+                        "Forventet at alle fradragene har vedtakstype ${Fradragsperiode.Vedtakstype.Regulering}, men var ${fradrag.map { it.vedtakstype }} "
+                    }
+                    require(fraOgMed.erFørsteDagIMåned()) {
+                        "Forventer at vedtakene løper over hele måneder, men var: fraOgMed: $fraOgMed, tilOgMed: $tilOgMed"
+                    }
+                    tilOgMed?.let {
+                        require(it.erSisteDagIMåned()) {
+                            "Forventer at vedtakene løper over hele måneder, men var: fraOgMed: $fraOgMed, tilOgMed: $tilOgMed"
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Vi ønsker kun 1 måned med endringsdato i de tilfellene Pesys og SU reguleres samtidig.
+             * Denne måneden skal være før reguleringsperioden.
+             */
+            data class Endring(
+                val måned: Måned,
+                override val fradrag: NonEmptyList<Fradragsperiode>,
+                override val beløp: Int,
+            ) : Eksternvedtak {
+                override val fraOgMed: LocalDate = måned.fraOgMed
+                override val tilOgMed: LocalDate = måned.tilOgMed
+
+                init {
+                    require(fradrag.all { it.fraOgMed == fraOgMed })
+                    require(fradrag.all { it.tilOgMed == tilOgMed })
+                    require(fradrag.all { it.beløp == beløp })
+                    require(fradrag.all { it.vedtakstype == Fradragsperiode.Vedtakstype.Endring })
+                }
+            }
+        }
 
         data class Fradragsperiode(
             val fraOgMed: LocalDate,
@@ -89,14 +146,6 @@ data class ReguleringssupplementFor(
                     // Bruker periode sin validering.
                     Periode.create(fraOgMed, it)
                 }
-            }
-
-            // TODO tester
-            fun periode(): Periode? = tilOgMed?.let { Periode.create(fraOgMed, it) }
-
-            // TODO tester
-            fun inneholder(other: Periode): Boolean {
-                return this.periode()?.inneholder(other) ?: (other.tilOgMed >= this.fraOgMed)
             }
 
             // TODO - lagres direkte i basen
@@ -138,29 +187,12 @@ data class ReguleringssupplementFor(
             )
         }
     }
+}
 
-    fun inneholderFradragForTypeOgMåned(
-        type: Fradragstype,
-        måned: Måned,
-    ): Boolean {
-        // TODO: Det kan hende dataen vi får bare er periodisert fra mai og ut året, det må vi i så fall ta høyde for.
-        return hentForType(type)?.inneholder(måned) ?: false
-    }
+fun List<ReguleringssupplementFor.PerType.Eksternvedtak>.overlapper(): Boolean {
+    return this.any { it.overlapper(this.minus(it)) }
+}
 
-    fun inneholderFradragForTypeOgPeriode(
-        type: Fradragstype,
-        periode: Periode,
-    ): Boolean {
-        // TODO: Det kan hende dataen vi får bare er periodisert fra mai og ut året, det må vi i så fall ta høyde for.
-        return hentForType(type)?.inneholder(periode) ?: false
-    }
-
-    fun inneholderFradragForTypeOgPerioder(
-        type: Fradragstype,
-        perioder: List<Periode>,
-    ): Boolean {
-        return hentForType(type)?.inneholder(perioder) ?: false
-    }
-
-    fun hentForType(type: Fradragstype): PerType? = perType.singleOrNull { it.type == type }
+fun List<ReguleringssupplementFor.PerType.Eksternvedtak>.overlapper(other: List<ReguleringssupplementFor.PerType.Eksternvedtak>): Boolean {
+    return this.any { it.overlapper(other) }
 }

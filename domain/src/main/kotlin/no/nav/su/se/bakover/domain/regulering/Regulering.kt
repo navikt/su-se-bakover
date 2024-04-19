@@ -282,14 +282,19 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
             setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
         ) to originaleFradragsgrunnlag
 
-    if (supplementForType.fradragsperioder.size > 1) {
-        // TODO jah: Vurder logging her
+    if (supplementForType.reguleringsvedtak.size > 1) {
         return Reguleringstype.MANUELL(
+            // TODO jah: Utvid til egen feil for dette med begrunnelse.
             setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
         ) to originaleFradragsgrunnlag
     }
     val nåværendeFradragsbeløp = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
-    val supplementBeløp = supplementForType.fradragsperioder.single().beløp.toBigDecimal()
+    val pesysBeløpApril = supplementForType.endringsvedtak.beløp
+    if (BigDecimal(pesysBeløpApril).subtract(nåværendeFradragsbeløp).abs() > BigDecimal.ONE) {
+        // TODO jah: Utvid til egen feil for dette med begrunnelse.
+        return Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)) to originaleFradragsgrunnlag
+    }
+    val supplementBeløp = supplementForType.reguleringsvedtak.single().beløp.toBigDecimal()
 
     val forventetBeløpBasertPåGverdi = (nåværendeFradragsbeløp * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
 
