@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import satser.domain.supplerendestønad.grunnbeløpsendringer
 import java.math.BigDecimal
 
 internal class ReguleringIT {

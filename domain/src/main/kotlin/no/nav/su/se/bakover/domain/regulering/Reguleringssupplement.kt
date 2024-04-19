@@ -60,7 +60,7 @@ data class ReguleringssupplementFor(
 
         init {
             require(!vedtak.overlapper()) {
-                "Vedtakene til Pesys kan ikke overlappe, men var ${vedtak.map { Pair(it.fraOgMed,it.tilOgMed) }}"
+                "Vedtakene til Pesys kan ikke overlappe, men var ${vedtak.map { Pair(it.fraOgMed, it.tilOgMed) }}"
             }
         }
 
@@ -80,6 +80,7 @@ data class ReguleringssupplementFor(
             fun overlapper(other: List<Eksternvedtak>): Boolean {
                 return other.any { it.overlapper(this) }
             }
+
             data class Regulering(
                 override val fraOgMed: LocalDate,
                 override val tilOgMed: LocalDate?,
@@ -88,13 +89,13 @@ data class ReguleringssupplementFor(
             ) : Eksternvedtak {
                 init {
                     require(fradrag.all { it.fraOgMed == fraOgMed }) {
-                        "Forventet tilOgMed $fraOgMed, men var ${fradrag.map { fraOgMed}}"
+                        "Forventet tilOgMed $fraOgMed, men var ${fradrag.map { fraOgMed }}"
                     }
                     require(fradrag.all { it.tilOgMed == tilOgMed }) {
-                        "Forventet tilOgMed $tilOgMed, men var ${fradrag.map { tilOgMed}}"
+                        "Forventet tilOgMed $tilOgMed, men var ${fradrag.map { tilOgMed }}"
                     }
                     require(fradrag.all { it.beløp == beløp }) {
-                        "Forventet beløp $beløp, men var ${fradrag.map { beløp}}"
+                        "Forventet beløp $beløp, men var ${fradrag.map { beløp }}"
                     }
                     require(fradrag.all { it.vedtakstype == Fradragsperiode.Vedtakstype.Regulering }) {
                         "Forventet at alle fradragene har vedtakstype ${Fradragsperiode.Vedtakstype.Regulering}, men var ${fradrag.map { it.vedtakstype }} "
@@ -131,23 +132,6 @@ data class ReguleringssupplementFor(
             }
         }
 
-        init {
-            // TODO jah: Vi antar at vi ikke kan få overlappende perioder innenfor et fnr+type
-            //  Hvis denne antagelsen ikke stemmer, må vi lage en tidslinje basert på et tidspunkt eller rekkefølge de har.
-            // TODO - må muligens ha en smartere periodehåndtering
-            // require(!fradragsperioder.map { it.periode }.harOverlappende())
-        }
-
-        // TODO - må muligens ha en smartere periodehåndtering
-        // val perioder: NonEmptyList<Periode> = fradragsperioder.map { it.periode }
-
-        // TODO tester
-        // fun inneholder(periode: Periode): Boolean = fradragsperioder.any { it.inneholder(periode) }
-
-        // TODO tester
-        // fun inneholder(periode: List<Periode>): Boolean =
-        //  fradragsperioder.any { p1 -> periode.all { p1.inneholder(it) } }
-
         data class Fradragsperiode(
             val fraOgMed: LocalDate,
             val tilOgMed: LocalDate?,
@@ -163,14 +147,6 @@ data class ReguleringssupplementFor(
                     Periode.create(fraOgMed, it)
                 }
             }
-
-//            // TODO tester
-//            fun periode(): Periode? = tilOgMed?.let { Periode.create(fraOgMed, it) }
-//
-//            // TODO tester
-//            fun inneholder(other: Periode): Boolean {
-//                return this.periode()?.inneholder(other) ?: (other.tilOgMed >= this.fraOgMed)
-//            }
 
             // TODO - lagres direkte i basen
             enum class Vedtakstype {
@@ -211,31 +187,6 @@ data class ReguleringssupplementFor(
             )
         }
     }
-
-//    fun inneholderFradragForTypeOgMåned(
-//        type: Fradragstype,
-//        måned: Måned,
-//    ): Boolean {
-//        // TODO: Det kan hende dataen vi får bare er periodisert fra mai og ut året, det må vi i så fall ta høyde for.
-//        return hentForType(type)?.inneholder(måned) ?: false
-//    }
-//
-//    fun inneholderFradragForTypeOgPeriode(
-//        type: Fradragstype,
-//        periode: Periode,
-//    ): Boolean {
-//        // TODO: Det kan hende dataen vi får bare er periodisert fra mai og ut året, det må vi i så fall ta høyde for.
-//        return hentForType(type)?.inneholder(periode) ?: false
-//    }
-//
-//    fun inneholderFradragForTypeOgPerioder(
-//        type: Fradragstype,
-//        perioder: List<Periode>,
-//    ): Boolean {
-//        return hentForType(type)?.inneholder(perioder) ?: false
-//    }
-
-    fun hentForType(type: Fradragstype): PerType? = perType.singleOrNull { it.type == type }
 }
 
 fun List<ReguleringssupplementFor.PerType.Eksternvedtak>.overlapper(): Boolean {
