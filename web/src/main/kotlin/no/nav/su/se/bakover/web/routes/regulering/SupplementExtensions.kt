@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
 fun parseCSVFromString(csv: String): Either<Resultat, Reguleringssupplement> = parseCSV(csv.split(Regex("\r?\n")))
 

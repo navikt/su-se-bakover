@@ -27,21 +27,39 @@ sealed interface Reguleringstype {
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
     if (this.harStans()) {
-        problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
+        problemer.add(
+            ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(
+                begrunnelse = "Saken er midlertidig stanset",
+            ),
+        )
     }
 
     this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
         if (it.grunnlag.harForventetInntektStørreEnn0()) {
-            problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
+            problemer.add(
+                ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(
+                    begrunnelse = "Forventet inntekt er større enn 0",
+                ),
+            )
         }
     }
 
     if (this.delerAvPeriodenErOpphør()) {
-        problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)
+        val opphørtePerioder = this.opphørtePerioderSlåttSammen()
+        problemer.add(
+            ÅrsakTilManuellRegulering.DelvisOpphør(
+                opphørsperioder = this.opphørtePerioderSlåttSammen(),
+                begrunnelse = "Saken inneholder opphørte perioder $opphørtePerioder. Disse er innenfor reguleringsperioden",
+            ),
+        )
     }
 
     if (!this.tidslinjeForVedtakErSammenhengende()) {
-        problemer.add(ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende)
+        problemer.add(
+            ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(
+                begrunnelse = "Reguleringsperioden inneholder hull. Vi støtter ikke hull i vedtakene p.t.",
+            ),
+        )
     }
 
     return if (problemer.isNotEmpty()) Reguleringstype.MANUELL(problemer) else Reguleringstype.AUTOMATISK

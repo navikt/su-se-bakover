@@ -5,12 +5,14 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
+import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
+import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -107,16 +109,18 @@ private fun List<PesysUtrekkFromCsv>.toEksternvedtak(
     vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype,
     fraOgMed: LocalDate,
     tilOgMed: LocalDate?,
-): ReguleringssupplementFor.PerType.Eksternvedtak {
+): Eksternvedtak {
     return when (vedtakstype) {
-        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering -> ReguleringssupplementFor.PerType.Eksternvedtak.Regulering(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering -> Eksternvedtak.Regulering(
+            periode = PeriodeMedOptionalTilOgMed(
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+            ),
             fradrag = this.toFradragsperiode().toNonEmptyList(),
             beløp = this.first().nettoYtelse.toInt(),
         )
 
-        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring -> ReguleringssupplementFor.PerType.Eksternvedtak.Endring(
+        ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring -> Eksternvedtak.Endring(
             måned = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed!!).tilMåned(),
             fradrag = this.toFradragsperiode().toNonEmptyList(),
             beløp = this.first().nettoYtelse.toInt(),

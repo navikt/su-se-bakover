@@ -8,23 +8,24 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
-import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
+import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import vilkår.common.domain.Vilkår
@@ -233,7 +234,7 @@ fun nyReguleringssupplementFor(
 
 fun nyReguleringssupplementInnholdPerType(
     type: Fradragstype = Fradragstype.Alderspensjon,
-    vedtak: List<ReguleringssupplementFor.PerType.Eksternvedtak> = listOf(
+    vedtak: List<Eksternvedtak> = listOf(
         nyEksternvedtakEndring(),
         nyEksternvedtakRegulering(),
     ),
@@ -247,10 +248,12 @@ fun nyEksternvedtakRegulering(
     tilOgMed: LocalDate? = null,
     beløp: Int = 1000,
     fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeRegulering(beløp = beløp, fraOgMed = fraOgMed, tilOgMed = tilOgMed)),
-): ReguleringssupplementFor.PerType.Eksternvedtak.Regulering {
-    return ReguleringssupplementFor.PerType.Eksternvedtak.Regulering(
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
+): Eksternvedtak.Regulering {
+    return Eksternvedtak.Regulering(
+        periode = PeriodeMedOptionalTilOgMed(
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        ),
         fradrag = fradrag.toNonEmptyList(),
         beløp = beløp,
     )
@@ -260,8 +263,8 @@ fun nyEksternvedtakEndring(
     måned: Måned = april(2021),
     beløp: Int = 1000,
     fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeEndring(beløp = beløp, fraOgMed = måned.fraOgMed, tilOgMed = måned.tilOgMed)),
-): ReguleringssupplementFor.PerType.Eksternvedtak.Endring {
-    return ReguleringssupplementFor.PerType.Eksternvedtak.Endring(
+): Eksternvedtak.Endring {
+    return Eksternvedtak.Endring(
         måned = måned,
         fradrag = fradrag.toNonEmptyList(),
         beløp = beløp,

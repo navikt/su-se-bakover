@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.epsTilPeriode

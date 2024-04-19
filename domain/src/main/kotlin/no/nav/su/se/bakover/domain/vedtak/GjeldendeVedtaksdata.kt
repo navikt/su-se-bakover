@@ -7,6 +7,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -103,6 +104,10 @@ data class GjeldendeVedtaksdata(
     fun delerAvPeriodenErOpphør(): Boolean {
         return !helePeriodenErOpphør() && vedtakPåTidslinje.any { it.erOpphør() }
     }
+
+    // TODO test
+    fun opphørtePerioderSlåttSammen(): SlåttSammenIkkeOverlappendePerioder =
+        vedtakPåTidslinje.filter { it.erOpphør() }.map { it.periode }.minsteAntallSammenhengendePerioder()
 
     /**
      * Bruk heller [gjeldendeVedtakForMåned]
