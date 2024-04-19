@@ -26,6 +26,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import java.util.UUID
 
@@ -150,16 +151,74 @@ internal class IverksettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kunne ikke utbetale`() {
+    fun `kunne ikke utbetale - klargjøring`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-                KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeKlargjøreUtbetaling(
+                    KunneIkkeKlaregjøreUtbetaling.KunneIkkeLageUtbetalingslinjer(
+                        RuntimeException("en feil"),
+                    ),
+                ),
             ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Kunne ikke utføre utbetaling",
-                    "code":"kunne_ikke_utbetale"
+                    "message":"Feil når vi prøvde å lage utbetalingslinjer",
+                    "code":"klarte_ikke_å_lage_utbetalingslinjer"
+                }
+            """.trimIndent(),
+        )
+    }
+
+    @Test
+    fun `kunne ikke utbetale - lagring`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeKlargjøreUtbetaling(
+                    KunneIkkeKlaregjøreUtbetaling.KunneIkkeLagre(RuntimeException("en feil")),
+                ),
+            ),
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Kunne ikke lagre utbetaling",
+                    "code":"kunne_ikke_lagre_utbetaling"
+                }
+            """.trimIndent(),
+        )
+    }
+
+    @Test
+    fun `kunne ikke utbetale - oversendelse`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(
+                    UtbetalingFeilet.Protokollfeil,
+                ),
+            ),
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Kunne ikke sende til oppdrag",
+                    "code":"kunne_ikke_sende_til_oppdrag"
+                }
+            """.trimIndent(),
+        )
+    }
+
+    @Test
+    fun `kunne ikke utbetale - ukjent`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
+                    RuntimeException("en feil"),
+                ),
+            ),
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Ukjent feil når vi prøvde utbetale. Kan være en av sideeffektene.",
+                    "code":"utbetaling_ukjent_feil"
                 }
             """.trimIndent(),
         )

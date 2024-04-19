@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import org.slf4j.LoggerFactory
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -35,7 +36,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
 
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
-        klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         lagreVedtak: (vedtak: Opphørsvedtak, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
@@ -55,7 +56,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                 ).getOrElse {
                     throw IverksettTransactionException(
                         "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
-                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(it),
+                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeKlargjøreUtbetaling(it),
                     )
                 }
                 lagreVedtak(vedtak, tx)
@@ -67,12 +68,12 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                     .getOrElse { feil ->
                         throw IverksettTransactionException(
                             "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(feil),
+                            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                statistikkObservers().notify(statistikkhendelser)
-
                 vedtak.behandling
+            }.also {
+                statistikkObservers().notify(statistikkhendelser)
             }
         }.mapLeft {
             when (it) {

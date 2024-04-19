@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import org.slf4j.LoggerFactory
 import vedtak.domain.Vedtak
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -37,7 +38,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
      * Merk at for avslag sender vi ingenting til oppdrag, slik at vi ikke kan basere oss på asynk-jobben når vi mottar kvittering.
      */
     override fun ferdigstillIverksettelseITransaksjon(
-        klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         sessionFactory: SessionFactory,
         lagreSøknadsbehandling: (IverksattSøknadsbehandling.Avslag, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,

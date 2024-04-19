@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import vedtak.domain.Vedtak
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -21,7 +22,7 @@ interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
     val søknadsbehandling: T
 
     fun ferdigstillIverksettelseITransaksjon(
-        klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         sessionFactory: SessionFactory,
         lagreSøknadsbehandling: (T, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,

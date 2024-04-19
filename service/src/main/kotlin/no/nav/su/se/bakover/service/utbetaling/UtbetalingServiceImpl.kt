@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringClient
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -67,15 +69,14 @@ class UtbetalingServiceImpl(
         )
     }
 
-    /**
-     * TODO jah: Klargjøringa kan ikke feile. Trenger ikke ha Left her.
-     */
     override fun klargjørUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,
-    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+    ): Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return UtbetalingKlargjortForOversendelse(
-            utbetaling = utbetaling.forberedOversendelse(transactionContext),
+            utbetaling = utbetaling.forberedOversendelse(transactionContext).getOrElse {
+                return it.left()
+            },
             callback = { utbetalingsrequest ->
                 sendUtbetalingTilOS(utbetalingsrequest)
             },
@@ -100,12 +101,20 @@ class UtbetalingServiceImpl(
 
     private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(
         transactionContext: TransactionContext,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
-        return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
+    ): Either<KunneIkkeKlaregjøreUtbetaling, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        val utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering = Either.catch {
+            toOversendtUtbetaling(utbetalingPublisher.generateRequest(this))
+        }.getOrElse {
+            return KunneIkkeKlaregjøreUtbetaling.KunneIkkeLageUtbetalingslinjer(it).left()
+        }
+        return Either.catch {
             utbetalingRepo.opprettUtbetaling(
-                utbetaling = it,
+                utbetaling = utbetaling,
                 transactionContext = transactionContext,
             )
+            utbetaling
+        }.mapLeft {
+            KunneIkkeKlaregjøreUtbetaling.KunneIkkeLagre(it)
         }
     }
 }

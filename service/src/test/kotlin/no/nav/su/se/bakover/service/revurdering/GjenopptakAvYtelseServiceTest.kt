@@ -60,6 +60,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -204,7 +205,12 @@ internal class GjenopptakAvYtelseServiceTest {
                         clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any())
-                on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+                on {
+                    klargjørUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn KunneIkkeKlaregjøreUtbetaling.KunneIkkeLagre(RuntimeException("en feil")).left()
             },
             clock = clock,
         ).let { serviceAndMocks ->

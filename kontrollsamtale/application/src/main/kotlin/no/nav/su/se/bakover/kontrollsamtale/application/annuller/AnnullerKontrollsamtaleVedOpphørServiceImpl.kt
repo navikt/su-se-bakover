@@ -39,6 +39,7 @@ class AnnullerKontrollsamtaleVedOpphørServiceImpl(
                 }.mapLeft {
                     // hentNestePlanlagteKontrollsamtale(..) returnerer kun Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     // som er en gyldig overgang. Så lenge det ikke endrer seg (tester?) er det trygt å kaste her.
+                    // Iverksett revurdering er avhengig av at denne kaster for at den skal kunne rulle tilbake transaksjonen.
                     throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. Underliggende feil: $it")
                 }
             },

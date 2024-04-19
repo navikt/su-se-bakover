@@ -8,10 +8,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -22,12 +19,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.tilResultat
+import no.nav.su.se.bakover.web.routes.utbetaling.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.iverksettRevurderingRoute(
@@ -57,25 +53,6 @@ internal fun Route.iverksettRevurderingRoute(
     }
 }
 
-private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
-    is KunneIkkeIverksetteRevurdering.Saksfeil -> {
-        when (this) {
-            is KunneIkkeIverksetteRevurdering.Saksfeil.FantIkkeRevurdering -> fantIkkeRevurdering
-            is KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand -> ugyldigTilstand(fra, til)
-            is KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil -> underliggende.tilResultat()
-            is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
-            is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
-            is KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument -> this.feil.tilResultat()
-        }
-    }
-    is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> {
-        when (val f = this.feil) {
-            is KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale -> f.utbetalingFeilet.tilResultat()
-            is KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil -> lagringFeilet
-        }
-    }
-}
-
-private fun RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
+internal fun RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
 }

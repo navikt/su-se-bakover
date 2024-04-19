@@ -476,7 +476,7 @@ internal class IverksettRevurderingTest {
         )
 
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(
                 UtbetalingFeilet.Protokollfeil,
             ),
         ).left()
@@ -584,7 +584,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(
                 UtbetalingFeilet.Protokollfeil,
             ),
         ).left()

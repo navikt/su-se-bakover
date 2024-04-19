@@ -59,6 +59,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -188,7 +189,9 @@ internal class StansAvYtelseServiceTest {
                         clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any())
-                on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+                on { klargjørUtbetaling(any(), any()) } doReturn KunneIkkeKlaregjøreUtbetaling.KunneIkkeLagre(
+                    RuntimeException("Lagring feilet"),
+                ).left()
             },
             clock = clock,
         ).let { serviceAndMocks ->

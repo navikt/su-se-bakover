@@ -229,6 +229,7 @@ import økonomi.domain.Fagområde
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -285,7 +286,7 @@ open class AccessCheckProxy(
                 override fun klargjørUtbetaling(
                     utbetaling: Utbetaling.SimulertUtbetaling,
                     transactionContext: TransactionContext,
-                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                ): Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 

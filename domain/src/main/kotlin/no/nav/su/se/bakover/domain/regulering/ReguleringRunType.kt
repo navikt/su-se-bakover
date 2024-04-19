@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -19,7 +20,7 @@ interface ReguleringRunType {
     val sessionFactory: SessionFactory
     val lagreRegulering: (Regulering, TransactionContext) -> Unit
     val lagreVedtak: (Vedtak, TransactionContext) -> Unit
-    val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
+    val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
     val notifyObservers: (VedtakInnvilgetRegulering) -> Unit
 }
 
@@ -29,7 +30,7 @@ sealed interface LiveRun : ReguleringRunType {
         override val sessionFactory: SessionFactory,
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
-        override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun {
         fun kjørSideffekter(regulering: OpprettetRegulering) {
@@ -43,7 +44,7 @@ sealed interface LiveRun : ReguleringRunType {
         override val sessionFactory: SessionFactory,
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
-        override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun {
         fun kjørSideffekter(
@@ -58,7 +59,7 @@ sealed interface LiveRun : ReguleringRunType {
                 ).getOrElse {
                     throw IverksettTransactionException(
                         "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
-                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(it),
+                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeKlargjøreUtbetaling(it),
                     )
                 }
 

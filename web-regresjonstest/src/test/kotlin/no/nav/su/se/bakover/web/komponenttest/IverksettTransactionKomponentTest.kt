@@ -163,7 +163,7 @@ internal class IverksettTransactionKomponentTest {
                         client = this.client,
                         appComponents = appComponents,
                     ).let {
-                        JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
+                        JSONObject(it).getString("code") shouldBe "kunne_ikke_sende_til_oppdrag"
                     }
                 }
 
@@ -246,7 +246,7 @@ internal class IverksettTransactionKomponentTest {
                         client = this.client,
                         appComponents = appComponents,
                     ).let {
-                        JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
+                        JSONObject(it).getString("code") shouldBe "kunne_ikke_sende_til_oppdrag"
                     }
                 }
 
@@ -395,7 +395,7 @@ internal class IverksettTransactionKomponentTest {
                     client = this.client,
                     appComponents = appComponents,
                 ).let {
-                    JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
+                    JSONObject(it).getString("code") shouldBe "kunne_ikke_sende_til_oppdrag"
                 }
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->

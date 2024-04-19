@@ -129,7 +129,7 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain "kunne_ikke_utbetale"
+                bodyAsText() shouldContain "Kunne ikke sende til oppdrag"
             }
         }
     }

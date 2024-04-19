@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -39,7 +40,7 @@ interface UtbetalingService {
     fun klargjørUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,
-    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
+    ): Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
