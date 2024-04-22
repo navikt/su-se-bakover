@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.application
+package no.nav.su.se.bakover.bootstrap
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext

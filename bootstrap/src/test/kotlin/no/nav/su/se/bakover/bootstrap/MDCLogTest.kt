@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.application
+package no.nav.su.se.bakover.bootstrap
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -11,7 +11,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.application.LoggingTest.Companion.konfigurerLogback
+import no.nav.su.se.bakover.bootstrap.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.application.runApplicationWithMocks
 import no.nav.su.se.bakover.test.jwt.asBearerToken
