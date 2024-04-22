@@ -8,21 +8,36 @@ wiremock = "3.5.3"
 jupiter = "5.10.2"
 kotlin = "1.9.23"
 ktor = "2.3.10"
+arrow = "1.2.4"
+jackson = "2.17.0"
+confluent = "7.6.0"
+micrometer = "1.12.5"
+flyway = "10.11.1"
+kotest = "5.8.1"
 
 [libraries]
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 jul-to-slf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
 jcl-over-slf4j = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
 log4j-over-slf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
+
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version = "1.5.6" }
+logstash-logback-encoder = { group = "net.logstash.logback", name = "logstash-logback-encoder", version = "7.4" }
+logback-syslog4j = { group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0" }
+
 kittinunf-fuel = { group = "com.github.kittinunf.fuel", name = "fuel", version.ref = "kittinunf" }
 kittinunf-fuel-gson = { group = "com.github.kittinunf.fuel", name = "fuel-gson", version.ref = "kittinunf" }
+
 wiremock = { group = "org.wiremock", name = "wiremock", version.ref = "wiremock" }
+
 jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jupiter" }
 jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "jupiter" }
 jupiter-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "jupiter" }
+
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-script-runtime = { group = "org.jetbrains.kotlin", name = "kotlin-script-runtime", version.ref = "kotlin" }
 kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.8.0" }
 
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
 ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
@@ -35,6 +50,63 @@ ktor-server-forwarded-header = { group = "io.ktor", name = "ktor-server-forwarde
 ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
 ktor-serialization-jackson = { group = "io.ktor", name = "ktor-serialization-jackson", version.ref = "ktor" }
 ktor-client-java = { group = "io.ktor", name = "ktor-client-java", version.ref = "ktor" }
+
+arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
+arrow-fx-coroutines = { group = "io.arrow-kt", name = "arrow-fx-coroutines", version.ref = "arrow" }
+arrow-fx-stm = { group = "io.arrow-kt", name = "arrow-fx-stm", version.ref = "arrow" }
+arrow-stack = { group = "io.arrow-kt", name = "arrow-stack", version.ref = "arrow" }
+
+jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
+jackson-datatype-jdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson" }
+jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-xml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-xml", version.ref = "jackson" }
+
+micrometer-core = { group = "io.micrometer", name = "micrometer-core", version.ref = "micrometer"}
+micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus", version.ref = "micrometer"}
+
+kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest"}
+kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotest"}
+kotest-extensions = { group = "io.kotest", name = "kotest-extensions", version.ref = "kotest"}
+kotest-assertions-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version = "1.4.0"}
+
+kafka-clients = { group = "org.apache.kafka", name = "kafka-clients", version = "3.7.0"}
+kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent"}
+
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway"}
+flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway"}
+
+dotenv-kotlin = { group = "io.github.cdimascio", name = "dotenv-kotlin", version = "6.4.1" }
+
+json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version = "1.4.0" }
+
+com-ibm-mq-allclient = { group = "com.ibm.mq", name = "com.ibm.mq.allclient", version = "9.3.5.0"}
+
+avro = { group = "org.apache.avro", name = "avro", version = "1.11.3"}
+
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version = "3.1.8"}
+
+kotliquery = { group = "com.github.seratch", name = "kotliquery", version = "1.9.0"}
+
+hikaricp = { group = "com.zaxxer", name = "HikariCP", version = "5.1.0"}
+
+vault-jdbc = { group = "com.github.navikt", name = "vault-jdbc", version = "1.3.10"}
+
+postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.3"}
+
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.26.1"}
+
+bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version = "1.78.1"}
+
+jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.1"}
+
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version = "5.3.1"}
+
+embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version = "2.0.7"}
+embedded-postgres-binaries-bom = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-bom", version = "15.5.1"}
+embedded-postgres-binaries-darwin-arm64v8 = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-darwin-arm64v8"}
+
+xmlunit-matchers = { group = "org.xmlunit", name = "xmlunit-matchers", version = "2.9.1"}
+
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

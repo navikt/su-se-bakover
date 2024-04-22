@@ -18,40 +18,37 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val kotestVersion = "5.8.1"
-    val jacksonVersion = "2.17.0"
-    val confluentVersion = "7.6.1"
     dependencies {
         implementation(rootProject.libs.kotlin.reflect)
         implementation(rootProject.libs.kotlin.script.runtime)
         implementation(rootProject.libs.kotlin.compiler.embeddable)
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-        implementation(platform("io.arrow-kt:arrow-stack:1.2.4"))
-        implementation("io.arrow-kt:arrow-core")
-        implementation("io.arrow-kt:arrow-fx-coroutines")
-        implementation("io.arrow-kt:arrow-fx-stm")
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+        implementation(rootProject.libs.kotlinx.coroutines.core)
+        implementation(platform(rootProject.libs.arrow.stack))
+        implementation(rootProject.libs.arrow.core)
+        implementation(rootProject.libs.arrow.fx.coroutines)
+        implementation(rootProject.libs.arrow.fx.stm)
+        implementation(rootProject.libs.jackson.datatype.jsr310)
+        implementation(rootProject.libs.jackson.datatype.jdk8)
+        implementation(rootProject.libs.jackson.module.kotlin)
+        implementation(rootProject.libs.jackson.dataformat.xml)
         implementation(rootProject.libs.slf4j.api)
         implementation(rootProject.libs.jul.to.slf4j)
         implementation(rootProject.libs.jcl.over.slf4j)
         implementation(rootProject.libs.log4j.over.slf4j)
-        implementation("ch.qos.logback:logback-classic:1.5.6")
-        implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-        implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
-        implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
-        implementation("com.networknt:json-schema-validator:1.4.0")
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.5.0")
-        implementation("org.apache.kafka:kafka-clients:3.7.0") {
+        implementation(rootProject.libs.logback.classic)
+        implementation(rootProject.libs.logstash.logback.encoder)
+        implementation(rootProject.libs.logback.syslog4j)
+        implementation(rootProject.libs.dotenv.kotlin)
+        implementation(rootProject.libs.json.schema.validator)
+        implementation(rootProject.libs.com.ibm.mq.allclient)
+        implementation(rootProject.libs.kafka.clients) {
             exclude("org.apache.kafka", "kafka-raft")
             exclude("org.apache.kafka", "kafka-server-common")
             exclude("org.apache.kafka", "kafka-storage")
             exclude("org.apache.kafka", "kafka-storage-api")
             exclude("org.apache.kafka", "kafka-streams")
         }
-        implementation("io.confluent:kafka-avro-serializer:$confluentVersion") {
+        implementation(rootProject.libs.kafka.avro.serializer) {
             exclude("org.apache.kafka", "kafka-clients")
             exclude("io.confluent", "common-utils")
             exclude("io.confluent", "logredactor")
@@ -63,27 +60,27 @@ subprojects {
             exclude("com.google.code.findbugs")
             exclude("io.swagger.core.v3")
         }
-        implementation("org.apache.avro:avro:1.11.3") {
+        implementation(rootProject.libs.avro) {
             exclude("org.apache.commons", "commons-compress")
         }
-        implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-        implementation("io.micrometer:micrometer-core:1.12.5")
-        implementation("io.micrometer:micrometer-registry-prometheus:1.12.5")
-        implementation("com.github.seratch:kotliquery:1.9.0")
-        implementation("org.flywaydb:flyway-core:10.11.1")
-        implementation("org.flywaydb:flyway-database-postgresql:10.11.1")
-        implementation("com.zaxxer:HikariCP:5.1.0")
-        implementation("com.github.navikt:vault-jdbc:1.3.10")
-        implementation("org.postgresql:postgresql:42.7.3") {
+        implementation(rootProject.libs.caffeine)
+        implementation(rootProject.libs.micrometer.core)
+        implementation(rootProject.libs.micrometer.registry.prometheus)
+        implementation(rootProject.libs.kotliquery)
+        implementation(rootProject.libs.flyway.core)
+        implementation(rootProject.libs.flyway.database.postgresql)
+        implementation(rootProject.libs.hikaricp)
+        implementation(rootProject.libs.vault.jdbc)
+        implementation(rootProject.libs.postgresql) {
             exclude("org.apache.commons", "commons-compress")
         }
         // Brukes av avro?
-        implementation("org.apache.commons:commons-compress:1.26.1")
+        implementation(rootProject.libs.commons.compress)
 
 
         implementation(rootProject.libs.ktor.server.netty)
         implementation(rootProject.libs.ktor.server.auth.jwt) {
-            exclude(group = "junit")
+            exclude("junit")
         }
         implementation(rootProject.libs.ktor.server.metrics.micrometer)
         implementation(rootProject.libs.ktor.serialization.jackson)
@@ -94,29 +91,31 @@ subprojects {
         implementation(rootProject.libs.ktor.server.status.pages)
 
         // We exclude jdk15on because of security issues. We use jdk18on instead.
-        implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+        implementation(rootProject.libs.bcprov.jdk18on)
 
         testRuntimeOnly(rootProject.libs.jupiter.engine)
 
         testImplementation(rootProject.libs.jupiter.api)
         testImplementation(rootProject.libs.jupiter.params)
-        testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-        testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
-        testImplementation("io.kotest:kotest-extensions:$kotestVersion")
-        testImplementation("org.skyscreamer:jsonassert:1.5.1")
-        testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
+        testImplementation(rootProject.libs.kotest.assertions.core)
+        testImplementation(rootProject.libs.kotest.assertions.json)
+        testImplementation(rootProject.libs.kotest.extensions)
+        testImplementation(rootProject.libs.kotest.assertions.arrow)
+
+
+        testImplementation(rootProject.libs.jsonassert)
+        testImplementation(rootProject.libs.mockito.kotlin)
         testImplementation(
-            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:15.5.1"),
+            enforcedPlatform(rootProject.libs.embedded.postgres.binaries.bom),
         )
-        testImplementation("io.zonky.test:embedded-postgres:2.0.7") {
+        testImplementation(rootProject.libs.embedded.postgres) {
             exclude("org.apache.commons", "commons-compress")
         }
         // Legger til manglende binaries for nye Mac's med M1 cpuer. (denne arver versjonen til embedded-postgres-binaries-bom)
-        testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8") {
+        testImplementation(rootProject.libs.embedded.postgres.binaries.darwin.arm64v8) {
             exclude("org.apache.commons", "commons-compress")
         }
-        testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
+        testImplementation(rootProject.libs.xmlunit.matchers)
         testImplementation(rootProject.libs.ktor.server.test.host) {
             exclude(group = "junit")
             exclude(group = "org.eclipse.jetty") // conflicts with WireMock
