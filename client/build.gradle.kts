@@ -22,18 +22,18 @@ dependencies {
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)
 
-    implementation("org.json:json:20240303")
+    implementation(rootProject.libs.org.json)
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    implementation(rootProject.libs.nimbus.jose.jwt)
     // We exclude jdk15on because of security issues. We use jdk18on instead.
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    implementation(rootProject.libs.bcprov.jdk18on)
 
     testImplementation(project(":test-common"))
     implementation(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
-    implementation("org.jetbrains.kotlinx:atomicfu:0.24.0")
-    testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
+    implementation(rootProject.libs.kotlinx.atomicfu)
+    testImplementation(rootProject.libs.xmlunit.matchers)
 }
 
 configurations {

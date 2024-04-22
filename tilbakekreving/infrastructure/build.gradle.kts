@@ -16,7 +16,7 @@ dependencies {
     testImplementation(project(":test-common"))
     testImplementation(project(":satser"))
     // We exclude jdk15on because of security issues. We use jdk18on instead.
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    implementation(rootProject.libs.bcprov.jdk18on)
 }
 
 tasks.named<Jar>("jar") {
