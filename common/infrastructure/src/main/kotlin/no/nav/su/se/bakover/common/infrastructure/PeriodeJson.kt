@@ -12,6 +12,8 @@ data class PeriodeMedOptionalTilOgMedJson(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate?,
 ) {
+    fun toDomain(): PeriodeMedOptionalTilOgMed = PeriodeMedOptionalTilOgMed(fraOgMed, tilOgMed)
+
     companion object {
         fun PeriodeMedOptionalTilOgMed.toJson(): PeriodeMedOptionalTilOgMedJson =
             PeriodeMedOptionalTilOgMedJson(fraOgMed, tilOgMed)

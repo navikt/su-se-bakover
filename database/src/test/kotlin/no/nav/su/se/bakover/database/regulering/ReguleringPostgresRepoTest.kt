@@ -30,6 +30,9 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 
+/**
+ * TODO - Trenger et test case for manuell regulering
+ */
 internal class ReguleringPostgresRepoTest {
     @Test
     fun `hent reguleringer som ikke er iverksatt uten merknad`() {

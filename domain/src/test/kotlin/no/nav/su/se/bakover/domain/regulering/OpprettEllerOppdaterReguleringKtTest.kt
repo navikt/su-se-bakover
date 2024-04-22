@@ -72,7 +72,15 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         ).getOrFail()
 
         actual.let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragTilhører = FradragTilhører.BRUKER,
+                        begrunnelse = "Fradraget til BRUKER: Alderspensjon påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                ),
+            )
             it.grunnlagsdata.fradragsgrunnlag.single().månedsbeløp shouldBe 995
         }
     }
@@ -126,7 +134,16 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
+                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragTilhører = FradragTilhører.BRUKER,
+                        begrunnelse = "Fradraget til BRUKER: Alderspensjon er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
+
+                    ),
+                ),
+            )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 995.0
@@ -170,7 +187,15 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
+                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragTilhører = FradragTilhører.BRUKER,
+                        begrunnelse = "Fradraget er utenlandsinntekt og går til manuell regulering",
+                    ),
+                ),
+            )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
         }
@@ -225,7 +250,15 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                        fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                        fradragTilhører = FradragTilhører.BRUKER,
+                        begrunnelse = "Vi fant et supplement for BRUKER, men ikke for Arbeidsavklaringspenger.",
+                    ),
+                ),
+            )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1050
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 1000
@@ -266,7 +299,17 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
-            it.reguleringstype shouldBe Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))
+            it.reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
+                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragTilhører = FradragTilhører.BRUKER,
+                        begrunnelse = "Vi forventet at beløpet skulle være 1064.08 etter regulering, men det var 1200. Vi aksepterer en differanse på 10, men den var 135.92",
+                        eksterntBeløpEtterRegulering = BigDecimal(1200),
+                        forventetBeløpEtterRegulering = BigDecimal("1064.08"),
+                    ),
+                ),
+            )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
         }

@@ -209,10 +209,7 @@ internal class ReguleringPostgresRepo(
                                 is Reguleringstype.AUTOMATISK -> ReguleringstypeDb.AUTOMATISK.name
                                 is Reguleringstype.MANUELL -> ReguleringstypeDb.MANUELL.name
                             },
-                            "arsakForManuell" to when (val type = regulering.reguleringstype) {
-                                is Reguleringstype.AUTOMATISK -> null
-                                is Reguleringstype.MANUELL -> type.problemer.toList().serialize()
-                            },
+                            "arsakForManuell" to regulering.reguleringstype.årsakerTilManuellReguleringJson(),
                             "reguleringStatus" to when (regulering) {
                                 is IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is OpprettetRegulering -> ReguleringStatus.OPPRETTET

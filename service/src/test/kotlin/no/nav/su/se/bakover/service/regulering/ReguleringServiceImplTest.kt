@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.equality.FieldsEqualityCheckConfig
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
@@ -22,7 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
@@ -101,26 +102,28 @@ internal class ReguleringServiceImplTest {
             clock = clock,
         )
 
-        reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).size shouldBe 1
+        reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).let {
+            it.size shouldBe 1
+            it.first().shouldBeRight()
+        }
     }
 
     @Nested
     inner class UtledRegulertypeTest {
+        private val fradraget = Fradragsgrunnlag.create(
+            opprettet = fixedTidspunkt,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.OffentligPensjon,
+                månedsbeløp = 8000.0,
+                periode = år(2021),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
         private val reguleringService = lagReguleringServiceImpl(
             vedtakSøknadsbehandlingIverksattInnvilget(
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
-                    fradragsgrunnlag = listOf(
-                        Fradragsgrunnlag.create(
-                            opprettet = fixedTidspunkt,
-                            fradrag = FradragFactory.nyFradragsperiode(
-                                fradragstype = Fradragstype.OffentligPensjon,
-                                månedsbeløp = 8000.0,
-                                periode = år(2021),
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER,
-                            ),
-                        ),
-                    ),
+                    fradragsgrunnlag = listOf(fradraget),
                 ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             ).first,
         )
@@ -130,23 +133,21 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
-            regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty())
+                .first().getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
         }
 
         @Test
-        fun `OffentligPensjon gir manuell`() {
+        fun `fradraget OffentligPensjon gir manuell pga den må justeres ved g-endring & ikke har noe supplement`() {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt),
-            )
-        }
-
-        @Test
-        fun `NAVytelserTilLivsopphold gir manuell`() {
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
-                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt),
+                setOf(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragstype = fradraget.fradragstype,
+                        fradragTilhører = fradraget.tilhører,
+                        begrunnelse = "Fradraget til BRUKER: OffentligPensjon påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                ),
             )
         }
 
@@ -157,7 +158,7 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
-                setOf(ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset),
+                setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Saken er midlertidig stanset")),
             )
         }
 
@@ -194,7 +195,9 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+            val regulering =
+                reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first()
+                    .getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.august(2021))
         }
@@ -230,7 +233,9 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+            val regulering =
+                reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first()
+                    .getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021))
         }
@@ -344,18 +349,16 @@ internal class ReguleringServiceImplTest {
         }
 
         @Test
-        fun `en simulering med feilutbetalinger skal føre til manuell`() {
-            val revurdertSak = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(år(2021)),
-            ).first
+        fun `en simulering med feilutbetalinger skal gå gjennom automatisk`() {
+            val revurdertSak =
+                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak, lagFeilutbetaling = true)
 
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()) shouldBe listOf(
-                KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                    KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere,
-                ).left(),
-            )
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).let {
+                it.size shouldBe 1
+                it.first().getOrFail().shouldBeInstanceOf<IverksattRegulering>()
+            }
         }
     }
 
@@ -379,7 +382,9 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+            val regulering =
+                reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first()
+                    .getOrFail()
             regulering.periode.fraOgMed shouldBe 1.mai(2021)
         }
 
@@ -393,7 +398,9 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+            val regulering =
+                reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first()
+                    .getOrFail()
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
 
@@ -420,26 +427,27 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail().let {
-                it.shouldBeInstanceOf<OpprettetRegulering>()
-                shouldBeEqualToComparingFields(
-                    regulering,
-                    FieldsEqualityCheckConfig(
-                        propertiesToExclude = listOf(
-                            OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                            OpprettetRegulering::opprettet,
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+                .let {
+                    it.shouldBeInstanceOf<OpprettetRegulering>()
+                    shouldBeEqualToComparingFields(
+                        regulering,
+                        FieldsEqualityCheckConfig(
+                            propertiesToExclude = listOf(
+                                OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                                OpprettetRegulering::opprettet,
+                            ),
                         ),
-                    ),
-                )
+                    )
 
-                it.periode.fraOgMed shouldBe 1.mai(2021)
-                it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
+                    it.periode.fraOgMed shouldBe 1.mai(2021)
+                    it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
 
-                it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe 1.mai(2021)
-                it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
+                    it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe 1.mai(2021)
+                    it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
 
-                it.opprettet shouldBe regulering.opprettet
-            }
+                    it.opprettet shouldBe regulering.opprettet
+                }
         }
 
         @Test
@@ -465,27 +473,28 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail().let {
-                it.shouldBeInstanceOf<OpprettetRegulering>()
-                it.shouldBeEqualToComparingFields(
-                    regulering,
-                    FieldsEqualityCheckConfig(
-                        propertiesToExclude = listOf(
-                            OpprettetRegulering::periode,
-                            OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                            OpprettetRegulering::opprettet,
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty()).first().getOrFail()
+                .let {
+                    it.shouldBeInstanceOf<OpprettetRegulering>()
+                    it.shouldBeEqualToComparingFields(
+                        regulering,
+                        FieldsEqualityCheckConfig(
+                            propertiesToExclude = listOf(
+                                OpprettetRegulering::periode,
+                                OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                                OpprettetRegulering::opprettet,
+                            ),
                         ),
-                    ),
-                )
+                    )
 
-                it.periode.fraOgMed shouldBe regulering.periode.fraOgMed
-                it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
+                    it.periode.fraOgMed shouldBe regulering.periode.fraOgMed
+                    it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
 
-                it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe regulering.periode.fraOgMed
-                it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
+                    it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe regulering.periode.fraOgMed
+                    it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
 
-                it.opprettet shouldBe regulering.opprettet
-            }
+                    it.opprettet shouldBe regulering.opprettet
+                }
         }
     }
 
@@ -542,9 +551,7 @@ internal class ReguleringServiceImplTest {
                 // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
                 utbetalinger = Utbetalinger(
                     oversendtUtbetalingMedKvittering(
-                        beregning = beregning(
-                            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
-                        ),
+                        beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                         clock = clock,
                     ),
                 ),
@@ -556,9 +563,7 @@ internal class ReguleringServiceImplTest {
                                 behandling = vedtak.behandling.let {
                                     it.copy(
                                         grunnlagsdataOgVilkårsvurderinger = it.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-                                            fradragsgrunnlag = listOf(
-                                                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0),
-                                            ),
+                                            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0)),
                                         ),
                                     )
                                 },
@@ -572,8 +577,6 @@ internal class ReguleringServiceImplTest {
         } else {
             sak
         }
-
-        print(lagFeilutbetaling)
 
         val nyUtbetaling = UtbetalingKlargjortForOversendelse(
             utbetaling = oversendtUtbetalingUtenKvittering(
