@@ -53,7 +53,7 @@ internal data class ReguleringJson(
     }
 }
 
-interface ÅrsakTilManuellReguleringJson {
+internal sealed interface ÅrsakTilManuellReguleringJson {
 
     data object FradragMåHåndteresManuelt : ÅrsakTilManuellReguleringJson
     data object UtbetalingFeilet : ÅrsakTilManuellReguleringJson
@@ -127,9 +127,9 @@ interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson
 
     companion object {
-        fun Set<ÅrsakTilManuellRegulering>.toJson(): List<ÅrsakTilManuellReguleringJson> = this.map { it.toJson() }
+        internal fun Set<ÅrsakTilManuellRegulering>.toJson(): List<ÅrsakTilManuellReguleringJson> = this.map { it.toJson() }
 
-        fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
+        internal fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
             is ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet -> AutomatiskSendingTilUtbetalingFeilet(
                 begrunnelse = this.begrunnelse,
             )

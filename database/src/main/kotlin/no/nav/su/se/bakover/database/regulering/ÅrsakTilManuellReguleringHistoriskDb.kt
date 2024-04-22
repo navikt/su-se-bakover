@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.database.regulering
 import arrow.core.getOrElse
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -79,7 +79,6 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
     ),
 )
 internal sealed interface ÅrsakTilManuellReguleringJson {
-    // TODO test alle disse
     fun toDomain(): ÅrsakTilManuellRegulering
 
     data object FradragMåHåndteresManuelt : ÅrsakTilManuellReguleringJson {
@@ -288,29 +287,18 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
 
     companion object {
         fun toDomain(json: String): Set<ÅrsakTilManuellRegulering> =
-            deserialize<ÅrsakerTilManuellRegulering>(json).toDomain()
+            deserializeList<ÅrsakTilManuellReguleringJson>(json).map { it.toDomain() }.toSet()
     }
 }
 
 internal fun Reguleringstype.årsakerTilManuellReguleringJson(): String =
     when (this) {
-        Reguleringstype.AUTOMATISK -> serialize(ÅrsakerTilManuellRegulering.empty())
+        Reguleringstype.AUTOMATISK -> "[]"
         is Reguleringstype.MANUELL -> this.problemer.toDbJson()
     }
 
 internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
-    serialize(ÅrsakerTilManuellRegulering(this.map { it.toDbJson() }))
-
-internal data class ÅrsakerTilManuellRegulering(
-    val årsaker: List<String>,
-) {
-    fun toDomain(): Set<ÅrsakTilManuellRegulering> =
-        årsaker.map { deserialize<ÅrsakTilManuellReguleringJson>(it).toDomain() }.toSet()
-
-    companion object {
-        fun empty(): ÅrsakerTilManuellRegulering = ÅrsakerTilManuellRegulering(emptyList())
-    }
-}
+    this.joinToString(prefix = "[", postfix = "]") { it.toDbJson() }
 
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     is ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet -> ÅrsakTilManuellReguleringJson.AutomatiskSendingTilUtbetalingFeilet(
