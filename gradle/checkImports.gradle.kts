@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 /**
  * Hensikten med denne er å forsikre oss om at ikke :domain-moduler er avhengig av :infrastructure, :application eller :presentation.
  * Man kan og sjekke at :application ikke er avhengig av :presentation eller :infrastructure.
- * Tanken er at :infrastructure og :presentation ikke skal være direkte avhengig av hverandre, men at modulen som bootstrapper (den heter på dette tidspunktet application, men det er litt forvirrende) er avhengig av begge .
+ * Tanken er at :infrastructure og :presentation ikke skal være direkte avhengig av hverandre, men at modulen som bootstrapper er avhengig av begge .
  */
 val checkInfrastructureImports by tasks.registering {
     group = "verification"

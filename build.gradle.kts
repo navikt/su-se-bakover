@@ -244,3 +244,4 @@ tasks.register("verifyUniqueJarNames") {
 tasks.named("check") {
     dependsOn("verifyUniqueJarNames")
 }
+
