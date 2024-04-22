@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo

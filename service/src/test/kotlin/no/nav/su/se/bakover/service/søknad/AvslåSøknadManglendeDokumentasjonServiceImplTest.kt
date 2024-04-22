@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -69,6 +68,7 @@ import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.Opplysningspliktgrunnlag
 import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
+import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.time.LocalDate

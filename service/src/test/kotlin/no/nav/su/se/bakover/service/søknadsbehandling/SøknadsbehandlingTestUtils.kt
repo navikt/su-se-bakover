@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
@@ -17,6 +16,7 @@ import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.skatt.application.SkatteService
+import økonomi.application.utbetaling.UtbetalingService
 import java.time.Clock
 
 internal fun createSøknadsbehandlingService(

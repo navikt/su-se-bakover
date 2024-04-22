@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.utbetaling
+package økonomi.application.utbetaling
 
 import arrow.core.Either
 import arrow.core.getOrElse

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.routes.vedtak.tilResultat
 
 internal fun Route.ferdigstillVedtakRoutes(
