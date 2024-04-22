@@ -59,38 +59,38 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     data object UtbetalingFeilet : ÅrsakTilManuellReguleringJson
 
     data class BrukerManglerSupplement(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
     data class SupplementInneholderIkkeFradraget(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
     data class FinnesFlerePerioderAvFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
     data class FradragErUtenlandsinntekt(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
     data class SupplementHarFlereVedtaksperioderForFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMedJson>,
     ) : ÅrsakTilManuellReguleringJson
 
     data class MismatchMellomBeløpFraSupplementOgFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterntBeløpFørRegulering: String,
@@ -98,7 +98,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson
 
     data class BeløpErStørreEnForventet(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterntBeløpEtterRegulering: String,
@@ -145,7 +145,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet -> BeløpErStørreEnForventet(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.kategori.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
                 eksterntBeløpEtterRegulering = this.eksterntBeløpEtterRegulering.toString(),
                 forventetBeløpEtterRegulering = this.forventetBeløpEtterRegulering.toString(),
@@ -153,25 +153,25 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement -> BrukerManglerSupplement(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.kategori.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> FinnesFlerePerioderAvFradrag(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> FradragErUtenlandsinntekt(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag -> MismatchMellomBeløpFraSupplementOgFradrag(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
                 eksterntBeløpFørRegulering = this.eksterntBeløpFørRegulering.toString(),
                 vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
@@ -180,14 +180,14 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> SupplementHarFlereVedtaksperioderForFradrag(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
                 eksterneReguleringsvedtakperioder = this.eksterneReguleringsvedtakperioder.map { it.toJson() },
             )
 
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> SupplementInneholderIkkeFradraget(
                 begrunnelse = this.begrunnelse,
-                fradragstype = this.fradragstype.toString(),
+                fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 

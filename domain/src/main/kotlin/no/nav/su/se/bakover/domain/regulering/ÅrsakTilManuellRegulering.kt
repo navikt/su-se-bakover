@@ -48,43 +48,43 @@ sealed interface ÅrsakTilManuellRegulering {
 
     // TODO test på alle disse
     sealed interface FradragMåHåndteresManuelt : ÅrsakTilManuellRegulering {
-        val fradragstype: Fradragstype
+        val fradragskategori: Fradragstype.Kategori
         val fradragTilhører: FradragTilhører
         override val begrunnelse: String?
 
         data class BrukerManglerSupplement(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
         ) : FradragMåHåndteresManuelt
 
         data class SupplementInneholderIkkeFradraget(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
         ) : FradragMåHåndteresManuelt
 
         data class FinnesFlerePerioderAvFradrag(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
         ) : FradragMåHåndteresManuelt
 
         data class FradragErUtenlandsinntekt(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
         ) : FradragMåHåndteresManuelt
 
         data class SupplementHarFlereVedtaksperioderForFradrag(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
             val eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMed>,
         ) : FradragMåHåndteresManuelt
 
         data class MismatchMellomBeløpFraSupplementOgFradrag(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
             val eksterntBeløpFørRegulering: BigDecimal,
@@ -94,7 +94,7 @@ sealed interface ÅrsakTilManuellRegulering {
         }
 
         data class BeløpErStørreEnForventet(
-            override val fradragstype: Fradragstype,
+            override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
             val eksterntBeløpEtterRegulering: BigDecimal,

@@ -143,7 +143,7 @@ internal class ReguleringServiceImplTest {
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                        fradragstype = fradraget.fradragstype,
+                        fradragskategori = fradraget.fradragstype.kategori,
                         fradragTilhører = fradraget.tilhører,
                         begrunnelse = "Fradraget til BRUKER: OffentligPensjon påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
                     ),

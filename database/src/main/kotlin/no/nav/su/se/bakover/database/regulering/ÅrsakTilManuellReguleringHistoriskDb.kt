@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.regulering
 
-import arrow.core.getOrElse
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.deserializeList
@@ -91,101 +90,66 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     }
 
     data class BrukerManglerSupplement(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
             )
     }
 
     data class SupplementInneholderIkkeFradraget(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
             )
     }
 
     data class FinnesFlerePerioderAvFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
             )
     }
 
     data class FradragErUtenlandsinntekt(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
             )
     }
 
     data class SupplementHarFlereVedtaksperioderForFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMedJson>,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
                 eksterneReguleringsvedtakperioder = eksterneReguleringsvedtakperioder.map { it.toDomain() },
@@ -193,7 +157,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     }
 
     data class MismatchMellomBeløpFraSupplementOgFradrag(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterntBeløpFørRegulering: String,
@@ -201,14 +165,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
                 eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
@@ -217,7 +174,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     }
 
     data class BeløpErStørreEnForventet(
-        val fradragstype: String,
+        val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
         val eksterntBeløpEtterRegulering: String,
@@ -225,14 +182,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
-                fradragstype = Fradragstype.tryParse(
-                    value = fradragstype,
-                    // Fradragstypen 'Annet' har en beskrivelse. 'Annet' skal ikke justeres manuelt, og skal derfor ikke
-                    // være et fradrag som vi trenger å håndtere manuelt. Det vil si at vi ikke får den her
-                    beskrivelse = null,
-                ).getOrElse {
-                    throw IllegalStateException("Kunne ikke parse fradragstype $it ved henting av regulering")
-                },
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
                 eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering.toBigDecimal(),
@@ -316,7 +266,7 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet -> ÅrsakTilManuellReguleringJson.BeløpErStørreEnForventet(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.kategori.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
         eksterntBeløpEtterRegulering = this.eksterntBeløpEtterRegulering.toString(),
         forventetBeløpEtterRegulering = this.forventetBeløpEtterRegulering.toString(),
@@ -324,25 +274,25 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement -> ÅrsakTilManuellReguleringJson.BrukerManglerSupplement(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.kategori.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> ÅrsakTilManuellReguleringJson.FinnesFlerePerioderAvFradrag(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> ÅrsakTilManuellReguleringJson.FradragErUtenlandsinntekt(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag -> ÅrsakTilManuellReguleringJson.MismatchMellomBeløpFraSupplementOgFradrag(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
         eksterntBeløpFørRegulering = this.eksterntBeløpFørRegulering.toString(),
         vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
@@ -351,14 +301,14 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> ÅrsakTilManuellReguleringJson.SupplementHarFlereVedtaksperioderForFradrag(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
         eksterneReguleringsvedtakperioder = this.eksterneReguleringsvedtakperioder.map { it.toJson() },
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> ÅrsakTilManuellReguleringJson.SupplementInneholderIkkeFradraget(
         begrunnelse = this.begrunnelse,
-        fradragstype = this.fradragstype.toString(),
+        fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
     )
 

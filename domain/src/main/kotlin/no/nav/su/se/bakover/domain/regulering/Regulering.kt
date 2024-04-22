@@ -224,7 +224,7 @@ fun utledReguleringstypeOgFradrag(
             if (fradragstype.måJusteresManueltVedGEndring) {
                 manuellReg(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                        fradragstype = fradragstype,
+                        fradragskategori = fradragstype.kategori,
                         fradragTilhører = fradragTilhører,
                         begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
                     ),
@@ -239,7 +239,7 @@ fun utledReguleringstypeOgFradrag(
         log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt.")
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
             ),
@@ -279,7 +279,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     if (originaleFradragsgrunnlag.utenlandskInntekt != null) {
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 begrunnelse = "Fradraget er utenlandsinntekt og går til manuell regulering",
             ),
@@ -297,7 +297,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     val supplementForType: ReguleringssupplementFor.PerType =
         supplementFor.getForType(fradragstype) ?: return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 begrunnelse = "Vi fant et supplement for $fradragTilhører, men ikke for ${fradragstype.kategori}.",
             ),
@@ -306,7 +306,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     if (antallEksterneReguleringsvedtak > 1) {
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 eksterneReguleringsvedtakperioder = supplementForType.reguleringsvedtak.map { it.periode },
                 begrunnelse = "Vi fant et supplement for $fradragTilhører og denne ${fradragstype.kategori}, men siden vi fant mer enn en vedtaksperiode ($antallEksterneReguleringsvedtak), går den til manuell.",
@@ -320,7 +320,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     if (diffFørRegulering > akseptertDifferanseFørRegulering) {
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering,
                 eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
@@ -338,7 +338,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
-                fradragstype = fradragstype,
+                fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,
                 eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering,

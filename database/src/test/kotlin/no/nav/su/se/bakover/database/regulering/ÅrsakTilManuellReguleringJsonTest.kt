@@ -28,7 +28,7 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     private val årsakFradragUtenlandsinntekt =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = """
                 try finger
@@ -37,13 +37,13 @@ class ÅrsakTilManuellReguleringJsonTest {
         )
     private val årsakFinnesFlerePerioder =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Could this be dog?",
         )
     private val årsakBeløpErStørreEnForventet =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
-            fradragstype = Fradragstype.Uføretrygd,
+            fradragskategori = Fradragstype.Kategori.Uføretrygd,
             fradragTilhører = FradragTilhører.EPS,
             begrunnelse = """When in doubt, dont think - simply shout "For Democracy!" and charge head-first into your problems.""",
             eksterntBeløpEtterRegulering = BigDecimal.ONE,
@@ -51,20 +51,20 @@ class ÅrsakTilManuellReguleringJsonTest {
         )
     private val årsakBrukerManglerSupplement =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = """It's dangerous to go alone, take this!""",
         )
 
     private val årsakSupplementInneholderIkkeFradrag =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Hey, you. You're finally awake.",
         )
     private val supplementFlerePerioder =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Do you think i have big mom energy?",
             eksterneReguleringsvedtakperioder = listOf(
@@ -75,7 +75,7 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     private val årsakMismatch =
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
-            fradragstype = Fradragstype.Alderspensjon,
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Boy",
             eksterntBeløpFørRegulering = BigDecimal.ONE,
@@ -95,13 +95,13 @@ class ÅrsakTilManuellReguleringJsonTest {
         årsakDelvisOpphør.toDbJson() shouldBe """{"type":"DelvisOpphør","opphørsperioder":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}],"begrunnelse":"Zug Zug"}"""
         årsakVedtakslinjeIkkeSammenhengende.toDbJson() shouldBe """{"type":"VedtakstidslinjeErIkkeSammenhengende","begrunnelse":"Me not that kind of orc"}"""
 
-        årsakFradragUtenlandsinntekt.toDbJson() shouldBe """{"type":"FradragErUtenlandsinntekt","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"}"""
-        årsakFinnesFlerePerioder.toDbJson() shouldBe """{"type":"FinnesFlerePerioderAvFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Could this be dog?"}"""
-        årsakBeløpErStørreEnForventet.toDbJson() shouldBe """{"type":"BeløpErStørreEnForventet","fradragstype":"Uføretrygd","fradragTilhører":"EPS","begrunnelse":"When in doubt, dont think - simply shout \"For Democracy!\" and charge head-first into your problems.","eksterntBeløpEtterRegulering":"1","forventetBeløpEtterRegulering":"10"}"""
-        årsakBrukerManglerSupplement.toDbJson() shouldBe """{"type":"BrukerManglerSupplement","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"It's dangerous to go alone, take this!"}"""
-        årsakSupplementInneholderIkkeFradrag.toDbJson() shouldBe """{"type":"SupplementInneholderIkkeFradraget","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Hey, you. You're finally awake."}"""
-        supplementFlerePerioder.toDbJson() shouldBe """{"type":"SupplementHarFlereVedtaksperioderForFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Do you think i have big mom energy?","eksterneReguleringsvedtakperioder":[{"fraOgMed":"2021-05-01","tilOgMed":null},{"fraOgMed":"2021-07-01","tilOgMed":null}]}"""
-        årsakMismatch.toDbJson() shouldBe """{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}"""
+        årsakFradragUtenlandsinntekt.toDbJson() shouldBe """{"type":"FradragErUtenlandsinntekt","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"}"""
+        årsakFinnesFlerePerioder.toDbJson() shouldBe """{"type":"FinnesFlerePerioderAvFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Could this be dog?"}"""
+        årsakBeløpErStørreEnForventet.toDbJson() shouldBe """{"type":"BeløpErStørreEnForventet","fradragskategori":"Uføretrygd","fradragTilhører":"EPS","begrunnelse":"When in doubt, dont think - simply shout \"For Democracy!\" and charge head-first into your problems.","eksterntBeløpEtterRegulering":"1","forventetBeløpEtterRegulering":"10"}"""
+        årsakBrukerManglerSupplement.toDbJson() shouldBe """{"type":"BrukerManglerSupplement","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"It's dangerous to go alone, take this!"}"""
+        årsakSupplementInneholderIkkeFradrag.toDbJson() shouldBe """{"type":"SupplementInneholderIkkeFradraget","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Hey, you. You're finally awake."}"""
+        supplementFlerePerioder.toDbJson() shouldBe """{"type":"SupplementHarFlereVedtaksperioderForFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Do you think i have big mom energy?","eksterneReguleringsvedtakperioder":[{"fraOgMed":"2021-05-01","tilOgMed":null},{"fraOgMed":"2021-07-01","tilOgMed":null}]}"""
+        årsakMismatch.toDbJson() shouldBe """{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}"""
     }
 
     @Test
@@ -117,25 +117,25 @@ class ÅrsakTilManuellReguleringJsonTest {
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"DelvisOpphør","opphørsperioder":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}],"begrunnelse":"Zug Zug"}""").toDomain() shouldBe årsakDelvisOpphør
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"VedtakstidslinjeErIkkeSammenhengende","begrunnelse":"Me not that kind of orc"}""").toDomain() shouldBe årsakVedtakslinjeIkkeSammenhengende
 
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FradragErUtenlandsinntekt","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"}""").toDomain() shouldBe årsakFradragUtenlandsinntekt
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FinnesFlerePerioderAvFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Could this be dog?"}""").toDomain() shouldBe årsakFinnesFlerePerioder
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"BeløpErStørreEnForventet","fradragstype":"Uføretrygd","fradragTilhører":"EPS","begrunnelse":"When in doubt, dont think - simply shout \"For Democracy!\" and charge head-first into your problems.","eksterntBeløpEtterRegulering":"1","forventetBeløpEtterRegulering":"10"}""").toDomain() shouldBe årsakBeløpErStørreEnForventet
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"BrukerManglerSupplement","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"It's dangerous to go alone, take this!"}""").toDomain() shouldBe årsakBrukerManglerSupplement
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"SupplementInneholderIkkeFradraget","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Hey, you. You're finally awake."}""").toDomain() shouldBe årsakSupplementInneholderIkkeFradrag
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"SupplementHarFlereVedtaksperioderForFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Do you think i have big mom energy?","eksterneReguleringsvedtakperioder":[{"fraOgMed":"2021-05-01","tilOgMed":null},{"fraOgMed":"2021-07-01","tilOgMed":null}]}""").toDomain() shouldBe supplementFlerePerioder
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}""").toDomain() shouldBe årsakMismatch
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FradragErUtenlandsinntekt","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"}""").toDomain() shouldBe årsakFradragUtenlandsinntekt
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FinnesFlerePerioderAvFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Could this be dog?"}""").toDomain() shouldBe årsakFinnesFlerePerioder
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"BeløpErStørreEnForventet","fradragskategori":"Uføretrygd","fradragTilhører":"EPS","begrunnelse":"When in doubt, dont think - simply shout \"For Democracy!\" and charge head-first into your problems.","eksterntBeløpEtterRegulering":"1","forventetBeløpEtterRegulering":"10"}""").toDomain() shouldBe årsakBeløpErStørreEnForventet
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"BrukerManglerSupplement","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"It's dangerous to go alone, take this!"}""").toDomain() shouldBe årsakBrukerManglerSupplement
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"SupplementInneholderIkkeFradraget","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Hey, you. You're finally awake."}""").toDomain() shouldBe årsakSupplementInneholderIkkeFradrag
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"SupplementHarFlereVedtaksperioderForFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Do you think i have big mom energy?","eksterneReguleringsvedtakperioder":[{"fraOgMed":"2021-05-01","tilOgMed":null},{"fraOgMed":"2021-07-01","tilOgMed":null}]}""").toDomain() shouldBe supplementFlerePerioder
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}""").toDomain() shouldBe årsakMismatch
     }
 
     @Test
     fun `mapper set med domene-type til liste av json-type`() {
-        setOf(årsakMismatch).toDbJson() shouldBe """[{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}]"""
+        setOf(årsakMismatch).toDbJson() shouldBe """[{"type":"MismatchMellomBeløpFraSupplementOgFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}]"""
     }
 
     @Test
     fun `mapper liste med json-type til domene-type`() {
         //language=json
         val input = """[
-            {"type":"FradragErUtenlandsinntekt","fradragstype":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"},
+            {"type":"FradragErUtenlandsinntekt","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"try finger\nbut hole"},
             {"type":"VedtakstidslinjeErIkkeSammenhengende","begrunnelse":"Me not that kind of orc"}
         ]
         """.trimIndent()

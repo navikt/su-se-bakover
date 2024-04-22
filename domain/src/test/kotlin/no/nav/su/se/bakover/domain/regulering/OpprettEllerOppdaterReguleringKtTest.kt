@@ -75,7 +75,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Fradraget til BRUKER: Alderspensjon påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
                     ),
@@ -137,7 +137,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Fradraget til BRUKER: Alderspensjon er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
 
@@ -190,7 +190,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Fradraget er utenlandsinntekt og går til manuell regulering",
                     ),
@@ -253,7 +253,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
-                        fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                        fradragskategori = Fradragstype.Kategori.Arbeidsavklaringspenger,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Vi fant et supplement for BRUKER, men ikke for Arbeidsavklaringspenger.",
                     ),
@@ -302,7 +302,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
-                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Vi forventet at beløpet skulle være 1064.08 etter regulering, men det var 1200. Vi aksepterer en differanse på 10, men den var 135.92",
                         eksterntBeløpEtterRegulering = BigDecimal(1200),
