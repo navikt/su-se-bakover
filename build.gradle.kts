@@ -245,3 +245,5 @@ tasks.named("check") {
     dependsOn("verifyUniqueJarNames")
 }
 
+apply(from = "gradle/checkLogbackTestXmlReferences.gradle.kts")
+
