@@ -14,7 +14,7 @@ interface BrevService {
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
-    fun lagreDokument(dokument: Dokument.MedMetadata)
-    fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext)
+    /** Krever transactionContext siden vi gjør 2 inserts. */
+    fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext? = null)
     fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
 }

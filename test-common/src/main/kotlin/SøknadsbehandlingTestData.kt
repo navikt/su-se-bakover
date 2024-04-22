@@ -35,9 +35,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattInnvilgetSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.IverksattInnvilgetSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
@@ -779,8 +779,6 @@ fun iverksattSøknadsbehandling(
                                     },
                             ),
                     )
-
-                    else -> TODO("Ingen andre nåværende implementasjoner")
                 },
                 response.søknadsbehandling,
                 response.vedtak,

@@ -15,11 +15,11 @@ import java.util.UUID
  * Dette er en litt spesiell hendelse hvor vi i praksis ikke har noen entitetId og alltid har versjon 1.
  * Dvs. alle kvitteringer er unike og kan ikke sammenlignes med hverandre.
  */
-data class RåKvitteringHendelse(
+data class RåUtbetalingskvitteringhendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     val originalKvittering: String,
-) : Hendelse<RåKvitteringHendelse> {
+) : Hendelse<RåUtbetalingskvitteringhendelse> {
     override val tidligereHendelseId: HendelseId? = null
     override val versjon: Hendelsesversjon = Hendelsesversjon(1L)
     override val entitetId: UUID = hendelseId.value
@@ -27,7 +27,7 @@ data class RåKvitteringHendelse(
     /**
      * Gir ikke så mye mening i dette tilfelle, da den krever at disse hendelsene er like.
      */
-    override fun compareTo(other: RåKvitteringHendelse): Int {
+    override fun compareTo(other: RåUtbetalingskvitteringhendelse): Int {
         require(this.entitetId == other.entitetId)
         return this.versjon.compareTo(other.versjon)
     }
@@ -39,8 +39,8 @@ data class RåKvitteringHendelse(
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             originalKvittering: String,
-        ): RåKvitteringHendelse {
-            return RåKvitteringHendelse(
+        ): RåUtbetalingskvitteringhendelse {
+            return RåUtbetalingskvitteringhendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 originalKvittering = originalKvittering,
@@ -61,9 +61,9 @@ data class RåKvitteringHendelse(
         utbetalingId: UUID30,
         clock: Clock,
         utbetalingsstatus: Kvittering.Utbetalingsstatus,
-        tidligereHendelseId: HendelseId? = null,
-    ): KvitteringPåSakHendelse {
-        return KvitteringPåSakHendelse(
+        tidligereHendelseId: HendelseId,
+    ): UtbetalingskvitteringPåSakHendelse {
+        return UtbetalingskvitteringPåSakHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
             sakId = sakId,

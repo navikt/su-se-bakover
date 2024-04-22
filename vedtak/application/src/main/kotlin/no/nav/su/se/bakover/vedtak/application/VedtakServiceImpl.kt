@@ -6,6 +6,7 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -66,8 +67,8 @@ class VedtakServiceImpl(
         return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
     }
 
-    override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
-        return vedtakRepo.hentForUtbetaling(utbetalingId)
+    override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?): VedtakSomKanRevurderes? {
+        return vedtakRepo.hentForUtbetaling(utbetalingId, sessionContext)
     }
 
     override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
@@ -77,7 +78,10 @@ class VedtakServiceImpl(
         return vedtakRepo.hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre, fraOgMed)
     }
 
-    override fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak> {
+    override fun hentForEpsFødselsnumreOgFraOgMedMåned(
+        fnr: List<Fnr>,
+        fraOgMedEllerSenere: Måned,
+    ): List<VedtaksammendragForSak> {
         return vedtakRepo.hentForEpsFødselsnumreOgFraOgMedMåned(fnr, fraOgMedEllerSenere)
     }
 

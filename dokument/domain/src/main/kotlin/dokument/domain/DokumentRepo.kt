@@ -4,7 +4,8 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 
 interface DokumentRepo {
-    fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext = defaultTransactionContext())
+    /** Krever transactionContext siden vi gjør 2 inserts. */
+    fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext? = null)
     fun hentDokument(id: UUID): Dokument.MedMetadata?
     fun hentForSak(id: UUID): List<Dokument.MedMetadata>
     fun hentForSøknad(id: UUID): List<Dokument.MedMetadata>

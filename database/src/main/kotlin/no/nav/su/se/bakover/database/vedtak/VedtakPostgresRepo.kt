@@ -216,9 +216,9 @@ internal class VedtakPostgresRepo(
     /**
      * Det er kun [VedtakEndringIYtelse] som inneholder en utbetalingId
      */
-    override fun hentForUtbetaling(utbetalingId: UUID30): VedtakEndringIYtelse? {
+    override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?): VedtakEndringIYtelse? {
         return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                 select
                   v.*,
@@ -322,7 +322,10 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak> {
+    override fun hentForEpsFødselsnumreOgFraOgMedMåned(
+        fnr: List<Fnr>,
+        fraOgMedEllerSenere: Måned,
+    ): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentSakForEpsFnrFra") {
             sessionFactory.withSession { session ->
                 """

@@ -39,9 +39,7 @@ class KvitteringshendelseJob(
                         knyttKvitteringTilSakOgUtbetalingService.knyttKvitteringerTilSakOgUtbetaling(
                             correlationId = correlationId,
                         )
-                        ferdigstillVedtakEtterMottattKvitteringKonsument.ferdigstillVedtakEtterMottattKvittering(
-                            correlationId = correlationId,
-                        )
+                        ferdigstillVedtakEtterMottattKvitteringKonsument.ferdigstillVedtakEtterMottattKvittering()
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

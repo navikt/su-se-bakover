@@ -45,7 +45,6 @@ import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
-import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
 
@@ -181,13 +180,6 @@ fun Application.susebakover(
         )
     },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
-    consumers: Consumers = Consumers(
-        utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
-            utbetalingService = services.utbetaling,
-            ferdigstillVedtakService = services.ferdigstillVedtak,
-            clock = clock,
-        ),
-    ),
     beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
         clock = clock,
         satsFactory = satsFactoryIDag,
@@ -238,7 +230,6 @@ fun Application.susebakover(
                 applicationConfig = applicationConfig,
                 jmsConfig = jmsConfig,
                 clock = clock,
-                consumers = consumers,
                 dbMetrics = dbMetrics,
                 tilbakekrevingskomponenter = it,
                 dokumentKomponenter = dokumentkomponenter,

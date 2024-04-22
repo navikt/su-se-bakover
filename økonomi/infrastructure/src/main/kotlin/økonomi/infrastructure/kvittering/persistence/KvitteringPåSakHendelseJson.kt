@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import økonomi.domain.kvittering.Kvittering
-import økonomi.domain.kvittering.KvitteringPåSakHendelse
+import økonomi.domain.kvittering.UtbetalingskvitteringPåSakHendelse
 
 internal data class KvitteringPåSakHendelseJson(
     val utbetalingsstatus: String,
@@ -22,7 +22,7 @@ internal data class KvitteringPåSakHendelseJson(
     }
 
     companion object {
-        fun KvitteringPåSakHendelse.toDbJson(): String {
+        fun UtbetalingskvitteringPåSakHendelse.toDbJson(): String {
             fun Kvittering.Utbetalingsstatus.toDbString(): String {
                 return when (this) {
                     Kvittering.Utbetalingsstatus.OK -> "OK"
@@ -39,12 +39,9 @@ internal data class KvitteringPåSakHendelseJson(
             }
         }
 
-        fun PersistertHendelse.toKvitteringPåSakHendelse(): KvitteringPåSakHendelse {
-            require(this.tidligereHendelseId == null) {
-                "KvitteringPåSakHendelse skal ikke ha tidligereHendelseId, men var $tidligereHendelseId"
-            }
+        fun PersistertHendelse.toKvitteringPåSakHendelse(): UtbetalingskvitteringPåSakHendelse {
             return deserialize<KvitteringPåSakHendelseJson>(this.data).let { json ->
-                KvitteringPåSakHendelse.fraPersistert(
+                UtbetalingskvitteringPåSakHendelse.fraPersistert(
                     hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     forrigeVersjon = this.versjon,
@@ -53,6 +50,7 @@ internal data class KvitteringPåSakHendelseJson(
                     originalKvittering = json.originalKvittering,
                     utbetalingId = json.utbetalingId,
                     sakId = sakId!!,
+                    tidligereHendelseId = this.tidligereHendelseId!!,
                 )
             }
         }

@@ -45,6 +45,8 @@ internal class NyRevurderingIT {
                 ).let { revurderingJson ->
                     hentSak(sakId, client = this.client).also {
                         assertSakJson(
+                            // Versjon 1 er reservert for opprettelse av sak. Versjon 2 vil være søknadsbehandlingens utbetalingskvitteringe knyttet mot sak. Versjon 3 vil være tilsvarende for revurdering.
+                            expectedVersjon = 3,
                             actualSakJson = it,
                             expectedFnr = fnr,
                             expectedId = sakId,

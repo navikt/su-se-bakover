@@ -34,7 +34,7 @@ interface HendelsekonsumenterRepo {
     fun hentHendelseIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,
-        sx: SessionContext? = null,
+        sessionContext: SessionContext? = null,
         limit: Int = 10,
     ): Set<HendelseId>
 }

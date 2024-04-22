@@ -89,10 +89,10 @@ class HendelsekonsumenterPostgresRepo(
     override fun hentHendelseIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,
-        sx: SessionContext?,
+        sessionContext: SessionContext?,
         limit: Int,
     ): Set<HendelseId> {
-        return (sx ?: sessionFactory.newSessionContext()).withSession {
+        return (sessionContext ?: sessionFactory.newSessionContext()).withSession {
             """
             SELECT
                 h.hendelsesnummer,

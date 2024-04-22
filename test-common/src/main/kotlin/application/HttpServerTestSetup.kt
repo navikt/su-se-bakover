@@ -38,7 +38,6 @@ import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
-import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
@@ -104,7 +103,6 @@ fun Application.runApplicationWithMocks(
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
-    consumers: Consumers = mock(),
     beregningStrategyFactory: BeregningStrategyFactory = mock(),
     resendUtbetalingService: ResendUtbetalingService = mock(),
     extraRoutes: Route.(services: Services) -> Unit = {},
@@ -126,7 +124,6 @@ fun Application.runApplicationWithMocks(
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,
         dokumentkomponenter = dokumentkomponenter,
         accessCheckProxy = accessCheckProxy,
-        consumers = consumers,
         beregningStrategyFactory = beregningStrategyFactory,
         resendUtbetalingService = resendUtbetalingService,
         extraRoutes = extraRoutes,

@@ -465,11 +465,9 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lagreDokument(dokument: Dokument.MedMetadata) = kastKanKunKallesFraAnnenService()
-
                 override fun lagreDokument(
                     dokument: Dokument.MedMetadata,
-                    transactionContext: TransactionContext,
+                    transactionContext: TransactionContext?,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
@@ -735,6 +733,7 @@ open class AccessCheckProxy(
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(
                     utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+                    transactionContext: TransactionContext?,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun ferdigstillVedtak(vedtakId: UUID): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
@@ -992,7 +991,7 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentInnvilgetFnrForMåned(måned)
                 }
 
-                override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+                override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?) = kastKanKunKallesFraAnnenService()
                 override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
                     fødselsnumre: List<Fnr>,
                     fraOgMed: Måned,

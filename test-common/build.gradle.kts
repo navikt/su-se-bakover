@@ -59,6 +59,7 @@ dependencies {
     api(project(":web"))
     api(project(":økonomi:application"))
     api(project(":økonomi:domain"))
+    api(project(":økonomi:infrastructure"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml

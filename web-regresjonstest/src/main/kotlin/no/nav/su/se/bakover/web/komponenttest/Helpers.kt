@@ -1,58 +1,42 @@
 package no.nav.su.se.bakover.web.komponenttest
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.utbetaling.kvittering.kvitteringXml
 import økonomi.domain.simulering.toYtelsekode
 import økonomi.domain.utbetaling.Utbetaling
-import økonomi.domain.utbetaling.Utbetalingsrequest
-import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
-import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse
 import java.math.BigDecimal
 import java.util.UUID
 
-internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(sakId: UUID) {
-    return services.utbetaling.hentUtbetalingerForSakId(sakId).filterIsInstance<Utbetaling.OversendtUtbetaling.UtenKvittering>().forEach {
-        mottaKvitteringForUtbetalingFraØkonomi(it.id)
-    }
-}
-
-internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId: UUID30): String {
-    return databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(utbetalingId, null)!!
-        .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
-            lagUtbetalingsKvittering(it.utbetalingsrequest)
-        }.also {
-            consumers.utbetalingKvitteringConsumer.onMessage(it)
+internal fun AppComponents.mottaKvitteringOgFerdigstillVedtak(sakId: UUID) {
+    return services.utbetaling.hentUtbetalingerForSakId(sakId)
+        .filterIsInstance<Utbetaling.OversendtUtbetaling.UtenKvittering>().forEach {
+            mottaKvitteringOgFerdigstillVedtak(it.id)
         }
 }
 
-internal fun lagUtbetalingsKvittering(utbetalingsrequest: Utbetalingsrequest): String {
-    val request = UtbetalingKvitteringConsumer.xmlMapper.readValue<UtbetalingRequest>(utbetalingsrequest.value)
-    val kvittering = UtbetalingKvitteringResponse.Mmel(
-        systemId = null,
-        kodeMelding = null,
-        alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.OK,
-        beskrMelding = null,
-        sqlKode = null,
-        sqlState = null,
-        sqlMelding = null,
-        mqCompletionKode = null,
-        mqReasonKode = null,
-        programId = null,
-        sectionNavn = null,
-
-    )
-    return UtbetalingKvitteringConsumer.xmlMapper.writeValueAsString(
-        UtbetalingKvitteringResponse(
-            kvittering,
-            request.oppdragRequest,
-        ),
-    )
+internal fun AppComponents.mottaKvitteringOgFerdigstillVedtak(utbetalingId: UUID30) {
+    val correlationId = CorrelationId.generate()
+    return databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(utbetalingId, null)!!
+        .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
+            utbetalingskvitteringKomponenter.råKvitteringService.lagreRåKvitteringshendelse(
+                originalKvittering = kvitteringXml(it),
+                meta = JMSHendelseMetadata.fromCorrelationId(
+                    correlationId,
+                ),
+            )
+            utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService.knyttKvitteringerTilSakOgUtbetaling(
+                correlationId = correlationId,
+            )
+            utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument.ferdigstillVedtakEtterMottattKvittering()
+        }
 }
 
+@Suppress("unused")
 internal fun lagKravgrunnlag(
     vedtak: VedtakInnvilgetRevurdering,
     lagPerioder: () -> String,
@@ -82,6 +66,7 @@ internal fun lagKravgrunnlag(
     """
 }
 
+@Suppress("unused")
 internal fun lagKravgrunnlagPerioder(feilutbetalinger: List<Feilutbetaling>): String {
     return StringBuffer().apply {
         feilutbetalinger.forEach {

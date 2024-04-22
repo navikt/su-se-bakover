@@ -57,13 +57,10 @@ class BrevServiceImpl(
             }
     }
 
-    override fun lagreDokument(dokument: Dokument.MedMetadata) {
-        sessionFactory.withTransactionContext {
-            lagreDokument(dokument, it)
-        }
-    }
-
-    override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
+    override fun lagreDokument(
+        dokument: Dokument.MedMetadata,
+        transactionContext: TransactionContext?,
+    ) {
         dokumentRepo.lagre(dokument, transactionContext)
     }
 

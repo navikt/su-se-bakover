@@ -53,6 +53,19 @@ class PostgresSessionFactory(
         }
     }
 
+    /** Gjenbruker [sessionContext] hvis den ikke er null, ellers lages en ny context og starter sesjonen - lukkes automatisk  */
+    fun <T> withSession(
+        sessionContext: SessionContext?,
+        disableSessionCounter: Boolean = false,
+        action: (Session) -> T,
+    ): T {
+        return withSessionContext(sessionContext) { context ->
+            context.withSession(disableSessionCounter = disableSessionCounter) {
+                action(it)
+            }
+        }
+    }
+
     /**
      * Lager en ny context - starter ikke sesjonen.
      *
@@ -98,6 +111,18 @@ class PostgresSessionFactory(
     fun <T> withTransaction(action: (TransactionalSession) -> T): T {
         return newTransactionContext().let { context ->
             context.withTransaction {
+                action(it)
+            }
+        }
+    }
+
+    /** Lager en ny context dersom den ikke finnes og starter sesjonen - lukkes automatisk  */
+    fun <T> withTransaction(
+        transactionContext: TransactionContext?,
+        action: (TransactionalSession) -> T,
+    ): T {
+        return withTransactionContext(transactionContext) {
+            it.withTransaction {
                 action(it)
             }
         }

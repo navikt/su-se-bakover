@@ -45,7 +45,19 @@ class UtbetalingServiceImpl(
             ?.let { utbetaling ->
                 when (utbetaling) {
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
-                        log.info("Kvittering er allerede mottatt for utbetaling: ${utbetaling.id}")
+                        if (utbetaling.kvittering.originalKvittering == kvittering.originalKvittering) {
+                            log.info("Vi trenger ikke oppdatere utbetalingen med samme kvittering.")
+                            return utbetaling.right()
+                        } else {
+                            log.error("Kvittering for utbetalingen er allerede mottatt, men innholdet er forskjellig. Vi oppdaterer kvitteringen. Noen bør sammenligne kvitteringshendelsene og se om dette ble rett.")
+                            utbetalingRepo.oppdaterMedKvittering(
+                                utbetaling.copy(
+                                    kvittering = kvittering,
+                                ),
+                                sessionContext,
+                            )
+                        }
+
                         utbetaling
                     }
 
@@ -56,8 +68,7 @@ class UtbetalingServiceImpl(
                         }
                     }
                 }.right()
-            } ?: FantIkkeUtbetaling.left()
-            .also { log.warn("Fant ikke utbetaling med id: $utbetalingId") }
+            } ?: (FantIkkeUtbetaling.left().also { log.warn("Fant ikke utbetaling med id: $utbetalingId") })
     }
 
     override fun hentGjeldendeUtbetaling(

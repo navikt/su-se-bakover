@@ -9,15 +9,14 @@ import java.util.UUID
 
 /**
  * Vi knytter en kvittering mot en sak og en utbetaling.
- *
- *
+ * @param tidligereHendelseId Hendelsen vi mottok på køen fra Oppdrag. Her vil den originale meldingen ligge. Kan leses som at denne hendelsen erstatter den forrige, selvom entitetId/sakId og versjon ikke vil henge sammen i dette tilfellet. Dette vil gjøre det enklere og debugge sammenhengen mellom disse hendelsene..
  */
-data class KvitteringPåSakHendelse(
+data class UtbetalingskvitteringPåSakHendelse(
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
-    override val tidligereHendelseId: HendelseId? = null,
+    override val tidligereHendelseId: HendelseId,
     val utbetalingsstatus: Kvittering.Utbetalingsstatus,
     val originalKvittering: String,
     val utbetalingId: UUID30,
@@ -45,22 +44,20 @@ data class KvitteringPåSakHendelse(
             originalKvittering: String,
             sakId: UUID,
             utbetalingId: UUID30,
-        ): KvitteringPåSakHendelse {
-            return KvitteringPåSakHendelse(
+            tidligereHendelseId: HendelseId,
+        ): UtbetalingskvitteringPåSakHendelse {
+            return UtbetalingskvitteringPåSakHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 sakId = sakId,
                 utbetalingsstatus = utbetalingsstatus,
                 originalKvittering = originalKvittering,
                 versjon = forrigeVersjon,
-
                 utbetalingId = utbetalingId,
+                tidligereHendelseId = tidligereHendelseId,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "
-                }
-                require(forrigeVersjon == Hendelsesversjon(1L)) {
-                    "Den persistert versjon var ulik den utleda fra domenet:$forrigeVersjon vs. ${Hendelsesversjon(1L)}. "
                 }
             }
         }

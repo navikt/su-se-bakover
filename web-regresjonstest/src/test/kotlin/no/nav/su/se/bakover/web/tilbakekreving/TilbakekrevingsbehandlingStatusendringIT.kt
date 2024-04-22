@@ -52,13 +52,14 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
                 RevurderingJson.hentRevurderingId(it)
             }
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            verifiserKravgrunnlagPåSak(sakId, client, true, 2)
+            // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
+            verifiserKravgrunnlagPåSak(sakId, client, true, 4)
             val eksternVedtakId = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 2,
+                saksversjon = 4,
                 client = this.client,
-                expectedKontrollfelt = "2021-02-01-02.03.43.456789",
+                expectedKontrollfelt = "2021-02-01-02.03.45.456789",
             ).let {
                 JSONObject(it.responseJson).getJSONObject("kravgrunnlag").getString("eksternVedtakId")
             }

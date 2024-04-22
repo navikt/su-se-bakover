@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -31,10 +32,14 @@ interface VedtakService {
      * Merk at skjermede personer kan inkluderes i resultatsettet, men vi inkluderer ikke annen persondata enn selve fødselsnummeret.
      */
     fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned
-    fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
+    fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext? = null): VedtakSomKanRevurderes?
     fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
     fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 
-    fun startNySøknadsbehandlingForAvslag(sakId: UUID, vedtakId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
+    fun startNySøknadsbehandlingForAvslag(
+        sakId: UUID,
+        vedtakId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
 }

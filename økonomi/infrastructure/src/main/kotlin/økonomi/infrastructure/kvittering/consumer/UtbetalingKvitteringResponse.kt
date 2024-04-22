@@ -17,6 +17,7 @@ import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.SQL_FEIL
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import java.time.Clock
 
 /**
@@ -103,7 +104,7 @@ data class UtbetalingKvitteringResponse(
 fun kvitteringXmlTilSaksnummerOgUtbetalingId(
     xmlMapper: XmlMapper,
 ): (String) -> Triple<Saksnummer, UUID30, Utbetalingsstatus> = {
-    xmlMapper.readValue<UtbetalingKvitteringResponse>(it).let {
+    it.toKvitteringResponse(xmlMapper).let {
         Triple(it.oppdragRequest.saksnummer(), it.oppdragRequest.utbetalingsId(), it.utbetalingstatus())
     }
 }
