@@ -46,7 +46,6 @@ sealed interface ÅrsakTilManuellRegulering {
         }
     }
 
-    // TODO test på alle disse
     sealed interface FradragMåHåndteresManuelt : ÅrsakTilManuellRegulering {
         val fradragskategori: Fradragstype.Kategori
         val fradragTilhører: FradragTilhører
@@ -90,7 +89,7 @@ sealed interface ÅrsakTilManuellRegulering {
             val eksterntBeløpFørRegulering: BigDecimal,
             val vårtBeløpFørRegulering: BigDecimal,
         ) : FradragMåHåndteresManuelt {
-            val differanse = eksterntBeløpFørRegulering.subtract(vårtBeløpFørRegulering).abs()
+            val differanse: BigDecimal = eksterntBeløpFørRegulering.subtract(vårtBeløpFørRegulering).abs()
         }
 
         data class BeløpErStørreEnForventet(
@@ -100,7 +99,7 @@ sealed interface ÅrsakTilManuellRegulering {
             val eksterntBeløpEtterRegulering: BigDecimal,
             val forventetBeløpEtterRegulering: BigDecimal,
         ) : FradragMåHåndteresManuelt {
-            val differanse = eksterntBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
+            val differanse: BigDecimal = eksterntBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
         }
     }
 

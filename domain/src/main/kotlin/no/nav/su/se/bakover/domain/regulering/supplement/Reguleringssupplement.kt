@@ -16,13 +16,3 @@ data class Reguleringssupplement(
         fun empty() = Reguleringssupplement(emptyList())
     }
 }
-
-// TODO - test
-fun List<Eksternvedtak>.overlapper(): Boolean {
-    return this.any { it.overlapper(this.minus(it)) }
-}
-
-// TODO - test
-fun List<Eksternvedtak>.overlapper(other: List<Eksternvedtak>): Boolean {
-    return this.any { it.overlapper(other) }
-}

@@ -6,8 +6,6 @@ import java.time.LocalDate
 /**
  * Periode som går fra en gitt dato til opphør.
  * Visse stønader/ytelser i nav setter ikke en tilOgMed dato på ytelser som løper over mange år.
- *
- * TODO test
  */
 data class PeriodeMedOptionalTilOgMed(
     val fraOgMed: LocalDate,

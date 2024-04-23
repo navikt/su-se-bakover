@@ -105,7 +105,6 @@ data class GjeldendeVedtaksdata(
         return !helePeriodenErOpphør() && vedtakPåTidslinje.any { it.erOpphør() }
     }
 
-    // TODO test
     fun opphørtePerioderSlåttSammen(): SlåttSammenIkkeOverlappendePerioder =
         vedtakPåTidslinje.filter { it.erOpphør() }.map { it.periode }.minsteAntallSammenhengendePerioder()
 

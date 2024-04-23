@@ -75,3 +75,7 @@ sealed interface Eksternvedtak {
         }
     }
 }
+
+fun List<Eksternvedtak>.overlapper(): Boolean {
+    return this.any { it.overlapper(this.minus(it)) }
+}
