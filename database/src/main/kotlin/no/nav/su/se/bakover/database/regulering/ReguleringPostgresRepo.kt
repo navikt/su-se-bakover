@@ -5,7 +5,6 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
@@ -211,10 +209,7 @@ internal class ReguleringPostgresRepo(
                                 is Reguleringstype.AUTOMATISK -> ReguleringstypeDb.AUTOMATISK.name
                                 is Reguleringstype.MANUELL -> ReguleringstypeDb.MANUELL.name
                             },
-                            "arsakForManuell" to when (val type = regulering.reguleringstype) {
-                                is Reguleringstype.AUTOMATISK -> null
-                                is Reguleringstype.MANUELL -> type.problemer.toList().serialize()
-                            },
+                            "arsakForManuell" to regulering.reguleringstype.årsakerTilManuellReguleringJson(),
                             "reguleringStatus" to when (regulering) {
                                 is IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is OpprettetRegulering -> ReguleringStatus.OPPRETTET
@@ -266,10 +261,10 @@ internal class ReguleringPostgresRepo(
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
         val reguleringstype = ReguleringstypeDb.valueOf(string("reguleringType"))
-        val årsakForManuell = stringOrNull("arsakForManuell")?.deserializeList<ÅrsakTilManuellRegulering>()?.toSet()
+        val årsakForManuell = ÅrsakTilManuellReguleringJson.toDomain(string("arsakForManuell"))
 
         val type = when (reguleringstype) {
-            ReguleringstypeDb.MANUELL -> Reguleringstype.MANUELL(årsakForManuell ?: emptySet())
+            ReguleringstypeDb.MANUELL -> Reguleringstype.MANUELL(årsakForManuell)
             ReguleringstypeDb.AUTOMATISK -> Reguleringstype.AUTOMATISK
         }
 

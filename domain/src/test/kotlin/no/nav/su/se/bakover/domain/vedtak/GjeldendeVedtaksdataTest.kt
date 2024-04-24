@@ -14,12 +14,16 @@ import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.common.tid.periode.november
+import no.nav.su.se.bakover.common.tid.periode.oktober
+import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -28,12 +32,14 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
+import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -309,5 +315,33 @@ internal class GjeldendeVedtaksdataTest {
         ).let {
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
         }
+    }
+
+    @Test
+    fun `slår sammen de opphørte periodene`() {
+        val vedtakNyPeriode = vedtakSøknadsbehandlingIverksattInnvilget().second
+        val vedtakOpphør1 = iverksattRevurdering(
+            revurderingsperiode = juli(2021)..august(2021),
+            grunnlagsdataOverrides = listOf(
+                nyFradragsgrunnlag(månedsbeløp = 27000.0, periode = juli(2021)..august(2021)),
+            ),
+        ).fourth
+        val vedtakRevurdering =
+            vedtakRevurderingIverksattInnvilget(revurderingsperiode = september(2021)..oktober(2021)).second
+        val vedtakOpphør2 = iverksattRevurdering(
+            revurderingsperiode = november(2021)..desember(2021),
+            grunnlagsdataOverrides = listOf(
+                nyFradragsgrunnlag(månedsbeløp = 27000.0, periode = november(2021)..desember(2021)),
+            ),
+        ).fourth
+
+        GjeldendeVedtaksdata(
+            periode = år(2021),
+            vedtakListe = nonEmptyListOf(vedtakNyPeriode, vedtakRevurdering, vedtakOpphør1, vedtakOpphør2),
+            clock = fixedClock,
+        ).opphørtePerioderSlåttSammen() shouldBe listOf(
+            juli(2021)..august(2021),
+            november(2021)..desember(2021),
+        )
     }
 }

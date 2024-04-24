@@ -27,11 +27,11 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
-import no.nav.su.se.bakover.domain.regulering.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -345,13 +345,6 @@ class ReguleringServiceImpl(
                 }.mapLeft {
                     log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
                     KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
-                }.flatMap { (simulertRegulering, simulertUtbetaling) ->
-                    if (simulertRegulering.simulering!!.harFeilutbetalinger()) {
-                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
-                        KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
-                    } else {
-                        Pair(simulertRegulering, simulertUtbetaling).right()
-                    }
                 }
             }
             .map { (simulertRegulering, simulertUtbetaling) ->
@@ -360,6 +353,11 @@ class ReguleringServiceImpl(
                 lagVedtakOgUtbetal(iverksattRegulering, simulertUtbetaling, isLiveRun)
             }
             .onLeft {
+                val message = when (it) {
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
+                }
                 if (isLiveRun) {
                     LiveRun.Opprettet(
                         sessionFactory = sessionFactory,
@@ -369,7 +367,11 @@ class ReguleringServiceImpl(
                         notifyObservers = { Unit },
                     ).kjørSideffekter(
                         regulering.copy(
-                            reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.UtbetalingFeilet)),
+                            reguleringstype = Reguleringstype.MANUELL(
+                                setOf(
+                                    ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = message),
+                                ),
+                            ),
                         ),
                     )
                 }
@@ -441,7 +443,11 @@ class ReguleringServiceImpl(
             if (it is KunneIkkeFerdigstilleIverksettelsestransaksjon) {
                 KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(it)
             } else {
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it))
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
+                        it,
+                    ),
+                )
             }
         }.map {
             regulering

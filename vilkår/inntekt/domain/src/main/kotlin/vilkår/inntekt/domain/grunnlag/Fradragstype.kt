@@ -17,6 +17,8 @@ sealed class Fradragstype {
 
     /**
      * Merk at disse serialisere/deserialiseres direkte til basen, så anbefaler ikke rename av disse.
+     *
+     * TODO - disse lagres direkte inn i basen
      */
     enum class Kategori {
         Alderspensjon,

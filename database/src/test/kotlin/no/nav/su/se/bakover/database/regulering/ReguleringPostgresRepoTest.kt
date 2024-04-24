@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandli
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -40,7 +41,7 @@ internal class ReguleringPostgresRepoTest {
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             testDataHelper.persisterReguleringIverksatt()
             regulering.copy(
-                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)),
+                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt)),
             ).also { repo.lagre(it) }
 
             val hentRegulering = repo.hentStatusForÅpneManuelleReguleringer()
@@ -109,12 +110,38 @@ internal class ReguleringPostgresRepoTest {
     }
 
     @Test
-    fun `lagre og hent en opprettet regulering`() {
+    fun `lagre og hent en opprettet regulering (automatisk)`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
+            val hentRegulering = repo.hent(regulering.id)
+
+            hentRegulering shouldBe regulering
+        }
+    }
+
+    @Test
+    fun `lagre og hent en opprettet regulering (manuell)`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
+                søknadsbehandling = {
+                    iverksattSøknadsbehandlingUføre(
+                        clock = testDataHelper.clock,
+                        sakOgSøknad = it.first to it.second,
+                        customGrunnlag = listOf(
+                            nyFradragsgrunnlag(
+                                type = Fradragstype.Alderspensjon,
+                                månedsbeløp = 1000.0,
+                            ),
+                        ),
+                    )
+                },
+            )
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering
