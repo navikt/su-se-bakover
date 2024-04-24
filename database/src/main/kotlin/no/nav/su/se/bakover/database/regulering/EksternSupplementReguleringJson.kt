@@ -76,7 +76,6 @@ internal data class PerTypeJson(
     }
 }
 
-// TODO - test
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
@@ -138,7 +137,6 @@ internal sealed interface EksternVedtakJson {
     }
 }
 
-// TODO - test
 enum class EksternVedtakstypeJson {
     Endring,
     Regulering,

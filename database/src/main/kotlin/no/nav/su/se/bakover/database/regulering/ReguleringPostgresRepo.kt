@@ -292,7 +292,7 @@ internal class ReguleringPostgresRepo(
         // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
             // grunnlagsdata og vilkårsvurderinger er av 2 typer, søknadsbehandling & revurdering
-            // men det er slik at regulering tar i bruk revurderingstypen, og blir da lagret på sin in.
+            // men det er slik at regulering tar i bruk revurderingstypen, og blir da lagret på sin id.
             // vi konverterer derfor reguleringId til revurderingId for henting av informasjon
             revurderingId = RevurderingId(id.value),
             session = session,
