@@ -233,14 +233,14 @@ fun nyReguleringssupplementFor(
 )
 
 fun nyReguleringssupplementInnholdPerType(
-    type: Fradragstype = Fradragstype.Alderspensjon,
+    kategori: Fradragstype.Kategori = Fradragstype.Alderspensjon.kategori,
     vedtak: List<Eksternvedtak> = listOf(
         nyEksternvedtakEndring(),
         nyEksternvedtakRegulering(),
     ),
 ): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
     vedtak = vedtak.toNonEmptyList(),
-    type = type,
+    kategori = kategori,
 )
 
 fun nyEksternvedtakRegulering(

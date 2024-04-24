@@ -45,10 +45,10 @@ data class PesysUtrekkFromCsv(
     /** NETTO_YK: Eksempel: 26062 */
     val nettoYtelseskomponent: String,
 ) {
-    val fradragstype: Fradragstype? = when (sakstype) {
-        "UFOREP" -> Fradragstype.Uføretrygd
-        "ALDER" -> Fradragstype.Alderspensjon
-        "GJENLEV" -> Fradragstype.Gjenlevendepensjon
+    val fradragskategori: Fradragstype.Kategori? = when (sakstype) {
+        "UFOREP" -> Fradragstype.Uføretrygd.kategori
+        "ALDER" -> Fradragstype.Alderspensjon.kategori
+        "GJENLEV" -> Fradragstype.Gjenlevendepensjon.kategori
         else -> null
     }
 
@@ -75,7 +75,7 @@ private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold
             "feil_ved_parsing_av_fnr",
         ).left()
 
-        csv.grupperPåFradragstype().map { (fradragstype, gruppertPåFradragstype) ->
+        csv.grupperPåFradragstype().map { (fradragskategori, gruppertPåFradragstype) ->
             gruppertPåFradragstype.grupperPåVedtakstype().map { (vedtakstype, gruppertPåVedtak) ->
                 gruppertPåVedtak.grupperPåPeriode().map { (periode, gruppertPåPeriode) ->
                     gruppertPåPeriode.toEksternvedtak(
@@ -86,7 +86,7 @@ private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold
                 }
             }.flatten().let {
                 ReguleringssupplementFor.PerType(
-                    type = fradragstype,
+                    kategori = fradragskategori,
                     vedtak = it.toNonEmptyList(),
                 )
             }
@@ -96,8 +96,8 @@ private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold
     }.right()
 }
 
-private fun List<PesysUtrekkFromCsv>.grupperPåFradragstype(): Map<Fradragstype, List<PesysUtrekkFromCsv>> =
-    this.groupBy { it.fradragstype }.filterKeys { it != null }.mapKeys { it.key!! }
+private fun List<PesysUtrekkFromCsv>.grupperPåFradragstype(): Map<Fradragstype.Kategori, List<PesysUtrekkFromCsv>> =
+    this.groupBy { it.fradragskategori }.filterKeys { it != null }.mapKeys { it.key!! }
 
 private fun List<PesysUtrekkFromCsv>.grupperPåVedtakstype(): Map<ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype, List<PesysUtrekkFromCsv>> =
     this.groupBy { it.vedtakstypeToDomain() }.filterKeys { it != null }.mapKeys { it.key!! }

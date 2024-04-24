@@ -119,7 +119,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(tilOgMed = 31.mai(2021)),
                     nyEksternvedtakRegulering(fraOgMed = 1.juni(2021), null),
@@ -172,7 +172,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(),
                     nyEksternvedtakEndring(),
@@ -235,7 +235,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(beløp = 1050),
                     nyEksternvedtakEndring(beløp = 995),
@@ -288,7 +288,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1200), nyEksternvedtakEndring()),
             ),
         )
@@ -350,7 +350,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1050), nyEksternvedtakEndring(beløp = 995)),
             ),
         )

@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -37,10 +38,12 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -72,6 +75,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -513,27 +517,46 @@ internal class ReguleringServiceImplTest {
     fun `gjør ingen sideeffekter ved dry run`() {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
 
-        val reguleringMock = mock<ReguleringRepo> {}
+        val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
+            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val utbetalingMock = mock<UtbetalingService> {}
+        val utbetalingService = mock<UtbetalingService> {
+            on { simulerUtbetaling(any()) } doAnswer { invocation ->
+                simulerUtbetaling(
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                )
+            }
+        }
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
 
         ReguleringServiceImpl(
-            reguleringRepo = reguleringMock,
+            reguleringRepo = reguleringRepo,
             sakService = sakService,
-            utbetalingService = utbetalingMock,
+            utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-        ).startAutomatiskRegulering(mai(2022), Reguleringssupplement.empty())
+            clock = fixedClockAt(25.mai(2021)),
+            satsFactory = satsFactoryTestPåDato(25.mai(2021)),
+        ).startAutomatiskReguleringForInnsyn(
+            StartAutomatiskReguleringForInnsynCommand(
+                fraOgMedMåned = mai(2021),
+                virkningstidspunkt = 25.mai(2021),
+                supplement = Reguleringssupplement.empty(),
+            ),
+        )
 
-        verifyNoInteractions(reguleringMock)
-        verifyNoInteractions(utbetalingMock)
-        verifyNoInteractions(vedtakMock)
+        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSaker()
+        verify(sakService).hentSak(argShouldBe(sak.id))
+        verify(utbetalingService).simulerUtbetaling(any())
+
+        verifyNoMoreInteractions(sakService)
+        verifyNoMoreInteractions(reguleringRepo)
+        verifyNoMoreInteractions(utbetalingService)
+        verifyNoMoreInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
     }
 

@@ -29,7 +29,7 @@ class InnlesningReguleringTest {
                 fnr = Fnr.tryCreate("11111111111") ?: fail("kunne ikke lage FNR"),
                 perType = nonEmptyListOf(
                     ReguleringssupplementFor.PerType(
-                        type = Fradragstype.Uføretrygd,
+                        kategori = Fradragstype.Uføretrygd.kategori,
                         vedtak = nonEmptyListOf(
                             Eksternvedtak.Endring(
                                 måned = april(2024),

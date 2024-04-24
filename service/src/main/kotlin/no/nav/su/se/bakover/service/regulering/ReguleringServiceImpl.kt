@@ -79,6 +79,8 @@ class ReguleringServiceImpl(
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
+        // TODO - når vil vi egentlig lagre supplementet? sikkert greit rett før det brukes? Eventuelt, etter at reguleringen er ferdig?
+        reguleringRepo.lagre(supplement)
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
                 log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)

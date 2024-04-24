@@ -15,12 +15,12 @@ data class ReguleringssupplementFor(
     val perType: NonEmptyList<PerType>,
 ) {
     init {
-        perType.map { it.type }.let {
+        perType.map { it.kategori }.let {
             require(it.distinct() == it)
         }
     }
 
-    fun getForType(fradragstype: Fradragstype) = perType.find { it.type == fradragstype }
+    fun getForType(fradragstype: Fradragstype) = perType.find { it.kategori == fradragstype.kategori }
 
     /**
      * Innenfor en person, har vi et objekt per fradragstype, men vi støtter flere ikke-overlappende perioder, dvs. hull mellom periodene.
@@ -36,7 +36,7 @@ data class ReguleringssupplementFor(
          * - Gjenlevendepensjon
          * - Uføretrygd
          */
-        val type: Fradragstype,
+        val kategori: Fradragstype.Kategori,
     ) {
         val endringsvedtak: Eksternvedtak.Endring = vedtak.filterIsInstance<Eksternvedtak.Endring>().single()
         val reguleringsvedtak: List<Eksternvedtak.Regulering> = vedtak.filterIsInstance<Eksternvedtak.Regulering>()
