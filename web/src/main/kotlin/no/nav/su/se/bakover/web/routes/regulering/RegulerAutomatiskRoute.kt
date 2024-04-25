@@ -248,7 +248,7 @@ internal fun Route.reguler(
                                     CoroutineScope(Dispatchers.IO).launch {
                                         reguleringService.startAutomatiskReguleringForInnsyn(command = it)
                                     }
-                                    Resultat.accepted()
+                                    call.svar(Resultat.accepted())
                                 },
                             )
                         }

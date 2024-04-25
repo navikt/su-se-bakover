@@ -55,6 +55,7 @@ val grunnbeløpsendringer = nonEmptyListOf(
     Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399, BigDecimal(1.049807)),
     Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477, BigDecimal(1.047726)),
     Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620, BigDecimal(1.064076)),
+    Grunnbeløpsendring(1.mai(2024), 1.mai(2024), 126220, BigDecimal(1.064076)),
 )
 
 val garantipensjonsendringerOrdinær = nonEmptyListOf(
