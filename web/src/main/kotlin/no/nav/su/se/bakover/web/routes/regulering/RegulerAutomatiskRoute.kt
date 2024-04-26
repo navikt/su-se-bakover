@@ -269,61 +269,43 @@ internal fun Route.reguler(
                 isTrue = {
                     runBlocking {
                         val parts = call.receiveMultipart()
-                        var fraOgMedMåned = ""
-                        var csvData = ""
 
                         parts.forEachPart {
                             when (it) {
                                 is PartData.FileItem -> {
-                                    val fileBytes = it.streamProvider().readBytes()
-                                    csvData = String(fileBytes)
-                                }
-
-                                is PartData.FormItem -> {
-                                    when (it.name) {
-                                        "fraOgMedMåned" -> fraOgMedMåned = it.value
-                                        else -> Feilresponser.ukjentMultipartFormDataField
-                                    }
+                                    parseCSVFromString(String(it.streamProvider().readBytes()), clock).fold(
+                                        ifLeft = { call.svar(it) },
+                                        ifRight = {
+                                            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                                reguleringService.oppdaterReguleringerMedSupplement(it)
+                                                call.svar(Resultat.okJson())
+                                            } else {
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    reguleringService.oppdaterReguleringerMedSupplement(it)
+                                                }
+                                                call.svar(Resultat.accepted())
+                                            }
+                                        },
+                                    )
                                 }
 
                                 else -> Feilresponser.ukjentMultipartType
                             }
                         }
-
-                        parseCSVFromString(csvData, clock).fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = {
-                                val fraMåned =
-                                    Måned.parse(fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
-
-                                if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                    reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
-                                    call.svar(Resultat.okJson())
-                                } else {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
-                                    }
-                                    call.svar(Resultat.accepted())
-                                }
-                            },
-                        )
                     }
                 },
                 isFalse = {
                     runBlocking {
-                        call.withBody<SupplementBody> { body ->
+                        call.withBody<EttersendingSupplementBody> { body ->
                             parseCSVFromString(body.csv, clock).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
-                                    val fraMåned =
-                                        Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
-
                                     if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                        reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
+                                        reguleringService.oppdaterReguleringerMedSupplement(it)
                                         call.svar(Resultat.okJson())
                                     } else {
                                         CoroutineScope(Dispatchers.IO).launch {
-                                            reguleringService.oppdaterReguleringerMedSupplement(fraMåned, it)
+                                            reguleringService.oppdaterReguleringerMedSupplement(it)
                                         }
                                         call.svar(Resultat.accepted())
                                     }

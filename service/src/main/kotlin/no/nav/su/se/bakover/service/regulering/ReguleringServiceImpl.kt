@@ -261,9 +261,7 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement) {
-        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
-
+    override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
         reguleringerSomKanOppdateres.forEach { reguleringssammendrag ->
             log.info("Oppdatering av regulering for sak ${reguleringssammendrag.saksnummer} starter...")
@@ -287,6 +285,7 @@ class ReguleringServiceImpl(
                 val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
 
                 val eksternSupplementRegulering = EksternSupplementRegulering(supplement.id, søkersSupplement, epsSupplement)
+                val omregningsfaktor = satsFactory.grunnbeløp(regulering.periode.fraOgMed).omregningsfaktor
                 val oppdatertRegulering =
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
@@ -295,8 +294,10 @@ class ReguleringServiceImpl(
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
                 } else {
-                    log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
-                    regulering.right()
+                    log.info("Oppdatering av regulering for saksnummer ${sak.saksnummer}. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
+                    oppdatertRegulering.also {
+                        reguleringRepo.lagre(it)
+                    }
                 }
             }.mapLeft {
                 log.error("Feil ved oppdatering av regulering for saksnummer ${reguleringssammendrag.saksnummer}", it)

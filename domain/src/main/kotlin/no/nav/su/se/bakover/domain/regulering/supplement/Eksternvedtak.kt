@@ -24,6 +24,10 @@ sealed interface Eksternvedtak {
         return other.any { it.overlapper(this) }
     }
 
+    // TODO - test
+    fun eksterneData(): NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata> =
+        fradrag.map { it.eksterndata }
+
     data class Regulering(
         val periode: PeriodeMedOptionalTilOgMed,
         override val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>,
@@ -31,6 +35,7 @@ sealed interface Eksternvedtak {
     ) : Eksternvedtak {
         override val fraOgMed = periode.fraOgMed
         override val tilOgMed = periode.tilOgMed
+
         init {
             require(fradrag.all { it.fraOgMed == fraOgMed }) {
                 "Forventet tilOgMed $fraOgMed, men var ${fradrag.map { fraOgMed }}"

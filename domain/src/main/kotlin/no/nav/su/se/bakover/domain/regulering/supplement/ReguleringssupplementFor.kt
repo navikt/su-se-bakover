@@ -22,6 +22,10 @@ data class ReguleringssupplementFor(
 
     fun getForType(fradragstype: Fradragstype) = perType.find { it.kategori == fradragstype.kategori }
 
+    // TODO - test
+    fun eksternedataForAlleTyper(): NonEmptyList<PerType.Fradragsperiode.Eksterndata> =
+        perType.flatMap { it.vedtak.flatMap { it.eksterneData() } }
+
     /**
      * Innenfor en person, har vi et objekt per fradragstype, men vi støtter flere ikke-overlappende perioder, dvs. hull mellom periodene.
      * Dersom vi senere må ta høyde for overlapp av perioder, i forbindelse med overskrivende vedtak, trenger vi en diskriminator og tidslinjelogikk.
