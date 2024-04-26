@@ -74,7 +74,7 @@ internal data class SupplementForJson(
 )
 
 data class VedtaksperiodeEndringJson(
-    val periode: MånedJson,
+    val måned: MånedJson,
     val beløp: Int,
 )
 
