@@ -82,8 +82,13 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
             }.single()
 
             val sakId = sak.id
-            if (utbetalingKvitteringRepo.hentUtbetalingskvitteringerPåSakHendelser(sak.id).any { it.tidligereHendelseId == hendelseId }) {
-                log.info("Vi har allerede knyttet den rå kvitteringen til en sak. Denne vil ikke prøves på nytt. Hendelse $hendelseId, sak ${sak.id}")
+            if (
+                utbetalingKvitteringRepo.hentUtbetalingskvitteringerPåSakHendelser(sak.id)
+                    .any { it.tidligereHendelseId == hendelseId || it.originalKvittering == råKvittering.originalKvittering }
+            ) {
+                // jah: Vi forventer i utgangspunktet at dette veldig sjeldent skal inntreffe.
+                // Det kan skje dersom oppdrag sender flere kvitteringer på samme utbetalingId, eller dersom vi lagrer en rå hendelse, men ikke klarer acke mot IBM mq. Vi gjør ingen dedup i rå kvittering steget.
+                log.error("Vi har allerede knyttet den rå kvitteringen til en sak. Denne vil ikke prøves på nytt. Hendelse $hendelseId, sak ${sak.id}")
                 hendelsekonsumenterRepo.lagre(
                     hendelseId = hendelseId,
                     konsumentId = konsumentId,
@@ -171,26 +176,33 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
         konsumentId: HendelseskonsumentId,
         correlationId: CorrelationId,
     ) {
+        val hendelsePåSak = this.tilKvitteringPåSakHendelse(
+            nesteVersjon = sak.versjon.inc(),
+            sakId = sak.id,
+            utbetalingId = utbetalingId,
+            utbetalingsstatus = utbetalingsstatus,
+            clock = clock,
+            tidligereHendelseId = this.hendelseId,
+        )
         val saksnummer = sak.saksnummer
-        // jah: Vi forventer i utgangspunktet at dette veldig sjeldent skal inntreffe.
-        // Det kan skje dersom oppdrag sender flere kvitteringer på samme utbetalingId, eller dersom vi lagrer en rå hendelse, men ikke klarer acke mot IBM mq. Vi gjør ingen dedup i rå kvittering steget.
+        // Vi har allerede ignorert denne hendelsen dersom den er a) allerede har en hendelse knyttet til denne hendelsen eller b) allerede har en hendelse knyttet til denne originale kvitteringen (XMLen).
+        // Så her vurderer vi om vi kun skal lagre sakshendelsen eller også (overlagre) kvitteringen på utbetalingen.
         if (utbetaling.kvittering.originalKvittering == originalKvittering) {
-            log.warn("Utbetaling med id $utbetalingId på sak $saksnummer er allerede kvittert med samme kvittering. Vi ignorerer denne og setter den som utført.")
-            hendelsekonsumenterRepo.lagre(
-                hendelseId = hendelseId,
-                konsumentId = konsumentId,
-                context = sessionFactory.newSessionContext(),
-            )
+            log.error("Utbetaling med id $utbetalingId på sak $saksnummer er allerede kvittert med samme kvittering, men siden vi mangler sakshendelsen, oppretter vi den.")
+            sessionFactory.withTransactionContext { tx ->
+                utbetalingKvitteringRepo.lagreUtbetalingskvitteringPåSakHendelse(
+                    hendelsePåSak,
+                    DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                    tx,
+                )
+                hendelsekonsumenterRepo.lagre(
+                    hendelseId = hendelseId,
+                    konsumentId = konsumentId,
+                    context = tx,
+                )
+            }
         } else {
             log.error("Utbetaling med id $utbetalingId på sak $saksnummer er allerede kvittert, men med andre data. Oppretter erstatningshendelse.")
-            val hendelsePåSak = this.tilKvitteringPåSakHendelse(
-                nesteVersjon = sak.versjon.inc(),
-                sakId = sak.id,
-                utbetalingId = utbetalingId,
-                utbetalingsstatus = utbetalingsstatus,
-                clock = clock,
-                tidligereHendelseId = this.hendelseId,
-            )
             sessionFactory.withTransactionContext { tx ->
                 utbetalingKvitteringRepo.lagreUtbetalingskvitteringPåSakHendelse(
                     hendelsePåSak,
