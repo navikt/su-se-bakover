@@ -319,6 +319,7 @@ fun Application.testSusebakover(appComponents: AppComponents) {
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,
+        disableConsumersAndJobs = true,
     )
 }
 

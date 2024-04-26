@@ -71,6 +71,7 @@ internal fun Application.testSusebakoverWithMockedDb(
         clients = clients,
         services = services,
         accessCheckProxy = accessCheckProxy,
+        disableConsumersAndJobs = true,
     )
 }
 

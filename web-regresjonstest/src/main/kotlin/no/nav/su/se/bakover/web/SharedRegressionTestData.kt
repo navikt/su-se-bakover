@@ -174,6 +174,7 @@ data object SharedRegressionTestData {
             clients = clients,
             services = services,
             accessCheckProxy = accessCheckProxy,
+            disableConsumersAndJobs = true,
         )
     }
 }

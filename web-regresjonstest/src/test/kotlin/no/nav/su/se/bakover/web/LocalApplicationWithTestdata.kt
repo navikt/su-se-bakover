@@ -35,6 +35,7 @@ fun main() {
                         brevService = brevService,
                     )
                 },
+                disableConsumersAndJobs = false,
             ) {
                 this.testDataRoutes()
             }
