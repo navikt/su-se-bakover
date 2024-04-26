@@ -26,6 +26,9 @@
     <!-- WEB -->
     <logger name="ktor.test" level="WARN"/>
 
+    <!-- OTHER -->
+    <logger name="ch.qos.logback" level="WARN"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

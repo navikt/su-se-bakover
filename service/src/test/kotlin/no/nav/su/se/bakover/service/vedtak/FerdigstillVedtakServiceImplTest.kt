@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -102,7 +103,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             vedtakService = mock {
-                on { hentForUtbetaling(any()) } doReturn null
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn null
             },
         ) {
             val utbetaling =
@@ -122,7 +123,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             vedtakService = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
@@ -135,7 +136,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
 
-            verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId)
+            verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId, null)
             verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato())), anyOrNull())
         }
     }
@@ -147,7 +148,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         FerdigstillVedtakServiceMocks(
             vedtakService = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
@@ -164,7 +165,7 @@ internal class FerdigstillVedtakServiceImplTest {
             inOrder(
                 *all(),
             ) {
-                verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
+                verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId }, eq(null))
                 verify(brevService).lagDokument(
                     argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
                     anyOrNull(),
@@ -183,7 +184,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakService = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
@@ -196,25 +197,23 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val utbetaling =
                 sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
-            service.ferdigstillVedtakEtterUtbetaling(utbetaling)
+            service.ferdigstillVedtakEtterUtbetaling(utbetaling, TestSessionFactory.transactionContext)
 
-            inOrder(
-                *all(),
-            ) {
-                verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(
-                    argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
-                    anyOrNull(),
-                )
-                verify(brevService).lagreDokument(
-                    argThat {
-                        it.generertDokument shouldBe pdf
-                        it.metadata shouldBe Dokument.Metadata(sakId = sak.id, vedtakId = vedtak.id)
-                    },
-                )
-                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
-                verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
-            }
+            verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId }, eq(TestSessionFactory.transactionContext))
+            verify(brevService).lagDokument(
+                argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                anyOrNull(),
+            )
+            verify(brevService).lagreDokument(
+                argThat {
+                    it.generertDokument shouldBe pdf
+                    it.metadata shouldBe Dokument.Metadata(sakId = sak.id, vedtakId = vedtak.id)
+                },
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
+            verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
+            verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
+            org.mockito.kotlin.verifyNoMoreInteractions(*all())
         }
     }
 
@@ -238,7 +237,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakService = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             clock = clock,
         ) {
@@ -262,10 +261,13 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
+                on { lukkOppgave(any()) } doAnswer {
+                    KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left()
+                }
             },
         ) {
-            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(behandling.oppgaveId).left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(behandling.oppgaveId)
+                .left()
 
             inOrder(
                 *all(),

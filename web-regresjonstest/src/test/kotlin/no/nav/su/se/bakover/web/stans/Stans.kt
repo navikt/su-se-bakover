@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
-import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringForUtbetalingFraØkonomi
+import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringOgFerdigstillVedtak
 import java.util.UUID
 
 internal fun opprettStans(
@@ -75,7 +75,7 @@ internal fun iverksettStans(
                 contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText().also {
-            appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))
+            appComponents?.mottaKvitteringOgFerdigstillVedtak(sakId = UUID.fromString(sakId))
         }
     }
 }

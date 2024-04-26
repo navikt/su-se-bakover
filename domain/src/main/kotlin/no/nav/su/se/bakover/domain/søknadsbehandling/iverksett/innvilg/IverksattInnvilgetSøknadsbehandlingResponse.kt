@@ -1,4 +1,7 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som IverksattSøknadsbehandlingResponse (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+
+package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -11,7 +14,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave

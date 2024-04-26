@@ -9,7 +9,7 @@ import java.util.UUID
 /**
  * En rå kravgrunnlagshendelse fra oppdrag, som vi ikke har knyttet til sak enda.
  *
- * @see [økonomi.domain.kvittering.RåKvitteringHendelse] for en tilsvarende hendelse som ikke er knyttet til sak.
+ * @see [økonomi.domain.kvittering.RåUtbetalingskvitteringhendelse] for en tilsvarende hendelse som ikke er knyttet til sak.
  */
 data class RåttKravgrunnlagHendelse(
     override val hendelseId: HendelseId,

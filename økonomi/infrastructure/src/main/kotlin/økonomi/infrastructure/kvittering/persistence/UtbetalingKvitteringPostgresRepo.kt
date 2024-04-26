@@ -4,76 +4,124 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
-import økonomi.domain.kvittering.KvitteringPåSakHendelse
-import økonomi.domain.kvittering.RåKvitteringHendelse
-import økonomi.domain.kvittering.UtbetalingKvitteringRepo
+import økonomi.domain.kvittering.RåUtbetalingskvitteringhendelse
+import økonomi.domain.kvittering.UtbetalingskvitteringPåSakHendelse
+import økonomi.domain.kvittering.UtbetalingskvitteringPåSakHendelser
+import økonomi.domain.kvittering.UtbetalingskvitteringRepo
 import økonomi.infrastructure.kvittering.persistence.KvitteringPåSakHendelseJson.Companion.toDbJson
 import økonomi.infrastructure.kvittering.persistence.KvitteringPåSakHendelseJson.Companion.toKvitteringPåSakHendelse
-import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toJson
-import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toRåKvitteringHendelse
+import java.util.UUID
 
-val UtbetalingKvitteringHendelsestype = Hendelsestype("UTBETALING_KVITTERING")
-val UtbetalingKvitteringPåSakHendelsestype = Hendelsestype("UTBETALING_KVITTERING_PÅ_SAK")
+val MottattUtbetalingskvitteringHendelsestype = Hendelsestype("MOTTATT_UTBETALINGSKVITTERING")
+val KnyttetUtbetalingskvitteringTilSakHendelsestype = Hendelsestype("KNYTTET_UTBETALINGSKVITTERING_TIL_SAK")
 
 class UtbetalingKvitteringPostgresRepo(
-    private val hendelseRepo: HendelsePostgresRepo,
+    private val hendelseRepo: HendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val dbMetrics: DbMetrics,
-) : UtbetalingKvitteringRepo {
+) : UtbetalingskvitteringRepo {
 
-    override fun lagre(hendelse: RåKvitteringHendelse, meta: JMSHendelseMetadata) {
+    override fun lagreRåKvitteringHendelse(
+        hendelse: RåUtbetalingskvitteringhendelse,
+        meta: JMSHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
         dbMetrics.timeQuery("lagreRåKvitteringHendelse") {
-            hendelseRepo.persisterHendelse(
+            (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
                 hendelse = hendelse,
-                type = UtbetalingKvitteringHendelsestype,
+                type = MottattUtbetalingskvitteringHendelsestype,
                 data = hendelse.toJson(),
                 meta = meta.toDbJson(),
+                sessionContext = sessionContext,
             )
         }
     }
 
-    override fun lagre(
-        hendelse: KvitteringPåSakHendelse,
+    override fun lagreUtbetalingskvitteringPåSakHendelse(
+        hendelse: UtbetalingskvitteringPåSakHendelse,
         meta: DefaultHendelseMetadata,
-        sessionContext: SessionContext,
+        sessionContext: SessionContext?,
     ) {
-        dbMetrics.timeQuery("lagreKvitteringPåSakHendelse") {
-            hendelseRepo.persisterSakshendelse(
+        dbMetrics.timeQuery("lagreUtbetalingskvitteringPåSakHendelse") {
+            (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
                 hendelse = hendelse,
-                type = UtbetalingKvitteringPåSakHendelsestype,
+                type = KnyttetUtbetalingskvitteringTilSakHendelsestype,
                 data = hendelse.toDbJson(),
                 meta = meta.toDbJson(),
+                sessionContext = sessionContext,
             )
         }
     }
 
-    override fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): Set<HendelseId> {
-        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = UtbetalingKvitteringHendelsestype,
-        )
+    override fun hentUprosesserteMottattUtbetalingskvittering(
+        konsumentId: HendelseskonsumentId,
+        sessionContext: SessionContext?,
+    ): Set<HendelseId> {
+        return dbMetrics.timeQuery("hentUbehandledeMottattUtbetalingskvittering") {
+            hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+                konsumentId = konsumentId,
+                hendelsestype = MottattUtbetalingskvitteringHendelsestype,
+                sessionContext = sessionContext,
+            )
+        }
     }
 
-    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): Set<HendelseId> {
-        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
-            konsumentId = konsumentId,
-            hendelsestype = UtbetalingKvitteringPåSakHendelsestype,
-        )
+    override fun hentUprosesserteKnyttetUtbetalingskvitteringTilSak(
+        konsumentId: HendelseskonsumentId,
+        sessionContext: SessionContext?,
+    ): Set<HendelseId> {
+        return dbMetrics.timeQuery("hentUbehandledeKnyttetUtbetalingskvitteringTilSak") {
+            hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+                konsumentId = konsumentId,
+                hendelsestype = KnyttetUtbetalingskvitteringTilSakHendelsestype,
+                sessionContext = sessionContext,
+            )
+        }
     }
 
-    override fun hentRåKvittering(id: HendelseId): RåKvitteringHendelse? {
-        val hendelse = hendelseRepo.hentHendelseForHendelseId(id)
-        return hendelse?.toRåKvitteringHendelse()
+    override fun hentRåUtbetalingskvitteringhendelse(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext?,
+    ): RåUtbetalingskvitteringhendelse? {
+        return dbMetrics.timeQuery("hentRåKvitteringHendelse") {
+            (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(
+                hendelseId = hendelseId,
+                sessionContext = sessionContext,
+            )?.toRåKvitteringHendelse()
+        }
     }
 
-    override fun hentKvittering(hendelseId: HendelseId): KvitteringPåSakHendelse? {
-        val hendelse = hendelseRepo.hentHendelseForHendelseId(hendelseId)
-        return hendelse?.toKvitteringPåSakHendelse()
+    override fun hentKnyttetUtbetalingskvitteringTilSakHendelse(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext?,
+    ): UtbetalingskvitteringPåSakHendelse? {
+        return dbMetrics.timeQuery("hentKnyttetUtbetalingskvitteringTilSakHendelse") {
+            (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(
+                hendelseId = hendelseId,
+                sessionContext = sessionContext,
+            )?.toKvitteringPåSakHendelse()
+        }
+    }
+
+    override fun hentUtbetalingskvitteringerPåSakHendelser(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): UtbetalingskvitteringPåSakHendelser {
+        return dbMetrics.timeQuery("hentKravgrunnlagPåSakHendelser") {
+            (hendelseRepo as HendelsePostgresRepo).hentHendelserForSakIdOgType(
+                sakId = sakId,
+                type = KnyttetUtbetalingskvitteringTilSakHendelsestype,
+                sessionContext = sessionContext,
+            ).map {
+                it.toKvitteringPåSakHendelse()
+            }.let { UtbetalingskvitteringPåSakHendelser(it) }
+        }
     }
 }

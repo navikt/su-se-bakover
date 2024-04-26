@@ -12,18 +12,18 @@ import kotlin.concurrent.fixedRateTimer
  */
 class LokalKvitteringJob(
     private val lokalKvitteringService: LokalKvitteringService,
-    private val periode: Duration,
+    private val intervall: Duration,
     private val initialDelay: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun schedule() {
-        log.error("Lokal jobb: Startet skedulert jobb for kvitteringer og ferdigstillelse av innvilgelser. initialDelay: $initialDelay, periode: $periode")
+        log.error("Lokal jobb: Startet skedulert jobb for kvitteringer og ferdigstillelse av innvilgelser. initialDelay: $initialDelay, periode: $intervall")
         val jobName = "local-ferdigstill-utbetaling"
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = periode.toMillis(),
+            period = intervall.toMillis(),
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {

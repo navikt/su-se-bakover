@@ -26,6 +26,8 @@ internal class NySøknadsbehandlingIT {
             )
             val sakId = BehandlingJson.hentSakId(opprettSøknadsbehandlingResponseJson)
             assertSakJson(
+                // 1. reservert, 2. kvittering søknadsbehandling
+                expectedVersjon = 2,
                 actualSakJson = hentSak(sakId, client = this.client),
                 expectedFnr = fnr,
                 expectedId = sakId,

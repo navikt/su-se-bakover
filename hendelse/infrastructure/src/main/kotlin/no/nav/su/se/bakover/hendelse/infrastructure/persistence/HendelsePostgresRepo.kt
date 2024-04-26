@@ -133,6 +133,27 @@ class HendelsePostgresRepo(
         }
     }
 
+    fun hentHendelserForSakId(
+        sakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): List<PersistertHendelse> {
+        return dbMetrics.timeQuery("hentHendelserForSakId") {
+            sessionContext.withOptionalSession(sessionFactory) { session ->
+                """
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    from hendelse
+                    where sakId = :sakId
+                    order by versjon
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "sakId" to sakId,
+                    ),
+                    session = session,
+                ) { toPersistertHendelse(it) }
+            }
+        }
+    }
+
     fun hentHendelserMedSaksnummerOgFnrForSakIdOgType(
         sakId: UUID,
         type: Hendelsestype,

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -35,9 +34,9 @@ class DokumentPostgresRepo(
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
-    override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
+    override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
-            transactionContext.withTransaction { tx ->
+            sessionFactory.withTransaction(transactionContext) { tx ->
                 """
                 insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId)
                 values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId)

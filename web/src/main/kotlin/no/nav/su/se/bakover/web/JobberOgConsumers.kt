@@ -46,9 +46,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
 import tilbakekreving.presentation.job.Tilbakekrevingsjobber
-import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
-import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
-import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
+import økonomi.infrastructure.kvittering.UtbetalingskvitteringKomponenter
+import økonomi.infrastructure.kvittering.consumer.kvitteringXmlTilSaksnummerOgUtbetalingId
+import økonomi.infrastructure.kvittering.startAsynkroneUtbetalingsprosesser
+import økonomi.infrastructure.kvittering.xmlMapperForUtbetalingskvittering
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -64,9 +65,7 @@ fun startJobberOgConsumers(
     applicationConfig: ApplicationConfig,
     jmsConfig: JmsConfig,
     clock: Clock,
-    consumers: Consumers,
-    // TODO jah: Skal brukes når vi bytter over til ny jobb for å ferdigstille vedtak med utbetaling+kvittering
-    @Suppress("UNUSED_PARAMETER") dbMetrics: DbMetrics,
+    dbMetrics: DbMetrics,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     dokumentKomponenter: Dokumentkomponenter,
 ) {
@@ -92,37 +91,47 @@ fun startJobberOgConsumers(
         dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
     )
 
-    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        // Prøver å time starten på jobbene slik at de ikke går i beina på hverandre.
-        val initialDelay = object {
-            var initialDelay: Duration = Duration.ofMinutes(5)
-            fun next(): Duration {
-                return initialDelay.also {
-                    initialDelay = initialDelay.plus(Duration.ofSeconds(30))
+    val initialDelay = object {
+        var initialDelay: Duration = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+            Duration.ofMinutes(5)
+        } else {
+            Duration.ofSeconds(5)
+        }
+        fun next(): Duration {
+            return initialDelay.also {
+                if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+                    initialDelay.plus(Duration.ofSeconds(30))
+                } else {
+                    initialDelay.plus(Duration.ofSeconds(5))
                 }
             }
         }
+    }
+
+    val utbetalingskvitteringKomponenter = UtbetalingskvitteringKomponenter.create(
+        sakService = services.sak,
+        sessionFactory = databaseRepos.sessionFactory,
+        clock = clock,
+        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+        hendelseRepo = databaseRepos.hendelseRepo,
+        dbMetrics = dbMetrics,
+        utbetalingService = services.utbetaling,
+        ferdigstillVedtakService = services.ferdigstillVedtak,
+        xmlMapperForUtbetalingskvittering = kvitteringXmlTilSaksnummerOgUtbetalingId(xmlMapperForUtbetalingskvittering),
+    )
+    startAsynkroneUtbetalingsprosesser(
+        utbetalingskvitteringKomponenter = utbetalingskvitteringKomponenter,
+        oppdragConfig = applicationConfig.oppdrag,
+        jmsConfig = jmsConfig,
+        initalDelay = initialDelay::next,
+        runCheckFactory = runCheckFactory,
+        runtimeEnvironment = applicationConfig.runtimeEnvironment,
+        utbetalingRepo = databaseRepos.utbetaling,
+    )
+
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         val isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod
-        // TODO jah: startAsynkroneUtbetalingsprosesser skal erstatte den gamle UtbetalingKvitteringIbmMqConsumer
-//        startAsynkroneUtbetalingsprosesser(
-//            oppdragConfig = applicationConfig.oppdrag,
-//            jmsConfig = jmsConfig,
-//            sakService = services.sak,
-//            sessionFactory = databaseRepos.sessionFactory,
-//            clock = clock,
-//            hendelsekonsumenterRepo = databaseRepos.hendelseKonsumenterRepo,
-//            utbetalingService = services.utbetaling,
-//            ferdigstillVedtakService = services.ferdigstillVedtak,
-//            initalDelay = initialDelay::next,
-//            runCheckFactory = runCheckFactory,
-//            dbMetrics = dbMetrics,
-//            hendelseRepo = databaseRepos.hendelseRepo as HendelsePostgresRepo,
-//        )
-        UtbetalingKvitteringIbmMqConsumer(
-            kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
-            globalJmsContext = jmsConfig.jmsContext,
-            kvitteringConsumer = consumers.utbetalingKvitteringConsumer,
-        )
+
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = services.personhendelseService,
@@ -302,24 +311,6 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
-        val initialDelay = object {
-            var initialDelay: Duration = Duration.ZERO
-            fun next(): Duration {
-                return initialDelay.also {
-                    initialDelay.plus(Duration.ofSeconds(5))
-                }
-            }
-        }
-        LokalKvitteringJob(
-            lokalKvitteringService = LokalKvitteringService(
-                utbetalingRepo = databaseRepos.utbetaling,
-                utbetalingKvitteringConsumer = consumers.utbetalingKvitteringConsumer,
-            ),
-            initialDelay = initialDelay.next(),
-            periode = Duration.ofSeconds(10),
-        ).schedule()
-
         JournalførDokumentJob(
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),

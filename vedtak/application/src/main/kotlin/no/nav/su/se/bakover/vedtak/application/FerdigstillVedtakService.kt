@@ -10,6 +10,7 @@ import behandling.domain.Stønadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -26,6 +27,7 @@ import java.util.UUID
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+        transactionContext: TransactionContext? = null,
     ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit>
 
     fun ferdigstillVedtak(
@@ -47,14 +49,13 @@ class FerdigstillVedtakServiceImpl(
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * Entry point for kvittering consumer.
-     */
+    /** Laget spesifikt for [økonomi.application.kvittering.FerdigstillVedtakEtterMottattKvitteringKonsument] */
     override fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+        transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit> {
-        // TODO jah: Gjør denne idempotent? Kan lage hendelser for oppgaven+dokumentet
         return if (utbetaling.trengerIkkeFerdigstilles()) {
+            // Merk at vi heller ikke prøver lukke oppgaver her. Det går fint så lenge vi ikke oppretter oppgaver for stans/gjenopptak.
             log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
             Unit.right()
         } else {
@@ -63,18 +64,22 @@ class FerdigstillVedtakServiceImpl(
                 Unit.right()
             } else {
                 log.info("Ferdigstiller vedtak etter utbetaling")
-                vedtakService.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit } }
+                val vedtak = vedtakService.hentForUtbetaling(utbetaling.id, transactionContext)
                     ?: return KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(utbetaling.id)
-                        .left()
-                        .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
+                        .left().also {
+                            log.error("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.")
+                        }
+                return ferdigstillVedtak(vedtak, transactionContext).map { Unit }
             }
         }
     }
 
-    override fun ferdigstillVedtak(vedtakId: UUID): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
+    override fun ferdigstillVedtak(
+        vedtakId: UUID,
+    ): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         return vedtakService.hentForVedtakId(vedtakId)!!.let { vedtak ->
             vedtak as VedtakSomKanRevurderes
-            ferdigstillVedtak(vedtak).onLeft {
+            ferdigstillVedtak(vedtak, null).onLeft {
                 log.error(
                     "Kunne ikke ferdigstille vedtak ${vedtak.id}: $it",
                     RuntimeException("Trigger stacktrace for enklere debugging"),
@@ -98,9 +103,11 @@ class FerdigstillVedtakServiceImpl(
 
     private fun ferdigstillVedtak(
         vedtak: VedtakSomKanRevurderes,
+        transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakFerdigstilt> {
+        // Denne fungerer også som dedup. Dersom vi allerede har lagret et dokument knyttet til vedtaket vil denne gi false.
         return if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
-            val dokument = lagreDokument(vedtak).getOrElse { return it.left() }
+            val dokument = lagreDokument(vedtak, transactionContext).getOrElse { return it.left() }
             lukkOppgaveMedSystembruker(vedtak.behandling).fold(
                 {
                     VedtakFerdigstilt.DokumentLagret.KunneIkkeLukkeOppgave(dokument, it.oppgaveId).right()
@@ -130,7 +137,10 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
-    private fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
+    private fun lagreDokument(
+        vedtak: VedtakSomKanRevurderes,
+        transactionContext: TransactionContext?,
+    ): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
         return brevService.lagDokument(vedtak.lagDokumentKommando(clock, satsFactory)).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
@@ -142,9 +152,8 @@ class FerdigstillVedtakServiceImpl(
                     revurderingId = null,
                 ),
             )
-            brevService.lagreDokument(
-                dokumentMedMetadata,
-            )
+            brevService.lagreDokument(dokumentMedMetadata, transactionContext)
+
             dokumentMedMetadata
         }
     }

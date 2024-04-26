@@ -16,7 +16,7 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 
-interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
+sealed interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
     val sak: Sak
     val vedtak: VedtakIverksattSøknadsbehandling
     val søknadsbehandling: T

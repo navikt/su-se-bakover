@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHend
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
-import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.mapRåttKravgrunnlagPåSakHendelse
@@ -29,7 +29,9 @@ import org.mockito.kotlin.mock
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
-import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
+import økonomi.infrastructure.kvittering.UtbetalingskvitteringKomponenter
+import økonomi.infrastructure.kvittering.consumer.kvitteringXmlTilSaksnummerOgUtbetalingId
+import økonomi.infrastructure.kvittering.xmlMapperForUtbetalingskvittering
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -43,7 +45,7 @@ class AppComponents private constructor(
     val tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     val dokumentHendelseKomponenter: Dokumentkomponenter,
     val accessCheckProxy: AccessCheckProxy,
-    val consumers: Consumers,
+    val utbetalingskvitteringKomponenter: UtbetalingskvitteringKomponenter,
 ) {
     companion object {
         fun instance(
@@ -64,13 +66,6 @@ class AppComponents private constructor(
                 personRepo = databaseRepos.person,
                 services = services,
             )
-            val consumers = Consumers(
-                utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
-                    utbetalingService = services.utbetaling,
-                    ferdigstillVedtakService = services.ferdigstillVedtak,
-                    clock = clock,
-                ),
-            )
             val tilbakekrevingskomponenter = tilbakekrevingskomponenterBuilder(databaseRepos, services)
             val dokumenterKomponenter = dokumentKomponenterBuilder(databaseRepos, services, clients)
             return AppComponents(
@@ -80,9 +75,21 @@ class AppComponents private constructor(
                 clients = clients,
                 services = services,
                 accessCheckProxy = accessCheckProxy,
-                consumers = consumers,
                 tilbakekrevingskomponenter = tilbakekrevingskomponenter,
                 dokumentHendelseKomponenter = dokumenterKomponenter,
+                utbetalingskvitteringKomponenter = UtbetalingskvitteringKomponenter.create(
+                    sakService = services.sak,
+                    sessionFactory = databaseRepos.sessionFactory,
+                    clock = clock,
+                    hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                    hendelseRepo = databaseRepos.hendelseRepo as HendelsePostgresRepo,
+                    dbMetrics = dbMetricsStub,
+                    utbetalingService = services.utbetaling,
+                    ferdigstillVedtakService = services.ferdigstillVedtak,
+                    xmlMapperForUtbetalingskvittering = kvitteringXmlTilSaksnummerOgUtbetalingId(
+                        xmlMapperForUtbetalingskvittering,
+                    ),
+                ),
             )
         }
 
@@ -312,7 +319,6 @@ fun Application.testSusebakover(appComponents: AppComponents) {
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,
-        consumers = appComponents.consumers,
     )
 }
 

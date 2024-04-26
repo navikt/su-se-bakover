@@ -34,7 +34,7 @@ interface VedtakRepo {
 
     /** En spesialoperasjon som kun skal brukes ved resending av utbetalinger */
     fun oppdaterUtbetalingId(vedtakId: UUID, utbetalingId: UUID30, sessionContext: SessionContext? = null)
-    fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
+    fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext? = null): VedtakSomKanRevurderes?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 }

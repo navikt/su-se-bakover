@@ -3,12 +3,12 @@ package økonomi.application.kvittering
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
-import økonomi.domain.kvittering.RåKvitteringHendelse
-import økonomi.domain.kvittering.UtbetalingKvitteringRepo
+import økonomi.domain.kvittering.RåUtbetalingskvitteringhendelse
+import økonomi.domain.kvittering.UtbetalingskvitteringRepo
 import java.time.Clock
 
 class RåKvitteringService(
-    private val utbetalingKvitteringRepo: UtbetalingKvitteringRepo,
+    private val utbetalingKvitteringRepo: UtbetalingskvitteringRepo,
     private val clock: Clock,
 ) {
     /**
@@ -19,8 +19,8 @@ class RåKvitteringService(
         originalKvittering: String,
         meta: JMSHendelseMetadata,
     ) {
-        utbetalingKvitteringRepo.lagre(
-            hendelse = RåKvitteringHendelse(
+        utbetalingKvitteringRepo.lagreRåKvitteringHendelse(
+            hendelse = RåUtbetalingskvitteringhendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
                 originalKvittering = originalKvittering,

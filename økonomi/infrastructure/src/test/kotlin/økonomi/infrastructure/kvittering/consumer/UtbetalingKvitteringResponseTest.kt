@@ -5,13 +5,14 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.UUID30
 import org.junit.jupiter.api.Test
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
+import økonomi.infrastructure.kvittering.xmlMapperForUtbetalingskvittering
 
 internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
         kvitteringXml(UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9")).toKvitteringResponse(
-            UtbetalingKvitteringConsumer.xmlMapper,
+            xmlMapperForUtbetalingskvittering,
         ) shouldBe UtbetalingKvitteringResponse(
             mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",
@@ -81,7 +82,7 @@ internal class UtbetalingKvitteringResponseTest {
         const val AVSTEMMINGSNØKKEL_TIDSPUNKT_I_XML = "2200-10-06-09.19.48.123456"
 
         //language=XML
-        fun kvitteringXml(
+        private fun kvitteringXml(
             utbetalingsId: UUID30,
             alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL,
         ) =

@@ -44,11 +44,12 @@ internal class TilbakekrevingsbehandlingIT {
                 appComponents = appComponents,
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            verifiserKravgrunnlagPåSak(sakId, client, true, 2)
+            // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
+            verifiserKravgrunnlagPåSak(sakId, client, true, 4)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 2,
+                saksversjon = 4,
                 client = this.client,
             )
             forhåndsvisForhåndsvarselTilbakekreving(
@@ -163,7 +164,7 @@ internal class TilbakekrevingsbehandlingIT {
                 ],
                 "eksternKravgrunnlagId":"123456",
                 "eksternVedtakId":"654321",
-                "eksternKontrollfelt":"2021-02-01-02.03.42.456789",
+                "eksternKontrollfelt":"2021-02-01-02.03.44.456789",
                 "bruttoSkalTilbakekreveSummert":0,
                 "nettoSkalTilbakekreveSummert":0,
                 "bruttoSkalIkkeTilbakekreveSummert":2383,
@@ -227,10 +228,11 @@ internal class TilbakekrevingsbehandlingIT {
                 appComponents = appComponents,
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            verifiserKravgrunnlagPåSak(sakId, client, true, 2)
+            // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
+            verifiserKravgrunnlagPåSak(sakId, client, true, 4)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
-                saksversjon = 2,
+                saksversjon = 4,
                 client = this.client,
             )
             val (_, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(
@@ -257,7 +259,8 @@ internal class TilbakekrevingsbehandlingIT {
                 },
             )
             appComponents.emulerViMottarKravgrunnlagDetaljer()
-            val versjonEtterNyttKravgrunnlag = versjonEtterVurdering + 1
+            // Kommet en ny kvittering + kravgrunnlag
+            val versjonEtterNyttKravgrunnlag = versjonEtterVurdering + 2
             verifiserKravgrunnlagPåSak(sakId, client, true, versjonEtterNyttKravgrunnlag.toInt())
             val (_, versjonEtterOppdateringAvKravgrunnlag) = oppdaterKravgrunnlag(
                 sakId = sakId,

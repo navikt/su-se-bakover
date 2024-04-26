@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test.persistence
 
 import arrow.core.NonEmptyList
 import arrow.core.Tuple4
+import arrow.core.Tuple5
 import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -154,6 +155,8 @@ import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.utbetaling.kvittering.råUtbetalingskvitteringhendelse
+import no.nav.su.se.bakover.test.utbetaling.kvittering.utbetalingskvitteringPåSakHendelse
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -182,10 +185,13 @@ import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.kvittering.RåUtbetalingskvitteringhendelse
+import økonomi.domain.kvittering.UtbetalingskvitteringPåSakHendelse
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
+import økonomi.infrastructure.kvittering.persistence.UtbetalingKvitteringPostgresRepo
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -232,6 +238,12 @@ class TestDataHelper(
 
     val dokumentHendelseRepo =
         DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory), sessionFactory)
+
+    val utbetalingskvitteringrepo = UtbetalingKvitteringPostgresRepo(
+        hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        dbMetrics = dbMetrics,
+    )
 
     val tilbakekreving = PersistertTilbakekrevingTestData(
         sessionFactory = sessionFactory,
@@ -1833,6 +1845,57 @@ class TestDataHelper(
                 }
             }
         }
+    }
+
+    /**
+     * Persisterer:
+     * 1) iverksatt søknadsbehandling.
+     * 2) oversendt utbetaling uten kvittering
+     * 3) vedtak
+     * 4) rå utbetalingskvittering
+     * 5) utbetalingskvittering knyttet til sak
+     *
+     * TODO jah: Kvitteringen på utbetalingen vil ha mismatch med kvitteringen på hendelsene.
+     */
+    fun persisterUtbetalingskvitteringKnyttetTilSak(
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+    ): Tuple5<Sak, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling, RåUtbetalingskvitteringhendelse, UtbetalingskvitteringPåSakHendelse> {
+        val (sak, vedtak, utbetaling, råHendelse) = persisterRåUtbetalingskvittering(sakOgSøknad)
+        val hendelse = utbetalingskvitteringPåSakHendelse(
+            sakId = sak.id,
+            utbetalingId = utbetaling.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            avstemmingsnøkkel = utbetaling.avstemmingsnøkkel,
+            tidligereHendelseId = råHendelse.hendelseId,
+        )
+        this.utbetalingskvitteringrepo.lagreUtbetalingskvitteringPåSakHendelse(hendelse, defaultHendelseMetadata())
+        return Tuple5(sak, vedtak, utbetaling, råHendelse, hendelse)
+    }
+
+    /**
+     * Persisterer:
+     * 1) iverksatt søknadsbehandling.
+     * 2) oversendt utbetaling uten kvittering
+     * 3) vedtak
+     * 4) rå utbetalingskvittering
+     *
+     * TODO jah: Kvitteringen på utbetalingen vil ha mismatch med kvitteringen på hendelsene.
+     */
+    fun persisterRåUtbetalingskvittering(
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+    ): Tuple4<Sak, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling, RåUtbetalingskvitteringhendelse> {
+        val (sak: Sak, _, vedtak, utbetaling: Utbetaling.OversendtUtbetaling) = this.persisterSøknadsbehandlingIverksattInnvilget(
+            sakOgSøknad = sakOgSøknad,
+        )
+        val råHendelse = råUtbetalingskvitteringhendelse(
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            avstemmingsnøkkel = utbetaling.avstemmingsnøkkel,
+            utbetalingId = utbetaling.id,
+        )
+        this.utbetalingskvitteringrepo.lagreRåKvitteringHendelse(råHendelse, jmsHendelseMetadata())
+        return Tuple4(sak, vedtak, utbetaling, råHendelse)
     }
 
     companion object {
