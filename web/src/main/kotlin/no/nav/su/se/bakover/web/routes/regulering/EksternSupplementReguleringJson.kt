@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson.Companion.toJson
@@ -53,18 +52,13 @@ internal data class FradragsperiodeJson(
                     vedtaksperiodeEndring = it.endringsvedtak.let {
                         VedtaksperiodeEndringJson(it.måned.toJson(), it.beløp)
                     },
-                    vedtaksperiodeRegulering = it.reguleringsvedtak.filterDuplicates().map {
+                    vedtaksperiodeRegulering = it.reguleringsvedtak.map {
                         VedtaksperiodeReguleringJson(it.periode.toJson(), it.beløp)
                     },
                 )
             }
         }
     }
-}
-
-// TODO - test
-fun List<Eksternvedtak.Regulering>.filterDuplicates(): List<Eksternvedtak.Regulering> {
-    return this.groupBy { Pair(it.periode, it.beløp) }.map { it.value.first() }
 }
 
 internal data class SupplementForJson(

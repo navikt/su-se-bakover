@@ -24,7 +24,6 @@ sealed interface Eksternvedtak {
         return other.any { it.overlapper(this) }
     }
 
-    // TODO - test
     fun eksterneData(): NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata> =
         fradrag.map { it.eksterndata }
 
