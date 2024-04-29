@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nyEksternvedtakEndring
 import no.nav.su.se.bakover.test.nyEksternvedtakRegulering
+import no.nav.su.se.bakover.test.nyReguleringssupplement
 import no.nav.su.se.bakover.test.nyReguleringssupplementFor
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -39,7 +40,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement.empty(),
+            Reguleringssupplement.empty(fixedClock),
             BigDecimal("1.064076"),
         )
             .shouldBe(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left())
@@ -67,7 +68,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement.empty(),
+            Reguleringssupplement.empty(fixedClock),
             BigDecimal("1.064076"),
         ).getOrFail()
 
@@ -119,7 +120,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(tilOgMed = 31.mai(2021)),
                     nyEksternvedtakRegulering(fraOgMed = 1.juni(2021), null),
@@ -127,10 +128,11 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                 ),
             ),
         )
+        val supplement = nyReguleringssupplement(supplementFor = arrayOf(supplementFor))
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
+            supplement,
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
@@ -140,13 +142,13 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                         fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Fradraget til BRUKER: Alderspensjon er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
-
                     ),
                 ),
             )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 995.0
+            it.eksternSupplementRegulering.supplementId shouldBe supplement.id
         }
     }
 
@@ -172,18 +174,18 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(),
                     nyEksternvedtakEndring(),
                 ),
             ),
         )
-
+        val supplement = nyReguleringssupplement(supplementFor = arrayOf(supplementFor))
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
+            supplement,
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
@@ -198,6 +200,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
+            it.eksternSupplementRegulering.supplementId shouldBe supplement.id
         }
     }
 
@@ -235,18 +238,19 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(
                     nyEksternvedtakRegulering(beløp = 1050),
                     nyEksternvedtakEndring(beløp = 995),
                 ),
             ),
         )
+        val supplement = nyReguleringssupplement(supplementFor = arrayOf(supplementFor))
 
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
+            supplement,
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
@@ -262,6 +266,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 2
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1050
             it.grunnlagsdata.fradragsgrunnlag.last().månedsbeløp shouldBe 1000
+            it.eksternSupplementRegulering.supplementId shouldBe supplement.id
         }
     }
 
@@ -288,14 +293,15 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1200), nyEksternvedtakEndring()),
             ),
         )
+        val supplement = nyReguleringssupplement(supplementFor = arrayOf(supplementFor))
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
+            supplement,
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
@@ -312,6 +318,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
             )
             it.grunnlagsdata.fradragsgrunnlag.size shouldBe 1
             it.grunnlagsdata.fradragsgrunnlag.first().månedsbeløp shouldBe 1000
+            it.eksternSupplementRegulering.supplementId shouldBe supplement.id
         }
     }
 
@@ -321,7 +328,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement.empty(),
+            Reguleringssupplement.empty(fixedClock),
             BigDecimal("1.064076"),
         ).getOrFail()
         actual.reguleringstype shouldBe Reguleringstype.AUTOMATISK
@@ -350,19 +357,21 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         val supplementFor = nyReguleringssupplementFor(
             fnr = sakUtenÅpenBehandling.fnr,
             ReguleringssupplementFor.PerType(
-                type = Fradragstype.Alderspensjon,
+                kategori = Fradragstype.Alderspensjon.kategori,
                 vedtak = nonEmptyListOf(nyEksternvedtakRegulering(beløp = 1050), nyEksternvedtakEndring(beløp = 995)),
             ),
         )
+        val supplement = nyReguleringssupplement(supplementFor = arrayOf(supplementFor))
         val actual = sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(
             mai(2020),
             fixedClock,
-            Reguleringssupplement(listOf(supplementFor)),
+            supplement,
             BigDecimal("1.064076"),
         )
         actual.getOrFail().let {
             it.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             it.grunnlagsdata.fradragsgrunnlag.single().månedsbeløp shouldBe 1050
+            it.eksternSupplementRegulering.supplementId shouldBe supplement.id
         }
     }
 }

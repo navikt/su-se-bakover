@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import java.time.Clock
 import java.time.LocalDate
 
 /**
@@ -28,7 +29,7 @@ data class DryRunReguleringBody(
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,
 ) {
-    fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
+    fun toCommand(clock: Clock): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
         val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
         val parsedVirkningstidspunkt =
             virkningstidspunkt?.let {
@@ -46,12 +47,12 @@ data class DryRunReguleringBody(
             garantipensjonOrdinær = garantipensjonOrdinær,
             garantipensjonHøy = garantipensjonHøy,
             supplement = if (csv != null) {
-                parseCSVFromString(csv).fold(
+                parseCSVFromString(csv, clock).fold(
                     ifLeft = { return it.left() },
                     ifRight = { it },
                 )
             } else {
-                Reguleringssupplement.empty()
+                Reguleringssupplement.empty(clock)
             },
         ).right()
     }

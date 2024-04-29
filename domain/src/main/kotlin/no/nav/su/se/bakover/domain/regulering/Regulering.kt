@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
@@ -40,10 +41,12 @@ fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat()
  * Det knyttes et slikt objekt til hver regulering, både manuelle og automatiske, eller null dersom vi ikke har slike data.
  * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig og lagre originaldata, f.eks. i hendelser.
  *
+ * * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra.
  * @property bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
  * @property eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
  */
 data class EksternSupplementRegulering(
+    val supplementId: UUID,
     val bruker: ReguleringssupplementFor?,
     // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
     val eps: List<ReguleringssupplementFor>,

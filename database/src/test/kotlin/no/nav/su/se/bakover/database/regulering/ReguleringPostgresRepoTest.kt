@@ -16,13 +16,18 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.nyReguleringssupplement
+import no.nav.su.se.bakover.test.nyReguleringssupplementFor
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import satser.domain.Satskategori
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
@@ -110,12 +115,19 @@ internal class ReguleringPostgresRepoTest {
     }
 
     @Test
-    fun `lagre og hent en opprettet regulering (automatisk)`() {
+    fun `lagre og hent en opprettet regulering (automatisk) med supplement (søkers)`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
+            val pair = testDataHelper.persisterJournalførtSøknadMedOppgave()
+
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
+                supplement = nyReguleringssupplement(
+                    supplementFor = arrayOf(nyReguleringssupplementFor(fnr = pair.first.fnr)),
+                ),
+                sakOgSøknad = pair,
+            )
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering
@@ -123,12 +135,13 @@ internal class ReguleringPostgresRepoTest {
     }
 
     @Test
-    fun `lagre og hent en opprettet regulering (manuell)`() {
+    fun `lagre og hent en opprettet regulering (manuell) med supplement (eps)`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
+                supplement = nyReguleringssupplement(supplementFor = arrayOf(nyReguleringssupplementFor(fnrUnder67))),
                 søknadsbehandling = {
                     iverksattSøknadsbehandlingUføre(
                         clock = testDataHelper.clock,
@@ -138,7 +151,9 @@ internal class ReguleringPostgresRepoTest {
                                 type = Fradragstype.Alderspensjon,
                                 månedsbeløp = 1000.0,
                             ),
+                            bosituasjonEpsUnder67(),
                         ),
+                        customVilkår = listOf(formuevilkårMedEps0Innvilget()),
                     )
                 },
             )

@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringssupplementPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
@@ -227,6 +228,7 @@ data object DatabaseBuilder {
         val reguleringRepo = ReguleringPostgresRepo(
             sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+            supplementPostgresRepo = ReguleringssupplementPostgresRepo(sessionFactory),
             dbMetrics = dbMetrics,
             satsFactory = satsFactory,
         )

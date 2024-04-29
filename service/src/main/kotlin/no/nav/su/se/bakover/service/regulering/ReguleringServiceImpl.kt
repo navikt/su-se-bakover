@@ -79,6 +79,7 @@ class ReguleringServiceImpl(
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
+        reguleringRepo.lagre(supplement)
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
                 log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
@@ -115,7 +116,7 @@ class ReguleringServiceImpl(
         fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+        supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
         omregningsfaktor: BigDecimal,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
@@ -243,7 +244,7 @@ class ReguleringServiceImpl(
         return sak.opprettEllerOppdaterRegulering(
             Måned.fra(fraOgMed),
             clock,
-            Reguleringssupplement.empty(),
+            Reguleringssupplement.empty(clock),
             (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
         ).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
@@ -285,7 +286,7 @@ class ReguleringServiceImpl(
                 val søkersSupplement = supplement.getFor(regulering.fnr)
                 val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
 
-                val eksternSupplementRegulering = EksternSupplementRegulering(søkersSupplement, epsSupplement)
+                val eksternSupplementRegulering = EksternSupplementRegulering(supplement.id, søkersSupplement, epsSupplement)
                 val oppdatertRegulering =
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 

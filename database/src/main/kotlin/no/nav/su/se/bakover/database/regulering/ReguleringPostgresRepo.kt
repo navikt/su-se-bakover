@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.regulering.EksternSupplementReguleringJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
@@ -48,6 +50,7 @@ import java.util.UUID
 internal class ReguleringPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
+    private val supplementPostgresRepo: ReguleringssupplementPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : ReguleringRepo {
@@ -169,7 +172,8 @@ internal class ReguleringPostgresRepo(
                 reguleringStatus,
                 reguleringType,
                 arsakForManuell,
-                avsluttet
+                avsluttet,
+                reguleringsupplement
             ) values (
                 :id,
                 :sakId,
@@ -181,7 +185,8 @@ internal class ReguleringPostgresRepo(
                 :reguleringStatus,
                 :reguleringType,
                 to_jsonb(:arsakForManuell::jsonb),
-                to_jsonb(:avsluttet::jsonb)
+                to_jsonb(:avsluttet::jsonb),
+                to_jsonb(:reguleringsupplement::jsonb)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -194,7 +199,8 @@ internal class ReguleringPostgresRepo(
                 reguleringStatus=:reguleringStatus,
                 reguleringType=:reguleringType,
                 arsakForManuell=to_jsonb(:arsakForManuell::jsonb),
-                avsluttet=to_jsonb(:avsluttet::jsonb)
+                avsluttet=to_jsonb(:avsluttet::jsonb),
+                reguleringsupplement=to_jsonb(:reguleringsupplement::jsonb)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -228,6 +234,7 @@ internal class ReguleringPostgresRepo(
                                 is IverksattRegulering -> null
                                 is OpprettetRegulering -> null
                             },
+                            "reguleringsupplement" to serialize(regulering.eksternSupplementRegulering.toDbJson()),
                         ),
                         session,
                     )
@@ -238,6 +245,10 @@ internal class ReguleringPostgresRepo(
                 )
             }
         }
+    }
+
+    override fun lagre(supplement: Reguleringssupplement) {
+        supplementPostgresRepo.lagre(supplement)
     }
 
     override fun defaultSessionContext(): SessionContext {
@@ -281,7 +292,7 @@ internal class ReguleringPostgresRepo(
         // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
             // grunnlagsdata og vilkårsvurderinger er av 2 typer, søknadsbehandling & revurdering
-            // men det er slik at regulering tar i bruk revurderingstypen, og blir da lagret på sin in.
+            // men det er slik at regulering tar i bruk revurderingstypen, og blir da lagret på sin id.
             // vi konverterer derfor reguleringId til revurderingId for henting av informasjon
             revurderingId = RevurderingId(id.value),
             session = session,
@@ -289,11 +300,7 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
-        // TODO - må migrere inn en ny kolonne som kan ha supplementet
-        // vi vil også ha en ny tabell som skal ha hele CSV'en.
-        // supplementet i hver regulering vil peke til CSV'en den ble hentet fra
-        // TODO - fiks når vi må lagre dem inn i basen
-        val eksternSupplementRegulering = EksternSupplementReguleringJson(bruker = null, eps = emptyList())
+        val eksternSupplementRegulering = EksternSupplementReguleringJson.deser(string("reguleringsupplement"))
 
         return lagRegulering(
             status = status,
