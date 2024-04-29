@@ -215,8 +215,11 @@ class ReguleringServiceImpl(
             regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.AUTOMATISK }.size
         val antallManuelle =
             regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }.size
+        val antallAutomatiskeVedBrukAvSupplement = regulert.filter {
+            it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty()
+        }
 
-        log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle, årsaker: $årsaker")
+        log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske. Av $antallAutomatiske, er $antallAutomatiskeVedBrukAvSupplement automatisk pga supplement. antall manuelle: $antallManuelle, årsaker: $årsaker")
     }
 
     override fun regulerManuelt(
