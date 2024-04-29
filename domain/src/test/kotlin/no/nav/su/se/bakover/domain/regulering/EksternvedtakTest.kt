@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.domain.regulering.supplement.overlapper
+import no.nav.su.se.bakover.test.nyEksterndata
 import no.nav.su.se.bakover.test.nyEksternvedtakEndring
 import no.nav.su.se.bakover.test.nyEksternvedtakRegulering
 import no.nav.su.se.bakover.test.nyFradragperiodeEndring
@@ -129,5 +130,27 @@ class EksternvedtakTest {
         listOf(v1).overlapper() shouldBe false
         listOf(v1, v2).overlapper() shouldBe true
         listOf(v1, v3).overlapper() shouldBe false
+    }
+
+    @Test
+    fun `gir ut alle eksterne data i vedtaket`() {
+        val ed1 = nyEksterndata()
+        val ed2 = nyEksterndata(
+            fraOgMed = "",
+            tilOgMed = null,
+            bruttoYtelse = "1000",
+            nettoYtelse = "1000",
+            bruttoYtelseskomponent = "500",
+            nettoYtelseskomponent = "500",
+        )
+        val vedtak = nyEksternvedtakEndring(
+            fradrag = listOf(nyFradragperiodeEndring(), nyFradragperiodeEndring(eksterndata = ed2)),
+        )
+
+        vedtak.eksterneData().let {
+            it.size shouldBe 2
+            it.first() shouldBe ed1
+            it.last() shouldBe ed2
+        }
     }
 }

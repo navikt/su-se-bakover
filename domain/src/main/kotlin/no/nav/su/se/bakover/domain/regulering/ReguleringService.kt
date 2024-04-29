@@ -70,5 +70,5 @@ interface ReguleringService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 
-    fun oppdaterReguleringerMedSupplement(fraOgMedMåned: Måned, supplement: Reguleringssupplement)
+    fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement)
 }

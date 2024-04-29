@@ -1171,10 +1171,9 @@ open class AccessCheckProxy(
                 }
 
                 override fun oppdaterReguleringerMedSupplement(
-                    fraOgMedMåned: Måned,
                     supplement: Reguleringssupplement,
                 ) {
-                    return services.reguleringService.oppdaterReguleringerMedSupplement(fraOgMedMåned, supplement)
+                    return services.reguleringService.oppdaterReguleringerMedSupplement(supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {

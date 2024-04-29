@@ -1,8 +1,8 @@
-package no.nav.su.se.bakover.database.grunnlag.fradrag
+package no.nav.su.se.bakover.web.routes.grunnlag.fradrag
 
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
-enum class FradragskategoriJson {
+internal enum class FradragskategoriJson {
     Alderspensjon,
     Annet,
     Arbeidsavklaringspenger,
@@ -33,39 +33,8 @@ enum class FradragskategoriJson {
     UnderMinstenivå,
     ;
 
-    fun toDomain(): Fradragstype.Kategori = when (this) {
-        Alderspensjon -> Fradragstype.Kategori.Alderspensjon
-        Annet -> Fradragstype.Kategori.Annet
-        Arbeidsavklaringspenger -> Fradragstype.Kategori.Arbeidsavklaringspenger
-        Arbeidsinntekt -> Fradragstype.Kategori.Arbeidsinntekt
-        AvkortingUtenlandsopphold -> Fradragstype.Kategori.AvkortingUtenlandsopphold
-        AvtalefestetPensjon -> Fradragstype.Kategori.AvtalefestetPensjon
-        AvtalefestetPensjonPrivat -> Fradragstype.Kategori.AvtalefestetPensjonPrivat
-        BeregnetFradragEPS -> Fradragstype.Kategori.BeregnetFradragEPS
-        BidragEtterEkteskapsloven -> Fradragstype.Kategori.BidragEtterEkteskapsloven
-        Dagpenger -> Fradragstype.Kategori.Dagpenger
-        ForventetInntekt -> Fradragstype.Kategori.ForventetInntekt
-        Fosterhjemsgodtgjørelse -> Fradragstype.Kategori.Fosterhjemsgodtgjørelse
-        Gjenlevendepensjon -> Fradragstype.Kategori.Gjenlevendepensjon
-        Introduksjonsstønad -> Fradragstype.Kategori.Introduksjonsstønad
-        Kapitalinntekt -> Fradragstype.Kategori.Kapitalinntekt
-        Kontantstøtte -> Fradragstype.Kategori.Kontantstøtte
-        Kvalifiseringsstønad -> Fradragstype.Kategori.Kvalifiseringsstønad
-        NAVytelserTilLivsopphold -> Fradragstype.Kategori.NAVytelserTilLivsopphold
-        OffentligPensjon -> Fradragstype.Kategori.OffentligPensjon
-        PrivatPensjon -> Fradragstype.Kategori.PrivatPensjon
-        Sosialstønad -> Fradragstype.Kategori.Sosialstønad
-        StatensLånekasse -> Fradragstype.Kategori.StatensLånekasse
-        SupplerendeStønad -> Fradragstype.Kategori.SupplerendeStønad
-        Sykepenger -> Fradragstype.Kategori.Sykepenger
-        Tiltakspenger -> Fradragstype.Kategori.Tiltakspenger
-        Uføretrygd -> Fradragstype.Kategori.Uføretrygd
-        UnderMinstenivå -> Fradragstype.Kategori.UnderMinstenivå
-        Ventestønad -> Fradragstype.Kategori.Ventestønad
-    }
-
     companion object {
-        fun Fradragstype.Kategori.toDbJson(): FradragskategoriJson = when (this) {
+        fun Fradragstype.Kategori.toJson(): FradragskategoriJson = when (this) {
             Fradragstype.Kategori.Alderspensjon -> Alderspensjon
             Fradragstype.Kategori.Annet -> Annet
             Fradragstype.Kategori.Arbeidsavklaringspenger -> Arbeidsavklaringspenger

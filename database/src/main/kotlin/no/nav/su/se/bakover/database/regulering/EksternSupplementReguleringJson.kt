@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriJson
-import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriJson.Companion.toDbJson
+import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriDbJson
+import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.EksternVedtakJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.EksternVedtakstypeJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.FradragsperiodeJson.Companion.toDbJson
@@ -67,7 +67,7 @@ internal data class ReguleringssupplementForJson(
 
 internal data class PerTypeJson(
     val vedtak: List<EksternVedtakJson>,
-    val fradragskategori: FradragskategoriJson,
+    val fradragskategori: FradragskategoriDbJson,
 ) {
 
     fun toDomain(): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
