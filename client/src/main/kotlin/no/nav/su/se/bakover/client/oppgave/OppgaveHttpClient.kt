@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
@@ -48,11 +47,12 @@ internal const val OPPGAVE_PATH = "/api/v1/oppgaver"
 internal class OppgaveHttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
     private val exchange: AzureAd,
-    private val tokenoppslagForSystembruker: TokenOppslag,
     private val clock: Clock,
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private val oppgaveClientId = connectionConfig.clientId
 
     val client: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
@@ -69,7 +69,7 @@ internal class OppgaveHttpClient(
     override fun opprettOppgaveMedSystembruker(
         config: OppgaveConfig,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
-        return opprettOppgave(config, tokenoppslagForSystembruker.token().value)
+        return opprettOppgave(config, exchange.getSystemToken(oppgaveClientId))
     }
 
     override fun opprettOppgave(
@@ -81,7 +81,7 @@ internal class OppgaveHttpClient(
     }
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
-        return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().value)
+        return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, exchange.getSystemToken(oppgaveClientId))
     }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
@@ -105,7 +105,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            token = tokenoppslagForSystembruker.token().value,
+            token = exchange.getSystemToken(oppgaveClientId),
             data = oppdatertOppgaveInfo,
         )
     }
@@ -125,9 +125,10 @@ internal class OppgaveHttpClient(
     override fun hentOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
     ): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
-        return tokenoppslagForSystembruker.token().value.let {
-            hentOppgave(oppgaveId, it)
-        }.map {
+        return hentOppgave(
+            oppgaveId = oppgaveId,
+            token = exchange.getSystemToken(oppgaveClientId),
+        ).map {
             it.oppgaveResponse.toDomain()
         }
     }
