@@ -106,7 +106,7 @@ embedded-postgres-binaries-bom = { group = "io.zonky.test.postgres", name = "emb
 # embedded-postgres-binaries-darwin-arm64v8 er hentet fra embedded-postgres-binaries-bom
 embedded-postgres-binaries-darwin-arm64v8 = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-darwin-arm64v8"}
 
-xmlunit-matchers = { group = "org.xmlunit", name = "xmlunit-matchers", version = "2.9.1"}
+xmlunit-matchers = { group = "org.xmlunit", name = "xmlunit-matchers", version = "2.10.0"}
 
 org-json = { group = "org.json", name = "json", version = "20240303"}
 
