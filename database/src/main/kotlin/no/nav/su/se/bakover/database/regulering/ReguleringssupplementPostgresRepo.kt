@@ -4,8 +4,12 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionCon
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.regulering.ReguleringssupplementForJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
+/**
+ * Abstraksjonsklasse for [ReguleringPostgresRepo] som håndterer reguleringssupplement
+ */
 internal class ReguleringssupplementPostgresRepo(
     val sessionFactory: SessionFactory,
 ) {
@@ -13,8 +17,8 @@ internal class ReguleringssupplementPostgresRepo(
         sessionFactory.withSessionContext {
             it.withSession {
                 """
-                INSERT INTO reguleringssupplement (supplement) values (to_jsonb(:supplement::jsonb))
-                """.trimIndent().insert(mapOf("supplement" to serialize(supplement.toDbJson())), it)
+                INSERT INTO reguleringssupplement (id, opprettet, supplement) values (:id, :opprettet, to_jsonb(:supplement::jsonb))
+                """.trimIndent().insert(mapOf("id" to supplement.id, "opprettet" to supplement.opprettet, "supplement" to serialize(supplement.toDbJson())), it)
             }
         }
     }

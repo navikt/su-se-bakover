@@ -124,7 +124,7 @@ internal class ReguleringPostgresRepoTest {
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
                 supplement = nyReguleringssupplement(
-                    nyReguleringssupplementFor(fnr = pair.first.fnr),
+                    supplementFor = arrayOf(nyReguleringssupplementFor(fnr = pair.first.fnr)),
                 ),
                 sakOgSøknad = pair,
             )
@@ -141,7 +141,7 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
-                supplement = nyReguleringssupplement(nyReguleringssupplementFor(fnrUnder67)),
+                supplement = nyReguleringssupplement(supplementFor = arrayOf(nyReguleringssupplementFor(fnrUnder67))),
                 søknadsbehandling = {
                     iverksattSøknadsbehandlingUføre(
                         clock = testDataHelper.clock,

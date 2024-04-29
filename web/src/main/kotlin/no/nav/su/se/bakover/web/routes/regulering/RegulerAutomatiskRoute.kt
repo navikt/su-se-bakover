@@ -86,7 +86,7 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromString(csvData).fold(
+                        parseCSVFromString(csvData, clock).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val fraMåned =
@@ -111,11 +111,11 @@ internal fun Route.reguler(
                             val fraMåned =
                                 Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                             val supplement = body.csv?.let {
-                                parseCSVFromString(it).fold(
+                                parseCSVFromString(it, clock).fold(
                                     ifLeft = { return@runBlocking call.svar(it) },
                                     ifRight = { it },
                                 )
-                            } ?: Reguleringssupplement.empty()
+                            } ?: Reguleringssupplement.empty(clock)
 
                             if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
                                 reguleringService.startAutomatiskRegulering(fraMåned, supplement)
@@ -216,7 +216,7 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromString(csvData).fold(
+                        parseCSVFromString(csvData, clock).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val command = StartAutomatiskReguleringForInnsynCommand(
@@ -242,7 +242,7 @@ internal fun Route.reguler(
                 isFalse = {
                     runBlocking {
                         call.withBody<DryRunReguleringBody> { body ->
-                            body.toCommand().fold(
+                            body.toCommand(clock).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
                                     CoroutineScope(Dispatchers.IO).launch {
@@ -290,7 +290,7 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromString(csvData).fold(
+                        parseCSVFromString(csvData, clock).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
                                 val fraMåned =
@@ -312,7 +312,7 @@ internal fun Route.reguler(
                 isFalse = {
                     runBlocking {
                         call.withBody<SupplementBody> { body ->
-                            parseCSVFromString(body.csv).fold(
+                            parseCSVFromString(body.csv, clock).fold(
                                 ifLeft = { call.svar(it) },
                                 ifRight = {
                                     val fraMåned =

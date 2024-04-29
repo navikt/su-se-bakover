@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyEksterndata
 import no.nav.su.se.bakover.test.nyFradragperiodeRegulering
@@ -23,7 +24,7 @@ class InnlesningReguleringTest {
     @Test
     fun `leser og parser CSV`() {
         val data = pesysFilCsvUforepTestData
-        val actual = parseCSVFromString(data)
+        val actual = parseCSVFromString(data, fixedClock)
         actual.getOrFail().let {
             it.first() shouldBe ReguleringssupplementFor(
                 fnr = Fnr.tryCreate("11111111111") ?: fail("kunne ikke lage FNR"),

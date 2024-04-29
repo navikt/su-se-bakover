@@ -115,7 +115,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
     gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -137,7 +137,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+    supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
     gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -213,13 +213,17 @@ fun avsluttetRegulering(
 }
 
 fun nyReguleringssupplement(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
     vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
-): Reguleringssupplement = Reguleringssupplement(supplement = supplementFor.toList())
+): Reguleringssupplement = Reguleringssupplement(id, opprettet, supplementFor.toList())
 
 fun nyEksternSupplementRegulering(
+    id: UUID = UUID.randomUUID(),
     bruker: ReguleringssupplementFor? = null,
     eps: List<ReguleringssupplementFor> = emptyList(),
 ): EksternSupplementRegulering = EksternSupplementRegulering(
+    supplementId = id,
     bruker = bruker,
     eps = eps,
 )

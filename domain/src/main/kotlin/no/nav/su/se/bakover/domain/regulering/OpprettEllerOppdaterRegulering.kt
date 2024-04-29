@@ -99,6 +99,7 @@ private fun utledReguleringssupplement(
         supplement.getFor(eps)
     }
     return EksternSupplementRegulering(
+        supplementId = supplement.id,
         bruker = supplementForBruker,
         eps = supplementForEps,
     )

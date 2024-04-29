@@ -504,7 +504,7 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        supplement: Reguleringssupplement = Reguleringssupplement.empty(),
+        supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
         gVerdiØkning: BigDecimal = BigDecimal(100),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
