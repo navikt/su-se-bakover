@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragReque
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -196,6 +197,8 @@ internal fun Route.reguler(
                         var fraOgMedMåned = ""
                         var gVerdi = ""
                         var csvData = ""
+                        var omregningsfaktor = ""
+                        var kjøringsdato = ""
 
                         parts.forEachPart {
                             when (it) {
@@ -208,6 +211,8 @@ internal fun Route.reguler(
                                     when (it.name) {
                                         "fraOgMedMåned" -> fraOgMedMåned = it.value
                                         "gVerdi" -> gVerdi = it.value
+                                        "omregningsfaktor" -> omregningsfaktor = it.value
+                                        "kjøringsdato" -> kjøringsdato = it.value
                                         else -> Feilresponser.ukjentMultipartFormDataField
                                     }
                                 }
@@ -229,6 +234,8 @@ internal fun Route.reguler(
                                             "feil_ved_parsning_av_grunnbeløp",
                                         ),
                                     ),
+                                    omregningsfaktor = BigDecimal(omregningsfaktor),
+                                    kjøringsdato = kjøringsdato.let { LocalDate.parse(it) },
                                 )
 
                                 launch {

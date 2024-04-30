@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 
@@ -22,12 +23,14 @@ import java.time.LocalDate
  */
 data class DryRunReguleringBody(
     val fraOgMedMåned: String,
+    val omregningsfaktor: String,
     val virkningstidspunkt: String?,
     val ikrafttredelse: String?,
     val csv: String? = null,
     val grunnbeløp: Int? = null,
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,
+    val kjøringsdato: String,
 ) {
     fun toCommand(clock: Clock): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
         val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
@@ -44,6 +47,7 @@ data class DryRunReguleringBody(
             virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
             ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
             grunnbeløp = grunnbeløp,
+            omregningsfaktor = BigDecimal(omregningsfaktor),
             garantipensjonOrdinær = garantipensjonOrdinær,
             garantipensjonHøy = garantipensjonHøy,
             supplement = if (csv != null) {
@@ -54,6 +58,7 @@ data class DryRunReguleringBody(
             } else {
                 Reguleringssupplement.empty(clock)
             },
+            kjøringsdato = kjøringsdato.let { LocalDate.parse(it) },
         ).right()
     }
 }

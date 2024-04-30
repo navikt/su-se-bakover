@@ -549,6 +549,7 @@ internal class ReguleringServiceImplTest {
                 fraOgMedMåned = mai(2021),
                 virkningstidspunkt = 25.mai(2021),
                 supplement = Reguleringssupplement.empty(fixedClock),
+                kjøringsdato = 25.mai(2021),
             ),
         )
 

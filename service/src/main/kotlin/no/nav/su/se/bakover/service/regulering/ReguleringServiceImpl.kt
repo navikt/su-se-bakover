@@ -50,7 +50,6 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.math.BigDecimal
 import java.time.Clock
-import java.time.LocalDate
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -94,14 +93,13 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
-        val omregningsfaktor = satsFactory.grunnbeløp(command.fraOgMedMåned).omregningsfaktor
-
+        val factory = command.satsFactory.gjeldende(command.kjøringsdato)
         Either.catch {
             start(
                 fraOgMedMåned = command.fraOgMedMåned,
                 isLiveRun = false,
-                satsFactory = command.satsFactory.gjeldende(LocalDate.now(clock)),
-                omregningsfaktor = omregningsfaktor,
+                satsFactory = factory,
+                omregningsfaktor = factory.grunnbeløp(command.fraOgMedMåned).omregningsfaktor,
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
@@ -205,6 +203,7 @@ class ReguleringServiceImpl(
         }
 
         val årsaker = regulert
+            .asSequence()
             .filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }
             .flatMap { (it.reguleringstype as Reguleringstype.MANUELL).problemer.toList() }
             .groupBy { it }
@@ -216,8 +215,8 @@ class ReguleringServiceImpl(
         val antallManuelle =
             regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }.size
         val antallAutomatiskeVedBrukAvSupplement = regulert.filter {
-            it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty()
-        }
+            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty())
+        }.size
 
         log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske. Av $antallAutomatiske, er $antallAutomatiskeVedBrukAvSupplement automatisk pga supplement. antall manuelle: $antallManuelle, årsaker: $årsaker")
     }
@@ -287,7 +286,8 @@ class ReguleringServiceImpl(
                 val søkersSupplement = supplement.getFor(regulering.fnr)
                 val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
 
-                val eksternSupplementRegulering = EksternSupplementRegulering(supplement.id, søkersSupplement, epsSupplement)
+                val eksternSupplementRegulering =
+                    EksternSupplementRegulering(supplement.id, søkersSupplement, epsSupplement)
                 val omregningsfaktor = satsFactory.grunnbeløp(regulering.periode.fraOgMed).omregningsfaktor
                 val oppdatertRegulering =
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)

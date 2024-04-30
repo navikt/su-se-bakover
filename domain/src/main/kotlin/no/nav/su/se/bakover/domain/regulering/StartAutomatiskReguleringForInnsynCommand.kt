@@ -19,12 +19,13 @@ import java.time.LocalDate
 data class StartAutomatiskReguleringForInnsynCommand(
     val fraOgMedMåned: Måned,
     val virkningstidspunkt: LocalDate,
-    val ikrafttredelse: LocalDate = virkningstidspunkt,
     val supplement: Reguleringssupplement,
+    val ikrafttredelse: LocalDate = virkningstidspunkt,
     val grunnbeløp: Int? = null,
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,
     val omregningsfaktor: BigDecimal? = null,
+    val kjøringsdato: LocalDate,
 ) {
 
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
