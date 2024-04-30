@@ -65,7 +65,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = tokenoppslagMock,
                 clock = fixedClock,
             )
 
@@ -113,8 +112,7 @@ internal class OppgaveHttpClientTest {
                     .willReturn(aResponse().withBody(response).withStatus(201)),
             )
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
+            val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
 
             val client = OppgaveHttpClient(
                 connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -122,7 +120,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = tokenoppslagMock,
                 clock = fixedClock,
             )
             val expected = nyOppgaveHttpKallResponse(
@@ -150,8 +147,8 @@ internal class OppgaveHttpClientTest {
             actual.response shouldBe expected.response
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
-            verify(tokenoppslagMock).token()
-            verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+            verify(oathMock).getSystemToken(any())
+            verifyNoMoreInteractions(oathMock)
         }
     }
 
@@ -174,7 +171,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
@@ -215,7 +211,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             client.opprettOppgave(
@@ -256,7 +251,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = tokenoppslagMock,
                 clock = fixedClock,
             )
 
@@ -307,8 +301,7 @@ internal class OppgaveHttpClientTest {
                     .willReturn(aResponse().withBody(response).withStatus(201)),
             )
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
+            val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
 
             val client = OppgaveHttpClient(
                 connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -316,7 +309,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = tokenoppslagMock,
                 clock = fixedClock,
             )
 
@@ -343,8 +335,8 @@ internal class OppgaveHttpClientTest {
             actual.response shouldBe expected.response
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
-            verify(tokenoppslagMock).token()
-            verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+            verify(oathMock).getSystemToken(any())
+            verifyNoMoreInteractions(oathMock)
         }
     }
 
@@ -378,7 +370,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
@@ -422,7 +413,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             client.opprettOppgave(
@@ -461,7 +451,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
@@ -515,7 +504,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
 
@@ -572,7 +560,6 @@ internal class OppgaveHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(

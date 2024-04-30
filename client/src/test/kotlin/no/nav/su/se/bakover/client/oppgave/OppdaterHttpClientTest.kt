@@ -9,8 +9,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.auth.AccessToken
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -64,7 +62,6 @@ internal class OppdaterHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
@@ -99,15 +96,14 @@ internal class OppdaterHttpClientTest {
             stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
             stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
-            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
+            val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
 
             val client = OppgaveHttpClient(
                 connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                     clientId = "oppgaveClientId",
                     url = baseUrl(),
                 ),
-                exchange = mock(),
-                tokenoppslagForSystembruker = tokenoppslagMock,
+                exchange = oathMock,
                 clock = fixedClock,
             )
             val actual = client.lukkOppgaveMedSystembruker(OppgaveId(oppgaveId.toString())).getOrFail()
@@ -154,7 +150,6 @@ internal class OppdaterHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oathMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
             val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
@@ -205,7 +200,6 @@ internal class OppdaterHttpClientTest {
                     url = baseUrl(),
                 ),
                 exchange = oauthMock,
-                tokenoppslagForSystembruker = mock(),
                 clock = fixedClock,
             )
 
