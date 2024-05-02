@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyEksterndata
 import no.nav.su.se.bakover.test.nyFradragperiodeRegulering
 import no.nav.su.se.bakover.test.regulering.pesysFilCsvUforepTestData
-import no.nav.su.se.bakover.web.routes.regulering.parseCSVFromString
+import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import vilkår.inntekt.domain.grunnlag.Fradragstype

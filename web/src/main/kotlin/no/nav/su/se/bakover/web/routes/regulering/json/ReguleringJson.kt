@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.regulering
+package no.nav.su.se.bakover.web.routes.regulering.json
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
-import no.nav.su.se.bakover.web.routes.regulering.EksternSupplementReguleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.regulering.ÅrsakTilManuellReguleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.regulering.json.EksternSupplementReguleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson

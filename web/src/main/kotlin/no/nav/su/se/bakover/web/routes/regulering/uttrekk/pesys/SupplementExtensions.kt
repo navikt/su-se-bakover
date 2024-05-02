@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.regulering
+package no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.whenever

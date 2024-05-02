@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.regulering
+package no.nav.su.se.bakover.web.routes.regulering.json
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.regulering.EksternDataJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.regulering.FradragsperiodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.regulering.json.EksternDataJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.regulering.json.FradragsperiodeJson.Companion.toJson
 
 internal data class EksternSupplementReguleringJson(
     val bruker: SupplementForJson? = null,

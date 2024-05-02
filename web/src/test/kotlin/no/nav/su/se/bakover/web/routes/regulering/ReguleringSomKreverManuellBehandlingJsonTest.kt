@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import org.junit.jupiter.api.Test
 
 class ReguleringSomKreverManuellBehandlingJsonTest {

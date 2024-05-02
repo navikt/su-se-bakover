@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.regulering
+package no.nav.su.se.bakover.web.routes.regulering.json
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

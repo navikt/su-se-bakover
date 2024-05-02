@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenla
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
 import no.nav.su.se.bakover.web.routes.klage.toJson
-import no.nav.su.se.bakover.web.routes.regulering.ReguleringJson
-import no.nav.su.se.bakover.web.routes.regulering.toJson
+import no.nav.su.se.bakover.web.routes.regulering.json.ReguleringJson
+import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
