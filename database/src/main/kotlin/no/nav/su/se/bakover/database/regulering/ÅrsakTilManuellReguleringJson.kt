@@ -49,12 +49,12 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
         name = "SupplementHarFlereVedtaksperioderForFradrag",
     ),
     JsonSubTypes.Type(
-        value = ÅrsakTilManuellReguleringJson.MismatchMellomBeløpFraSupplementOgFradrag::class,
-        name = "MismatchMellomBeløpFraSupplementOgFradrag",
+        value = ÅrsakTilManuellReguleringJson.DifferenaseFørRegulering::class,
+        name = "DifferenaseFørRegulering",
     ),
     JsonSubTypes.Type(
-        value = ÅrsakTilManuellReguleringJson.BeløpErStørreEnForventet::class,
-        name = "BeløpErStørreEnForventet",
+        value = ÅrsakTilManuellReguleringJson.DifferenaseEtterRegulering::class,
+        name = "DifferenaseEtterRegulering",
     ),
     JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.YtelseErMidlertidigStanset::class,
@@ -156,7 +156,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
-    data class MismatchMellomBeløpFraSupplementOgFradrag(
+    data class DifferenaseFørRegulering(
         val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
@@ -164,7 +164,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val vårtBeløpFørRegulering: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering(
                 fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
@@ -173,7 +173,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
-    data class BeløpErStørreEnForventet(
+    data class DifferenaseEtterRegulering(
         val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
@@ -181,7 +181,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val forventetBeløpEtterRegulering: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering(
                 fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
@@ -264,7 +264,7 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         begrunnelse = this.begrunnelse,
     )
 
-    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet -> ÅrsakTilManuellReguleringJson.BeløpErStørreEnForventet(
+    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering -> ÅrsakTilManuellReguleringJson.DifferenaseEtterRegulering(
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
@@ -290,7 +290,7 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         fradragTilhører = this.fradragTilhører.toString(),
     )
 
-    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag -> ÅrsakTilManuellReguleringJson.MismatchMellomBeløpFraSupplementOgFradrag(
+    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering -> ÅrsakTilManuellReguleringJson.DifferenaseFørRegulering(
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),

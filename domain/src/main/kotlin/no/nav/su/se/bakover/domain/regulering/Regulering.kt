@@ -318,16 +318,16 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     }
     val vårtBeløpFørRegulering = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = supplementForType.endringsvedtak.beløp
-    val akseptertDifferanseFørRegulering = BigDecimal.ONE
-    val diffFørRegulering = BigDecimal(eksterntBeløpFørRegulering).subtract(vårtBeløpFørRegulering).abs()
-    if (diffFørRegulering > akseptertDifferanseFørRegulering) {
+    val diffFørRegulering = eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()
+    // vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
+    if (diffFørRegulering > 0) {
         return manuellReg(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering,
                 eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
-                begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer en differanse på $akseptertDifferanseFørRegulering, men den var $diffFørRegulering",
+                begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer ikke en differanse, men differansen var $diffFørRegulering",
             ),
         ) to originaleFradragsgrunnlag
     }
@@ -340,7 +340,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN
     if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
         return manuellReg(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,

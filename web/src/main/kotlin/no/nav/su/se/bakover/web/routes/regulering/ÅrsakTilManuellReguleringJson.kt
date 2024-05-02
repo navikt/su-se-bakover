@@ -43,12 +43,12 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
         name = "SupplementHarFlereVedtaksperioderForFradrag",
     ),
     JsonSubTypes.Type(
-        value = ÅrsakTilManuellReguleringJson.MismatchMellomBeløpFraSupplementOgFradrag::class,
-        name = "MismatchMellomBeløpFraSupplementOgFradrag",
+        value = ÅrsakTilManuellReguleringJson.DifferenaseFørRegulering::class,
+        name = "DifferenaseFørRegulering",
     ),
     JsonSubTypes.Type(
-        value = ÅrsakTilManuellReguleringJson.BeløpErStørreEnForventet::class,
-        name = "BeløpErStørreEnForventet",
+        value = ÅrsakTilManuellReguleringJson.DifferenaseEtterRegulering::class,
+        name = "DifferenaseEtterRegulering",
     ),
     JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.YtelseErMidlertidigStanset::class,
@@ -113,7 +113,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMedJson>,
     ) : ÅrsakTilManuellReguleringJson
 
-    data class MismatchMellomBeløpFraSupplementOgFradrag(
+    data class DifferenaseFørRegulering(
         val fradragskategori: String,
         val fradragTilhører: String,
         override val begrunnelse: String,
@@ -121,7 +121,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val vårtBeløpFørRegulering: String,
     ) : ÅrsakTilManuellReguleringJson
 
-    data class BeløpErStørreEnForventet(
+    data class DifferenaseEtterRegulering(
         val fradragskategori: String,
         val fradragTilhører: String,
         override val begrunnelse: String,
@@ -168,7 +168,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BeløpErStørreEnForventet -> BeløpErStørreEnForventet(
+            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering -> DifferenaseEtterRegulering(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
@@ -194,7 +194,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MismatchMellomBeløpFraSupplementOgFradrag -> MismatchMellomBeløpFraSupplementOgFradrag(
+            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering -> DifferenaseFørRegulering(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
