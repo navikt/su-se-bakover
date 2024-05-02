@@ -645,6 +645,7 @@ class TestDataHelper(
      * @param grunnlagsdataOverrides Gjelder kun for revurdering. Ignoreres dersom [revurdering] sendes inn.
      */
     fun persisterIverksattRevurdering(
+        clock: Clock = this.clock,
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         revurderingsperiode: Periode = stønadsperiode.periode,
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(

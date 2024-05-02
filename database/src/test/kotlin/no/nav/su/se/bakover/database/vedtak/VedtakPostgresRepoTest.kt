@@ -15,17 +15,23 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fnrUnder67
@@ -36,13 +42,11 @@ import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
-import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class VedtakPostgresRepoTest {
@@ -122,11 +126,11 @@ internal class VedtakPostgresRepoTest {
     }
 
     @Test
-    fun `hent alle aktive vedtak`() {
+    fun `hent alle aktive vedtak for måned`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(
                 dataSource = dataSource,
-                clock = fixedClock.plus(31, ChronoUnit.DAYS),
+                clock = fixedClockAt(1.februar(2021)),
             )
             val vedtakRepo = testDataHelper.vedtakRepo
             // Persisterer et ikke-aktivt vedtak
@@ -158,6 +162,231 @@ internal class VedtakPostgresRepoTest {
                     ),
                 )
             }
+            vedtakRepo.hentForMåned(mars(2021)).also {
+                it.size shouldBe 1
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakSomErAktivt.behandling.fnr,
+                    sakId = vedtakSomErAktivt.sakId,
+                    saksnummer = vedtakSomErAktivt.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakSomErAktivt.opprettet,
+                            periode = vedtakSomErAktivt.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+            }
+            vedtakRepo.hentForMåned(april(2021)) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `hent alle aktive vedtak fom dato eksl eps`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(
+                dataSource = dataSource,
+                clock = fixedClockAt(1.februar(2021)),
+            )
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val (_, _, vedtakJan) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    stønadsperiode = Stønadsperiode.create(januar(2021)),
+                    sakOgSøknad = sak to søknad,
+                )
+            }
+            val (_, _, vedtakFebMars) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    stønadsperiode = Stønadsperiode.create(Periode.create(1.februar(2021), 31.mars(2021))),
+                    sakOgSøknad = sak to søknad,
+                )
+            }
+            vedtakRepo.hentForFraOgMedMånedEksEps(januar(2021)).also {
+                it.size shouldBe 2
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakJan.behandling.fnr,
+                    sakId = vedtakJan.sakId,
+                    saksnummer = vedtakJan.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakJan.opprettet,
+                            periode = vedtakJan.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+                it[1] shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakFebMars.behandling.fnr,
+                    sakId = vedtakFebMars.sakId,
+                    saksnummer = vedtakFebMars.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakFebMars.opprettet,
+                            periode = vedtakFebMars.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+            }
+            vedtakRepo.hentForFraOgMedMånedEksEps(februar(2021)).also {
+                it.size shouldBe 1
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakFebMars.behandling.fnr,
+                    sakId = vedtakFebMars.sakId,
+                    saksnummer = vedtakFebMars.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakFebMars.opprettet,
+                            periode = vedtakFebMars.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+            }
+            vedtakRepo.hentForFraOgMedMånedEksEps(mars(2021)).also {
+                it.size shouldBe 1
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakFebMars.behandling.fnr,
+                    sakId = vedtakFebMars.sakId,
+                    saksnummer = vedtakFebMars.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakFebMars.opprettet,
+                            periode = vedtakFebMars.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+            }
+            vedtakRepo.hentForFraOgMedMånedEksEps(april(2021)) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `hent alle aktive vedtak fom dato inkl eps`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(
+                dataSource = dataSource,
+                clock = TikkendeKlokke(fixedClockAt(1.februar(2021))),
+            )
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val (_, _, vedtakJan) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    clock = testDataHelper.clock,
+                    stønadsperiode = Stønadsperiode.create(januar(2021)),
+                    sakOgSøknad = sak to søknad,
+                )
+            }
+
+            val fnrEpsFeb = Fnr("11111111111")
+            val fnrEpsMars = Fnr("22222222222")
+
+            val (sak: Sak, _, _, revurderingsvedtak: VedtakEndringIYtelse) = testDataHelper.persisterIverksattRevurdering(
+                stønadsperiode = Stønadsperiode.create(februar(2021)..mars(2021)),
+                revurderingsperiode = februar(2021)..mars(2021),
+                grunnlagsdataOverrides = listOf(
+                    bosituasjonEpsUnder67(
+                        opprettet = Tidspunkt.now(testDataHelper.clock),
+                        fnr = fnrEpsFeb,
+                        periode = februar(2021),
+                    ),
+                    bosituasjonEpsUnder67(
+                        opprettet = Tidspunkt.now(testDataHelper.clock),
+                        fnr = fnrEpsMars,
+                        periode = mars(2021),
+                    ),
+                ),
+                vilkårOverrides = listOf(
+                    formuevilkårMedEps0Innvilget(
+                        opprettet = Tidspunkt.now(testDataHelper.clock),
+                        periode = februar(2021)..mars(2021),
+                    ),
+                ),
+            )
+            val søknadsbehandlingsvedtak = sak.vedtakListe.filterIsInstance<VedtakInnvilgetSøknadsbehandling>().single()
+
+            vedtakRepo.hentForFraOgMedMånedInklEps(januar(2021)).also {
+                it.size shouldBe 2
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = vedtakJan.behandling.fnr,
+                    sakId = vedtakJan.sakId,
+                    saksnummer = vedtakJan.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = vedtakJan.opprettet,
+                            periode = vedtakJan.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                        ),
+                    ),
+                )
+                it[1] shouldBe VedtaksammendragForSak(
+                    fødselsnummer = søknadsbehandlingsvedtak.fnr,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = søknadsbehandlingsvedtak.opprettet,
+                            periode = søknadsbehandlingsvedtak.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = emptyList(),
+                        ),
+                        vedtaksammendragForSakVedtak(
+                            opprettet = revurderingsvedtak.opprettet,
+                            periode = revurderingsvedtak.periode,
+                            vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
+                            epsFnr = listOf(fnrEpsFeb, fnrEpsMars),
+                        ),
+                    ),
+                )
+            }
+
+            vedtakRepo.hentForFraOgMedMånedInklEps(februar(2021)).also {
+                it.size shouldBe 1
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = søknadsbehandlingsvedtak.fnr,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = søknadsbehandlingsvedtak.opprettet,
+                            periode = søknadsbehandlingsvedtak.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = emptyList(),
+                        ),
+                        vedtaksammendragForSakVedtak(
+                            opprettet = revurderingsvedtak.opprettet,
+                            periode = revurderingsvedtak.periode,
+                            vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
+                            epsFnr = listOf(fnrEpsFeb, fnrEpsMars),
+                        ),
+                    ),
+                )
+            }
+
+            vedtakRepo.hentForFraOgMedMånedInklEps(mars(2021)).also {
+                it.size shouldBe 1
+                it.first() shouldBe VedtaksammendragForSak(
+                    fødselsnummer = søknadsbehandlingsvedtak.fnr,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    vedtak = listOf(
+                        vedtaksammendragForSakVedtak(
+                            opprettet = søknadsbehandlingsvedtak.opprettet,
+                            periode = søknadsbehandlingsvedtak.periode,
+                            vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = emptyList(),
+                        ),
+                        vedtaksammendragForSakVedtak(
+                            opprettet = revurderingsvedtak.opprettet,
+                            periode = revurderingsvedtak.periode,
+                            vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
+                            epsFnr = listOf(fnrEpsFeb, fnrEpsMars),
+                        ),
+                    ),
+                )
+            }
+
+            vedtakRepo.hentForFraOgMedMånedInklEps(april(2021)) shouldBe emptyList()
         }
     }
 
@@ -276,11 +505,13 @@ internal class VedtakPostgresRepoTest {
                             opprettet = vedtak1_1.opprettet,
                             periode = vedtak1_1.periode,
                             vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = listOf(fnrUnder67),
                         ),
                         vedtaksammendragForSakVedtak(
                             opprettet = vedtak1_2.opprettet,
                             periode = vedtak1_2.periode,
                             vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
+                            epsFnr = listOf(fnrOver67),
                         ),
                     ),
                 ),
@@ -293,6 +524,7 @@ internal class VedtakPostgresRepoTest {
                             opprettet = vedtak2.opprettet,
                             periode = vedtak2.periode,
                             vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = listOf(sak2EpsFnr),
                         ),
                     ),
                 ),
@@ -305,6 +537,7 @@ internal class VedtakPostgresRepoTest {
                             opprettet = vedtak3.opprettet,
                             periode = vedtak3.periode,
                             vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = listOf(fnrUnder67),
                         ),
                     ),
                 ),
@@ -319,18 +552,18 @@ internal class VedtakPostgresRepoTest {
             val clock = testDataHelper.clock
             val repo = testDataHelper.vedtakRepo
 
-            val fnrFørsteHalvdel = Fnr.generer()
-            val fnrAndreHalvdel = Fnr.generer()
+            val epsFnrJanJuni = Fnr("11111111111")
+            val epsFnrJuliDes = Fnr("22222222222")
 
             val bosituasjonFørsteHalvdel = bosituasjonEpsUnder67(
                 periode = januar(2021)..juni(2021),
                 opprettet = Tidspunkt.now(clock),
-                fnr = fnrFørsteHalvdel,
+                fnr = epsFnrJanJuni,
             )
             val bosituasjonAndreHalvdel = bosituasjonEpsUnder67(
                 periode = juli(2021)..desember(2021),
                 opprettet = Tidspunkt.now(clock),
-                fnr = fnrAndreHalvdel,
+                fnr = epsFnrJuliDes,
             )
             val (sakFørRevurdering, _, vedtakSøknadsbehandling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
             val (sakEtterRevurdering, _, _, vedtakRevurdering) = testDataHelper.persisterIverksattRevurdering(
@@ -340,8 +573,7 @@ internal class VedtakPostgresRepoTest {
                     bosituasjonAndreHalvdel,
                 ),
             )
-
-            val expected = VedtaksammendragForSak(
+            fun expected(epsFnr: List<Fnr>) = VedtaksammendragForSak(
                 fødselsnummer = sakEtterRevurdering.fnr,
                 sakId = sakEtterRevurdering.id,
                 saksnummer = sakEtterRevurdering.saksnummer,
@@ -350,34 +582,57 @@ internal class VedtakPostgresRepoTest {
                         opprettet = vedtakRevurdering.opprettet,
                         periode = vedtakRevurdering.periode,
                         vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
+                        epsFnr = epsFnr,
                     ),
                 ),
             )
-            repo.hentForEpsFødselsnumreOgFraOgMedMåned(listOf(fnrFørsteHalvdel), juli(2021)) shouldBe emptyList()
-
+            // Dette er før stønadsperioden og vi forventer få med begge EPS
             repo.hentForEpsFødselsnumreOgFraOgMedMåned(
-                listOf(fnrFørsteHalvdel, fnrAndreHalvdel),
-                juli(2021),
-            ) shouldBe listOf(expected)
-
-            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
-                listOf(fnrFørsteHalvdel, fnrAndreHalvdel),
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
                 desember(2020),
-            ) shouldBe listOf(expected)
+            ) shouldBe listOf(expected(listOf(epsFnrJanJuni, epsFnrJuliDes)))
 
+            // Dette er før stønadsperioden og vi forventer få med første EPS
             repo.hentForEpsFødselsnumreOgFraOgMedMåned(
-                listOf(fnrFørsteHalvdel, fnrAndreHalvdel),
+                listOf(epsFnrJanJuni),
+                desember(2020),
+            ) shouldBe listOf(expected(listOf(epsFnrJanJuni)))
+
+            // Dette er før stønadsperioden og vi forventer få med siste EPS
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJuliDes),
+                desember(2020),
+            ) shouldBe listOf(expected(listOf(epsFnrJuliDes)))
+
+            // Dette er første måned i stønadsperioden og vi forventer få med alt
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
+                januar(2021),
+            ) shouldBe listOf(expected(listOf(epsFnrJanJuni, epsFnrJuliDes)))
+
+            // Dette er siste måned for første EPS og vi forventer få med alt
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
+                juni(2021),
+            ) shouldBe listOf(expected(listOf(epsFnrJanJuni, epsFnrJuliDes)))
+
+            // Dette er første måned for andre EPS og vi forventer få med andre EPS
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
+                juli(2021),
+            ) shouldBe listOf(expected(listOf(epsFnrJuliDes)))
+
+            // Dette er siste måned i stønadsperioden og vi forventer få med andre EPS
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
+                desember(2021),
+            ) shouldBe listOf(expected(listOf(epsFnrJuliDes)))
+
+            // Dette er første måned etter stønadsperioden og vi forventer tomt resultat
+            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
+                listOf(epsFnrJanJuni, epsFnrJuliDes),
                 januar(2022),
             ) shouldBe emptyList()
-
-            repo.hentForEpsFødselsnumreOgFraOgMedMåned(listOf(fnrFørsteHalvdel), juni(2021)) shouldBe listOf(
-                expected,
-            )
-
-            repo.hentForEpsFødselsnumreOgFraOgMedMåned(
-                listOf(fnrFørsteHalvdel, fnrAndreHalvdel),
-                juni(2021),
-            ) shouldBe listOf(expected)
         }
     }
 

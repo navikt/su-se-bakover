@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.innvilgetFraOgMedMåned
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -65,6 +66,14 @@ class VedtakServiceImpl(
 
     override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
         return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
+    }
+
+    override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
+        return if (inkluderEps) {
+            vedtakRepo.hentForFraOgMedMånedInklEps(måned).innvilgetFraOgMedMåned(måned)
+        } else {
+            vedtakRepo.hentForFraOgMedMånedEksEps(måned).innvilgetFraOgMedMåned(måned)
+        }
     }
 
     override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?): VedtakSomKanRevurderes? {

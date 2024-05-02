@@ -991,6 +991,10 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentInnvilgetFnrForMåned(måned)
                 }
 
+                override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
+                    return services.vedtakService.hentInnvilgetFnrFraOgMedMåned(måned, inkluderEps)
+                }
+
                 override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?) = kastKanKunKallesFraAnnenService()
                 override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
                     fødselsnumre: List<Fnr>,

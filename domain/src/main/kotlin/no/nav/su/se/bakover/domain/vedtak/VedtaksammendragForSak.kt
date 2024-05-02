@@ -24,10 +24,13 @@ data class VedtaksammendragForSak(
 
     val måneder = this.vedtak.map { it.periode }.måneder()
 
+    val epsFnr: List<Fnr> = vedtak.flatMap { it.epsFnr }.distinct().sortedBy { it.toString() }
+
     data class Vedtak(
         val opprettet: Tidspunkt,
         val periode: Periode,
         val vedtakstype: Vedtakstype,
+        val epsFnr: List<Fnr>,
     ) {
 
         init {
@@ -90,5 +93,18 @@ fun List<VedtaksammendragForSak>.innvilgetForMåned(måned: Måned): InnvilgetFo
         it.erInnvilgetForMåned(måned)
     }.let {
         InnvilgetForMåned(måned, it.map { it.fødselsnummer }.sortedBy { it.toString() })
+    }
+}
+
+/**
+ * Tar med både søker og EPS.
+ * Listen kan inneholde vedtak fra ulike saker. Resultatet kan derfor inneholde flere saker.
+ * @return Søkers og EPS fødselsnummer som har rett på stønad for en gitt måned eller etter. Unike og sortert.
+ */
+fun List<VedtaksammendragForSak>.innvilgetFraOgMedMåned(måned: Måned): List<Fnr> {
+    return this.filter {
+        it.erInnvilgetForMånedEllerSenere(måned)
+    }.let {
+        (it.map { it.fødselsnummer } + it.flatMap { it.epsFnr }).distinct().sortedBy { it.toString() }
     }
 }
