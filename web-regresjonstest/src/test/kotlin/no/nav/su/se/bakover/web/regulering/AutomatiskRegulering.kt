@@ -12,10 +12,13 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.application.formdataRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
 
 internal fun regulerAutomatisk(
     fraOgMed: Måned,
@@ -335,4 +338,28 @@ fun verifyReguleringEtterEttersendelse(
         "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id",
         "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id",
     )
+}
+
+fun AppComponents.verifySupplement(expectedFnr: String) {
+    this.databaseRepos.reguleringRepo.let {
+        it.defaultSessionContext().let {
+            it.withSession {
+                """select * from reguleringssupplement""".hentListe(emptyMap(), it) {
+                    it.string("supplement")
+                }.let {
+                    it.size shouldBe 2
+                    // vi kjører først en vanlig automatisk regulering uten supplemenent. denne blir lagret tom i basen
+                    it.first().shouldBeSimilarJsonTo("""[]""")
+                    // ettersendelsen lagrer supplementet - med innholdet i forventer fra reguleringen sin json
+                    //language=json
+                    it.last().shouldBeSimilarJsonTo(
+                        """[{
+                              "fnr": "$expectedFnr","perType": [{"vedtak": [{"type": "regulering", "beløp": 10500, "fradrag": [{"beløp": 10500, "fraOgMed": "2021-05-01", "tilOgMed": null, "eksterndata": {"fnr": "$expectedFnr", "fraOgMed": "01.05.2021", "sakstype": "ALDER", "tilOgMed": null, "nettoYtelse": "10500", "vedtakstype": "REGULERING", "bruttoYtelse": "10500", "ytelseskomponenttype": "UT_ORDINER", "nettoYtelseskomponent": "10500", "bruttoYtelseskomponent": "10500"}, "vedtakstype": "Regulering"}], "periodeOptionalTilOgMed": {"fraOgMed": "2021-05-01", "tilOgMed": null}}, {"type": "endring", "beløp": 10000, "måned": {"fraOgMed": "2021-04-01", "tilOgMed": "2021-04-30"}, "fradrag": [{"beløp": 10000, "fraOgMed": "2021-04-01", "tilOgMed": "2021-04-30", "eksterndata": {"fnr": "$expectedFnr", "fraOgMed": "01.04.2021", "sakstype": "ALDER", "tilOgMed": "30.04.2021", "nettoYtelse": "10000", "vedtakstype": "ENDRING", "bruttoYtelse": "10000", "ytelseskomponenttype": "UT_ORDINER", "nettoYtelseskomponent": "10000", "bruttoYtelseskomponent": "10000"}, "vedtakstype": "Endring"}]}], "fradragskategori": "Alderspensjon"}]
+                          }]
+                        """.trimIndent(),
+                    )
+                }
+            }
+        }
+    }
 }

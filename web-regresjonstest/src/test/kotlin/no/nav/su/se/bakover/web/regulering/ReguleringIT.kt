@@ -357,6 +357,7 @@ internal class ReguleringIT {
                     reguleringEtterEttersendelse,
                     fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt,
                 )
+                appComponents.verifySupplement(fnrSomSkalBliAutomatiskRegulertNårSupplementBlirEttersendt)
             }
         }
     }

@@ -265,6 +265,7 @@ class ReguleringServiceImpl(
 
     override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
+        reguleringRepo.lagre(supplement)
         reguleringerSomKanOppdateres.forEach { reguleringssammendrag ->
             log.info("Oppdatering av regulering for sak ${reguleringssammendrag.saksnummer} starter...")
 

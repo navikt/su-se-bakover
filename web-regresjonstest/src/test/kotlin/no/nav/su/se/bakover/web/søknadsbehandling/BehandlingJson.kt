@@ -75,6 +75,10 @@ data object ReguleringJson {
 
     fun hentSingleUføregrunnlag(json: String): String =
         JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("uføre").getJSONArray("vurderinger").single().toString()
+
+    fun supplement(reguleringEtterEttersendelse: String): String {
+        return JSONObject(reguleringEtterEttersendelse).getJSONObject("supplement").toString()
+    }
 }
 
 data object GrunnlagJson {
