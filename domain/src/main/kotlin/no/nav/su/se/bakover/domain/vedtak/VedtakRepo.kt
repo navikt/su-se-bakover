@@ -15,7 +15,15 @@ import java.util.UUID
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
+
+    /**
+     * Tilpasset for frikort.
+     * Som kun ønsker og vite hvilke stønadsmottakere som har/hadde rett på stønad en gitt måned.
+     * Vi setter [VedtaksammendragForSak.Vedtak.epsFnr] til en tom liste, istedenfor å lage 2 forskjellige [VedtaksammendragForSak] typer. Dersom dette fører til problemer på sikt, anbefales det å lage en egen type for frikort.
+     */
     fun hentForMåned(måned: Måned): List<VedtaksammendragForSak>
+    fun hentForFraOgMedMånedInklEps(måned: Måned): List<VedtaksammendragForSak>
+    fun hentForFraOgMedMånedEksEps(måned: Måned): List<VedtaksammendragForSak>
     fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
 
     /**
@@ -24,7 +32,7 @@ interface VedtakRepo {
      * TODO - når alder implementeres, kan denne matche for samme søkeren 2 ganger.
      * merk også at dersom EPS er registrert på flere saker, vil du få flere også
      */
-    fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
+    fun hentForEpsFødselsnumreOgFraOgMedMåned(epsFnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
 
     /** Denne vil feile dersom vedtaket er lagret før. */
     fun lagre(vedtak: Vedtak)

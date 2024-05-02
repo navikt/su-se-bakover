@@ -269,12 +269,73 @@ internal class VedtakPostgresRepo(
                     v.vedtaktype,
                     s.fnr,
                     s.id as sakid,
-                    s.saksnummer
+                    s.saksnummer,
+                    null as epsFnr
                   from vedtak v
                     left join sak s on s.id = v.sakid
                   where
                     v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
                     :dato between fraogmed and tilogmed
+                """.trimIndent()
+                    .hentListe(mapOf("dato" to måned.fraOgMed), session) {
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
+            }
+        }
+    }
+
+    override fun hentForFraOgMedMånedEksEps(måned: Måned): List<VedtaksammendragForSak> {
+        return dbMetrics.timeQuery("hentForFraOgMedMånedEksEps") {
+            sessionFactory.withSession { session ->
+                """
+                  select
+                    v.opprettet,
+                    v.fraogmed,
+                    v.tilogmed,
+                    v.vedtaktype,
+                    s.fnr,
+                    s.id as sakid,
+                    s.saksnummer,
+                    null as epsFnr
+                  from vedtak v
+                    join sak s on s.id = v.sakid
+                  where
+                    v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
+                    :dato <= v.tilogmed
+                  order by s.saksnummer, v.opprettet
+                """.trimIndent()
+                    .hentListe(mapOf("dato" to måned.fraOgMed), session) {
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
+            }
+        }
+    }
+
+    /**
+     * Det er verdt og merge seg at man får med alle EPS innenfor en vedtaksperiode, selv om grunnlaget sitt tilOgMed er før [måned].
+     */
+    override fun hentForFraOgMedMånedInklEps(måned: Måned): List<VedtaksammendragForSak> {
+        return dbMetrics.timeQuery("hentForFraOgMedMånedInklEps") {
+            sessionFactory.withSession { session ->
+                """
+                  select
+                    v.opprettet,
+                    v.fraogmed,
+                    v.tilogmed,
+                    v.vedtaktype,
+                    s.fnr,
+                    s.id as sakid,
+                    s.saksnummer,
+                    array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
+                  from vedtak v
+                    join sak s on s.id = v.sakid
+                    left join behandling_vedtak bv ON bv.vedtakId = v.id
+                    left join grunnlag_bosituasjon gb ON (gb.behandlingId = bv.søknadsbehandlingid OR gb.behandlingId = bv.revurderingid)
+                  where
+                    v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
+                    :dato <= v.tilogmed
+                  group by v.opprettet, v.fraogmed, v.tilogmed, v.vedtaktype, s.fnr, s.id, s.saksnummer
+                  order by s.saksnummer, v.opprettet
                 """.trimIndent()
                     .hentListe(mapOf("dato" to måned.fraOgMed), session) {
                         it.toVedtaksammendragForSak()
@@ -301,13 +362,18 @@ internal class VedtakPostgresRepo(
                     v.vedtaktype,
                     s.fnr,
                     s.id as sakid,
-                    s.saksnummer
+                    s.saksnummer,
+                    array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
                   from vedtak v
-                    left join sak s on s.id = v.sakid
+                    join sak s on s.id = v.sakid
+                    join behandling_vedtak bv ON bv.vedtakId = v.id
+                    left join grunnlag_bosituasjon gb ON gb.behandlingId = bv.søknadsbehandlingid OR gb.behandlingId = bv.revurderingid
                   where
                     v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
                     s.fnr = ANY (:fnr) and
-                    :dato <= tilogmed
+                    :dato <= v.tilogmed
+                    group by v.id, v.opprettet, v.fraogmed, v.tilogmed, v.vedtaktype, s.fnr, s.id, s.saksnummer
+                    order by s.saksnummer, v.opprettet
                 """.trimIndent()
                     .hentListe(
                         mapOf(
@@ -323,7 +389,7 @@ internal class VedtakPostgresRepo(
     }
 
     override fun hentForEpsFødselsnumreOgFraOgMedMåned(
-        fnr: List<Fnr>,
+        epsFnr: List<Fnr>,
         fraOgMedEllerSenere: Måned,
     ): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentSakForEpsFnrFra") {
@@ -337,7 +403,8 @@ internal class VedtakPostgresRepo(
                     v.vedtaktype,
                     s.fnr,
                     s.id as sakid,
-                    s.saksnummer
+                    s.saksnummer,
+                    array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
                   from vedtak v
                     join sak s on s.id = v.sakid
                     join behandling_vedtak bv ON bv.vedtakId = v.id
@@ -346,9 +413,10 @@ internal class VedtakPostgresRepo(
                     v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
                     gb.eps_fnr = ANY (:fnr) and
                     :fraogmed <= gb.tilogmed
-                  order by s.saksnummer, v.opprettet
+                    group by v.id, v.opprettet, v.fraogmed, v.tilogmed, v.vedtaktype, s.fnr, s.id, s.saksnummer
+                    order by s.saksnummer, v.opprettet
                 """.trimIndent().hentListe(
-                    mapOf("fraogmed" to fraOgMedEllerSenere.fraOgMed, "fnr" to fnr.map { it.toString() }),
+                    mapOf("fraogmed" to fraOgMedEllerSenere.fraOgMed, "fnr" to epsFnr.map { it.toString() }),
                     session,
                 ) {
                     it.toVedtaksammendragForSak()
@@ -726,6 +794,10 @@ internal class VedtakPostgresRepo(
                         "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
                         else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
                     },
+                    epsFnr = this.arrayOrNull<String>("epsFnr")
+                        ?.map { Fnr(it) }
+                        ?.sortedBy { it.toString() }
+                        ?: emptyList(),
                 ),
             ),
         )

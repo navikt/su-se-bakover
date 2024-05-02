@@ -124,7 +124,9 @@ data class Utbetalinger(
 
     private fun sjekkDuplikateOpprettet() {
         this.map { it.opprettet }.let {
-            check(it.distinct().size == it.size) { "Utbetalinger må ha unike opprettet-tidspunkt, men var $it" }
+            check(it.distinct().size == it.size) {
+                "Utbetalinger må ha unike opprettet-tidspunkt, men var $it"
+            }
         }
     }
 

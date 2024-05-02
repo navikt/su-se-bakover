@@ -91,6 +91,7 @@ fun forenkletVedtak(
                 opprettet = opprettet,
                 periode = periode,
                 vedtakstype = vedtakstype,
+                epsFnr = emptyList(),
             ),
         ),
     )
@@ -114,11 +115,13 @@ fun vedtaksammendragForSakVedtak(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     vedtakstype: Vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+    epsFnr: List<Fnr> = emptyList(),
 ): VedtaksammendragForSak.Vedtak {
     return VedtaksammendragForSak.Vedtak(
         opprettet = opprettet,
         periode = periode,
         vedtakstype = vedtakstype,
+        epsFnr = epsFnr,
     )
 }
 
@@ -161,6 +164,7 @@ private fun VedtakSomKanRevurderes.toVedtaksammendrag(
                 opprettet = this.opprettet,
                 periode = this.periode,
                 vedtakstype = vedtakstype,
+                epsFnr = emptyList(),
             ),
         ),
     )

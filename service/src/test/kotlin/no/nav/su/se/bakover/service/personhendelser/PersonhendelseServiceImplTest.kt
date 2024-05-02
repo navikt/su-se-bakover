@@ -67,6 +67,7 @@ internal class PersonhendelseServiceImplTest {
                             opprettet = fixedTidspunkt,
                             periode = år(2021),
                             vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                            epsFnr = emptyList(),
                         ),
                     ),
                 ),
