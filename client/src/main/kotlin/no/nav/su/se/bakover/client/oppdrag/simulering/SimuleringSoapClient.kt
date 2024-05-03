@@ -91,7 +91,7 @@ internal class SimuleringSoapClient(
                     "Feil ved simulering: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status. Se sikkerlogg for request.",
                     RuntimeException("Trigger stacktrace"),
                 )
-                sikkerLogg.error("Feil ved simulering: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, Soap-request: $soapRequest")
+                sikkerLogg.error("Feil ved simulering: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, soap-response: $response, soap-request: $soapRequest")
                 return SimuleringFeilet.TekniskFeil.left()
             }
 
@@ -100,7 +100,7 @@ internal class SimuleringSoapClient(
                     "Feil ved simulering: Simuleringsresponsen fra Oppdrag var tom (forventet soap) for saksnummer: $saksnummer. statusCode: $status. Se sikkerlogg for request.",
                     RuntimeException("Trigger stacktrace"),
                 )
-                sikkerLogg.error("Simuleringsresponsen fra Oppdrag var tom (forventet soap) for saksnummer: $saksnummer. statusCode: $status. Soap-request: $soapRequest")
+                sikkerLogg.error("Simuleringsresponsen fra Oppdrag var tom (forventet soap) for saksnummer: $saksnummer. statusCode: $status, soap-request: $soapRequest")
             }
         }.mapLeft { error: Throwable ->
             when (error) {
