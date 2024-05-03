@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
@@ -195,25 +196,28 @@ internal fun Route.reguler(
                 isTrue = {
                     runBlocking {
                         val parts = call.receiveMultipart()
-                        var fraOgMedMåned = ""
-                        var gVerdi = ""
-                        var csvData = ""
+                        var startDatoRegulering = ""
+                        var gjeldendeSatsFra = ""
+                        var file = ""
+
+                        var virkningstidspunkt = ""
+                        var ikrafttredelse = ""
+                        var grunnbeløp = ""
                         var omregningsfaktor = ""
-                        var kjøringsdato = ""
 
                         parts.forEachPart {
                             when (it) {
-                                is PartData.FileItem -> {
-                                    val fileBytes = it.streamProvider().readBytes()
-                                    csvData = String(fileBytes)
-                                }
+                                is PartData.FileItem -> file = String(it.streamProvider().readBytes())
 
                                 is PartData.FormItem -> {
                                     when (it.name) {
-                                        "fraOgMedMåned" -> fraOgMedMåned = it.value
-                                        "gVerdi" -> gVerdi = it.value
+                                        "virkningstidspunkt" -> virkningstidspunkt = it.value
+                                        "ikrafttredelse" -> ikrafttredelse = it.value
+                                        "startDatoRegulering" -> startDatoRegulering = it.value
+                                        "gjeldendeSatsFra" -> gjeldendeSatsFra = it.value
+                                        "grunnbeløp" -> grunnbeløp = it.value
                                         "omregningsfaktor" -> omregningsfaktor = it.value
-                                        "kjøringsdato" -> kjøringsdato = it.value
+
                                         else -> Feilresponser.ukjentMultipartFormDataField
                                     }
                                 }
@@ -222,29 +226,48 @@ internal fun Route.reguler(
                             }
                         }
 
-                        parseCSVFromString(csvData, clock).fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = {
-                                val command = StartAutomatiskReguleringForInnsynCommand(
-                                    fraOgMedMåned = Måned.fra(LocalDate.parse(fraOgMedMåned)),
-                                    virkningstidspunkt = LocalDate.parse(fraOgMedMåned),
-                                    supplement = it,
-                                    grunnbeløp = gVerdi.toIntOrNull() ?: return@runBlocking call.svar(
-                                        HttpStatusCode.BadRequest.errorJson(
-                                            "Kunne ikke parse grunnbeløp",
-                                            "feil_ved_parsning_av_grunnbeløp",
-                                        ),
-                                    ),
-                                    omregningsfaktor = BigDecimal(omregningsfaktor),
-                                    kjøringsdato = kjøringsdato.let { LocalDate.parse(it) },
-                                )
-
-                                launch {
-                                    reguleringService.startAutomatiskReguleringForInnsyn(command)
-                                }
-                                call.svar(Resultat.accepted())
+                        val supplement = parseCSVFromString(file, clock).fold(
+                            ifLeft = {
+                                call.svar(it)
+                                Reguleringssupplement.empty(clock)
                             },
+                            ifRight = { it },
                         )
+
+                        val dryRunNyttGrunnbeløp = if (listOf(
+                                virkningstidspunkt,
+                                ikrafttredelse,
+                                grunnbeløp,
+                                omregningsfaktor,
+                            ).all { it.isEmpty() }
+                        ) {
+                            null
+                        } else {
+                            DryRunNyttGrunnbeløp(
+                                virkningstidspunkt = LocalDate.parse(virkningstidspunkt),
+                                ikrafttredelse = if (ikrafttredelse.isBlank()) {
+                                    LocalDate.parse(virkningstidspunkt)
+                                } else {
+                                    LocalDate.parse(ikrafttredelse)
+                                },
+                                omregningsfaktor = BigDecimal(omregningsfaktor),
+                                grunnbeløp = grunnbeløp.toInt(),
+                            )
+                        }
+
+                        val command = StartAutomatiskReguleringForInnsynCommand(
+                            startDatoRegulering = Måned.parse(startDatoRegulering) ?: return@runBlocking call.svar(
+                                ugyldigMåned,
+                            ),
+                            gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
+                            dryRunNyttGrunnbeløp = dryRunNyttGrunnbeløp,
+                            supplement = supplement,
+                        )
+
+                        launch {
+                            reguleringService.startAutomatiskReguleringForInnsyn(command)
+                        }
+                        call.svar(Resultat.accepted())
                     }
                 },
                 isFalse = {

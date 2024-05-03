@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
@@ -15,42 +16,43 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
- * @param fraOgMedMåned Måned i formatet yyyy-MM
- * @param virkningstidspunkt Dato i formatet yyyy-MM-dd, hvis null settes den til fraOgMedMåned
+ * @param virkningstidspunkt Dato i formatet yyyy-MM-dd
  * @param ikrafttredelse Dato i formatet yyyy-MM-dd, hvis null settes den til virkningstidspunkt
- * @param grunnbeløp Hvis null, bruker vi bare eksisterende verdier
- * @param garantipensjonOrdinær Hvis null, bruker vi bare eksisterende verdier
- * @param garantipensjonHøy Hvis null, bruker vi bare eksisterende verdier
+ */
+data class DryRunGrunnbeløp(
+    val virkningstidspunkt: String,
+    val ikrafttredelse: String?,
+    val grunnbeløp: Int,
+    val omregningsfaktor: String,
+)
+
+/**
+ * @param startDatoRegulering Måned i formatet yyyy-MM - Hvilken måned reguleringen skal startes fra
+ * @param gjeldendeSatsFra Dato i formatet yyyy-MM-dd - bestemmer hvilken gjeldende sats som skal brukes
+ * @param dryRunGrunnbeløp Settings for kjøring av nytt grunnbeløp - Hvis null, brukes bare eksisterende grunnbeløp i [grunnbeløpsendringer]
  */
 data class DryRunReguleringBody(
-    val fraOgMedMåned: String,
-    val omregningsfaktor: String,
-    val virkningstidspunkt: String?,
-    val ikrafttredelse: String?,
+    val startDatoRegulering: String,
+    val gjeldendeSatsFra: String,
+    val dryRunGrunnbeløp: DryRunGrunnbeløp?,
     val csv: String? = null,
-    val grunnbeløp: Int? = null,
-    val garantipensjonOrdinær: Int? = null,
-    val garantipensjonHøy: Int? = null,
-    val kjøringsdato: String,
 ) {
     fun toCommand(clock: Clock): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
-        val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
-        val parsedVirkningstidspunkt =
-            virkningstidspunkt?.let {
-                LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
-            }
-        val parsedIkrafttredelse =
-            ikrafttredelse?.let {
-                LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left()
-            }
         return StartAutomatiskReguleringForInnsynCommand(
-            fraOgMedMåned = parsedFraOgMedMåned,
-            virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
-            ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
-            grunnbeløp = grunnbeløp,
-            omregningsfaktor = BigDecimal(omregningsfaktor),
-            garantipensjonOrdinær = garantipensjonOrdinær,
-            garantipensjonHøy = garantipensjonHøy,
+            gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
+            startDatoRegulering = Måned.parse(startDatoRegulering) ?: return ugyldigMåned.left(),
+            dryRunNyttGrunnbeløp = dryRunGrunnbeløp?.let {
+                val parsedVirkningstidspunkt =
+                    it.virkningstidspunkt.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                val parsedIkrafttredelse =
+                    it.ikrafttredelse?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                DryRunNyttGrunnbeløp(
+                    virkningstidspunkt = parsedVirkningstidspunkt,
+                    ikrafttredelse = parsedIkrafttredelse ?: parsedVirkningstidspunkt,
+                    omregningsfaktor = BigDecimal(it.omregningsfaktor),
+                    grunnbeløp = it.grunnbeløp,
+                )
+            },
             supplement = if (csv != null) {
                 parseCSVFromString(csv, clock).fold(
                     ifLeft = { return it.left() },
@@ -59,7 +61,6 @@ data class DryRunReguleringBody(
             } else {
                 Reguleringssupplement.empty(clock)
             },
-            kjøringsdato = kjøringsdato.let { LocalDate.parse(it) },
         ).right()
     }
 }

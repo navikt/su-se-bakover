@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.juni
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
@@ -78,6 +80,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -88,6 +92,7 @@ import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingsrequest
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -432,7 +437,8 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first().getOrFail()
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
+                .getOrFail()
                 .let {
                     it.shouldBeInstanceOf<OpprettetRegulering>()
                     shouldBeEqualToComparingFields(
@@ -478,7 +484,8 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first().getOrFail()
+            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
+                .getOrFail()
                 .let {
                     it.shouldBeInstanceOf<OpprettetRegulering>()
                     it.shouldBeEqualToComparingFields(
@@ -517,7 +524,7 @@ internal class ReguleringServiceImplTest {
     }
 
     @Test
-    fun `gjør ingen sideeffekter ved dry run`() {
+    fun `gjør ingen sideeffekter ved dry run av eksisterende grunnbeløp`() {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
 
         val reguleringRepo = mock<ReguleringRepo> {}
@@ -546,10 +553,67 @@ internal class ReguleringServiceImplTest {
             satsFactory = satsFactoryTestPåDato(25.mai(2021)),
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
-                fraOgMedMåned = mai(2021),
-                virkningstidspunkt = 25.mai(2021),
+                gjeldendeSatsFra = 25.mai(2021),
+                startDatoRegulering = mai(2021),
                 supplement = Reguleringssupplement.empty(fixedClock),
-                kjøringsdato = 25.mai(2021),
+                dryRunNyttGrunnbeløp = null,
+            ),
+        )
+
+        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSaker()
+        verify(sakService).hentSak(argShouldBe(sak.id))
+        verify(utbetalingService).simulerUtbetaling(any())
+
+        verifyNoMoreInteractions(sakService)
+        verifyNoMoreInteractions(reguleringRepo)
+        verifyNoMoreInteractions(utbetalingService)
+        verifyNoMoreInteractions(vedtakMock)
+        verifyNoInteractions(sessionMock)
+    }
+
+    @Test
+    fun `gjør ingen sideeffekter ved dry run der vi legger inn et nytt test grunnbeløp`() {
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+
+        val reguleringRepo = mock<ReguleringRepo> {}
+        val sakService = mock<SakService> {
+            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+        val utbetalingService = mock<UtbetalingService> {
+            on { simulerUtbetaling(any()) } doAnswer { invocation ->
+                simulerUtbetaling(
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                )
+            }
+        }
+        val vedtakMock = mock<VedtakService> {}
+        val sessionMock = mock<SessionFactory> {}
+
+        val satsFactory = SatsFactoryForSupplerendeStønad(
+            grunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+        )
+        ReguleringServiceImpl(
+            reguleringRepo = reguleringRepo,
+            sakService = sakService,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakMock,
+            sessionFactory = sessionMock,
+            clock = fixedClockAt(25.mai(2021)),
+            satsFactory = satsFactory.gjeldende(1.mai(2020)),
+        ).startAutomatiskReguleringForInnsyn(
+            StartAutomatiskReguleringForInnsynCommand(
+                gjeldendeSatsFra = 25.mai(2021),
+                startDatoRegulering = mai(2021),
+                supplement = Reguleringssupplement.empty(fixedClock),
+                overrideableGrunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+                dryRunNyttGrunnbeløp = DryRunNyttGrunnbeløp(
+                    virkningstidspunkt = 1.mai(2021),
+                    ikrafttredelse = 21.mai(2021),
+                    omregningsfaktor = BigDecimal(1.049807),
+                    grunnbeløp = 106399,
+                ),
             ),
         )
 

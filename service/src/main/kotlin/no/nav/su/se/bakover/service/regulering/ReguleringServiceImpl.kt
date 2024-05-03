@@ -93,13 +93,14 @@ class ReguleringServiceImpl(
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
-        val factory = command.satsFactory.gjeldende(command.kjøringsdato)
+        val factory = command.satsFactory.gjeldende(command.gjeldendeSatsFra)
+
         Either.catch {
             start(
-                fraOgMedMåned = command.fraOgMedMåned,
+                fraOgMedMåned = command.startDatoRegulering,
                 isLiveRun = false,
                 satsFactory = factory,
-                omregningsfaktor = factory.grunnbeløp(command.fraOgMedMåned).omregningsfaktor,
+                omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
