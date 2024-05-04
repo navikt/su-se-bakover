@@ -34,6 +34,9 @@ interface FerdigstillVedtakService {
         vedtakId: UUID,
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes>
 
+    /**
+     * TODO jah: Brukes kun av IverksettSøknadsbehandlingServiceImpl, flytt dit?
+     */
     fun lukkOppgaveMedBruker(
         behandling: Stønadsbehandling,
     ): Either<KunneIkkeLukkeOppgave, Unit>

@@ -1029,7 +1029,7 @@ open class AccessCheckProxy(
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(command)
                 }
 
-                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, PdfA>> {
+                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
                 }

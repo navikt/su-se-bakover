@@ -1,5 +1,6 @@
 package behandling.domain
 
+// TODO jah: Ingen benytter disse metrikkene. Slett?
 interface BehandlingMetrics {
     fun incrementUnderkjentCounter(handling: UnderkjentHandlinger)
     fun incrementInnvilgetCounter(handling: InnvilgetHandlinger)

@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
@@ -57,11 +58,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
-
-enum class Søknadstype(val value: String) {
-    ALDER("alder"),
-    UFØRE("ufore"),
-}
 
 const val SØKNAD_PATH = "/soknad"
 
