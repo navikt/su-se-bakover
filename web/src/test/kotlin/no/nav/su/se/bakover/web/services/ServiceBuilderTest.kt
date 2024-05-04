@@ -78,8 +78,6 @@ internal class ServiceBuilderTest {
                 queryJournalpostClient = mock(),
                 skatteOppslag = mock(),
             ),
-            behandlingMetrics = mock(),
-            søknadMetrics = mock(),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),

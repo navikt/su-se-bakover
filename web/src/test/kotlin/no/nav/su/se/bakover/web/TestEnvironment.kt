@@ -50,8 +50,6 @@ internal fun Application.testSusebakoverWithMockedDb(
             // build actual clients
             databaseRepos = databaseRepos,
             clients = clients,
-            behandlingMetrics = org.mockito.kotlin.mock(),
-            søknadMetrics = org.mockito.kotlin.mock(),
             clock = clock,
             satsFactory = satsFactory,
             formuegrenserFactory = formuegrenserFactory,

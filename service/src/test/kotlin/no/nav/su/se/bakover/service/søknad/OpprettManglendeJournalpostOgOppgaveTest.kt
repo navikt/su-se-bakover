@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
@@ -250,7 +249,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn journalførtSøknad.journalpostId.right()
             },
-            søknadMetrics = mock(),
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(journalførtSøknad.right()),
@@ -288,7 +286,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(argThat { journalførtSøknad.id })
-                verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
                 verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
                 verify(it.oppgaveService).opprettOppgaveMedSystembruker(
@@ -316,7 +313,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                         )
                     },
                 )
-                verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
             }
             it.verifyNoMoreInteractions()
         }

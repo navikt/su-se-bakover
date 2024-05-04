@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services
 
-import behandling.domain.BehandlingMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -8,7 +7,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.sak.SakFactory
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -46,8 +44,6 @@ data object ServiceBuilder {
     fun build(
         databaseRepos: DatabaseRepos,
         clients: Clients,
-        behandlingMetrics: BehandlingMetrics,
-        søknadMetrics: SøknadMetrics,
         clock: Clock,
         satsFactory: SatsFactory,
         formuegrenserFactory: FormuegrenserFactory,
@@ -98,7 +94,6 @@ data object ServiceBuilder {
             journalførSøknadClient = clients.journalførClients.søknad,
             personService = personService,
             oppgaveService = oppgaveService,
-            søknadMetrics = søknadMetrics,
             clock = clock,
         ).apply {
             addObserver(statistikkEventObserver)
@@ -128,7 +123,6 @@ data object ServiceBuilder {
             utbetalingService = utbetalingService,
             personService = personService,
             oppgaveService = oppgaveService,
-            behandlingMetrics = behandlingMetrics,
             brevService = brevService,
             clock = clock,
             sakService = sakService,
@@ -153,7 +147,6 @@ data object ServiceBuilder {
             brevService = brevService,
             oppgaveService = oppgaveService,
             vedtakService = vedtakService,
-            behandlingMetrics = behandlingMetrics,
             clock = clock,
             satsFactory = satsFactory,
         )

@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import dokument.domain.journalføring.ErTilknyttetSak
-import dokument.domain.journalføring.JournalpostClientMetrics
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
@@ -17,10 +16,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 internal class JournalpostHttpClientTest {
 
@@ -231,14 +228,10 @@ internal fun setupClient(
     sts: TokenOppslag = mock {
         on { token() } doReturn AccessToken("stsToken")
     },
-    metrics: JournalpostClientMetrics = mock {
-        doNothing().whenever(it).inkrementerBenyttetSkjema(any())
-    },
 ) = QueryJournalpostHttpClient(
     safConfig = safConfig,
     azureAd = azureAd,
     sts = sts,
-    metrics = metrics,
 )
 
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

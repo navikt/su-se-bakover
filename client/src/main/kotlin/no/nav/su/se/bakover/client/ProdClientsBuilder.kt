@@ -35,7 +35,6 @@ import java.time.Clock
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
-    private val metrics: ClientMetrics,
     private val samlTokenProvider: SamlTokenProvider,
 ) : ClientsBuilder {
 
@@ -83,7 +82,6 @@ data class ProdClientsBuilder(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = oAuth,
             sts = tokenOppslag,
-            metrics = metrics.journalpostClientMetrics,
         )
 
         return Clients(

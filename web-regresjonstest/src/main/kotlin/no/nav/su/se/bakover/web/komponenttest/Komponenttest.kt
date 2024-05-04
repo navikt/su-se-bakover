@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
-import org.mockito.kotlin.mock
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
@@ -128,8 +127,6 @@ class AppComponents private constructor(
                         ServiceBuilder.build(
                             databaseRepos = databaseRepos,
                             clients = clients,
-                            behandlingMetrics = mock(),
-                            søknadMetrics = mock(),
                             clock = clock,
                             satsFactory = satsFactoryIdag,
                             formuegrenserFactory = formuegrenserFactoryIDag,
@@ -222,8 +219,6 @@ internal fun withKomptestApplication(
             ServiceBuilder.build(
                 databaseRepos = databaseRepos,
                 clients = clients,
-                behandlingMetrics = mock(),
-                søknadMetrics = mock(),
                 clock = klokke,
                 satsFactory = satsFactoryIDag,
                 formuegrenserFactory = formuegrenserFactoryIDag,

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import behandling.domain.BehandlingMetrics
 import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -8,7 +7,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.Route
-import no.nav.su.se.bakover.client.ClientMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -26,14 +24,10 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
-import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
-import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
@@ -69,11 +63,6 @@ val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagP�
  */
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
-    behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
-    søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
-    clientMetrics: ClientMetrics = ClientMetrics(
-        journalpostClientMetrics = JournalpostClientMicrometerMetrics(),
-    ),
     dbMetrics: DbMetrics = DbMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
@@ -105,7 +94,6 @@ fun Application.susebakover(
         ProdClientsBuilder(
             jmsConfig,
             clock = clock,
-            metrics = clientMetrics,
             samlTokenProvider = samlTokenProvider,
         ).build(applicationConfig)
     },
@@ -113,8 +101,6 @@ fun Application.susebakover(
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
-            behandlingMetrics = behandlingMetrics,
-            søknadMetrics = søknadMetrics,
             clock = clock,
             satsFactory = satsFactoryIDag,
             formuegrenserFactory = formuegrenserFactoryIDag,

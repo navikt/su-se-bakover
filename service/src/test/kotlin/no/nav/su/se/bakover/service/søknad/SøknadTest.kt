@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -95,7 +94,6 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
             },
-            søknadMetrics = mock(),
         ).also {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 
@@ -164,7 +162,6 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
-            søknadMetrics = mock(),
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn ClientError(1, "").left()
             },
@@ -257,7 +254,6 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
             },
             søknadRepo = mock(),
-            søknadMetrics = mock(),
         ).also {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sak.fnr))
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
@@ -275,7 +271,6 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -314,7 +309,6 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Søknad(
@@ -363,7 +357,6 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             søknadRepo = mock(),
-            søknadMetrics = mock(),
         ).also {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 

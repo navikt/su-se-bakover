@@ -156,8 +156,6 @@ data object SharedRegressionTestData {
             ServiceBuilder.build(
                 databaseRepos = databaseRepos,
                 clients = clients,
-                behandlingMetrics = mock(),
-                søknadMetrics = mock(),
                 clock = clock,
                 satsFactory = satsFactoryIDag,
                 formuegrenserFactory = formuegrenserFactoryIDag,

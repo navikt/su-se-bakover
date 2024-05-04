@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -44,7 +43,6 @@ class SøknadServiceImpl(
     private val journalførSøknadClient: JournalførSøknadClient,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val søknadMetrics: SøknadMetrics,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -104,8 +102,6 @@ class SøknadServiceImpl(
                 Pair(it, søknad)
             },
         )
-        // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
-        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sakInfo, person, søknad)
         observers.forEach { observer ->
             observer.handle(
@@ -215,7 +211,6 @@ class SøknadServiceImpl(
 
         return søknad.journalfør(journalpostId).also {
             søknadRepo.oppdaterjournalpostId(it)
-            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
         }.right()
     }
 
@@ -239,7 +234,6 @@ class SøknadServiceImpl(
         }.map { oppgaveResponse ->
             return søknad.medOppgave(oppgaveResponse.oppgaveId).also {
                 søknadRepo.oppdaterOppgaveId(it)
-                søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
             }.right()
         }
     }

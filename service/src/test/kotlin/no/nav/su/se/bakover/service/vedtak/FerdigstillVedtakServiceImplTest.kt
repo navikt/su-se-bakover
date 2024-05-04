@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
-import behandling.domain.BehandlingMetrics
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -212,7 +211,6 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
-            verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
             org.mockito.kotlin.verifyNoMoreInteractions(*all())
         }
     }
@@ -283,14 +281,12 @@ internal class FerdigstillVedtakServiceImplTest {
         val brevService: BrevService = mock(),
         val vedtakService: VedtakService = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
-        val behandlingMetrics: BehandlingMetrics = mock(),
         val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
     ) {
         val service = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,
             vedtakService = vedtakService,
-            behandlingMetrics = behandlingMetrics,
             clock = clock,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
         )
@@ -305,7 +301,6 @@ internal class FerdigstillVedtakServiceImplTest {
             brevService,
             vedtakService,
             utbetalingRepo,
-            behandlingMetrics,
         ).toTypedArray()
 
         private fun verifyNoMoreInteractions() {

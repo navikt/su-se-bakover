@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test.application
 
-import behandling.domain.BehandlingMetrics
 import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -17,7 +16,6 @@ import io.ktor.http.content.PartData
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.client.ClientMetrics
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
@@ -29,7 +27,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -58,9 +55,6 @@ import java.time.Clock
  */
 fun Application.runApplicationWithMocks(
     clock: Clock = fixedClock,
-    behandlingMetrics: BehandlingMetrics = mock(),
-    søknadMetrics: SøknadMetrics = mock(),
-    clientMetrics: ClientMetrics = mock(),
     dbMetrics: DbMetrics = mock(),
     applicationConfig: ApplicationConfig = applicationConfig(),
     satsFactory: SatsFactoryForSupplerendeStønad = mock(),
@@ -109,9 +103,6 @@ fun Application.runApplicationWithMocks(
 ) {
     return susebakover(
         clock = clock,
-        behandlingMetrics = behandlingMetrics,
-        søknadMetrics = søknadMetrics,
-        clientMetrics = clientMetrics,
         dbMetrics = dbMetrics,
         applicationConfig = applicationConfig,
         satsFactory = satsFactory,

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import behandling.domain.BehandlingMetrics
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -24,7 +23,6 @@ internal fun createSøknadsbehandlingService(
     utbetalingService: UtbetalingService = mock(),
     oppgaveService: OppgaveService = mock(),
     personService: PersonService = mock(),
-    behandlingMetrics: BehandlingMetrics = mock(),
     observer: StatistikkEventObserver = mock(),
     brevService: BrevService = mock(),
     clock: Clock = fixedClock,
@@ -38,7 +36,6 @@ internal fun createSøknadsbehandlingService(
     utbetalingService = utbetalingService,
     personService = personService,
     oppgaveService = oppgaveService,
-    behandlingMetrics = behandlingMetrics,
     brevService = brevService,
     clock = clock,
     sakService = sakService,
@@ -53,7 +50,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val utbetalingService: UtbetalingService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val personService: PersonService = defaultMock(),
-    val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: StatistikkEventObserver = mock(),
     val brevService: BrevService = defaultMock(),
     val clock: Clock = fixedClock,
@@ -68,7 +64,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         utbetalingService = utbetalingService,
         personService = personService,
         oppgaveService = oppgaveService,
-        behandlingMetrics = behandlingMetrics,
         brevService = brevService,
         clock = clock,
         sakService = sakService,
@@ -84,7 +79,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             utbetalingService,
             oppgaveService,
             personService,
-            behandlingMetrics,
             observer,
             brevService,
             sakService,
@@ -97,7 +91,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             utbetalingService,
             oppgaveService,
             personService,
-            behandlingMetrics,
             observer,
             brevService,
             sakService,

@@ -5,14 +5,12 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
-import behandling.domain.BehandlingMetrics
 import behandling.domain.Stønadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
@@ -46,7 +44,6 @@ class FerdigstillVedtakServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val vedtakService: VedtakService,
-    private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
 ) : FerdigstillVedtakService {
@@ -191,22 +188,7 @@ class FerdigstillVedtakServiceImpl(
             log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
         }.map {
             log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
-            incrementLukketOppgave(behandling)
             oppgaveId
-        }
-    }
-
-    private fun incrementLukketOppgave(behandling: Stønadsbehandling) {
-        return when (behandling) {
-            is IverksattSøknadsbehandling.Avslag -> {
-                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
-            }
-
-            is IverksattSøknadsbehandling.Innvilget -> {
-                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-            }
-            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
-            else -> Unit
         }
     }
 }

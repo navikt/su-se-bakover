@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
@@ -23,7 +22,6 @@ internal data class SøknadServiceOgMocks(
     val journalførSøknadClient: JournalførSøknadClient = defaultMock(),
     val personService: PersonService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
-    val søknadMetrics: SøknadMetrics = defaultMock(),
     val clock: Clock = fixedClock,
 ) {
     val service = SøknadServiceImpl(
@@ -34,7 +32,6 @@ internal data class SøknadServiceOgMocks(
         journalførSøknadClient = journalførSøknadClient,
         personService = personService,
         oppgaveService = oppgaveService,
-        søknadMetrics = søknadMetrics,
         clock = fixedClock,
     )
 
@@ -45,7 +42,6 @@ internal data class SøknadServiceOgMocks(
         journalførSøknadClient,
         personService,
         oppgaveService,
-        søknadMetrics,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
-import behandling.domain.BehandlingMetrics
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -74,13 +73,11 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
@@ -98,7 +95,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         )
     }
 
@@ -113,13 +109,11 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = behandling.id,
@@ -137,7 +131,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         )
     }
 
@@ -152,14 +145,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
         val observerMock: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             observer = observerMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
@@ -183,7 +174,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         )
         verifyNoInteractions(observerMock)
     }
@@ -198,13 +188,11 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { oppdaterOppgave(any(), any()) } doReturn KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave.left()
         }
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
         val observerMock: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             observer = observerMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
@@ -237,7 +225,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         inOrder(
             søknadsbehandlingRepoMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
             observerMock,
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -252,7 +239,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     )
                 },
             )
-            verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe BehandlingMetrics.UnderkjentHandlinger.PERSISTERT })
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(
                 søknadsbehandling = argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering },
@@ -270,7 +256,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         )
     }
 
@@ -285,12 +270,9 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse(oppgaveId = oppgaveIdSøknad).right()
         }
 
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
@@ -322,7 +304,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         inOrder(
             søknadsbehandlingRepoMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(oppgaveServiceMock).oppdaterOppgave(
@@ -336,7 +317,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     )
                 },
             )
-            verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(underkjentMedNyOppgaveIdOgAttestering), anyOrNull())
         }
@@ -344,7 +324,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             oppgaveServiceMock,
-            behandlingMetricsMock,
         )
     }
 }

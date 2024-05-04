@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import behandling.domain.BehandlingMetrics
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
@@ -111,7 +110,6 @@ class SøknadsbehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val behandlingMetrics: BehandlingMetrics,
     private val brevService: BrevService,
     private val clock: Clock,
     private val sakService: SakService,
@@ -258,7 +256,6 @@ class SøknadsbehandlingServiceImpl(
                 // gjør en best effort på å oppdatere oppgaven
                 log.error("Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId. Feilen var $it")
             }
-            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
             søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering)
             when (søknadsbehandlingTilAttestering) {
                 is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
@@ -300,7 +297,6 @@ class SøknadsbehandlingServiceImpl(
                 log.error("Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}. Feilen var $it")
             }
 
-            behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             søknadsbehandlingRepo.lagre(underkjent)
             when (underkjent) {
                 is UnderkjentSøknadsbehandling.Avslag -> observers.notify(

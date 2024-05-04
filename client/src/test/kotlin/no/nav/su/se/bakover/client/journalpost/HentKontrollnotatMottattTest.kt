@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.journalpost
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import dokument.domain.journalføring.ErKontrollNotatMottatt
-import dokument.domain.journalføring.JournalpostClientMetrics
 import dokument.domain.journalføring.JournalpostStatus
 import dokument.domain.journalføring.JournalpostTema
 import dokument.domain.journalføring.JournalpostType
@@ -21,12 +20,6 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doNothing
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 
 internal class HentKontrollnotatMottattTest {
 
@@ -38,12 +31,8 @@ internal class HentKontrollnotatMottattTest {
                     .willReturn(WireMock.ok(happyJson())),
             )
 
-            val metrics = mock<JournalpostClientMetrics> {
-                doNothing().whenever(it).inkrementerBenyttetSkjema(any())
-            }
             setupClient(
                 baseUrl = baseUrl(),
-                metrics = metrics,
             ).also {
                 it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                     kontrollnotat = KontrollnotatMottattJournalpost(
@@ -56,7 +45,6 @@ internal class HentKontrollnotatMottattTest {
                         journalpostId = JournalpostId(value = "453812131"),
                     ),
                 ).right()
-                verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
 
                 it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
 
@@ -72,11 +60,6 @@ internal class HentKontrollnotatMottattTest {
                     ),
                 ).right()
 
-                verify(
-                    metrics,
-                    times(2),
-                ).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
-
                 it.kontrollnotatMotatt(Saksnummer(10002027), februar(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                     kontrollnotat = KontrollnotatMottattJournalpost(
                         tema = JournalpostTema.SUP,
@@ -88,8 +71,6 @@ internal class HentKontrollnotatMottattTest {
                         journalpostId = JournalpostId(value = "453812131"),
                     ),
                 ).right()
-
-                verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE)
             }
         }
     }

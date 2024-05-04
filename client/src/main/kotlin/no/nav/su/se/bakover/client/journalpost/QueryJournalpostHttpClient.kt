@@ -7,7 +7,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.ErTilknyttetSak
 import dokument.domain.journalføring.Journalpost
-import dokument.domain.journalføring.JournalpostClientMetrics
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
@@ -40,7 +39,6 @@ internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
     private val sts: TokenOppslag,
-    private val metrics: JournalpostClientMetrics,
     private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(
         cacheName = "erTilknyttetSak",
         expireAfterWrite = Duration.ofHours(1),
@@ -140,12 +138,6 @@ internal class QueryJournalpostHttpClient(
             return this.contains(string)
         }
 
-        fun String.toBenyttetSkjemaMetric(): JournalpostClientMetrics.BenyttetSkjema {
-            if (this.inneholder(kontrollnotatTittel)) return JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT
-            if (this.inneholder(dokumentasjonAvOppfølgingsamtaleTittel)) return JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE
-            throw IllegalArgumentException("Ukjent og uønsket tittel")
-        }
-
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
@@ -172,7 +164,7 @@ internal class QueryJournalpostHttpClient(
                                 dokumentasjonAvOppfølgingsamtaleTittel,
                             )
                             )
-                    }?.also { metrics.inkrementerBenyttetSkjema(it.tittel.toBenyttetSkjemaMetric()) }
+                    }
                     ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
             }
         }
