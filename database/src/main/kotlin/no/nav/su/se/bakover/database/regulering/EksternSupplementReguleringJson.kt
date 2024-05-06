@@ -24,7 +24,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal data class EksternSupplementReguleringJson(
-    val supplementId: String,
+    val supplementId: String?,
     val bruker: ReguleringssupplementForJson? = null,
     val eps: List<ReguleringssupplementForJson> = emptyList(),
 ) {

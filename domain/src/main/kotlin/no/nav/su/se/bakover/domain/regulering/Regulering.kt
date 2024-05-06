@@ -46,7 +46,7 @@ fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat()
  * @property eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
  */
 data class EksternSupplementRegulering(
-    val supplementId: UUID,
+    val supplementId: UUID?,
     val bruker: ReguleringssupplementFor?,
     // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
     val eps: List<ReguleringssupplementFor>,
