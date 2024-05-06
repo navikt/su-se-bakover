@@ -29,7 +29,7 @@ internal data class EksternSupplementReguleringJson(
     val eps: List<ReguleringssupplementForJson> = emptyList(),
 ) {
     fun toDomain(): EksternSupplementRegulering = EksternSupplementRegulering(
-        supplementId = UUID.fromString(supplementId),
+        supplementId = supplementId?.let { UUID.fromString(it) },
         bruker = bruker?.toDomain(),
         eps = eps.map { it.toDomain() },
     )
