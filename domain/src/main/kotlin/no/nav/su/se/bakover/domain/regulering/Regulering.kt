@@ -41,9 +41,9 @@ fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat()
  * Det knyttes et slikt objekt til hver regulering, både manuelle og automatiske, eller null dersom vi ikke har slike data.
  * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig og lagre originaldata, f.eks. i hendelser.
  *
- * * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra.
- * @property bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
- * @property eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
+ * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra. Den kan være null ved historiske reguleringer.
+ * @param bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
+ * @param eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
  */
 data class EksternSupplementRegulering(
     val supplementId: UUID?,

@@ -30,6 +30,7 @@ class ReguleringssupplementJsonTest {
     private val rf = nyReguleringssupplementFor(fnr = fnr)
     private val ersId = UUID.randomUUID()
     private val ers = nyEksternSupplementRegulering(id = ersId)
+    private val ersMedNull = nyEksternSupplementRegulering(id = null)
 
     @Test
     fun `serialiserer og deserialiserer`() {
@@ -40,6 +41,7 @@ class ReguleringssupplementJsonTest {
         serialize(pt.toDbJson()) shouldBe """{"vedtak":[{"type":"endring","måned":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"},"fradrag":[{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30","vedtakstype":"Endring","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000},{"type":"regulering","periodeOptionalTilOgMed":{"fraOgMed":"2021-05-01","tilOgMed":null},"fradrag":[{"fraOgMed":"2021-05-01","tilOgMed":null,"vedtakstype":"Regulering","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000}],"fradragskategori":"Alderspensjon"}"""
         serialize(rf.toDbJson()) shouldBe """{"fnr":"$fnr","perType":[{"vedtak":[{"type":"endring","måned":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"},"fradrag":[{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30","vedtakstype":"Endring","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000},{"type":"regulering","periodeOptionalTilOgMed":{"fraOgMed":"2021-05-01","tilOgMed":null},"fradrag":[{"fraOgMed":"2021-05-01","tilOgMed":null,"vedtakstype":"Regulering","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000}],"fradragskategori":"Alderspensjon"}]}"""
         serialize(ers.toDbJson()) shouldBe """{"supplementId":"$ersId","bruker":null,"eps":[]}"""
+        serialize(ersMedNull.toDbJson()) shouldBe """{"supplementId":null,"bruker":null,"eps":[]}"""
 
         deserialize<FradragsperiodeJson>("""{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30","vedtakstype":"Endring","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}""")
             .toDomain() shouldBe fpe
@@ -54,6 +56,7 @@ class ReguleringssupplementJsonTest {
         deserialize<ReguleringssupplementForJson>("""{"fnr":"$fnr","perType":[{"vedtak":[{"type":"endring","måned":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"},"fradrag":[{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30","vedtakstype":"Endring","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000},{"type":"regulering","periodeOptionalTilOgMed":{"fraOgMed":"2021-05-01","tilOgMed":null},"fradrag":[{"fraOgMed":"2021-05-01","tilOgMed":null,"vedtakstype":"Regulering","beløp":1000,"eksterndata":{"fnr":"11111111111","sakstype":"UFOREP","vedtakstype":"REGULERING","fraOgMed":"01.05.2021","tilOgMed":null,"bruttoYtelse":"10000","nettoYtelse":"11000","ytelseskomponenttype":"ST","bruttoYtelseskomponent":"10000","nettoYtelseskomponent":"11000"}}],"beløp":1000}],"fradragskategori":"Alderspensjon"}]}""")
             .toDomain() shouldBe rf
         EksternSupplementReguleringJson.deser("""{"supplementId":"$ersId","bruker":null,"eps":[]}""").toDomain() shouldBe ers
+        EksternSupplementReguleringJson.deser("""{"supplementId":null,"bruker":null,"eps":[]}""").toDomain() shouldBe ersMedNull
     }
 
     @Test

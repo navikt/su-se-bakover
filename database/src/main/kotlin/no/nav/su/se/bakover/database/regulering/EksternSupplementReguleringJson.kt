@@ -39,7 +39,7 @@ internal data class EksternSupplementReguleringJson(
             deserialize<EksternSupplementReguleringJson>(json)
 
         fun EksternSupplementRegulering.toDbJson(): EksternSupplementReguleringJson = EksternSupplementReguleringJson(
-            supplementId = this.supplementId.toString(),
+            supplementId = this.supplementId?.toString(),
             bruker = this.bruker?.toDbJson(),
             eps = this.eps.map { it.toDbJson() },
         )

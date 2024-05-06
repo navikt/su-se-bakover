@@ -219,7 +219,7 @@ fun nyReguleringssupplement(
 ): Reguleringssupplement = Reguleringssupplement(id, opprettet, supplementFor.toList())
 
 fun nyEksternSupplementRegulering(
-    id: UUID = UUID.randomUUID(),
+    id: UUID? = UUID.randomUUID(),
     bruker: ReguleringssupplementFor? = null,
     eps: List<ReguleringssupplementFor> = emptyList(),
 ): EksternSupplementRegulering = EksternSupplementRegulering(
