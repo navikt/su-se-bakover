@@ -9,8 +9,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.auth.AccessToken
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
@@ -39,7 +37,7 @@ internal class JournalpostHttpClientTest {
                 """.trimIndent()
 
             stubFor(
-                token("Bearer aadToken")
+                token("Bearer onBehalfOfToken")
                     .willReturn(WireMock.ok(suksessResponseJson)),
             )
 
@@ -72,7 +70,7 @@ internal class JournalpostHttpClientTest {
                 """.trimIndent()
 
             stubFor(
-                token("Bearer aadToken")
+                token("Bearer onBehalfOfToken")
                     .willReturn(WireMock.ok(suksessResponseJson)),
             )
             runBlocking {
@@ -96,7 +94,7 @@ internal class JournalpostHttpClientTest {
                 """.trimIndent()
 
             stubFor(
-                token("Bearer aadToken")
+                token("Bearer onBehalfOfToken")
                     .willReturn(WireMock.ok(suksessResponseJson)),
             )
             runBlocking {
@@ -112,7 +110,7 @@ internal class JournalpostHttpClientTest {
     fun `får ukjent feil dersom client kall feiler`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                token("Bearer aadToken")
+                token("Bearer onBehalfOfToken")
                     .willReturn(WireMock.serverError()),
             )
 
@@ -157,7 +155,7 @@ internal class JournalpostHttpClientTest {
                 """.trimIndent()
 
             stubFor(
-                token("Bearer aadToken")
+                token("Bearer onBehalfOfToken")
                     .willReturn(WireMock.ok(errorResponseJson)),
             )
 
@@ -223,15 +221,12 @@ internal fun setupClient(
         clientId = "clientId",
     ),
     azureAd: AzureAd = mock {
-        on { onBehalfOfToken(any(), any()) } doReturn "aadToken"
-    },
-    sts: TokenOppslag = mock {
-        on { token() } doReturn AccessToken("stsToken")
+        on { onBehalfOfToken(any(), any()) } doReturn "onBehalfOfToken"
+        on { getSystemToken(any()) } doReturn "systemToken"
     },
 ) = QueryJournalpostHttpClient(
     safConfig = safConfig,
     azureAd = azureAd,
-    sts = sts,
 )
 
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

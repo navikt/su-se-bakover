@@ -81,7 +81,6 @@ data class ProdClientsBuilder(
         val journalpostClient = QueryJournalpostHttpClient(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = oAuth,
-            sts = tokenOppslag,
         )
 
         return Clients(

@@ -27,7 +27,7 @@ internal class HentKontrollnotatMottattTest {
     fun `svarer korrekt dersom sak har mottatt kontrollnotat i periode`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(happyJson())),
             )
 
@@ -79,7 +79,7 @@ internal class HentKontrollnotatMottattTest {
     fun `produsert request er riktig`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(happyJson())),
             )
 
@@ -118,7 +118,7 @@ internal class HentKontrollnotatMottattTest {
         }
             """.trimIndent()
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(manglerFelterJson)),
             )
 
@@ -144,7 +144,7 @@ internal class HentKontrollnotatMottattTest {
         }
             """.trimIndent()
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(manglerFelterJson)),
             )
 
@@ -180,7 +180,7 @@ internal class HentKontrollnotatMottattTest {
         }
             """.trimIndent()
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(manglerFelterJson)),
             )
 
@@ -196,7 +196,7 @@ internal class HentKontrollnotatMottattTest {
     fun `håndterer vanlige http feil`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.unauthorized()),
             )
 
@@ -245,7 +245,7 @@ internal class HentKontrollnotatMottattTest {
             """.trimIndent()
 
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.ok(flereKontrollnotat)),
             )
 

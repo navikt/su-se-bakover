@@ -14,7 +14,7 @@ class HentJournalposterForTest {
     fun `håndterer vanlige http feil`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                token("Bearer stsToken")
+                token("Bearer systemToken")
                     .willReturn(WireMock.unauthorized()),
             )
 
@@ -29,7 +29,7 @@ class HentJournalposterForTest {
     @Test
     fun `produsert request er riktig`() {
         startedWireMockServerWithCorrelationId {
-            stubFor(token("Bearer stsToken").willReturn(WireMock.ok(happyJson())))
+            stubFor(token("Bearer systemToken").willReturn(WireMock.ok(happyJson())))
             val expected = """
             {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":null,"tema":"SUP","journalposttyper":[],"journalstatuser":[],"foerste":50}}
             """.trimIndent()

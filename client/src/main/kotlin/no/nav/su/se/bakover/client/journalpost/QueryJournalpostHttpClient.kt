@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -38,7 +37,6 @@ import java.time.Duration
 internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
-    private val sts: TokenOppslag,
     private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(
         cacheName = "erTilknyttetSak",
         expireAfterWrite = Duration.ofHours(1),
@@ -108,7 +106,7 @@ internal class QueryJournalpostHttpClient(
             ),
         )
         return runBlocking {
-            gqlRequest(request = request, token = sts.token().value).mapLeft {
+            gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).mapLeft {
                 KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map {
                 it.data!!.dokumentoversiktFagsak.journalposter.map {
@@ -151,7 +149,7 @@ internal class QueryJournalpostHttpClient(
         return runBlocking {
             gqlRequest(
                 request = request,
-                token = sts.token().value,
+                token = azureAd.getSystemToken(safConfig.clientId),
             ).mapLeft { error ->
                 KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map { response ->
