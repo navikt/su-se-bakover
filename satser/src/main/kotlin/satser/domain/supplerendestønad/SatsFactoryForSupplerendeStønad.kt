@@ -8,12 +8,15 @@ import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
 import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import satser.domain.SatsFactory
 import satser.domain.garantipensjon.GarantipensjonFactory
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeFactory
@@ -98,6 +101,21 @@ val garantipensjonsendringerHøy = nonEmptyListOf(
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
 )
 
+// TODO - test
+@JvmName("sisteVirkningstidspunktGarantipensjon")
+fun Nel<GarantipensjonFactory.Garantipensjonsendring>.sisteVirkningstidspunkt(): Måned =
+    this.maxByOrNull { it.virkningstidspunkt }!!.virkningstidspunkt.toMåned()
+
+// TODO - test
+@JvmName("sisteVirkningstidspunktMinsteÅrligYtelseForUføretrygdedeEndring")
+fun Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring>.sisteVirkningstidspunkt(): Måned =
+    this.maxByOrNull { it.virkningstidspunkt }!!.virkningstidspunkt.toMåned()
+
+// TODO - test
+@JvmName("sisteVirkningstidspunktGrunnbeløpsendring")
+fun Nel<Grunnbeløpsendring>.sisteVirkningstidspunkt(): Måned =
+    this.maxByOrNull { it.virkningstidspunkt }!!.virkningstidspunkt.toMåned()
+
 class SatsFactoryForSupplerendeStønad(
     // TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon fra og med 2021-01-01.
     //  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
@@ -120,6 +138,11 @@ class SatsFactoryForSupplerendeStønad(
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.28),
         ),
+        MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+            virkningstidspunkt = 1.juli(2024),
+            ikrafttredelse = 1.juli(2024),
+            faktor = Faktor(2.329),
+        ),
     ),
     private val minsteÅrligYtelseForUføretrygdedeHøy: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40 Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
@@ -127,6 +150,11 @@ class SatsFactoryForSupplerendeStønad(
             virkningstidspunkt = 1.januar(2015),
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.48),
+        ),
+        MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
+            virkningstidspunkt = 1.juli(2024),
+            ikrafttredelse = 1.juli(2024),
+            faktor = Faktor(2.529),
         ),
     ),
 ) {
@@ -150,6 +178,7 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     private fun getOrAdd(knekkpunkt: Knekkpunkt): SatsFactoryForSupplerendeStønadPåKnekkpunkt {
+        val måneder = Periode.create(tidligsteTilgjengeligeMåned.fraOgMed, hentSisteVirkningstidspunkt().tilOgMed).måneder()
         return datoTilFactory.getOrPut(knekkpunkt) {
             val grunnbeløpFactoryPåKnekkpunkt = GrunnbeløpFactory(
                 grunnbeløpsendringer = grunnbeløpsendringer,
@@ -162,7 +191,6 @@ class SatsFactoryForSupplerendeStønad(
                     høy = minsteÅrligYtelseForUføretrygdedeHøy,
                     knekkpunkt = knekkpunkt,
                     tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
-
                 )
             SatsFactoryForSupplerendeStønadPåKnekkpunkt(
                 grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
@@ -171,12 +199,14 @@ class SatsFactoryForSupplerendeStønad(
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt,
                     knekkpunkt = knekkpunkt,
                     tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
+                    måneder = måneder,
                 ),
                 uføreHøy = FullSupplerendeStønadFactory.Høy.Ufør(
                     grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt,
                     knekkpunkt = knekkpunkt,
                     tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
+                    måneder = måneder,
                 ),
                 alderOrdinær = FullSupplerendeStønadFactory.Ordinær.Alder(
                     garantipensjonFactory = GarantipensjonFactory.createFromSatser(
@@ -187,6 +217,7 @@ class SatsFactoryForSupplerendeStønad(
                     ),
                     knekkpunkt = knekkpunkt,
                     tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
+                    måneder = måneder,
                 ),
                 alderHøy = FullSupplerendeStønadFactory.Høy.Alder(
                     garantipensjonFactory = GarantipensjonFactory.createFromSatser(
@@ -197,6 +228,7 @@ class SatsFactoryForSupplerendeStønad(
                     ),
                     knekkpunkt = knekkpunkt,
                     tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
+                    måneder = måneder,
                 ),
                 knekkpunkt = knekkpunkt,
                 tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
@@ -210,12 +242,22 @@ class SatsFactoryForSupplerendeStønad(
     ): SatsFactory {
         return gjeldende(Tidspunkt.now(clock), zoneId)
     }
+
     fun gjeldende(
         tidspunkt: Tidspunkt,
         zoneId: ZoneId = zoneIdOslo,
     ): SatsFactory {
         return gjeldende(tidspunkt.toLocalDate(zoneId))
     }
+
+    // TODO - test
+    fun hentSisteVirkningstidspunkt(): Måned = maxOf(
+        minsteÅrligYtelseForUføretrygdedeOrdinær.sisteVirkningstidspunkt(),
+        minsteÅrligYtelseForUføretrygdedeHøy.sisteVirkningstidspunkt(),
+        grunnbeløpsendringer.sisteVirkningstidspunkt(),
+        garantipensjonsendringerOrdinær.sisteVirkningstidspunkt(),
+        garantipensjonsendringerHøy.sisteVirkningstidspunkt(),
+    )
 
     /**
      * Gir et [SatsFactory] som gjelder på en gitt dato (regnes om til nærmeste knekkpunkt).

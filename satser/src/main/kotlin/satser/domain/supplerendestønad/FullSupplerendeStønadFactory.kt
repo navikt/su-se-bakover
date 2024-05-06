@@ -1,5 +1,6 @@
 package satser.domain.supplerendestønad
 
+import arrow.core.NonEmptyList
 import grunnbeløp.domain.GrunnbeløpFactory
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
 import no.nav.su.se.bakover.common.domain.Knekkpunkt.Companion.compareTo
@@ -24,6 +25,8 @@ sealed interface FullSupplerendeStønadFactory {
     /** Inclusive */
     val senesteTilgjengeligeMåned: Måned
 
+    val måneder: NonEmptyList<Måned>
+
     companion object {
         protected val TO_PROSENT = BigDecimal("0.02")
         protected val MÅNEDER_PER_ÅR = BigDecimal("12")
@@ -32,32 +35,30 @@ sealed interface FullSupplerendeStønadFactory {
     fun månedTilFullSupplerendeStønadForUføre(
         grunnbeløpFactory: GrunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
+        måneder: List<Måned>,
     ): Map<Måned, FullSupplerendeStønadForMåned.Uføre> {
         require(grunnbeløpFactory.knekkpunkt == minsteÅrligYtelseForUføretrygdedeFactory.knekkpunkt)
-        return grunnbeløpFactory.alleGrunnbeløp(tidligsteTilgjengeligeMåned)
-            .associate { grunnbeløp ->
-                val minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                    grunnbeløp.måned,
-                    satskategori,
-                )
-                val minsteÅrligYtelseForUføretrygdedeHøy = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                    grunnbeløp.måned,
-                    Satskategori.HØY,
-                )
-                Pair(
-                    grunnbeløp.måned,
-                    FullSupplerendeStønadForMåned.Uføre(
-                        måned = grunnbeløp.måned,
-                        satskategori = satskategori,
-                        grunnbeløp = grunnbeløp,
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
-                        toProsentAvHøyForMåned = BigDecimal(grunnbeløp.grunnbeløpPerÅr)
-                            .multiply(minsteÅrligYtelseForUføretrygdedeHøy.faktorSomBigDecimal)
-                            .multiply(TO_PROSENT)
-                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
-                    ),
-                )
-            }
+        return måneder.associateWith { måned ->
+            val grunnbeløp = grunnbeløpFactory.forMåned(måned)
+            val minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                måned,
+                satskategori,
+            )
+            val minsteÅrligYtelseForUføretrygdedeHøy = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                måned,
+                Satskategori.HØY,
+            )
+            FullSupplerendeStønadForMåned.Uføre(
+                måned = måned,
+                satskategori = satskategori,
+                grunnbeløp = grunnbeløp,
+                minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                toProsentAvHøyForMåned = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
+                    .multiply(minsteÅrligYtelseForUføretrygdedeHøy.faktorSomBigDecimal)
+                    .multiply(TO_PROSENT)
+                    .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+            )
+        }
     }
 
     fun satskategori(): Satskategori {
@@ -77,12 +78,14 @@ sealed interface FullSupplerendeStønadFactory {
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
+            override val måneder: NonEmptyList<Måned>,
         ) : Ordinær {
 
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
                     grunnbeløpFactory = grunnbeløpFactory,
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactory,
+                    måneder = måneder,
                 )
 
             init {
@@ -119,6 +122,7 @@ sealed interface FullSupplerendeStønadFactory {
             val garantipensjonFactory: GarantipensjonFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
+            override val måneder: NonEmptyList<Måned>,
         ) : Ordinær {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.ordinær.mapValues { (måned, garantipensjonForMåned) ->
@@ -174,11 +178,13 @@ sealed interface FullSupplerendeStønadFactory {
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
+            override val måneder: NonEmptyList<Måned>,
         ) : Høy {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
                     grunnbeløpFactory = grunnbeløpFactory,
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactory,
+                    måneder = måneder,
                 )
 
             init {
@@ -215,6 +221,7 @@ sealed interface FullSupplerendeStønadFactory {
             val garantipensjonFactory: GarantipensjonFactory,
             override val knekkpunkt: Knekkpunkt,
             override val tidligsteTilgjengeligeMåned: Måned,
+            override val måneder: NonEmptyList<Måned>,
         ) : Høy {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.høy.mapValues { (måned, garantipensjonForMåned) ->

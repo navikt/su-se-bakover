@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.extensions.scaleTo4
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.november
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.test.fixedClock
@@ -323,6 +325,70 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 it.satsForMånedAsDouble shouldBe 24514.8
                 it.ikrafttredelse shouldBe 26.mai(2023)
                 it.toProsentAvHøyForMånedAsDouble shouldBe 490.296
+            }
+        }
+
+        @Test
+        fun `ordinær - 1 juli 2024`() {
+            satsFactoryTestPåDato(påDato = 1.juli(2024)).ordinærUføre(juli(2024)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = juli(2024),
+                    satskategori = Satskategori.ORDINÆR,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = juli(2024),
+                        grunnbeløpPerÅr = 118620,
+                        ikrafttredelse = 26.mai(2023),
+                        virkningstidspunkt = 1.mai(2023),
+                        omregningsfaktor = BigDecimal(1.064076),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.329),
+                        satsKategori = Satskategori.ORDINÆR,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = juli(2024),
+                    ),
+                    // 2.529 * G2023-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("499.98330"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("276265.980") // 2.329 * G2023-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("23022.1650") // 2.329 * G2023-5 / 12
+                it.satsForMånedAvrundet shouldBe 23022
+                it.satsForMånedAsDouble shouldBe 23022.165
+                it.ikrafttredelse shouldBe 1.juli(2024)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 499.9833
+            }
+        }
+
+        @Test
+        fun `høy - 1 juli 2024`() {
+            satsFactoryTestPåDato(påDato = 2.juli(2024)).høyUføre(juli(2024)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = juli(2024),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = juli(2024),
+                        grunnbeløpPerÅr = 118620,
+                        ikrafttredelse = 26.mai(2023),
+                        virkningstidspunkt = 1.mai(2023),
+                        omregningsfaktor = BigDecimal(1.064076),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.529),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = juli(2024),
+                    ),
+                    // 2.529 * G2023-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("499.98330"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("299989.980") // 2.529 * G2023-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("24999.1650") // 2.529 * G2023-5 / 12
+                it.satsForMånedAvrundet shouldBe 24999
+                it.satsForMånedAsDouble shouldBe 24999.165
+                it.ikrafttredelse shouldBe 1.juli(2024)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 499.9833
             }
         }
 
