@@ -272,10 +272,7 @@ internal class ReguleringPostgresRepo(
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
         val reguleringstype = ReguleringstypeDb.valueOf(string("reguleringType"))
-        val årsakForManuell = stringOrNull("arsakForManuell")?.let {
-            ÅrsakTilManuellReguleringJson.toDomain(it)
-        } ?: emptySet()
-
+        val årsakForManuell = ÅrsakTilManuellReguleringJson.toDomain(string("arsakForManuell"))
         val type = when (reguleringstype) {
             ReguleringstypeDb.MANUELL -> Reguleringstype.MANUELL(årsakForManuell)
             ReguleringstypeDb.AUTOMATISK -> Reguleringstype.AUTOMATISK

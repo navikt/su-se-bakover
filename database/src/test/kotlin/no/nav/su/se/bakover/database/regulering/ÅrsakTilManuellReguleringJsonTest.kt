@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
@@ -129,6 +130,7 @@ class ÅrsakTilManuellReguleringJsonTest {
     @Test
     fun `mapper set med domene-type til liste av json-type`() {
         setOf(årsakMismatch).toDbJson() shouldBe """[{"type":"DifferenaseFørRegulering","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER","begrunnelse":"Boy","eksterntBeløpFørRegulering":"1","vårtBeløpFørRegulering":"2"}]"""
+        emptySet<ÅrsakTilManuellRegulering>().toDbJson() shouldBe "[]"
     }
 
     @Test
@@ -144,6 +146,12 @@ class ÅrsakTilManuellReguleringJsonTest {
             årsakFradragUtenlandsinntekt,
             årsakVedtakslinjeIkkeSammenhengende,
         )
+
+        ÅrsakTilManuellReguleringJson.toDomain("[]") shouldBe emptySet()
+
+        assertThrows<NullPointerException> {
+            ÅrsakTilManuellReguleringJson.toDomain("null")
+        }
     }
 
     @Test
