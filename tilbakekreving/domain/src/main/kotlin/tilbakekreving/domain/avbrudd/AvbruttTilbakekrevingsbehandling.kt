@@ -16,5 +16,5 @@ data class AvbruttTilbakekrevingsbehandling(
     val begrunnelse: String,
 ) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt {
 
-    override fun erÅpen(): Boolean = false
+    override fun erÅpen() = false
 }

@@ -59,7 +59,7 @@ sealed interface UnderBehandling :
 
         override val erUnderkjent = attesteringer.erUnderkjent()
 
-        override fun erÅpen(): Boolean = true
+        override fun erÅpen() = true
 
         fun erVurdert(): Boolean = vurderingerMedKrav != null
 

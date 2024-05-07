@@ -22,4 +22,6 @@ data class IverksattTilbakekrevingsbehandling(
             "En iverksatt tilbakekrevingsbehandling sitt kravgrunnlag kan ikke være utdatert"
         }
     }
+
+    override fun erÅpen() = false
 }
