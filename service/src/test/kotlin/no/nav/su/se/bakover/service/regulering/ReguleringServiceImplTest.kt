@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
@@ -513,6 +514,32 @@ internal class ReguleringServiceImplTest {
     }
 
     @Test
+    fun `regulering går til manuell dersom simulering eller utbetaling kaster exception`() {
+        val clock = tikkendeFixedClock()
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = clock,
+        ).first.copy(
+            // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
+            utbetalinger = Utbetalinger(
+                // "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering..."
+                // dersom vi ikke har kvittering vil trigge typen exception som nevnt over
+                oversendtUtbetalingUtenKvittering(
+                    beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
+                    clock = clock,
+                ),
+            ),
+        )
+        val reguleringService = lagReguleringServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock)
+
+        reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
+            it.size shouldBe 1
+            it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere,
+            ).left()
+        }
+    }
+
+    @Test
     fun `iverksatte reguleringer sender statistikk`() {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
         val eventObserverMock: StatistikkEventObserver = mock()
@@ -607,7 +634,8 @@ internal class ReguleringServiceImplTest {
                 gjeldendeSatsFra = 25.mai(2021),
                 startDatoRegulering = mai(2021),
                 supplement = Reguleringssupplement.empty(fixedClock),
-                overrideableGrunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+                overrideableGrunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }
+                    .toNonEmptyList(),
                 dryRunNyttGrunnbeløp = DryRunNyttGrunnbeløp(
                     virkningstidspunkt = 1.mai(2021),
                     ikrafttredelse = 21.mai(2021),

@@ -46,6 +46,7 @@ import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.math.BigDecimal
@@ -336,19 +337,30 @@ class ReguleringServiceImpl(
         }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler { beregning, uføregrunnlag ->
-                    sak.lagNyUtbetaling(
-                        saksbehandler = beregnetRegulering.saksbehandler,
-                        beregning = beregning,
-                        clock = clock,
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                        uføregrunnlag = uføregrunnlag,
-                    ).let {
-                        simulerUtbetaling(
-                            tidligereUtbetalinger = sak.utbetalinger,
-                            utbetalingForSimulering = it,
-                            simuler = utbetalingService::simulerUtbetaling,
-                        )
-                    }
+                    Either.catch {
+                        sak.lagNyUtbetaling(
+                            saksbehandler = beregnetRegulering.saksbehandler,
+                            beregning = beregning,
+                            clock = clock,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
+                            uføregrunnlag = uføregrunnlag,
+                        ).let {
+                            simulerUtbetaling(
+                                tidligereUtbetalinger = sak.utbetalinger,
+                                utbetalingForSimulering = it,
+                                simuler = utbetalingService::simulerUtbetaling,
+                            )
+                        }
+                    }.fold(
+                        {
+                            log.error(
+                                "Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer}. Behandlingen settes til manuell",
+                                it,
+                            )
+                            SimuleringFeilet.TekniskFeil.left()
+                        },
+                        { it },
+                    )
                 }.mapLeft {
                     log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
                     KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
