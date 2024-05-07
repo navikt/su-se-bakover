@@ -4,8 +4,9 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.domain.client.ClientError
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
@@ -80,9 +81,12 @@ internal class JournalførHttpClientTest {
                         ),
                     ),
             )
-            val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
-                baseUrl = baseUrl(),
-                tokenOppslag = TokenOppslagStub,
+            val client = JournalførHttpClient(
+                dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
+                    url = baseUrl(),
+                    clientId = "clientId",
+                ),
+                azureAd = AzureClientStub,
             )
 
             client.opprettJournalpost(
@@ -100,9 +104,12 @@ internal class JournalførHttpClientTest {
                 wiremockBuilder
                     .willReturn(WireMock.forbidden()),
             )
-            val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
-                baseUrl = baseUrl(),
-                tokenOppslag = TokenOppslagStub,
+            val client = JournalførHttpClient(
+                dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
+                    url = baseUrl(),
+                    clientId = "clientId",
+                ),
+                azureAd = AzureClientStub,
             )
             client.opprettJournalpost(request) shouldBe
                 ClientError(403, "Feil ved journalføring").left()
@@ -141,7 +148,7 @@ internal class JournalførHttpClientTest {
         eksternReferanseId = "eksternReferanseId",
     )
 
-    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.DOK_ARKIV_PATH))
+    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(DOK_ARKIV_PATH))
         .withQueryParam("forsoekFerdigstill", WireMock.equalTo("true"))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

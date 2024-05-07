@@ -90,8 +90,8 @@ data class ProdClientsBuilder(
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
                 val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
-                    baseUrl = clientsConfig.dokarkivUrl,
-                    tokenOppslag = tokenOppslag,
+                    dokArkivConfig = applicationConfig.clientsConfig.dokArkivConfig,
+                    azureAd = oAuth,
                 )
                 JournalførClients(
                     skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakHttpClient(
@@ -126,7 +126,7 @@ data class ProdClientsBuilder(
                     )
                 },
             ),
-            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistUrl, tokenOppslag),
+            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistConfig.url, tokenOppslag),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(

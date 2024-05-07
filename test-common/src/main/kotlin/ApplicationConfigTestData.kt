@@ -72,9 +72,7 @@ fun applicationConfig() = ApplicationConfig(
             url = "pdlUrl",
             clientId = "pdlClientId",
         ),
-        dokDistUrl = "dokDistUrl",
         pdfgenUrl = "pdfgenUrl",
-        dokarkivUrl = "dokarkivUrl",
         kodeverkUrl = "kodeverkUrl",
         stsUrl = "stsUrl",
         stsSamlUrl = "stsSamlUrl",
@@ -95,6 +93,14 @@ fun applicationConfig() = ApplicationConfig(
             apiBaseUrl = "a",
             clientId = "skattClientId",
             consumerId = SU_SE_BAKOVER_CONSUMER_ID,
+        ),
+        dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
+            url = "dokArkivUrl",
+            clientId = "dokArkivClientId",
+        ),
+        dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(
+            url = "dokDistUrl",
+            clientId = "dokDistClientId",
         ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

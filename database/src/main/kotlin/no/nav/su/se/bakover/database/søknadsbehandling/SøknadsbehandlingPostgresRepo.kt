@@ -476,6 +476,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
         val saksnummer = Saksnummer(long("saksnummer"))
+        val erAvbrutt = boolean("lukket")
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakstype,
@@ -783,8 +784,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 }
             }
         }
-
-        if (boolean("lukket")) {
+        if (erAvbrutt) {
             return LukketSøknadsbehandling.createFromPersistedState(
                 søknadsbehandling = søknadsbehandling,
             )
