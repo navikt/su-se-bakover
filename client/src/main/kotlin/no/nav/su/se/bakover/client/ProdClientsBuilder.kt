@@ -126,7 +126,7 @@ data class ProdClientsBuilder(
                     )
                 },
             ),
-            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistConfig.url, tokenOppslag),
+            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistConfig, azureAd = oAuth),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(

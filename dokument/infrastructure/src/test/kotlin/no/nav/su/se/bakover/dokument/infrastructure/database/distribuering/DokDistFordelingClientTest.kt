@@ -7,7 +7,8 @@ import dokument.domain.Distribusjonstidspunkt
 import dokument.domain.Distribusjonstype
 import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
@@ -20,7 +21,10 @@ internal class DokDistFordelingClientTest {
             val journalpostId = JournalpostId("1")
             val distribusjonstype = Distribusjonstype.VEDTAK
             val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
-            val client = DokDistFordelingClient(baseUrl(), TokenOppslagStub)
+            val client = DokDistFordelingClient(
+                dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(baseUrl(), "clientId"),
+                azureAd = AzureClientStub,
+            )
             val requestBody = client.byggDistribusjonPostJson(journalpostId, distribusjonstype, distribusjonstidspunkt)
             stubFor(
                 wiremockBuilder
@@ -46,7 +50,10 @@ internal class DokDistFordelingClientTest {
     @Test
     fun `returnerer brevbestillingsId'en dersom responsen er en 409`() {
         startedWireMockServerWithCorrelationId {
-            val client = DokDistFordelingClient(baseUrl(), TokenOppslagStub)
+            val client = DokDistFordelingClient(
+                dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(baseUrl(), "clientId"),
+                azureAd = AzureClientStub,
+            )
             val journalpostId = JournalpostId("1")
             val distribusjonstype = Distribusjonstype.VEDTAK
             val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
@@ -68,7 +75,10 @@ internal class DokDistFordelingClientTest {
     @Test
     fun `dersom brevbestillingsId ikke finnes ved en gir vi en default brevbestillingsId`() {
         startedWireMockServerWithCorrelationId {
-            val client = DokDistFordelingClient(baseUrl(), TokenOppslagStub)
+            val client = DokDistFordelingClient(
+                dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(baseUrl(), "clientId"),
+                azureAd = AzureClientStub,
+            )
             val journalpostId = JournalpostId("1")
             val distribusjonstype = Distribusjonstype.VEDTAK
             val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
