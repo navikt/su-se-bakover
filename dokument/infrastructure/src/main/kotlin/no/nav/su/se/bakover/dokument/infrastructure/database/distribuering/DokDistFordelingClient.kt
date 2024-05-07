@@ -10,7 +10,8 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
+import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import org.json.JSONObject
@@ -21,7 +22,10 @@ internal const val DOK_DIST_FORDELING_PATH = "/rest/v1/distribuerjournalpost"
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=320039012
  */
-class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {
+class DokDistFordelingClient(
+    private val dokDistConfig: ApplicationConfig.ClientsConfig.DokDistConfig,
+    private val azureAd: AzureAd,
+) : DokDistFordeling {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -31,8 +35,8 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
         distribusjonstidspunkt: Distribusjonstidspunkt,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val body = byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt)
-        val (_, _, result) = "$baseUrl$DOK_DIST_FORDELING_PATH".httpPost()
-            .authentication().bearer(tokenOppslag.token().value)
+        val (_, _, result) = "${dokDistConfig.url}$DOK_DIST_FORDELING_PATH".httpPost()
+            .authentication().bearer(azureAd.getSystemToken(dokDistConfig.clientId))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Nav-CallId", getOrCreateCorrelationIdFromThreadLocal())
