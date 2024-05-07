@@ -17,4 +17,6 @@ data class AvbruttTilbakekrevingsbehandling(
 ) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt {
 
     override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = true
 }

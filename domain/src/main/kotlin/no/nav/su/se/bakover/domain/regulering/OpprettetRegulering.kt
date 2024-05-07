@@ -48,6 +48,8 @@ data class OpprettetRegulering(
     override val eksternSupplementRegulering: EksternSupplementRegulering,
 ) : Regulering {
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     override fun oppdaterMedSupplement(
         eksternSupplementRegulering: EksternSupplementRegulering,

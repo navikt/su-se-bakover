@@ -59,6 +59,9 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
     override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
         throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
+    override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = false
     data class Innvilget(
         override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,

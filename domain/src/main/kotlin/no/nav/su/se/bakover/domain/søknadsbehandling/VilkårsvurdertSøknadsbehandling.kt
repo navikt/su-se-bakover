@@ -39,6 +39,10 @@ sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår {
 
+    override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
+
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, VilkårsvurdertSøknadsbehandling>
 
     companion object {

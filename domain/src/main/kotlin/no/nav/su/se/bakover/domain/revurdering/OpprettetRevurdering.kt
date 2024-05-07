@@ -54,6 +54,8 @@ data class OpprettetRevurdering(
     override val simulering: Simulering? = null
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,

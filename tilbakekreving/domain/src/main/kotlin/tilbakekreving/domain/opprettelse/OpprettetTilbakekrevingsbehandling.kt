@@ -28,7 +28,6 @@ data class OpprettetTilbakekrevingsbehandling(
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
     override val erKravgrunnlagUtdatert: Boolean,
-
 ) : KanForhåndsvarsle, KanVurdere, KanOppdatereKravgrunnlag, KanOppdatereNotat {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -38,6 +37,8 @@ data class OpprettetTilbakekrevingsbehandling(
     override val notat: NonBlankString? = null
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     override fun leggTilForhåndsvarselDokumentId(
         dokumentId: UUID,

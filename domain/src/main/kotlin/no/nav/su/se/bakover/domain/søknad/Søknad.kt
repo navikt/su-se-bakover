@@ -201,7 +201,7 @@ sealed interface Søknad {
              * https://jira.adeo.no/browse/BEGREP-2320 og https://jira.adeo.no/browse/BEGREP-1733
              * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Avslutningsstatuser
              *
-             * TODO: Avklar om vi skal rename denne til Avslutt eller Avbrutt for å stemme mer overens med behandlingene.
+             * En Lukket søknad kan enten føre til et vedtak eller et avbrudd.
              */
             sealed interface Lukket : MedOppgave, Avsluttet {
                 override val id: UUID
@@ -243,6 +243,11 @@ sealed interface Søknad {
                 ) : Lukket {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val avsluttetAv: NavIdentBruker = lukketAv
+
+                    /**
+                     * TODO jah: I dette tilfellet klarer vi ikke avgjøre om Behandlingen er iverksatt eller avbrutt.Som i de fleste tilfeller er/skal være et vedtak/iverksetting, men vi har bare kodet det som en avbrutt søknad/søknadsbehandling.
+                     */
+                    override fun erAvbrutt() = null
 
                     init {
                         when (brevvalg) {

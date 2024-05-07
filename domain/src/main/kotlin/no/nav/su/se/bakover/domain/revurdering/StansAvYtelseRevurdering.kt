@@ -77,6 +77,8 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         }
 
         override fun erÅpen() = false
+        override fun erAvsluttet() = true
+        override fun erAvbrutt() = true
 
         companion object {
             fun tryCreate(
@@ -122,6 +124,8 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
         override fun erÅpen() = true
+        override fun erAvsluttet() = false
+        override fun erAvbrutt() = false
 
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteStansAvYtelse, IverksattStansAvYtelse> {
             if (simulering.harFeilutbetalinger()) {
@@ -174,6 +178,8 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
 
         override val beregning = null
         override fun erÅpen() = false
+        override fun erAvsluttet() = true
+        override fun erAvbrutt() = false
     }
 }
 

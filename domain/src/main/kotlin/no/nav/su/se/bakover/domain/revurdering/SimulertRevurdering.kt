@@ -53,6 +53,8 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
     abstract override val simulering: Simulering
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): SimulertRevurdering
 

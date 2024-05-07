@@ -54,10 +54,17 @@ data class LukketSøknadsbehandling private constructor(
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
 
+    override fun erÅpen() = false
+    override fun erAvsluttet() = true
+
+    override fun erAvbrutt() = søknad.erAvbrutt()
+
     override fun skalSendeVedtaksbrev(): Boolean {
         return søknad.brevvalg.skalSendeBrev()
     }
-    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en lukket søknadsbehandling $id")
+
+    override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
+        throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en lukket søknadsbehandling $id")
 
     override val beregning = when (underliggendeSøknadsbehandling) {
         is BeregnetSøknadsbehandling.Avslag -> underliggendeSøknadsbehandling.beregning

@@ -53,6 +53,10 @@ sealed interface UnderkjentSøknadsbehandling :
 
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, UnderkjentSøknadsbehandling>
 
+    override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
+
     data class Innvilget(
         override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
@@ -192,6 +196,10 @@ sealed interface UnderkjentSøknadsbehandling :
     }
 
     sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
+
+        override fun erÅpen() = true
+        override fun erAvsluttet() = false
+        override fun erAvbrutt() = false
 
         data class MedBeregning(
             override val id: SøknadsbehandlingId,

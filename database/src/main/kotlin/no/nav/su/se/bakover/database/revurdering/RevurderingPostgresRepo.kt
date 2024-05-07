@@ -536,10 +536,12 @@ internal class RevurderingPostgresRepo(
             fnr = Fnr(string("fnr")),
             type = Sakstype.from(string("type")),
         )
+        val avbrutt = deserializeNullable<AvsluttetRevurderingDatabaseJson>(stringOrNull("avsluttet"))
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakinfo.type,
             saksnummer = sakinfo.saksnummer,
+            erAvbrutt = avbrutt != null,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = string("saksbehandler")
@@ -594,16 +596,13 @@ internal class RevurderingPostgresRepo(
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalg,
         )
-
-        val avsluttet = deserializeNullable<AvsluttetRevurderingDatabaseJson>(stringOrNull("avsluttet"))
-
-        if (avsluttet != null) {
+        if (avbrutt != null) {
             return when (revurdering) {
                 is GjenopptaYtelseRevurdering -> GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
                     gjenopptakAvYtelseRevurdering = revurdering,
-                    begrunnelse = avsluttet.begrunnelse,
-                    tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                    avsluttetAv = avsluttet.avsluttetAv?.let { Saksbehandler(it) },
+                    begrunnelse = avbrutt.begrunnelse,
+                    tidspunktAvsluttet = avbrutt.tidspunktAvsluttet,
+                    avsluttetAv = avbrutt.avsluttetAv?.let { Saksbehandler(it) },
                 ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet gjenoppta revurdering. Se innhold i databasen. revurderingsId $id")
                 }
@@ -611,10 +610,10 @@ internal class RevurderingPostgresRepo(
                 is Revurdering -> {
                     return AvsluttetRevurdering.tryCreate(
                         underliggendeRevurdering = revurdering,
-                        begrunnelse = avsluttet.begrunnelse,
-                        brevvalg = avsluttet.brevvalg?.toDomain(),
-                        tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                        avsluttetAv = avsluttet.avsluttetAv?.let { Saksbehandler(it) },
+                        begrunnelse = avbrutt.begrunnelse,
+                        brevvalg = avbrutt.brevvalg?.toDomain(),
+                        tidspunktAvsluttet = avbrutt.tidspunktAvsluttet,
+                        avsluttetAv = avbrutt.avsluttetAv?.let { Saksbehandler(it) },
                     ).getOrElse {
                         throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
                     }
@@ -622,9 +621,9 @@ internal class RevurderingPostgresRepo(
 
                 is StansAvYtelseRevurdering -> StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
                     stansAvYtelseRevurdering = revurdering,
-                    begrunnelse = avsluttet.begrunnelse,
-                    tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                    avsluttetAv = avsluttet.avsluttetAv?.let { Saksbehandler(it) },
+                    begrunnelse = avbrutt.begrunnelse,
+                    tidspunktAvsluttet = avbrutt.tidspunktAvsluttet,
+                    avsluttetAv = avbrutt.avsluttetAv?.let { Saksbehandler(it) },
                 ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet stans av ytelse. Se innhold i databasen. revurderingsId $id")
                 }

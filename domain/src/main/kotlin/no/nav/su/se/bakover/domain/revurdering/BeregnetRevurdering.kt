@@ -103,6 +103,8 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
     }
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     override fun oppdater(
         clock: Clock,

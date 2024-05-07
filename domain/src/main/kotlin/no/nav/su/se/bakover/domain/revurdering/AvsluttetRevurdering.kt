@@ -62,6 +62,8 @@ data class AvsluttetRevurdering private constructor(
     }
 
     override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = true
 
     fun skalSendeAvslutningsbrev(): Boolean {
         return brevvalg.skalSendeBrev()

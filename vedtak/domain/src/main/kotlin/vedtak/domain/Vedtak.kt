@@ -26,4 +26,6 @@ interface Vedtak : Avsluttet {
     val attestant: NavIdentBruker.Attestant
     val dokumenttilstand: Dokumenttilstand
     val skalSendeBrev: Boolean
+
+    override fun erAvbrutt(): Boolean = false
 }

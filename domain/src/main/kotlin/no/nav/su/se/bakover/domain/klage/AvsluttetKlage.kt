@@ -41,6 +41,8 @@ data class AvsluttetKlage(
     }
 
     override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = true
 
     override fun kanAvsluttes() = false
 

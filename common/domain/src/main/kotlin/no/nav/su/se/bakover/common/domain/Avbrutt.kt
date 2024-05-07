@@ -6,4 +6,6 @@ package no.nav.su.se.bakover.common.domain
  <p>
  Et eksempel er [no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering]
  */
-interface Avbrutt : Avsluttet
+interface Avbrutt : Avsluttet {
+    override fun erAvbrutt(): Boolean = true
+}

@@ -49,6 +49,8 @@ sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksb
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): UnderkjentRevurdering
 
