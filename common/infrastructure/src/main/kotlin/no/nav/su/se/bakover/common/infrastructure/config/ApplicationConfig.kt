@@ -210,9 +210,7 @@ data class ApplicationConfig(
     data class ClientsConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
-        val dokDistUrl: String,
         val pdfgenUrl: String,
-        val dokarkivUrl: String,
         val kodeverkUrl: String,
         val stsUrl: String,
         val stsSamlUrl: String,
@@ -221,14 +219,14 @@ data class ApplicationConfig(
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
         val skatteetatenConfig: SkatteetatenConfig,
+        val dokArkivConfig: DokArkivConfig,
+        val dokDistConfig: DokDistConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
-                dokDistUrl = getEnvironmentVariableOrThrow("DOKDIST_URL"),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrThrow("KODEVERK_URL"),
                 stsUrl = getEnvironmentVariableOrThrow(
                     "STS_URL",
@@ -241,14 +239,14 @@ data class ApplicationConfig(
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
                 skatteetatenConfig = SkatteetatenConfig.createFromEnvironmentVariables(),
+                dokArkivConfig = DokArkivConfig.createFromEnvironmentVariables(),
+                dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
-                dokDistUrl = "mocked",
                 pdfgenUrl = "mocked",
-                dokarkivUrl = "mocked",
                 kodeverkUrl = "mocked",
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
@@ -263,6 +261,8 @@ data class ApplicationConfig(
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
                 skatteetatenConfig = SkatteetatenConfig.createLocalConfig(),
+                dokArkivConfig = DokArkivConfig.createLocalConfig(),
+                dokDistConfig = DokDistConfig.createLocalConfig(),
             )
         }
 
@@ -378,6 +378,40 @@ data class ApplicationConfig(
                 )
             }
         }
+
+        data class DokDistConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = DokDistConfig(
+                    url = getEnvironmentVariableOrThrow("DOKDIST_URL"),
+                    clientId = getEnvironmentVariableOrThrow("DOKDIST_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = DokDistConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
+
+        data class DokArkivConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = DokArkivConfig(
+                    url = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
+                    clientId = getEnvironmentVariableOrThrow("DOKARKIV_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = DokArkivConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
     }
 
     data class KafkaConfig(
@@ -404,7 +438,9 @@ data class ApplicationConfig(
                             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                             KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
                             KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
-                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow("KAFKA_SCHEMA_REGISTRY"),
+                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow(
+                                "KAFKA_SCHEMA_REGISTRY",
+                            ),
                         ),
                 ),
             )

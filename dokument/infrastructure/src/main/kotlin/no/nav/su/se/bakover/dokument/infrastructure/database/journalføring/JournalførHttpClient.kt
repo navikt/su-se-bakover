@@ -6,8 +6,9 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
@@ -20,18 +21,18 @@ const val DOK_ARKIV_PATH = "/rest/journalpostapi/v1/journalpost"
 // https://confluence.adeo.no/display/BOA/opprettJournalpost
 // swagger: https://dokarkiv-q2.dev.intern.nav.no/swagger-ui/index.html#/
 class JournalførHttpClient(
-    private val baseUrl: String,
-    private val tokenOppslag: TokenOppslag,
+    private val dokArkivConfig: ApplicationConfig.ClientsConfig.DokArkivConfig,
+    private val azureAd: AzureAd,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun opprettJournalpost(
-        jsonDto: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførJsonRequest,
+        jsonDto: JournalførJsonRequest,
     ): Either<ClientError, JournalpostId> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
-        val (request, response, result) = "$baseUrl${no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.DOK_ARKIV_PATH}".httpPost(listOf("forsoekFerdigstill" to "true"))
-            .authentication().bearer(tokenOppslag.token().value)
+        val (request, response, result) = "${dokArkivConfig.url}$DOK_ARKIV_PATH".httpPost(listOf("forsoekFerdigstill" to "true"))
+            .authentication().bearer(azureAd.getSystemToken(dokArkivConfig.clientId))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header(CORRELATION_ID_HEADER, correlationId)
@@ -56,7 +57,10 @@ class JournalførHttpClient(
                 }
             },
             {
-                log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}. Se sikker logg for mer detaljer", it)
+                log.error(
+                    "Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}. Se sikker logg for mer detaljer",
+                    it,
+                )
                 sikkerLogg.error(
                     "Feil ved journalføring " +
                         "Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
