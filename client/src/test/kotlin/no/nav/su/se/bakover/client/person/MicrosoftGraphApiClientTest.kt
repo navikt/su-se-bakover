@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,11 +35,11 @@ class MicrosoftGraphApiClientTest {
             }
                 """.trimIndent()
             val azureAdMock = mock<AzureAd> {
-                on { getSystemToken(any()) } doReturn tokenOppslag.token().value
+                on { getSystemToken(any()) } doReturn "token"
             }
 
             stubFor(
-                wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+                wiremockBuilderSystembruker("Bearer token")
                     .willReturn(WireMock.ok(suksessResponseJson)),
             )
 
@@ -51,8 +50,6 @@ class MicrosoftGraphApiClientTest {
             client.hentNavnForNavIdent(NavIdentBruker.Saksbehandler("saksbehandler")) shouldBe "displayName".right()
         }
     }
-
-    private val tokenOppslag = TokenOppslagStub
 
     private fun wiremockBuilderSystembruker(authorization: String) = WireMock.get(
         WireMock.urlEqualTo(

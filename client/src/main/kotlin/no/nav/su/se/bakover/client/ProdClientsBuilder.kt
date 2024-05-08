@@ -50,12 +50,8 @@ data class ProdClientsBuilder(
             baseUrl = clientsConfig.kodeverkUrl,
             consumerId = SU_SE_BAKOVER_CONSUMER_ID,
         )
-        val serviceUser = applicationConfig.serviceUser
         val tokenOppslag = StsClient(
             baseUrl = clientsConfig.stsUrl,
-            username = serviceUser.username,
-            password = serviceUser.password,
-            clock = clock,
         )
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,

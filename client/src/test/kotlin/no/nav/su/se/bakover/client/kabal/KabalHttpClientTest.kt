@@ -9,8 +9,6 @@ import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.auth.AccessToken
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
@@ -75,9 +73,6 @@ internal class KabalHttpClientTest {
                 ),
             )
             val oathMock = mock<AzureAd> {}
-            val tokenoppslagMock = mock<TokenOppslag> {
-                on { token() } doReturn AccessToken("token")
-            }
             val client = KabalHttpClient(
                 kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                     clientId = "kabalClientId",
@@ -93,7 +88,7 @@ internal class KabalHttpClientTest {
             verify(oathMock).getSystemToken(
                 otherAppId = argThat { it shouldBe "kabalClientId" },
             )
-            verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+            verifyNoMoreInteractions(oathMock)
             val actualRequest = allServeEvents.first().request.bodyAsString
 
             JSONAssert.assertEquals(expectedRequest, actualRequest, true)
