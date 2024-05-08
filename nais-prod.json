@@ -19,7 +19,7 @@
     "OPPGAVE_URL": "http://oppgave.oppgavehandtering.svc.nais.local",
     "OPPGAVE_CLIENT_ID": "50346823-61a0-49e7-ad89-ea2b1a0e90f8",
     "DOKDIST_URL": "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local",
-    "DOKDIST_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.dokdistfordeling",
+    "DOKDIST_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.saf",
     "SIMULERING_URL": "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding",
     "STS_URL_SOAP": "https://sts.adeo.no/SecurityTokenServiceProvider/",
     "SKJERMING_URL": "https://skjermede-personer-pip.nais.adeo.no",
