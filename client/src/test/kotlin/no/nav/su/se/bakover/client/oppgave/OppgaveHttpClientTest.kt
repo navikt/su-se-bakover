@@ -11,8 +11,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.auth.AccessToken
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -57,7 +55,6 @@ internal class OppgaveHttpClientTest {
             )
 
             val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
 
             val client = OppgaveHttpClient(
                 connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -97,7 +94,7 @@ internal class OppgaveHttpClientTest {
                 originalToken = argThat { it shouldBe "Bearer token" },
                 otherAppId = argThat { it shouldBe "oppgaveClientId" },
             )
-            verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+            verifyNoMoreInteractions(oathMock)
         }
     }
 
@@ -243,7 +240,6 @@ internal class OppgaveHttpClientTest {
             )
 
             val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-            val tokenoppslagMock = mock<TokenOppslag> { on { token() } doReturn AccessToken("token") }
 
             val client = OppgaveHttpClient(
                 connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -281,7 +277,7 @@ internal class OppgaveHttpClientTest {
                 originalToken = argThat { it shouldBe "Bearer token" },
                 otherAppId = argThat { it shouldBe "oppgaveClientId" },
             )
-            verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+            verifyNoMoreInteractions(oathMock)
         }
     }
 

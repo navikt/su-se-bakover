@@ -62,12 +62,7 @@ class StubClientsBuilder(
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
                 TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
             } else {
-                StsClient(
-                    applicationConfig.clientsConfig.stsUrl,
-                    applicationConfig.serviceUser.username,
-                    applicationConfig.serviceUser.password,
-                    clock,
-                )
+                StsClient(applicationConfig.clientsConfig.stsUrl)
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
