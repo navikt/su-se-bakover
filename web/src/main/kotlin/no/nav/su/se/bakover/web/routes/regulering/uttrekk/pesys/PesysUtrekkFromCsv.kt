@@ -18,11 +18,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class PesysUtrekkFromCsv(
-    /** FNR: Eksempel: 12345678901 */
+    /** FNR: Eksempel: 12345678901 - MERK fnr kan komme inn som 10 tegn når man kopierer inn til excel */
     val fnr: String,
     /** K_SAK_T: Eksempel: UFOREP/GJENLEV/ALDER */
     val sakstype: String,
-    /** K_VEDTAK_T: Eksempel: ENDRING/REGULERING */
+    /** K_VEDTAK_T: Eksempel: ENDRING/REGULERING, ... */
     val vedtakstype: String,
     /** FOM_DATO: Eksempel: 01.04.2024 */
     val fraOgMed: String,
@@ -48,7 +48,6 @@ data class PesysUtrekkFromCsv(
     val fradragskategori: Fradragstype.Kategori? = when (sakstype) {
         "UFOREP" -> Fradragstype.Uføretrygd.kategori
         "ALDER" -> Fradragstype.Alderspensjon.kategori
-        "GJENLEV" -> Fradragstype.Gjenlevendepensjon.kategori
         else -> null
     }
 
@@ -68,9 +67,15 @@ fun List<PesysUtrekkFromCsv>.toDomain(): Either<Resultat, List<Reguleringssupple
     return this.groupBy { it.fnr }.toReguleringssupplementInnhold()
 }
 
+/**
+ * Fnr som vi får inn fra supplementet kan muligens inneholde fnr som har 10 tegn.
+ * Dette skjer når man kopierer inn til excel. Excel fjerner det første '0' tegnet. Her ønsker vi å legge den tilbake
+ */
+private fun prepend0ToFnrsWith10Digits(fnr: String): String = if (fnr.length == 10) "0$fnr" else fnr
+
 private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold(): Either<Resultat, List<ReguleringssupplementFor>> {
     return this.map { (stringFnr, csv) ->
-        val fnr = Fnr.tryCreate(stringFnr) ?: return HttpStatusCode.BadRequest.errorJson(
+        val fnr = Fnr.tryCreate(prepend0ToFnrsWith10Digits(stringFnr)) ?: return HttpStatusCode.BadRequest.errorJson(
             "Feil ved parsing av fnr",
             "feil_ved_parsing_av_fnr",
         ).left()

@@ -125,4 +125,22 @@ class InnlesningReguleringTest {
             )
         }
     }
+
+    @Test
+    fun `fnr som er på 10 tegn får '0' prependet`() {
+        val data = """
+            FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK
+            1111111111;UFOREP;ENDRING;01.04.2024;30.04.2024;15529;14241;UT_ORDINER;14811;13583
+            1111111111;UFOREP;ENDRING;01.04.2024;30.04.2024;15529;14241;UT_GJT;718;658
+            1111111111;UFOREP;REGULERING;01.05.2024;;16255;16255;UT_GJT;718;718
+            1111111111;UFOREP;REGULERING;01.05.2024;;16255;16255;UT_ORDINER;15537;15537
+        """.trimIndent()
+
+        val actual = parseCSVFromString(data, fixedClock)
+
+        actual.getOrFail().let {
+            it.size shouldBe 1
+            it.first().fnr shouldBe Fnr("01111111111")
+        }
+    }
 }
