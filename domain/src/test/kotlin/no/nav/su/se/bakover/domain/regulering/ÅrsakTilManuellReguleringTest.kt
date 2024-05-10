@@ -10,7 +10,7 @@ class ÅrsakTilManuellReguleringTest {
 
     @Test
     fun `differanse i mismatch`() {
-        val mistmatch = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering(
+        val mistmatch = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",
@@ -23,7 +23,7 @@ class ÅrsakTilManuellReguleringTest {
 
     @Test
     fun `differanse i beløp er større en forventet`() {
-        val forv = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering(
+        val forv = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",

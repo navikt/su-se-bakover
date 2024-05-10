@@ -82,7 +82,7 @@ sealed interface ÅrsakTilManuellRegulering {
             val eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMed>,
         ) : FradragMåHåndteresManuelt
 
-        data class DifferenaseFørRegulering(
+        data class DifferanseFørRegulering(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
@@ -92,7 +92,7 @@ sealed interface ÅrsakTilManuellRegulering {
             val differanse: BigDecimal = eksterntBeløpFørRegulering.subtract(vårtBeløpFørRegulering).abs()
         }
 
-        data class DifferenaseEtterRegulering(
+        data class DifferanseEtterRegulering(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
@@ -101,6 +101,12 @@ sealed interface ÅrsakTilManuellRegulering {
         ) : FradragMåHåndteresManuelt {
             val differanse: BigDecimal = eksterntBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
         }
+
+        data class FantIkkeVedtakForApril(
+            override val begrunnelse: String,
+            override val fradragTilhører: FradragTilhører,
+            override val fradragskategori: Fradragstype.Kategori,
+        ) : FradragMåHåndteresManuelt
     }
 
     data class YtelseErMidlertidigStanset(

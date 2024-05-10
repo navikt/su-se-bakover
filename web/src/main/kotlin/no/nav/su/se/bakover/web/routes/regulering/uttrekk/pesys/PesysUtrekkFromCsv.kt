@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -129,7 +127,7 @@ private fun List<PesysUtrekkFromCsv>.toEksternvedtak(
         )
 
         ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring -> Eksternvedtak.Endring(
-            måned = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed!!).tilMåned(),
+            periode = PeriodeMedOptionalTilOgMed(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
             fradrag = this.toFradragsperiode().toNonEmptyList(),
             beløp = this.first().nettoYtelse.toInt(),
         )

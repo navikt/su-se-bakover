@@ -41,7 +41,14 @@ data class ReguleringssupplementFor(
          */
         val kategori: Fradragstype.Kategori,
     ) {
-        val endringsvedtak: Eksternvedtak.Endring = vedtak.filterIsInstance<Eksternvedtak.Endring>().single()
+        /**
+         * Ideelt sett ønsker vi kun 1 endringsvedtak per person. Det er slik at det ikke er noe garanti for at vi får et endringsvedtak - derfor null
+         */
+        val endringsvedtak: Eksternvedtak.Endring? = when (vedtak.filterIsInstance<Eksternvedtak.Endring>().size) {
+            0 -> null
+            1 -> vedtak.filterIsInstance<Eksternvedtak.Endring>().first()
+            else -> throw IllegalStateException("Forventet ikke flere endringsvedtak")
+        }
         val reguleringsvedtak: List<Eksternvedtak.Regulering> = vedtak.filterIsInstance<Eksternvedtak.Regulering>()
 
         init {

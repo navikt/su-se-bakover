@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.domain.regulering.supplement.overlapper
 import no.nav.su.se.bakover.test.nyEksterndata
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.assertThrows
 class EksternvedtakTest {
 
     @Nested
-    inner class requires {
+    inner class Requires {
         @Test
         fun `alle fradragene må ha samme fraOgMed`() {
             assertThrows<IllegalArgumentException> {
@@ -106,7 +107,7 @@ class EksternvedtakTest {
     fun `overlapper (ikke) med et annet ekstern vedtak`() {
         val v1 = nyEksternvedtakEndring()
         val v2 = nyEksternvedtakEndring()
-        val v3 = nyEksternvedtakEndring(måned = april(2022))
+        val v3 = nyEksternvedtakEndring(periode = PeriodeMedOptionalTilOgMed(1.april(2022), 30.april(2022)))
         v1.overlapper(v2) shouldBe true
         v1.overlapper(v3) shouldBe false
     }
@@ -115,7 +116,7 @@ class EksternvedtakTest {
     fun `enkelt vedtak overlapper (ikke) mot liste av eksterne vedtak`() {
         val v1 = nyEksternvedtakEndring()
         val v2 = nyEksternvedtakEndring()
-        val v3 = nyEksternvedtakEndring(måned = april(2022))
+        val v3 = nyEksternvedtakEndring(periode = PeriodeMedOptionalTilOgMed(1.april(2022), 30.april(2022)))
 
         v1.overlapper(listOf(v2, v3)) shouldBe true
         v1.overlapper(listOf(v3)) shouldBe false
@@ -125,7 +126,7 @@ class EksternvedtakTest {
     fun `sjekker om listen av eksterne vedtak inneholder overlapp`() {
         val v1 = nyEksternvedtakEndring()
         val v2 = nyEksternvedtakEndring()
-        val v3 = nyEksternvedtakEndring(måned = april(2022))
+        val v3 = nyEksternvedtakEndring(periode = PeriodeMedOptionalTilOgMed(1.april(2022), 30.april(2022)))
 
         listOf(v1).overlapper() shouldBe false
         listOf(v1, v2).overlapper() shouldBe true

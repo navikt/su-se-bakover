@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
@@ -265,12 +264,15 @@ fun nyEksternvedtakRegulering(
 }
 
 fun nyEksternvedtakEndring(
-    måned: Måned = april(2021),
+    periode: PeriodeMedOptionalTilOgMed = PeriodeMedOptionalTilOgMed(
+        fraOgMed = 1.april(2021),
+        tilOgMed = 30.april(2021),
+    ),
     beløp: Int = 1000,
-    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeEndring(beløp = beløp, fraOgMed = måned.fraOgMed, tilOgMed = måned.tilOgMed)),
+    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(nyFradragperiodeEndring(beløp = beløp, fraOgMed = periode.fraOgMed, tilOgMed = periode.tilOgMed)),
 ): Eksternvedtak.Endring {
     return Eksternvedtak.Endring(
-        måned = måned,
+        periode = periode,
         fradrag = fradrag.toNonEmptyList(),
         beløp = beløp,
     )
@@ -278,7 +280,7 @@ fun nyEksternvedtakEndring(
 
 fun nyFradragperiodeEndring(
     fraOgMed: LocalDate = 1.april(2021),
-    tilOgMed: LocalDate = 30.april(2021),
+    tilOgMed: LocalDate? = 30.april(2021),
     vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
     beløp: Int = 1000,
     eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),

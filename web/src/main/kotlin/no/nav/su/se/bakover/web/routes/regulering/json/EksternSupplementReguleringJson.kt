@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.web.routes.regulering.json
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.infrastructure.MånedJson
-import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
@@ -41,7 +39,7 @@ internal data class EksternSupplementReguleringJson(
 
 internal data class FradragsperiodeJson(
     val fradragstype: FradragskategoriJson,
-    val vedtaksperiodeEndring: VedtaksperiodeEndringJson,
+    val vedtaksperiodeEndring: VedtaksperiodeEndringJson?,
     val vedtaksperiodeRegulering: List<VedtaksperiodeReguleringJson>,
 ) {
     companion object {
@@ -49,8 +47,8 @@ internal data class FradragsperiodeJson(
             return this.map {
                 FradragsperiodeJson(
                     fradragstype = it.kategori.toJson(),
-                    vedtaksperiodeEndring = it.endringsvedtak.let {
-                        VedtaksperiodeEndringJson(it.måned.toJson(), it.beløp)
+                    vedtaksperiodeEndring = it.endringsvedtak?.let {
+                        VedtaksperiodeEndringJson(it.periode.toJson(), it.beløp)
                     },
                     vedtaksperiodeRegulering = it.reguleringsvedtak.map {
                         VedtaksperiodeReguleringJson(it.periode.toJson(), it.beløp)
@@ -68,7 +66,7 @@ internal data class SupplementForJson(
 )
 
 data class VedtaksperiodeEndringJson(
-    val måned: MånedJson,
+    val periode: PeriodeMedOptionalTilOgMedJson,
     val beløp: Int,
 )
 

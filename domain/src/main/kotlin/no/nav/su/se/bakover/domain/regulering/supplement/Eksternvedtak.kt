@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.LocalDate
 
 sealed interface Eksternvedtak {
@@ -60,16 +59,15 @@ sealed interface Eksternvedtak {
     }
 
     /**
-     * Vi ønsker kun 1 måned med endringsdato i de tilfellene Pesys og SU reguleres samtidig.
-     * Denne måneden skal være før reguleringsperioden.
+     * @param periode - Skal helst kun være 1 måned (April - måneden skal være før reguleringsperioden). Det er ikke noe garanti for at vi får tilOgMed datoen, og derfor er det en [PeriodeMedOptionalTilOgMed]
      */
     data class Endring(
-        val måned: Måned,
+        val periode: PeriodeMedOptionalTilOgMed,
         override val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>,
         override val beløp: Int,
     ) : Eksternvedtak {
-        override val fraOgMed: LocalDate = måned.fraOgMed
-        override val tilOgMed: LocalDate = måned.tilOgMed
+        override val fraOgMed: LocalDate = periode.fraOgMed
+        override val tilOgMed: LocalDate? = periode.tilOgMed
 
         init {
             require(fradrag.all { it.fraOgMed == fraOgMed })

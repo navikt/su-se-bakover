@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.regulering.supplement
+package no.nav.su.se.bakover.domain.regulering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
@@ -30,14 +30,31 @@ class ReguleringssupplementForTest {
             it.size shouldBe 4
 
             // alderspensjon
-            it.first() shouldBe alderspensjon.endringsvedtak.eksterneData().single()
+            it.first() shouldBe alderspensjon.endringsvedtak?.eksterneData()?.single()
             alderspensjon.reguleringsvedtak.size shouldBe 1
             it[1] shouldBe alderspensjon.reguleringsvedtak.single().eksterneData().single()
 
             // dagpenger
-            it[2] shouldBe dagpenger.endringsvedtak.eksterneData().single()
+            it[2] shouldBe dagpenger.endringsvedtak?.eksterneData()?.single()
             dagpenger.reguleringsvedtak.size shouldBe 1
-            it.last() shouldBe dagpenger.endringsvedtak.eksterneData().single()
+            it.last() shouldBe dagpenger.endringsvedtak?.eksterneData()?.single()
+        }
+    }
+
+    @Test
+    fun `endringsvedtak er null`() {
+        val alderspensjon = nyReguleringssupplementInnholdPerType(
+            kategori = Fradragstype.Kategori.Alderspensjon,
+            vedtak = listOf(nyEksternvedtakRegulering()),
+        )
+        val supplementFor = nyReguleringssupplementFor(Fnr.generer(), alderspensjon)
+
+        supplementFor.eksternedataForAlleTyper().let {
+            it.size shouldBe 1
+
+            alderspensjon.reguleringsvedtak.size shouldBe 1
+            alderspensjon.endringsvedtak shouldBe null
+            it.first() shouldBe alderspensjon.reguleringsvedtak.single().eksterneData().single()
         }
     }
 }

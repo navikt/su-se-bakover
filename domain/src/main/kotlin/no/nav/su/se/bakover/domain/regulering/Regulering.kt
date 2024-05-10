@@ -317,12 +317,18 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
         ) to originaleFradragsgrunnlag
     }
     val vårtBeløpFørRegulering = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
-    val eksterntBeløpFørRegulering = supplementForType.endringsvedtak.beløp
+    val eksterntBeløpFørRegulering = supplementForType.endringsvedtak?.beløp ?: return manuellReg(
+        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril(
+            fradragskategori = fradragstype.kategori,
+            fradragTilhører = fradragTilhører,
+            begrunnelse = "Vi fant et supplement for $fradragTilhører og denne ${fradragstype.kategori} - men vi fant ikke et eksternt endringsvedtak for april for å regne ut reguleringen.",
+        ),
+    ) to originaleFradragsgrunnlag
     val diffFørRegulering = eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()
     // vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > 0) {
         return manuellReg(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseFørRegulering(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering,
@@ -340,7 +346,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN
     if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
         return manuellReg(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,

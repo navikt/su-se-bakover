@@ -307,7 +307,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
         actual.getOrFail().let {
             it.reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferenaseEtterRegulering(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
                         fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Vi forventet at beløpet skulle være 1064.08 etter regulering, men det var 1200. Vi aksepterer en differanse på 10, men den var 135.92",

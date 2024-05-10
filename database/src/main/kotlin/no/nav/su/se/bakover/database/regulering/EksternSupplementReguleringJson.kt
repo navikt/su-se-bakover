@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.common.person.Fnr
@@ -101,12 +99,12 @@ private sealed interface EksternVedtakJson {
     fun toDomain(): Eksternvedtak
 
     data class EndringJson(
-        val måned: PeriodeJson,
+        val periode: PeriodeMedOptionalTilOgMedJson,
         val fradrag: List<FradragsperiodeJson>,
         val beløp: Int,
     ) : EksternVedtakJson {
         override fun toDomain(): Eksternvedtak = Eksternvedtak.Endring(
-            måned = måned.tilMåned(),
+            periode = periode.toDomain(),
             fradrag = fradrag.map { it.toDomain() }.toNonEmptyList(),
             beløp = beløp,
         )
@@ -129,7 +127,7 @@ private sealed interface EksternVedtakJson {
     companion object {
         fun Eksternvedtak.toDbJson(): EksternVedtakJson = when (this) {
             is Eksternvedtak.Endring -> EndringJson(
-                måned = måned.toJson(),
+                periode = periode.toJson(),
                 fradrag = fradrag.map { it.toDbJson() },
                 beløp = beløp,
             )
