@@ -29,6 +29,9 @@ import java.util.UUID
 
 sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGenerereBrev {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
+    override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
     fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
     fun tilUnderkjent(
         attestering: Attestering.Underkjent,

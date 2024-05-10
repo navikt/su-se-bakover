@@ -26,7 +26,13 @@ private data class PersistertBeregning(
     val periode: PeriodeJson,
     val begrunnelse: String?,
 ) {
-    fun toBeregning(satsFactory: SatsFactoryForSupplerendeStønad, sakstype: Sakstype, saksnummer: Saksnummer): BeregningMedFradragBeregnetMånedsvis {
+    /** @param erAvbrutt brukes for å bestemme om vi skal logge mismatch i satsene */
+    fun toBeregning(
+        satsFactory: SatsFactoryForSupplerendeStønad,
+        sakstype: Sakstype,
+        saksnummer: Saksnummer,
+        erAvbrutt: Boolean?,
+    ): BeregningMedFradragBeregnetMånedsvis {
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
@@ -40,18 +46,21 @@ private data class PersistertBeregning(
                     satsFactory = satsFactory.gjeldende(opprettet),
                     sakstype = sakstype,
                     saksnummer = saksnummer,
+                    erAvbrutt = erAvbrutt,
                 )
             }.toNonEmptyList(),
         )
     }
 }
 
+/** @param erAvbrutt brukes for å bestemme om vi skal logge mismatch i satsene */
 internal fun String.deserialiserBeregning(
     satsFactory: SatsFactoryForSupplerendeStønad,
     sakstype: Sakstype,
     saksnummer: Saksnummer,
+    erAvbrutt: Boolean?,
 ): BeregningMedFradragBeregnetMånedsvis {
-    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory, sakstype, saksnummer)
+    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory, sakstype, saksnummer, erAvbrutt)
 }
 
 /** Serialiserer til json-struktur til persistering */

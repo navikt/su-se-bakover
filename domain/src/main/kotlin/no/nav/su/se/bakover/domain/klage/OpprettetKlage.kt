@@ -32,6 +32,8 @@ data class OpprettetKlage(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     override fun kanAvsluttes() = true
 

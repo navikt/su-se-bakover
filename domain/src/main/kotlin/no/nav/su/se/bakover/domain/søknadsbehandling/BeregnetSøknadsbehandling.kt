@@ -46,6 +46,10 @@ sealed interface BeregnetSøknadsbehandling :
 
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, BeregnetSøknadsbehandling>
 
+    override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
+
     data class Innvilget(
         override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,

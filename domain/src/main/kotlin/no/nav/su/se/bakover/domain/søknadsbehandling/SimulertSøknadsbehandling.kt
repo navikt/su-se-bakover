@@ -54,6 +54,10 @@ data class SimulertSøknadsbehandling(
 
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
+    override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
+
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
         grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()

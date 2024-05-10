@@ -85,6 +85,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         }
 
         override fun erÅpen() = false
+        override fun erAvsluttet() = true
+        override fun erAvbrutt() = true
 
         companion object {
             fun tryCreate(
@@ -128,6 +130,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val beregning = null
 
         override fun erÅpen() = true
+        override fun erAvsluttet() = false
+        override fun erAvbrutt() = false
 
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteGjenopptakAvYtelse, IverksattGjenopptakAvYtelse> {
             if (simulering.harFeilutbetalinger()) {
@@ -171,6 +175,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
 
         override val beregning = null
         override fun erÅpen() = false
+        override fun erAvsluttet() = true
+        override fun erAvbrutt() = false
 
         /**
          * @return null dersom man kaller denne for en alderssak.

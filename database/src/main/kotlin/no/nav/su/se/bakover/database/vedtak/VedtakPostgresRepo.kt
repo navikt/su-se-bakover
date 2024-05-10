@@ -482,6 +482,7 @@ internal class VedtakPostgresRepo(
                 satsFactory = satsFactory,
                 sakstype = behandling!!.sakstype,
                 saksnummer = behandling.saksnummer,
+                erAvbrutt = behandling.erAvbrutt(),
             )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val avslagsgrunner = deserializeListNullable<Avslagsgrunn>(stringOrNull("avslagsgrunner"))

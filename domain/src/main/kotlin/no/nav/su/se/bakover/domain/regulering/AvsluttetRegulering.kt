@@ -10,7 +10,9 @@ data class AvsluttetRegulering(
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker?,
 ) : Regulering by opprettetRegulering, Avbrutt {
-    override fun erÅpen(): Boolean = false
+    override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = true
     override val erFerdigstilt = true
 
     /**

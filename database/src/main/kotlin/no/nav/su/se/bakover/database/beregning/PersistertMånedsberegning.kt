@@ -29,7 +29,13 @@ internal data class PersistertMånedsberegning(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun toMånedsberegning(satsFactory: SatsFactory, sakstype: Sakstype, saksnummer: Saksnummer): BeregningForMåned {
+    /** @param erAvbrutt brukes for å bestemme om vi skal logge mismatch i satsene */
+    fun toMånedsberegning(
+        satsFactory: SatsFactory,
+        sakstype: Sakstype,
+        saksnummer: Saksnummer,
+        erAvbrutt: Boolean?,
+    ): BeregningForMåned {
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
@@ -49,14 +55,13 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        // TODO jah: it.grunnbeløp.grunnbeløpPerÅr gir
-                        if (benyttetGrunnbeløp != it.grunnbeløp.grunnbeløpPerÅr) {
+                        if (benyttetGrunnbeløp != it.grunnbeløp.grunnbeløpPerÅr && erAvbrutt != true) {
                             log.warn(
                                 "Saksnummer $saksnummer: Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}",
                                 RuntimeException("Genererer en stacktrace for enklere debugging."),
                             )
                         }
-                        if (!satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble)) {
+                        if (!satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble) && erAvbrutt != true) {
                             log.warn(
                                 "Saksnummer $saksnummer: Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}",
                                 RuntimeException("Genererer en stacktrace for enklere debugging."),
@@ -93,5 +98,6 @@ internal fun Månedsberegning.toJson(): PersistertMånedsberegning {
 }
 
 private fun Double.isEqualToTwoDecimals(other: Double): Boolean {
-    return this.toBigDecimal().setScale(2, RoundingMode.HALF_UP) == other.toBigDecimal().setScale(2, RoundingMode.HALF_UP)
+    return this.toBigDecimal().setScale(2, RoundingMode.HALF_UP) == other.toBigDecimal()
+        .setScale(2, RoundingMode.HALF_UP)
 }

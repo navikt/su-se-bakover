@@ -481,6 +481,7 @@ internal class SøknadsbehandlingPostgresRepo(
             satsFactory = satsFactory,
             sakstype = sakstype,
             saksnummer = saksnummer,
+            erAvbrutt = erAvbrutt,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val attesteringer = string("attestering").toAttesteringshistorikk()

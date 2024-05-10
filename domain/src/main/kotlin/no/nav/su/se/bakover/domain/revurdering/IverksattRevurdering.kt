@@ -48,6 +48,8 @@ sealed interface IverksattRevurdering : Revurdering {
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = false
+    override fun erAvsluttet() = true
+    override fun erAvbrutt() = false
 
     data class Innvilget(
         override val id: RevurderingId,

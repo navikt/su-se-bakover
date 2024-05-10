@@ -17,4 +17,6 @@ class VedtakTilbakekrevingsbehandling(
 ) : Vedtak {
     override val skalSendeBrev: Boolean
         get() = behandling.vedtaksbrevvalg.skalSendeBrev()
+
+    override fun erAvbrutt(): Boolean = false
 }

@@ -120,7 +120,7 @@ internal class PersistertBeregningTest {
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
-        actualJson.deserialiserBeregning(satsFactoryTest, Sakstype.UFØRE, saksnummer) shouldBe actualBeregning
+        actualJson.deserialiserBeregning(satsFactoryTest, Sakstype.UFØRE, saksnummer, false) shouldBe actualBeregning
     }
 
     @Test

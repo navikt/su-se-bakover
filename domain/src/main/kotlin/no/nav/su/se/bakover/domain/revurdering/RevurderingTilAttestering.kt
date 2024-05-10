@@ -35,6 +35,8 @@ sealed interface RevurderingTilAttestering : Revurdering {
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = true
+    override fun erAvsluttet() = false
+    override fun erAvbrutt() = false
 
     fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,

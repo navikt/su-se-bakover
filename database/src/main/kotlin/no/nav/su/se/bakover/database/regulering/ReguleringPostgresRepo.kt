@@ -279,10 +279,12 @@ internal class ReguleringPostgresRepo(
         }
 
         val sakstype = Sakstype.from(string("type"))
+        val avbrutt = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakstype,
             saksnummer = saksnummer,
+            erAvbrutt = avbrutt != null,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
@@ -297,8 +299,6 @@ internal class ReguleringPostgresRepo(
             session = session,
             sakstype = Sakstype.from(string("type")),
         )
-
-        val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
         val eksternSupplementRegulering = deserEskternSupplementReguleringJson(string("reguleringsupplement"))
 
         return lagRegulering(
@@ -314,7 +314,7 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = type,
-            avsluttetReguleringJson = avsluttet,
+            avsluttetReguleringJson = avbrutt,
             sakstype = sakstype,
             eksternSupplementRegulering = eksternSupplementRegulering,
         )

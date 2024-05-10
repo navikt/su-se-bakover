@@ -34,6 +34,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
     ) : VilkårsvurdertKlage {
 
         override fun erÅpen() = true
+        override fun erAvsluttet() = false
+        override fun erAvbrutt() = false
 
         override fun vilkårsvurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -114,6 +116,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
         ) : Utfylt {
 
             override fun erÅpen() = true
+            override fun erAvsluttet() = false
+            override fun erAvbrutt() = false
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -211,6 +215,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
         ) : Utfylt, TilVurderingFelter {
 
             override fun erÅpen() = true
+            override fun erAvsluttet() = false
+            override fun erAvbrutt() = false
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -374,6 +380,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
         ) : Bekreftet, BekreftetFelter, KanLeggeTilFritekstTilAvvistBrev {
 
             override fun erÅpen() = true
+            override fun erAvsluttet() = false
+            override fun erAvbrutt() = false
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -479,6 +487,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
         ) : Bekreftet, TilVurderingFelter, KlageSomKanVurderes {
 
             override fun erÅpen() = true
+            override fun erAvsluttet() = false
+            override fun erAvbrutt() = false
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
