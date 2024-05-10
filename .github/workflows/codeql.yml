@@ -33,9 +33,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: wrapper
-          arguments: clean assemble testClasses --no-build-cache
           # The documentation wants us to disable cache: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/no-source-code-seen-during-build
           cache-disabled: true
+      - shell: bash
+        run: ./gradlew clean assemble testClasses --no-build-cache
       - name: CodeQL Analyze
         uses: github/codeql-action/analyze@v3
         with:
