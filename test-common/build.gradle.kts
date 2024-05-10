@@ -1,7 +1,5 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 dependencies {
-    val kotestVersion = "5.8.1"
-
     api(project(":behandling:behandlinger:domain"))
     api(project(":behandling:common:domain"))
     api(project(":behandling:klage:domain"))
@@ -61,11 +59,10 @@ dependencies {
     api(project(":økonomi:domain"))
     api(project(":økonomi:infrastructure"))
 
-    compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
-    // TODO jah: Kan gjenbruke versjoner ved å bruke gradle/libs.versions.toml
-    compileOnly("org.mockito.kotlin:mockito-kotlin:5.3.1")
-    compileOnly("org.skyscreamer:jsonassert:1.5.1")
-    compileOnly("io.zonky.test:embedded-postgres:2.0.7") {
+    compileOnly(rootProject.libs.kotest.assertions.core)
+    compileOnly(rootProject.libs.mockito.kotlin)
+    compileOnly(rootProject.libs.jsonassert)
+    compileOnly(rootProject.libs.embedded.postgres) {
         exclude("org.apache.commons", "commons-compress")
     }
     compileOnly(rootProject.libs.jupiter.api)
