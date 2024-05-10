@@ -1,5 +1,3 @@
-val fuelVersion = "2.3.1"
-
 dependencies {
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
