@@ -215,8 +215,9 @@ fun avsluttetRegulering(
 fun nyReguleringssupplement(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
+    originalCsv: String = "",
     vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
-): Reguleringssupplement = Reguleringssupplement(id, opprettet, supplementFor.toList())
+): Reguleringssupplement = Reguleringssupplement(id, opprettet, supplementFor.toList(), originalCsv)
 
 fun nyEksternSupplementRegulering(
     id: UUID? = UUID.randomUUID(),

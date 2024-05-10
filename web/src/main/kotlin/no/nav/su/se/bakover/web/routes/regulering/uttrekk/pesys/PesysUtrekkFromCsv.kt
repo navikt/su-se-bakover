@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
@@ -96,9 +97,11 @@ private fun Map<String, List<PesysUtrekkFromCsv>>.toReguleringssupplementInnhold
                 )
             }
         }.let {
-            ReguleringssupplementFor(fnr, it.toNonEmptyList())
+            it.toNonEmptyListOrNull()?.let {
+                ReguleringssupplementFor(fnr, it)
+            }
         }
-    }.right()
+    }.filterNotNull().right()
 }
 
 private fun List<PesysUtrekkFromCsv>.grupperPåFradragstype(): Map<Fradragstype.Kategori, List<PesysUtrekkFromCsv>> =

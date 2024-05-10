@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriDbJson
 import no.nav.su.se.bakover.database.grunnlag.fradrag.FradragskategoriDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.EksternVedtakJson.Companion.toDbJson
@@ -23,7 +24,12 @@ import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFo
 import java.time.LocalDate
 import java.util.UUID
 
-internal data class EksternSupplementReguleringJson(
+fun Reguleringssupplement.toDbJson(): String = serialize(this.map { it.toDbJson() })
+
+fun deserEskternSupplementReguleringJson(json: String): EksternSupplementRegulering =
+    deserialize<EksternSupplementReguleringJson>(json).toDomain()
+
+private data class EksternSupplementReguleringJson(
     val supplementId: String?,
     val bruker: ReguleringssupplementForJson? = null,
     val eps: List<ReguleringssupplementForJson> = emptyList(),
@@ -33,20 +39,15 @@ internal data class EksternSupplementReguleringJson(
         bruker = bruker?.toDomain(),
         eps = eps.map { it.toDomain() },
     )
-
-    internal companion object {
-        fun deser(json: String): EksternSupplementReguleringJson =
-            deserialize<EksternSupplementReguleringJson>(json)
-
-        fun EksternSupplementRegulering.toDbJson(): EksternSupplementReguleringJson = EksternSupplementReguleringJson(
-            supplementId = this.supplementId?.toString(),
-            bruker = this.bruker?.toDbJson(),
-            eps = this.eps.map { it.toDbJson() },
-        )
-    }
 }
 
-internal data class ReguleringssupplementForJson(
+fun EksternSupplementRegulering.toDbJson(): String = EksternSupplementReguleringJson(
+    supplementId = this.supplementId?.toString(),
+    bruker = this.bruker?.toDbJson(),
+    eps = this.eps.map { it.toDbJson() },
+).let { serialize(it) }
+
+private data class ReguleringssupplementForJson(
     val fnr: String,
     val perType: List<PerTypeJson>,
 ) {
@@ -55,17 +56,15 @@ internal data class ReguleringssupplementForJson(
         perType = perType.map { it.toDomain() }.toNonEmptyList(),
     )
 
-    internal companion object {
+    companion object {
         fun ReguleringssupplementFor.toDbJson(): ReguleringssupplementForJson = ReguleringssupplementForJson(
             fnr = this.fnr.toString(),
             perType = perType.map { it.toDbJson() },
         )
-
-        fun Reguleringssupplement.toDbJson(): List<ReguleringssupplementForJson> = this.map { it.toDbJson() }
     }
 }
 
-internal data class PerTypeJson(
+private data class PerTypeJson(
     val vedtak: List<EksternVedtakJson>,
     val fradragskategori: FradragskategoriDbJson,
 ) {
@@ -75,7 +74,7 @@ internal data class PerTypeJson(
         kategori = fradragskategori.toDomain(),
     )
 
-    internal companion object {
+    companion object {
         fun ReguleringssupplementFor.PerType.toDbJson(): PerTypeJson = PerTypeJson(
             vedtak = this.vedtak.map { it.toDbJson() },
             fradragskategori = this.kategori.toDbJson(),
@@ -98,7 +97,7 @@ internal data class PerTypeJson(
         name = "regulering",
     ),
 )
-internal sealed interface EksternVedtakJson {
+private sealed interface EksternVedtakJson {
     fun toDomain(): Eksternvedtak
 
     data class EndringJson(
@@ -144,7 +143,7 @@ internal sealed interface EksternVedtakJson {
     }
 }
 
-internal enum class EksternVedtakstypeJson {
+private enum class EksternVedtakstypeJson {
     Endring,
     Regulering,
     ;
@@ -154,7 +153,7 @@ internal enum class EksternVedtakstypeJson {
         Regulering -> ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering
     }
 
-    internal companion object {
+    companion object {
         fun ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.toDbJson(): EksternVedtakstypeJson =
             when (this) {
                 ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring -> Endring
@@ -163,7 +162,7 @@ internal enum class EksternVedtakstypeJson {
     }
 }
 
-internal data class FradragsperiodeJson(
+private data class FradragsperiodeJson(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate?,
     val vedtakstype: EksternVedtakstypeJson,
@@ -203,7 +202,7 @@ internal data class FradragsperiodeJson(
         val nettoYtelseskomponent: String,
     )
 
-    internal companion object {
+    companion object {
         fun ReguleringssupplementFor.PerType.Fradragsperiode.toDbJson(): FradragsperiodeJson = FradragsperiodeJson(
             fraOgMed = this.fraOgMed,
             tilOgMed = tilOgMed,

@@ -26,12 +26,12 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
-import no.nav.su.se.bakover.database.regulering.EksternSupplementReguleringJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -234,7 +234,7 @@ internal class ReguleringPostgresRepo(
                                 is IverksattRegulering -> null
                                 is OpprettetRegulering -> null
                             },
-                            "reguleringsupplement" to serialize(regulering.eksternSupplementRegulering.toDbJson()),
+                            "reguleringsupplement" to regulering.eksternSupplementRegulering.toDbJson(),
                         ),
                         session,
                     )
@@ -299,7 +299,7 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
-        val eksternSupplementRegulering = EksternSupplementReguleringJson.deser(string("reguleringsupplement"))
+        val eksternSupplementRegulering = deserEskternSupplementReguleringJson(string("reguleringsupplement"))
 
         return lagRegulering(
             status = status,
@@ -341,7 +341,7 @@ internal class ReguleringPostgresRepo(
         reguleringstype: Reguleringstype,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
-        eksternSupplementRegulering: EksternSupplementReguleringJson,
+        eksternSupplementRegulering: EksternSupplementRegulering,
     ): Regulering {
         val opprettetRegulering = OpprettetRegulering(
             id = id,
@@ -356,7 +356,7 @@ internal class ReguleringPostgresRepo(
             simulering = simulering,
             reguleringstype = reguleringstype,
             sakstype = sakstype,
-            eksternSupplementRegulering = eksternSupplementRegulering.toDomain(),
+            eksternSupplementRegulering = eksternSupplementRegulering,
         )
 
         return when (status) {

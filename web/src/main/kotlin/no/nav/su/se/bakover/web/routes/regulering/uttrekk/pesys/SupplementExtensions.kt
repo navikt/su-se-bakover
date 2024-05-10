@@ -8,9 +8,11 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import java.time.Clock
 import java.util.UUID
 
-fun parseCSVFromString(csv: String, clock: Clock): Either<Resultat, Reguleringssupplement> = parseCSV(csv.split(Regex("\r?\n")), clock)
+fun parseCSVFromString(csv: String, clock: Clock): Either<Resultat, Reguleringssupplement> {
+    return parseCSV(csv.split(Regex("\r?\n")), clock, csv)
+}
 
-private fun parseCSV(csv: List<String>, clock: Clock): Either<Resultat, Reguleringssupplement> {
+private fun parseCSV(csv: List<String>, clock: Clock, rawCsv: String): Either<Resultat, Reguleringssupplement> {
     require(csv.first() == "FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK")
     val supplementId = UUID.randomUUID()
     return csv.drop(1).map {
@@ -30,5 +32,5 @@ private fun parseCSV(csv: List<String>, clock: Clock): Either<Resultat, Reguleri
             bruttoYtelseskomponent = splitted[8],
             nettoYtelseskomponent = splitted[9],
         )
-    }.toDomain().map { Reguleringssupplement(supplementId, Tidspunkt.now(clock), it) }
+    }.toDomain().map { Reguleringssupplement(supplementId, Tidspunkt.now(clock), it, rawCsv) }
 }

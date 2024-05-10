@@ -13,11 +13,12 @@ data class Reguleringssupplement(
     val id: UUID,
     val opprettet: Tidspunkt,
     private val supplement: List<ReguleringssupplementFor>,
+    val originalCsv: String,
 ) : List<ReguleringssupplementFor> by supplement {
 
     fun getFor(fnr: Fnr): ReguleringssupplementFor? = this.supplement.singleOrNull { it.fnr == fnr }
 
     companion object {
-        fun empty(clock: Clock) = Reguleringssupplement(UUID.randomUUID(), Tidspunkt.now(clock), emptyList())
+        fun empty(clock: Clock) = Reguleringssupplement(UUID.randomUUID(), Tidspunkt.now(clock), emptyList(), "")
     }
 }
