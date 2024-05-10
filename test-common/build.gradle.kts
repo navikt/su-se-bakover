@@ -1,6 +1,6 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 dependencies {
-    val kotestVersion = "5.8.1"
+    val kotestVersion = "5.9.0"
 
     api(project(":behandling:behandlinger:domain"))
     api(project(":behandling:common:domain"))
