@@ -25,6 +25,9 @@ data class Person(
     fun alderSomFylles(påÅr: Year): Int? = fødsel?.alderSomFylles(påÅr)
 
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
+    fun erDød(): Boolean {
+        return dødsdato != null
+    }
 
     data class Navn(
         val fornavn: String,

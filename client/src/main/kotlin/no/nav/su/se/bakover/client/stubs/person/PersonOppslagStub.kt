@@ -12,8 +12,11 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonOppslag
 import person.domain.Telefonnummer
+import java.time.LocalDate
 
-data object PersonOppslagStub :
+data class PersonOppslagStub(
+    val dødsdato: LocalDate? = 21.januar(2021),
+) :
     PersonOppslag {
 
     fun nyTestPerson(fnr: Fnr) = Person(
@@ -49,7 +52,7 @@ data object PersonOppslagStub :
         ),
         vergemål = null,
         fullmakt = null,
-        dødsdato = 21.januar(2021),
+        dødsdato = dødsdato,
     )
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =

@@ -53,13 +53,13 @@ class AppComponents private constructor(
             dataSource: DataSource,
             satsFactory: SatsFactoryForSupplerendeStønad,
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
-            clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
+            clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock, applicationConfig: ApplicationConfig) -> Clients,
             serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
             tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter,
             dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactory)
-            val clients = clientBuilder(databaseRepos, clock)
+            val clients = clientBuilder(databaseRepos, clock, applicationConfig)
             val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactory)
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
@@ -110,12 +110,12 @@ class AppComponents private constructor(
                         satsFactory = satsFactory,
                     )
                 },
-                clientBuilder = { db, clock ->
+                clientBuilder = { db, clock, _applicationConfig ->
                     TestClientsBuilder(
                         clock = clock,
                         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         databaseRepos = db,
-                    ).build(applicationConfig)
+                    ).build(_applicationConfig)
                 },
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
                     run {
@@ -203,11 +203,11 @@ internal fun withKomptestApplication(
             satsFactory = satsFactory,
         )
     },
-    clientsBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients = { databaseRepos, klokke ->
+    clientsBuilder: (databaseRepos: DatabaseRepos, clock: Clock, applicationConfig: ApplicationConfig) -> Clients = { databaseRepos, klokke, _applicationConfig ->
         TestClientsBuilder(
             clock = klokke,
             databaseRepos = databaseRepos,
-        ).build(applicationConfig)
+        ).build(_applicationConfig)
     },
     serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services = { databaseRepos, clients, klokke, satsFactory ->
         run {

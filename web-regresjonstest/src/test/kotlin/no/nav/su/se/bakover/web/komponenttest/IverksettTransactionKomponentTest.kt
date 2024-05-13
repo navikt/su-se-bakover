@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
@@ -57,11 +56,11 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).let {
+                ).build(_applicationConfig).let {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
@@ -117,11 +116,11 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).let {
+                ).build(_applicationConfig).let {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             var count = 0
@@ -189,11 +188,11 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).let {
+                ).build(_applicationConfig).let {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             var count = 0
@@ -272,11 +271,11 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).let {
+                ).build(_applicationConfig).let {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             var count = 0
@@ -346,11 +345,11 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).let {
+                ).build(_applicationConfig).let {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             var count = 0

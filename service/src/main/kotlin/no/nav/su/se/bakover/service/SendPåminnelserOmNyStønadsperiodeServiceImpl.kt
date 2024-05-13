@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.service
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
@@ -15,17 +16,18 @@ interface SendPåminnelserOmNyStønadsperiodeService {
 
 class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val clock: Clock,
-    private val sakRepo: SakRepo,
+    private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
     private val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo,
     private val formuegrenserFactory: FormuegrenserFactory,
+    private val personService: PersonService,
 ) : SendPåminnelserOmNyStønadsperiodeService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
         val initialContext = hentEllerOpprettContext()
-        return initialContext.uprosesserte { sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker() }
+        return initialContext.uprosesserte { sakService.hentSakIdSaksnummerOgFnrForAlleSaker() }
             .ifEmpty {
                 log.debug("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
                 return initialContext
@@ -35,7 +37,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
             }
             .fold(initialContext) { context, saksnummer ->
                 try {
-                    val sak = sakRepo.hentSak(saksnummer)!!
+                    val sak = sakService.hentSak(saksnummer).getOrNull()!!
 
                     context.håndter(
                         sak = sak,
@@ -52,6 +54,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                             sendPåminnelseNyStønadsperiodeJobRepo.lagre(ctx, tx)
                         },
                         formuegrenserFactory = formuegrenserFactory,
+                        hentPerson = personService::hentPersonMedSystembruker,
                     ).fold(
                         {
                             log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")

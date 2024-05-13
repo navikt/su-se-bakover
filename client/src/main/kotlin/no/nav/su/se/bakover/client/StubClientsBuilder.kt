@@ -58,7 +58,7 @@ class StubClientsBuilder(
                 applicationConfig.azure.clientSecret,
                 applicationConfig.azure.wellKnownUrl,
             ),
-            personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
+            personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
                 TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
             } else {

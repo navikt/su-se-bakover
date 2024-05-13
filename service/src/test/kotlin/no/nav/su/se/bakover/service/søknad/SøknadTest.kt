@@ -48,7 +48,7 @@ class SøknadTest {
 
     private val søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre()
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val person: Person = PersonOppslagStub.person(fnr).getOrFail()
+    private val person: Person = PersonOppslagStub().person(fnr).getOrFail()
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(
@@ -230,7 +230,7 @@ class SøknadTest {
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
         val (sak, _) = søknadsbehandlingIverksattInnvilget()
-        val person = PersonOppslagStub.person(sak.fnr).getOrFail()
+        val person = PersonOppslagStub().person(sak.fnr).getOrFail()
 
         SøknadServiceOgMocks(
             sakService = mock {

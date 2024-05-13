@@ -28,7 +28,8 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.FantIkkeSak
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -78,16 +79,16 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = desemberClock,
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
                     SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
                     SakInfo(sak3.id, sak3.saksnummer, sak3.fnr, sak3.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1,
-                    sak2,
-                    null,
+                    sak1.right(),
+                    sak2.right(),
+                    FantIkkeSak.left(),
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -183,12 +184,12 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = desemberClock,
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1,
+                    sak1.right(),
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -297,7 +298,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = juliClock,
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
                     SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
@@ -306,11 +307,11 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     SakInfo(sak5.id, sak5.saksnummer, sak5.fnr, sak5.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1,
-                    sak2,
-                    sak3,
-                    sak4,
-                    sak5,
+                    sak1.right(),
+                    sak2.right(),
+                    sak3.right(),
+                    sak4.right(),
+                    sak5.right(),
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -359,7 +360,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
     fun `gjør ingenting dersom alle saker er prosessert for aktuell måned`() {
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = fixedClock,
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn emptyList()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
@@ -378,7 +379,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 sendt = emptySet(),
             )
 
-            verify(it.sakRepo).hentSakIdSaksnummerOgFnrForAlleSaker()
+            verify(it.sakService).hentSakIdSaksnummerOgFnrForAlleSaker()
             verify(it.sendPåminnelseNyStønadsperiodeJobRepo).hent(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
                     fixedClock,
@@ -402,14 +403,17 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = fixedClock,
-            sakRepo = mock {
+            sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
                 )
-                on { hentSak(any<Saksnummer>()) } doReturn sak
+                on { hentSak(any<Saksnummer>()) } doReturn sak.right()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
                 on { hent(any()) } doReturn null
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr).right()
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
@@ -430,7 +434,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
     data class SendPåminnelseNyStønadsperiodeServiceAndMocks(
         val clock: Clock = mock(),
-        val sakRepo: SakRepo = mock(),
+        val sakService: SakService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),
@@ -439,19 +443,21 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
     ) {
         val service = SendPåminnelserOmNyStønadsperiodeServiceImpl(
             clock = clock,
-            sakRepo = sakRepo,
+            sakService = sakService,
             sessionFactory = sessionFactory,
             brevService = brevService,
             sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
             formuegrenserFactory = formuegrenserFactory,
+            personService = personService,
         )
 
         fun verifyNoMoreInteractions() {
             org.mockito.kotlin.verifyNoMoreInteractions(
-                sakRepo,
+                sakService,
                 brevService,
                 personService,
                 sendPåminnelseNyStønadsperiodeJobRepo,
+                personService,
             )
         }
     }

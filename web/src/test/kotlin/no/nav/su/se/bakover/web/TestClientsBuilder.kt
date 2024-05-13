@@ -37,7 +37,7 @@ data class TestClientsBuilder(
     private val journalpostIdGenerator = JournalpostIdGeneratorForFakes()
     private val testClients = Clients(
         oauth = AzureClientStub,
-        personOppslag = PersonOppslagStub,
+        personOppslag = PersonOppslagStub(),
         tokenOppslag = TokenOppslagStub,
         pdfGenerator = PdfGeneratorStub,
         journalførClients = JournalførClients(
