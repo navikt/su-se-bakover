@@ -101,6 +101,7 @@ class ReguleringServiceImpl(
                 fraOgMedMåned = command.startDatoRegulering,
                 isLiveRun = false,
                 satsFactory = factory,
+                supplement = command.supplement,
                 omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
             )
         }.onLeft {
@@ -116,7 +117,7 @@ class ReguleringServiceImpl(
         fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
+        supplement: Reguleringssupplement,
         omregningsfaktor: BigDecimal,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
