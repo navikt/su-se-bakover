@@ -110,7 +110,7 @@ xmlunit-matchers = { group = "org.xmlunit", name = "xmlunit-matchers", version =
 
 org-json = { group = "org.json", name = "json", version = "20240303"}
 
-nimbus-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.38"}
+nimbus-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.39"}
 
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version = "0.24.0"}
 
