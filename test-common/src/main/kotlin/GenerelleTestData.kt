@@ -82,6 +82,7 @@ fun person(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
     fødsel: Person.Fødsel? = Person.Fødsel.MedFødselsdato(1.januar(1990)),
+    dødsdato: LocalDate? = null,
 ) = Person(
     ident = Ident(
         fnr = fnr,
@@ -89,6 +90,7 @@ fun person(
     ),
     navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     fødsel = fødsel,
+    dødsdato = dødsdato,
 )
 
 val stønadsperiode2021 = Stønadsperiode.create(år(2021))

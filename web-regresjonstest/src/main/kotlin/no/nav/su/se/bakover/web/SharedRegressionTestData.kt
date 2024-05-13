@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
+import person.domain.PersonOppslag
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import vilkår.formue.domain.FormuegrenserFactory
@@ -181,11 +182,12 @@ data class TestClientsBuilder(
     val clock: Clock,
     val utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     val databaseRepos: DatabaseRepos,
+    val personOppslag: PersonOppslag = PersonOppslagStub(),
 ) : ClientsBuilder {
     private val journalpostIdGenerator = JournalpostIdGeneratorForFakes()
     private val testClients = Clients(
         oauth = AzureClientStub,
-        personOppslag = PersonOppslagStub,
+        personOppslag = personOppslag,
         tokenOppslag = TokenOppslagStub,
         pdfGenerator = PdfGeneratorStub,
         journalførClients = JournalførClients(

@@ -288,11 +288,12 @@ data object ServiceBuilder {
             reguleringService = reguleringService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
-                sakRepo = databaseRepos.sak,
+                sakService = sakService,
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 formuegrenserFactory = formuegrenserFactory,
+                personService = personService,
             ),
             skatteService = skatteServiceImpl,
             stansYtelse = stansAvYtelseService,

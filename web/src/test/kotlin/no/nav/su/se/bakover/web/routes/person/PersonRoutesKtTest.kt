@@ -35,7 +35,7 @@ import person.domain.PersonService
 internal class PersonRoutesKtTest {
 
     private val testIdent = "12345678910"
-    private val person = PersonOppslagStub.nyTestPerson(Fnr(testIdent))
+    private val person = PersonOppslagStub().nyTestPerson(Fnr(testIdent))
 
     private val services = TestServicesBuilder.services()
 

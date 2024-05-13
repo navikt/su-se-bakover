@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -10,9 +12,14 @@ import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import person.domain.KunneIkkeHentePerson
+import person.domain.Person
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -36,6 +43,8 @@ data class SendPåminnelseNyStønadsperiodeContext(
     private val sendt: Set<Saksnummer>,
     val feilede: List<Feilet>,
 ) : JobContext {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     data class Feilet(val saksnummer: Saksnummer, val feil: String)
 
@@ -107,7 +116,11 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return alle().map { it.saksnummer }.toSet().minus(prosessert())
     }
 
-    private fun skalSendePåminnelse(sak: Sak): Boolean {
+    private fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
+        if (person.erDød()) {
+            log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
+            return false
+        }
         return sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
     }
 
@@ -119,8 +132,12 @@ data class SendPåminnelseNyStønadsperiodeContext(
         lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
         lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
         formuegrenserFactory: FormuegrenserFactory,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
-        return if (skalSendePåminnelse(sak)) {
+        val person = hentPerson(sak.fnr).getOrElse {
+            return KunneIkkeSendePåminnelse.FantIkkePerson.left()
+        }
+        return if (skalSendePåminnelse(sak, person)) {
             val dagensDato = LocalDate.now(clock)
             lagDokument(
                 PåminnelseNyStønadsperiodeDokumentCommand(

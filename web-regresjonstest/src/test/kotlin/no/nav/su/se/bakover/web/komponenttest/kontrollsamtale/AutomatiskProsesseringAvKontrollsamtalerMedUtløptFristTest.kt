@@ -148,7 +148,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         val mockData = MockData(listOf(k0, k1, k2, k3, k4, k5))
         withKomptestApplication(
             clock = tikkendeKlokke,
-            clientsBuilder = { databaseRepos, clock ->
+            clientsBuilder = { databaseRepos, clock, _ ->
                 testClientBuilder(
                     mockData = mockData,
                     clock = clock,

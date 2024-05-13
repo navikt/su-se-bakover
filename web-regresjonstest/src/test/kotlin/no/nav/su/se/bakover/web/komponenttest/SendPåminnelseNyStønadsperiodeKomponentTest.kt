@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.komponenttest
 
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.tid.august
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
 import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
@@ -34,6 +36,13 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
         val clock = Clock.fixed(2.juli(2022).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         withKomptestApplication(
             clock = clock,
+            clientsBuilder = { databaseRepos, klokke, _applicationConfig ->
+                TestClientsBuilder(
+                    clock = klokke,
+                    databaseRepos = databaseRepos,
+                    personOppslag = PersonOppslagStub(dødsdato = null),
+                ).build(_applicationConfig)
+            },
         ) { appComponents ->
             val sakIdOgSaksnummer1 = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
