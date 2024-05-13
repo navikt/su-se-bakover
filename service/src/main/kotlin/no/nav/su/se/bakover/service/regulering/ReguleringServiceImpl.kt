@@ -166,8 +166,6 @@ class ReguleringServiceImpl(
                 Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                     "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                 )
-
-                else -> TODO("fjern meg")
             }
 
             return KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
