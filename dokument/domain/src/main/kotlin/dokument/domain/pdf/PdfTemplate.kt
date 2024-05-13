@@ -39,10 +39,6 @@ sealed interface PdfTemplate {
         override val templateName = "forhåndsvarsel"
     }
 
-    data object ForhåndsvarselTilbakekreving : PdfTemplate {
-        override val templateName = "forhåndsvarselTilbakekreving"
-    }
-
     data object ForhåndsvarselTilbakekrevingsbehandling : PdfTemplate {
         override val templateName = "forhåndsvarselTilbakekrevingsbehandling"
     }
@@ -62,10 +58,6 @@ sealed interface PdfTemplate {
     sealed interface Revurdering : PdfTemplate {
         data object Inntekt : Revurdering {
             override val templateName = "revurderingAvInntekt"
-        }
-
-        data object MedTilbakekreving : Revurdering {
-            override val templateName = "revurderingMedTilbakekreving"
         }
 
         data object Avslutt : Revurdering {

@@ -77,12 +77,6 @@ sealed interface PdfTemplateMedDokumentNavn {
             override val dokumentNavn = "Vi har vurdert den supplerende stønaden din på nytt"
         }
 
-        data object MedTilbakekreving : Revurdering {
-            override val pdfTemplate = PdfTemplate.Revurdering.MedTilbakekreving
-            override val dokumentNavn =
-                "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
-        }
-
         data object AvsluttRevurdering : Revurdering {
             override val pdfTemplate = PdfTemplate.Revurdering.Avslutt
             override val dokumentNavn = "Ikke grunnlag for revurdering"

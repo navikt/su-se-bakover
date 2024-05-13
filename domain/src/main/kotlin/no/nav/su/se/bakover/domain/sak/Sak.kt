@@ -287,9 +287,11 @@ data class Sak(
         return kommendeUtbetalingslinjer.map { linje -> linje.periode }.minsteAntallSammenhengendePerioder().size <= 1
     }
 
-    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean = vedtakstidslinje()?.lastOrNull()?.let {
-        !it.erOpphør() && it.periode slutterSamtidig periode
-    } ?: false
+    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
+        return vedtakstidslinje()?.lastOrNull()?.let {
+            !it.erOpphør() && it.periode slutterSamtidig periode
+        } ?: false
+    }
 
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
