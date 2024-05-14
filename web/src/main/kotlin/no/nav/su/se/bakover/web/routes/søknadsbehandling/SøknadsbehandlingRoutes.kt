@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
@@ -108,7 +107,6 @@ internal fun Route.søknadsbehandlingRoutes(
                             {
                                 call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
                                 call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id.value)
-                                SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
                                 call.svar(Created.jsonBody(it.second, formuegrenserFactory))
                             },
                         )

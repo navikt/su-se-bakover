@@ -15,7 +15,6 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSøknad
@@ -37,7 +36,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOp
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -81,13 +79,6 @@ internal fun Route.søknadRoutes(
                                     { (saksnummer, søknad) ->
                                         call.audit(søknad.fnr, AuditLogEvent.Action.CREATE, null)
                                         call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                                        SuMetrics.søknadMottatt(
-                                            if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad) {
-                                                SuMetrics.Søknadstype.PAPIR
-                                            } else {
-                                                SuMetrics.Søknadstype.DIGITAL
-                                            },
-                                        )
                                         call.svar(
                                             Resultat.json(
                                                 Created,

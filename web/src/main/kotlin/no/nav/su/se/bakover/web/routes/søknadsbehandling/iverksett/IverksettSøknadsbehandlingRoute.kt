@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -59,7 +58,6 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                         val søknadsbehandling = it.second
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
                         call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
-                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
                         call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, formuegrenserFactory))
                     },
                 )
@@ -76,6 +74,7 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
             message = "Simulering fører til feilutbetaling.",
             code = "simulering_fører_til_feilutbetaling",
         )
+
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
     }

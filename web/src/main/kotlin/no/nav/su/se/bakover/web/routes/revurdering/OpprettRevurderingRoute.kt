@@ -7,7 +7,6 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -63,7 +62,6 @@ internal fun Route.opprettRevurderingRoute(
                         ifRight = {
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
-                            SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
