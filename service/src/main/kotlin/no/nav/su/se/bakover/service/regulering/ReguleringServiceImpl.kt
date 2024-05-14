@@ -202,13 +202,16 @@ class ReguleringServiceImpl(
     private fun logResultat(it: List<Either<KunneIkkeOppretteRegulering, Regulering>>): String {
         val (lefts, rights) = it.split()
 
+        val årsakerForAtReguleringerIkkeKunneBliOpprettet =
+            lefts.map { it }.groupBy { it }.map { "${it.key}: (${it.value.size}) " }
+
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
             it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty())
         }
         val antallManuelleReguleringer = rights.count { it.reguleringstype is Reguleringstype.MANUELL }
 
-        val årsakerz = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
+        val årsakerForManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
             (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it::class.simpleName }
         }.groupBy { it }.map { "${it.key}: (${it.value.size}) " }
 
@@ -217,14 +220,22 @@ class ReguleringServiceImpl(
             Antall reguleringer laget: ${rights.size}
             ------------------------------------------------------------------------------
             Antall reguleringer som ikke kunne bli opprettet: ${lefts.size}
-            Årsaker til at reguleringene ikke kunne bli opprettet: ${lefts.map { it }.groupBy { it }.map { "${it.key}: (${it.value.size}) " }}
+            Årsaker til at reguleringene ikke kunne bli opprettet: ${
+            if (årsakerForAtReguleringerIkkeKunneBliOpprettet.isEmpty()) {
+                "[]"
+            } else {
+                årsakerForAtReguleringerIkkeKunneBliOpprettet.joinToString(prefix = "\n             - ")
+            }
+        }
             ------------------------------------------------------------------------------
             Antall reguleringer som ble kjørt igjennom automatisk: $antallAutomatiskeReguleringer
             Antall reguleringer som ble kjørt med supplement: $antallAutomatiskPgaSupplemement
             Av $antallAutomatiskeReguleringer automatiske, er $antallAutomatiskPgaSupplemement automatisk pga supplement
             ------------------------------------------------------------------------------
             Antall reguleringer til manuell behandling: $antallManuelleReguleringer
-            Årsaker til manuell behandling: $årsakerz
+            Årsaker til manuell behandling: ${
+            if (årsakerForManuell.isEmpty()) "[]" else årsakerForManuell.joinToString(prefix = "\n             - ")
+        }
         """.trimIndent()
 
         return result.also { log.info(it) }
@@ -345,9 +356,6 @@ class ReguleringServiceImpl(
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler { beregning, uføregrunnlag ->
                     Either.catch {
-                        if (sak.saksnummer == Saksnummer(10002262)) {
-                            throw RuntimeException("Tester feilen som skjer i prerod")
-                        }
                         sak.lagNyUtbetaling(
                             saksbehandler = beregnetRegulering.saksbehandler,
                             beregning = beregning,
@@ -408,91 +416,6 @@ class ReguleringServiceImpl(
             .map {
                 it
             }
-    }
-
-    /**
-     * Lagrer reguleringen
-     */
-    private fun ferdigstillOgIverksettRegulering2(
-        regulering: OpprettetRegulering,
-        sak: Sak,
-        isLiveRun: Boolean,
-        satsFactory: SatsFactory,
-    ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
-        val reguleringMedBeregning = regulering.beregn(
-            satsFactory = satsFactory,
-            begrunnelse = null,
-            clock = clock,
-        ).getOrElse {
-            when (it) {
-                is KunneIkkeBeregneRegulering.BeregningFeilet ->
-                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.", it.feil)
-            }
-            regulering.lagreTilManuell(isLiveRun, "Klarte ikke å beregne reguleringen.")
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne.left()
-        }
-
-        val (reguleringMedSimulering, simulertUtbetaling) = reguleringMedBeregning.simuler { beregning, uføregrunnlag ->
-            Either.catch {
-                if (sak.saksnummer == Saksnummer(10002262)) {
-                    throw RuntimeException("Tester feilen som skjer i prerod")
-                }
-                sak.lagNyUtbetaling(
-                    saksbehandler = reguleringMedBeregning.saksbehandler,
-                    beregning = beregning,
-                    clock = clock,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                    uføregrunnlag = uføregrunnlag,
-                ).let {
-                    simulerUtbetaling(
-                        tidligereUtbetalinger = sak.utbetalinger,
-                        utbetalingForSimulering = it,
-                        simuler = utbetalingService::simulerUtbetaling,
-                    )
-                }
-            }.fold(
-                {
-                    log.error(
-                        "Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer}. Behandlingen settes til manuell",
-                        it,
-                    )
-                    SimuleringFeilet.TekniskFeil.left()
-                },
-                { it },
-            )
-        }.getOrElse {
-            log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
-            regulering.lagreTilManuell(isLiveRun, "Klarte ikke å simulere utbetalingen.")
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere.left()
-        }
-
-        // iverksatte reguleringen blir lagret i lagVedtakOgUtbetal ved right
-        return lagVedtakOgUtbetal(reguleringMedSimulering.tilIverksatt(), simulertUtbetaling, isLiveRun)
-            .onLeft {
-                regulering.lagreTilManuell(isLiveRun, "Klarte ikke å utbetale. Underliggende feil: ${it.feil}")
-            }
-    }
-
-    private fun OpprettetRegulering.lagreTilManuell(isLiveRun: Boolean, message: String) {
-        if (isLiveRun) {
-            LiveRun.Opprettet(
-                sessionFactory = sessionFactory,
-                lagreRegulering = reguleringRepo::lagre,
-                lagreVedtak = vedtakService::lagreITransaksjon,
-                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                notifyObservers = { Unit },
-            ).kjørSideffekter(
-                this.copy(
-                    reguleringstype = Reguleringstype.MANUELL(
-                        setOf(
-                            ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(
-                                message,
-                            ),
-                        ),
-                    ),
-                ),
-            )
-        }
     }
 
     private fun notifyObservers(vedtak: VedtakInnvilgetRegulering) {
