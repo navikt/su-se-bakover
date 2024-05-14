@@ -4,6 +4,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceIm
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.withKomptestApplication
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
@@ -44,6 +46,13 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
 
         withKomptestApplication(
             clock = tikkendeKlokke,
+            clientsBuilder = { databaseRepos, klokke, _applicationConfig ->
+                TestClientsBuilder(
+                    clock = klokke,
+                    databaseRepos = databaseRepos,
+                    personOppslag = PersonOppslagStub(dødsdato = null),
+                ).build(_applicationConfig)
+            },
         ) { appComponents ->
             val kontrollsamtaleService =
                 appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl

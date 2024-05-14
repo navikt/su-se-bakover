@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontro
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -33,6 +34,7 @@ class KontrollsamtaleServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
+    private val personService: PersonService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : KontrollsamtaleService {
@@ -46,6 +48,22 @@ class KontrollsamtaleServiceImpl(
         val sak = sakService.hentSak(sakId).getOrElse {
             log.error("Fant ikke sak for sakId $sakId")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
+        }
+
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+            log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
+            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
+        }
+
+        if (person.erDød()) {
+            log.info("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            kontrollsamtaleRepo.lagre(
+                kontrollsamtale = kontrollsamtale.annuller().getOrElse {
+                    log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
+                    return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+                },
+            )
+            return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
         val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)

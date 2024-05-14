@@ -39,6 +39,7 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
@@ -62,10 +63,58 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
+    fun `feiler hvis vi ikke finner person`() {
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+        ).kontrollsamtaleService.kallInn(
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
+    }
+
+    @Test
+    fun `feiler dersom kontrollsamtale er i ugyldig tilstand for å annulleres`() {
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr, dødsdato = 1.januar(2021)).right()
+            },
+        ).kontrollsamtaleService.kallInn(
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale.annuller().getOrNull()!!,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+    }
+
+    @Test
+    fun `annullerer dersom person er død`() {
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr, dødsdato = 1.januar(2021)).right()
+            },
+        ).kontrollsamtaleService.kallInn(
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
+    }
+
+    @Test
     fun `feiler hvis vi ikke finner gjeldende stønadsperiode på sak`() {
         ServiceOgMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
@@ -325,6 +374,7 @@ internal class KontrollsamtaleServiceImplTest {
             sessionFactory = sessionFactory,
             clock = clock,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
+            personService = personService,
         )
     }
 }

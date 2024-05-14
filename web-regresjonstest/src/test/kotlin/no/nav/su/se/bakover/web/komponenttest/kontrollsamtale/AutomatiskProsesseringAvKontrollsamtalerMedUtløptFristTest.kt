@@ -17,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
@@ -67,6 +68,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import person.domain.PersonOppslag
 import økonomi.domain.utbetaling.UtbetalingPublisher
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.Utbetalingsrequest
@@ -154,6 +156,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                     clock = clock,
                     databaseRepos = databaseRepos,
                     kafkaPublisher = kafkaPublisherMock,
+                    personOppslag = PersonOppslagStub(dødsdato = null),
                 )
             },
         ) { appComponents ->
@@ -415,6 +418,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         clock: Clock,
         databaseRepos: DatabaseRepos,
         kafkaPublisher: KafkaPublisher,
+        personOppslag: PersonOppslag,
     ): Clients {
         return TestClientsBuilder(
             clock = clock,
@@ -458,6 +462,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                     }
                 },
                 kafkaPublisher = kafkaPublisher,
+                personOppslag = personOppslag,
                 oppgaveClient = object : OppgaveClient by clients.oppgaveClient {
                     override fun opprettOppgaveMedSystembruker(
                         config: OppgaveConfig,
