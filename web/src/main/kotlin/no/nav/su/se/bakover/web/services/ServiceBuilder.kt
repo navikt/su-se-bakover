@@ -174,6 +174,7 @@ data object ServiceBuilder {
             ),
             queryJournalpostClient = clients.queryJournalpostClient,
             stansAvYtelseService = stansAvYtelseService,
+            personService = personService,
         )
 
         val revurderingService = RevurderingServiceImpl(

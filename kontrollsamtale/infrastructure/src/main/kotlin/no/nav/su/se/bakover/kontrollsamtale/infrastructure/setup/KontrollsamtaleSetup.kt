@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleJobPostgresRepo
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtalePostgresRepo
+import person.domain.PersonService
 import java.time.Clock
 
 interface KontrollsamtaleSetup {
@@ -38,6 +39,7 @@ interface KontrollsamtaleSetup {
             jobContextPostgresRepo: JobContextPostgresRepo,
             queryJournalpostClient: QueryJournalpostClient,
             stansAvYtelseService: StansYtelseService,
+            personService: PersonService,
         ): KontrollsamtaleSetup {
             val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(
                 sessionFactory = sessionFactory,
@@ -51,6 +53,7 @@ interface KontrollsamtaleSetup {
                 kontrollsamtaleRepo = kontrollsamtaleRepo,
                 sessionFactory = sessionFactory,
                 clock = clock,
+                personService = personService,
             )
             return object : KontrollsamtaleSetup {
                 override val kontrollsamtaleService = kontrollsamtaleService
