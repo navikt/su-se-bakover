@@ -203,7 +203,7 @@ class ReguleringServiceImpl(
         val (lefts, rights) = it.split()
 
         val årsakerForAtReguleringerIkkeKunneBliOpprettet =
-            lefts.map { it }.groupBy { it }.map { "${it.key}: (${it.value.size}) " }
+            lefts.map { it }.groupBy { it }.map { "${it.key}: ${it.value.size} " }
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
@@ -213,7 +213,7 @@ class ReguleringServiceImpl(
 
         val årsakerForManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
             (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it::class.simpleName }
-        }.groupBy { it }.map { "${it.key}: (${it.value.size}) " }
+        }.groupBy { it }.map { "${it.key}: ${it.value.size} " }
 
         val result = """
             Antall prosesserte saker: ${it.size}
@@ -224,7 +224,7 @@ class ReguleringServiceImpl(
             if (årsakerForAtReguleringerIkkeKunneBliOpprettet.isEmpty()) {
                 "[]"
             } else {
-                årsakerForAtReguleringerIkkeKunneBliOpprettet.joinToString(prefix = "\n             - ")
+                årsakerForAtReguleringerIkkeKunneBliOpprettet.joinToString { "\n              - $it" }
             }
         }
             ------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ class ReguleringServiceImpl(
             ------------------------------------------------------------------------------
             Antall reguleringer til manuell behandling: $antallManuelleReguleringer
             Årsaker til manuell behandling: ${
-            if (årsakerForManuell.isEmpty()) "[]" else årsakerForManuell.joinToString(prefix = "\n             - ")
+            if (årsakerForManuell.isEmpty()) "[]" else årsakerForManuell.joinToString("") { "\n              - $it" }
         }
         """.trimIndent()
 
