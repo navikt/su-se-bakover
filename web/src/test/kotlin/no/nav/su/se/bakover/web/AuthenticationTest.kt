@@ -16,7 +16,6 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.Date
@@ -33,7 +32,7 @@ internal class AuthenticationTest {
                 testSusebakoverWithMockedDb()
             }
             defaultRequest(Get, SECURE_ENDPOINT).apply {
-                assertEquals(Unauthorized, this.status)
+                this.status shouldBe Unauthorized
             }
         }
     }
@@ -45,7 +44,7 @@ internal class AuthenticationTest {
                 testSusebakoverWithMockedDb()
             }
             defaultRequest(Get, SECURE_ENDPOINT, listOf(Brukerrolle.Veileder)).apply {
-                assertEquals(OK, status)
+                status shouldBe OK
             }
         }
     }
@@ -76,7 +75,7 @@ internal class AuthenticationTest {
             client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }.apply {
-                assertEquals(Unauthorized, this.status)
+                status shouldBe Unauthorized
             }
         }
     }
@@ -90,7 +89,7 @@ internal class AuthenticationTest {
             client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }.apply {
-                assertEquals(Unauthorized, this.status)
+                status shouldBe Unauthorized
             }
         }
     }
@@ -104,10 +103,11 @@ internal class AuthenticationTest {
             client.get(SECURE_ENDPOINT) {
                 header(
                     Authorization,
-                    jwtStub.createJwtToken(expiresAt = Date.from(Instant.now(fixedClock).minusSeconds(1))).asBearerToken(),
+                    jwtStub.createJwtToken(expiresAt = Date.from(Instant.now(fixedClock).minusSeconds(1)))
+                        .asBearerToken(),
                 )
             }.apply {
-                assertEquals(Unauthorized, status)
+                status shouldBe Unauthorized
             }
         }
     }
@@ -121,7 +121,7 @@ internal class AuthenticationTest {
             client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
             }.apply {
-                assertEquals(Unauthorized, this.status)
+                status shouldBe Unauthorized
             }
         }
     }
