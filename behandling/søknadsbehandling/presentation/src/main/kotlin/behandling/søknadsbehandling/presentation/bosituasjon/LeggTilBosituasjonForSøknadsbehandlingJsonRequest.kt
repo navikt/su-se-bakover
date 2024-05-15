@@ -32,6 +32,7 @@ data class LeggTilBosituasjonForSøknadsbehandlingJsonRequest(
         val periode: PeriodeJson,
         val epsFnr: String?,
         val delerBolig: Boolean?,
+        val erEpsFylt67: Boolean?,
         val erEPSUførFlyktning: Boolean?,
     ) {
         fun toService(): Either<Resultat, LeggTilBosituasjonCommand> {
@@ -43,6 +44,7 @@ data class LeggTilBosituasjonForSøknadsbehandlingJsonRequest(
                 epsFnr = epsFnr,
                 delerBolig = delerBolig,
                 ektemakeEllerSamboerUførFlyktning = erEPSUførFlyktning,
+                epsFylt67 = erEpsFylt67,
             ).right()
         }
     }

@@ -51,6 +51,7 @@ class SkattIT {
                             "epsFnr": "$fnrUnder67",
                             "delerBolig": null,
                             "erEPSUførFlyktning": true,
+                            "erEpsFylt67": false,
                             "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
                           }
                       ]

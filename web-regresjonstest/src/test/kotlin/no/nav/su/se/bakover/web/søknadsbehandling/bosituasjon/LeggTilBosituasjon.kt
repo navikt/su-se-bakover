@@ -36,6 +36,7 @@ internal fun leggTilBosituasjon(
                             "epsFnr": null,
                             "delerBolig": false,
                             "erEPSUførFlyktning": null,
+                            "erEpsFylt67": null,
                             "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
                           }
                       ]
@@ -75,6 +76,7 @@ fun bosituasjonEpsJson(epsFnr: String): String {
                             "epsFnr": "$epsFnr",
                             "delerBolig": null,
                             "erEPSUførFlyktning": true,
+                            "erEpsFylt67": false,
                             "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
                           }
                       ]

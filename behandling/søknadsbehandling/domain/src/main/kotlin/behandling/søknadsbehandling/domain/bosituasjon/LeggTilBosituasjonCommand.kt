@@ -7,12 +7,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 data class LeggTilBosituasjonCommand(
@@ -20,14 +18,13 @@ data class LeggTilBosituasjonCommand(
     val epsFnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
+    val epsFylt67: Boolean?,
 ) {
     fun toDomain(
         clock: Clock,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Bosituasjon.Fullstendig> {
-        val log = LoggerFactory.getLogger(this::class.java)
-
-        if ((epsFnr == null && delerBolig == null) || (epsFnr != null && delerBolig != null)) {
+        if ((epsFnr == null && delerBolig == null) || (epsFnr != null && delerBolig != null) || (epsFnr != null && epsFylt67 == null)) {
             return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
         }
 
@@ -35,20 +32,13 @@ data class LeggTilBosituasjonCommand(
             val eps = hentPerson(Fnr(epsFnr)).getOrElse {
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
             }
-
-            val epsAlder = if (eps.getAlder(LocalDate.now(clock)) == null) {
-                log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
-                return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
-            } else {
-                eps.getAlder(LocalDate.now(clock))!!
-            }
-
+            val epsFnr = eps.ident.fnr
             return when {
-                epsAlder >= 67 -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+                epsFylt67!! -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
-                    fnr = eps.ident.fnr,
+                    fnr = epsFnr,
                 ).right()
 
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
@@ -56,14 +46,14 @@ data class LeggTilBosituasjonCommand(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
-                        fnr = eps.ident.fnr,
+                        fnr = epsFnr,
                     ).right()
 
                     false -> Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
-                        fnr = eps.ident.fnr,
+                        fnr = epsFnr,
                     ).right()
 
                     null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()

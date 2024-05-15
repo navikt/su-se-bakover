@@ -32,6 +32,7 @@ internal fun leggTilBosituasjon(
                             },
                             "epsFnr": "${Fnr.generer()}",
                             "delerBolig": null,
+                            "erEpsFylt67": false,
                             "erEPSUførFlyktning": true,
                             "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
                           }

@@ -164,7 +164,7 @@ internal class TilbakekrevingsbehandlingIT {
                 ],
                 "eksternKravgrunnlagId":"123456",
                 "eksternVedtakId":"654321",
-                "eksternKontrollfelt":"2021-02-01-02.03.44.456789",
+                "eksternKontrollfelt":"2021-02-01-02.03.42.456789",
                 "bruttoSkalTilbakekreveSummert":0,
                 "nettoSkalTilbakekreveSummert":0,
                 "bruttoSkalIkkeTilbakekreveSummert":2383,
