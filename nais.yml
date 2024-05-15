@@ -22,6 +22,11 @@ spec:
     inbound:
       rules:
         - application: su-se-framover
+        - application: "frikorttjenester"
+          namespace: "teamfrikort"
+          permissions:
+            roles:
+              - frikort
     outbound:
       rules:
         - application: {{ kodeverk-application }}
