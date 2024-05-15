@@ -179,6 +179,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                                 epsFnr = null,
                                 delerBolig = false,
                                 ektemakeEllerSamboerUførFlyktning = null,
+                                epsFylt67 = null,
                             ),
                         ),
                     ),

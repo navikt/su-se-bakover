@@ -140,7 +140,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "versjon": $expectedVersjon,
   "attesteringer": [],
   "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": "2021-02-01T01:04:54.456789Z",
+  "avsluttetTidspunkt": "2021-02-01T01:04:50.456789Z",
   "notat": null,
 }"""
     actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "kravgrunnlag.kontrollfelt")

@@ -52,7 +52,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": null,
                             "delerBolig": false,
-                            "erEPSUførFlyktning": null}]
+                            "erEPSUførFlyktning": null,
+                            "erEpsFylt67": null}]
                         }
                         """.trimIndent(),
                     )
@@ -88,7 +89,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": null,
                             "delerBolig": true,
-                            "erEPSUførFlyktning": null}]
+                            "erEPSUførFlyktning": null,
+                            "erEpsFylt67": null}]
                         }
                     """.trimIndent(),
                 )
@@ -104,6 +106,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                                     epsFnr = null,
                                     delerBolig = true,
                                     ektemakeEllerSamboerUførFlyktning = null,
+                                    epsFylt67 = null,
                                 ),
                             ),
                         )
@@ -141,7 +144,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": null,
                             "delerBolig": false,
-                            "erEPSUførFlyktning": null
+                            "erEPSUførFlyktning": null,
+                            "erEpsFylt67": null
                         }]
                         }
                     """.trimIndent(),
@@ -158,6 +162,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                                     epsFnr = null,
                                     delerBolig = false,
                                     ektemakeEllerSamboerUførFlyktning = null,
+                                    epsFylt67 = null,
                                 ),
                             ),
                         )
@@ -194,7 +199,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": "12345678901",
                             "delerBolig": null,
-                            "erEPSUførFlyktning": true}]
+                            "erEPSUførFlyktning": true,
+                            "erEpsFylt67": null}]
                         }
                     """.trimIndent(),
                 )
@@ -210,6 +216,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                                     epsFnr = "12345678901",
                                     delerBolig = null,
                                     ektemakeEllerSamboerUførFlyktning = true,
+                                    epsFylt67 = null,
                                 ),
                             ),
                         )
@@ -246,7 +253,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": "12345678901",
                             "delerBolig": null,
-                            "erEPSUførFlyktning": false}]
+                            "erEPSUførFlyktning": false,
+                            "erEpsFylt67": false}]
                         }
                     """.trimIndent(),
                 )
@@ -262,6 +270,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                                     epsFnr = "12345678901",
                                     delerBolig = null,
                                     ektemakeEllerSamboerUførFlyktning = false,
+                                    epsFylt67 = false,
                                 ),
                             ),
                         )
@@ -298,7 +307,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": "12345678901",
                             "delerBolig": false,
-                            "erEPSUførFlyktning": null}]
+                            "erEPSUførFlyktning": null,
+                            "erEpsFylt67": true}]
                         }
                     """.trimIndent(),
                 )
@@ -314,6 +324,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                                     epsFnr = "12345678901",
                                     delerBolig = false,
                                     ektemakeEllerSamboerUførFlyktning = null,
+                                    epsFylt67 = true,
                                 ),
                             ),
                         )
@@ -352,7 +363,8 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
                             "epsFnr": null,
                             "delerBolig": true,
-                            "erEPSUførFlyktning": null}]
+                            "erEPSUførFlyktning": null,
+                            "erEpsFylt67": null}]
                         }
                     """.trimIndent(),
                 )
