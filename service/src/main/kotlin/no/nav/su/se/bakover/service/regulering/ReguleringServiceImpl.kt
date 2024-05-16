@@ -233,8 +233,13 @@ class ReguleringServiceImpl(
             Av $antallAutomatiskeReguleringer automatiske, er $antallAutomatiskPgaSupplemement automatisk pga supplement
             ------------------------------------------------------------------------------
             Antall reguleringer til manuell behandling: ${manuelleReguleringer.size}
-            Årsaker til manuell behandling: ${
-            if (årsakerForManuell.isEmpty()) "[]" else "${årsakerForManuell.joinToString("") { "\n              - $it" }}\n Mer detaljer om årsakene kan finnes i egne logg meldinger"
+            Årsaker til manuell behandling: ${if (årsakerForManuell.isEmpty()) {
+            "[]"
+        } else {
+            """${årsakerForManuell.joinToString("") { "\n              - $it" }}
+            Mer detaljer om årsakene kan finnes i egne logg meldinger
+                """
+        }
         }
         """.trimIndent()
 
