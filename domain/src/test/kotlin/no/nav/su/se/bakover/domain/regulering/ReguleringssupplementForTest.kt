@@ -57,4 +57,24 @@ class ReguleringssupplementForTest {
             it.first() shouldBe alderspensjon.reguleringsvedtak.single().eksterneData().single()
         }
     }
+
+    @Test
+    fun `henter for fradragstype`() {
+        val alderspensjon = nyReguleringssupplementInnholdPerType()
+        val uføretrygd = nyReguleringssupplementInnholdPerType(kategori = Fradragstype.Kategori.Uføretrygd)
+        val supplementFor = nyReguleringssupplementFor(innhold = arrayOf(alderspensjon, uføretrygd))
+
+        supplementFor.getForType(Fradragstype.Alderspensjon) shouldBe alderspensjon
+        supplementFor.getForType(Fradragstype.Uføretrygd) shouldBe uføretrygd
+    }
+
+    @Test
+    fun `henter for fradragsktegori`() {
+        val alderspensjon = nyReguleringssupplementInnholdPerType()
+        val uføretrygd = nyReguleringssupplementInnholdPerType(kategori = Fradragstype.Kategori.Uføretrygd)
+        val supplementFor = nyReguleringssupplementFor(innhold = arrayOf(alderspensjon, uføretrygd))
+
+        supplementFor.getForKategori(Fradragstype.Alderspensjon.kategori) shouldBe alderspensjon
+        supplementFor.getForKategori(Fradragstype.Uføretrygd.kategori) shouldBe uføretrygd
+    }
 }

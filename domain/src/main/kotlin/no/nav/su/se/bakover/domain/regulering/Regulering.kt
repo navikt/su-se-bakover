@@ -317,13 +317,14 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
         ) to originaleFradragsgrunnlag
     }
     val vårtBeløpFørRegulering = BigDecimal(originaleFradragsgrunnlag.fradrag.månedsbeløp).setScale(2)
-    val eksterntBeløpFørRegulering = supplementForType.endringsvedtak?.beløp ?: return manuellReg(
+    val endringsvedtak = supplementForType.endringsvedtak ?: return manuellReg(
         ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril(
             fradragskategori = fradragstype.kategori,
             fradragTilhører = fradragTilhører,
             begrunnelse = "Vi fant et supplement for $fradragTilhører og denne ${fradragstype.kategori} - men vi fant ikke et eksternt endringsvedtak for april for å regne ut reguleringen.",
         ),
     ) to originaleFradragsgrunnlag
+    val eksterntBeløpFørRegulering = endringsvedtak.beløp
     val diffFørRegulering = eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()
     // vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > 0) {
@@ -332,7 +333,8 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-                eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
+                eksternBruttoBeløpFørRegulering = endringsvedtak.bruttoBeløpFraMetadata().toBigDecimal(),
+                eksternNettoBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
                 begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer ikke en differanse, men differansen var $diffFørRegulering",
             ),
         ) to originaleFradragsgrunnlag
@@ -350,8 +352,12 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,
-                eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering,
+                eksternBruttoBeløpEtterRegulering = supplementForType.reguleringsvedtak.single()
+                    .bruttoBeløpFraMetadata().toBigDecimal(),
+                eksternNettoBeløpEtterRegulering = eksterntBeløpEtterRegulering,
+                vårtBeløpFørRegulering = vårtBeløpFørRegulering,
                 begrunnelse = "Vi forventet at beløpet skulle være $forventetBeløpBasertPåGverdi etter regulering, men det var $eksterntBeløpEtterRegulering. Vi aksepterer en differanse på $akseptertDifferanseEtterRegulering, men den var $differanseSupplementOgForventet",
+
             ),
         ) to originaleFradragsgrunnlag
     }

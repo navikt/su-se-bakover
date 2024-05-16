@@ -164,16 +164,18 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
-        val eksterntBeløpFørRegulering: String,
+        val eksternNettoBeløpFørRegulering: String,
+        val eksternBruttoBeløpFørRegulering: String,
         val vårtBeløpFørRegulering: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
                 fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
-                begrunnelse = begrunnelse,
-                eksterntBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering.toBigDecimal(),
+                eksternBruttoBeløpFørRegulering = eksternBruttoBeløpFørRegulering.toBigDecimal(),
+                eksternNettoBeløpFørRegulering = eksternNettoBeløpFørRegulering.toBigDecimal(),
+                begrunnelse = begrunnelse,
             )
     }
 
@@ -181,16 +183,20 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val fradragskategori: String,
         val fradragTilhører: String,
         val begrunnelse: String,
-        val eksterntBeløpEtterRegulering: String,
+        val eksternNettoBeløpEtterRegulering: String,
+        val eksternBruttoBeløpEtterRegulering: String,
         val forventetBeløpEtterRegulering: String,
+        val vårtBeløpFørRegulering: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
                 fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
-                begrunnelse = begrunnelse,
-                eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering.toBigDecimal(),
+                vårtBeløpFørRegulering = vårtBeløpFørRegulering.toBigDecimal(),
+                eksternBruttoBeløpEtterRegulering = eksternBruttoBeløpEtterRegulering.toBigDecimal(),
+                eksternNettoBeløpEtterRegulering = eksternNettoBeløpEtterRegulering.toBigDecimal(),
                 forventetBeløpEtterRegulering = forventetBeløpEtterRegulering.toBigDecimal(),
+                begrunnelse = begrunnelse,
             )
     }
 
@@ -285,8 +291,11 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
-        eksterntBeløpEtterRegulering = this.eksterntBeløpEtterRegulering.toString(),
+        eksternNettoBeløpEtterRegulering = this.eksternNettoBeløpEtterRegulering.toString(),
         forventetBeløpEtterRegulering = this.forventetBeløpEtterRegulering.toString(),
+        eksternBruttoBeløpEtterRegulering = this.eksternBruttoBeløpEtterRegulering.toString(),
+        vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
+
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement -> ÅrsakTilManuellReguleringJson.BrukerManglerSupplement(
@@ -311,9 +320,9 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
-        eksterntBeløpFørRegulering = this.eksterntBeløpFørRegulering.toString(),
         vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
-
+        eksternNettoBeløpFørRegulering = this.eksternNettoBeløpFørRegulering.toString(),
+        eksternBruttoBeløpFørRegulering = this.eksternBruttoBeløpFørRegulering.toString(),
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> ÅrsakTilManuellReguleringJson.SupplementHarFlereVedtaksperioderForFradrag(

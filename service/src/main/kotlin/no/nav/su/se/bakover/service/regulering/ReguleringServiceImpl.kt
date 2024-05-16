@@ -209,7 +209,7 @@ class ReguleringServiceImpl(
         val antallAutomatiskPgaSupplemement = rights.count {
             it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty())
         }
-        val antallManuelleReguleringer = rights.count { it.reguleringstype is Reguleringstype.MANUELL }
+        val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 
         val årsakerForManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
             (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it::class.simpleName }
@@ -232,13 +232,23 @@ class ReguleringServiceImpl(
             Antall reguleringer som ble kjørt med supplement: $antallAutomatiskPgaSupplemement
             Av $antallAutomatiskeReguleringer automatiske, er $antallAutomatiskPgaSupplemement automatisk pga supplement
             ------------------------------------------------------------------------------
-            Antall reguleringer til manuell behandling: $antallManuelleReguleringer
-            Årsaker til manuell behandling: ${
-            if (årsakerForManuell.isEmpty()) "[]" else årsakerForManuell.joinToString("") { "\n              - $it" }
+            Antall reguleringer til manuell behandling: ${manuelleReguleringer.size}
+            Årsaker til manuell behandling: ${if (årsakerForManuell.isEmpty()) {
+            "[]"
+        } else {
+            """${årsakerForManuell.joinToString("") { "\n              - $it" }}
+            Mer detaljer om årsakene kan finnes i egne logg meldinger
+                """
+        }
         }
         """.trimIndent()
 
-        return result.also { log.info(it) }
+        return result.also {
+            log.info(it)
+            manuelleReguleringer.toCSVLoggableString().forEach { (årsak, csv) ->
+                log.info("$årsak\n" + csv)
+            }
+        }
     }
 
     override fun regulerManuelt(

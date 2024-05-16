@@ -6,7 +6,9 @@ import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 sealed interface Reguleringstype {
     data object AUTOMATISK : Reguleringstype
 
-    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
+    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype {
+        constructor(årsak: ÅrsakTilManuellRegulering) : this(setOf(årsak))
+    }
 
     companion object {
         fun utledReguleringsTypeFrom(

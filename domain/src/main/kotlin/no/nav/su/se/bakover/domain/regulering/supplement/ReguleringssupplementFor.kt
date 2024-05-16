@@ -22,6 +22,8 @@ data class ReguleringssupplementFor(
 
     fun getForType(fradragstype: Fradragstype) = perType.find { it.kategori == fradragstype.kategori }
 
+    fun getForKategori(kategori: Fradragstype.Kategori) = perType.find { it.kategori == kategori }
+
     fun eksternedataForAlleTyper(): NonEmptyList<PerType.Fradragsperiode.Eksterndata> =
         perType.flatMap { it.vedtak.flatMap { it.eksterneData() } }
 
