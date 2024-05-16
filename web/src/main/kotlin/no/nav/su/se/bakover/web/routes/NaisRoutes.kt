@@ -14,7 +14,7 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 
 private const val IS_ALIVE_PATH = "/isalive"
 private const val IS_READY_PATH = "/isready"
