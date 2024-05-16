@@ -10,9 +10,8 @@ inputs:
     description: 'Optional, default empty, format: key1=value1,key2=value2'
     default: ''
   resource:
-    required: false
+    required: true
     description: 'path to nais.yml'
-    default: 'nais.yml'
   vars:
     required: false
     description: 'Optional, default empty, path to nais-dev.json/nais-prod.json'

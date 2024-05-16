@@ -1,0 +1,148 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: su-se-bakover
+  namespace: supstonad
+  labels:
+    team: supstonad
+spec:
+  azure:
+    application:
+      enabled: true
+      tenant: trygdeetaten.no
+      claims:
+        extra:
+          - "NAVident"
+        groups:
+          - id: "d75164fa-39e6-4149-956e-8404bc9080b6" # 0000-GA-SU-UFOR-ATTESTANT
+          - id: "0ba009c4-d148-4a51-b501-4b1cf906889d" # 0000-GA-SU-UFOR-SAKSBEHANDLER
+          - id: "062d4814-8538-4f3a-bcb9-32821af7909a" # 0000-GA-SU-UFOR-VEILEDER
+          - id: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b" # 0000-GA-SU-UFOR-DRIFT
+  accessPolicy:
+    inbound:
+      rules:
+        - application: su-se-framover
+        - application: "frikorttjenester"
+          namespace: "teamfrikort"
+          permissions:
+            roles:
+              - frikort
+    outbound:
+      rules:
+        - application: kodeverk-dev
+          namespace: team-rocket
+  image: {{ image }}
+  liveness:
+    path: /isalive
+    initialDelay: 25
+    timeout: 10
+  readiness:
+    path: /isready
+    initialDelay: 25
+    timeout: 10
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      memory: 4Gi
+    requests:
+      memory: 1Gi
+      cpu: 1000m
+  ingresses:
+    - https://su-se-bakover.dev.adeo.no
+    - https://su-se-bakover.dev.intern.nav.no
+    - https://su-se-bakover.intern.dev.nav.no
+  webproxy: true
+  prometheus:
+    enabled: true
+    path: /metrics
+  secureLogs:
+    enabled: true
+  leaderElection: true
+  kafka:
+    pool: nav-dev
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/srvuser
+        kvPath: /serviceuser/data/dev/srvsupstonad
+  env:
+    - name: AZURE_GROUP_ATTESTANT
+      value: "d75164fa-39e6-4149-956e-8404bc9080b6"
+    - name: AZURE_GROUP_VEILEDER
+      value: "062d4814-8538-4f3a-bcb9-32821af7909a"
+    - name: AZURE_GROUP_SAKSBEHANDLER
+      value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
+    - name: AZURE_GROUP_DRIFT
+      value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
+    - name: VAULT_MOUNTPATH
+      value: "postgresql/preprod-fss/"
+    - name: DATABASE_NAME
+      value: "supstonad-db-15-dev"
+    - name: DATABASE_JDBC_URL
+      value: "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev"
+    - name: DOKARKIV_URL
+      value: "http://dokarkiv.teamdokumenthandtering.svc.nais.local"
+    - name: DOKARKIV_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
+    - name: OPPGAVE_URL
+      value: "http://oppgave.oppgavehandtering.svc.nais.local"
+    - name: OPPGAVE_CLIENT_ID
+      value: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+    - name: DOKDIST_URL
+      value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
+    - name: DOKDIST_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.saf"
+    - name: SIMULERING_URL
+      value: "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding"
+    - name: STS_URL_SOAP
+      value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
+    - name: SKJERMING_URL
+      value: "https://skjermede-personer-pip.nais.preprod.local"
+    - name: MQ_QUEUE_MANAGER
+      value: "MQLS02"
+    - name: MQ_PORT
+      value: "1413"
+    - name: MQ_HOSTNAME
+      value: "b27apvl220.preprod.local"
+    - name: MQ_CHANNEL
+      value: "Q1_SU_SE_BAKOVER"
+    - name: MQ_SEND_QUEUE_UTBETALING
+      value: "QA.Q1_231.OB04_OPPDRAG_XML"
+    - name: MQ_REPLY_TO
+      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+    - name: MQ_SEND_QUEUE_AVSTEMMING
+      value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: FRIKORT_SERVICE_USERNAME
+      value: "srvfrikortborger,srvfrikorttjenester"
+    - name: PDL_CLIENT_ID
+      value: "api://dev-fss.pdl.pdl-api"
+    - name: KABAL_URL
+      value: "https://kabal-api.intern.dev.nav.no"
+    - name: KABAL_CLIENT_ID
+      value: "api://dev-gcp.klage.kabal-api"
+    - name: SAF_URL
+      value: "https://saf.dev.intern.nav.no"
+    - name: SAF_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.saf"
+    - name: MQ_TILBAKEKREVING_MOTTAK
+      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
+    - name: TILBAKEKREVING_URL
+      value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
+    - name: SKATTEETATEN_URL
+      value: "https://sigrun-ske.dev.adeo.no"
+    - name: SKATT_CLIENT_ID
+      value: "api://dev-fss.team-inntekt.sigrun-q4"
+    - name: KRR_URL
+      value: "https://digdir-krr-proxy.intern.dev.nav.no"
+    - name: KRR_APP_ID
+      value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
+    - name: INSTITUSJONSOPPHOLD_TOPIC
+      value: "team-rocket.institusjon-opphold-hendelser-q2"
+    - name: KODEVERK_URL
+      value: "https://kodeverk-api.nav.no"
+    - name: STS_URL
+      value: "http://security-token-service.default.svc.nais.local"
+    - name: GANDALF_URL
+      value: "https://security-token-service.nais.preprod.local"
