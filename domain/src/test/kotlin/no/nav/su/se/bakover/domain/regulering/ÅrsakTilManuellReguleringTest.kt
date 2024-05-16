@@ -14,7 +14,8 @@ class ÅrsakTilManuellReguleringTest {
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",
-            eksterntBeløpFørRegulering = BigDecimal(100),
+            eksternNettoBeløpFørRegulering = BigDecimal(100),
+            eksternBruttoBeløpFørRegulering = BigDecimal(100),
             vårtBeløpFørRegulering = BigDecimal(40),
         )
 
@@ -27,7 +28,9 @@ class ÅrsakTilManuellReguleringTest {
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",
-            eksterntBeløpEtterRegulering = BigDecimal(100),
+            eksternNettoBeløpEtterRegulering = BigDecimal(100),
+            eksternBruttoBeløpEtterRegulering = BigDecimal(100),
+            vårtBeløpFørRegulering = BigDecimal(40),
             forventetBeløpEtterRegulering = BigDecimal(60),
         )
         forv.differanse shouldBe BigDecimal(40)

@@ -68,12 +68,16 @@ class ReguleringsloggKtTest {
                 reguleringstype = Reguleringstype.MANUELL(
                     setOf(
                         nyÅrsakDifferanseEtterRegulering(
+                            vårtBeløpFørRegulering = BigDecimal(400),
                             forventetBeløpEtterRegulering = BigDecimal(600),
-                            eksterntBeløpEtterRegulering = BigDecimal(700),
+                            eksternNettoBeløpEtterRegulering = BigDecimal(700),
+                            eksternBruttoBeløpEtterRegulering = BigDecimal(700),
                         ),
                         nyÅrsakDifferanseEtterRegulering(
+                            vårtBeløpFørRegulering = BigDecimal(500),
                             forventetBeløpEtterRegulering = BigDecimal(800),
-                            eksterntBeløpEtterRegulering = BigDecimal(900),
+                            eksternNettoBeløpEtterRegulering = BigDecimal(900),
+                            eksternBruttoBeløpEtterRegulering = BigDecimal(900),
                             fradragskategori = Fradragstype.Kategori.Alderspensjon,
                             fradragTilhører = FradragTilhører.EPS,
                         ),
@@ -94,8 +98,10 @@ class ReguleringsloggKtTest {
                 ),
                 reguleringstype = Reguleringstype.MANUELL(
                     nyÅrsakDifferanseEtterRegulering(
+                        vårtBeløpFørRegulering = BigDecimal(1000),
                         forventetBeløpEtterRegulering = BigDecimal(1100),
-                        eksterntBeløpEtterRegulering = BigDecimal(1200),
+                        eksternNettoBeløpEtterRegulering = BigDecimal(1200),
+                        eksternBruttoBeløpEtterRegulering = BigDecimal(1200),
                     ),
                 ),
             ),
@@ -115,8 +121,10 @@ class ReguleringsloggKtTest {
                 ),
                 reguleringstype = Reguleringstype.MANUELL(
                     nyÅrsakDifferanseEtterRegulering(
+                        vårtBeløpFørRegulering = BigDecimal(1300),
                         forventetBeløpEtterRegulering = BigDecimal(1400),
-                        eksterntBeløpEtterRegulering = BigDecimal(1500),
+                        eksternNettoBeløpEtterRegulering = BigDecimal(1500),
+                        eksternBruttoBeløpEtterRegulering = BigDecimal(1500),
                         fradragTilhører = FradragTilhører.EPS,
                     ),
                 ),
@@ -124,11 +132,11 @@ class ReguleringsloggKtTest {
         ).toCSVLoggableString() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering to """
-            saksnummer;beløpFraAprilVedtak;forventetBeløpEtterRegulering;eksterntBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
-            2021;400;600;700;100;Uføretrygd;BRUKER
-            2021;500;800;900;100;Alderspensjon;EPS
-            2022;1000;1100;1200;100;Uføretrygd;BRUKER
-            2023;1300;1400;1500;100;Uføretrygd;EPS
+            saksnummer;vårtBeløpFørRegulering;bruttoBeløpFraAprilVedtak;nettoBeløpFraAprilVedtak;forventetBeløpEtterRegulering;eksternBruttoBeløpEtterRegulering;eksternNettoBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
+            2021;400;10000;11000;600;700;700;100;Uføretrygd;BRUKER
+            2021;500;10000;11000;800;900;900;100;Alderspensjon;EPS
+            2022;1000;10000;11000;1100;1200;1200;100;Uføretrygd;BRUKER
+            2023;1300;10000;11000;1400;1500;1500;100;Uføretrygd;EPS
                 """.trimIndent(),
             )
     }
@@ -142,16 +150,17 @@ class ReguleringsloggKtTest {
                 reguleringstype = Reguleringstype.MANUELL(
                     nyÅrsakDifferanseFørRegulering(
                         vårtBeløpFørRegulering = BigDecimal(1200),
-                        eksterntBeløpFørRegulering = BigDecimal(1300),
+                        eksternNettoBeløpFørRegulering = BigDecimal(1300),
+                        eksternBruttoBeløpFørRegulering = BigDecimal(1300),
                     ),
                 ),
             ),
         ).toCSVLoggableString() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering to """
-            saksnummer;vårtBeløpFørRegulering;eksterntBeløpFørRegulering;differanse;fradragskategori;fradragTilhører
-            2021;1000;1100;100;Uføretrygd;BRUKER
-            2022;1200;1300;100;Uføretrygd;BRUKER
+            saksnummer;vårtBeløpFørRegulering;eksternBruttoBeløpFørRegulering;eksternNettoBeløpFørRegulering;differanse;fradragskategori;fradragTilhører
+            2021;1000;1100;1100;100;Uføretrygd;BRUKER
+            2022;1200;1300;1300;100;Uføretrygd;BRUKER
                 """.trimIndent(),
             )
     }
@@ -396,7 +405,7 @@ class ReguleringsloggKtTest {
                 reguleringstype = Reguleringstype.MANUELL(
                     nyÅrsakDifferanseEtterRegulering(
                         forventetBeløpEtterRegulering = BigDecimal(200),
-                        eksterntBeløpEtterRegulering = BigDecimal(300),
+                        eksternNettoBeløpEtterRegulering = BigDecimal(300),
                     ),
                 ),
             ),
@@ -410,7 +419,7 @@ class ReguleringsloggKtTest {
                 reguleringstype = Reguleringstype.MANUELL(
                     nyÅrsakDifferanseFørRegulering(
                         vårtBeløpFørRegulering = BigDecimal(500),
-                        eksterntBeløpFørRegulering = BigDecimal(600),
+                        eksternNettoBeløpFørRegulering = BigDecimal(600),
                     ),
                 ),
             ),
@@ -425,12 +434,12 @@ class ReguleringsloggKtTest {
             ),
         ).toCSVLoggableString() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering to """
-                saksnummer;beløpFraAprilVedtak;forventetBeløpEtterRegulering;eksterntBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
-                2021;100;200;300;100;Uføretrygd;BRUKER
+                saksnummer;vårtBeløpFørRegulering;bruttoBeløpFraAprilVedtak;nettoBeløpFraAprilVedtak;forventetBeløpEtterRegulering;eksternBruttoBeløpEtterRegulering;eksternNettoBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
+                2021;1000;10000;11000;200;1100;300;100;Uføretrygd;BRUKER
             """.trimIndent(),
             ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering to """
-                saksnummer;vårtBeløpFørRegulering;eksterntBeløpFørRegulering;differanse;fradragskategori;fradragTilhører
-                2022;500;600;100;Uføretrygd;BRUKER
+                saksnummer;vårtBeløpFørRegulering;eksternBruttoBeløpFørRegulering;eksternNettoBeløpFørRegulering;differanse;fradragskategori;fradragTilhører
+                2022;500;1100;600;100;Uføretrygd;BRUKER
             """.trimIndent(),
             ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril to """
                 saksnummer;fradragskategori;fradragTilhører

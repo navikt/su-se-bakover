@@ -112,25 +112,28 @@ sealed interface ÅrsakTilManuellRegulering {
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
-            val eksterntBeløpFørRegulering: BigDecimal,
+            val eksternBruttoBeløpFørRegulering: BigDecimal,
+            val eksternNettoBeløpFørRegulering: BigDecimal,
             val vårtBeløpFørRegulering: BigDecimal,
         ) : FradragMåHåndteresManuelt {
             override val kategori: ÅrsakTilManuellReguleringKategori =
                 ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering
-            val differanse: BigDecimal = eksterntBeløpFørRegulering.subtract(vårtBeløpFørRegulering).abs()
+            val differanse: BigDecimal = eksternNettoBeløpFørRegulering.subtract(vårtBeløpFørRegulering).abs()
         }
 
         data class DifferanseEtterRegulering(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
             override val begrunnelse: String,
-            val eksterntBeløpEtterRegulering: BigDecimal,
+            val eksternBruttoBeløpEtterRegulering: BigDecimal,
+            val eksternNettoBeløpEtterRegulering: BigDecimal,
             val forventetBeløpEtterRegulering: BigDecimal,
+            val vårtBeløpFørRegulering: BigDecimal,
         ) : FradragMåHåndteresManuelt {
             override val kategori: ÅrsakTilManuellReguleringKategori =
                 ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering
 
-            val differanse: BigDecimal = eksterntBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
+            val differanse: BigDecimal = eksternNettoBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
         }
 
         data class FantIkkeVedtakForApril(

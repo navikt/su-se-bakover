@@ -350,14 +350,18 @@ fun nyEksterndata(
 
 fun nyÅrsakDifferanseEtterRegulering(
     forventetBeløpEtterRegulering: BigDecimal = BigDecimal(1000),
-    eksterntBeløpEtterRegulering: BigDecimal = BigDecimal(1100),
+    eksternNettoBeløpEtterRegulering: BigDecimal = BigDecimal(1100),
+    eksternBruttoBeløpEtterRegulering: BigDecimal = BigDecimal(1100),
+    vårtBeløpFørRegulering: BigDecimal = BigDecimal(1000),
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
 ): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering =
     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
         forventetBeløpEtterRegulering = forventetBeløpEtterRegulering,
-        eksterntBeløpEtterRegulering = eksterntBeløpEtterRegulering,
+        eksternBruttoBeløpEtterRegulering = eksternBruttoBeløpEtterRegulering,
+        eksternNettoBeløpEtterRegulering = eksternNettoBeløpEtterRegulering,
+        vårtBeløpFørRegulering = vårtBeløpFørRegulering,
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -365,14 +369,16 @@ fun nyÅrsakDifferanseEtterRegulering(
 
 fun nyÅrsakDifferanseFørRegulering(
     vårtBeløpFørRegulering: BigDecimal = BigDecimal(1000),
-    eksterntBeløpFørRegulering: BigDecimal = BigDecimal(1100),
+    eksternNettoBeløpFørRegulering: BigDecimal = BigDecimal(1100),
+    eksternBruttoBeløpFørRegulering: BigDecimal = BigDecimal(1100),
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
 ): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering =
     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
         vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-        eksterntBeløpFørRegulering = eksterntBeløpFørRegulering,
+        eksternBruttoBeløpFørRegulering = eksternBruttoBeløpFørRegulering,
+        eksternNettoBeløpFørRegulering = eksternNettoBeløpFørRegulering,
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,

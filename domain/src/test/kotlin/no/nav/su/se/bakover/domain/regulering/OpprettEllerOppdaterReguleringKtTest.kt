@@ -311,8 +311,10 @@ internal class OpprettEllerOppdaterReguleringKtTest {
                         fradragskategori = Fradragstype.Kategori.Alderspensjon,
                         fradragTilhører = FradragTilhører.BRUKER,
                         begrunnelse = "Vi forventet at beløpet skulle være 1064.08 etter regulering, men det var 1200. Vi aksepterer en differanse på 10, men den var 135.92",
-                        eksterntBeløpEtterRegulering = BigDecimal(1200),
+                        eksternNettoBeløpEtterRegulering = BigDecimal(1200),
+                        eksternBruttoBeløpEtterRegulering = BigDecimal(10000),
                         forventetBeløpEtterRegulering = BigDecimal("1064.08"),
+                        vårtBeløpFørRegulering = BigDecimal("1000.00"),
                     ),
                 ),
             )

@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
-import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.domain.regulering.supplement.overlapper
 import no.nav.su.se.bakover.test.nyEksterndata
 import no.nav.su.se.bakover.test.nyEksternvedtakEndring
@@ -152,6 +151,23 @@ class EksternvedtakTest {
             it.size shouldBe 2
             it.first() shouldBe ed1
             it.last() shouldBe ed2
+        }
+    }
+
+    @Test
+    fun `henter brutto beløp fra eksterne data`() {
+        nyEksternvedtakEndring().bruttoBeløpFraMetadata() shouldBe "10000"
+    }
+
+    @Test
+    fun `kaster exception dersom brutto beløpene i eksterne data ikke er lik`() {
+        assertThrows<IllegalArgumentException> {
+            nyEksternvedtakEndring(
+                fradrag = listOf(
+                    nyFradragperiodeEndring(eksterndata = nyEksterndata(bruttoYtelse = "1000")),
+                    nyFradragperiodeEndring(eksterndata = nyEksterndata(bruttoYtelse = "2000")),
+                ),
+            ).bruttoBeløpFraMetadata()
         }
     }
 }

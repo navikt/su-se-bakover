@@ -10,6 +10,10 @@ sealed interface Eksternvedtak {
     val fraOgMed: LocalDate
     val tilOgMed: LocalDate?
     val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>
+
+    /**
+     * netto
+     */
     val beløp: Int
 
     fun overlapper(other: Eksternvedtak): Boolean {
@@ -26,9 +30,22 @@ sealed interface Eksternvedtak {
     fun eksterneData(): NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata> =
         fradrag.map { it.eksterndata }
 
+    /**
+     * Kaster exception dersom brutto beløpene i metadata ikke er lik
+     */
+    fun bruttoBeløpFraMetadata(): String {
+        require(eksterneData().distinctBy { it.bruttoYtelse }.size == 1) {
+            "Forventet at alle fradragene har samme brutto beløp"
+        }
+        return eksterneData().first().bruttoYtelse
+    }
+
     data class Regulering(
         val periode: PeriodeMedOptionalTilOgMed,
         override val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>,
+        /**
+         * netto
+         */
         override val beløp: Int,
     ) : Eksternvedtak {
         override val fraOgMed = periode.fraOgMed
@@ -64,16 +81,27 @@ sealed interface Eksternvedtak {
     data class Endring(
         val periode: PeriodeMedOptionalTilOgMed,
         override val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>,
+        /**
+         * netto
+         */
         override val beløp: Int,
     ) : Eksternvedtak {
         override val fraOgMed: LocalDate = periode.fraOgMed
         override val tilOgMed: LocalDate? = periode.tilOgMed
 
         init {
-            require(fradrag.all { it.fraOgMed == fraOgMed })
-            require(fradrag.all { it.tilOgMed == tilOgMed })
-            require(fradrag.all { it.beløp == beløp })
-            require(fradrag.all { it.vedtakstype == ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring })
+            require(fradrag.all { it.fraOgMed == fraOgMed }) {
+                "Forventet tilOgMed $fraOgMed, men var ${fradrag.map { fraOgMed }}"
+            }
+            require(fradrag.all { it.tilOgMed == tilOgMed }) {
+                "Forventet beløp $beløp, men var ${fradrag.map { beløp }}"
+            }
+            require(fradrag.all { it.beløp == beløp }) {
+                "Forventet beløp $beløp, men var ${fradrag.map { beløp }}"
+            }
+            require(fradrag.all { it.vedtakstype == ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring }) {
+                "Forventet at alle fradragene har vedtakstype ${ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring}, men var ${fradrag.map { it.vedtakstype }} "
+            }
         }
     }
 }

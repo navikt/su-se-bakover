@@ -28,11 +28,11 @@ fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKatego
             mapOf(
                 it.key.first() to when (it.key.first()) {
                     ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering ->
-                        "saksnummer;beløpFraAprilVedtak;forventetBeløpEtterRegulering;eksterntBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører\n" +
+                        "saksnummer;vårtBeløpFørRegulering;bruttoBeløpFraAprilVedtak;nettoBeløpFraAprilVedtak;forventetBeløpEtterRegulering;eksternBruttoBeløpEtterRegulering;eksternNettoBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører\n" +
                             it.value.flatMap { it.values }.joinToString("\n")
 
                     ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering ->
-                        "saksnummer;vårtBeløpFørRegulering;eksterntBeløpFørRegulering;differanse;fradragskategori;fradragTilhører\n" +
+                        "saksnummer;vårtBeløpFørRegulering;eksternBruttoBeløpFørRegulering;eksternNettoBeløpFørRegulering;differanse;fradragskategori;fradragTilhører\n" +
                             it.value.flatMap { it.values }.joinToString("\n")
 
                     ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril ->
@@ -225,13 +225,14 @@ private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedta
 private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering.toCSVLoggableString(
     saksnummer: Saksnummer,
 ): Map<ÅrsakTilManuellReguleringKategori, String> =
-    mapOf(this.kategori to "$saksnummer;${this.vårtBeløpFørRegulering};${this.eksterntBeløpFørRegulering};${this.differanse};${this.fradragskategori};${this.fradragTilhører}")
+    mapOf(this.kategori to "$saksnummer;${this.vårtBeløpFørRegulering};${this.eksternBruttoBeløpFørRegulering};${this.eksternNettoBeløpFørRegulering};${this.differanse};${this.fradragskategori};${this.fradragTilhører}")
 
 private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering.toCSVLoggableString(
     saksnummer: Saksnummer,
-    beløpFraAprilVedtak: String,
+    bruttoBeløpFraAprilVedtak: String,
+    nettoBeløpFraAprilVedtak: String,
 ): String =
-    "$saksnummer;$beløpFraAprilVedtak;${this.forventetBeløpEtterRegulering};${this.eksterntBeløpEtterRegulering};${this.differanse};${this.fradragskategori};${this.fradragTilhører}"
+    "$saksnummer;${this.vårtBeløpFørRegulering};$bruttoBeløpFraAprilVedtak;$nettoBeløpFraAprilVedtak;${this.forventetBeløpEtterRegulering};${this.eksternBruttoBeløpEtterRegulering};${this.eksternNettoBeløpEtterRegulering};${this.differanse};${this.fradragskategori};${this.fradragTilhører}"
 
 private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering.toCSVLoggableString(
     saksnummer: Saksnummer,
@@ -245,15 +246,29 @@ private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtt
             val supplementForEpsForFradrag = supplementEps.mapNotNull { it.getForKategori(this.fradragskategori) }
             supplementForEpsForFradrag
                 .joinToString("\n") {
-                    val beløpFraAprilVedtak = it.endringsvedtak?.beløp?.toString() ?: ""
-                    this.toCSVLoggableString(saksnummer, beløpFraAprilVedtak)
+                    val bruttoBeløpFraAprilVedtak = it.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
+                    val nettoBeløpFraAprilVedtak = it.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
+                    this.toCSVLoggableString(
+                        saksnummer = saksnummer,
+                        bruttoBeløpFraAprilVedtak = bruttoBeløpFraAprilVedtak,
+                        nettoBeløpFraAprilVedtak = nettoBeløpFraAprilVedtak,
+                    )
                 }
                 .let { mapOf(this.kategori to it) }
         },
         isTrue = {
             val supplementForBrukerForFradrag = supplementBruker!!.getForKategori(this.fradragskategori)!!
-            val beløpFraAprilVedtak = supplementForBrukerForFradrag.endringsvedtak?.beløp?.toString() ?: ""
-            mapOf(this.kategori to this.toCSVLoggableString(saksnummer, beløpFraAprilVedtak))
+            val bruttoBeløpFraAprilVedtak =
+                supplementForBrukerForFradrag.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
+            val nettoBeløpFraAprilVedtak =
+                supplementForBrukerForFradrag.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
+            mapOf(
+                this.kategori to this.toCSVLoggableString(
+                    saksnummer = saksnummer,
+                    bruttoBeløpFraAprilVedtak = bruttoBeløpFraAprilVedtak,
+                    nettoBeløpFraAprilVedtak = nettoBeløpFraAprilVedtak,
+                ),
+            )
         },
     )
 }
