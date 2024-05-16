@@ -1,6 +1,19 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.test.nyÅrsakAutomatiskSendingTilUtbetalingFeilet
+import no.nav.su.se.bakover.test.nyÅrsakBrukerManglerSupplement
+import no.nav.su.se.bakover.test.nyÅrsakDelvisOpphør
+import no.nav.su.se.bakover.test.nyÅrsakDifferanseEtterRegulering
+import no.nav.su.se.bakover.test.nyÅrsakDifferanseFørRegulering
+import no.nav.su.se.bakover.test.nyÅrsakFantIkkeVedtakForApril
+import no.nav.su.se.bakover.test.nyÅrsakFinnesFlerePerioderAvFradrag
+import no.nav.su.se.bakover.test.nyÅrsakForventetInntektErStørreEnn0
+import no.nav.su.se.bakover.test.nyÅrsakFradragErUtenlandsinntekt
+import no.nav.su.se.bakover.test.nyÅrsakSupplementHarFlereVedtaksperioderForFradrag
+import no.nav.su.se.bakover.test.nyÅrsakSupplementInneholderIkkeFradraget
+import no.nav.su.se.bakover.test.nyÅrsakVedtakstidslinjeErIkkeSammenhengende
+import no.nav.su.se.bakover.test.nyÅrsakYtelseErMidlertidigStanset
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -34,5 +47,26 @@ class ÅrsakTilManuellReguleringTest {
             forventetBeløpEtterRegulering = BigDecimal(60),
         )
         forv.differanse shouldBe BigDecimal(40)
+    }
+
+    @Test
+    fun `hvert av årsakene har riktig kategori`() {
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.kategori shouldBe ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
+        ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset.kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0.kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
+        ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet.kategori shouldBe ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
+        nyÅrsakBrukerManglerSupplement().kategori shouldBe ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement
+        nyÅrsakSupplementInneholderIkkeFradraget().kategori shouldBe ÅrsakTilManuellReguleringKategori.SupplementInneholderIkkeFradraget
+        nyÅrsakFinnesFlerePerioderAvFradrag().kategori shouldBe ÅrsakTilManuellReguleringKategori.FinnesFlerePerioderAvFradrag
+        nyÅrsakFradragErUtenlandsinntekt().kategori shouldBe ÅrsakTilManuellReguleringKategori.FradragErUtenlandsinntekt
+        nyÅrsakSupplementHarFlereVedtaksperioderForFradrag().kategori shouldBe ÅrsakTilManuellReguleringKategori.SupplementHarFlereVedtaksperioderForFradrag
+        nyÅrsakDifferanseFørRegulering().kategori shouldBe ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering
+        nyÅrsakDifferanseEtterRegulering().kategori shouldBe ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering
+        nyÅrsakFantIkkeVedtakForApril().kategori shouldBe ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril
+        nyÅrsakYtelseErMidlertidigStanset().kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+        nyÅrsakForventetInntektErStørreEnn0().kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
+        nyÅrsakAutomatiskSendingTilUtbetalingFeilet().kategori shouldBe ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
+        nyÅrsakVedtakstidslinjeErIkkeSammenhengende().kategori shouldBe ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
+        nyÅrsakDelvisOpphør().kategori shouldBe ÅrsakTilManuellReguleringKategori.DelvisOpphør
     }
 }

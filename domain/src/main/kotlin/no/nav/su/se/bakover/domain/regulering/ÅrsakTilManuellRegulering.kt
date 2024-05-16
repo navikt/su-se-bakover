@@ -8,8 +8,6 @@ import java.math.BigDecimal
 
 sealed interface ÅrsakTilManuellRegulering {
     val begrunnelse: String?
-
-    // TODO - test at hvert av objektene har riktig kategori knyttet til seg
     val kategori: ÅrsakTilManuellReguleringKategori
 
     /**
