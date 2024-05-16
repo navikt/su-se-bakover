@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.client.azure
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.net.URLEncoder
@@ -45,7 +45,7 @@ internal class AzureClientTest {
             )
 
             val exchangedToken: String = oauth(baseUrl()).onBehalfOfToken(TOKEN_TO_EXCHANGE, "personClientId")
-            assertEquals(EXCHANGED_TOKEN, exchangedToken)
+            exchangedToken shouldBe EXCHANGED_TOKEN
         }
     }
 
@@ -53,7 +53,7 @@ internal class AzureClientTest {
     fun `get issuer`() {
         startedWireMockServerWithCorrelationId {
             stubGetJwk()
-            assertEquals(ISSUER, oauth(baseUrl()).issuer)
+            oauth(baseUrl()).issuer shouldBe ISSUER
         }
     }
 

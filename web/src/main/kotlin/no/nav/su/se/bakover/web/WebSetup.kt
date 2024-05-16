@@ -59,9 +59,8 @@ internal fun Application.setupKtor(
 ) {
     setupKtorExceptionHandling()
 
-    val (collectorRegistry, prometheusMeterRegistry) = SuMetrics.setup()
-    installMetrics(prometheusMeterRegistry)
-    naisRoutes(collectorRegistry)
+    installMetrics(SuMetrics.prometheusMeterRegistry)
+    naisRoutes(SuMetrics.prometheusMeterRegistry)
 
     configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
