@@ -39,14 +39,14 @@ fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKatego
                         "saksnummer;fradragskategori;fradragTilhører\n" +
                             it.value.flatMap { it.values }.joinToString("\n")
 
-                    ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt -> throw IllegalStateException("${it.key.first()} er en historisk årsak og skal derfor ikke benyttes til logging av regulering med nyere typer")
+                    ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt -> throw IllegalArgumentException("${it.key.first()} er en historisk årsak og skal derfor ikke benyttes til logging av regulering med nyere typer")
                     ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset ->
                         "saksnummer\n" + it.value.flatMap { it.values }.joinToString("\n")
 
                     ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0 ->
                         "saksnummer\n" + it.value.flatMap { it.values }.joinToString("\n")
 
-                    ÅrsakTilManuellReguleringKategori.UtbetalingFeilet -> throw IllegalStateException("${it.key.first()} er en historisk årsak og skal derfor ikke benyttes til logging av regulering med nyere typer")
+                    ÅrsakTilManuellReguleringKategori.UtbetalingFeilet -> throw IllegalArgumentException("${it.key.first()} er en historisk årsak og skal derfor ikke benyttes til logging av regulering med nyere typer")
                     ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement ->
                         "saksnummer;fradragskategori;fradragTilhører\n" +
                             it.value.flatMap { it.values }.joinToString("\n")
@@ -86,7 +86,7 @@ fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKatego
  */
 private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
     return when (reguleringstype) {
-        Reguleringstype.AUTOMATISK -> throw IllegalStateException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
+        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
         is Reguleringstype.MANUELL -> {
             (this.reguleringstype as Reguleringstype.MANUELL).problemer.map { årsak ->
                 when (årsak) {
@@ -144,7 +144,7 @@ private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKate
                         saksnummer = saksnummer,
                     )
 
-                    is ÅrsakTilManuellRegulering.Historisk -> throw IllegalStateException("Historiske årsaker skal ikke benyttes i til logging av reguleringer med nyere typer")
+                    is ÅrsakTilManuellRegulering.Historisk -> throw IllegalArgumentException("Historiske årsaker skal ikke benyttes i til logging av reguleringer med nyere typer")
                 }
             }.let {
                 it.groupBy {

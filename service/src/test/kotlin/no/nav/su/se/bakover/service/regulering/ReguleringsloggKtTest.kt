@@ -450,17 +450,24 @@ class ReguleringsloggKtTest {
 
     @Test
     fun `kaster exception hvis man prøver å printe ut med en historisk årsak`() {
-        assertThrows<IllegalStateException> {
+        assertThrows<IllegalArgumentException> {
             listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))).toCSVLoggableString()
         }
-        assertThrows<IllegalStateException> {
+        assertThrows<IllegalArgumentException> {
             listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet))).toCSVLoggableString()
         }
-        assertThrows<IllegalStateException> {
+        assertThrows<IllegalArgumentException> {
             listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0))).toCSVLoggableString()
         }
-        assertThrows<IllegalStateException> {
+        assertThrows<IllegalArgumentException> {
             listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset))).toCSVLoggableString()
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom man prøver å logge ut CSV fra en automatisk regulering`() {
+        assertThrows<IllegalArgumentException> {
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.AUTOMATISK)).toCSVLoggableString()
         }
     }
 }
