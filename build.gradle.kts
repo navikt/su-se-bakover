@@ -66,7 +66,7 @@ subprojects {
         implementation(rootProject.libs.caffeine)
         implementation(rootProject.libs.micrometer.core)
         implementation(rootProject.libs.micrometer.registry.prometheus)
-        implementation(rootProject.libs.prometheus.metrics.tracer)
+        implementation(rootProject.libs.prometheus.metrics.core)
         implementation(rootProject.libs.kotliquery)
         implementation(rootProject.libs.flyway.core)
         implementation(rootProject.libs.flyway.database.postgresql)
