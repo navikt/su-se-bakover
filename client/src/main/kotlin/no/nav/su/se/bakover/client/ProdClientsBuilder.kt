@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.createJournalførBrevHttpClient
@@ -36,6 +37,7 @@ data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
     private val samlTokenProvider: SamlTokenProvider,
+    private val suMetrics: SuMetrics,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -69,6 +71,7 @@ data class ProdClientsBuilder(
                 kontaktOgReservasjonsregister = kontaktOgReservasjonsregisterClient,
                 pdlClientConfig = pdlClientConfig,
             ),
+            suMetrics = suMetrics,
         )
         val klageClient = KabalHttpClient(
             kabalConfig = applicationConfig.clientsConfig.kabalConfig,
@@ -77,6 +80,7 @@ data class ProdClientsBuilder(
         val journalpostClient = QueryJournalpostHttpClient(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = oAuth,
+            suMetrics = suMetrics,
         )
 
         return Clients(

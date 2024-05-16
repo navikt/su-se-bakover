@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -63,7 +64,8 @@ val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagP�
  */
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
-    dbMetrics: DbMetrics = DbMicrometerMetrics(),
+    suMetrics: SuMetrics = SuMetrics(),
+    dbMetrics: DbMetrics = DbMicrometerMetrics(suMetrics),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     satsFactoryIDag: SatsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
@@ -95,6 +97,7 @@ fun Application.susebakover(
             jmsConfig,
             clock = clock,
             samlTokenProvider = samlTokenProvider,
+            suMetrics = suMetrics,
         ).build(applicationConfig)
     },
     services: Services = run {
@@ -207,6 +210,7 @@ fun Application.susebakover(
             extraRoutes = extraRoutes,
             tilbakekrevingskomponenter = it,
             resendUtbetalingService = resendUtbetalingService,
+            suMetrics = suMetrics,
         )
         if (!disableConsumersAndJobs) {
             startJobberOgConsumers(

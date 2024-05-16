@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -36,13 +37,16 @@ internal class PersonClient(
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraMdc()
     },
+    private val suMetrics: SuMetrics,
     private val personCache: Cache<FnrCacheKey, Person> = newCache(
         cacheName = "person/domain",
         expireAfterWrite = Duration.ofMinutes(30),
+        suMetrics = suMetrics,
     ),
     private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(
         cacheName = "aktoerId",
         expireAfterWrite = Duration.ofMinutes(30),
+        suMetrics = suMetrics,
     ),
 ) : PersonOppslag {
 

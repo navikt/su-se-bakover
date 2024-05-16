@@ -9,6 +9,7 @@ internal fun <K, V> newCache(
     maximumSize: Long = 500,
     expireAfterWrite: Duration = Duration.ofMinutes(1),
     cacheName: String,
+    suMetrics: SuMetrics,
 ): Cache<K, V> {
     return Caffeine.newBuilder()
         .maximumSize(maximumSize)
@@ -18,6 +19,6 @@ internal fun <K, V> newCache(
         .recordStats()
         .build<K, V>()
         .also {
-            SuMetrics.monitorCache(it, cacheName)
+            suMetrics.monitorCache(it, cacheName)
         }
 }

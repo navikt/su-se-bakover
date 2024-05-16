@@ -227,6 +227,7 @@ internal fun setupClient(
 ) = QueryJournalpostHttpClient(
     safConfig = safConfig,
     azureAd = azureAd,
+    suMetrics = mock(),
 )
 
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

@@ -181,8 +181,8 @@ internal class PersonClientTest {
     private class PersonClientConfigTestMocks(
         val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
         val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person/domain"),
-        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId"),
+        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person/domain", suMetrics = mock()),
+        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", suMetrics = mock()),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",
@@ -284,6 +284,7 @@ internal class PersonClientTest {
             hentBrukerToken = hentBrukerToken,
             personCache = personCacheSpy,
             aktørIdCache = aktørIdCacheSpy,
+            suMetrics = mock(),
         )
     }
 }

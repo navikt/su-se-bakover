@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
@@ -37,9 +38,11 @@ import java.time.Duration
 internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
+    private val suMetrics: SuMetrics,
     private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(
         cacheName = "erTilknyttetSak",
         expireAfterWrite = Duration.ofHours(1),
+        suMetrics = suMetrics,
     ),
 ) : QueryJournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
