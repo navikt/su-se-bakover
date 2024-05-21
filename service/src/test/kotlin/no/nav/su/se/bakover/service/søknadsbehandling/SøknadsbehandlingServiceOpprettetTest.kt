@@ -209,7 +209,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             argThat {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Tilordnet oppgave til saksbehandler",
-                    tilordnetRessurs = saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                 )
             },
         )

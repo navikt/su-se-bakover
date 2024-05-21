@@ -155,7 +155,7 @@ class SøknadsbehandlingServiceImpl(
                     oppgaveId = oppgaveId,
                     oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                         beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
-                        tilordnetRessurs = saksbehandler.navIdent,
+                        tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                     ),
                 ).mapLeft {
                     log.error("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
@@ -250,7 +250,9 @@ class SøknadsbehandlingServiceImpl(
                 oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                     beskrivelse = "Sendt til attestering",
                     oppgavetype = Oppgavetype.ATTESTERING,
-                    tilordnetRessurs = søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant?.navIdent,
+                    tilordnetRessurs = søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant?.navIdent?.let {
+                        OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(it)
+                    } ?: OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                 ),
             ).mapLeft {
                 // gjør en best effort på å oppdatere oppgaven
@@ -287,7 +289,7 @@ class SøknadsbehandlingServiceImpl(
                 oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                     beskrivelse = "Behandling har blitt underkjent",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    tilordnetRessurs = underkjent.saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(underkjent.saksbehandler.navIdent),
                 ),
             ).map {
                 log.info("Behandling ${underkjent.id} ble underkjent. Oppgave ${underkjent.oppgaveId} ble oppdatert. Se sikkerlogg for response")

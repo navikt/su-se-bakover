@@ -35,4 +35,20 @@ data class TilbakekrevingbehandlingsSerie(
     }
 
     fun hendelsesIder(): Set<HendelseId> = hendelser.map { it.hendelseId }.toSet()
+
+    fun hentSendtTilAttesteringHendelser(): List<TilAttesteringHendelse> {
+        return hendelser.filterIsInstance<TilAttesteringHendelse>()
+    }
+
+    fun hentSisteSendtTilAttesteringHendelse(): TilAttesteringHendelse? {
+        return hentSendtTilAttesteringHendelser().lastOrNull()
+    }
+
+    fun hentSisteUnderkjentHendelse(): UnderkjentHendelse? {
+        return hentUnderkjentHendelser().lastOrNull()
+    }
+
+    fun hentUnderkjentHendelser(): List<UnderkjentHendelse> {
+        return hendelser.filterIsInstance<UnderkjentHendelse>()
+    }
 }

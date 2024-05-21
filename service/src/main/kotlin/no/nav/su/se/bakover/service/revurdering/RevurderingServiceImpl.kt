@@ -626,6 +626,7 @@ class RevurderingServiceImpl(
                     prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
                         revurderingId = revurdering.id,
                         oppgaveId = revurdering.oppgaveId,
+                        utførtAv = utførtAv,
                     ).onLeft {
                         log.info("Hopper over å oppdatere oppgave for revurdering ${revurdering.id}. Dette vil uansett dukke opp som en journalpost i Gosys.")
                     }
@@ -645,10 +646,14 @@ class RevurderingServiceImpl(
     private fun prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
         revurderingId: RevurderingId,
         oppgaveId: OppgaveId,
+        utførtAv: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereOppgave, Unit> {
         return oppgaveService.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            oppdaterOppgaveInfo = OppdaterOppgaveInfo(beskrivelse = "Forhåndsvarsel er sendt."),
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Forhåndsvarsel er sendt.",
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(utførtAv.navIdent),
+            ),
         ).onLeft {
             log.error("Kunne ikke oppdatere oppgave $oppgaveId for revurdering $revurderingId med informasjon om at forhåndsvarsel er sendt")
         }.onRight {
@@ -732,7 +737,9 @@ class RevurderingServiceImpl(
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Sendt revurdering til attestering",
                 oppgavetype = Oppgavetype.ATTESTERING,
-                tilordnetRessurs = revurdering.attesteringer.lastOrNull()?.attestant?.navIdent,
+                tilordnetRessurs = revurdering.attesteringer.lastOrNull()?.attestant?.navIdent?.let {
+                    OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(it)
+                } ?: OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${tilAttestering.oppgaveId} for revurdering ${tilAttestering.id} med informasjon om at den er sendt til attestering. Feilen var $it")
@@ -865,7 +872,7 @@ class RevurderingServiceImpl(
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Revurderingen er blitt underkjent",
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                tilordnetRessurs = revurdering.saksbehandler.navIdent,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(revurdering.saksbehandler.navIdent),
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for revurdering ${underkjent.id} med informasjon om at den er underkjent. Feilen var $it")
@@ -938,7 +945,10 @@ class RevurderingServiceImpl(
         }
 
         if (avsluttetRevurdering is Revurdering) {
-            oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId).mapLeft {
+            oppgaveService.lukkOppgave(
+                oppgaveId = avsluttetRevurdering.oppgaveId,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+            ).mapLeft {
                 log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}. Dette må gjøres manuelt.")
             }.map {
                 log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}..")

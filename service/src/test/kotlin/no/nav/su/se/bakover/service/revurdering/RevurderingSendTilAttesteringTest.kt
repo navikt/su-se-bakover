@@ -84,7 +84,7 @@ internal class RevurderingSendTilAttesteringTest {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
                             oppgavetype = Oppgavetype.ATTESTERING,
-                            tilordnetRessurs = null,
+                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                         )
                     },
                 )
@@ -171,7 +171,7 @@ internal class RevurderingSendTilAttesteringTest {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
                             oppgavetype = Oppgavetype.ATTESTERING,
-                            tilordnetRessurs = null,
+                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                         )
                     },
                 )

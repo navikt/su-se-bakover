@@ -67,25 +67,10 @@ internal class OppdaterOppgaveHttpClient(
         }
     }
 
-    fun oppdaterBeskrivelse(
-        oppgaveId: OppgaveId,
-        token: String,
-        beskrivelse: String,
-    ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        return hentOppgave(oppgaveId, token).mapLeft {
-            KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
-        }.flatMap {
-            oppdaterOppgave(
-                oppgaveId = oppgaveId,
-                token = token,
-                data = OppdaterOppgaveInfo(beskrivelse = beskrivelse),
-            )
-        }
-    }
-
     fun lukkOppgave(
         oppgaveId: OppgaveId,
         token: String,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId)
@@ -96,6 +81,7 @@ internal class OppdaterOppgaveHttpClient(
                 data = OppdaterOppgaveInfo(
                     beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
                     status = "FERDIGSTILT",
+                    tilordnetRessurs = tilordnetRessurs,
                 ),
             ).mapLeft { KunneIkkeLukkeOppgave.FeilVedOppdateringAvOppgave(oppgaveId, it) }
         }
@@ -111,6 +97,11 @@ internal class OppdaterOppgaveHttpClient(
                 Tidspunkt.now(clock).toOppgaveFormat()
             } - ${data.beskrivelse} ---"
 
+        val tilordnetRessurs = when (val t = data.tilordnetRessurs) {
+            is OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs -> null
+            is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> t.navIdent
+            is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> oppgave.tilordnetRessurs
+        }
         return Either.catch {
             val requestBody = serialize(
                 EndreOppgaveRequest(
@@ -119,7 +110,7 @@ internal class OppdaterOppgaveHttpClient(
                     } ?: internalBeskrivelse,
                     status = data.status ?: oppgave.status,
                     oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
-                    tilordnetRessurs = data.tilordnetRessurs ?: oppgave.tilordnetRessurs,
+                    tilordnetRessurs = tilordnetRessurs,
                 ),
             )
 
@@ -147,7 +138,7 @@ internal class OppdaterOppgaveHttpClient(
                         request = requestBody,
                         response = it.body(),
                         beskrivelse = data.beskrivelse,
-                        tilordnetRessurs = data.tilordnetRessurs,
+                        tilordnetRessurs = tilordnetRessurs,
                     ).right()
                 } else {
                     log.error(

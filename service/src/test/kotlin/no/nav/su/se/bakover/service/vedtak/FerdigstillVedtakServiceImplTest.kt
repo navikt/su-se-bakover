@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -180,7 +181,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val pdf = PdfA("brev".toByteArray())
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgaveMedSystembruker(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakService = mock {
                 on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
@@ -198,7 +199,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
             service.ferdigstillVedtakEtterUtbetaling(utbetaling, TestSessionFactory.transactionContext)
 
-            verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId }, eq(TestSessionFactory.transactionContext))
+            verify(vedtakService).hentForUtbetaling(
+                argThat { it shouldBe vedtak.utbetalingId },
+                eq(TestSessionFactory.transactionContext),
+            )
             verify(brevService).lagDokument(
                 argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
                 anyOrNull(),
@@ -210,7 +214,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 },
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
+            verify(oppgaveService).lukkOppgaveMedSystembruker(
+                argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId },
+                argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
+            )
             org.mockito.kotlin.verifyNoMoreInteractions(*all())
         }
     }
@@ -232,7 +239,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgaveMedSystembruker(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakService = mock {
                 on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
@@ -248,7 +255,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId)
-                verify(oppgaveService).lukkOppgaveMedSystembruker((vedtak.behandling as BehandlingMedOppgave).oppgaveId)
+                verify(oppgaveService).lukkOppgaveMedSystembruker(
+                    argThat { (vedtak.behandling as BehandlingMedOppgave).oppgaveId },
+                    argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
+                )
             }
         }
     }
@@ -259,18 +269,24 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doAnswer {
+                on { lukkOppgave(any(), any()) } doAnswer {
                     KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left()
                 }
             },
         ) {
-            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(behandling.oppgaveId)
+            service.lukkOppgaveMedBruker(
+                behandling = behandling,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(behandling.saksbehandler.navIdent),
+            ) shouldBe KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(behandling.oppgaveId)
                 .left()
 
             inOrder(
                 *all(),
             ) {
-                verify(oppgaveService).lukkOppgave(behandling.oppgaveId)
+                verify(oppgaveService).lukkOppgave(
+                    argThat { it shouldBe behandling.oppgaveId },
+                    argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(behandling.saksbehandler.navIdent) },
+                )
             }
         }
     }

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -61,7 +62,10 @@ class LukkSøknadServiceImpl(
                 it.søknadsbehandling?.also {
                     søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
                 }
-                oppgaveService.lukkOppgave(it.søknad.oppgaveId).onLeft { feil ->
+                oppgaveService.lukkOppgave(
+                    oppgaveId = it.søknad.oppgaveId,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
+                ).onLeft { feil ->
                     // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
                     log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil $feil. Se sikkerlogg for mer context.")
                     sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil: ${feil.toSikkerloggString()}.")

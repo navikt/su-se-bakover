@@ -103,7 +103,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
@@ -253,7 +253,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId).left()
+                on { lukkOppgave(any(), any()) } doReturn KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId).left()
             },
         ).let { serviceAndMocks ->
 

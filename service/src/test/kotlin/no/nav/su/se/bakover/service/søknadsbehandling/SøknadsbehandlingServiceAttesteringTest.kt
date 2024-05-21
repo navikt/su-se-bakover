@@ -100,7 +100,7 @@ class SøknadsbehandlingServiceAttesteringTest {
                     it shouldBe OppdaterOppgaveInfo(
                         beskrivelse = "Sendt til attestering",
                         oppgavetype = Oppgavetype.ATTESTERING,
-                        tilordnetRessurs = actual.attesteringer.prøvHentSisteAttestering()?.attestant?.navIdent,
+                        tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                     )
                 },
             )

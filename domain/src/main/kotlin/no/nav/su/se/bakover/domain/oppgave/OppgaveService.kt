@@ -15,10 +15,16 @@ interface OppgaveService {
     /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
     fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 
-    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
+    fun lukkOppgave(
+        oppgaveId: OppgaveId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
 
     /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
-    fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
+    fun lukkOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
 
     fun oppdaterOppgave(
         oppgaveId: OppgaveId,

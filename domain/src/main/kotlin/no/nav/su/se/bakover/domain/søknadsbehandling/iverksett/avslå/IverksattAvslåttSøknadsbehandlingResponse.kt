@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -48,7 +49,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeLukkeOppgave, Unit>,
+        lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
@@ -65,7 +66,10 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
         statistikkObservers.notify(statistikkhendelse)
-        lukkOppgave(søknadsbehandling).mapLeft {
+        lukkOppgave(
+            søknadsbehandling,
+            OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent),
+        ).mapLeft {
             log.error("Lukking av oppgave ${søknadsbehandling.oppgaveId} for behandlingId: ${søknadsbehandling.id} feilet. Må ryddes opp manuelt.")
         }
     }

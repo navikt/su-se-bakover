@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -441,7 +442,7 @@ internal class OversendKlageTest {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )
@@ -505,7 +506,7 @@ internal class OversendKlageTest {
             argThat { it shouldBe expectedKlage },
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
+        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe klage.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) })
         mocks.verifyNoMoreInteractions()
     }
 }

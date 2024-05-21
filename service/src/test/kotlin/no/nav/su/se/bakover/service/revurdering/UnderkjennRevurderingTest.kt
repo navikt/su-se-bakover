@@ -67,7 +67,7 @@ internal class UnderkjennRevurderingTest {
                         it shouldBe OppdaterOppgaveInfo(
                             "Revurderingen er blitt underkjent",
                             oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                            tilordnetRessurs = saksbehandler.navIdent,
+                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                         )
                     },
                 )

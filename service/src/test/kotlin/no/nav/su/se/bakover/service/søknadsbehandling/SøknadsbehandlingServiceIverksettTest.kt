@@ -274,7 +274,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 anyOrNull(),
             )
-            verify(serviceAndMocks.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
+            verify(serviceAndMocks.ferdigstillVedtakService).lukkOppgaveMedBruker(any(), any())
             verify(serviceAndMocks.observer).handle(
                 argThat {
                     it shouldBe StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
@@ -674,7 +674,7 @@ private data class ServiceAndMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = mock { mock ->
         doAnswer {
             (it.arguments[0]).right()
-        }.whenever(mock).lukkOppgaveMedBruker(any())
+        }.whenever(mock).lukkOppgaveMedBruker(any(), any())
     },
     val sakService: SakService = mock {
         if (sakOgSøknadsbehandling != null) {
