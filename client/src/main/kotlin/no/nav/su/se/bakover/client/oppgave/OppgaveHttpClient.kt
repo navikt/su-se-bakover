@@ -80,14 +80,30 @@ internal class OppgaveHttpClient(
             .flatMap { opprettOppgave(config, it) }
     }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
-        return oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, exchange.getSystemToken(oppgaveClientId))
+    override fun lukkOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
+        return oppdaterOppgaveHttpClient.lukkOppgave(
+            oppgaveId = oppgaveId,
+            token = exchange.getSystemToken(oppgaveClientId),
+            tilordnetRessurs = tilordnetRessurs,
+        )
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
+    override fun lukkOppgave(
+        oppgaveId: OppgaveId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeLukkeOppgave.FeilVedHentingAvToken(oppgaveId) }
-            .flatMap { oppdaterOppgaveHttpClient.lukkOppgave(oppgaveId, it) }
+            .flatMap {
+                oppdaterOppgaveHttpClient.lukkOppgave(
+                    oppgaveId = oppgaveId,
+                    token = it,
+                    tilordnetRessurs = tilordnetRessurs,
+                )
+            }
     }
 
     override fun oppdaterOppgave(

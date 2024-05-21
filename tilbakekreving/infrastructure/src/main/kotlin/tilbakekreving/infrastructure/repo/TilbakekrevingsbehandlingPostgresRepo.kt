@@ -23,6 +23,7 @@ import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingbehandlingsSerie
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderkjentHendelse
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
@@ -199,11 +200,12 @@ class TilbakekrevingsbehandlingPostgresRepo(
     }
 
     override fun hentBehandlingsSerieFor(
-        hendelse: TilbakekrevingsbehandlingHendelse,
+        sakId: UUID,
+        tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId,
         sessionContext: SessionContext?,
     ): TilbakekrevingbehandlingsSerie {
         return sessionFactory.withSessionContext(sessionContext) {
-            hentForSak(sakId = hendelse.sakId, sessionContext = it).hentSerieFor(hendelse.id)
+            hentForSak(sakId = sakId, sessionContext = it).hentSerieFor(tilbakekrevingsbehandlingId)
         }
     }
 }

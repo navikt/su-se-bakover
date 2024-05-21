@@ -96,7 +96,7 @@ internal class UnderkjennKlageTest {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    tilordnetRessurs = klage.saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(klage.saksbehandler.navIdent),
                 )
             },
         )
@@ -285,7 +285,7 @@ internal class UnderkjennKlageTest {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    tilordnetRessurs = klage.saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(klage.saksbehandler.navIdent),
                 )
             },
         )
@@ -326,7 +326,7 @@ internal class UnderkjennKlageTest {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    tilordnetRessurs = klage.saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(klage.saksbehandler.navIdent),
                 )
             },
         )

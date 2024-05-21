@@ -86,6 +86,7 @@ internal class SendKlageTilAttesteringTest {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Sendt klagen til attestering",
                     oppgavetype = Oppgavetype.ATTESTERING,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                 )
             },
         )
@@ -134,11 +135,9 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `ugyldig statusovergang fra bekreftet avvist vilkårsvurdert klage til attestering`() {
-        bekreftetAvvistVilkårsvurdertKlage().let {
-            verifiserUgyldigTilstandsovergang(
-                klage = it.second,
-            )
-        }
+        verifiserUgyldigTilstandsovergang(
+            klage = bekreftetAvvistVilkårsvurdertKlage().second,
+        )
     }
 
     @Test
@@ -199,6 +198,7 @@ internal class SendKlageTilAttesteringTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
             )
         }
     }
@@ -211,7 +211,7 @@ internal class SendKlageTilAttesteringTest {
                 klage = it.second,
                 tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
                     require(attesteringshistorikk.size == 1)
-                    attesteringshistorikk.first().attestant
+                    OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attesteringshistorikk.first().attestant.navIdent)
                 },
             )
         }
@@ -225,7 +225,7 @@ internal class SendKlageTilAttesteringTest {
                 klage = it.second,
                 tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
                     require(attesteringshistorikk.size == 1)
-                    attesteringshistorikk.first().attestant
+                    OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attesteringshistorikk.first().attestant.navIdent)
                 },
             )
         }
@@ -234,7 +234,7 @@ internal class SendKlageTilAttesteringTest {
     private fun verifiserGyldigStatusovergang(
         vedtak: Vedtak,
         klage: Klage,
-        tilordnetRessurs: NavIdentBruker.Attestant? = null,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ) {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -281,7 +281,7 @@ internal class SendKlageTilAttesteringTest {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Sendt klagen til attestering",
                     oppgavetype = Oppgavetype.ATTESTERING,
-                    tilordnetRessurs = tilordnetRessurs?.navIdent,
+                    tilordnetRessurs = tilordnetRessurs,
                 )
             },
         )

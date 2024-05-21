@@ -514,8 +514,14 @@ open class AccessCheckProxy(
             oppgave = object : OppgaveService {
                 override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
                 override fun opprettOppgaveMedSystembruker(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
-                override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
-                override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgave(oppgaveId: OppgaveId, tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs) =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun lukkOppgaveMedSystembruker(
+                    oppgaveId: OppgaveId,
+                    tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+                ) = kastKanKunKallesFraAnnenService()
+
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     oppdaterOppgaveInfo: OppdaterOppgaveInfo,
@@ -741,7 +747,7 @@ open class AccessCheckProxy(
                     return services.ferdigstillVedtak.ferdigstillVedtak(vedtakId)
                 }
 
-                override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling, tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun hentRevurdering(revurderingId: RevurderingId): AbstraktRevurdering? {
@@ -995,7 +1001,9 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentInnvilgetFnrFraOgMedMåned(måned, inkluderEps)
                 }
 
-                override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?) = kastKanKunKallesFraAnnenService()
+                override fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext?) =
+                    kastKanKunKallesFraAnnenService()
+
                 override fun hentForBrukerFødselsnumreOgFraOgMedMåned(
                     fødselsnumre: List<Fnr>,
                     fraOgMed: Måned,

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
@@ -166,7 +167,7 @@ internal class AvsluttKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             observer = observerMock,
         )
@@ -195,7 +196,7 @@ internal class AvsluttKlageTest {
             },
             anyOrNull(),
         )
-        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe klage.oppgaveId })
+        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe klage.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) })
         mocks.verifyNoMoreInteractions()
     }
 }

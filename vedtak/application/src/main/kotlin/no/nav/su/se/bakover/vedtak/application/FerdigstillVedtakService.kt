@@ -10,6 +10,7 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
@@ -37,6 +38,7 @@ interface FerdigstillVedtakService {
      */
     fun lukkOppgaveMedBruker(
         behandling: Stønadsbehandling,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, Unit>
 }
 
@@ -91,9 +93,12 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
-    override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedBruker(
+        behandling: Stønadsbehandling,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+    ): Either<KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgaveIntern(behandling) {
-            oppgaveService.lukkOppgave(it).map { }
+            oppgaveService.lukkOppgave(it, tilordnetRessurs).map { }
         }.map { /* Unit */ }
     }
 
@@ -105,10 +110,12 @@ class FerdigstillVedtakServiceImpl(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakFerdigstilt> {
+        val tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent)
+
         // Denne fungerer også som dedup. Dersom vi allerede har lagret et dokument knyttet til vedtaket vil denne gi false.
         return if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
             val dokument = lagreDokument(vedtak, transactionContext).getOrElse { return it.left() }
-            lukkOppgaveMedSystembruker(vedtak.behandling).fold(
+            lukkOppgaveMedSystembruker(vedtak.behandling, tilordnetRessurs).fold(
                 {
                     VedtakFerdigstilt.DokumentLagret.KunneIkkeLukkeOppgave(dokument, it.oppgaveId).right()
                 },
@@ -122,7 +129,7 @@ class FerdigstillVedtakServiceImpl(
             )
         } else {
             // I disse tilfellene skal det ikke sendes brev, men vi prøver likevel å lukke oppgaven, dersom det finnes en.
-            lukkOppgaveMedSystembruker(vedtak.behandling).fold(
+            lukkOppgaveMedSystembruker(vedtak.behandling, tilordnetRessurs).fold(
                 {
                     VedtakFerdigstilt.DokumentSkalIkkeLagres.KunneIkkeLukkeOppgave(it.oppgaveId).right()
                 },
@@ -163,9 +170,10 @@ class FerdigstillVedtakServiceImpl(
      */
     private fun lukkOppgaveMedSystembruker(
         behandling: Stønadsbehandling,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         return lukkOppgaveIntern(behandling) {
-            oppgaveService.lukkOppgaveMedSystembruker(it).map {
+            oppgaveService.lukkOppgaveMedSystembruker(it, tilordnetRessurs).map {
                 it.oppgaveId
             }
         }

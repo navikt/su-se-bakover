@@ -64,7 +64,10 @@ internal class OppdaterHttpClientTest {
                 exchange = oathMock,
                 clock = fixedClock,
             )
-            val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
+            val actual = client.lukkOppgave(
+                OppgaveId(oppgaveId.toString()),
+                OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
+            ).getOrFail()
 
             val expectedBody = createJsonPatchRequestedBody()
 
@@ -74,7 +77,7 @@ internal class OppdaterHttpClientTest {
                 request = expectedBody,
                 response = patchResponse,
                 beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
-                tilordnetRessurs = null,
+                tilordnetRessurs = "Z123456",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
@@ -106,7 +109,10 @@ internal class OppdaterHttpClientTest {
                 exchange = oathMock,
                 clock = fixedClock,
             )
-            val actual = client.lukkOppgaveMedSystembruker(OppgaveId(oppgaveId.toString())).getOrFail()
+            val actual = client.lukkOppgaveMedSystembruker(
+                OppgaveId(oppgaveId.toString()),
+                OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
+            ).getOrFail()
 
             val expectedBody = createJsonPatchRequestedBody()
 
@@ -116,12 +122,14 @@ internal class OppdaterHttpClientTest {
                 request = expectedBody,
                 response = patchResponse,
                 beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                tilordnetRessurs = "Z123456",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
             actual.oppgavetype shouldBe expected.oppgavetype
             actual.beskrivelse shouldBe expected.beskrivelse
             actual.response shouldBe expected.response
+            actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
             WireMock.configureFor(port())
@@ -152,7 +160,10 @@ internal class OppdaterHttpClientTest {
                 exchange = oathMock,
                 clock = fixedClock,
             )
-            val actual = client.lukkOppgave(OppgaveId(oppgaveId.toString())).getOrFail()
+            val actual = client.lukkOppgave(
+                OppgaveId(oppgaveId.toString()),
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
+            ).getOrFail()
 
             val expectedBody =
                 createJsonPatchRequestedBody("""--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding""")
@@ -163,12 +174,14 @@ internal class OppdaterHttpClientTest {
                 request = expectedBody,
                 response = patchResponse,
                 beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                tilordnetRessurs = "Z123456",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
             actual.oppgavetype shouldBe expected.oppgavetype
             actual.beskrivelse shouldBe expected.beskrivelse
             actual.response shouldBe expected.response
+            actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
             WireMock.configureFor(port())
@@ -209,7 +222,7 @@ internal class OppdaterHttpClientTest {
                     beskrivelse = "en beskrivelse",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
                     status = null,
-                    tilordnetRessurs = null,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
                 ),
             ).getOrFail()
 
@@ -224,12 +237,14 @@ internal class OppdaterHttpClientTest {
                 request = expectedBody,
                 response = patchResponse,
                 beskrivelse = "en beskrivelse",
+                tilordnetRessurs = "Z123456",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
             actual.oppgavetype shouldBe expected.oppgavetype
             actual.beskrivelse shouldBe expected.beskrivelse
             actual.response shouldBe expected.response
+            actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
             WireMock.configureFor(port())

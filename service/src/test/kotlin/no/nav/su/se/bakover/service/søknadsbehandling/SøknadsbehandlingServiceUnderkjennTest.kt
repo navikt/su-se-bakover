@@ -235,7 +235,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                         "Behandling har blitt underkjent",
                         Oppgavetype.BEHANDLE_SAK,
                         null,
-                        saksbehandler.navIdent,
+                        OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                     )
                 },
             )
@@ -313,7 +313,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                         "Behandling har blitt underkjent",
                         Oppgavetype.BEHANDLE_SAK,
                         null,
-                        saksbehandler.navIdent,
+                        OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                     )
                 },
             )

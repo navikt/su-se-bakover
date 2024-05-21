@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -75,7 +76,12 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 on { hentSakForSøknad(any()) } doReturn FantIkkeSak.left()
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
+                on {
+                    lagDokument(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
             },
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
@@ -341,7 +347,12 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 søknadId = søknad.id,
             ),
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
+                on {
+                    lukkOppgave(
+                        any(),
+                        any(),
+                    )
+                } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
@@ -366,7 +377,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         },
         private val brevService: BrevService = mock(),
         private val oppgaveService: OppgaveService = mock {
-            on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
@@ -392,9 +403,10 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             sessionFactory = sessionFactory,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
-        fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> = lukkSøknadService.lukkSøknad(
-            lukkSøknadCommand,
-        )
+        fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =
+            lukkSøknadService.lukkSøknad(
+                lukkSøknadCommand,
+            )
 
         val allMocks = listOf(
             søknadService,
@@ -476,7 +488,11 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
 
         fun expectedSak(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =
-            Triple(expectedLukketSøknad(), if (søknadsbehandling != null) expectedLukketSøknadsbehandling() else null, sak!!.fnr)
+            Triple(
+                expectedLukketSøknad(),
+                if (søknadsbehandling != null) expectedLukketSøknadsbehandling() else null,
+                sak!!.fnr,
+            )
 
         fun expectedLukketSøknadsbehandling() = LukketSøknadsbehandling.createFromPersistedState(
             søknadsbehandling = søknadsbehandling!!,
@@ -575,7 +591,10 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
 
         fun verifyLukkOppgave() {
-            verify(oppgaveService).lukkOppgave(argThat { it shouldBe (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).oppgaveId })
+            verify(oppgaveService).lukkOppgave(
+                oppgaveId = argThat { it shouldBe (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).oppgaveId },
+                tilordnetRessurs = argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
+            )
         }
 
         fun verifyStatistikkhendelse() {

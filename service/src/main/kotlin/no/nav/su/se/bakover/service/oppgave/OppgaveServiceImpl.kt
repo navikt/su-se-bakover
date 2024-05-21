@@ -29,14 +29,15 @@ class OppgaveServiceImpl(
         return oppgaveClient.opprettOppgaveMedSystembruker(config)
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
-        return oppgaveClient.lukkOppgave(oppgaveId)
+    override fun lukkOppgave(oppgaveId: OppgaveId, tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
+        return oppgaveClient.lukkOppgave(oppgaveId, tilordnetRessurs)
     }
 
     override fun lukkOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
-        return oppgaveClient.lukkOppgaveMedSystembruker(oppgaveId)
+        return oppgaveClient.lukkOppgaveMedSystembruker(oppgaveId, tilordnetRessurs)
     }
 
     override fun oppdaterOppgave(

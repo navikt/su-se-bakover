@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
@@ -87,7 +88,10 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     genererPdf = brevService::lagDokument,
                     simulerUtbetaling = utbetalingService::simulerUtbetaling,
                     lukkOppgave = {
-                        oppgaveService.lukkOppgave(it).mapLeft {
+                        oppgaveService.lukkOppgave(
+                            oppgaveId = it,
+                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
+                        ).mapLeft {
                             log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
                             it
                         }

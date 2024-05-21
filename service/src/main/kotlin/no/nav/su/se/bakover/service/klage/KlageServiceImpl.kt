@@ -240,7 +240,9 @@ class KlageServiceImpl(
                 oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                     beskrivelse = "Sendt klagen til attestering",
                     oppgavetype = Oppgavetype.ATTESTERING,
-                    tilordnetRessurs = klage.attesteringer.prøvHentSisteAttestering()?.attestant?.navIdent,
+                    tilordnetRessurs = klage.attesteringer.prøvHentSisteAttestering()?.attestant?.navIdent?.let {
+                        OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(it)
+                    } ?: OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                 ),
             ).mapLeft {
                 log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
@@ -264,7 +266,7 @@ class KlageServiceImpl(
                 oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    tilordnetRessurs = klage.saksbehandler.navIdent,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(klage.saksbehandler.navIdent),
                 ),
             ).mapLeft {
                 log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
@@ -319,7 +321,10 @@ class KlageServiceImpl(
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
             return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
-        oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
+        oppgaveService.lukkOppgave(
+            oversendtKlage.oppgaveId,
+            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent),
+        )
         observers.notify(StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage))
         return oversendtKlage.right()
     }
@@ -369,7 +374,10 @@ class KlageServiceImpl(
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
         }
 
-        oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
+        oppgaveService.lukkOppgave(
+            avvistKlage.oppgaveId,
+            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent),
+        )
         observers.notify(StatistikkEvent.Behandling.Klage.Avvist(vedtak))
         return avvistKlage.right()
     }
@@ -402,7 +410,7 @@ class KlageServiceImpl(
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).onRight {
             klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(it.oppgaveId)
+            oppgaveService.lukkOppgave(it.oppgaveId, OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent))
             observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it))
         }
     }

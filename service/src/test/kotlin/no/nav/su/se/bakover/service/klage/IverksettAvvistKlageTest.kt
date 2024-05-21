@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -244,7 +245,7 @@ internal class IverksettAvvistKlageTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             vedtakServiceMock = mock {
                 doNothing().whenever(it).lagre(any())
@@ -313,7 +314,7 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe expected },
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
+        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) })
         verify(observerMock).handle(
             argThat {
                 it shouldBe StatistikkEvent.Behandling.Klage.Avvist(

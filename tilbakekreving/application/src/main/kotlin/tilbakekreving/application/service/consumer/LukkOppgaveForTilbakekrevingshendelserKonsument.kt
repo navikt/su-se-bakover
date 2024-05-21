@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -75,29 +76,34 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
 
     private fun prosesserSak(
         sakId: UUID,
-        hendelsesIder: Nel<HendelseId>,
+        tilbakekrevingsbehandlingHendelseIder: Nel<HendelseId>,
         correlationId: CorrelationId,
     ) {
         log.info("starter lukking av oppgaver for tilbakekrevingsbehandling-hendelser på sak $sakId")
 
         val sak = sakService.hentSak(sakId)
-            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $hendelsesIder for å lukke oppgave for tilbakekrevingsbehandling") } }
+            .getOrElse { return Unit.also { log.error("Kunne ikke hente sak $sakId for hendelser $tilbakekrevingsbehandlingHendelseIder for å lukke oppgave for tilbakekrevingsbehandling") } }
 
-        hendelsesIder.mapOneIndexed { idx, relatertHendelsesId ->
-            val relatertHendelse = tilbakekrevingsbehandlingHendelseRepo.hentHendelse(relatertHendelsesId)
-                ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å lukke oppgave. sak $sakId, hendelse $relatertHendelsesId") }
-
-            oppgaveHendelseRepo.hentHendelseForRelatert(relatertHendelse.hendelseId, sak.id)?.let {
-                return@mapOneIndexed Unit.also {
-                    hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId)
-                    log.error("Feil ved oppretting av oppgave for tilbakekreving ${relatertHendelse.id.value}. Oppgave allerede opprettet for hendelse ${relatertHendelse.hendelseId}. Konsumenten vil lagre denne hendelsen")
-                }
-            }
+        tilbakekrevingsbehandlingHendelseIder.mapOneIndexed { idx, tilbakekrevingsbehandlingHendelseId ->
+            val tilbakekrevingsbehandlingHendelse =
+                tilbakekrevingsbehandlingHendelseRepo.hentHendelse(tilbakekrevingsbehandlingHendelseId)
+                    ?: return@mapOneIndexed Unit.also { log.error("Feil ved henting av hendelse for å lukke oppgave. sak $sakId, hendelse $tilbakekrevingsbehandlingHendelseId") }
 
             val alleSakensOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
 
+            if (alleSakensOppgaveHendelser.any { it.relaterteHendelser.contains(tilbakekrevingsbehandlingHendelse.hendelseId) }) {
+                return@mapOneIndexed Unit.also {
+                    hendelsekonsumenterRepo.lagre(tilbakekrevingsbehandlingHendelse.hendelseId, konsumentId)
+                    log.error("Oppgave allerede oppdatert for hendelse ${tilbakekrevingsbehandlingHendelse.hendelseId}. Vil ikke prøve denne på nytt.")
+                }
+            }
+
             val tilbakekrevingshendelsesSerie =
-                tilbakekrevingsbehandlingHendelseRepo.hentBehandlingsSerieFor(relatertHendelse)
+                tilbakekrevingsbehandlingHendelseRepo.hentBehandlingsSerieFor(
+                    sakId = sakId,
+                    tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingHendelse.id,
+
+                )
 
             val seriensOppgaveHendelser =
                 alleSakensOppgaveHendelser.pickByCondition(tilbakekrevingshendelsesSerie.hendelsesIder()) { oppgaveHendelse, hendelseId ->
@@ -106,7 +112,7 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
 
             return@mapOneIndexed seriensOppgaveHendelser.whenever(
                 // logger som error, da det kan være greit å sjekke i dette de første par gagene hvis den skulle treffe
-                { Unit.also { log.error("Kunne ikke lukke oppgave for $relatertHendelsesId, for sak ${relatertHendelse.sakId} fordi at det ikke finnes noen oppgave hendelser") } },
+                { Unit.also { log.error("Kunne ikke lukke oppgave for $tilbakekrevingsbehandlingHendelseId, for sak ${tilbakekrevingsbehandlingHendelse.sakId} fordi at det ikke finnes noen oppgave hendelser") } },
                 { oppgaveHendelser ->
                     // verifiserer at det kun finnes 1 oppgaveId
                     Either.catch {
@@ -116,17 +122,20 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                     }.mapLeft { throwable ->
                         Unit.also {
                             log.error(
-                                "Feil ved verifisering av at det fantes kun 1 oppgave Id for lukking av oppgave for sak ${sak.id} for hendelser $hendelsesIder",
+                                "Feil ved verifisering av at det fantes kun 1 oppgave Id for lukking av oppgave for sak ${sak.id} for hendelser $tilbakekrevingsbehandlingHendelseIder",
                                 throwable,
                             )
                         }
                     }.map {
                         opprettNyLukkOppgaveHendelse(
-                            relaterteHendelse = relatertHendelse.hendelseId,
+                            relaterteHendelse = tilbakekrevingsbehandlingHendelse.hendelseId,
                             nesteVersjon = sak.versjon.inc(idx),
                             sakInfo = sak.info(),
                             correlationId = correlationId,
                             tidligereOppgaveHendelse = it,
+                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(
+                                tilbakekrevingsbehandlingHendelse.utførtAv.navIdent,
+                            ),
                         ).map {
                             sessionFactory.withTransactionContext { context ->
                                 oppgaveHendelseRepo.lagre(
@@ -134,10 +143,14 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
                                     meta = it.second,
                                     sessionContext = context,
                                 )
-                                hendelsekonsumenterRepo.lagre(relatertHendelse.hendelseId, konsumentId, context)
+                                hendelsekonsumenterRepo.lagre(
+                                    tilbakekrevingsbehandlingHendelse.hendelseId,
+                                    konsumentId,
+                                    context,
+                                )
                             }
                         }.mapLeft {
-                            log.error("Feil skjedde ved lukking av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${relatertHendelse.id}")
+                            log.error("Feil skjedde ved lukking av oppgave for tilbakekrevingsbehandling $it. For sak $sakId, hendelse ${tilbakekrevingsbehandlingHendelse.id}")
                         }
                     }
                 },
@@ -154,8 +167,9 @@ class LukkOppgaveForTilbakekrevingshendelserKonsument(
         tidligereOppgaveHendelse: OppgaveHendelse,
         sakInfo: SakInfo,
         correlationId: CorrelationId,
+        tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, Pair<OppgaveHendelse, OppgaveHendelseMetadata>> {
-        return oppgaveService.lukkOppgaveMedSystembruker(tidligereOppgaveHendelse.oppgaveId).fold(
+        return oppgaveService.lukkOppgaveMedSystembruker(tidligereOppgaveHendelse.oppgaveId, tilordnetRessurs).fold(
             {
                 when (it) {
                     is no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave -> KunneIkkeLukkeOppgave.FeilVedLukkingAvOppgave.left()
