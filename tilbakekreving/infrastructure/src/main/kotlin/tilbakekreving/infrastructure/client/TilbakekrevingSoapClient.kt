@@ -99,7 +99,7 @@ class TilbakekrevingSoapClient(
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = soapRequest,
                         tidspunkt = Tidspunkt.now(clock),
-                        responseXml = soapResponse,
+                        responseXml = soapResponse ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
                     )
                 }
         }.mapLeft { throwable ->
@@ -136,10 +136,15 @@ class TilbakekrevingSoapClient(
      */
     private fun kontrollerResponse(
         request: String,
-        response: String,
+        response: String?,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSendeTilbakekrevingsvedtak, Unit> {
-        return response.deserializeTilbakekrevingsvedtakResponse(request).fold(
+        val deserialisert = response?.deserializeTilbakekrevingsvedtakResponse(request) ?: run {
+            log.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer, se sikkerlogg for detaljer.")
+            sikkerLogg.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Request: $request.")
+            return Unit.right()
+        }
+        return deserialisert.fold(
             {
                 // Vi logger i funksjonen. Dersom vi ikke klarer deserialisere antar vi at det har gått OK. Men det må følges opp manuelt.
                 Unit.right()
@@ -156,6 +161,7 @@ class TilbakekrevingSoapClient(
                         )
                         Unit.right()
                     }
+
                     else -> Alvorlighetsgrad.fromString(a).fold(
                         {
                             log.error(
