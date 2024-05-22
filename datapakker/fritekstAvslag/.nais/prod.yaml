@@ -3,7 +3,7 @@ kind: Naisjob
 metadata:
   labels:
     team: supstonad
-  name: su-datapakke-soknad
+  name: su-datapakke-fritekst
   namespace: supstonad
 spec:
   # Run every day at 3:15
