@@ -5,13 +5,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import vilkår.skatt.application.FrioppslagSkattRequest
 import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
@@ -32,6 +36,8 @@ import java.util.UUID
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
     private val skattDokumentService: SkattDokumentService,
+    private val personService: PersonService,
+    private val sakService: SakService,
     val clock: Clock,
 ) : SkatteService {
 
@@ -83,21 +89,73 @@ class SkatteServiceImpl(
     override fun hentLagOgJournalførSkattePdf(
         request: FrioppslagSkattRequest,
     ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
-        return hentSkattegrunnlag(request).getOrElse {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding(it).left()
-        }.let {
-            log.info("Hentet skattegrunnlag for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
-            skattDokumentService.genererSkattePdfOgJournalfør(
-                GenererSkattPdfRequest(
-                    skattegrunnlagSøkers = it.first,
-                    skattegrunnlagEps = it.second,
-                    begrunnelse = request.begrunnelse,
-                    sakstype = request.sakstype,
-                    fagsystemId = request.fagsystemId,
-                ),
-            )
+        val verifisering = when (request.sakstype) {
+            Sakstype.ALDER -> TODO("Finn ut hvordan vi skal verifisere aldersak")
+            Sakstype.UFØRE -> verifiserRequestMedUføre(request)
         }
+
+        return verifisering.fold(
+            ifLeft = { it.left() },
+            ifRight = {
+                hentSkattegrunnlag(request).getOrElse {
+                    return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding(it).left()
+                }.let {
+                    log.info("Hentet skattegrunnlag for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
+                    skattDokumentService.genererSkattePdfOgJournalfør(
+                        GenererSkattPdfRequest(
+                            skattegrunnlagSøkers = it.first,
+                            skattegrunnlagEps = it.second,
+                            begrunnelse = request.begrunnelse,
+                            sakstype = request.sakstype,
+                            fagsystemId = request.fagsystemId,
+                        ),
+                    )
+                }
+            },
+        )
     }
+
+    /**
+     * Verifiserer 3 ting:
+     * 1. At sakstype er uføre
+     * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
+     * 3. At fnr i saken er lik fnr i request
+     */
+    private fun verifiserRequestMedUføre(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
+        val uføresak = sakService.hentSak(Saksnummer(request.fagsystemId.toLong())).getOrElse {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
+        }.let {
+            if (it.type != Sakstype.UFØRE) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.SakstypeErIkkeDenSammeSomForespurt(
+                    it.type,
+                    request.sakstype,
+                ).left()
+            }
+            it
+        }
+        val person = personService.sjekkTilgangTilPerson(request.fnr).getOrElse {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left()
+        }.let {
+            personService.hentPerson(request.fnr)
+                .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+        }
+
+        if (uføresak.fnr != person.ident.fnr) {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL.left()
+        }
+
+        return Unit.right()
+    }
+
+    /**
+     * Verifiserer 2 ting:
+     * 1. At vi ikke har en sak med angitt saksnummer
+     * 1. At sakstype er alder
+     * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
+     */
+//    private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
+
+//    }
 
     private fun hentSkattegrunnlag(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, Pair<Skattegrunnlag, Skattegrunnlag?>> {
         val skattegrunnlagSøkers = Skattegrunnlag(

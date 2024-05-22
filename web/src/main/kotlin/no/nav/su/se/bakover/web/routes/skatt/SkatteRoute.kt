@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -130,6 +131,17 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalpostUtenforSak -> this.originalFeil.tilResultat()
+    KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak -> fantIkkeSak
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson -> it.tilResultat()
+    KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL -> HttpStatusCode.BadRequest.errorJson(
+        "Forespurt fnr var ikke det vi vikk tilbake fra PDL",
+        "forespurt_fnr_ikke_lik_fnr_fra_pdl",
+    )
+
+    is KunneIkkeGenerereSkattePdfOgJournalføre.SakstypeErIkkeDenSammeSomForespurt -> HttpStatusCode.BadRequest.errorJson(
+        "Faktisk sakstype er ${this.faktiskSakstype}, forespurt sakstype er ${this.forespurtSakstype}",
+        "faktisk_sakstype_er_ikke_lik_forespurt_sakstype",
+    )
 }
 
 internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {

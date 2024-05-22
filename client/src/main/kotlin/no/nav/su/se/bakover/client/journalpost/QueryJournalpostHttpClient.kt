@@ -34,7 +34,8 @@ import java.net.http.HttpResponse
 import java.time.Duration
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
-// https://confluence.adeo.no/display/BOA/Query%3A+journalpost
+// queries: https://confluence.adeo.no/display/BOA/saf+-+Queries
+// journalpost query: https://confluence.adeo.no/display/BOA/Query%3A+journalpost
 internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,

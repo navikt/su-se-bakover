@@ -1,6 +1,8 @@
 package vilkår.skatt.application
 
 import dokument.domain.brev.KunneIkkeJournalføreDokument
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import person.domain.KunneIkkeHentePerson
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
 import vilkår.skatt.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 
@@ -16,4 +18,11 @@ sealed interface KunneIkkeGenerereSkattePdfOgJournalføre {
 
     data class FeilVedJournalpostUtenforSak(val originalFeil: KunneIkkeLageJournalpostUtenforSak) :
         KunneIkkeGenerereSkattePdfOgJournalføre
+
+    data class SakstypeErIkkeDenSammeSomForespurt(val faktiskSakstype: Sakstype, val forespurtSakstype: Sakstype) :
+        KunneIkkeGenerereSkattePdfOgJournalføre
+
+    data class FeilVedHentingAvPerson(val it: KunneIkkeHentePerson) : KunneIkkeGenerereSkattePdfOgJournalføre
+    data object FnrPåSakErIkkeLikFnrViFikkFraPDL : KunneIkkeGenerereSkattePdfOgJournalføre
+    data object FantIkkeSak : KunneIkkeGenerereSkattePdfOgJournalføre
 }
