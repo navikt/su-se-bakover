@@ -13,9 +13,8 @@ on:
         type: string
         default: ''
       resource:
-        required: false
-        description: 'Optional, default nais.yml, path to nais.yml'
-        default: 'nais.yml'
+        required: true
+        description: 'Required. Path to nais.yml'
         type: string
       vars:
         required: false
