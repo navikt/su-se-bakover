@@ -33,5 +33,4 @@ jobs:
         with:
           cluster: ${{ inputs.cluster }}
           var: ${{ inputs.var }}
-          vars: ${{ inputs.vars }}
           resource: ${{ inputs.resource }}

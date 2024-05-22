@@ -22,5 +22,4 @@ runs:
       env:
         CLUSTER: ${{ inputs.cluster }}
         RESOURCE: ${{ inputs.resource }}
-        VARS: ${{ inputs.vars }}
         VAR: ${{ inputs.var }}
