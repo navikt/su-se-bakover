@@ -255,12 +255,12 @@ prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
 
 Dersom man ønsker å inspisere meldingene i preprod-miljøet:
 
-* Via VmWare (utvikler image): http://a34drvw006.devillo.no:8000/ navn på hostname/lø ligger i `nais-dev.json`.
+* Via VmWare (utvikler image): http://a34drvw006.devillo.no:8000/ navn på hostname/lø ligger i `.nais/dev.yaml`.
 
 I preprod: Dersom man ønsker å slette/endre/legge til meldinger eller flytte fra backoff til hovedkø, kan man
 bruke https://github.com/jmstoolbox/jmstoolbox
 
-* Finn hostname/kø i `nais-dev.json`.
+* Finn hostname/kø i `.nais/dev.yaml`.
 * Ping hostname for å få IP `10.53.17.118`
 * Finn username/password i vault: https://vault.adeo.no/ui/vault/secrets/serviceuser/show/dev/srvsupstonad
 * Legg inn channel: `Q1_SU_SE_BAKOVER`
@@ -276,7 +276,7 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 ## Koble til database i preprod/prod
 
 1. Via naisdevice (fungerer kun med nav image) eller via vmware
-2. Finner settings i `nais-dev.json` og `nais-prod.json`.
+2. Finner settings i `.nais/dev.yaml` og `.nais/prod.yaml`.
 3. Hent brukernavn/passord på https://vault.adeo.no/ui/vault/secrets (login med oidc). Åpne konsollen og velg ønsket
    rolle:
     1. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-readonly`

@@ -14,10 +14,14 @@ spec:
     enabled: true
     paths:
       - mountPath: /var/run/secrets/nais.io/vault
-        kvPath: /secret/supstonad/{{ secret_env }}
+        kvPath: /secret/supstonad/dev
   webproxy: true
   env:
-     {{#each env}}
-      - name: {{@key}}
-        value: "{{this}}"
-     {{/each}}
+    - name: GCP_PROJECT
+      value: "supstonad-dev-0e48"
+    - name: VAULT_MOUNTPATH
+      value: "postgresql/preprod-fss/"
+    - name: DATABASE_NAME
+      value: "supstonad-db-15-dev"
+    - name: DATABASE_JDBC_URL
+      value: "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev"

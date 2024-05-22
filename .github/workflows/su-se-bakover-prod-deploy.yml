@@ -16,5 +16,4 @@ jobs:
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
       cluster: prod-fss
-      vars: nais-prod.json
       resource: .nais/prod.yaml

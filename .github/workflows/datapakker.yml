@@ -57,8 +57,7 @@ jobs:
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: dev-fss
-      vars: datapakker/soknad/nais-dev.json
-      resource: datapakker/soknad/nais.yml
+      resource: datapakker/soknad/.nais/dev.yaml
 
   deploy_to_dev_fritekstAvslag:
     name: Deploy to dev fritekstAvslag
@@ -70,8 +69,7 @@ jobs:
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstavslag-job:${{ github.sha }}
       cluster: dev-fss
-      vars: datapakker/fritekstAvslag/nais-dev.json
-      resource: datapakker/fritekstAvslag/nais.yml
+      resource: datapakker/fritekstAvslag/.nais/dev.yaml
 
   deploy_to_prod_soknad:
     name: Deploy to prod
@@ -83,8 +81,7 @@ jobs:
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: prod-fss
-      vars: datapakker/soknad/nais-prod.json
-      resource: datapakker/soknad/nais.yml
+      resource: datapakker/soknad/.nais/prod.yaml
 
   deploy_to_prod_fritekstAvslag:
     name: Deploy to prod
@@ -96,5 +93,4 @@ jobs:
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstavslag-job:${{ github.sha }}
       cluster: prod-fss
-      vars: datapakker/fritekstAvslag/nais-prod.json
-      resource: datapakker/fritekstAvslag/nais.yml
+      resource: datapakker/fritekstAvslag/.nais/prod.yaml

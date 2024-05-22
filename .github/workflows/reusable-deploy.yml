@@ -16,11 +16,6 @@ on:
         required: true
         description: 'Required. Path to nais.yml'
         type: string
-      vars:
-        required: false
-        description: 'Optional, default empty, path to nais-dev.json/nais-prod.json'
-        default: ''
-        type: string
 
 permissions: {}
 
