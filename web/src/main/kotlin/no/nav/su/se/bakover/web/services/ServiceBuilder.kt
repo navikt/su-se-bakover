@@ -117,6 +117,7 @@ data object ServiceBuilder {
             skattDokumentService = skattDokumentService,
             personService = personService,
             sakService = sakService,
+            journalpostClient = clients.queryJournalpostClient,
             clock = clock,
         )
 

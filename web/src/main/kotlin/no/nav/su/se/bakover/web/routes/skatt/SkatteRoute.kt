@@ -142,6 +142,11 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
         "Faktisk sakstype er ${this.faktiskSakstype}, forespurt sakstype er ${this.forespurtSakstype}",
         "faktisk_sakstype_er_ikke_lik_forespurt_sakstype",
     )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.UføresaksnummerKanIkkeBrukesForAlder -> HttpStatusCode.BadRequest.errorJson(
+        "Saksnummer som er for uføre, kan ikke brukes når man skal hente for en alderssak",
+        "uføre_saksnummer_kan_ikke_brukes_for_alderssak",
+    )
 }
 
 internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {

@@ -101,7 +101,10 @@ internal class QueryJournalpostHttpClient(
         )
     }
 
-    override fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+    override fun hentJournalposterFor(
+        saksnummer: Saksnummer,
+        limit: Int,
+    ): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
@@ -116,6 +119,25 @@ internal class QueryJournalpostHttpClient(
                 it.data!!.dokumentoversiktFagsak.journalposter.map {
                     Journalpost(JournalpostId(it.journalpostId!!), it.tittel!!)
                 }
+            }
+        }
+    }
+
+    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Unit> {
+        val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
+            query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
+            variables = HentJournalposterForSakVariables(
+                fagsak = Fagsak(fagsakId = fagsystemId),
+                foerste = limit,
+            ),
+        )
+        return runBlocking {
+            gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).mapLeft {
+                KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId") }
+            }.map {
+                // Vi er kun interessert i om det finnes en fagsak, ikke hva som er i den
+                // Derfor returnerer vi bare Unit
+                // TODO - hva skjer hvis en sak finnes med ingen journalposter? er det en greie? Kan muligens utforske litt mer
             }
         }
     }

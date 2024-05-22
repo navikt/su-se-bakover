@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -22,8 +23,8 @@ import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagForÅr
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -479,9 +480,13 @@ class SkatteServiceImplTest {
                     begrunnelse = "begrunnelse for henting av skatte-data",
                     saksbehandler = saksbehandler,
                     sakstype = Sakstype.UFØRE,
-                    fagsystemId = "29901",
+                    fagsystemId = sak.saksnummer.toString(),
                 ),
             ).shouldBeRight()
+
+            verify(it.sakService).hentSak(argThat<Saksnummer> { it shouldBe sak.saksnummer })
+            verify(it.personService).sjekkTilgangTilPerson(argThat { it shouldBe fnr })
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
 
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
@@ -494,7 +499,7 @@ class SkatteServiceImplTest {
                         skattegrunnlagEps = null,
                         begrunnelse = "begrunnelse for henting av skatte-data",
                         sakstype = Sakstype.UFØRE,
-                        fagsystemId = "29901",
+                        fagsystemId = sak.saksnummer.toString(),
                     )
                 },
             )
@@ -504,21 +509,65 @@ class SkatteServiceImplTest {
 
     @Test
     fun `henter skattegrunnlag og lager pdf for journalføring for aldersak`() {
-        assertThrows<NotImplementedError> {
-            mockedServices().let {
-                it.service.hentLagOgJournalførSkattePdf(
-                    request = FrioppslagSkattRequest(
-                        fnr = fnr,
-                        epsFnr = null,
-                        år = Year.of(2021),
+        val fagsystemId = "1279CB56"
+        val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+        val person = person()
+
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val journalpostClient = mock<QueryJournalpostClient> {
+            on { finnesFagsak(any(), anyOrNull()) } doReturn Unit.right()
+        }
+
+        val skatteClient = mock<Skatteoppslag> {
+            on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
+        }
+
+        val skattDokumentService = mock<SkattDokumentService> {
+            on { genererSkattePdfOgJournalfør(any()) } doReturn PdfA("content".toByteArray()).right()
+        }
+
+        mockedServices(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+            personService = personService,
+            journalpostClient = journalpostClient,
+        ).let {
+            it.service.hentLagOgJournalførSkattePdf(
+                request = FrioppslagSkattRequest(
+                    fnr = fnr,
+                    epsFnr = null,
+                    år = Year.of(2021),
+                    begrunnelse = "begrunnelse for henting av skatte-data",
+                    saksbehandler = saksbehandler,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = fagsystemId,
+                ),
+            ).shouldBeRight()
+
+            verify(it.personService).sjekkTilgangTilPerson(argThat { it shouldBe fnr })
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+            verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fagsystemId }, anyOrNull())
+            verify(it.skatteClient).hentSamletSkattegrunnlag(
+                argThat { it shouldBe fnr },
+                argThat { it shouldBe Year.of(2021) },
+            )
+            verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
+                argThat {
+                    it shouldBe GenererSkattPdfRequest(
+                        skattegrunnlagSøkers = it.skattegrunnlagSøkers,
+                        skattegrunnlagEps = null,
                         begrunnelse = "begrunnelse for henting av skatte-data",
-                        saksbehandler = saksbehandler,
                         sakstype = Sakstype.ALDER,
-                        fagsystemId = "29901",
-                    ),
-                ).shouldBeRight()
-                it.verifyNoMoreInteractions()
-            }
+                        fagsystemId = fagsystemId,
+                    )
+                },
+            )
+
+            it.verifyNoMoreInteractions()
         }
     }
 
@@ -527,6 +576,7 @@ class SkatteServiceImplTest {
         val skattDokumentService: SkattDokumentService = mock(),
         val personService: PersonService = mock(),
         val sakService: SakService = mock(),
+        val journalpostClient: QueryJournalpostClient = mock(),
         val clock: Clock = fixedClock,
     ) {
         val service = SkatteServiceImpl(
@@ -534,11 +584,12 @@ class SkatteServiceImplTest {
             skattDokumentService = skattDokumentService,
             personService = personService,
             sakService = sakService,
+            journalpostClient = journalpostClient,
             clock = fixedClock,
         )
 
         fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(skatteClient, skattDokumentService)
+            verifyNoMoreInteractions(skatteClient, skattDokumentService, personService, sakService, journalpostClient)
         }
     }
 }

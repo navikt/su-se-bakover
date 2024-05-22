@@ -16,6 +16,9 @@ internal data class Journalpost(
     val journalpostId: String? = null,
 )
 
+/**
+ * https://confluence.adeo.no/display/BOA/Type%3A+Sak
+ */
 internal data class Sak(
     val fagsakId: String? = null,
 )

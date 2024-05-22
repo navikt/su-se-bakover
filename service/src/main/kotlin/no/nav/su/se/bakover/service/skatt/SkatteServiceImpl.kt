@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -38,6 +39,7 @@ class SkatteServiceImpl(
     private val skattDokumentService: SkattDokumentService,
     private val personService: PersonService,
     private val sakService: SakService,
+    private val journalpostClient: QueryJournalpostClient,
     val clock: Clock,
 ) : SkatteService {
 
@@ -90,7 +92,7 @@ class SkatteServiceImpl(
         request: FrioppslagSkattRequest,
     ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
         val verifisering = when (request.sakstype) {
-            Sakstype.ALDER -> TODO("Finn ut hvordan vi skal verifisere aldersak")
+            Sakstype.ALDER -> verifiserRequestMedAlder(request)
             Sakstype.UFØRE -> verifiserRequestMedUføre(request)
         }
 
@@ -148,14 +150,29 @@ class SkatteServiceImpl(
     }
 
     /**
-     * Verifiserer 2 ting:
+     * Verifiserer 3 ting:
      * 1. At vi ikke har en sak med angitt saksnummer
-     * 1. At sakstype er alder
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
+     * 3. At saksnummeret finnes i Joark
      */
-//    private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
+    private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
+        Saksnummer.tryParse(request.fagsystemId).map {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.UføresaksnummerKanIkkeBrukesForAlder.left()
+        }
 
-//    }
+        personService.sjekkTilgangTilPerson(request.fnr).getOrElse {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left()
+        }.let {
+            personService.hentPerson(request.fnr)
+                .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+        }
+
+        journalpostClient.finnesFagsak(request.fagsystemId).getOrElse {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
+        }
+
+        return Unit.right()
+    }
 
     private fun hentSkattegrunnlag(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, Pair<Skattegrunnlag, Skattegrunnlag?>> {
         val skattegrunnlagSøkers = Skattegrunnlag(
