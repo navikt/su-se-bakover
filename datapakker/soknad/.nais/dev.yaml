@@ -3,11 +3,11 @@ kind: Naisjob
 metadata:
   labels:
     team: supstonad
-  name: su-datapakke-fritekst
+  name: su-datapakke-soknad
   namespace: supstonad
 spec:
-  # Run every 1st day of the month at 00:15
-  schedule: '15 0 1 * *'
+  # Run every day at 3:15
+  schedule: '15 3 * * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:

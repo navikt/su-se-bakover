@@ -6,7 +6,8 @@ metadata:
   name: su-datapakke-soknad
   namespace: supstonad
 spec:
-  schedule: '1 1 * * *'
+  # Run every day at 3:15
+  schedule: '15 3 * * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:
