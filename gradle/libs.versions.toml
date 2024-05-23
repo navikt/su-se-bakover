@@ -4,7 +4,7 @@ format.version = "1.1"
 [versions]
 slf4j = "2.0.13"
 kittinunf = "2.3.1"
-wiremock = "3.5.4"
+wiremock = "3.6.0"
 jupiter = "5.10.2"
 kotlin = "2.0.0"
 ktor = "2.3.11"
