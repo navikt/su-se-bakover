@@ -41,7 +41,7 @@ fun startAsynkroneUtbetalingsprosesser(
         KvitteringshendelseJob(
             knyttKvitteringTilSakOgUtbetalingService = utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService,
             initialDelay = initalDelay(),
-            intervall = Duration.ofMinutes(5),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
         ).schedule()
