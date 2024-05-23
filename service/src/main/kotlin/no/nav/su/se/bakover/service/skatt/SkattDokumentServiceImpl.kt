@@ -85,7 +85,8 @@ class SkattDokumentServiceImpl(
 
                 journalførSkattDokumentService.journalfør(
                     JournalførSkattedokumentUtenforSakCommand.tryCreate(
-                        fnr = request.skattegrunnlagSøkers.fnr,
+                        fnr = it.søkers?.fnr ?: it.eps?.fnr
+                            ?: throw IllegalArgumentException("Skattegrunnlag for søker og eps kan ikke være null samtidig"),
                         sakstype = request.sakstype,
                         fagsystemId = request.fagsystemId,
                         dokument = Dokument.UtenMetadata.Informasjon.Annet(
@@ -111,7 +112,7 @@ class SkattDokumentServiceImpl(
         fagsystemId: String,
         sakstype: Sakstype,
         begrunnelse: String,
-        skattegrunnlagSøker: Skattegrunnlag,
+        skattegrunnlagSøker: Skattegrunnlag?,
         skattegrunnlagEps: Skattegrunnlag?,
     ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, SkattegrunnlagsPdfInnhold> {
         return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdfInnholdFraFrioppslag(

@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagMedFeilIÅrsgrunnlag
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -96,7 +97,7 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skattemelding for søker med eps`() {
+    fun `lager skattemeldingspdf for søker med eps`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
@@ -160,7 +161,7 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skattegrunnlag dersom søker har skattegrunnlag men ikke eps`() {
+    fun `lager skattemeldingspdf dersom søker har skattegrunnlag, men ikke eps pga feil`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
@@ -223,7 +224,7 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skattegrunnlag dersom søker ikke har skattemelding, men eps har`() {
+    fun `lager skattemeldingspdf dersom søker ikke har skattemelding pga feil, men eps har`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
@@ -286,7 +287,7 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skattedokument selv om søker og eps ikke har skattemelding`() {
+    fun `lager skattemeldingspdf selv om søker og eps ikke har skattemelding`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
@@ -408,6 +409,21 @@ internal class SkattDokumentServiceImplTest {
             )
         }
         verifyNoMoreInteractions(pdfGenerator, personService)
+    }
+
+    @Test
+    fun `kaster exception dersom man prøver å lage skatte-pdf med søker & eps som null`() {
+        assertThrows<IllegalArgumentException> {
+            mockedServices().service.genererSkattePdf(
+                request = GenererSkattPdfRequest(
+                    skattegrunnlagSøkers = null,
+                    skattegrunnlagEps = null,
+                    begrunnelse = "begrunnelse",
+                    sakstype = Sakstype.UFØRE,
+                    fagsystemId = "fagsystemId",
+                ),
+            )
+        }
     }
 
     @Test
@@ -537,6 +553,21 @@ internal class SkattDokumentServiceImplTest {
             )
 
             it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom man prøver å lage og journalføre en skattePdf`() {
+        assertThrows<IllegalArgumentException> {
+            mockedServices().service.genererSkattePdfOgJournalfør(
+                GenererSkattPdfRequest(
+                    skattegrunnlagSøkers = null,
+                    skattegrunnlagEps = null,
+                    begrunnelse = "begrunnelse",
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = "fagsystemId",
+                ),
+            )
         }
     }
 

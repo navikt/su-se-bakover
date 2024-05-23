@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.skatt
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -40,13 +41,13 @@ class SkattRouteTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "/skatt/person/$fnr/forhandsvis",
+                    "/skatt/forhandsvis",
                     listOf(it),
                 ).apply { status shouldBe HttpStatusCode.Forbidden }
 
                 defaultRequest(
                     HttpMethod.Post,
-                    "/skatt/person/$fnr",
+                    "/skatt",
                     listOf(it),
                 ).apply { status shouldBe HttpStatusCode.Forbidden }
             }
@@ -75,13 +76,14 @@ class SkattRouteTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "/skatt/person/$fnr/forhandsvis",
+                    "/skatt/forhandsvis",
                     listOf(it),
                 ) {
                     setBody(
                         //language=json
                         """
                         {
+                          "fnr": "$fnr",
                           "epsFnr": null,
                           "år": 2020,
                           "sakstype": "alder",
@@ -135,13 +137,14 @@ class SkattRouteTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "/skatt/person/$fnr",
+                    "/skatt",
                     listOf(it),
                 ) {
                     setBody(
                         //language=json
                         """
                         {
+                          "fnr": "$fnr", 
                           "epsFnr": null,
                           "år": 2020,
                           "sakstype": "alder",
@@ -171,5 +174,37 @@ class SkattRouteTest {
                 )
             },
         )
+    }
+
+    @Test
+    fun `krever at det sendes inn søkers fnr, eps fnr, eller begge`() {
+        listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant).forEach {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(),
+                    )
+                }
+                defaultRequest(HttpMethod.Post, "/skatt", listOf(it)) {
+                    setBody(
+                        //language=json
+                        """
+                        {
+                          "fnr": null, 
+                          "epsFnr": null,
+                          "år": 2020,
+                          "sakstype": "alder",
+                          "fagsystemId": "",
+                          "begrunnelse": "Jeg vil snoke inn på naboen sin skattemelding"
+                        }
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    this.bodyAsText() shouldBe """{"message":"Krever at fnr eller epsFnr sendes inn. Eventuelt begge","code":"krever_at_minst_et_fnr_sendes_inn"}"""
+                    this.contentType() shouldBe ContentType.Application.Json
+                }
+            }
+        }
     }
 }

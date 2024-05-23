@@ -23,6 +23,7 @@ sealed interface KunneIkkeGenerereSkattePdfOgJournalføre {
         KunneIkkeGenerereSkattePdfOgJournalføre
 
     data class FeilVedHentingAvPerson(val it: KunneIkkeHentePerson) : KunneIkkeGenerereSkattePdfOgJournalføre
+    data object FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn : KunneIkkeGenerereSkattePdfOgJournalføre
     data object UføresaksnummerKanIkkeBrukesForAlder : KunneIkkeGenerereSkattePdfOgJournalføre
     data object FnrPåSakErIkkeLikFnrViFikkFraPDL : KunneIkkeGenerereSkattePdfOgJournalføre
     data object FantIkkeSak : KunneIkkeGenerereSkattePdfOgJournalføre

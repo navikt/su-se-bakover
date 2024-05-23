@@ -485,7 +485,6 @@ class SkatteServiceImplTest {
             ).shouldBeRight()
 
             verify(it.sakService).hentSak(argThat<Saksnummer> { it shouldBe sak.saksnummer })
-            verify(it.personService).sjekkTilgangTilPerson(argThat { it shouldBe fnr })
             verify(it.personService).hentPerson(argThat { it shouldBe fnr })
 
             verify(it.skatteClient).hentSamletSkattegrunnlag(
@@ -548,7 +547,6 @@ class SkatteServiceImplTest {
                 ),
             ).shouldBeRight()
 
-            verify(it.personService).sjekkTilgangTilPerson(argThat { it shouldBe fnr })
             verify(it.personService).hentPerson(argThat { it shouldBe fnr })
             verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fagsystemId }, anyOrNull())
             verify(it.skatteClient).hentSamletSkattegrunnlag(

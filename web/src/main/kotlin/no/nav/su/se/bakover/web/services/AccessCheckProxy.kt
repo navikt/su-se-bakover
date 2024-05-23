@@ -1204,12 +1204,14 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
-                    assertHarTilgangTilPerson(request.fnr)
+                    request.fnr?.let { assertHarTilgangTilPerson(it) }
+                    request.epsFnr?.let { assertHarTilgangTilPerson(it) }
                     return services.skatteService.hentOgLagSkattePdf(request)
                 }
 
                 override fun hentLagOgJournalførSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
-                    assertHarTilgangTilPerson(request.fnr)
+                    request.fnr?.let { assertHarTilgangTilPerson(it) }
+                    request.epsFnr?.let { assertHarTilgangTilPerson(it) }
                     return services.skatteService.hentLagOgJournalførSkattePdf(request)
                 }
             },

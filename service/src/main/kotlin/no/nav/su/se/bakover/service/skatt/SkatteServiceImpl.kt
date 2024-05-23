@@ -122,6 +122,9 @@ class SkatteServiceImpl(
      * 1. At sakstype er uføre
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At fnr i saken er lik fnr i request
+     * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
+     *
+     * TODO - sjekk at fnr vi får tilbake fra PDL er som i requesten
      */
     private fun verifiserRequestMedUføre(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         val uføresak = sakService.hentSak(Saksnummer(request.fagsystemId.toLong())).getOrElse {
@@ -135,15 +138,27 @@ class SkatteServiceImpl(
             }
             it
         }
-        val person = personService.sjekkTilgangTilPerson(request.fnr).getOrElse {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left()
-        }.let {
-            personService.hentPerson(request.fnr)
+
+        request.fnr?.let {
+            val person = personService.hentPerson(it)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+
+            if (uføresak.fnr != person.ident.fnr) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL.left()
+            }
+
+            if (person.ident.fnr != it) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn.left()
+            }
         }
 
-        if (uføresak.fnr != person.ident.fnr) {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL.left()
+        request.epsFnr?.let {
+            val person = personService.hentPerson(it)
+                .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+
+            if (person.ident.fnr != it) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn.left()
+            }
         }
 
         return Unit.right()
@@ -154,17 +169,28 @@ class SkatteServiceImpl(
      * 1. At vi ikke har en sak med angitt saksnummer
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At saksnummeret finnes i Joark
+     * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
      */
     private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         Saksnummer.tryParse(request.fagsystemId).map {
             return KunneIkkeGenerereSkattePdfOgJournalføre.UføresaksnummerKanIkkeBrukesForAlder.left()
         }
 
-        personService.sjekkTilgangTilPerson(request.fnr).getOrElse {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left()
-        }.let {
-            personService.hentPerson(request.fnr)
+        request.fnr?.let {
+            val person = personService.hentPerson(it)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+
+            if (person.ident.fnr != it) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn.left()
+            }
+        }
+        request.epsFnr?.let {
+            val person = personService.hentPerson(it)
+                .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
+
+            if (person.ident.fnr != it) {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn.left()
+            }
         }
 
         journalpostClient.finnesFagsak(request.fagsystemId).getOrElse {
@@ -174,17 +200,21 @@ class SkatteServiceImpl(
         return Unit.right()
     }
 
-    private fun hentSkattegrunnlag(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, Pair<Skattegrunnlag, Skattegrunnlag?>> {
-        val skattegrunnlagSøkers = Skattegrunnlag(
-            id = UUID.randomUUID(),
-            fnr = request.fnr,
-            hentetTidspunkt = Tidspunkt.now(clock),
-            saksbehandler = request.saksbehandler,
-            årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
-                .hentMestGyldigeSkattegrunnlagEllerFeil()
-                .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
-            årSpurtFor = request.år.toRange(),
-        )
+    private fun hentSkattegrunnlag(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, Pair<Skattegrunnlag?, Skattegrunnlag?>> {
+        val skattegrunnlagSøkers = if (request.fnr != null) {
+            Skattegrunnlag(
+                id = UUID.randomUUID(),
+                fnr = request.fnr!!,
+                hentetTidspunkt = Tidspunkt.now(clock),
+                saksbehandler = request.saksbehandler,
+                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr!!, request.år)
+                    .hentMestGyldigeSkattegrunnlagEllerFeil()
+                    .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
+                årSpurtFor = request.år.toRange(),
+            )
+        } else {
+            null
+        }
 
         val skattegrunnlagEps = if (request.epsFnr != null) {
             Skattegrunnlag(
