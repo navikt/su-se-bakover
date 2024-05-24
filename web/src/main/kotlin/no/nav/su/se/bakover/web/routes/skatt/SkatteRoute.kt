@@ -142,8 +142,8 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
     KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak -> fantIkkeSak
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson -> it.tilResultat()
     KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL -> HttpStatusCode.BadRequest.errorJson(
-        "Forespurt fnr var ikke det vi vikk tilbake fra PDL",
-        "forespurt_fnr_ikke_lik_fnr_fra_pdl",
+        "Fødselsnummer som er registrert på sak er ikke lik den vi fikk fra PDL",
+        "forespurt_fnr_på_sak_ikke_lik_fnr_fra_pdl",
     )
 
     is KunneIkkeGenerereSkattePdfOgJournalføre.SakstypeErIkkeDenSammeSomForespurt -> HttpStatusCode.BadRequest.errorJson(

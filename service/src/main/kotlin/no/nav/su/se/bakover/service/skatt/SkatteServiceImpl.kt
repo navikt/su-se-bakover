@@ -118,7 +118,7 @@ class SkatteServiceImpl(
     }
 
     /**
-     * Verifiserer 3 ting:
+     * Verifiserer 4 ting:
      * 1. At sakstype er uføre
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At fnr i saken er lik fnr i request
@@ -163,17 +163,13 @@ class SkatteServiceImpl(
     }
 
     /**
-     * Verifiserer 3 ting:
+     * Verifiserer 4 ting:
      * 1. At vi ikke har en sak med angitt saksnummer
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At saksnummeret finnes i Joark
      * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
      */
     private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
-        Saksnummer.tryParse(request.fagsystemId).map {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.UføresaksnummerKanIkkeBrukesForAlder.left()
-        }
-
         request.fnr?.let {
             val person = personService.hentPerson(it)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
