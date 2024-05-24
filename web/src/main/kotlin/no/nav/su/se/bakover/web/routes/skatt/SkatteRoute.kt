@@ -160,6 +160,11 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
         "Fikk tilbake et annet fnr fra PDL enn det som ble sendt inn. Er det som er sendt in et historisk fødselsnummer?",
         "pdl_returnerte_annet_fnr_enn_det_som_blev_sendt_inn",
     )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedKonverteringAvFagsystemIdTilSaksnummer -> HttpStatusCode.BadRequest.errorJson(
+        "En feil skjedde ved konverting av fagsystem-id til saksnummer",
+        "feil_ved_konvertering_av_fagsystem_id_til_saksnummer",
+    )
 }
 
 internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {

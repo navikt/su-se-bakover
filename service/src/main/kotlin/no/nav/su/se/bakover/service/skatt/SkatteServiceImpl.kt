@@ -125,7 +125,16 @@ class SkatteServiceImpl(
      * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
      */
     private fun verifiserRequestMedUføre(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
-        val uføresak = sakService.hentSak(Saksnummer(request.fagsystemId.toLong())).getOrElse {
+        val saksnummer = Either.catch {
+            Saksnummer(request.fagsystemId.toLong())
+        }.fold(
+            ifLeft = { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedKonverteringAvFagsystemIdTilSaksnummer.left() },
+            ifRight = {
+                it
+            },
+        )
+
+        val uføresak = sakService.hentSak(saksnummer).getOrElse {
             return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
         }.let {
             if (it.type != Sakstype.UFØRE) {

@@ -137,14 +137,18 @@ internal class QueryJournalpostHttpClient(
                     KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId") }
                         .left()
                 },
-                ifRight = {
-                    if (it.hasErrors()) {
-                        log.error("Fant errors ved sjekk om fagsak finnes: ${it.errors}")
+                ifRight = { response ->
+                    if (response.hasErrors()) {
+                        log.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}")
+                        sikkerLogg.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}. requesten var $request")
                         KunneIkkeHenteJournalposter.ClientError.left()
                     }
                     // Vi er kun interessert i om det finnes en fagsak, ikke hva som er i den
                     // Derfor returnerer vi bare Unit
-                    Unit.right()
+                    Unit.also {
+                        log.info("Fikk respons ved sjekk om fagsak finnes - se sikker logg for innhold")
+                        sikkerLogg.info("Fikk respons ved sjekk om fagsak finnes: $response. requesten var $request")
+                    }.right()
                 },
             )
         }
