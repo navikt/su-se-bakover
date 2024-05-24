@@ -6,34 +6,32 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleStatusJson.Companion.toJson
 import java.time.LocalDate
-import java.util.UUID
 
-data class KontrollsamtaleJson(
-    val id: UUID,
+private data class KontrollsamtaleJson(
+    val id: String,
     val opprettet: Tidspunkt,
     val innkallingsdato: LocalDate,
     val status: KontrollsamtaleStatusJson,
     val frist: LocalDate,
-    val dokumentId: UUID?,
+    val dokumentId: String?,
     val journalpostIdKontrollnotat: String?,
-) {
+)
 
-    companion object {
-        fun Kontrollsamtale.toJson(): KontrollsamtaleJson {
-            return KontrollsamtaleJson(
-                id = this.id,
-                opprettet = this.opprettet,
-                innkallingsdato = this.innkallingsdato,
-                status = this.status.toJson(),
-                frist = this.frist,
-                dokumentId = this.dokumentId,
-                journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
-            )
-        }
-
-        fun List<Kontrollsamtale>.toJson(): String = serialize(this.map { it.toJson() })
-    }
+internal fun Kontrollsamtale.toJson(): String {
+    return KontrollsamtaleJson(
+        id = this.id.toString(),
+        opprettet = this.opprettet,
+        innkallingsdato = this.innkallingsdato,
+        status = this.status.toJson(),
+        frist = this.frist,
+        dokumentId = this.dokumentId.toString(),
+        journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
+    ).let { serialize(it) }
 }
+
+internal fun List<Kontrollsamtale>.toJson(): String = """
+    [${this.joinToString(",") { it.toJson() }}]
+""".trimIndent()
 
 enum class KontrollsamtaleStatusJson {
     PLANLAGT_INNKALLING,

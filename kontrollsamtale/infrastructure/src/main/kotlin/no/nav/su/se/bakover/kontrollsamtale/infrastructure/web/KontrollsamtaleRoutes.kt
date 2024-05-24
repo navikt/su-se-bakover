@@ -13,11 +13,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleJson.Companion.toJson
 import java.time.LocalDate
 
 const val SAK_PATH = "/saker"
@@ -66,7 +64,7 @@ fun Route.kontrollsamtaleRoutes(
                         )
                     },
                     {
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
+                        call.svar(Resultat.json(HttpStatusCode.OK, it.toJson()))
                     },
                 )
             }
