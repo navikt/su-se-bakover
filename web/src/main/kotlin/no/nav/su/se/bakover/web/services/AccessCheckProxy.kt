@@ -182,6 +182,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -748,7 +749,10 @@ open class AccessCheckProxy(
                     return services.ferdigstillVedtak.ferdigstillVedtak(vedtakId)
                 }
 
-                override fun lukkOppgaveMedBruker(behandling: Stønadsbehandling, tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgaveMedBruker(
+                    behandling: Stønadsbehandling,
+                    tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
+                ) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun hentRevurdering(revurderingId: RevurderingId): AbstraktRevurdering? {
@@ -1237,16 +1241,16 @@ open class AccessCheckProxy(
 
                     override fun hentNestePlanlagteKontrollsamtale(
                         sakId: UUID,
-                        sessionContext: SessionContext,
+                        sessionContext: SessionContext?,
                     ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
                         assertHarTilgangTilSak(sakId)
-                        return service.hentNestePlanlagteKontrollsamtale(sakId)
+                        return service.hentNestePlanlagteKontrollsamtale(sakId, sessionContext)
                     }
 
                     override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate) =
                         kastKanKunKallesFraAnnenService()
 
-                    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) =
+                    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext?) =
                         kastKanKunKallesFraAnnenService()
 
                     override fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler {
@@ -1254,16 +1258,23 @@ open class AccessCheckProxy(
                         return service.hentKontrollsamtaler(sakId)
                     }
 
-                    override fun kallInn(
+                    override fun annullerKontrollsamtale(
                         sakId: UUID,
+                        kontrollsamtaleId: UUID,
+                        sessionContext: SessionContext?,
+                    ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
+                        assertHarTilgangTilSak(sakId)
+                        return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, sessionContext)
+                    }
+
+                    override fun kallInn(
                         kontrollsamtale: Kontrollsamtale,
                     ) = kastKanKunKallesFraAnnenService()
 
                     override fun hentPlanlagteKontrollsamtaler(
-                        sessionContext: SessionContext,
+                        sessionContext: SessionContext?,
                     ) = kastKanKunKallesFraAnnenService()
 
-                    override fun defaultSessionContext() = service.defaultSessionContext()
                     override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate) =
                         kastKanKunKallesFraAnnenService()
                 }

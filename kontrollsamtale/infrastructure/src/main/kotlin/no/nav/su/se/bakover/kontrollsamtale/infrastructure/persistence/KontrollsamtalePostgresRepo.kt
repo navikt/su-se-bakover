@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -10,7 +9,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
@@ -27,9 +25,9 @@ internal class KontrollsamtalePostgresRepo(
      * upsert - update or insert.
      * Ved update oppdateres: status, innkallingsdato, frist, dokumentId og journalpostIdKontrollnotat.
      */
-    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) {
+    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext?) {
         dbMetrics.timeQuery("lagreKontrollsamtale") {
-            sessionContext.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 (
                     """
                     insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid, journalpostId)
@@ -60,9 +58,9 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Kontrollsamtaler {
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext?): Kontrollsamtaler {
         return dbMetrics.timeQuery("hentKontrollsamtaleForSakId") {
-            sessionContext.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 "select * from kontrollsamtale where sakid=:sakId"
                     .trimIndent()
                     .hentListe(mapOf("sakId" to sakId), session) { it.toKontrollsamtale() }
@@ -71,11 +69,23 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): Kontrollsamtaler {
-        return dbMetrics.timeQuery("hentAllePlanlagteKontrollsamtaler") {
-            sessionContext.withSession { session ->
-                "select * from kontrollsamtale where status=:status and innkallingsdato <= :tilOgMed"
+    override fun hentForKontrollsamtaleId(
+        kontrollsamtaleId: UUID,
+        sessionContext: SessionContext?,
+    ): Kontrollsamtale? {
+        return dbMetrics.timeQuery("hentForKontrollsamtaleId") {
+            sessionFactory.withSession(sessionContext) { session ->
+                "select * from kontrollsamtale where id=:id"
                     .trimIndent()
+                    .hent(mapOf("id" to kontrollsamtaleId), session) { it.toKontrollsamtale() }
+            }
+        }
+    }
+
+    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext?): Kontrollsamtaler {
+        return dbMetrics.timeQuery("hentAllePlanlagteKontrollsamtaler") {
+            sessionFactory.withSession(sessionContext) { session ->
+                "select * from kontrollsamtale where status=:status and innkallingsdato <= :tilOgMed"
                     .hentListe(
                         mapOf(
                             "status" to Kontrollsamtalestatus.PLANLAGT_INNKALLING.toString(),
@@ -125,11 +135,6 @@ internal class KontrollsamtalePostgresRepo(
                     .let { Kontrollsamtaler(it) }
             }
         }
-    }
-
-    override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
-    override fun defaultTransactionContext(): TransactionContext {
-        return sessionFactory.newTransactionContext()
     }
 
     private fun Row.toKontrollsamtale(): Kontrollsamtale {

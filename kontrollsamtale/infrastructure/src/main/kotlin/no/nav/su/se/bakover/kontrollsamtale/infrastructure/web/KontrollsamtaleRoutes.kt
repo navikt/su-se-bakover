@@ -18,12 +18,10 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import java.time.LocalDate
 
-const val SAK_PATH = "/saker"
-
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
-    post("$SAK_PATH/{sakId}/kontrollsamtaler/nyDato") {
+    post("/saker/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val nyDato: LocalDate,
@@ -35,7 +33,6 @@ fun Route.kontrollsamtaleRoutes(
                             call.svar(
                                 when (it) {
                                     KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
-                                    KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale
                                     KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned -> Feilresponser.datoMåVæreFørsteIMåned
                                 },
@@ -48,7 +45,7 @@ fun Route.kontrollsamtaleRoutes(
         }
     }
 
-    get("$SAK_PATH/{sakId}/kontrollsamtaler/hent") {
+    get("/saker/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sakId).fold(
@@ -71,7 +68,7 @@ fun Route.kontrollsamtaleRoutes(
         }
     }
 
-    get("$SAK_PATH/{sakId}/kontrollsamtaler") {
+    get("/saker/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
@@ -80,4 +77,6 @@ fun Route.kontrollsamtaleRoutes(
             }
         }
     }
+
+    annullerKontrollsamtaleRoute(kontrollsamtaleService)
 }
