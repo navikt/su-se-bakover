@@ -123,8 +123,6 @@ class SkatteServiceImpl(
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At fnr i saken er lik fnr i request
      * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
-     *
-     * TODO - sjekk at fnr vi får tilbake fra PDL er som i requesten
      */
     private fun verifiserRequestMedUføre(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         val uføresak = sakService.hentSak(Saksnummer(request.fagsystemId.toLong())).getOrElse {
