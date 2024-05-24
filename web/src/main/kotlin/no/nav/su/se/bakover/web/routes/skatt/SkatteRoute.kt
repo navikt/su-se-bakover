@@ -165,6 +165,11 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
         "En feil skjedde ved konverting av fagsystem-id til saksnummer",
         "feil_ved_konvertering_av_fagsystem_id_til_saksnummer",
     )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedVerifiseringAvFagsakMotJoark -> HttpStatusCode.InternalServerError.errorJson(
+        "Feil ved verifisering av fagsak mot joark",
+        "feil_ved_verifisering_av_fagsak_mot_joark",
+    )
 }
 
 internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {

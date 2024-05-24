@@ -34,8 +34,8 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             Journalpost(JournalpostId("234252334"), "Innsendt klage V2"),
         ).right()
 
-    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Unit> {
-        return Unit.right()
+    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
+        return true.right()
     }
 
     override fun kontrollnotatMotatt(

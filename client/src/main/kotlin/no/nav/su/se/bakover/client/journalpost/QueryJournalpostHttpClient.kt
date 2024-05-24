@@ -123,7 +123,8 @@ internal class QueryJournalpostHttpClient(
         }
     }
 
-    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Unit> {
+    // TODO - må testet litt mer
+    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
@@ -143,9 +144,7 @@ internal class QueryJournalpostHttpClient(
                         sikkerLogg.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}. requesten var $request")
                         KunneIkkeHenteJournalposter.ClientError.left()
                     }
-                    // Vi er kun interessert i om det finnes en fagsak, ikke hva som er i den
-                    // Derfor returnerer vi bare Unit
-                    Unit.also {
+                    (response.data?.dokumentoversiktFagsak?.journalposter?.isNotEmpty() ?: false).also {
                         log.info("Fikk respons ved sjekk om fagsak finnes - se sikker logg for innhold")
                         sikkerLogg.info("Fikk respons ved sjekk om fagsak finnes: $response. requesten var $request")
                     }.right()

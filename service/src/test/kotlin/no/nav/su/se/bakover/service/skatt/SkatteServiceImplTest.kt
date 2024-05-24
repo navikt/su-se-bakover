@@ -518,7 +518,7 @@ class SkatteServiceImplTest {
         }
 
         val journalpostClient = mock<QueryJournalpostClient> {
-            on { finnesFagsak(any(), anyOrNull()) } doReturn Unit.right()
+            on { finnesFagsak(any(), anyOrNull()) } doReturn true.right()
         }
 
         val skatteClient = mock<Skatteoppslag> {

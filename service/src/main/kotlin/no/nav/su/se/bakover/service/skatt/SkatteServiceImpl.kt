@@ -196,10 +196,16 @@ class SkatteServiceImpl(
             }
         }
 
-        journalpostClient.finnesFagsak(request.fagsystemId).getOrElse {
-            return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
-        }
-
+        journalpostClient.finnesFagsak(request.fagsystemId).fold(
+            ifLeft = {
+                return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedVerifiseringAvFagsakMotJoark.left()
+            },
+            ifRight = {
+                if (!it) {
+                    return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
+                }
+            },
+        )
         return Unit.right()
     }
 

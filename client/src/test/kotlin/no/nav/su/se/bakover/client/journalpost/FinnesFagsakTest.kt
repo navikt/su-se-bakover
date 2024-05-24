@@ -35,7 +35,7 @@ class FinnesFagsakTest {
             """.trimIndent()
 
             setupClient(baseUrl()).also {
-                it.finnesFagsak("AC5960D") shouldBe Unit.right()
+                it.finnesFagsak("AC5960D") shouldBe true.right()
                 String(serveEvents.requests.first().request.body) shouldBe expected
             }
         }
