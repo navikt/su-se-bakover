@@ -6,6 +6,10 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
+/**
+ * Et skattedokument som er tilknyttet en sak og et vedtak.
+ * Denne klassen brukes under f.eks under søknadsbehandling
+ */
 sealed interface Skattedokument {
     val id: UUID
     val søkersSkatteId: UUID
@@ -20,7 +24,7 @@ sealed interface Skattedokument {
     /**
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
      */
-    val dokumentTittel: String get() = SkattegrunnlagPdfTemplate.tittel()
+    val dokumentTittel: String get() = SkattegrunnlagPdfTemplate().tittel()
     fun tilJournalført(journalpostId: JournalpostId): Journalført
 
     data class Generert(

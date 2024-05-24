@@ -1,6 +1,9 @@
 package dokument.domain.pdf
 
-data object SkattegrunnlagPdfTemplate : PdfTemplateMedDokumentNavn {
+/**
+ * @param tittel - overrideable tittel for dokumentet
+ */
+data class SkattegrunnlagPdfTemplate(val tittel: String? = null) : PdfTemplateMedDokumentNavn {
     override val pdfTemplate = PdfTemplate.Skattegrunnlag
-    override val dokumentNavn = "Skattegrunnlag"
+    override val dokumentNavn = tittel ?: "Skattegrunnlag"
 }
