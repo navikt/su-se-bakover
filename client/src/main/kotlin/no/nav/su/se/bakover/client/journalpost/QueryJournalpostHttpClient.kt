@@ -34,7 +34,8 @@ import java.net.http.HttpResponse
 import java.time.Duration
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
-// https://confluence.adeo.no/display/BOA/Query%3A+journalpost
+// queries: https://confluence.adeo.no/display/BOA/saf+-+Queries
+// journalpost query: https://confluence.adeo.no/display/BOA/Query%3A+journalpost
 internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
@@ -100,7 +101,10 @@ internal class QueryJournalpostHttpClient(
         )
     }
 
-    override fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+    override fun hentJournalposterFor(
+        saksnummer: Saksnummer,
+        limit: Int,
+    ): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
@@ -116,6 +120,33 @@ internal class QueryJournalpostHttpClient(
                     Journalpost(JournalpostId(it.journalpostId!!), it.tittel!!)
                 }
             }
+        }
+    }
+
+    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Unit> {
+        val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
+            query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
+            variables = HentJournalposterForSakVariables(
+                fagsak = Fagsak(fagsakId = fagsystemId),
+                foerste = limit,
+            ),
+        )
+        return runBlocking {
+            gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).fold(
+                ifLeft = {
+                    KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId") }
+                        .left()
+                },
+                ifRight = {
+                    if (it.hasErrors()) {
+                        log.error("Fant errors ved sjekk om fagsak finnes: ${it.errors}")
+                        KunneIkkeHenteJournalposter.ClientError.left()
+                    }
+                    // Vi er kun interessert i om det finnes en fagsak, ikke hva som er i den
+                    // Derfor returnerer vi bare Unit
+                    Unit.right()
+                },
+            )
         }
     }
 

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.web.routes.person.tilResultat
 import vilkår.skatt.application.FrioppslagSkattRequest
@@ -37,6 +37,7 @@ import java.time.Year
 internal const val SKATTE_PATH = "/skatt"
 
 sealed interface FrioppslagValideringsFeil {
+    data object KreverAtMinstEtFnrSendesInn : FrioppslagValideringsFeil
     data object InntektsårErFør2020 : FrioppslagValideringsFeil
 
     fun tilResultat(): Resultat = when (this) {
@@ -44,11 +45,17 @@ sealed interface FrioppslagValideringsFeil {
             "Inntektsåret som ble forespurt er før 2020. Vi har kun avtale å hente fra 2020",
             "inntektsår_før_2020",
         )
+
+        KreverAtMinstEtFnrSendesInn -> HttpStatusCode.BadRequest.errorJson(
+            "Krever at fnr eller epsFnr sendes inn. Eventuelt begge",
+            "krever_at_minst_et_fnr_sendes_inn",
+        )
     }
 }
 
 internal fun Route.skattRoutes(skatteService: SkatteService) {
     data class FrioppslagRequestBody(
+        val fnr: String?,
         val epsFnr: String?,
         val år: Int,
         val begrunnelse: String,
@@ -59,12 +66,15 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
          * fagsystemId & begrunnelse kan være tom string - Dette er ment for forhåndsvisning
          */
         fun tilFrioppslagSkattRequest(
-            fnr: Fnr,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<FrioppslagValideringsFeil, FrioppslagSkattRequest> {
+            if (fnr == null && epsFnr == null) {
+                return FrioppslagValideringsFeil.KreverAtMinstEtFnrSendesInn.left()
+            }
+
             return FrioppslagSkattRequest(
-                fnr = fnr,
-                epsFnr = if (epsFnr != null) Fnr(epsFnr) else null,
+                fnr = fnr?.let { Fnr.tryCreate(it) },
+                epsFnr = epsFnr?.let { Fnr.tryCreate(it) },
                 år = if (år < 2020) return FrioppslagValideringsFeil.InntektsårErFør2020.left() else Year.of(år),
                 begrunnelse = begrunnelse,
                 saksbehandler = saksbehandler,
@@ -74,52 +84,51 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         }
     }
 
-    post("$SKATTE_PATH/person/{fnr}/forhandsvis") {
+    post("$SKATTE_PATH/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withFnr { fnr ->
-                call.withBody<FrioppslagRequestBody> { body ->
-                    body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler).fold(
-                        {
-                            call.svar(it.tilResultat())
-                        },
-                        {
-                            skatteService.hentOgLagSkattePdf(
-                                request = it,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                    call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                                },
-                            )
-                        },
-                    )
-                }
+            call.withBody<FrioppslagRequestBody> { body ->
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
+                    {
+                        call.svar(it.tilResultat())
+                    },
+                    { request ->
+                        skatteService.hentOgLagSkattePdf(
+                            request = request,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+
+                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            },
+                        )
+                    },
+                )
             }
         }
     }
 
-    post("$SKATTE_PATH/person/{fnr}") {
+    post(SKATTE_PATH) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withFnr { fnr ->
-                call.withBody<FrioppslagRequestBody> { body ->
-                    body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler).fold(
-                        {
-                            call.svar(it.tilResultat())
-                        },
-                        {
-                            skatteService.hentLagOgJournalførSkattePdf(
-                                request = it,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                    call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                                },
-                            )
-                        },
-                    )
-                }
+            call.withBody<FrioppslagRequestBody> { body ->
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
+                    {
+                        call.svar(it.tilResultat())
+                    },
+                    { request ->
+                        skatteService.hentLagOgJournalførSkattePdf(
+                            request = request,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            },
+                        )
+                    },
+                )
             }
         }
     }
@@ -130,6 +139,27 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalpostUtenforSak -> this.originalFeil.tilResultat()
+    KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak -> fantIkkeSak
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson -> it.tilResultat()
+    KunneIkkeGenerereSkattePdfOgJournalføre.FnrPåSakErIkkeLikFnrViFikkFraPDL -> HttpStatusCode.BadRequest.errorJson(
+        "Fødselsnummer som er registrert på sak er ikke lik den vi fikk fra PDL",
+        "forespurt_fnr_på_sak_ikke_lik_fnr_fra_pdl",
+    )
+
+    is KunneIkkeGenerereSkattePdfOgJournalføre.SakstypeErIkkeDenSammeSomForespurt -> HttpStatusCode.BadRequest.errorJson(
+        "Faktisk sakstype er ${this.faktiskSakstype}, forespurt sakstype er ${this.forespurtSakstype}",
+        "faktisk_sakstype_er_ikke_lik_forespurt_sakstype",
+    )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.UføresaksnummerKanIkkeBrukesForAlder -> HttpStatusCode.BadRequest.errorJson(
+        "Saksnummer som er for uføre, kan ikke brukes når man skal hente for en alderssak",
+        "uføre_saksnummer_kan_ikke_brukes_for_alderssak",
+    )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.FikkTilbakeEtAnnetFnrFraPdlEnnDetSomBleSendtInn -> HttpStatusCode.BadRequest.errorJson(
+        "Fikk tilbake et annet fnr fra PDL enn det som ble sendt inn. Er det som er sendt in et historisk fødselsnummer?",
+        "pdl_returnerte_annet_fnr_enn_det_som_blev_sendt_inn",
+    )
 }
 
 internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {

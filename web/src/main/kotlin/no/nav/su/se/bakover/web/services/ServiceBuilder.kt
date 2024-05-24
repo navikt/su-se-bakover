@@ -115,6 +115,9 @@ data object ServiceBuilder {
         val skatteServiceImpl = SkatteServiceImpl(
             skatteClient = clients.skatteOppslag,
             skattDokumentService = skattDokumentService,
+            personService = personService,
+            sakService = sakService,
+            journalpostClient = clients.queryJournalpostClient,
             clock = clock,
         )
 

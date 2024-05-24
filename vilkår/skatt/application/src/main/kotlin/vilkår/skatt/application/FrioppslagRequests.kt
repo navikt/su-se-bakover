@@ -7,7 +7,7 @@ import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Year
 
 data class FrioppslagSkattRequest(
-    val fnr: Fnr,
+    val fnr: Fnr?,
     val epsFnr: Fnr?,
     val år: Year,
     val begrunnelse: String,
@@ -21,7 +21,7 @@ data class FrioppslagSkattRequest(
  * @param fagsystemId vil være [Saksnummer] for uføre og String for alder (infotrygd sin id)
  */
 data class GenererSkattPdfRequest(
-    val skattegrunnlagSøkers: Skattegrunnlag,
+    val skattegrunnlagSøkers: Skattegrunnlag?,
     val skattegrunnlagEps: Skattegrunnlag?,
     val begrunnelse: String,
     val sakstype: Sakstype,

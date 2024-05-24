@@ -63,6 +63,9 @@ internal class PersonClient(
         }
     }
 
+    /**
+     * PDL gjør en enkel tilgangssjekk implisitt ved kallet med brukertokenet
+     */
     override fun person(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, Person> {
@@ -84,6 +87,10 @@ internal class PersonClient(
         }
     }
 
+    /**
+     * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
+     * med resultatet
+     */
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
         return personCache.getOrAdd(Pair(fnr, brukerToken)) {

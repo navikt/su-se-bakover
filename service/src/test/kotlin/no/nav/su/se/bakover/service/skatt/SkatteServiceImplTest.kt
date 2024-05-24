@@ -3,26 +3,33 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagForÅr
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import person.domain.PersonService
 import vilkår.skatt.application.FrioppslagSkattRequest
 import vilkår.skatt.application.GenererSkattPdfRequest
 import vilkår.skatt.domain.KunneIkkeHenteSkattemelding
@@ -438,8 +445,18 @@ class SkatteServiceImplTest {
     }
 
     @Test
-    fun `henter skattegrunnlag og lager pdf av den for journalføring`() {
+    fun `henter skattegrunnlag og lager pdf av den for journalføring for uføresak`() {
         val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+        val person = person()
+        val sak = nySakUføre().first
+
+        val sakService = mock<SakService> {
+            on { hentSak(any<Saksnummer>()) } doReturn sak.right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
 
         val skatteClient = mock<Skatteoppslag> {
             on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
@@ -452,6 +469,8 @@ class SkatteServiceImplTest {
         mockedServices(
             skatteClient = skatteClient,
             skattDokumentService = skattDokumentService,
+            personService = personService,
+            sakService = sakService,
         ).let {
             it.service.hentLagOgJournalførSkattePdf(
                 request = FrioppslagSkattRequest(
@@ -460,10 +479,13 @@ class SkatteServiceImplTest {
                     år = Year.of(2021),
                     begrunnelse = "begrunnelse for henting av skatte-data",
                     saksbehandler = saksbehandler,
-                    sakstype = Sakstype.ALDER,
-                    fagsystemId = "29901",
+                    sakstype = Sakstype.UFØRE,
+                    fagsystemId = sak.saksnummer.toString(),
                 ),
             ).shouldBeRight()
+
+            verify(it.sakService).hentSak(argThat<Saksnummer> { it shouldBe sak.saksnummer })
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
 
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
@@ -475,8 +497,8 @@ class SkatteServiceImplTest {
                         skattegrunnlagSøkers = it.skattegrunnlagSøkers,
                         skattegrunnlagEps = null,
                         begrunnelse = "begrunnelse for henting av skatte-data",
-                        sakstype = Sakstype.ALDER,
-                        fagsystemId = "29901",
+                        sakstype = Sakstype.UFØRE,
+                        fagsystemId = sak.saksnummer.toString(),
                     )
                 },
             )
@@ -484,19 +506,88 @@ class SkatteServiceImplTest {
         }
     }
 
+    @Test
+    fun `henter skattegrunnlag og lager pdf for journalføring for aldersak`() {
+        val fagsystemId = "1279CB56"
+        val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+        val person = person()
+
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val journalpostClient = mock<QueryJournalpostClient> {
+            on { finnesFagsak(any(), anyOrNull()) } doReturn Unit.right()
+        }
+
+        val skatteClient = mock<Skatteoppslag> {
+            on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
+        }
+
+        val skattDokumentService = mock<SkattDokumentService> {
+            on { genererSkattePdfOgJournalfør(any()) } doReturn PdfA("content".toByteArray()).right()
+        }
+
+        mockedServices(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+            personService = personService,
+            journalpostClient = journalpostClient,
+        ).let {
+            it.service.hentLagOgJournalførSkattePdf(
+                request = FrioppslagSkattRequest(
+                    fnr = fnr,
+                    epsFnr = null,
+                    år = Year.of(2021),
+                    begrunnelse = "begrunnelse for henting av skatte-data",
+                    saksbehandler = saksbehandler,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = fagsystemId,
+                ),
+            ).shouldBeRight()
+
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+            verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fagsystemId }, anyOrNull())
+            verify(it.skatteClient).hentSamletSkattegrunnlag(
+                argThat { it shouldBe fnr },
+                argThat { it shouldBe Year.of(2021) },
+            )
+            verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
+                argThat {
+                    it shouldBe GenererSkattPdfRequest(
+                        skattegrunnlagSøkers = it.skattegrunnlagSøkers,
+                        skattegrunnlagEps = null,
+                        begrunnelse = "begrunnelse for henting av skatte-data",
+                        sakstype = Sakstype.ALDER,
+                        fagsystemId = fagsystemId,
+                    )
+                },
+            )
+
+            it.verifyNoMoreInteractions()
+        }
+    }
+
     private data class mockedServices(
         val skatteClient: Skatteoppslag = mock(),
         val skattDokumentService: SkattDokumentService = mock(),
+        val personService: PersonService = mock(),
+        val sakService: SakService = mock(),
+        val journalpostClient: QueryJournalpostClient = mock(),
         val clock: Clock = fixedClock,
     ) {
         val service = SkatteServiceImpl(
             skatteClient = skatteClient,
             skattDokumentService = skattDokumentService,
+            personService = personService,
+            sakService = sakService,
+            journalpostClient = journalpostClient,
             clock = fixedClock,
         )
 
         fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(skatteClient, skattDokumentService)
+            verifyNoMoreInteractions(skatteClient, skattDokumentService, personService, sakService, journalpostClient)
         }
     }
 }
