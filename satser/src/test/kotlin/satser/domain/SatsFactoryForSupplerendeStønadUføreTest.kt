@@ -329,6 +329,70 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         }
 
         @Test
+        fun `ordinær - mai 2024`() {
+            satsFactoryTestPåDato(påDato = 24.mai(2024)).ordinærUføre(mai(2024)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2024),
+                    satskategori = Satskategori.ORDINÆR,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2024),
+                        grunnbeløpPerÅr = 124028,
+                        ikrafttredelse = 24.mai(2024),
+                        virkningstidspunkt = 1.mai(2024),
+                        omregningsfaktor = BigDecimal(1.045591),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.28),
+                        satsKategori = Satskategori.ORDINÆR,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = mai(2024),
+                    ),
+                    // 2.48 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("512.6490666666666666666666666666667"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("282783.84") // 2.28 * G2024-5
+                it.satsForMåned shouldBe BigDecimal("23565.32") // 2.28 * G2024-5 / 12
+                it.satsForMånedAvrundet shouldBe 23565
+                it.satsForMånedAsDouble shouldBe 23565.32
+                it.ikrafttredelse shouldBe 24.mai(2024)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 512.6490666666666
+            }
+        }
+
+        @Test
+        fun `høy - mai 2024`() {
+            satsFactoryTestPåDato(påDato = 1.juni(2024)).høyUføre(mai(2024)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2024),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2024),
+                        grunnbeløpPerÅr = 124028,
+                        ikrafttredelse = 24.mai(2024),
+                        virkningstidspunkt = 1.mai(2024),
+                        omregningsfaktor = BigDecimal(1.045591),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.48),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = mai(2024),
+                    ),
+                    // 2.48 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("512.6490666666666666666666666666667"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("307589.44") // 2.48 * G2024-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("25632.4533") // 2.48 * G2024-5 / 12
+                it.satsForMånedAvrundet shouldBe 25632
+                it.satsForMånedAsDouble shouldBe 25632.453333333335
+                it.ikrafttredelse shouldBe 24.mai(2024)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 512.6490666666666
+            }
+        }
+
+        @Test
         fun `ordinær - 1 juli 2024`() {
             satsFactoryTestPåDato(påDato = 1.juli(2024)).ordinærUføre(juli(2024)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
@@ -336,10 +400,10 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                     satskategori = Satskategori.ORDINÆR,
                     grunnbeløp = GrunnbeløpForMåned(
                         måned = juli(2024),
-                        grunnbeløpPerÅr = 118620,
-                        ikrafttredelse = 26.mai(2023),
-                        virkningstidspunkt = 1.mai(2023),
-                        omregningsfaktor = BigDecimal(1.064076),
+                        grunnbeløpPerÅr = 124028,
+                        ikrafttredelse = 24.mai(2024),
+                        virkningstidspunkt = 1.mai(2024),
+                        omregningsfaktor = BigDecimal(1.045591),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.329),
@@ -348,15 +412,15 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.juli(2024),
                         måned = juli(2024),
                     ),
-                    // 2.529 * G2023-5 * 0.02 / 12
-                    toProsentAvHøyForMåned = BigDecimal("499.98330"),
+                    // 2.529 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("522.77802"),
                 )
-                it.satsPerÅr shouldBe BigDecimal("276265.980") // 2.329 * G2023-5
-                it.satsForMåned.scaleTo4() shouldBe BigDecimal("23022.1650") // 2.329 * G2023-5 / 12
-                it.satsForMånedAvrundet shouldBe 23022
-                it.satsForMånedAsDouble shouldBe 23022.165
+                it.satsPerÅr shouldBe BigDecimal("288861.212") // 2.329 * G2024-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("24071.7677") // 2.329 * G2024-5 / 12
+                it.satsForMånedAvrundet shouldBe 24072
+                it.satsForMånedAsDouble shouldBe 24071.767666666667
                 it.ikrafttredelse shouldBe 1.juli(2024)
-                it.toProsentAvHøyForMånedAsDouble shouldBe 499.9833
+                it.toProsentAvHøyForMånedAsDouble shouldBe 522.77802
             }
         }
 
@@ -368,10 +432,10 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                     satskategori = Satskategori.HØY,
                     grunnbeløp = GrunnbeløpForMåned(
                         måned = juli(2024),
-                        grunnbeløpPerÅr = 118620,
-                        ikrafttredelse = 26.mai(2023),
-                        virkningstidspunkt = 1.mai(2023),
-                        omregningsfaktor = BigDecimal(1.064076),
+                        grunnbeløpPerÅr = 124028,
+                        ikrafttredelse = 24.mai(2024),
+                        virkningstidspunkt = 1.mai(2024),
+                        omregningsfaktor = BigDecimal(1.045591),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.529),
@@ -380,15 +444,15 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.juli(2024),
                         måned = juli(2024),
                     ),
-                    // 2.529 * G2023-5 * 0.02 / 12
-                    toProsentAvHøyForMåned = BigDecimal("499.98330"),
+                    // 2.529 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("522.77802"),
                 )
-                it.satsPerÅr shouldBe BigDecimal("299989.980") // 2.529 * G2023-5
-                it.satsForMåned.scaleTo4() shouldBe BigDecimal("24999.1650") // 2.529 * G2023-5 / 12
-                it.satsForMånedAvrundet shouldBe 24999
-                it.satsForMånedAsDouble shouldBe 24999.165
+                it.satsPerÅr shouldBe BigDecimal("313666.812") // 2.529 * G2024-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("26138.9010") // 2.529 * G2024-5 / 12
+                it.satsForMånedAvrundet shouldBe 26139
+                it.satsForMånedAsDouble shouldBe 26138.901
                 it.ikrafttredelse shouldBe 1.juli(2024)
-                it.toProsentAvHøyForMånedAsDouble shouldBe 499.9833
+                it.toProsentAvHøyForMånedAsDouble shouldBe 522.77802
             }
         }
 
