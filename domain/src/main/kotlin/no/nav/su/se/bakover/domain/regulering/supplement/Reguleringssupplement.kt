@@ -21,4 +21,11 @@ data class Reguleringssupplement(
     companion object {
         fun empty(clock: Clock) = Reguleringssupplement(UUID.randomUUID(), Tidspunkt.now(clock), emptyList(), "")
     }
+
+    /**
+     * Maskerer supplement og originalCsv for logging. Disse har både sensitive data og for mye data til å logges.
+     */
+    override fun toString(): String {
+        return "Reguleringssupplement(id=$id, opprettet=$opprettet, supplement=****, originalCsv=****)"
+    }
 }

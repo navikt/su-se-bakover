@@ -59,6 +59,10 @@ data class ReguleringssupplementFor(
             }
         }
 
+        fun toSikkerloggString(): String {
+            return "PerType(vedtak=${vedtak.map { it.toSikkerloggString() }}, kategori=$kategori)"
+        }
+
         data class Fradragsperiode(
             val fraOgMed: LocalDate,
             val tilOgMed: LocalDate?,
@@ -73,6 +77,17 @@ data class ReguleringssupplementFor(
                     // Bruker periode sin validering.
                     Periode.create(fraOgMed, it)
                 }
+            }
+
+            /**
+             * Maskerer beløp.
+             */
+            override fun toString(): String {
+                return "Fradragsperiode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed, beløp=****, vedtakstype=$vedtakstype, eksterndata=$eksterndata)"
+            }
+
+            fun toSikkerloggString(): String {
+                return "Fradragsperiode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed, beløp=$beløp, vedtakstype=$vedtakstype, eksterndata=${eksterndata.toSikkerloggString()})"
             }
 
             enum class Vedtakstype {
@@ -110,7 +125,29 @@ data class ReguleringssupplementFor(
                 val bruttoYtelseskomponent: String,
                 /** NETTO_YK: Eksempel: 26062 */
                 val nettoYtelseskomponent: String,
-            )
+            ) {
+                /**
+                 * Maskerer personnummer og brutto/netto beløp for logging.
+                 */
+                override fun toString(): String {
+                    return "Eksterndata(fnr=****, sakstype=$sakstype, vedtakstype=$vedtakstype, fraOgMed=$fraOgMed, tilOgMed=$tilOgMed, bruttoYtelse=****, nettoYtelse=****, ytelseskomponenttype=$ytelseskomponenttype, bruttoYtelseskomponent=****, nettoYtelseskomponent=****)"
+                }
+
+                /**
+                 * Ingen maskering.
+                 */
+                fun toSikkerloggString(): String {
+                    return "Eksterndata(fnr=$fnr, sakstype=$sakstype, vedtakstype=$vedtakstype, fraOgMed=$fraOgMed, tilOgMed=$tilOgMed, bruttoYtelse=$bruttoYtelse, nettoYtelse=$nettoYtelse, ytelseskomponenttype=$ytelseskomponenttype, bruttoYtelseskomponent=$bruttoYtelseskomponent, nettoYtelseskomponent=$nettoYtelseskomponent)"
+                }
+            }
         }
+    }
+
+    override fun toString(): String {
+        return "ReguleringssupplementFor(fnr=****, perType=$perType)"
+    }
+
+    fun toSikkerloggString(): String {
+        return "ReguleringssupplementFor(fnr=$fnr, perType=$perType)"
     }
 }

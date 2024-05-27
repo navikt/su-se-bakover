@@ -40,6 +40,10 @@ sealed interface Eksternvedtak {
         return eksterneData().first().bruttoYtelse
     }
 
+    fun toSikkerloggString(): String {
+        return "Eksternvedtak(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed, beløp=$beløp, fradrag=${fradrag.map { it.toSikkerloggString() }})"
+    }
+
     data class Regulering(
         val periode: PeriodeMedOptionalTilOgMed,
         override val fradrag: NonEmptyList<ReguleringssupplementFor.PerType.Fradragsperiode>,
