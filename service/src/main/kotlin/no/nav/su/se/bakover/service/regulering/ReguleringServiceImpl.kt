@@ -83,7 +83,11 @@ class ReguleringServiceImpl(
         reguleringRepo.lagre(supplement)
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
             .mapLeft {
-                log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
+                log.error(
+                    "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
+                    RuntimeException("Inkluderer stacktrace"),
+                )
+                sikkerLogg.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
                 KunneIkkeOppretteRegulering.UkjentFeil
             }
             .fold(
@@ -106,7 +110,11 @@ class ReguleringServiceImpl(
                 omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
             )
         }.onLeft {
-            log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
+            log.error(
+                "Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command. Se sikkerlogg for flere detaljer.",
+                RuntimeException("Inkluderer stacktrace"),
+            )
+            sikkerLogg.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
         }
     }
 
@@ -233,13 +241,14 @@ class ReguleringServiceImpl(
             Av $antallAutomatiskeReguleringer automatiske, er $antallAutomatiskPgaSupplemement automatisk pga supplement
             ------------------------------------------------------------------------------
             Antall reguleringer til manuell behandling: ${manuelleReguleringer.size}
-            Årsaker til manuell behandling: ${if (årsakerForManuell.isEmpty()) {
-            "[]"
-        } else {
-            """${årsakerForManuell.joinToString("") { "\n              - $it" }}
+            Årsaker til manuell behandling: ${
+            if (årsakerForManuell.isEmpty()) {
+                "[]"
+            } else {
+                """${årsakerForManuell.joinToString("") { "\n              - $it" }}
             Mer detaljer om årsakene kan finnes i egne logg meldinger
                 """
-        }
+            }
         }
         """.trimIndent()
 
