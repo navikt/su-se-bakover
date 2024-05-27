@@ -50,8 +50,6 @@ spec:
       memory: 1Gi
       cpu: 1000m
   ingresses:
-    - https://su-se-bakover.dev.adeo.no
-    - https://su-se-bakover.dev.intern.nav.no
     - https://su-se-bakover.intern.dev.nav.no
   webproxy: true
   prometheus:

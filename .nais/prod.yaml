@@ -50,7 +50,6 @@ spec:
       memory: 1Gi
       cpu: 1000m
   ingresses:
-    - https://su-se-bakover.nais.adeo.no
     - https://su-se-bakover.intern.nav.no
   webproxy: true
   prometheus:
