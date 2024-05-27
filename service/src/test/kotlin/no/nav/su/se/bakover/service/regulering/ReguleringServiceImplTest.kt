@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -56,6 +57,8 @@ import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.nyReguleringssupplementFor
+import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -299,8 +302,20 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `manuell behandling happy case`() {
+            val supplement = Reguleringssupplement(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                supplement = listOf(
+                    nyReguleringssupplementFor(
+                        fnr = fnr,
+                        innhold = arrayOf(nyReguleringssupplementInnholdPerType(kategori = Fradragstype.OffentligPensjon.kategori)),
+                    ),
+                ),
+                originalCsv = "",
+            )
             val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = mai(2021),
+                supplement = supplement,
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     periode = stønadsperiode2021.periode,
                     fradragsgrunnlag = listOf(
@@ -417,9 +432,21 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `oppdaterer reguleringen hvis det finnes en åpen regulering allerede og reguleringsperioden er større`() {
+            val supplement = Reguleringssupplement(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                supplement = listOf(
+                    nyReguleringssupplementFor(
+                        fnr = fnr,
+                        innhold = arrayOf(nyReguleringssupplementInnholdPerType(kategori = Fradragstype.OffentligPensjon.kategori)),
+                    ),
+                ),
+                originalCsv = "",
+            )
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = august(2021),
                 /* Manuell regulering */
+                supplement = supplement,
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -438,7 +465,7 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
+            reguleringService.startAutomatiskRegulering(mai(2021), supplement).first()
                 .getOrFail()
                 .let {
                     it.shouldBeInstanceOf<OpprettetRegulering>()
@@ -464,9 +491,21 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `oppdaterer ikke reguleringen hvis det finnes en åpen regulering men reguleringsperioden er mindre`() {
+            val supplement = Reguleringssupplement(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                supplement = listOf(
+                    nyReguleringssupplementFor(
+                        fnr = fnr,
+                        innhold = arrayOf(nyReguleringssupplementInnholdPerType(kategori = Fradragstype.OffentligPensjon.kategori)),
+                    ),
+                ),
+                originalCsv = "",
+            )
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = januar(2021),
                 /* Manuell regulering */
+                supplement = supplement,
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -485,7 +524,7 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
+            reguleringService.startAutomatiskRegulering(mai(2021), supplement).first()
                 .getOrFail()
                 .let {
                     it.shouldBeInstanceOf<OpprettetRegulering>()

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -34,6 +35,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
 import java.util.UUID
+import kotlin.math.absoluteValue
 
 fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat() is Vurdering.Avslag
 
@@ -51,7 +53,19 @@ data class EksternSupplementRegulering(
     // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
     val eps: List<ReguleringssupplementFor>,
 ) {
+
+    init {
+        require(eps.distinctBy { it.fnr } == eps) {
+            sikkerLogg.error("Kan ikke ha flere reguleringssupplementFor for samme EPS. eps: ${eps.map { it.toSikkerloggString() }}")
+            "Kan ikke ha flere reguleringssupplementFor for samme EPS. Se sikkerlogg for detaljer"
+        }
+    }
+
     fun hentForEps(fnr: Fnr): ReguleringssupplementFor? = eps.find { it.fnr == fnr }
+
+    fun toSikkerloggString(): String {
+        return "EksternSupplementRegulering(suppementId=$supplementId, bruker=${bruker?.toSikkerloggString()}, eps=${eps.map { it.toSikkerloggString() }})"
+    }
 }
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
@@ -218,24 +232,8 @@ fun utledReguleringstypeOgFradrag(
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
 
-    if (
-        (eksternSupplementRegulering.bruker == null && fradragTilhører == FradragTilhører.BRUKER) ||
-        (eksternSupplementRegulering.eps.isEmpty() && fradragTilhører == FradragTilhører.EPS)
-    ) {
-        // Dette er den vanligste casen for manuell regulering, vi trenger ikke logge disse tilfellene.
-        val regtype =
-            if (fradragstype.måJusteresManueltVedGEndring) {
-                manuellReg(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                        fradragskategori = fradragstype.kategori,
-                        fradragTilhører = fradragTilhører,
-                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
-                    ),
-                )
-            } else {
-                Reguleringstype.AUTOMATISK
-            }
-        return regtype to originaleFradragsgrunnlag
+    if (!fradragstype.måJusteresManueltVedGEndring) {
+        return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
     }
 
     if (originaleFradragsgrunnlag.size > 1) {
@@ -277,7 +275,6 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
 ): Pair<Reguleringstype, Fradragsgrunnlag> {
     require(originaleFradragsgrunnlag.fradragstype == fradragstype)
     require(originaleFradragsgrunnlag.fradrag.tilhører == fradragTilhører)
-    require(supplement.bruker != null || supplement.eps.isNotEmpty())
 
     if (originaleFradragsgrunnlag.utenlandskInntekt != null) {
         return manuellReg(
@@ -288,13 +285,81 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
             ),
         ) to originaleFradragsgrunnlag
     }
-    if (!originaleFradragsgrunnlag.skalJusteresVedGEndring()) {
-        return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
+
+    if (
+        (supplement.bruker == null && fradragTilhører == FradragTilhører.BRUKER) ||
+        (supplement.eps.isEmpty() && fradragTilhører == FradragTilhører.EPS)
+    ) {
+        // Dette er den vanligste casen for manuell regulering, vi trenger ikke logge disse tilfellene.
+        val regtype =
+            if (fradragstype.måJusteresManueltVedGEndring) {
+                manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragskategori = fradragstype.kategori,
+                        fradragTilhører = fradragTilhører,
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                )
+            } else {
+                Reguleringstype.AUTOMATISK
+            }
+        return regtype to originaleFradragsgrunnlag
     }
 
     val supplementFor: ReguleringssupplementFor = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> supplement.bruker!!
-        FradragTilhører.EPS -> supplement.hentForEps(periodeTilEps[originaleFradragsgrunnlag.periode]!!)!!
+        FradragTilhører.BRUKER -> {
+            supplement.bruker ?: return manuellReg(
+                ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                    fradragskategori = fradragstype.kategori,
+                    fradragTilhører = fradragTilhører,
+                    begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                ),
+            ) to originaleFradragsgrunnlag
+        }
+
+        FradragTilhører.EPS -> {
+            if (supplement.eps.isEmpty()) {
+                return manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragskategori = fradragstype.kategori,
+                        fradragTilhører = fradragTilhører,
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                ) to originaleFradragsgrunnlag
+            }
+
+            val eps = periodeTilEps[originaleFradragsgrunnlag.periode] ?: return (
+                manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragskategori = fradragstype.kategori,
+                        fradragTilhører = fradragTilhører,
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                ) to originaleFradragsgrunnlag
+                ).also {
+                log.error(
+                    "Programmeringsfeil: Klarte ikke knytte perioden til fradraget til en tilhørende bosituasjonsperiode. Se sikkerlogg for detaljer",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                sikkerLogg.error("Programmeringsfeil: Klarte ikke knytte perioden til fradraget til en tilhørende bosituasjonsperiode. Fradrag: $originaleFradragsgrunnlag, periodeTilEps(bosituasjon): $periodeTilEps, suppementForBruker: ${supplement.toSikkerloggString()}")
+            }
+
+            supplement.hentForEps(eps) ?: return (
+                manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                        fradragskategori = fradragstype.kategori,
+                        fradragTilhører = fradragTilhører,
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                    ),
+                ) to originaleFradragsgrunnlag
+                ).also {
+                log.error(
+                    "Programmeringsfeil: Klarte ikke hente ut supplement for EPS. Se sikkerlogg for detaljer",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                sikkerLogg.error("Programmeringsfeil: Klarte ikke hente ut supplement for EPS. Fradrag: $originaleFradragsgrunnlag, eps: $eps, suppementForEps: ${supplement.toSikkerloggString()}")
+            }
+        }
     }
 
     val supplementForType: ReguleringssupplementFor.PerType =
@@ -325,7 +390,7 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
         ),
     ) to originaleFradragsgrunnlag
     val eksterntBeløpFørRegulering = endringsvedtak.beløp
-    val diffFørRegulering = eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()
+    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()).absoluteValue
     // vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > 0) {
         return manuellReg(

@@ -2,6 +2,15 @@ package vilkår.bosituasjon.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.test.bosituasjonEpsOver67
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
+import no.nav.su.se.bakover.test.fnrOver67
+import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.fullstendigMedEPSOver67
 import no.nav.su.se.bakover.test.fullstendigMedEPSUnder67IkkeUførFlyktning
 import no.nav.su.se.bakover.test.fullstendigMedEPSUnder67UførFlyktning
@@ -11,6 +20,7 @@ import no.nav.su.se.bakover.test.ufullstendigEnslig
 import no.nav.su.se.bakover.test.ufullstendigMedEps
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 class BosituasjonTest {
@@ -114,6 +124,26 @@ class BosituasjonTest {
                 it.satskategori shouldBe fullstendigMedVoksne.satskategori
                 it.eps shouldBe fullstendigMedVoksne.eps
             }
+        }
+    }
+
+    @Test
+    fun `lager et map av periode til fnr av en liste med bosituasjon`() {
+        listOf(bosituasjonEpsUnder67()).periodeTilEpsFnr() shouldBe mapOf(år(2021) to fnrUnder67)
+
+        listOf(
+            bosituasjonEpsUnder67(periode = januar(2021)..mai(2021)),
+            bosituasjonEpsOver67(periode = juli(2021)..desember(2021)),
+        ).periodeTilEpsFnr() shouldBe mapOf(
+            januar(2021)..mai(2021) to fnrUnder67,
+            juli(2021)..desember(2021) to fnrOver67,
+        )
+    }
+
+    @Test
+    fun `liste av bosituasjon inneholder overlappende perioder`() {
+        assertThrows<IllegalArgumentException> {
+            listOf(bosituasjonEpsUnder67(), bosituasjonEpsOver67()).periodeTilEpsFnr()
         }
     }
 }
