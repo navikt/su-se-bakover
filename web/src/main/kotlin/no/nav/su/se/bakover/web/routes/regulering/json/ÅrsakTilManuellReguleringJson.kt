@@ -98,6 +98,12 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
+    data class MerEnn1Eps(
+        val fradragskategori: String,
+        val fradragTilhører: String,
+        override val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson
+
     data class FinnesFlerePerioderAvFradrag(
         val fradragskategori: String,
         val fradragTilhører: String,
@@ -256,6 +262,12 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
+            )
+
+            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> MerEnn1Eps(
+                fradragskategori = this.fradragskategori.toString(),
+                fradragTilhører = this.fradragTilhører.toString(),
+                begrunnelse = this.begrunnelse,
             )
         }
     }

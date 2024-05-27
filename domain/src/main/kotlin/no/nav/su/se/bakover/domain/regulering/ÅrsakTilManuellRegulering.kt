@@ -69,6 +69,14 @@ sealed interface ÅrsakTilManuellRegulering {
                 ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement
         }
 
+        data class MerEnn1Eps(
+            override val fradragskategori: Fradragstype.Kategori,
+            override val fradragTilhører: FradragTilhører,
+            override val begrunnelse: String,
+        ) : FradragMåHåndteresManuelt {
+            override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.MerEnn1Eps
+        }
+
         data class SupplementInneholderIkkeFradraget(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
@@ -139,26 +147,30 @@ sealed interface ÅrsakTilManuellRegulering {
             override val fradragTilhører: FradragTilhører,
             override val fradragskategori: Fradragstype.Kategori,
         ) : FradragMåHåndteresManuelt {
-            override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril
         }
     }
 
     data class YtelseErMidlertidigStanset(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
     }
 
     data class ForventetInntektErStørreEnn0(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
     }
 
     data class AutomatiskSendingTilUtbetalingFeilet(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
     }
 
     /**
@@ -168,7 +180,8 @@ sealed interface ÅrsakTilManuellRegulering {
     data class VedtakstidslinjeErIkkeSammenhengende(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
     }
 
     /**

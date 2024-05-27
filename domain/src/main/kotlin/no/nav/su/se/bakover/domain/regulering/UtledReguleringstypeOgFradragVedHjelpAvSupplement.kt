@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.bosituasjon.domain.grunnlag.periodeTilEpsFnr
+import vilkår.bosituasjon.domain.grunnlag.merEnn1Eps
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.math.BigDecimal
 
@@ -11,6 +12,7 @@ fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
     bosituasjon: List<Bosituasjon.Fullstendig>,
     eksternSupplementRegulering: EksternSupplementRegulering,
     omregningsfaktor: BigDecimal,
+    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     /**
      * TODO
@@ -27,8 +29,9 @@ fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
                 eksternSupplementRegulering = eksternSupplementRegulering,
                 fradragstype = fradragstype,
                 originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
-                periodeTilEps = bosituasjon.periodeTilEpsFnr(),
+                merEnn1Eps = bosituasjon.merEnn1Eps(),
                 omregningsfaktor = omregningsfaktor,
+                saksnummer = saksnummer,
             )
             fradragEtterSupplementSjekk
         }.let {

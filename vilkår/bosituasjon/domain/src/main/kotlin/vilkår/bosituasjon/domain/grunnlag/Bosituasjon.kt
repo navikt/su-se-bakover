@@ -63,7 +63,8 @@ sealed interface Bosituasjon : Grunnlag {
                     if (acc.isEmpty()) {
                         acc.add(bosituasjon)
                     } else if (acc.last().kanSlåSammen(bosituasjon)) {
-                        acc[acc.lastIndex] = acc.last().oppdaterPeriode(acc.last().periode.forlengMedPeriode(bosituasjon.periode))
+                        acc[acc.lastIndex] =
+                            acc.last().oppdaterPeriode(acc.last().periode.forlengMedPeriode(bosituasjon.periode))
                     } else {
                         acc.add(bosituasjon)
                     }
@@ -118,7 +119,7 @@ sealed interface Bosituasjon : Grunnlag {
 
         sealed interface EktefellePartnerSamboer : Fullstendig {
             val fnr: Fnr
-            override val eps: Fnr? get() = fnr
+            override val eps: Fnr get() = fnr
             override fun harEPS(): Boolean = true
 
             sealed interface Under67 : EktefellePartnerSamboer {
@@ -130,7 +131,8 @@ sealed interface Bosituasjon : Grunnlag {
                 ) : EktefellePartnerSamboer {
                     override val satskategori: Satskategori = Satskategori.ORDINÆR
 
-                    override fun kanSlåSammen(other: Bosituasjon) = other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
+                    override fun kanSlåSammen(other: Bosituasjon) =
+                        other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
 
                     // TODO jah og ramzi: Slett
                     override fun erLik(other: Grunnlag): Boolean {
@@ -161,7 +163,8 @@ sealed interface Bosituasjon : Grunnlag {
                 ) : EktefellePartnerSamboer {
 
                     override val satskategori: Satskategori = Satskategori.HØY
-                    override fun kanSlåSammen(other: Bosituasjon) = other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
+                    override fun kanSlåSammen(other: Bosituasjon) =
+                        other is UførFlyktning && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
 
                     // TODO jah og ramzi: Slett
                     override fun erLik(other: Grunnlag): Boolean {
@@ -194,7 +197,8 @@ sealed interface Bosituasjon : Grunnlag {
 
                 override val satskategori: Satskategori = Satskategori.ORDINÆR
 
-                override fun kanSlåSammen(other: Bosituasjon) = other is SektiSyvEllerEldre && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
+                override fun kanSlåSammen(other: Bosituasjon) =
+                    other is SektiSyvEllerEldre && this.fnr == other.fnr && this.periode.tilstøter(other.periode)
 
                 // TODO jah og ramzi: Slett
                 override fun erLik(other: Grunnlag): Boolean {
@@ -263,7 +267,8 @@ sealed interface Bosituasjon : Grunnlag {
                 return false
             }
 
-            override fun kanSlåSammen(other: Bosituasjon) = other is DelerBoligMedVoksneBarnEllerAnnenVoksen && this.periode.tilstøter(other.periode)
+            override fun kanSlåSammen(other: Bosituasjon) =
+                other is DelerBoligMedVoksneBarnEllerAnnenVoksen && this.periode.tilstøter(other.periode)
 
             // TODO jah og ramzi: Slett
             override fun erLik(other: Grunnlag): Boolean {
@@ -302,6 +307,7 @@ sealed interface Bosituasjon : Grunnlag {
             override fun erLik(other: Grunnlag): Boolean {
                 return other is HarIkkeEps
             }
+
             override fun copyWithNewId(): HarIkkeEps = this.copy(id = UUID.randomUUID())
         }
 
@@ -364,3 +370,6 @@ fun List<Bosituasjon>.periodeTilEpsFnr(): Map<Periode, Fnr> = this.filter { it.e
     .groupBy { it.periode }.mapValues {
         it.value.single().eps!!
     }
+
+fun List<Bosituasjon>.merEnn1Eps(): Boolean =
+    this.filterIsInstance<Bosituasjon.Fullstendig.EktefellePartnerSamboer>().map { it.fnr }.distinct().size > 1

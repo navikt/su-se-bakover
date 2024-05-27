@@ -75,6 +75,10 @@ fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKatego
 
                     ÅrsakTilManuellReguleringKategori.DelvisOpphør ->
                         "saksnummer;opphørsperioder\n" + it.value.flatMap { it.values }.joinToString("\n")
+
+                    ÅrsakTilManuellReguleringKategori.MerEnn1Eps ->
+                        "saksnummer;fradragskategori;fradragTilhører\n" +
+                            it.value.flatMap { it.values }.joinToString("\n")
                 },
             )
         }.toSet()
@@ -145,6 +149,9 @@ private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKate
                     )
 
                     is ÅrsakTilManuellRegulering.Historisk -> throw IllegalArgumentException("Historiske årsaker skal ikke benyttes i til logging av reguleringer med nyere typer")
+                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> årsak.toCSVLoggableString(
+                        saksnummer = saksnummer,
+                    )
                 }
             }.let {
                 it.groupBy {
@@ -213,6 +220,11 @@ private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHar
     }
 
 private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget.toCSVLoggableString(
+    saksnummer: Saksnummer,
+): Map<ÅrsakTilManuellReguleringKategori, String> =
+    mapOf(this.kategori to "$saksnummer;${this.fradragskategori};${this.fradragTilhører}")
+
+private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps.toCSVLoggableString(
     saksnummer: Saksnummer,
 ): Map<ÅrsakTilManuellReguleringKategori, String> =
     mapOf(this.kategori to "$saksnummer;${this.fradragskategori};${this.fradragTilhører}")

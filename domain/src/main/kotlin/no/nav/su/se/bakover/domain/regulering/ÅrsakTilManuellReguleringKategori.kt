@@ -16,4 +16,5 @@ enum class ÅrsakTilManuellReguleringKategori {
     AutomatiskSendingTilUtbetalingFeilet,
     VedtakstidslinjeErIkkeSammenhengende,
     DelvisOpphør,
+    MerEnn1Eps,
 }

@@ -66,6 +66,7 @@ data class OpprettetRegulering(
             bosituasjon = bosituasjon,
             eksternSupplementRegulering = eksternSupplementRegulering,
             omregningsfaktor = omregningsfaktor,
+            saksnummer = saksnummer,
         )
         return this.copy(
             eksternSupplementRegulering = eksternSupplementRegulering,

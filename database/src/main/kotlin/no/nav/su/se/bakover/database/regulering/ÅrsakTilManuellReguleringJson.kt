@@ -37,6 +37,10 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
         name = "SupplementInneholderIkkeFradraget",
     ),
     JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.MerEnn1Eps::class,
+        name = "MerEnn1Eps",
+    ),
+    JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.FinnesFlerePerioderAvFradrag::class,
         name = "FinnesFlerePerioderAvFradrag",
     ),
@@ -113,6 +117,19 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
+                fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
+                begrunnelse = begrunnelse,
+            )
+    }
+
+    data class MerEnn1Eps(
+        val fradragskategori: String,
+        val fradragTilhører: String,
+        val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
                 fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
                 fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
                 begrunnelse = begrunnelse,
@@ -359,6 +376,12 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     )
 
     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> ÅrsakTilManuellReguleringJson.FantIkkeVedtakForApril(
+        begrunnelse = this.begrunnelse,
+        fradragskategori = this.fradragskategori.toString(),
+        fradragTilhører = this.fradragTilhører.toString(),
+    )
+
+    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> ÅrsakTilManuellReguleringJson.MerEnn1Eps(
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),

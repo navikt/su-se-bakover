@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -128,6 +127,7 @@ sealed interface Regulering : Stønadsbehandling {
                 bosituasjon = bosituasjon,
                 eksternSupplementRegulering = eksternSupplementRegulering,
                 omregningsfaktor = omregningsfaktor,
+                saksnummer = saksnummer,
             )
 
             // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
@@ -188,8 +188,9 @@ fun utledReguleringstypeOgFradrag(
     eksternSupplementRegulering: EksternSupplementRegulering,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
-    periodeTilEps: Map<Periode, Fnr>,
+    merEnn1Eps: Boolean,
     omregningsfaktor: BigDecimal,
+    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
 
@@ -199,8 +200,9 @@ fun utledReguleringstypeOgFradrag(
             fradragstype,
             fradragsgrunnlag.toNonEmptyList(),
             fradragtilhører,
-            periodeTilEps,
+            merEnn1Eps,
             omregningsfaktor,
+            saksnummer,
         )
     }.let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
@@ -226,8 +228,9 @@ fun utledReguleringstypeOgFradrag(
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     fradragTilhører: FradragTilhører,
-    periodeTilEps: Map<Periode, Fnr>,
+    merEnn1Eps: Boolean,
     omregningsfaktor: BigDecimal,
+    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
@@ -237,7 +240,7 @@ fun utledReguleringstypeOgFradrag(
     }
 
     if (originaleFradragsgrunnlag.size > 1) {
-        log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt.")
+        log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt. Saksnummer: $saksnummer")
         return manuellReg(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
                 fradragskategori = fradragstype.kategori,
@@ -252,8 +255,9 @@ fun utledReguleringstypeOgFradrag(
         fradragstype,
         originaleFradragsgrunnlag.first(),
         fradragTilhører,
-        periodeTilEps,
+        merEnn1Eps,
         omregningsfaktor,
+        saksnummer,
     ).let {
         it.first to nonEmptyListOf(it.second)
     }
@@ -270,8 +274,9 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
-    periodeTilEps: Map<Periode, Fnr>,
+    merEnn1Eps: Boolean,
     omregningsfaktor: BigDecimal,
+    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, Fradragsgrunnlag> {
     require(originaleFradragsgrunnlag.fradragstype == fradragstype)
     require(originaleFradragsgrunnlag.fradrag.tilhører == fradragTilhører)
@@ -328,39 +333,17 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
                 ) to originaleFradragsgrunnlag
             }
 
-            periodeTilEps.mapKeys { }
-
-            val eps = periodeTilEps[originaleFradragsgrunnlag.periode] ?: return (
-                manuellReg(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+            if (merEnn1Eps || supplement.eps.size > 1) {
+                log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: $merEnn1Eps, antall eps fra supplement: ${supplement.eps.size}, saksnummer: $saksnummer")
+                return manuellReg(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
                         fradragskategori = fradragstype.kategori,
                         fradragTilhører = fradragTilhører,
-                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Dersom en regulering involverer med enn én EPS, må den tas manuelt.",
                     ),
                 ) to originaleFradragsgrunnlag
-                ).also {
-                log.error(
-                    "Programmeringsfeil: Klarte ikke knytte perioden til fradraget til en tilhørende bosituasjonsperiode. Se sikkerlogg for detaljer",
-                    RuntimeException("Trigger stacktrace"),
-                )
-                sikkerLogg.error("Programmeringsfeil: Klarte ikke knytte perioden til fradraget til en tilhørende bosituasjonsperiode. Fradrag: $originaleFradragsgrunnlag, periodeTilEps(bosituasjon): $periodeTilEps, suppementForBruker: ${supplement.toSikkerloggString()}")
             }
-
-            supplement.hentForEps(eps) ?: return (
-                manuellReg(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-                        fradragskategori = fradragstype.kategori,
-                        fradragTilhører = fradragTilhører,
-                        begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
-                    ),
-                ) to originaleFradragsgrunnlag
-                ).also {
-                log.error(
-                    "Programmeringsfeil: Klarte ikke hente ut supplement for EPS. Se sikkerlogg for detaljer",
-                    RuntimeException("Trigger stacktrace"),
-                )
-                sikkerLogg.error("Programmeringsfeil: Klarte ikke hente ut supplement for EPS. Fradrag: $originaleFradragsgrunnlag, eps: $eps, suppementForEps: ${supplement.toSikkerloggString()}")
-            }
+            supplement.eps.single()
         }
     }
 
