@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.common.tid.periode.måneder
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
+import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
 import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -1213,5 +1214,22 @@ internal class PeriodeTest {
             // kan ikke forlenge med periode som starter før
             p2.forlengMedPeriode(p1)
         }
+    }
+
+    @Test
+    fun `sorterer på fraOgMed, og så tilOgMed`() {
+        listOf(
+            mai(2024)..april(2025),
+            mai(2024)..april(2025),
+            juli(2024)..april(2025),
+            mai(2024),
+            mai(2024),
+        ).sorterPåFraOgMedDeretterTilOgMed() shouldBe listOf(
+            mai(2024),
+            mai(2024),
+            mai(2024)..april(2025),
+            mai(2024)..april(2025),
+            juli(2024)..april(2025),
+        )
     }
 }

@@ -328,6 +328,8 @@ fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
                 ) to originaleFradragsgrunnlag
             }
 
+            periodeTilEps.mapKeys { }
+
             val eps = periodeTilEps[originaleFradragsgrunnlag.periode] ?: return (
                 manuellReg(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(

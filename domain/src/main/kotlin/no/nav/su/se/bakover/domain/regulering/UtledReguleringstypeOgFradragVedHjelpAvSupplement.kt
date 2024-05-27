@@ -40,6 +40,6 @@ fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
             } else {
                 Reguleringstype.AUTOMATISK
             }
-            reguleringstype to it.flatMap { it.second }
+            reguleringstype to it.flatMap { it.second }.sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
         }
 }
