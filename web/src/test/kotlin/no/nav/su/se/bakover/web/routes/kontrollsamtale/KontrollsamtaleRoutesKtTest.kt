@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
@@ -199,7 +200,7 @@ internal class KontrollsamtaleRoutesKtTest {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
             on {
                 hentKontrollsamtaler(any())
-            } doReturn listOf(innkaltKontrollsamtale(sakId = sakId), planlagtKontrollsamtale(sakId = sakId))
+            } doReturn Kontrollsamtaler(innkaltKontrollsamtale(sakId = sakId), planlagtKontrollsamtale(sakId = sakId))
         }
         testApplication {
             application {

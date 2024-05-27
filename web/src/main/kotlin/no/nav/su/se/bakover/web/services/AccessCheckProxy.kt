@@ -178,6 +178,7 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
@@ -1248,7 +1249,7 @@ open class AccessCheckProxy(
                     override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) =
                         kastKanKunKallesFraAnnenService()
 
-                    override fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale> {
+                    override fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler {
                         assertHarTilgangTilSak(sakId)
                         return service.hentKontrollsamtaler(sakId)
                     }

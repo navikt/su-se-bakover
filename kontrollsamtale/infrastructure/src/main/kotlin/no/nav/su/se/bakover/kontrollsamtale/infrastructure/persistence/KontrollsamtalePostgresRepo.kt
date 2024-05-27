@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import java.time.LocalDate
 import java.util.UUID
@@ -59,17 +60,18 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Kontrollsamtale> {
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Kontrollsamtaler {
         return dbMetrics.timeQuery("hentKontrollsamtaleForSakId") {
             sessionContext.withSession { session ->
                 "select * from kontrollsamtale where sakid=:sakId"
                     .trimIndent()
                     .hentListe(mapOf("sakId" to sakId), session) { it.toKontrollsamtale() }
+                    .let { Kontrollsamtaler(it) }
             }
         }
     }
 
-    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): List<Kontrollsamtale> {
+    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): Kontrollsamtaler {
         return dbMetrics.timeQuery("hentAllePlanlagteKontrollsamtaler") {
             sessionContext.withSession { session ->
                 "select * from kontrollsamtale where status=:status and innkallingsdato <= :tilOgMed"
@@ -81,6 +83,7 @@ internal class KontrollsamtalePostgresRepo(
                         ),
                         session,
                     ) { it.toKontrollsamtale() }
+                    .let { Kontrollsamtaler(it) }
             }
         }
     }
@@ -108,7 +111,7 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler {
         return dbMetrics.timeQuery("hentKontrollsamtaleFristUtløpt") {
             sessionFactory.withSession { session ->
                 "select * from kontrollsamtale where status=:status and frist = :frist"
@@ -119,6 +122,7 @@ internal class KontrollsamtalePostgresRepo(
                         ),
                         session,
                     ) { it.toKontrollsamtale() }
+                    .let { Kontrollsamtaler(it) }
             }
         }
     }

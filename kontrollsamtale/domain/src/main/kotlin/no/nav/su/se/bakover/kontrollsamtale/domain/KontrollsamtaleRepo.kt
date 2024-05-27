@@ -7,11 +7,11 @@ import java.util.UUID
 
 interface KontrollsamtaleRepo {
     fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext = defaultSessionContext())
-    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Kontrollsamtale>
-    fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): List<Kontrollsamtale>
+    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): Kontrollsamtaler
+    fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): Kontrollsamtaler
 
     fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate?
-    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
+    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler
     fun defaultSessionContext(): SessionContext
 
     fun defaultTransactionContext(): TransactionContext

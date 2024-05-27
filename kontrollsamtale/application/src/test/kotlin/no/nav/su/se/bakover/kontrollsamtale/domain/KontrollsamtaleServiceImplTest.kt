@@ -241,7 +241,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke eksisterer data i databasen`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn emptyList()
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler.empty()
                 on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
@@ -254,7 +254,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke finnes noen med status INNKALT`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
                     innkaltKontrollsamtale(),
                     gjennomførtKontrollsamtale(),
                 )
@@ -272,7 +272,7 @@ internal class KontrollsamtaleServiceImplTest {
             planlagtKontrollsamtale(innkallingsdato = fixedLocalDate)
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
                     planlagtKontrollsamtale(innkallingsdato = fixedLocalDate.plusMonths(1)),
                     gjennomførtKontrollsamtale(),
                     expected,
@@ -322,7 +322,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `endre dato skal endre dato ved normal flyt`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(planlagtKontrollsamtale())
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(planlagtKontrollsamtale())
                 on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
             sakService = mock {
@@ -344,7 +344,7 @@ internal class KontrollsamtaleServiceImplTest {
         val sakId = UUID.randomUUID()
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
                     planlagtKontrollsamtale(),
                     innkaltKontrollsamtale(),
                 )

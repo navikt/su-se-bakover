@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
@@ -155,13 +156,13 @@ class KontrollsamtaleServiceImpl(
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
 
-    override fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale> {
+    override fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler {
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }
 
     override fun hentPlanlagteKontrollsamtaler(
         sessionContext: SessionContext,
-    ): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> {
+    ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtaler> {
         return Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock), sessionContext) }.mapLeft {
             log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}", it)
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
@@ -172,7 +173,7 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentFristUtløptFørEllerPåDato(fristFørEllerPåDato)
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler {
         return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
     }
 
@@ -201,7 +202,7 @@ class KontrollsamtaleServiceImpl(
     /**
      * Brukt fra komponenttester.
      */
-    fun hentForSak(sakId: UUID): List<Kontrollsamtale> {
+    fun hentForSak(sakId: UUID): Kontrollsamtaler {
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }
 

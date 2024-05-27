@@ -17,14 +17,14 @@ interface KontrollsamtaleService {
         sessionContext: SessionContext = defaultSessionContext(),
     ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
 
-    fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext = defaultSessionContext()): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
+    fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext = defaultSessionContext()): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtaler>
 
     fun defaultSessionContext(): SessionContext
 
     fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate?
 
-    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
+    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler
 
     fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext)
-    fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale>
+    fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler
 }

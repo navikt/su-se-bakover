@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleStatusJson.Companion.toJson
 import java.time.LocalDate
@@ -29,7 +30,7 @@ internal fun Kontrollsamtale.toJson(): String {
     ).let { serialize(it) }
 }
 
-internal fun List<Kontrollsamtale>.toJson(): String = """
+internal fun Kontrollsamtaler.toJson(): String = """
     [${this.joinToString(",") { it.toJson() }}]
 """.trimIndent()
 
