@@ -93,7 +93,7 @@ class SkatteServiceImpl(
         request: FrioppslagSkattRequest,
     ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
         val verifisering = when (request.sakstype) {
-            Sakstype.ALDER -> if (isProd) true.right() else verifiserRequestMedAlder(request)
+            Sakstype.ALDER -> if (request.verifiserAlder) verifiserRequestMedAlder(request) else Unit.right()
             Sakstype.UFØRE -> verifiserRequestMedUføre(request)
         }
 

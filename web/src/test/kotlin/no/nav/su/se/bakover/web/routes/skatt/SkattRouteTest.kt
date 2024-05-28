@@ -110,6 +110,7 @@ class SkattRouteTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal"),
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "",
+                    verifiserAlder = true,
                 )
             },
         )
@@ -171,6 +172,7 @@ class SkattRouteTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal"),
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "",
+                    verifiserAlder = true,
                 )
             },
         )

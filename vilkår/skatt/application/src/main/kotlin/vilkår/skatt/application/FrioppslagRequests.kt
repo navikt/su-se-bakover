@@ -6,6 +6,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Year
 
+/**
+ * @param verifiserAlder - Til vanlig vil vi verifisere alle alderssaker mot Joark. Vi kan ikke garantere at vi alltid har riktig data, derfor kan saksbehandler overstyre dette
+ */
 data class FrioppslagSkattRequest(
     val fnr: Fnr?,
     val epsFnr: Fnr?,
@@ -14,6 +17,7 @@ data class FrioppslagSkattRequest(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val sakstype: Sakstype,
     val fagsystemId: String,
+    val verifiserAlder: Boolean,
 )
 
 /**

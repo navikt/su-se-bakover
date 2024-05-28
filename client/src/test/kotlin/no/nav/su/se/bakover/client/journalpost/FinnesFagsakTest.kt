@@ -45,6 +45,22 @@ class FinnesFagsakTest {
         }
     }
 
+    @Test
+    fun `false dersom responsen ikke inneholder journalpost med knyttet fagsystemid`() {
+        val fnr = Fnr.generer()
+        startedWireMockServerWithCorrelationId {
+            stubFor(token("Bearer systemToken").willReturn(WireMock.ok("""{"data": {"dokumentoversiktBruker": {"journalposter": [{"sak": {"fagsakId": "AC5960D"}}]}}}""")))
+            val expected = """
+            {"query":"query(${"\$brukerId"}: BrukerIdInput! ${"\$fraDato"}: Date ${"\$tema"}: [Tema!]! ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktBruker(\n            brukerId: ${"\$brukerId"}\n            fraDato: ${"\$fraDato"}\n            tema: ${"\$tema"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            sak {\n                fagsakId\n            }\n        }\n    }\n}","variables":{"brukerId":{"id":"$fnr","type":"FNR"},"fraDato":null,"tilDato":null,"tema":["SUP"],"journalposttyper":[],"journalstatuser":[],"foerste":100}}
+            """.trimIndent()
+
+            setupClient(baseUrl()).also {
+                it.finnesFagsak(fnr, "fagsystemId") shouldBe false.right()
+                String(serveEvents.requests.first().request.body) shouldBe expected
+            }
+        }
+    }
+
     private fun happyJson(): String {
         //language=JSON
         return """

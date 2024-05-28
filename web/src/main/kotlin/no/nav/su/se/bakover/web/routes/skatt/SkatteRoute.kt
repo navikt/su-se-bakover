@@ -67,6 +67,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
          */
         fun tilFrioppslagSkattRequest(
             saksbehandler: NavIdentBruker.Saksbehandler,
+            verifiserAlder: Boolean,
         ): Either<FrioppslagValideringsFeil, FrioppslagSkattRequest> {
             if (fnr == null && epsFnr == null) {
                 return FrioppslagValideringsFeil.KreverAtMinstEtFnrSendesInn.left()
@@ -80,6 +81,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
                 saksbehandler = saksbehandler,
                 sakstype = Sakstype.from(sakstype),
                 fagsystemId = fagsystemId,
+                verifiserAlder = verifiserAlder,
             ).right()
         }
     }
@@ -87,7 +89,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     post("$SKATTE_PATH/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
                     {
                         call.svar(it.tilResultat())
                     },
@@ -112,7 +114,31 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     post(SKATTE_PATH) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
+                    {
+                        call.svar(it.tilResultat())
+                    },
+                    { request ->
+                        skatteService.hentLagOgJournalførSkattePdf(
+                            request = request,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            },
+                        )
+                    },
+                )
+            }
+        }
+    }
+
+    post("$SKATTE_PATH/uten-verifisering") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withBody<FrioppslagRequestBody> { body ->
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, false).fold(
                     {
                         call.svar(it.tilResultat())
                     },

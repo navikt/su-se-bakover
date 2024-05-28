@@ -422,6 +422,7 @@ class SkatteServiceImplTest {
                     saksbehandler = saksbehandler,
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "29901",
+                    verifiserAlder = true,
                 ),
             ).shouldBeRight()
 
@@ -481,6 +482,7 @@ class SkatteServiceImplTest {
                     saksbehandler = saksbehandler,
                     sakstype = Sakstype.UFØRE,
                     fagsystemId = sak.saksnummer.toString(),
+                    verifiserAlder = true,
                 ),
             ).shouldBeRight()
 
@@ -544,11 +546,62 @@ class SkatteServiceImplTest {
                     saksbehandler = saksbehandler,
                     sakstype = Sakstype.ALDER,
                     fagsystemId = fagsystemId,
+                    verifiserAlder = true,
                 ),
             ).shouldBeRight()
 
             verify(it.personService).hentPerson(argThat { it shouldBe fnr })
             verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fnr }, argThat { it shouldBe fagsystemId }, anyOrNull())
+            verify(it.skatteClient).hentSamletSkattegrunnlag(
+                argThat { it shouldBe fnr },
+                argThat { it shouldBe Year.of(2021) },
+            )
+            verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
+                argThat {
+                    it shouldBe GenererSkattPdfRequest(
+                        skattegrunnlagSøkers = it.skattegrunnlagSøkers,
+                        skattegrunnlagEps = null,
+                        begrunnelse = "begrunnelse for henting av skatte-data",
+                        sakstype = Sakstype.ALDER,
+                        fagsystemId = fagsystemId,
+                    )
+                },
+            )
+
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `hopper over verifisering av alderssak`() {
+        val fagsystemId = "1279CB56"
+        val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+
+        val skatteClient = mock<Skatteoppslag> {
+            on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
+        }
+
+        val skattDokumentService = mock<SkattDokumentService> {
+            on { genererSkattePdfOgJournalfør(any()) } doReturn PdfA("content".toByteArray()).right()
+        }
+
+        mockedServices(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+        ).let {
+            it.service.hentLagOgJournalførSkattePdf(
+                request = FrioppslagSkattRequest(
+                    fnr = fnr,
+                    epsFnr = null,
+                    år = Year.of(2021),
+                    begrunnelse = "begrunnelse for henting av skatte-data",
+                    saksbehandler = saksbehandler,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = fagsystemId,
+                    verifiserAlder = false,
+                ),
+            ).shouldBeRight()
+
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
                 argThat { it shouldBe Year.of(2021) },
