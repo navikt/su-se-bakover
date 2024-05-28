@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
-import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
@@ -92,7 +91,6 @@ internal class KontrollsamtaleRoutesKtTest {
     fun `saksbehandler skal kunne hente neste planlagte kontrollsamtale`() {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
             on { hentNestePlanlagteKontrollsamtale(any(), anyOrNull()) } doReturn planlagtKontrollsamtale().right()
-            on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
         testApplication {
             application {
@@ -129,7 +127,6 @@ internal class KontrollsamtaleRoutesKtTest {
                     anyOrNull(),
                 )
             } doReturn KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
-            on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
         testApplication {
             application {

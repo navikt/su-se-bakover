@@ -38,11 +38,8 @@ class KontrollsamtaleinnkallingJob(
                     .shouldRun()
                     .ifTrue {
                         withCorrelationId {
-                            kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
-                                kontrollsamtaler.forEach {
-                                    // TODO jah: Gjør kallInn til parameterløs og gjør denne logikken i den funksjonen.
-                                    kontrollsamtaleService.kallInn(it.sakId, it)
-                                }
+                            kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtale ->
+                                kontrollsamtaleService.kallInn(kontrollsamtale)
                             }
                         }
                     }

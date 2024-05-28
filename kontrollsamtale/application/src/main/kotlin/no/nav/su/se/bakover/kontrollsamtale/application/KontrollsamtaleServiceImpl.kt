@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,12 +44,11 @@ class KontrollsamtaleServiceImpl(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun kallInn(
-        sakId: UUID,
         kontrollsamtale: Kontrollsamtale,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
+        val sakId = kontrollsamtale.sakId
         val sak = sakService.hentSak(sakId).getOrElse {
-            log.error("Fant ikke sak for sakId $sakId")
-            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
+            throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
         }
 
         val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
@@ -115,8 +115,7 @@ class KontrollsamtaleServiceImpl(
 
     override fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
         val sak = sakService.hentSak(sakId).getOrElse {
-            log.error("Fant ikke sak for sakId $sakId")
-            return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
+            throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
         }
         sak.harGjeldendeEllerFremtidigStønadsperiode(clock).ifFalse {
             log.info("Fant ingen gjeldende stønadsperiode på sakId $sakId")
@@ -148,7 +147,7 @@ class KontrollsamtaleServiceImpl(
 
     override fun hentNestePlanlagteKontrollsamtale(
         sakId: UUID,
-        sessionContext: SessionContext,
+        sessionContext: SessionContext?,
     ): Either<KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale, Kontrollsamtale> {
         val samtaler = kontrollsamtaleRepo.hentForSakId(sakId, sessionContext).sortedBy { it.innkallingsdato }
         // TODO jah: Dette kunne vi filtrert i databasen og dersom vi brukte sterkere typer, kunne vi returnert en mer eksakt type.
@@ -161,12 +160,9 @@ class KontrollsamtaleServiceImpl(
     }
 
     override fun hentPlanlagteKontrollsamtaler(
-        sessionContext: SessionContext,
-    ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtaler> {
-        return Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock), sessionContext) }.mapLeft {
-            log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}", it)
-            return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
-        }
+        sessionContext: SessionContext?,
+    ): Kontrollsamtaler {
+        return kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock), sessionContext)
     }
 
     override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate? {
@@ -197,8 +193,6 @@ class KontrollsamtaleServiceImpl(
             }
     }
 
-    override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
-
     /**
      * Brukt fra komponenttester.
      */
@@ -206,7 +200,23 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }
 
-    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) {
+    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext?) {
         kontrollsamtaleRepo.lagre(kontrollsamtale, sessionContext)
+    }
+
+    override fun annullerKontrollsamtale(
+        sakId: UUID,
+        kontrollsamtaleId: UUID,
+        sessionContext: SessionContext?,
+    ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
+        val kontrollsamtale = kontrollsamtaleRepo.hentForKontrollsamtaleId(kontrollsamtaleId)
+            ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id $kontrollsamtaleId for sak $sakId")
+
+        return kontrollsamtale.annuller().mapLeft {
+            log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. SakId: $sakId.")
+            KunneIkkeAnnullereKontrollsamtale.UgyldigStatusovergang
+        }.map {
+            kontrollsamtaleRepo.lagre(it, sessionContext)
+        }
     }
 }

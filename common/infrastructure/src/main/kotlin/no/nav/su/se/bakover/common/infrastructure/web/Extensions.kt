@@ -196,6 +196,13 @@ suspend inline fun ApplicationCall.withDokumentId(ifRight: (UUID) -> Unit) {
     )
 }
 
+suspend inline fun ApplicationCall.withKontrollsamtaleId(ifRight: (UUID) -> Unit) {
+    this.lesUUID("kontrollsamtaleId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "kontrollsamtaleId_mangler_eller_feil_format")) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 suspend inline fun <reified T> ApplicationCall.withBody(
     log: Logger = LoggerFactory.getLogger(this::class.java),
     ifRight: (T) -> Unit,

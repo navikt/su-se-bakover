@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -48,18 +49,19 @@ internal class KontrollsamtaleServiceImplTest {
 
     private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
     private val person = person(fnr = sak.fnr)
-    private val kontrollsamtale = planlagtKontrollsamtale()
+    private val kontrollsamtale = planlagtKontrollsamtale(sakId = sak.id)
 
     @Test
     fun `feiler hvis vi ikke finner sak`() {
-        ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-            },
-        ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
-            kontrollsamtale = kontrollsamtale,
-        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
+        shouldThrow<IllegalArgumentException> {
+            ServiceOgMocks(
+                sakService = mock {
+                    on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
+                },
+            ).kontrollsamtaleService.kallInn(
+                kontrollsamtale = kontrollsamtale,
+            )
+        }.message shouldBe "Fant ikke sak for sakId ${sak.id}"
     }
 
     @Test
@@ -72,7 +74,6 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
     }
@@ -84,10 +85,12 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr, dødsdato = 1.januar(2021)).right()
+                on { hentPersonMedSystembruker(any()) } doReturn person(
+                    fnr = sak.fnr,
+                    dødsdato = 1.januar(2021),
+                ).right()
             },
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale.annuller().getOrNull()!!,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
     }
@@ -99,10 +102,12 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr, dødsdato = 1.januar(2021)).right()
+                on { hentPersonMedSystembruker(any()) } doReturn person(
+                    fnr = sak.fnr,
+                    dødsdato = 1.januar(2021),
+                ).right()
             },
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
     }
@@ -117,7 +122,6 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
     }
@@ -139,7 +143,6 @@ internal class KontrollsamtaleServiceImplTest {
             brevService = brevService,
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(
             underliggendeFeil,
@@ -166,7 +169,6 @@ internal class KontrollsamtaleServiceImplTest {
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
@@ -192,7 +194,6 @@ internal class KontrollsamtaleServiceImplTest {
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
@@ -217,7 +218,6 @@ internal class KontrollsamtaleServiceImplTest {
         )
 
         services.kontrollsamtaleService.kallInn(
-            sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
         ) shouldBe Unit.right()
 
@@ -242,7 +242,6 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler.empty()
-                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -258,7 +257,6 @@ internal class KontrollsamtaleServiceImplTest {
                     innkaltKontrollsamtale(),
                     gjennomførtKontrollsamtale(),
                 )
-                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -277,7 +275,6 @@ internal class KontrollsamtaleServiceImplTest {
                     gjennomførtKontrollsamtale(),
                     expected,
                 )
-                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -292,10 +289,12 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         )
-        services.kontrollsamtaleService.nyDato(
-            sak.id,
-            fixedLocalDate.plusMonths(2),
-        ) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
+        shouldThrow<java.lang.IllegalArgumentException> {
+            services.kontrollsamtaleService.nyDato(
+                sak.id,
+                fixedLocalDate.plusMonths(2),
+            )
+        }.message shouldBe "Fant ikke sak for sakId ${sak.id}"
 
         verify(services.sakService).hentSak(any<UUID>())
         verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
@@ -323,7 +322,6 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(planlagtKontrollsamtale())
-                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn vedtakSøknadsbehandlingIverksattInnvilget().first.right()
@@ -334,7 +332,6 @@ internal class KontrollsamtaleServiceImplTest {
 
         verify(services.sakService).hentSak(any<UUID>())
         verify(services.kontrollsamtaleRepo).hentForSakId(any(), anyOrNull())
-        verify(services.kontrollsamtaleRepo).defaultSessionContext()
         verify(services.kontrollsamtaleRepo).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
