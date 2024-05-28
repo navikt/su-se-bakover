@@ -42,6 +42,7 @@ class SkatteServiceImpl(
     private val sakService: SakService,
     private val journalpostClient: QueryJournalpostClient,
     val clock: Clock,
+    val isProd: Boolean,
 ) : SkatteService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -93,7 +94,7 @@ class SkatteServiceImpl(
         request: FrioppslagSkattRequest,
     ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
         val verifisering = when (request.sakstype) {
-            Sakstype.ALDER -> verifiserRequestMedAlder(request)
+            Sakstype.ALDER -> if (isProd) true.right() else verifiserRequestMedAlder(request)
             Sakstype.UFØRE -> verifiserRequestMedUføre(request)
         }
 

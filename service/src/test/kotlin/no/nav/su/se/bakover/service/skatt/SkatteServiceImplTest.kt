@@ -584,6 +584,7 @@ class SkatteServiceImplTest {
             personService = personService,
             sakService = sakService,
             journalpostClient = journalpostClient,
+            isProd = false,
             clock = fixedClock,
         )
 
