@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -549,7 +548,7 @@ class SkatteServiceImplTest {
             ).shouldBeRight()
 
             verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-            verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fagsystemId }, argThat { it shouldBe Fagsystem.INFOTRYGD }, anyOrNull())
+            verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fnr }, argThat { it shouldBe fagsystemId }, anyOrNull())
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
                 argThat { it shouldBe Year.of(2021) },

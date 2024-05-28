@@ -24,3 +24,10 @@ enum Journalstatus { JOURNALFOERT, FERDIGSTILT }
 enum Tema { SUP }
 
 enum Journalposttype { I, N }
+
+input BrukerIdInput {
+    id: String!,
+    type: BrukerIdType!
+}
+
+enum BrukerIdType { FNR }

@@ -3,6 +3,7 @@ package dokument.domain.journalføring
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 
 interface QueryJournalpostClient {
@@ -16,7 +17,7 @@ interface QueryJournalpostClient {
 
     fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int = 50): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 
-    fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int = 50): Either<KunneIkkeHenteJournalposter, Boolean>
+    fun finnesFagsak(fnr: Fnr, fagsystemId: String, limit: Int = 100): Either<KunneIkkeHenteJournalposter, Boolean>
 
     /**
      * Skreddersydd for å svare på om det er mottatt et kontrollnotat for [saksnummer] i løpet av gitt [periode].

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -125,6 +124,8 @@ class SkatteServiceImpl(
      * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
      * 3. At fnr i saken er lik fnr i request
      * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
+     *
+     * route har validering av at minst 1 fnr sendes inn
      */
     private fun verifiserRequestMedUføre(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         val saksnummer = Either.catch {
@@ -176,9 +177,11 @@ class SkatteServiceImpl(
     /**
      * Verifiserer 4 ting:
      * 1. At vi ikke har en sak med angitt saksnummer
-     * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen
+     * 2. At fnr finnes i PDL, og at saksbehandler har tilgang til personen (hvis sendt med)
      * 3. At saksnummeret finnes i Joark
-     * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt
+     * 4. At epsFnr finnes i PDL, og at saksbehandler har tilgang til EPS dersom den er satt (hvis sendt med)
+     *
+     * route har validering av at minst 1 fnr sendes inn
      */
     private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         request.fnr?.let {
@@ -198,7 +201,11 @@ class SkatteServiceImpl(
             }
         }
 
-        journalpostClient.finnesFagsak(request.fagsystemId, Fagsystem.INFOTRYGD).fold(
+        journalpostClient.finnesFagsak(
+            fnr = if (request.fnr == null) request.epsFnr!! else request.fnr!!,
+            fagsystemId = request.fagsystemId,
+
+        ).fold(
             ifLeft = {
                 return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedVerifiseringAvFagsakMotJoark.left()
             },

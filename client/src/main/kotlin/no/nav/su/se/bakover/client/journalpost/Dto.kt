@@ -1,28 +1,6 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import dokument.domain.journalføring.Fagsystem
-import java.time.LocalDate
-
-/**
- * Generell modell for representasjon av en journalpost i APIet.
- * Merk at alle felter er nullable da vi selv styrer hvilke data vi vil ha i retur vha. graphql
- */
-internal data class Journalpost(
-    val tema: String? = null,
-    val journalstatus: String? = null,
-    val journalposttype: String? = null,
-    val sak: Sak? = null,
-    val tittel: String? = null,
-    val datoOpprettet: LocalDate? = null,
-    val journalpostId: String? = null,
-)
-
-/**
- * https://confluence.adeo.no/display/BOA/Type%3A+Sak
- */
-internal data class Sak(
-    val fagsakId: String? = null,
-)
 
 /**
  * Generell modell for spørringer mot dokumentoversiktFagsak

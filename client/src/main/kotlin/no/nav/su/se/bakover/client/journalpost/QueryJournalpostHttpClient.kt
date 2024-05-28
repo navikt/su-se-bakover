@@ -6,7 +6,6 @@ import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.ErTilknyttetSak
-import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
@@ -16,7 +15,6 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.isSuccess
-import no.nav.su.se.bakover.client.journalpost.FagsystemDto.Companion.toDto
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -24,6 +22,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
@@ -125,29 +124,34 @@ internal class QueryJournalpostHttpClient(
         }
     }
 
-    // TODO - må testet litt mer
-    override fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
-        val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
-            query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
-            variables = HentJournalposterForSakVariables(
-                fagsak = Fagsak(fagsakId = fagsystemId, fagsystem.toDto()),
-                tema = emptyList(),
+    override fun finnesFagsak(fnr: Fnr, fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
+        val request = GraphQLQuery<HentDokumentoversiktBrukerHttpResponse>(
+            query = getQueryFrom("/dokumentoversiktBruker.graphql"),
+            variables = HentJournalposterForBruker(
+                brukerId = BrukerId(id = fnr.toString()),
                 foerste = limit,
             ),
         )
         return runBlocking {
             gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).fold(
                 ifLeft = {
-                    KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId") }
+                    KunneIkkeHenteJournalposter.ClientError.also {
+                        log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId. Se sikkerlogg for mer info")
+                        sikkerLogg.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId, fnr: $fnr")
+                    }
                         .left()
                 },
                 ifRight = { response ->
                     if (response.hasErrors()) {
-                        log.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}")
+                        log.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}. Se sikker logg for mer info")
                         sikkerLogg.error("Fant errors ved sjekk om fagsak finnes: ${response.errors}. requesten var $request")
                         KunneIkkeHenteJournalposter.ClientError.left()
                     }
-                    (response.data?.dokumentoversiktFagsak?.journalposter?.isNotEmpty() ?: false).also {
+                    (
+                        response.data?.dokumentoversiktBruker?.journalposter?.any {
+                            it.sak?.fagsakId == fagsystemId
+                        } ?: false
+                        ).also {
                         log.info("Fikk respons ved sjekk om fagsak finnes - se sikker logg for innhold")
                         sikkerLogg.info("Fikk respons ved sjekk om fagsak finnes: $response. requesten var $request")
                     }.right()

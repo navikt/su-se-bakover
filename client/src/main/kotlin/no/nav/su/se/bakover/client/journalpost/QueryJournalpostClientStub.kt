@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.right
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.ErTilknyttetSak
-import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.JournalpostStatus
 import dokument.domain.journalføring.JournalpostTema
@@ -16,6 +15,7 @@ import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 
 data object QueryJournalpostClientStub : QueryJournalpostClient {
@@ -35,7 +35,7 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             Journalpost(JournalpostId("234252334"), "Innsendt klage V2"),
         ).right()
 
-    override fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
+    override fun finnesFagsak(fnr: Fnr, fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
         return true.right()
     }
 
