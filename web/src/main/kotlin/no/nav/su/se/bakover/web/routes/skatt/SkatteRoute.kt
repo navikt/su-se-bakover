@@ -132,30 +132,6 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
             }
         }
     }
-
-    post("$SKATTE_PATH/overstyr") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<FrioppslagRequestBody> { body ->
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
-                    {
-                        call.svar(it.tilResultat())
-                    },
-                    { request ->
-                        skatteService.hentLagOgJournalførSkattePdf(
-                            request = request,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                            },
-                        )
-                    },
-                )
-            }
-        }
-    }
 }
 
 internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = when (this) {

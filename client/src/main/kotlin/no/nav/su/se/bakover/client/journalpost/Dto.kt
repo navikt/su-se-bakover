@@ -66,7 +66,7 @@ enum class FagsystemDto {
 internal data class HentJournalposterForSakVariables(
     val fagsak: Fagsak,
     val fraDato: String? = null,
-    val tema: String = "SUP",
+    val tema: List<String> = listOf("SUP"),
     val journalposttyper: List<String> = emptyList(),
     val journalstatuser: List<String> = emptyList(),
     val foerste: Int = 50,

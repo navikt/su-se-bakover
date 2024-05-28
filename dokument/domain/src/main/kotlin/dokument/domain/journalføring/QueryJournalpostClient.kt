@@ -16,9 +16,6 @@ interface QueryJournalpostClient {
 
     fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int = 50): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 
-    /**
-     *
-     */
     fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int = 50): Either<KunneIkkeHenteJournalposter, Boolean>
 
     /**

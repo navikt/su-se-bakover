@@ -131,6 +131,7 @@ internal class QueryJournalpostHttpClient(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
                 fagsak = Fagsak(fagsakId = fagsystemId, fagsystem.toDto()),
+                tema = emptyList(),
                 foerste = limit,
             ),
         )
