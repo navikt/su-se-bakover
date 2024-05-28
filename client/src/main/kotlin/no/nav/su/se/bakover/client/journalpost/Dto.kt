@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.journalpost
 
+import dokument.domain.journalføring.Fagsystem
 import java.time.LocalDate
 
 /**
@@ -41,8 +42,22 @@ internal data class DokumentoversiktFagsak(
 
 data class Fagsak(
     val fagsakId: String,
-    val fagsaksystem: String = "SUPSTONAD",
+    val fagsaksystem: FagsystemDto = FagsystemDto.SUPSTONAD,
 )
+
+enum class FagsystemDto {
+    SUPSTONAD,
+    Infotrygd,
+    ;
+
+    companion object {
+        // TODO - test
+        fun Fagsystem.toDto(): FagsystemDto = when (this) {
+            Fagsystem.SUPSTONAD -> SUPSTONAD
+            Fagsystem.INFOTRYGD -> Infotrygd
+        }
+    }
+}
 
 /**
  * Variabler for spørringer mot dokumentoversiktFagsak

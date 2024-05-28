@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.shouldBeType
@@ -19,7 +20,7 @@ class FinnesFagsakTest {
             )
 
             setupClient(baseUrl()).also { client ->
-                client.finnesFagsak("1207CBF4").onLeft {
+                client.finnesFagsak("1207CBF4", Fagsystem.INFOTRYGD).onLeft {
                     it.shouldBeType<KunneIkkeHenteJournalposter.ClientError>()
                 }
             }
@@ -31,11 +32,11 @@ class FinnesFagsakTest {
         startedWireMockServerWithCorrelationId {
             stubFor(token("Bearer systemToken").willReturn(WireMock.ok(happyJson())))
             val expected = """
-            {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"AC5960D","fagsaksystem":"SUPSTONAD"},"fraDato":null,"tema":"SUP","journalposttyper":[],"journalstatuser":[],"foerste":50}}
+            {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"AC5960D","fagsaksystem":"Infotrygd"},"fraDato":null,"tema":"SUP","journalposttyper":[],"journalstatuser":[],"foerste":50}}
             """.trimIndent()
 
             setupClient(baseUrl()).also {
-                it.finnesFagsak("AC5960D") shouldBe true.right()
+                it.finnesFagsak("AC5960D", Fagsystem.INFOTRYGD) shouldBe true.right()
                 String(serveEvents.requests.first().request.body) shouldBe expected
             }
         }

@@ -6,6 +6,7 @@ import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.ErTilknyttetSak
+import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
@@ -15,6 +16,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.isSuccess
+import no.nav.su.se.bakover.client.journalpost.FagsystemDto.Companion.toDto
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -124,11 +126,11 @@ internal class QueryJournalpostHttpClient(
     }
 
     // TODO - må testet litt mer
-    override fun finnesFagsak(fagsystemId: String, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
+    override fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int): Either<KunneIkkeHenteJournalposter, Boolean> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
-                fagsak = Fagsak(fagsakId = fagsystemId),
+                fagsak = Fagsak(fagsakId = fagsystemId, fagsystem.toDto()),
                 foerste = limit,
             ),
         )

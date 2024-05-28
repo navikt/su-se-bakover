@@ -132,6 +132,30 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
             }
         }
     }
+
+    post("$SKATTE_PATH/overstyr") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withBody<FrioppslagRequestBody> { body ->
+                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler).fold(
+                    {
+                        call.svar(it.tilResultat())
+                    },
+                    { request ->
+                        skatteService.hentLagOgJournalførSkattePdf(
+                            request = request,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            },
+                        )
+                    },
+                )
+            }
+        }
+    }
 }
 
 internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = when (this) {
@@ -169,6 +193,11 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
     KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedVerifiseringAvFagsakMotJoark -> HttpStatusCode.InternalServerError.errorJson(
         "Feil ved verifisering av fagsak mot joark",
         "feil_ved_verifisering_av_fagsak_mot_joark",
+    )
+
+    KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeAlderssak -> HttpStatusCode.BadRequest.errorJson(
+        "Fant ikke alderssak",
+        "fant_ikke_alderssak",
     )
 }
 

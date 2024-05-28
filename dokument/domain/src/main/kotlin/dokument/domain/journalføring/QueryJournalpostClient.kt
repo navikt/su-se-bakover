@@ -15,7 +15,11 @@ interface QueryJournalpostClient {
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
     fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int = 50): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
-    fun finnesFagsak(fagsystemId: String, limit: Int = 50): Either<KunneIkkeHenteJournalposter, Boolean>
+
+    /**
+     *
+     */
+    fun finnesFagsak(fagsystemId: String, fagsystem: Fagsystem, limit: Int = 50): Either<KunneIkkeHenteJournalposter, Boolean>
 
     /**
      * Skreddersydd for å svare på om det er mottatt et kontrollnotat for [saksnummer] i løpet av gitt [periode].
@@ -24,6 +28,11 @@ interface QueryJournalpostClient {
         saksnummer: Saksnummer,
         periode: DatoIntervall,
     ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
+}
+
+enum class Fagsystem {
+    SUPSTONAD,
+    INFOTRYGD,
 }
 
 data class KunneIkkeSjekkKontrollnotatMottatt(val feil: Any)

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.journalføring.Fagsystem
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -196,13 +197,13 @@ class SkatteServiceImpl(
             }
         }
 
-        journalpostClient.finnesFagsak(request.fagsystemId).fold(
+        journalpostClient.finnesFagsak(request.fagsystemId, Fagsystem.INFOTRYGD).fold(
             ifLeft = {
                 return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedVerifiseringAvFagsakMotJoark.left()
             },
             ifRight = {
                 if (!it) {
-                    return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeSak.left()
+                    return KunneIkkeGenerereSkattePdfOgJournalføre.FantIkkeAlderssak.left()
                 }
             },
         )
