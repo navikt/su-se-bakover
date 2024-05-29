@@ -22,6 +22,7 @@ data class Body(
 
 /**
  * Fritt kopiert fra https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-system-os-simuler-fp-service-tjenestespesifikasjon/src/main/wsdl/no/nav/system/os/tjenester/simulerFpService/simulerFpServiceServiceTypes.xsd
+ * For diverse scenarier se https://docs.google.com/spreadsheets/d/1CqMgla4VCifrnzr8FvCyU-aPQQcQisuna8YvQpNhvV4/edit?pli=1#gid=867401779
  */
 data class SimulerBeregningResponse(
     val response: Response? = null,
