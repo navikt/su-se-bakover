@@ -365,7 +365,7 @@ class ReguleringServiceImpl(
             when (kunneikkeBeregne) {
                 is KunneIkkeBeregneRegulering.BeregningFeilet -> {
                     log.error(
-                        "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.",
+                        "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og eguleringstype: ${regulering.reguleringstype::class.simpleName}",
                         kunneikkeBeregne.feil,
                     )
                 }
@@ -391,7 +391,7 @@ class ReguleringServiceImpl(
                     }.fold(
                         {
                             log.error(
-                                "Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer}. Behandlingen settes til manuell",
+                                "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
                                 it,
                             )
                             SimuleringFeilet.TekniskFeil.left()
@@ -399,7 +399,7 @@ class ReguleringServiceImpl(
                         { it },
                     )
                 }.mapLeft {
-                    log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
+                    log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
                     KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
                 }
             }
