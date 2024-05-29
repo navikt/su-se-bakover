@@ -25,7 +25,7 @@ internal fun Kontrollsamtale.toJson(): String {
         innkallingsdato = this.innkallingsdato,
         status = this.status.toJson(),
         frist = this.frist,
-        dokumentId = this.dokumentId.toString(),
+        dokumentId = this.dokumentId?.toString(),
         journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
     ).let { serialize(it) }
 }
