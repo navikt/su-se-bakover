@@ -6,8 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.HentDokumenterForIdType
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -79,6 +81,32 @@ internal fun Route.dokumentRoutes(
                         ),
                     )
                 }
+        }
+    }
+
+    // TODO - test
+    get("/dokumenter/{dokumentId}") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            val id = call.parameter("dokumentId")
+                .getOrElse {
+                    return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Parameter 'dokumentId' mangler", "mangler_dokumentId"),
+                    )
+                }
+
+            brevService.hentDokument(UUID.fromString(id)).fold(
+                ifLeft = {
+                    call.svar(
+                        HttpStatusCode.NotFound.errorJson(
+                            "Fant ikke dokument med id $id",
+                            "fant_ikke_dokument",
+                        ),
+                    )
+                },
+                ifRight = {
+                    call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf)
+                },
+            )
         }
     }
 }

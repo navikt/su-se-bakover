@@ -2,11 +2,14 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -55,6 +58,10 @@ class BrevServiceImpl(
                     clock = clock,
                 )
             }
+    }
+
+    override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
+        return dokumentRepo.hentDokument(id)?.right() ?: FantIkkeDokument.left()
     }
 
     override fun lagreDokument(
