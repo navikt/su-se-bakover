@@ -179,10 +179,12 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
-import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
@@ -1270,10 +1272,17 @@ open class AccessCheckProxy(
                     }
 
                     override fun opprettKontrollsamtale(
-                        opprettKontrollsamtaleCommand: OpprettKontrollsamtaleCommand,
+                        command: OpprettKontrollsamtaleCommand,
                         sessionContext: SessionContext?,
                     ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale> {
-                        return service.opprettKontrollsamtale(opprettKontrollsamtaleCommand, sessionContext)
+                        return service.opprettKontrollsamtale(command, sessionContext)
+                    }
+
+                    override fun endreKontrollsamtale(
+                        command: EndreKontrollsamtaleCommand,
+                        sessionContext: SessionContext?,
+                    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale> {
+                        return service.endreKontrollsamtale(command, sessionContext)
                     }
 
                     override fun kallInn(

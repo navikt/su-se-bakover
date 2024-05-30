@@ -19,10 +19,13 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
-import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.endreKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.opprettKontrollsamtale
@@ -226,20 +229,34 @@ class KontrollsamtaleServiceImpl(
     }
 
     override fun opprettKontrollsamtale(
-        opprettKontrollsamtaleCommand: OpprettKontrollsamtaleCommand,
+        command: OpprettKontrollsamtaleCommand,
         sessionContext: SessionContext?,
     ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale> {
-        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(opprettKontrollsamtaleCommand.sakId)
-        val sak = sakService.hentSak(opprettKontrollsamtaleCommand.sakId).getOrElse {
-            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${opprettKontrollsamtaleCommand.sakId}")
+        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
+        val sak = sakService.hentSak(command.sakId).getOrElse {
+            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${command.sakId}")
         }
         return sak.opprettKontrollsamtale(
-            command = opprettKontrollsamtaleCommand,
+            command = command,
             eksisterendeKontrollsamtalerForSak = kontrollsamtaler,
             clock = clock,
         ).map { (kontrollsamtale, _) ->
             kontrollsamtaleRepo.lagre(kontrollsamtale, sessionContext)
             kontrollsamtale
         }
+    }
+
+    override fun endreKontrollsamtale(
+        command: EndreKontrollsamtaleCommand,
+        sessionContext: SessionContext?,
+    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale> {
+        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
+        val sak = sakService.hentSak(command.sakId).getOrElse {
+            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${command.sakId}")
+        }
+        return sak.endreKontrollsamtale(
+            command = command,
+            kontrollsamtaler = kontrollsamtaler,
+        ).map { it.first }
     }
 }

@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 
-private data class Body(
-    val innkallingsmåned: String,
-)
-
 fun Route.opprettKontrollsamtaleRoute(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
+    data class Body(
+        val innkallingsmåned: String,
+    )
+
     post("/saker/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->

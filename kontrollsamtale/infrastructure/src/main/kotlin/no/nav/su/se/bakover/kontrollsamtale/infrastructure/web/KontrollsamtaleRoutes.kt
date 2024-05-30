@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
-import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import java.time.LocalDate
 
 fun Route.kontrollsamtaleRoutes(
@@ -80,4 +80,5 @@ fun Route.kontrollsamtaleRoutes(
 
     annullerKontrollsamtaleRoute(kontrollsamtaleService)
     opprettKontrollsamtaleRoute(kontrollsamtaleService)
+    endreKontrollsamtaleRoute(kontrollsamtaleService)
 }

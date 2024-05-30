@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import java.time.LocalDate
@@ -35,7 +38,12 @@ interface KontrollsamtaleService {
     ): Either<KunneIkkeAnnullereKontrollsamtale, Unit>
 
     fun opprettKontrollsamtale(
-        opprettKontrollsamtaleCommand: OpprettKontrollsamtaleCommand,
+        command: OpprettKontrollsamtaleCommand,
         sessionContext: SessionContext? = null,
     ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale>
+
+    fun endreKontrollsamtale(
+        command: EndreKontrollsamtaleCommand,
+        sessionContext: SessionContext? = null,
+    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale>
 }

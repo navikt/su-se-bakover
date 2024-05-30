@@ -89,4 +89,8 @@ data class Kontrollsamtaler(
         )
         return (nyKontrollsamtale to Kontrollsamtaler(sakId, kontrollsamtaler + nyKontrollsamtale)).right()
     }
+
+    fun hentKontrollsamtale(kontrollsamtaleId: UUID): Kontrollsamtale? {
+        return kontrollsamtaler.find { it.id == kontrollsamtaleId }
+    }
 }
