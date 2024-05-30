@@ -79,4 +79,5 @@ fun Route.kontrollsamtaleRoutes(
     }
 
     annullerKontrollsamtaleRoute(kontrollsamtaleService)
+    opprettKontrollsamtaleRoute(kontrollsamtaleService)
 }

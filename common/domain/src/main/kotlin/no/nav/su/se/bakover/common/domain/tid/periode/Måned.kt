@@ -143,3 +143,7 @@ fun september(year: Int) = Måned.fra(YearMonth.of(year, Month.SEPTEMBER))
 fun oktober(year: Int) = Måned.fra(YearMonth.of(year, Month.OCTOBER))
 fun november(year: Int) = Måned.fra(YearMonth.of(year, Month.NOVEMBER))
 fun desember(year: Int) = Måned.fra(YearMonth.of(year, Month.DECEMBER))
+
+fun List<Måned>.erLikEllerTilstøtende(other: Måned): Boolean {
+    return this.any { it == other || it.årOgMåned.plusMonths(1) == other.årOgMåned || it.årOgMåned.minusMonths(1) == other.årOgMåned }
+}

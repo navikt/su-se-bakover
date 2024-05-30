@@ -183,6 +183,8 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -1265,6 +1267,13 @@ open class AccessCheckProxy(
                     ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
                         assertHarTilgangTilSak(sakId)
                         return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, sessionContext)
+                    }
+
+                    override fun opprettKontrollsamtale(
+                        opprettKontrollsamtaleCommand: OpprettKontrollsamtaleCommand,
+                        sessionContext: SessionContext?,
+                    ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale> {
+                        return service.opprettKontrollsamtale(opprettKontrollsamtaleCommand, sessionContext)
                     }
 
                     override fun kallInn(

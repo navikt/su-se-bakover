@@ -23,6 +23,9 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.opprettKontrollsamtale
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -159,9 +162,10 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }
 
+    /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
     override fun hentPlanlagteKontrollsamtaler(
         sessionContext: SessionContext?,
-    ): Kontrollsamtaler {
+    ): List<Kontrollsamtale> {
         return kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock), sessionContext)
     }
 
@@ -169,7 +173,8 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentFristUtløptFørEllerPåDato(fristFørEllerPåDato)
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler {
+    /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
         return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
     }
 
@@ -217,6 +222,24 @@ class KontrollsamtaleServiceImpl(
             KunneIkkeAnnullereKontrollsamtale.UgyldigStatusovergang
         }.map {
             kontrollsamtaleRepo.lagre(it, sessionContext)
+        }
+    }
+
+    override fun opprettKontrollsamtale(
+        opprettKontrollsamtaleCommand: OpprettKontrollsamtaleCommand,
+        sessionContext: SessionContext?,
+    ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale> {
+        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(opprettKontrollsamtaleCommand.sakId)
+        val sak = sakService.hentSak(opprettKontrollsamtaleCommand.sakId).getOrElse {
+            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${opprettKontrollsamtaleCommand.sakId}")
+        }
+        return sak.opprettKontrollsamtale(
+            command = opprettKontrollsamtaleCommand,
+            eksisterendeKontrollsamtalerForSak = kontrollsamtaler,
+            clock = clock,
+        ).map { (kontrollsamtale, _) ->
+            kontrollsamtaleRepo.lagre(kontrollsamtale, sessionContext)
+            kontrollsamtale
         }
     }
 }

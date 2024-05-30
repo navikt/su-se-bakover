@@ -14,9 +14,12 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.erLikEllerTilstøtende
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -236,5 +239,22 @@ internal class MånedTest {
     fun `periode hash skal være lik datoIntervall ved compareTo`() {
         Periode.create(1.januar(2021), 31.januar(2021)).hashCode().compareTo(januar(2021).hashCode()) shouldBe 0
         januar(2021).hashCode().compareTo(Periode.create(1.januar(2021), 31.januar(2021)).hashCode()) shouldBe 0
+    }
+
+    @Test
+    fun erLikEllerTilstøtende() {
+        listOf(januar(2021)).erLikEllerTilstøtende(oktober(2020)) shouldBe false
+        listOf(januar(2021)).erLikEllerTilstøtende(desember(2020)) shouldBe true
+        listOf(januar(2021)).erLikEllerTilstøtende(januar(2021)) shouldBe true
+        listOf(januar(2021)).erLikEllerTilstøtende(februar(2021)) shouldBe true
+        listOf(januar(2021)).erLikEllerTilstøtende(mars(2021)) shouldBe false
+
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(oktober(2020)) shouldBe false
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(desember(2020)) shouldBe true
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(januar(2021)) shouldBe true
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(februar(2021)) shouldBe true
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(mars(2021)) shouldBe true
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(april(2021)) shouldBe false
+        listOf(januar(2021), februar(2021)).erLikEllerTilstøtende(mai(2021)) shouldBe false
     }
 }
