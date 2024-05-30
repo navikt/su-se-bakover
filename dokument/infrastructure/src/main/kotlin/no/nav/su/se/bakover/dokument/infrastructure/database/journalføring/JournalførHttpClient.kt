@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
@@ -57,17 +58,59 @@ class JournalførHttpClient(
                 }
             },
             {
-                log.error(
-                    "Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}. Se sikker logg for mer detaljer",
-                    it,
-                )
-                sikkerLogg.error(
-                    "Feil ved journalføring " +
-                        "Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
-                )
+                val status = response.statusCode
+                val body = String(response.data)
+                if (status == 409) {
+                    hentJournalpostIdVedConflict(body, request)
+                } else {
+                    log.error(
+                        "Feil ved journalføring. status=$status body=$body. Se sikker logg for mer detaljer",
+                        it,
+                    )
+                    sikkerLogg.error(
+                        "Feil ved journalføring " +
+                            "Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
+                    )
 
-                ClientError(response.statusCode, "Feil ved journalføring").left()
+                    ClientError(response.statusCode, "Feil ved journalføring").left()
+                }
             },
         )
+    }
+
+    private fun hentJournalpostIdVedConflict(body: String, request: Request): Either<ClientError, JournalpostId> {
+        val json = JSONObject(body)
+        val journalpostId = json.optString("journalpostId", null) ?: run {
+            log.error(
+                "Kunne ikke hente journalpostId ved 409 Conflict. Se sikkerlogg for mer kontekst",
+                RuntimeException("Trigger stacktrace."),
+            )
+            sikkerLogg.error(
+                "Kunne ikke hente journalpostId ved 409 Conflict. body=$body. Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
+            )
+            return ClientError(409, "Feil ved journalføring").left()
+        }
+        json.optBooleanObject("journalpostferdigstilt", null)?.let {
+            if (!it) {
+                log.error(
+                    "Journalpost var ikke ferdigstilt ved 409 Conflict. journalpostId=$journalpostId. Se sikklerlogg for mer kontekst",
+                    RuntimeException("Trigger stacktrace."),
+                )
+                sikkerLogg.error(
+                    "Journalpost var ikke ferdigstilt ved 409 Conflict. journalpostId=$journalpostId. body=$json. Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
+                )
+                return ClientError(409, "Feil ved journalføring").left()
+            }
+        } ?: run {
+            log.error(
+                "Kunne ikke hente journalpostferdigstilt ved 409 Conflict. journalpostId=$journalpostId. Se sikkerlogg for mer kontekst",
+                RuntimeException("Trigger stacktrace."),
+            )
+            sikkerLogg.error(
+                "Kunne ikke hente journalpostferdigstilt ved 409 Conflict. journalpostId=$journalpostId. body=$body. Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
+            )
+            return ClientError(409, "Feil ved journalføring").left()
+        }
+        return JournalpostId(journalpostId).right()
     }
 }
