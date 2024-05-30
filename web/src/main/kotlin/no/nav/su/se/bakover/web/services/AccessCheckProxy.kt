@@ -182,9 +182,11 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
@@ -1278,11 +1280,18 @@ open class AccessCheckProxy(
                         return service.opprettKontrollsamtale(command, sessionContext)
                     }
 
-                    override fun endreKontrollsamtale(
-                        command: EndreKontrollsamtaleCommand,
+                    override fun oppdaterInnkallingsmånedPåKontrollsamtale(
+                        command: OppdaterInnkallingsmånedPåKontrollsamtaleCommand,
                         sessionContext: SessionContext?,
-                    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale> {
-                        return service.endreKontrollsamtale(command, sessionContext)
+                    ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Kontrollsamtale> {
+                        return service.oppdaterInnkallingsmånedPåKontrollsamtale(command, sessionContext)
+                    }
+
+                    override fun oppdaterStatusPåKontrollsamtale(
+                        command: OppdaterStatusPåKontrollsamtaleCommand,
+                        sessionContext: SessionContext?,
+                    ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale> {
+                        return service.oppdaterStatusPåKontrollsamtale(command, sessionContext)
                     }
 
                     override fun kallInn(

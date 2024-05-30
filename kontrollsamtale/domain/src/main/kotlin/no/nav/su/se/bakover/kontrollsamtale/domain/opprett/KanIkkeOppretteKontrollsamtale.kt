@@ -13,4 +13,8 @@ sealed interface KanIkkeOppretteKontrollsamtale {
     ) : KanIkkeOppretteKontrollsamtale
 
     data object IngenStønadsperiode : KanIkkeOppretteKontrollsamtale
+
+    data class MaksAntallPlanlagteKontrollsamtaler(
+        val antallPlanlagteKontrollsamtaler: Int,
+    ) : KanIkkeOppretteKontrollsamtale
 }

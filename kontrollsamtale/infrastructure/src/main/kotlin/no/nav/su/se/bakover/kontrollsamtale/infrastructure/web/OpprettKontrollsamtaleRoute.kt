@@ -53,6 +53,11 @@ fun Route.opprettKontrollsamtaleRoute(
                                         "Ugyldig innkallingsmåned",
                                         "ugyldig_innkallingsmåned",
                                     )
+
+                                    is KanIkkeOppretteKontrollsamtale.MaksAntallPlanlagteKontrollsamtaler -> HttpStatusCode.NotFound.errorJson(
+                                        "Maks antall (${it.antallPlanlagteKontrollsamtaler} planlagte kontrollsamtaler nådd.",
+                                        "maks_antall_planlagte_kontrollsamtaler",
+                                    )
                                 },
                             )
                         },

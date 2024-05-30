@@ -28,5 +28,11 @@ fun Sak.opprettKontrollsamtale(
             stønadsperioder = stønadsperioder,
         ).left()
     }
+    eksisterendeKontrollsamtalerForSak.antallPlanlagteKontrollsamtaler().also {
+        if (it > 2) {
+            return KanIkkeOppretteKontrollsamtale.MaksAntallPlanlagteKontrollsamtaler(it).left()
+        }
+    }
+
     return eksisterendeKontrollsamtalerForSak.opprettKontrollsamtale(command, clock)
 }

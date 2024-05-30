@@ -80,5 +80,6 @@ fun Route.kontrollsamtaleRoutes(
 
     annullerKontrollsamtaleRoute(kontrollsamtaleService)
     opprettKontrollsamtaleRoute(kontrollsamtaleService)
-    endreKontrollsamtaleRoute(kontrollsamtaleService)
+    oppdaterInnkallingsmånedPåKontrollsamtale(kontrollsamtaleService)
+    oppdaterStatusPåKontrollsamtale(kontrollsamtaleService)
 }

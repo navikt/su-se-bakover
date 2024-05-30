@@ -13,6 +13,10 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
@@ -32,6 +36,34 @@ data class Kontrollsamtale(
     val dokumentId: UUID?,
     val journalpostIdKontrollnotat: JournalpostId?,
 ) {
+
+    /**
+     * Vi kan kun oppdatere innkallingsmåned mens vi er i tilstanden [Kontrollsamtalestatus.PLANLAGT_INNKALLING].
+     */
+    fun kanOppdatereInnkallingsmåned(): Boolean {
+        return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
+    }
+
+    /**
+     * Lovlige overganger for denne kontrollsamtalen som vi tillater at en saksbehandler oppdaterer.
+     * Ment for at frontend skal slippe holde styr på dette.
+     * Overgangen fra planlagt innkalling til innkalt gjøres av systemet.
+     */
+    fun lovligeOvergangerForSaksbehandler(): Set<Kontrollsamtalestatus> {
+        return when (status) {
+            Kontrollsamtalestatus.PLANLAGT_INNKALLING -> setOf(Kontrollsamtalestatus.ANNULLERT)
+            Kontrollsamtalestatus.INNKALT -> setOf(
+                Kontrollsamtalestatus.GJENNOMFØRT,
+                Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST,
+                Kontrollsamtalestatus.ANNULLERT,
+            )
+
+            Kontrollsamtalestatus.GJENNOMFØRT,
+            Kontrollsamtalestatus.ANNULLERT,
+            Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST,
+            -> emptySet()
+        }
+    }
 
     fun settInnkalt(dokumentId: UUID): Either<UgyldigStatusovergang, Kontrollsamtale> {
         if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
@@ -58,10 +90,9 @@ data class Kontrollsamtale(
         }
     }
 
-    // TODO jm: det føles som det burde være noen restriksjoner her?
-    fun endreDato(innkallingsdato: LocalDate): Either<KunneIkkeEndreDato, Kontrollsamtale> {
-        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeEndreDato.UgyldigStatusovergang.left()
-        if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeEndreDato.DatoErIkkeFørsteIMåned.left()
+    fun oppdaterInnkallingsdato(innkallingsdato: LocalDate): Either<KunneIkkeOppdatereDato, Kontrollsamtale> {
+        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeOppdatereDato.UgyldigStatusovergang.left()
+        if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeOppdatereDato.DatoErIkkeFørsteIMåned.left()
         return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato))
             .right()
     }
@@ -85,9 +116,59 @@ data class Kontrollsamtale(
         }
     }
 
-    sealed interface KunneIkkeEndreDato {
-        data object UgyldigStatusovergang : KunneIkkeEndreDato
-        data object DatoErIkkeFørsteIMåned : KunneIkkeEndreDato
+    fun erAnnullert(): Boolean {
+        return status == Kontrollsamtalestatus.ANNULLERT
+    }
+
+    fun erPlanlagtInnkalling(): Boolean {
+        return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
+    }
+
+    fun oppdaterInnkallingsmåned(
+        command: OppdaterInnkallingsmånedPåKontrollsamtaleCommand,
+    ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Kontrollsamtale> {
+        if (this.erAnnullert()) {
+            return KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale.KontrollsamtaleAnnullert(this.id).left()
+        }
+        if (!this.erPlanlagtInnkalling()) {
+            return KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale.KanKunOppdatereInnkallingsmånedForPlanlagtInnkalling(
+                this.id,
+            ).left()
+        }
+        val nyInnkallingsdato = command.nyInnkallingsmåned.fraOgMed
+        return this.copy(
+            innkallingsdato = nyInnkallingsdato,
+            frist = regnUtFristFraInnkallingsdato(nyInnkallingsdato),
+        ).right()
+    }
+
+    fun oppdaterStatus(
+        command: OppdaterStatusPåKontrollsamtaleCommand,
+    ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale> {
+        return when (command.nyStatus) {
+            is OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført -> {
+                this.settGjennomført(journalpostId = command.nyStatus.journalpostId).mapLeft {
+                    KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
+                        this.id,
+                        lovligeOvergangerForSaksbehandler(),
+                    )
+                }
+            }
+
+            is OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.IkkeMøttInnenFrist -> {
+                this.settIkkeMøttInnenFrist().mapLeft {
+                    KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
+                        this.id,
+                        lovligeOvergangerForSaksbehandler(),
+                    )
+                }
+            }
+        }
+    }
+
+    sealed interface KunneIkkeOppdatereDato {
+        data object UgyldigStatusovergang : KunneIkkeOppdatereDato
+        data object DatoErIkkeFørsteIMåned : KunneIkkeOppdatereDato
     }
 
     companion object {
