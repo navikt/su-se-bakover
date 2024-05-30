@@ -69,7 +69,11 @@ internal class KontrollsamtaleRoutesKtTest {
                     ),
                 )
             }
-            defaultRequest(HttpMethod.Post, "/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(
+                HttpMethod.Post,
+                "/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -197,7 +201,11 @@ internal class KontrollsamtaleRoutesKtTest {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
             on {
                 hentKontrollsamtaler(any())
-            } doReturn Kontrollsamtaler(innkaltKontrollsamtale(sakId = sakId), planlagtKontrollsamtale(sakId = sakId))
+            } doReturn Kontrollsamtaler(
+                sakId,
+                innkaltKontrollsamtale(sakId = sakId),
+                planlagtKontrollsamtale(sakId = sakId),
+            )
         }
         testApplication {
             application {

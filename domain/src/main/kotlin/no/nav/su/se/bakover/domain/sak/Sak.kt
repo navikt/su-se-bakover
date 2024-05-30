@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.domain.whenever
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
+import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -230,6 +232,21 @@ data class Sak(
 
     fun hentSøknadsbehandling(id: SøknadsbehandlingId): Either<Unit, Søknadsbehandling> {
         return søknadsbehandlinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
+    }
+
+    fun hentInnvilgetSøknadsbehandlingsvedtak(): List<VedtakInnvilgetSøknadsbehandling> {
+        return søknadsbehandlinger.filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
+    }
+
+    /**
+     * Dette gjelder kun iverksatt, innvilget søknadsbehandlinger.
+     * @return En sortert liste av perioder uten overlapp. Merk at det kan være hull. Periodene er ikke slått sammen.
+     */
+    fun hentStønadsperioder(): IkkeOverlappendePerioder {
+        return hentInnvilgetSøknadsbehandlingsvedtak()
+            .map { it.periode }.sorterPåFraOgMedDeretterTilOgMed().let {
+                IkkeOverlappendePerioder.create(it)
+            }
     }
 
     /**

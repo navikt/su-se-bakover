@@ -241,7 +241,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke eksisterer data i databasen`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler.empty()
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler.empty(sak.id)
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -254,8 +254,9 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
-                    innkaltKontrollsamtale(),
-                    gjennomførtKontrollsamtale(),
+                    sak.id,
+                    innkaltKontrollsamtale(sakId = sak.id),
+                    gjennomførtKontrollsamtale(sakId = sak.id),
                 )
             },
         )
@@ -267,12 +268,13 @@ internal class KontrollsamtaleServiceImplTest {
     @Test
     fun `hentNestePlanlagteKontrollsamtale skal hente den neste planlagte innkallingen om det finnes flere`() {
         val expected =
-            planlagtKontrollsamtale(innkallingsdato = fixedLocalDate)
+            planlagtKontrollsamtale(innkallingsdato = fixedLocalDate, sakId = sak.id)
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
-                    planlagtKontrollsamtale(innkallingsdato = fixedLocalDate.plusMonths(1)),
-                    gjennomførtKontrollsamtale(),
+                    sak.id,
+                    planlagtKontrollsamtale(innkallingsdato = fixedLocalDate.plusMonths(1), sakId = sak.id),
+                    gjennomførtKontrollsamtale(sakId = sak.id),
                     expected,
                 )
             },
@@ -321,7 +323,10 @@ internal class KontrollsamtaleServiceImplTest {
     fun `endre dato skal endre dato ved normal flyt`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(planlagtKontrollsamtale())
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
+                    sak.id,
+                    planlagtKontrollsamtale(sakId = sak.id),
+                )
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn vedtakSøknadsbehandlingIverksattInnvilget().first.right()
@@ -342,8 +347,9 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
-                    planlagtKontrollsamtale(),
-                    innkaltKontrollsamtale(),
+                    sakId = sakId,
+                    planlagtKontrollsamtale(sakId = sakId),
+                    innkaltKontrollsamtale(sakId = sakId),
                 )
             },
             clock = fixedClock,

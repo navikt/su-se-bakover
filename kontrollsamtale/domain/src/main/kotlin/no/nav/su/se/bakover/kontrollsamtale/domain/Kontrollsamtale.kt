@@ -18,6 +18,10 @@ import java.time.LocalDate
 import java.time.Month
 import java.util.UUID
 
+/**
+ * @param dokumentId null inntil vi har generert og lagret brevet. Merk at journalføringen og distribusjonen av brevet skjer asynkront.
+ * @param journalpostIdKontrollnotat null inntil kontrollnotatet er mottatt.
+ */
 data class Kontrollsamtale(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt,

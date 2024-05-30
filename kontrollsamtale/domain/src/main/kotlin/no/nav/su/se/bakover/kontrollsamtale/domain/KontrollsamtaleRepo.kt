@@ -12,7 +12,10 @@ interface KontrollsamtaleRepo {
         sessionContext: SessionContext? = null,
     ): Kontrollsamtale?
 
-    fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext? = null): Kontrollsamtaler
+    /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
+    fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext? = null): List<Kontrollsamtale>
     fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate): LocalDate?
-    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler
+
+    /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
+    fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
 }

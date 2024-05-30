@@ -64,7 +64,7 @@ internal class KontrollsamtalePostgresRepo(
                 "select * from kontrollsamtale where sakid=:sakId"
                     .trimIndent()
                     .hentListe(mapOf("sakId" to sakId), session) { it.toKontrollsamtale() }
-                    .let { Kontrollsamtaler(it) }
+                    .let { Kontrollsamtaler(sakId, it.sortedBy { it.opprettet.instant }) }
             }
         }
     }
@@ -82,7 +82,7 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext?): Kontrollsamtaler {
+    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext?): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentAllePlanlagteKontrollsamtaler") {
             sessionFactory.withSession(sessionContext) { session ->
                 "select * from kontrollsamtale where status=:status and innkallingsdato <= :tilOgMed"
@@ -93,7 +93,6 @@ internal class KontrollsamtalePostgresRepo(
                         ),
                         session,
                     ) { it.toKontrollsamtale() }
-                    .let { Kontrollsamtaler(it) }
             }
         }
     }
@@ -121,7 +120,7 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): Kontrollsamtaler {
+    override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentKontrollsamtaleFristUtløpt") {
             sessionFactory.withSession { session ->
                 "select * from kontrollsamtale where status=:status and frist = :frist"
@@ -132,7 +131,6 @@ internal class KontrollsamtalePostgresRepo(
                         ),
                         session,
                     ) { it.toKontrollsamtale() }
-                    .let { Kontrollsamtaler(it) }
             }
         }
     }
