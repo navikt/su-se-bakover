@@ -24,6 +24,7 @@ data class Body(
  * Fritt kopiert fra https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-system-os-simuler-fp-service-tjenestespesifikasjon/src/main/wsdl/no/nav/system/os/tjenester/simulerFpService/simulerFpServiceServiceTypes.xsd
  * For diverse scenarier se https://docs.google.com/spreadsheets/d/1CqMgla4VCifrnzr8FvCyU-aPQQcQisuna8YvQpNhvV4/edit?pli=1#gid=867401779
  * Øystein Wiborg m/team familie sine tolkninger av simuleringsresponsen: https://confluence.adeo.no/display/TFA/Tolkning+av+simulerte+posteringer+fra+oppdragsystemet
+ * Oppdrag sin dokumentasjon på respons: https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
  */
 data class SimulerBeregningResponse(
     val response: Response? = null,
