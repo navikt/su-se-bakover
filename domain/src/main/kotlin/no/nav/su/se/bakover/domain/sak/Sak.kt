@@ -235,7 +235,7 @@ data class Sak(
     }
 
     fun hentInnvilgetSøknadsbehandlingsvedtak(): List<VedtakInnvilgetSøknadsbehandling> {
-        return søknadsbehandlinger.filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
+        return vedtakListe.filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
     }
 
     /**

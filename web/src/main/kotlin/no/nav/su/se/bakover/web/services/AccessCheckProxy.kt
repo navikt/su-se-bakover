@@ -1275,7 +1275,7 @@ open class AccessCheckProxy(
                         sakId: UUID,
                         kontrollsamtaleId: UUID,
                         sessionContext: SessionContext?,
-                    ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
+                    ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale> {
                         assertHarTilgangTilSak(sakId)
                         return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, sessionContext)
                     }

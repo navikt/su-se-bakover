@@ -21,6 +21,7 @@ import java.time.LocalDate
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
+    // TODO jah: Denne skal slettes etter vi har byttet over til nye crud-endepunkt
     post("/saker/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
