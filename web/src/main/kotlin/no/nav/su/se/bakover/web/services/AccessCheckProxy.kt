@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import behandling.domain.Stønadsbehandling
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.klage.domain.KlageId
@@ -15,6 +17,7 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
+import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
@@ -471,6 +474,10 @@ open class AccessCheckProxy(
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
+                    return assertTilgangTilSakOgHentDokument(id)
                 }
 
                 override fun lagreDokument(
@@ -1390,6 +1397,18 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilKlage(klageId: KlageId) {
         personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertTilgangTilSakOgHentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
+        return services.brev.hentDokument(id).fold(
+            ifLeft = {
+                it.left()
+            },
+            ifRight = {
+                assertHarTilgangTilSak(it.metadata.sakId)
+                it.right()
+            },
+        )
     }
 }
 

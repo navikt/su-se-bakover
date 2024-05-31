@@ -58,9 +58,11 @@ fun dokumentUtenMetadataInformasjonAnnet(
 }
 
 fun dokumentMedMetadataInformasjonAnnet(
+    id: UUID = UUID.randomUUID(),
+    pdf: PdfA = PdfA("PdfA-dokumentMedMetadataInformasjonAnnet".toByteArray()),
     sakId: UUID = UUID.randomUUID(),
 ): Dokument.MedMetadata.Informasjon {
-    return dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").leggTilMetadata(
+    return dokumentUtenMetadataInformasjonAnnet(id = id, pdf = pdf, tittel = "test-dokument-informasjon-annet").leggTilMetadata(
         metadata = Dokument.Metadata(
             sakId = sakId,
             søknadId = null,

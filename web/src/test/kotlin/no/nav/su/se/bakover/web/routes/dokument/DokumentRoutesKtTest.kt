@@ -1,22 +1,26 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
+import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readBytes
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -153,6 +157,30 @@ internal class DokumentRoutesKtTest {
                         UUID.fromString(sakId),
                     ),
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `finner dokument med angitt id`() {
+        val id = UUID.randomUUID()
+        val dokument = dokumentMedMetadataInformasjonAnnet(id = id)
+        val services = TestServicesBuilder.services(
+            brev = mock { on { hentDokument(any()) } doReturn dokument.right() },
+        )
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services)
+            }
+            defaultRequest(
+                method = Get,
+                uri = "/dokumenter/$id",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
+                it.readBytes() shouldBe dokument.generertDokument.getContent()
+                verify(services.brev).hentDokument(argThat { it shouldBe id })
             }
         }
     }
