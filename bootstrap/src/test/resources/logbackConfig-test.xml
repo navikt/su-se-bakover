@@ -6,8 +6,15 @@
         </encoder>
     </appender>
 
-    <include resource="logback-audit-config-test.xml"/>
-    <include resource="logback-secure-config-test.xml"/>
+    <!-- Den includer relativt til modulen som kaller denne. Så vi prøver støtte 3 nivåer. -->
+    <include optional="true" file="../bootstrap/src/test/resources/logback-audit-config-test.xml" />
+    <include optional="true" file="../bootstrap/src/test/resources/logback-secure-config-test.xml"/>
+
+    <include optional="true" file="../../bootstrap/src/test/resources/logback-audit-config-test.xml" />
+    <include optional="true" file="../../bootstrap/src/test/resources/logback-secure-config-test.xml"/>
+
+    <include optional="true" file="../../../bootstrap/src/test/resources/logback-audit-config-test.xml" />
+    <include optional="true" file="../../../bootstrap/src/test/resources/logback-secure-config-test.xml"/>
 
     <!-- DB -->
     <logger name="io.zonky" level="WARN"/>

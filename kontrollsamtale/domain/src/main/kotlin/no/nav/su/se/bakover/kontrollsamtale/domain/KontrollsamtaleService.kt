@@ -37,7 +37,7 @@ interface KontrollsamtaleService {
         sakId: UUID,
         kontrollsamtaleId: UUID,
         sessionContext: SessionContext? = null,
-    ): Either<KunneIkkeAnnullereKontrollsamtale, Unit>
+    ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale>
 
     fun opprettKontrollsamtale(
         command: OpprettKontrollsamtaleCommand,

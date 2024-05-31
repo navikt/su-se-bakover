@@ -39,22 +39,22 @@ fun Route.opprettKontrollsamtaleRoute(
                             call.svar(
                                 when (it) {
                                     is KanIkkeOppretteKontrollsamtale.IngenStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
-                                    is KanIkkeOppretteKontrollsamtale.InnkallingsmånedMåVæreEtterNåværendeMåned -> HttpStatusCode.NotFound.errorJson(
+                                    is KanIkkeOppretteKontrollsamtale.InnkallingsmånedMåVæreEtterNåværendeMåned -> HttpStatusCode.BadRequest.errorJson(
                                         "Innkallingsmåned må være etter nåværende måned",
                                         "innkallingsmåned_må_være_etter_nåværende_måned",
                                     )
 
-                                    is KanIkkeOppretteKontrollsamtale.InnkallingsmånedUtenforStønadsperiode -> HttpStatusCode.NotFound.errorJson(
+                                    is KanIkkeOppretteKontrollsamtale.InnkallingsmånedUtenforStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
                                         "Innkallingsmåned utenfor stønadsperiode",
                                         "innkallingsmåned_utenfor_stønadsperiode",
                                     )
 
-                                    is KanIkkeOppretteKontrollsamtale.UgyldigInnkallingsmåned -> HttpStatusCode.NotFound.errorJson(
+                                    is KanIkkeOppretteKontrollsamtale.UgyldigInnkallingsmåned -> HttpStatusCode.BadRequest.errorJson(
                                         "Ugyldig innkallingsmåned",
                                         "ugyldig_innkallingsmåned",
                                     )
 
-                                    is KanIkkeOppretteKontrollsamtale.MaksAntallPlanlagteKontrollsamtaler -> HttpStatusCode.NotFound.errorJson(
+                                    is KanIkkeOppretteKontrollsamtale.MaksAntallPlanlagteKontrollsamtaler -> HttpStatusCode.BadRequest.errorJson(
                                         "Maks antall (${it.antallPlanlagteKontrollsamtaler} planlagte kontrollsamtaler nådd.",
                                         "maks_antall_planlagte_kontrollsamtaler",
                                     )

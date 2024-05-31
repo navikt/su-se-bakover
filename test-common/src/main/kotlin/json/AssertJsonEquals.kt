@@ -13,6 +13,7 @@ fun String.shouldBeSimilarJsonTo(expectedJson: String, vararg ignoredPaths: Stri
     }
     if (customizations.isEmpty()) {
         JSONAssert.assertEquals(
+            "Expected JSON to be similar to $expectedJson but was $this",
             expectedJson,
             this,
             JSONCompareMode.STRICT,

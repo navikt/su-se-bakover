@@ -159,7 +159,6 @@ class KontrollsamtaleServiceImpl(
         sessionContext: SessionContext?,
     ): Either<KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale, Kontrollsamtale> {
         val samtaler = kontrollsamtaleRepo.hentForSakId(sakId, sessionContext).sortedBy { it.innkallingsdato }
-        // TODO jah: Dette kunne vi filtrert i databasen og dersom vi brukte sterkere typer, kunne vi returnert en mer eksakt type.
         return samtaler.find { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }?.right()
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
@@ -219,14 +218,14 @@ class KontrollsamtaleServiceImpl(
         sakId: UUID,
         kontrollsamtaleId: UUID,
         sessionContext: SessionContext?,
-    ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
+    ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale> {
         val kontrollsamtale = kontrollsamtaleRepo.hentForKontrollsamtaleId(kontrollsamtaleId)
             ?: throw IllegalArgumentException("Fant ikke kontrollsamtale. KontrollsamtaleId: $kontrollsamtaleId. SakId: $sakId.")
 
         return kontrollsamtale.annuller().mapLeft {
             log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. SakId: $sakId.")
             KunneIkkeAnnullereKontrollsamtale.UgyldigStatusovergang
-        }.map {
+        }.onRight {
             kontrollsamtaleRepo.lagre(it, sessionContext)
         }
     }
