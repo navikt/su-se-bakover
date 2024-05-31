@@ -65,7 +65,7 @@ fun Route.oppdaterStatusPåKontrollsamtale(
         }
     }
 
-    patch("/saker/{sakId}/kontrollsamtaler") {
+    patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/status") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKontrollsamtaleId { kontrollsamtaleId ->
