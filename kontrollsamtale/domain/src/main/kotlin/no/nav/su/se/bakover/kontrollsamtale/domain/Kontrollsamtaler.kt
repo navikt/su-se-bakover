@@ -6,6 +6,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erLikEllerTilstøtende
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import org.slf4j.LoggerFactory
@@ -28,6 +32,7 @@ data class Kontrollsamtaler(
 
     val innkallingsdatoer: List<LocalDate> = kontrollsamtaler.map { it.innkallingsdato }
     val frister: List<LocalDate> = kontrollsamtaler.map { it.frist }
+    fun antallPlanlagteKontrollsamtaler(): Int = kontrollsamtaler.count { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }
 
     init {
         require(kontrollsamtaler.all { it.sakId == sakId }) {
@@ -92,5 +97,66 @@ data class Kontrollsamtaler(
 
     fun hentKontrollsamtale(kontrollsamtaleId: UUID): Kontrollsamtale? {
         return kontrollsamtaler.find { it.id == kontrollsamtaleId }
+    }
+
+    fun oppdaterInnkallingsmåned(
+        command: OppdaterInnkallingsmånedPåKontrollsamtaleCommand,
+        kontrollsamtaler: Kontrollsamtaler,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
+        val kontrollsamtale = kontrollsamtaler.hentKontrollsamtale(command.kontrollsamtaleId)
+            ?: throw IllegalArgumentException("Oppdater innkallingsmåned på kontrollsamtale: Fant ikke kontrollsamtale. Command=$command")
+
+        val fristerSomMåned = kontrollsamtaler
+            .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
+            .map { Måned.fra(it.frist) }
+
+        if (fristerSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
+            log.info("Oppdater innkallingsmåned på kontrollsamtale: Innkallingsmåned kræsjer med eksisterende frister. Command: $command. Eksisterende frister: $fristerSomMåned")
+            return KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale.UgyldigInnkallingsmåned(
+                command.nyInnkallingsmåned,
+            ).left()
+        }
+        val innkallingsdatoSomMåned = kontrollsamtaler
+            .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
+            .map { Måned.fra(it.innkallingsdato) }
+
+        if (innkallingsdatoSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
+            log.info("Oppdater innkallingsmåned på kontrollsamtale: Innkallingsmåned kræsjer med eksisterende innkallinger. Command: $command. Eksisterende frister: $innkallingsdatoSomMåned")
+            return KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale.UgyldigInnkallingsmåned(
+                command.nyInnkallingsmåned,
+            ).left()
+        }
+        if (!command.nyInnkallingsmåned.etter(Måned.now(clock))) {
+            return KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale.InnkallingsmånedMåVæreEtterNåværendeMåned(
+                command.nyInnkallingsmåned,
+            ).left()
+        }
+
+        return kontrollsamtale.oppdaterInnkallingsmåned(command).map { oppdatertKontrollsamtale ->
+            oppdatertKontrollsamtale to Kontrollsamtaler(
+                sakId = sakId,
+                kontrollsamtaler = kontrollsamtaler.map {
+                    if (it.id == command.kontrollsamtaleId) oppdatertKontrollsamtale else it
+                },
+            )
+        }
+    }
+
+    fun oppdaterStatus(
+        command: OppdaterStatusPåKontrollsamtaleCommand,
+        kontrollsamtaler: Kontrollsamtaler,
+    ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
+        val kontrollsamtale = kontrollsamtaler.hentKontrollsamtale(command.kontrollsamtaleId)
+            ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id ${command.kontrollsamtaleId}. Command=$command")
+
+        return kontrollsamtale.oppdaterStatus(command).map { oppdatertKontrollsamtale ->
+            oppdatertKontrollsamtale to Kontrollsamtaler(
+                sakId = sakId,
+                kontrollsamtaler = kontrollsamtaler.map {
+                    if (it.id == command.kontrollsamtaleId) oppdatertKontrollsamtale else it
+                },
+            )
+        }
     }
 }

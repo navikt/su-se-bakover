@@ -16,6 +16,8 @@ private data class KontrollsamtaleJson(
     val frist: LocalDate,
     val dokumentId: String?,
     val journalpostIdKontrollnotat: String?,
+    val kanOppdatereInnkallingsmåned: Boolean,
+    val lovligeStatusovergangerForSaksbehandler: List<KontrollsamtaleStatusJson>,
 )
 
 internal fun Kontrollsamtale.toJson(): String {
@@ -27,6 +29,8 @@ internal fun Kontrollsamtale.toJson(): String {
         frist = this.frist,
         dokumentId = this.dokumentId?.toString(),
         journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
+        kanOppdatereInnkallingsmåned = this.kanOppdatereInnkallingsmåned(),
+        lovligeStatusovergangerForSaksbehandler = this.lovligeOvergangerForSaksbehandler().map { it.toJson() },
     ).let { serialize(it) }
 }
 

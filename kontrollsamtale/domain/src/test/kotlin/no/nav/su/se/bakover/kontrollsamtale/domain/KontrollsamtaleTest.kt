@@ -113,7 +113,7 @@ class KontrollsamtaleTest {
             innkallingsdato = 1.januar(2022),
             clock = fixedClock,
         )
-        kontrollsamtale.endreDato(innkallingsdato).getOrFail() shouldBe kontrollsamtale.copy(innkallingsdato = innkallingsdato, frist = innkallingsdato.endOfMonth())
+        kontrollsamtale.oppdaterInnkallingsdato(innkallingsdato).getOrFail() shouldBe kontrollsamtale.copy(innkallingsdato = innkallingsdato, frist = innkallingsdato.endOfMonth())
     }
 
     @Test
@@ -124,7 +124,7 @@ class KontrollsamtaleTest {
             innkallingsdato = 1.januar(2022),
             clock = fixedClock,
         )
-        kontrollsamtale.endreDato(innkallingsdato) shouldBe Kontrollsamtale.KunneIkkeEndreDato.DatoErIkkeFørsteIMåned.left()
+        kontrollsamtale.oppdaterInnkallingsdato(innkallingsdato) shouldBe Kontrollsamtale.KunneIkkeOppdatereDato.DatoErIkkeFørsteIMåned.left()
     }
 
     @Test
@@ -135,7 +135,7 @@ class KontrollsamtaleTest {
             clock = fixedClock,
         )
         (januar(2022)..desember(2022)).måneder().map { måned ->
-            måned to kontrollsamtale.endreDato(måned.fraOgMed).getOrFail().let {
+            måned to kontrollsamtale.oppdaterInnkallingsdato(måned.fraOgMed).getOrFail().let {
                 it.innkallingsdato to it.frist
             }
         } shouldBe listOf(

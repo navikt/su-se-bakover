@@ -22,10 +22,13 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.endreKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.oppdaterInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.oppdaterStatusPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.opprettKontrollsamtale
@@ -139,12 +142,12 @@ class KontrollsamtaleServiceImpl(
                 ).right()
             },
             ifRight = { kontrollsamtale ->
-                kontrollsamtale.endreDato(dato).map { endretKontrollsamtale ->
+                kontrollsamtale.oppdaterInnkallingsdato(dato).map { endretKontrollsamtale ->
                     kontrollsamtaleRepo.lagre(endretKontrollsamtale)
                 }.mapLeft {
                     when (it) {
-                        Kontrollsamtale.KunneIkkeEndreDato.DatoErIkkeFørsteIMåned -> KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned
-                        Kontrollsamtale.KunneIkkeEndreDato.UgyldigStatusovergang -> KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang
+                        Kontrollsamtale.KunneIkkeOppdatereDato.DatoErIkkeFørsteIMåned -> KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned
+                        Kontrollsamtale.KunneIkkeOppdatereDato.UgyldigStatusovergang -> KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang
                     }
                 }
             },
@@ -218,7 +221,7 @@ class KontrollsamtaleServiceImpl(
         sessionContext: SessionContext?,
     ): Either<KunneIkkeAnnullereKontrollsamtale, Unit> {
         val kontrollsamtale = kontrollsamtaleRepo.hentForKontrollsamtaleId(kontrollsamtaleId)
-            ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id $kontrollsamtaleId for sak $sakId")
+            ?: throw IllegalArgumentException("Fant ikke kontrollsamtale. KontrollsamtaleId: $kontrollsamtaleId. SakId: $sakId.")
 
         return kontrollsamtale.annuller().mapLeft {
             log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. SakId: $sakId.")
@@ -234,7 +237,7 @@ class KontrollsamtaleServiceImpl(
     ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale> {
         val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
         val sak = sakService.hentSak(command.sakId).getOrElse {
-            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${command.sakId}")
+            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak. Command=$command")
         }
         return sak.opprettKontrollsamtale(
             command = command,
@@ -246,17 +249,40 @@ class KontrollsamtaleServiceImpl(
         }
     }
 
-    override fun endreKontrollsamtale(
-        command: EndreKontrollsamtaleCommand,
+    override fun oppdaterInnkallingsmånedPåKontrollsamtale(
+        command: OppdaterInnkallingsmånedPåKontrollsamtaleCommand,
         sessionContext: SessionContext?,
-    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale> {
-        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
+    ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Kontrollsamtale> {
         val sak = sakService.hentSak(command.sakId).getOrElse {
-            throw IllegalArgumentException("Kunne ikke opprette kontrollsamtale. Fant ikke sak for sakId ${command.sakId}")
+            throw IllegalArgumentException("Kunne ikke oppdatere innkallingsmåned på kontrollsamtale. Fant ikke sak. Command=$command")
         }
-        return sak.endreKontrollsamtale(
+        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
+
+        return sak.oppdaterInnkallingsmånedPåKontrollsamtale(
             command = command,
             kontrollsamtaler = kontrollsamtaler,
-        ).map { it.first }
+            clock = clock,
+        ).map {
+            kontrollsamtaleRepo.lagre(it.first, sessionContext)
+            it.first
+        }
+    }
+
+    override fun oppdaterStatusPåKontrollsamtale(
+        command: OppdaterStatusPåKontrollsamtaleCommand,
+        sessionContext: SessionContext?,
+    ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale> {
+        val sak = sakService.hentSak(command.sakId).getOrElse {
+            throw IllegalArgumentException("Kunne ikke oppdatere status på kontrollsamtale. Fant ikke sak. Command=$command")
+        }
+        val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
+
+        return sak.oppdaterStatusPåKontrollsamtale(
+            command = command,
+            kontrollsamtaler = kontrollsamtaler,
+        ).map {
+            kontrollsamtaleRepo.lagre(it.first, sessionContext)
+            it.first
+        }
     }
 }

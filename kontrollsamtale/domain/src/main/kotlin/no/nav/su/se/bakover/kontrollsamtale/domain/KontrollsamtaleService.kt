@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.EndreKontrollsamtaleCommand
-import no.nav.su.se.bakover.kontrollsamtale.domain.endre.KunneIkkeEndreKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import java.time.LocalDate
@@ -42,8 +44,13 @@ interface KontrollsamtaleService {
         sessionContext: SessionContext? = null,
     ): Either<KanIkkeOppretteKontrollsamtale, Kontrollsamtale>
 
-    fun endreKontrollsamtale(
-        command: EndreKontrollsamtaleCommand,
+    fun oppdaterInnkallingsmånedPåKontrollsamtale(
+        command: OppdaterInnkallingsmånedPåKontrollsamtaleCommand,
         sessionContext: SessionContext? = null,
-    ): Either<KunneIkkeEndreKontrollsamtale, Kontrollsamtale>
+    ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Kontrollsamtale>
+
+    fun oppdaterStatusPåKontrollsamtale(
+        command: OppdaterStatusPåKontrollsamtaleCommand,
+        sessionContext: SessionContext? = null,
+    ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale>
 }
