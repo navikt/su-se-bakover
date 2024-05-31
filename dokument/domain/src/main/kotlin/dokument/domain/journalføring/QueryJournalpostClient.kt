@@ -15,7 +15,10 @@ interface QueryJournalpostClient {
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
-    fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int = 50): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
+    fun hentJournalposterFor(
+        saksnummer: Saksnummer,
+        limit: Int = 50,
+    ): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 
     fun finnesFagsak(fnr: Fnr, fagsystemId: String, limit: Int = 100): Either<KunneIkkeHenteJournalposter, Boolean>
 
@@ -28,21 +31,18 @@ interface QueryJournalpostClient {
     ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
 }
 
-enum class Fagsystem {
-    SUPSTONAD,
-    INFOTRYGD,
-}
-
 data class KunneIkkeSjekkKontrollnotatMottatt(val feil: Any)
 
 sealed interface ErKontrollNotatMottatt {
     data object Nei : ErKontrollNotatMottatt
     data class Ja(val kontrollnotat: KontrollnotatMottattJournalpost) : ErKontrollNotatMottatt
 }
+
 sealed interface ErTilknyttetSak {
     data object Ja : ErTilknyttetSak
     data object Nei : ErTilknyttetSak
 }
+
 sealed interface KunneIkkeSjekkeTilknytningTilSak {
     data object Ukjent : KunneIkkeSjekkeTilknytningTilSak
     data object FantIkkeJournalpost : KunneIkkeSjekkeTilknytningTilSak

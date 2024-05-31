@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.client.journalpost
 
-import dokument.domain.journalføring.Fagsystem
-
 /**
  * Generell modell for spørringer mot dokumentoversiktFagsak
  */
@@ -20,22 +18,8 @@ internal data class DokumentoversiktFagsak(
 
 data class Fagsak(
     val fagsakId: String,
-    val fagsaksystem: FagsystemDto = FagsystemDto.SUPSTONAD,
+    val fagsaksystem: String = "SUPSTONAD",
 )
-
-enum class FagsystemDto {
-    SUPSTONAD,
-    Infotrygd,
-    ;
-
-    companion object {
-        // TODO - test
-        fun Fagsystem.toDto(): FagsystemDto = when (this) {
-            Fagsystem.SUPSTONAD -> SUPSTONAD
-            Fagsystem.INFOTRYGD -> Infotrygd
-        }
-    }
-}
 
 /**
  * Variabler for spørringer mot dokumentoversiktFagsak
