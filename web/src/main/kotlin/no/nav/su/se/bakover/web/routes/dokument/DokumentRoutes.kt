@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withDokumentId
 import no.nav.su.se.bakover.common.serialize
 import java.util.UUID
 
@@ -84,29 +85,23 @@ internal fun Route.dokumentRoutes(
         }
     }
 
-    // TODO - test
     get("/dokumenter/{dokumentId}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            val id = call.parameter("dokumentId")
-                .getOrElse {
-                    return@authorize call.svar(
-                        HttpStatusCode.BadRequest.errorJson("Parameter 'dokumentId' mangler", "mangler_dokumentId"),
-                    )
-                }
-
-            brevService.hentDokument(UUID.fromString(id)).fold(
-                ifLeft = {
-                    call.svar(
-                        HttpStatusCode.NotFound.errorJson(
-                            "Fant ikke dokument med id $id",
-                            "fant_ikke_dokument",
-                        ),
-                    )
-                },
-                ifRight = {
-                    call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf)
-                },
-            )
+            call.withDokumentId { id ->
+                brevService.hentDokument(id).fold(
+                    ifLeft = {
+                        call.svar(
+                            HttpStatusCode.NotFound.errorJson(
+                                "Fant ikke dokument med id $id",
+                                "fant_ikke_dokument",
+                            ),
+                        )
+                    },
+                    ifRight = {
+                        call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf)
+                    },
+                )
+            }
         }
     }
 }
