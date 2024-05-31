@@ -116,6 +116,29 @@ internal class JournalførHttpClientTest {
         }
     }
 
+    @Test
+    fun `should accept 409 - idempotency`() {
+        // Respons hentet fra prod.
+        //language=JSON
+        val jsonResponse = """
+            {"journalpostId":"123456789","journalstatus":"ENDELIG","melding":null,"journalpostferdigstilt":true,"dokumenter":[{"dokumentInfoId":"987654321"}]}
+        """.trimIndent()
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder
+                    .willReturn(WireMock.aResponse().withStatus(409).withBody(jsonResponse)),
+            )
+            val client = JournalførHttpClient(
+                dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
+                    url = baseUrl(),
+                    clientId = "clientId",
+                ),
+                azureAd = AzureClientStub,
+            )
+            client.opprettJournalpost(request) shouldBe JournalpostId("123456789").right()
+        }
+    }
+
     private val request = JournalførJsonRequest(
         tittel = "tittel",
         journalpostType = JournalPostType.INNGAAENDE,
