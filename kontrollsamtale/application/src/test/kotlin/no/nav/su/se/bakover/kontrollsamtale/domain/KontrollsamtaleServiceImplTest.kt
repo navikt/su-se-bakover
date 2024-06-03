@@ -24,12 +24,12 @@ import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.gjennomførtKontrollsamtale
-import no.nav.su.se.bakover.test.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
+import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test

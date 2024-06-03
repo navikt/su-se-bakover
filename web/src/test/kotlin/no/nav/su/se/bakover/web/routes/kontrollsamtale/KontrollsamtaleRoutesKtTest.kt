@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.innkaltKontrollsamtale
-import no.nav.su.se.bakover.test.planlagtKontrollsamtale
+import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb

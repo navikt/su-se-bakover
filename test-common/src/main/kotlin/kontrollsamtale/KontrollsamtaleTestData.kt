@@ -1,12 +1,16 @@
-package no.nav.su.se.bakover.test
+package no.nav.su.se.bakover.test.kontrollsamtale
 
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO jah: Skriv om til å bruk Sak.opprettKontrollsamtale
 fun planlagtKontrollsamtale(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -26,6 +30,7 @@ fun planlagtKontrollsamtale(
     )
 }
 
+// TODO jah: Skriv om til å bruk Sak.opprettKontrollsamtale
 fun innkaltKontrollsamtale(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -45,6 +50,7 @@ fun innkaltKontrollsamtale(
     ).getOrFail()
 }
 
+// TODO jah: Skriv om til å bruk Sak.opprettKontrollsamtale
 fun gjennomførtKontrollsamtale(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
