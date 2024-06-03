@@ -33,7 +33,8 @@ data class Kontrollsamtaler(
 
     val innkallingsdatoer: List<LocalDate> = kontrollsamtaler.map { it.innkallingsdato }
     val frister: List<LocalDate> = kontrollsamtaler.map { it.frist }
-    fun antallPlanlagteKontrollsamtaler(): Int = kontrollsamtaler.count { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }
+    fun antallPlanlagteKontrollsamtaler(): Int =
+        kontrollsamtaler.count { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }
 
     init {
         require(kontrollsamtaler.all { it.sakId == sakId }) {
@@ -110,6 +111,7 @@ data class Kontrollsamtaler(
 
         val fristerSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
+            .filter { it.id != command.kontrollsamtaleId }
             .map { Måned.fra(it.frist.startOfMonth()) }
 
         if (fristerSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
@@ -120,6 +122,7 @@ data class Kontrollsamtaler(
         }
         val innkallingsdatoSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
+            .filter { it.id != command.kontrollsamtaleId }
             .map { Måned.fra(it.innkallingsdato.startOfMonth()) }
 
         if (innkallingsdatoSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
