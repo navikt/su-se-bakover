@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
+import no.nav.su.se.bakover.presentation.web.toErrorJson
 import java.util.UUID
 
 fun Route.oppdaterStatusPåKontrollsamtale(
@@ -44,13 +46,13 @@ fun Route.oppdaterStatusPåKontrollsamtale(
                 "GJENNOMFØRT" -> OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført(
                     journalpostId?.let {
                         JournalpostId(it)
-                    } ?: return HttpStatusCode.BadRequest.errorJson(
+                    } ?: return BadRequest.errorJson(
                         "JournalpostId må sendes inn dersom status er 'GJENNOMFØRT'",
                         "mangler_journalpostId",
                     ).left(),
                 )
 
-                else -> return HttpStatusCode.BadRequest.errorJson(
+                else -> return BadRequest.errorJson(
                     "Ugyldig status. Forventer en av 'IKKE_MØTT_INNEN_FRIST', 'GJENNOMFØRT'",
                     "ugyldig_status",
                 ).left()
@@ -93,8 +95,12 @@ fun Route.oppdaterStatusPåKontrollsamtale(
 private fun mapErrorToJsonResultat(
     error: KunneIkkeOppdatereStatusPåKontrollsamtale,
 ): Resultat {
-    @Suppress("USELESS_IS_CHECK")
     return when (error) {
-        is KunneIkkeOppdatereStatusPåKontrollsamtale -> Feilresponser.ugyldigTilstand
+        is KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigTilstand
+        is KunneIkkeOppdatereStatusPåKontrollsamtale.FeilVedHentingAvJournalpost -> error.underliggendeFeil.toErrorJson()
+        is KunneIkkeOppdatereStatusPåKontrollsamtale.JournalpostIkkeTilknyttetSak -> BadRequest.errorJson(
+            "Journalposten er ikke tilknyttet saken",
+            "journalpost_ikke_tilknyttet_sak",
+        )
     }
 }

@@ -7,13 +7,11 @@ import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VilkårsvurderingerTilKlage
-import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
@@ -51,6 +49,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.presentation.web.toErrorJson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
@@ -516,39 +515,5 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
-    }
-}
-
-fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
-    return when (this) {
-        KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost -> BadRequest.errorJson(
-            "Fant ikke journalpost",
-            "fant_ikke_journalpost",
-        )
-
-        KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> Unauthorized.errorJson(
-            "Ikke tilgang til Journalpost",
-            "ikke_tilgang_til_journalpost",
-        )
-
-        KunneIkkeSjekkeTilknytningTilSak.TekniskFeil -> InternalServerError.errorJson(
-            "Teknisk feil ved henting av journalpost",
-            "teknisk_feil_ved_henting_av_journalpost",
-        )
-
-        KunneIkkeSjekkeTilknytningTilSak.Ukjent -> InternalServerError.errorJson(
-            "Ukjent feil ved henting av journalpost",
-            "ukjent_feil_ved_henting_av_journalpost",
-        )
-
-        KunneIkkeSjekkeTilknytningTilSak.UgyldigInput -> BadRequest.errorJson(
-            "Ugyldig journalpostId",
-            "ugyldig_journalpostId",
-        )
-
-        KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
-            "Journalposten er ikke knyttet til saken",
-            "journalpost_ikke_knyttet_til_sak",
-        )
     }
 }

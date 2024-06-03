@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":dokument:presentation"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":person:domain"))

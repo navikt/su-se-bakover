@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":common:infrastructure"))
 
     implementation(project(":dokument:application"))
+    implementation(project(":dokument:domain"))
 }
 
 tasks.named<Jar>("jar") {
