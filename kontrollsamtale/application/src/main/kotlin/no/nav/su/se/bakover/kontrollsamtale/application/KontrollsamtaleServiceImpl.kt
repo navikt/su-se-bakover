@@ -6,6 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import dokument.domain.journalføring.QueryJournalpostClient
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -48,6 +50,7 @@ class KontrollsamtaleServiceImpl(
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val queryJournalpostClient: QueryJournalpostClient,
 ) : KontrollsamtaleService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -276,12 +279,15 @@ class KontrollsamtaleServiceImpl(
         }
         val kontrollsamtaler = kontrollsamtaleRepo.hentForSakId(command.sakId)
 
-        return sak.oppdaterStatusPåKontrollsamtale(
-            command = command,
-            kontrollsamtaler = kontrollsamtaler,
-        ).map {
-            kontrollsamtaleRepo.lagre(it.first, sessionContext)
-            it.first
+        return runBlocking {
+            sak.oppdaterStatusPåKontrollsamtale(
+                command = command,
+                kontrollsamtaler = kontrollsamtaler,
+                erJournalpostTilknyttetSak = queryJournalpostClient::erTilknyttetSak,
+            ).map {
+                kontrollsamtaleRepo.lagre(it.first, sessionContext)
+                it.first
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -370,6 +371,7 @@ internal class KontrollsamtaleServiceImplTest {
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val clock: Clock = mock(),
         val kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
+        val queryJournalpostClient: QueryJournalpostClient = mock(),
     ) {
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
             sakService = sakService,
@@ -379,6 +381,7 @@ internal class KontrollsamtaleServiceImplTest {
             clock = clock,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             personService = personService,
+            queryJournalpostClient = queryJournalpostClient,
         )
     }
 }

@@ -54,6 +54,7 @@ interface KontrollsamtaleSetup {
                 sessionFactory = sessionFactory,
                 clock = clock,
                 personService = personService,
+                queryJournalpostClient = queryJournalpostClient,
             )
             return object : KontrollsamtaleSetup {
                 override val kontrollsamtaleService = kontrollsamtaleService
