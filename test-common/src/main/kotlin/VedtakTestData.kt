@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
@@ -199,6 +201,52 @@ fun vedtakRevurderingIverksattInnvilget(
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
 ): Pair<Sak, VedtakInnvilgetRevurdering> {
+    return iverksattRevurdering(
+        clock = clock,
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+        attestant = attestant,
+        saksbehandler = saksbehandler,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        brevvalg = brevvalg,
+    ).let { (sak, _, _, vedtak) ->
+        sak to vedtak.shouldBeType()
+    }
+}
+
+/**
+ * Ikke journalført eller distribuert brev.
+ * Avslag pga. uførevilkår i hele [revurderingsperiode]. Overstyres ved å sende inn [vilkårOverrides].
+ */
+fun vedtakRevurderingIverksattOpphør(
+    clock: Clock = tikkendeFixedClock(),
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = år(2021),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        clock = clock,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    vilkårOverrides: List<Vilkår> = listOf(
+        avslåttUførevilkårUtenGrunnlag(
+            periode = revurderingsperiode,
+        ),
+    ),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+): Pair<Sak, VedtakOpphørMedUtbetaling> {
     return iverksattRevurdering(
         clock = clock,
         saksnummer = saksnummer,

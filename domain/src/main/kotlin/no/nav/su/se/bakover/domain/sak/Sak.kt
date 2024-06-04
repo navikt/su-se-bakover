@@ -234,19 +234,17 @@ data class Sak(
         return søknadsbehandlinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
-    fun hentInnvilgetSøknadsbehandlingsvedtak(): List<VedtakInnvilgetSøknadsbehandling> {
-        return vedtakListe.filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
-    }
-
     /**
-     * Dette gjelder kun iverksatt, innvilget søknadsbehandlinger.
+     * Henter en tidslinje av vedtak som er innvilget/gjenopptatt.
      * @return En sortert liste av perioder uten overlapp. Merk at det kan være hull. Periodene er ikke slått sammen.
      */
-    fun hentStønadsperioder(): IkkeOverlappendePerioder {
-        return hentInnvilgetSøknadsbehandlingsvedtak()
-            .map { it.periode }.sorterPåFraOgMedDeretterTilOgMed().let {
+    fun hentInnvilgetStønadsperioder(): IkkeOverlappendePerioder {
+        return vedtakstidslinje()
+            ?.filter { it.erInnvilget() || it.erGjenopptak() }
+            ?.map { it.periode }
+            ?.sorterPåFraOgMedDeretterTilOgMed()?.let {
                 IkkeOverlappendePerioder.create(it)
-            }
+            } ?: EmptyPerioder
     }
 
     /**

@@ -15,7 +15,7 @@ fun Sak.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaler: Kontrollsamtaler,
     clock: Clock,
 ): Either<KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
-    val stønadsperioder = this.hentStønadsperioder() as? NonEmptyIkkeOverlappendePerioder
+    val stønadsperioder = this.hentInnvilgetStønadsperioder() as? NonEmptyIkkeOverlappendePerioder
         ?: throw IllegalStateException("Kunne ikke oppdatere innkallingsmåned på kontrollsamtale: Fant ingen innvilget stønadsperioder på saken. Command=$command")
     val fraOgMedMåned = stønadsperioder.fraOgMed.toMåned()
     val tilOgMedMåned = stønadsperioder.tilOgMed.startOfMonth().toMåned()

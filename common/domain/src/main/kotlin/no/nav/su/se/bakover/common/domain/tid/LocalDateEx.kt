@@ -33,7 +33,6 @@ fun Int.oktober(year: Int): LocalDate = LocalDate.of(year, Month.OCTOBER, this)
 fun Int.november(year: Int): LocalDate = LocalDate.of(year, Month.NOVEMBER, this)
 fun Int.desember(year: Int): LocalDate = LocalDate.of(year, Month.DECEMBER, this)
 fun idag(clock: Clock): LocalDate = LocalDate.now(clock)
-fun igår(clock: Clock = Clock.systemUTC()): LocalDate = idag(clock).minusDays(1)
 
 fun LocalDate.fixedClock(): Clock = startOfDay(ZoneOffset.UTC)
     .let { Clock.fixed(it.instant, ZoneOffset.UTC) }

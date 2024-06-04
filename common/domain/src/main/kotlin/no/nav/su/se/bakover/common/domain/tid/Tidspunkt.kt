@@ -48,7 +48,7 @@ private constructor(
     companion object {
         val EPOCH: Tidspunkt get() = Instant.EPOCH.toTidspunkt()
         val MIN: Tidspunkt get() = Instant.MIN.toTidspunkt()
-        fun now(clock: Clock = Clock.systemUTC()) = Tidspunkt(Instant.now(clock).truncatedTo(tidspunktPresisjon))
+        fun now(clock: Clock) = Tidspunkt(Instant.now(clock).truncatedTo(tidspunktPresisjon))
         fun parse(text: String) = Tidspunkt(Instant.parse(text).truncatedTo(tidspunktPresisjon))
         fun create(instant: Instant) = Tidspunkt(instant.truncatedTo(tidspunktPresisjon))
         fun ofEpochMilli(value: Long): Tidspunkt = create(Instant.ofEpochMilli(value))

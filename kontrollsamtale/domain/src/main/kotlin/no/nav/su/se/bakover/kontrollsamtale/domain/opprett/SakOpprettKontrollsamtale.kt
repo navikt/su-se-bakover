@@ -20,7 +20,7 @@ fun Sak.opprettKontrollsamtale(
     eksisterendeKontrollsamtalerForSak: Kontrollsamtaler,
     clock: Clock,
 ): Either<KanIkkeOppretteKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
-    val stønadsperioder = this.hentStønadsperioder() as? NonEmptyIkkeOverlappendePerioder ?: return KanIkkeOppretteKontrollsamtale.IngenStønadsperiode.left()
+    val stønadsperioder = this.hentInnvilgetStønadsperioder() as? NonEmptyIkkeOverlappendePerioder ?: return KanIkkeOppretteKontrollsamtale.IngenStønadsperiode.left()
     val fraOgMedMåned = stønadsperioder.fraOgMed.toMåned()
     val tilOgMedMåned = stønadsperioder.tilOgMed.startOfMonth().toMåned()
     if (command.innkallingsmåned < fraOgMedMåned || command.innkallingsmåned > tilOgMedMåned) {
