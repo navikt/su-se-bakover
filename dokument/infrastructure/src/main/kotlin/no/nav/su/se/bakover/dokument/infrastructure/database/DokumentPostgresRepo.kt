@@ -177,6 +177,24 @@ class DokumentPostgresRepo(
         }
     }
 
+    override fun hentDokumentdistribusjonForDokumentId(dokumentId: UUID): Dokumentdistribusjon? {
+        return dbMetrics.timeQuery("hentDokumentdistribusjon") {
+            sessionFactory.withSession { session ->
+                """
+                select * from dokument_distribusjon where dokumentId = :dokumentId
+                """.trimIndent()
+                    .hent(
+                        mapOf(
+                            "id" to dokumentId,
+                        ),
+                        session,
+                    ) {
+                        it.toDokumentdistribusjon(session)
+                    }
+            }
+        }
+    }
+
     /**
      * Henter max antall dokumenter basert på [antallSomSkalHentes]
      */

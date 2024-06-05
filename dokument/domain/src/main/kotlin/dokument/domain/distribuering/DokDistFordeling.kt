@@ -11,6 +11,7 @@ interface DokDistFordeling {
         journalPostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
+        distribueringsadresse: Distribueringsadresse? = null,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId>
 }
 

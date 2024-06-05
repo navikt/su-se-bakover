@@ -8,6 +8,8 @@ dependencies {
 
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
+    implementation(project(":tilgangstyring:application"))
+    implementation(project(":tilgangstyring:domain"))
 
     implementation(project(":person:domain"))
     implementation(project(":service"))

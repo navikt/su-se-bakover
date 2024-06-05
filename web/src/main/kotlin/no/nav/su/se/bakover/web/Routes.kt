@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.kontrollsamtaleRoutes
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
@@ -53,6 +54,7 @@ internal fun Application.setupKtorRoutes(
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clients: Clients,
     resendUtbetalingService: ResendUtbetalingService,
+    distribuerDokumentService: DistribuerDokumentService,
 ) {
     routing {
         authenticate("frikort") {
@@ -98,7 +100,7 @@ internal fun Application.setupKtorRoutes(
                         gjenopptakAvYtelseService = accessProtectedServices.gjenopptaYtelse,
                     )
                     klageRoutes(accessProtectedServices.klageService, clock)
-                    dokumentRoutes(accessProtectedServices.brev)
+                    dokumentRoutes(accessProtectedServices.brev, distribuerDokumentService)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(

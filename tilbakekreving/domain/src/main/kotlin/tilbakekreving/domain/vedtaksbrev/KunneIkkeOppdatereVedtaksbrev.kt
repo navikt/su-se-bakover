@@ -1,6 +1,6 @@
 package tilbakekreving.domain.vedtaksbrev
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeOppdatereVedtaksbrev {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeOppdatereVedtaksbrev

@@ -19,8 +19,6 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
-import dokument.domain.distribuering.DistribuerDokumentCommand
-import dokument.domain.distribuering.KunneIkkeDistribuereJournalførtDokument
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.common.UUID30
@@ -511,11 +509,6 @@ open class AccessCheckProxy(
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
-                }
-
-                override fun distribuerDokument(command: DistribuerDokumentCommand): Either<KunneIkkeDistribuereJournalførtDokument, Dokument> {
-                    assertHarTilgangTilSak(command.sakId)
-                    return services.brev.distribuerDokument(command)
                 }
             },
             lukkSøknad = object : LukkSøknadService {

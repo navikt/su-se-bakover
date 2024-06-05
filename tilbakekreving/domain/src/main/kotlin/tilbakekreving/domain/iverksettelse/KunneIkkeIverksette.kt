@@ -1,6 +1,6 @@
 package tilbakekreving.domain.iverksettelse
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeIverksette {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeIverksette

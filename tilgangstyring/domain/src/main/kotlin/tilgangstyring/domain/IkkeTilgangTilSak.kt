@@ -1,4 +1,4 @@
-package tilbakekreving.domain
+package tilgangstyring.domain
 
 import person.domain.KunneIkkeHentePerson
 

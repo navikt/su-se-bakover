@@ -304,7 +304,6 @@ internal class BrevServiceImplTest {
             pdfGenerator = pdfGenerator,
             dokumentRepo = dokumentRepo,
             personService = personService,
-            sessionFactory = sessionFactory,
             identClient = identClient,
             clock = clock,
         )

@@ -68,15 +68,12 @@ fun startJobberOgConsumers(
     dbMetrics: DbMetrics,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     dokumentKomponenter: Dokumentkomponenter,
+    distribuerDokumentService: DistribuerDokumentService,
 ) {
     val runCheckFactory = RunCheckFactory(
         leaderPodLookup = clients.leaderPodLookup,
         applicationConfig = applicationConfig,
         clock = clock,
-    )
-    val distribuerDokumentService = DistribuerDokumentService(
-        dokDistFordeling = clients.dokDistFordeling,
-        dokumentRepo = databaseRepos.dokumentRepo,
     )
     val journalførDokumentService = JournalførDokumentService(
         journalførBrevClient = clients.journalførClients.brev,

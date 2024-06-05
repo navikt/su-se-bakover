@@ -1,6 +1,6 @@
 package tilbakekreving.domain.vurdering
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeVurdereTilbakekrevingsbehandling {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeVurdereTilbakekrevingsbehandling

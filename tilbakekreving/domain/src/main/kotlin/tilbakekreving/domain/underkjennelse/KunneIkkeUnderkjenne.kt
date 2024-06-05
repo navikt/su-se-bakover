@@ -1,6 +1,6 @@
 package tilbakekreving.domain.underkjennelse
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeUnderkjenne {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeUnderkjenne

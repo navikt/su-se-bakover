@@ -25,11 +25,14 @@ import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.Person
+import tilgangstyring.application.TilgangstyringService
 import java.time.Year
 import java.util.UUID
 
@@ -57,7 +60,7 @@ internal class DistribuerDokumentServiceTest {
             on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
         }
         val dokdistFordeling = mock<DokDistFordeling> {
-            on { this.bestillDistribusjon(any(), any(), any()) } doReturn BrevbestillingId("id").right()
+            on { this.bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn BrevbestillingId("id").right()
         }
 
         ServiceOgMocks(dokumentRepo = dokumentRepo, dokDistFordeling = dokdistFordeling).dokumentService.distribuer()
@@ -72,6 +75,7 @@ internal class DistribuerDokumentServiceTest {
             argThat { it shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId() },
             argThat { it shouldBe Distribusjonstype.VEDTAK },
             argThat { it shouldBe Distribusjonstidspunkt.KJERNETID },
+            eq(null),
         )
         verify(dokumentRepo).oppdaterDokumentdistribusjon(
             dokumentdistribusjon.copy(
@@ -138,7 +142,7 @@ internal class DistribuerDokumentServiceTest {
             on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
         }
         val dokDistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(any(), any(), any()) } doReturn KunneIkkeBestilleDistribusjon.left()
+            on { bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn KunneIkkeBestilleDistribusjon.left()
         }
 
         ServiceOgMocks(
@@ -159,6 +163,7 @@ internal class DistribuerDokumentServiceTest {
                 JournalpostId("sad"),
                 Distribusjonstype.VEDTAK,
                 distribusjonstidspunkt,
+                null,
             )
             it.verifyNoMoreInteraction()
         }
@@ -167,10 +172,12 @@ internal class DistribuerDokumentServiceTest {
     private data class ServiceOgMocks(
         val dokDistFordeling: DokDistFordeling = mock(),
         val dokumentRepo: DokumentRepo = mock(),
+        val tilgangstyringService: TilgangstyringService = mock(),
     ) {
         val dokumentService = DistribuerDokumentService(
             dokDistFordeling = dokDistFordeling,
             dokumentRepo = dokumentRepo,
+            tilgangstyringService = tilgangstyringService,
         )
 
         fun verifyNoMoreInteraction() {

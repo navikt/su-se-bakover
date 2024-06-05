@@ -1,7 +1,7 @@
 package tilbakekreving.domain.opprettelse
 
 import person.domain.KunneIkkeHentePerson
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeOppretteTilbakekrevingsbehandling {
     data object IngenUteståendeKravgrunnlag : KunneIkkeOppretteTilbakekrevingsbehandling

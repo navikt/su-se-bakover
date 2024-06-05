@@ -14,6 +14,8 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":person:domain"))
     implementation(project(":vedtak:domain"))
+    implementation(project(":tilgangstyring:application"))
+    implementation(project(":tilgangstyring:domain"))
     implementation(project(":behandling:common:domain"))
 
     implementation(project(":domain"))

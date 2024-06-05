@@ -6,17 +6,17 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.tilAttestering
 import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
 import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttesteringCommand
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class TilbakekrevingsbehandlingTilAttesteringService(
-    private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
+    private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,

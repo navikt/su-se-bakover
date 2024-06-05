@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
+import tilgangstyring.application.TilgangstyringService
 
 class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
-    private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
+    private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val brevService: BrevService,
 ) {

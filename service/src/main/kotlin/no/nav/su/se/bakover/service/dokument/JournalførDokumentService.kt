@@ -19,7 +19,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
- * journalfører 'vanlige' dokumenter (f.eks vedtak). Ment å bli kallt fra en jobb
+ * journalfører 'vanlige' dokumenter (f.eks vedtak). Ment å bli kallt fra en jobb.
+ * TODO jah: Ideelt sett bør denne ligge i dokument-modulen.
  */
 class JournalførDokumentService(
     private val journalførBrevClient: JournalførBrevClient,

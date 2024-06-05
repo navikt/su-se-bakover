@@ -45,6 +45,7 @@ import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
 import java.time.Clock
@@ -77,7 +78,8 @@ fun Application.runApplicationWithMocks(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
+        tilgangstyringService: TilgangstyringService,
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -93,6 +95,7 @@ fun Application.runApplicationWithMocks(
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
             samlTokenProvider = FakeSamlTokenProvider(),
+            tilgangstyringService = tilgangstyringService,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),

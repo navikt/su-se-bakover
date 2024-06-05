@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
     implementation(project(":tilbakekreving:presentation"))
+    implementation(project(":tilgangstyring:application"))
     implementation(project(":vedtak:application"))
     implementation(project(":vedtak:domain"))
     implementation(project(":vilkår:bosituasjon:domain"))

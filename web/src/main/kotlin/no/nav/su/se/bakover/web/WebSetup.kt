@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -57,6 +58,7 @@ internal fun Application.setupKtor(
     extraRoutes: Route.(services: Services) -> Unit,
     resendUtbetalingService: ResendUtbetalingService,
     suMetrics: SuMetrics,
+    distribuerDokumentService: DistribuerDokumentService,
 ) {
     setupKtorExceptionHandling()
 
@@ -86,6 +88,7 @@ internal fun Application.setupKtor(
         clients = clients,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,
         resendUtbetalingService = resendUtbetalingService,
+        distribuerDokumentService = distribuerDokumentService,
     )
 }
 

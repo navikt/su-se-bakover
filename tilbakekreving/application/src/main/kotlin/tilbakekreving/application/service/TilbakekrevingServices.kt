@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.GenererVedtaksbrevTilbakekrevingKonsument
@@ -24,7 +23,6 @@ import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
@@ -33,6 +31,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 /**
@@ -66,7 +65,6 @@ class TilbakekrevingServices(
         fun create(
             clock: Clock,
             sessionFactory: SessionFactory,
-            personService: PersonService,
             kravgrunnlagRepo: KravgrunnlagRepo,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
             sakService: SakService,
@@ -77,10 +75,8 @@ class TilbakekrevingServices(
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
+            tilgangstyringService: TilgangstyringService,
         ): TilbakekrevingServices {
-            val tilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
-                personService = personService,
-            )
             return TilbakekrevingServices(
                 brevTilbakekrevingsbehandlingService = BrevTilbakekrevingsbehandlingService(
                     tilgangstyring = tilgangstyringService,

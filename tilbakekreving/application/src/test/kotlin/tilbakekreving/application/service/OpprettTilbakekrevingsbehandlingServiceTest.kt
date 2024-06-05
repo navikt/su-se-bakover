@@ -27,10 +27,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.opprettelse.OpprettTilbakekrevingsbehandlingCommand
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 import java.util.UUID
 
@@ -47,7 +47,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val sakMedKravgrunnlag = sakMedUteståendeKravgrunnlag(clock = clock)
         val sakId = sakMedKravgrunnlag.id
         val kravgrunnlag = sakMedKravgrunnlag.uteståendeKravgrunnlag!!
-        val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
+        val tilgangstyringService = mock<TilgangstyringService> {
             on { assertHarTilgangTilSak(any()) } doReturn Unit.right()
         }
         val sakService = mock<SakService> {
@@ -101,7 +101,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
 
     private data class mockedServices(
         val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo = mock(),
-        val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = mock(),
+        val tilgangstyringService: TilgangstyringService = mock(),
         val clock: Clock = fixedClock,
         val sakService: SakService = mock(),
         val oppgaveService: OppgaveService = mock(),

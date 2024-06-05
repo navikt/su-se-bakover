@@ -70,7 +70,6 @@ data object ServiceBuilder {
             pdfGenerator = clients.pdfGenerator,
             dokumentRepo = databaseRepos.dokumentRepo,
             personService = personService,
-            sessionFactory = databaseRepos.sessionFactory,
             identClient = clients.identClient,
             clock = clock,
         )

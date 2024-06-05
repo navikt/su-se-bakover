@@ -16,6 +16,7 @@ import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.infrastructure.client.TilbakekrevingClients
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 /**
@@ -42,6 +43,7 @@ class Tilbakekrevingskomponenter(
             tilbakekrevingConfig: TilbakekrevingConfig,
             dbMetrics: DbMetrics,
             samlTokenProvider: SamlTokenProvider,
+            tilgangstyringService: TilgangstyringService,
         ): Tilbakekrevingskomponenter {
             val repos = TilbakekrevingRepos.create(
                 clock = clock,
@@ -61,7 +63,6 @@ class Tilbakekrevingskomponenter(
                 services = TilbakekrevingServices.create(
                     clock = clock,
                     sessionFactory = sessionFactory,
-                    personService = personService,
                     kravgrunnlagRepo = repos.kravgrunnlagRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sakService = sakService,
@@ -72,6 +73,7 @@ class Tilbakekrevingskomponenter(
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     brevService = brevService,
                     tilbakekrevingsklient = clients.tilbakekrevingsklient,
+                    tilgangstyringService = tilgangstyringService,
                 ),
                 clients = clients,
             )

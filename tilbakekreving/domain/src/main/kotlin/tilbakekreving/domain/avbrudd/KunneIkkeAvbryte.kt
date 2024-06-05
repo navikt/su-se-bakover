@@ -1,6 +1,6 @@
 package tilbakekreving.domain.avbrudd
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeAvbryte {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeAvbryte

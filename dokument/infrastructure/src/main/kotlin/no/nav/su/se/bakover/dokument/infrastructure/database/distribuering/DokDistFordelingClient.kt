@@ -8,6 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import dokument.domain.Distribusjonstidspunkt
 import dokument.domain.Distribusjonstype
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.auth.AzureAd
@@ -33,8 +34,10 @@ class DokDistFordelingClient(
         journalPostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
+        distribueringsadresse: Distribueringsadresse?,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
-        val body = byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt)
+        val body =
+            byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt, distribueringsadresse)
         val (_, _, result) = "${dokDistConfig.url}$DOK_DIST_FORDELING_PATH".httpPost()
             .authentication().bearer(azureAd.getSystemToken(dokDistConfig.clientId))
             .header("Content-Type", "application/json")
@@ -77,6 +80,7 @@ class DokDistFordelingClient(
         journalPostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
+        distribueringsadresse: Distribueringsadresse? = null,
     ): String {
         return """
                     {
@@ -84,7 +88,8 @@ class DokDistFordelingClient(
                         "bestillendeFagsystem": "SUPSTONAD",
                         "dokumentProdApp": "SU_SE_BAKOVER",
                         "distribusjonstype": "${distribusjonstype.toDokdistFordelingType()}",
-                        "distribusjonstidspunkt": "${distribusjonstidspunkt.toDokdistFordelingType()}"
+                        "distribusjonstidspunkt": "${distribusjonstidspunkt.toDokdistFordelingType()}",
+                        "adresse": ${distribueringsadresse?.toJson() ?: "null"}
                     }
         """.trimIndent()
     }
@@ -101,7 +106,7 @@ class DokDistFordelingClient(
     }
 }
 
-private sealed interface PayloadTyper {
+private interface PayloadTyper {
     enum class Distribusjonstype(val value: String) {
         VEDTAK("VEDTAK"),
         VIKTIG("VIKTIG"),
@@ -112,4 +117,18 @@ private sealed interface PayloadTyper {
         UMIDDELBART("UMIDDELBART"),
         KJERNETID("KJERNETID"),
     }
+}
+
+private fun Distribueringsadresse.toJson(): String {
+    return """
+        {
+          "adressetype":"norskPostadresse",
+          "adresselinje1":"${this.adresselinje1}",
+          "adresselinje2":"${this.adresselinje2}",
+          "adresselinje3":"${this.adresselinje3}",
+          "postnummer":"${this.postnummer}",
+          "poststed":" ${this.poststed}",
+          "land":"NO",
+        }
+    """.trimIndent()
 }

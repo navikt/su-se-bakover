@@ -25,8 +25,10 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
+import person.domain.PersonService
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.infrastructure.kvittering.UtbetalingskvitteringKomponenter
 import økonomi.infrastructure.kvittering.consumer.kvitteringXmlTilSaksnummerOgUtbetalingId
@@ -55,8 +57,9 @@ class AppComponents private constructor(
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock, applicationConfig: ApplicationConfig) -> Clients,
             serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
-            tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter,
+            tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, tilgangstyringService: TilgangstyringService) -> Tilbakekrevingskomponenter,
             dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter,
+            tilgangstyringBuilder: (personService: PersonService) -> TilgangstyringService,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactory)
             val clients = clientBuilder(databaseRepos, clock, applicationConfig)
@@ -65,7 +68,9 @@ class AppComponents private constructor(
                 personRepo = databaseRepos.person,
                 services = services,
             )
-            val tilbakekrevingskomponenter = tilbakekrevingskomponenterBuilder(databaseRepos, services)
+            val tilgangstyringService = tilgangstyringBuilder(services.person)
+            val tilbakekrevingskomponenter =
+                tilbakekrevingskomponenterBuilder(databaseRepos, services, tilgangstyringService)
             val dokumenterKomponenter = dokumentKomponenterBuilder(databaseRepos, services, clients)
             return AppComponents(
                 clock = clock,
@@ -136,11 +141,10 @@ class AppComponents private constructor(
                     }
                 },
                 applicationConfig = applicationConfig,
-                tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
+                tilbakekrevingskomponenterBuilder = { databaseRepos, services, tilgangstyringService ->
                     tilbakekrevingskomponenterMedClientStubs(
                         clock = clockParam,
                         sessionFactory = databaseRepos.sessionFactory,
-                        personService = services.person,
                         hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
                         sakService = services.sak,
                         oppgaveService = services.oppgave,
@@ -149,7 +153,11 @@ class AppComponents private constructor(
                         hendelseRepo = databaseRepos.hendelseRepo,
                         dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
                         brevService = services.brev,
+                        tilgangstyringService = tilgangstyringService,
                     )
+                },
+                tilgangstyringBuilder = { personService ->
+                    TilgangstyringService(personService)
                 },
                 dokumentKomponenterBuilder = { databaseRepos, services, clients ->
                     val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
@@ -227,7 +235,7 @@ internal fun withKomptestApplication(
             )
         }
     },
-    tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter = { databaseRepos, services ->
+    tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, tilgangstyringService: TilgangstyringService) -> Tilbakekrevingskomponenter = { databaseRepos, services, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
@@ -243,6 +251,7 @@ internal fun withKomptestApplication(
             tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
             dbMetrics = dbMetricsStub,
             samlTokenProvider = FakeSamlTokenProvider(),
+            tilgangstyringService = tilgangstyringService,
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->
@@ -282,6 +291,9 @@ internal fun withKomptestApplication(
             ),
         )
     },
+    tilgangstyringBuilder: (personService: PersonService) -> TilgangstyringService = { personService ->
+        TilgangstyringService(personService)
+    },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
@@ -296,6 +308,7 @@ internal fun withKomptestApplication(
                 applicationConfig = applicationConfig,
                 tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
                 dokumentKomponenterBuilder = dokumentKomponenterBuilder,
+                tilgangstyringBuilder = tilgangstyringBuilder,
             ),
             test = test,
         )
@@ -310,7 +323,7 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
-        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _ ->
+        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _ ->
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,

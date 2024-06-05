@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withDokumentId
-import no.nav.su.se.bakover.presentation.web.sendDokumentMedAdresse
 import no.nav.su.se.bakover.presentation.web.toJson
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import java.util.UUID
 
 private const val ID_PARAMETER = "id"
@@ -29,6 +29,7 @@ private const val ID_TYPE_PARAMETER = "idType"
 
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
+    distribuerDokumentService: DistribuerDokumentService,
 ) {
     get("/dokumenter") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -105,7 +106,7 @@ internal fun Route.dokumentRoutes(
             }
         }
     }
-    sendDokumentMedAdresse(brevService)
+    sendDokumentMedAdresse(distribuerDokumentService)
 }
 
 private data class HentDokumentParameters(

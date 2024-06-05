@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
-import person.domain.PersonService
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.infrastructure.client.TilbakekrevingClients
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 /**
@@ -23,7 +23,6 @@ import java.time.Clock
 fun tilbakekrevingskomponenterMedClientStubs(
     clock: Clock,
     sessionFactory: SessionFactory,
-    personService: PersonService,
     hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     sakService: SakService,
     oppgaveService: OppgaveService,
@@ -32,6 +31,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
     hendelseRepo: HendelseRepo,
     dokumentHendelseRepo: DokumentHendelseRepo,
     brevService: BrevService,
+    tilgangstyringService: TilgangstyringService,
 ): Tilbakekrevingskomponenter {
     val repos = TilbakekrevingRepos.create(
         clock = clock,
@@ -51,7 +51,6 @@ fun tilbakekrevingskomponenterMedClientStubs(
         services = TilbakekrevingServices.create(
             clock = clock,
             sessionFactory = sessionFactory,
-            personService = personService,
             kravgrunnlagRepo = repos.kravgrunnlagRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             sakService = sakService,
@@ -62,6 +61,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             tilbakekrevingsklient = clients.tilbakekrevingsklient,
+            tilgangstyringService = tilgangstyringService,
         ),
         clients = clients,
     )

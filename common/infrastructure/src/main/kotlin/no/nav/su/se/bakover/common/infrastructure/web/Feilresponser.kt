@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import java.util.UUID
 import kotlin.reflect.KClass
 
 data object Feilresponser {
@@ -24,6 +25,11 @@ data object Feilresponser {
     val fantIkkeVedtak = NotFound.errorJson(
         "Fant ikke vedtak",
         "fant_ikke_vedtak",
+    )
+
+    fun fantIkkeDokument(dokumentId: UUID) = NotFound.errorJson(
+        "Fant ikke dokument med id $dokumentId",
+        "fant_ikke_dokument",
     )
 
     val ikkeTilgangTilPerson = Forbidden.errorJson(

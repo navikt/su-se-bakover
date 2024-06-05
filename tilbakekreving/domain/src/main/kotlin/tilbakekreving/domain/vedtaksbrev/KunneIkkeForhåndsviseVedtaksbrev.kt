@@ -1,6 +1,6 @@
 package tilbakekreving.domain.vedtaksbrev
 
-import tilbakekreving.domain.IkkeTilgangTilSak
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 sealed interface KunneIkkeForhåndsviseVedtaksbrev {
     data class IkkeTilgang(val underliggende: IkkeTilgangTilSak) : KunneIkkeForhåndsviseVedtaksbrev

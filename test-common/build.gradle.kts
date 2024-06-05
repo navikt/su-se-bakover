@@ -32,6 +32,8 @@ dependencies {
     api(project(":tilbakekreving:domain"))
     api(project(":tilbakekreving:infrastructure"))
     api(project(":tilbakekreving:presentation"))
+    api(project(":tilgangstyring:application"))
+    api(project(":tilgangstyring:domain"))
     api(project(":vedtak:application"))
     api(project(":vedtak:domain"))
     api(project(":vedtak:domain"))

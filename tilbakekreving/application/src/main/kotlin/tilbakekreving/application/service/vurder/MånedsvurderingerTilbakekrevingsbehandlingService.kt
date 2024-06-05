@@ -6,17 +6,17 @@ import arrow.core.left
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.vurderTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.vurdering.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdering.VurderCommand
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class MånedsvurderingerTilbakekrevingsbehandlingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val sakService: SakService,
-    private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
+    private val tilgangstyring: TilgangstyringService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)

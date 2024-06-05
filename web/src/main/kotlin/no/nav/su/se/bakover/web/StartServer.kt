@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
@@ -38,6 +39,7 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
 import java.time.Clock
@@ -124,7 +126,8 @@ fun Application.susebakover(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig ->
+        tilgangstyringService: TilgangstyringService,
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -140,6 +143,7 @@ fun Application.susebakover(
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
+            tilgangstyringService = tilgangstyringService,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {
@@ -183,6 +187,9 @@ fun Application.susebakover(
         beregningStrategyFactory = beregningStrategyFactory,
     ),
     disableConsumersAndJobs: Boolean = false,
+    tilgangstyringService: TilgangstyringService = TilgangstyringService(
+        personService = services.person,
+    ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
     tilbakekrevingskomponenter(
@@ -198,7 +205,13 @@ fun Application.susebakover(
         databaseRepos.dokumentHendelseRepo,
         services.brev,
         applicationConfig.oppdrag.tilbakekreving,
+        tilgangstyringService,
     ).also {
+        val distribuerDokumentService = DistribuerDokumentService(
+            dokDistFordeling = clients.dokDistFordeling,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            tilgangstyringService = tilgangstyringService,
+        )
         setupKtor(
             services = services,
             clock = clock,
@@ -211,6 +224,7 @@ fun Application.susebakover(
             tilbakekrevingskomponenter = it,
             resendUtbetalingService = resendUtbetalingService,
             suMetrics = suMetrics,
+            distribuerDokumentService = distribuerDokumentService,
         )
         if (!disableConsumersAndJobs) {
             startJobberOgConsumers(
@@ -223,6 +237,7 @@ fun Application.susebakover(
                 dbMetrics = dbMetrics,
                 tilbakekrevingskomponenter = it,
                 dokumentKomponenter = dokumentkomponenter,
+                distribuerDokumentService = distribuerDokumentService,
             )
         }
     }

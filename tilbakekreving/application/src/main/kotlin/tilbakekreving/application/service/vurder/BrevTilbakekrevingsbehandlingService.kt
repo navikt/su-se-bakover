@@ -7,15 +7,15 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterVedtaksbrev
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.tilgang.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.vedtaksbrev.KunneIkkeOppdatereVedtaksbrev
 import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
+import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class BrevTilbakekrevingsbehandlingService(
-    private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
+    private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val clock: Clock,
