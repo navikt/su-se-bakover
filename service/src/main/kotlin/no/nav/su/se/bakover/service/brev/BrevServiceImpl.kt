@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
@@ -11,6 +12,8 @@ import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
+import dokument.domain.distribuering.DistribuerDokumentCommand
+import dokument.domain.distribuering.KunneIkkeDistribuereJournalførtDokument
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
@@ -82,5 +85,12 @@ class BrevServiceImpl(
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
+    }
+
+    override fun distribuerDokument(command: DistribuerDokumentCommand): Either<KunneIkkeDistribuereJournalførtDokument, Dokument> {
+        return hentDokument(command.dokumentId)
+            .getOrElse { throw IllegalArgumentException("Fant ikke dokument med id ${command.dokumentId} for sak ${command.sakId}.") }
+            .right()
+        // TODO jah: Legg inn faktisk logikk her. Men vi merger dette først, så frontend kan få noe å jobbe med.
     }
 }

@@ -15,6 +15,9 @@ sealed interface Dokument {
      */
     val generertDokumentJson: String
 
+    fun erJournalført() = this is MedMetadata && metadata.journalpostId != null
+    fun erBrevBestilt() = this is MedMetadata && metadata.brevbestillingId != null
+
     sealed interface UtenMetadata : Dokument {
 
         fun leggTilMetadata(metadata: Metadata): MedMetadata

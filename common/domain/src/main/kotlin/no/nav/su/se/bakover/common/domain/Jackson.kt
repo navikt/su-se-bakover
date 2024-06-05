@@ -9,12 +9,16 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.serialization.jackson.JacksonConverter
+import org.slf4j.LoggerFactory
 
 /**
  * TODO jah: Denne bør ligger under common:infrastructure, men brukes blant annet av BrevInnhold, som ligger i domain. Dette krever en gradvis refaktorering.
  * Ikke bruk denne direkte. Bruk heller [serialize], [serializeNullable], [deserialize], [deserializeList] osv.
  * Den må være public for at inline/reified skal fungere.
  */
+
+private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.common.domain.Jackson")
+
 @PublishedApi
 internal val privateObjectMapper: ObjectMapper = JsonMapper.builder()
     .addModule(JavaTimeModule())
@@ -41,6 +45,7 @@ inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V>
  * @param acceptDomainObjects If true, will throw if you try to serialize certain domain objects. In time it should throw if the package contains 'domain'.
  */
 fun serialize(value: Any, acceptDomainObjects: Boolean = false): String {
+    logIfIsString(value)
     if (!acceptDomainObjects) throwIfContainsDomainObjects(value)
     return privateObjectMapper.writeValueAsString(value)
 }
@@ -51,6 +56,7 @@ fun serializeNullable(value: Any?): String? {
 
 inline fun <reified T> List<T>.serialize(): String {
     this.forEach { throwIfContainsDomainObjects(it) }
+    this.forEach { logIfIsString(it) }
     val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
     return privateObjectMapper.writerFor(listType).writeValueAsString(this)
 }
@@ -108,5 +114,15 @@ fun throwIfContainsDomainObjects(vararg types: Any?) {
         if (exclusionList.contains(currentType)) {
             throw IllegalStateException("Don't serialize/deserialize domain types: $currentType")
         }
+    }
+}
+
+fun <T> logIfIsString(value: T) {
+    // På sikt ønsker vi endre denne til å kaste exception.
+    if (value is String) {
+        log.warn(
+            "Oppdaget en tilfelle der vi serialiserer en string til json.",
+            IllegalStateException("Trigger stacktrace for debug."),
+        )
     }
 }

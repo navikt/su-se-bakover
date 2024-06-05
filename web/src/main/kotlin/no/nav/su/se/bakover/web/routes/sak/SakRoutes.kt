@@ -35,8 +35,8 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.presentation.web.toJson
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
-import no.nav.su.se.bakover.web.routes.dokument.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJson
@@ -260,7 +260,7 @@ internal fun Route.sakRoutes(
 
                     res.fold(
                         { call.svar(it.tilResultat()) },
-                        { call.svar(Resultat.json(Created, serialize(it.toJson()))) },
+                        { call.svar(Resultat.json(Created, it.toJson())) },
                     )
                 }
             }
