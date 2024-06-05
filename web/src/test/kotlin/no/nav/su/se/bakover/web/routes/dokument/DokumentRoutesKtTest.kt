@@ -11,9 +11,9 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
+import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -94,11 +94,12 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `happy case`() {
+        val dokumentId = UUID.randomUUID()
         val services = TestServicesBuilder.services(
             brev = mock {
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.HentDokumenterForSøknad }) } doReturn listOf(
                     Dokument.UtenMetadata.Informasjon.Annet(
-                        id = UUID.randomUUID(),
+                        id = dokumentId,
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",
                         generertDokument = pdfATom(),
@@ -123,11 +124,20 @@ internal class DokumentRoutesKtTest {
                         UUID.fromString("39f05293-39e0-47be-ba35-a7e0b233b630"),
                     ),
                 )
-                it.bodyAsText().deserializeList<DokumentJson>().first().let { dokumentJson ->
-                    dokumentJson.tittel shouldBe "en fin tittel"
-                    dokumentJson.opprettet shouldBe "1970-01-01T00:00:00Z"
-                    dokumentJson.dokument contentEquals "".toByteArray()
-                }
+                it.bodyAsText().shouldBeSimilarJsonTo(
+                    """
+                    [
+                        {
+                            "id": "$dokumentId",
+                            "tittel": "en fin tittel",
+                            "opprettet": "1970-01-01T00:00:00Z",
+                            "dokument": "",
+                            "journalført": false,
+                            "brevErBestilt": false
+                        }
+                    ]
+                    """.trimIndent(),
+                )
             }
         }
     }

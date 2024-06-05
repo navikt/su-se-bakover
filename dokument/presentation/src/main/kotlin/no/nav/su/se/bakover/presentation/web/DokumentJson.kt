@@ -1,24 +1,28 @@
-package no.nav.su.se.bakover.web.routes.dokument
+package no.nav.su.se.bakover.presentation.web
 
 import dokument.domain.Dokument
+import no.nav.su.se.bakover.common.serialize
 import java.time.format.DateTimeFormatter
 
-internal fun List<Dokument>.toJson(): List<DokumentJson> {
-    return map { it.toJson() }
+fun List<Dokument>.toJson(): String {
+    return joinToString(separator = ",\n", prefix = "[", postfix = "]") { it.toJson() }
 }
 
-internal fun Dokument.toJson(): DokumentJson {
+fun Dokument.toJson(): String {
     return DokumentJson(
         id = id.toString(),
         tittel = tittel,
+        // TODO jah: Tidspunkt bør formateres mer enhetlig mot frontend.
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         dokument = generertDokument.getContent(),
-        journalført = (this is Dokument.MedMetadata && metadata.journalpostId.isNotNullOrEmpty()),
-        brevErBestilt = (this is Dokument.MedMetadata && metadata.brevbestillingId.isNotNullOrEmpty()),
-    )
+        journalført = erJournalført(),
+        brevErBestilt = erBrevBestilt(),
+    ).let {
+        serialize(it)
+    }
 }
 
-internal data class DokumentJson(
+private data class DokumentJson(
     val id: String,
     val tittel: String,
     val opprettet: String,
@@ -27,5 +31,3 @@ internal data class DokumentJson(
     val journalført: Boolean,
     val brevErBestilt: Boolean,
 )
-
-private fun String?.isNotNullOrEmpty() = !this.isNullOrEmpty()

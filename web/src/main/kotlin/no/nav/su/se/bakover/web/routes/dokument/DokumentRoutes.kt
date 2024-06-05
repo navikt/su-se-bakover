@@ -20,7 +20,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withDokumentId
-import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.presentation.web.sendDokumentMedAdresse
+import no.nav.su.se.bakover.presentation.web.toJson
 import java.util.UUID
 
 private const val ID_PARAMETER = "id"
@@ -78,7 +79,7 @@ internal fun Route.dokumentRoutes(
                     call.svar(
                         Resultat.json(
                             httpCode = HttpStatusCode.OK,
-                            json = serialize(dokumenter.toJson()),
+                            json = dokumenter.toJson(),
                         ),
                     )
                 }
@@ -104,6 +105,7 @@ internal fun Route.dokumentRoutes(
             }
         }
     }
+    sendDokumentMedAdresse(brevService)
 }
 
 private data class HentDokumentParameters(

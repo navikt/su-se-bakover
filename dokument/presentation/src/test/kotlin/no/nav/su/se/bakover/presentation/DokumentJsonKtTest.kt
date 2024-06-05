@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.web.routes.dokument
+package no.nav.su.se.bakover.presentation
 
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.presentation.web.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
@@ -30,7 +30,7 @@ internal class DokumentJsonKtTest {
             generertDokumentJson = "{}",
         )
 
-        JSONAssert.assertEquals(expected, serialize(dokument.toJson()), true)
+        JSONAssert.assertEquals(expected, dokument.toJson(), true)
     }
 
     @Test
@@ -56,6 +56,6 @@ internal class DokumentJsonKtTest {
             generertDokumentJson = "{}",
         )
 
-        JSONAssert.assertEquals(expected, serialize(listOf(dokument).toJson()), true)
+        JSONAssert.assertEquals(expected, listOf(dokument).toJson(), true)
     }
 }
