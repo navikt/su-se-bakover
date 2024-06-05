@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsFeil
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -55,7 +56,7 @@ class JournalførDokumentServiceTest {
                 it.first().id shouldBe dokumentdistribusjon.id
                 it.first().journalpostId shouldBe null
                 it.first().brevbestillingsId shouldBe null
-                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Journalføring(
+                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe JournalføringOgDistribueringsFeil.Journalføring(
                     KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost,
                 )
             }

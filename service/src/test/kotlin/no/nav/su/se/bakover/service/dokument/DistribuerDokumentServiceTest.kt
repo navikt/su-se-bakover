@@ -17,6 +17,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsFeil
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -94,7 +95,7 @@ internal class DistribuerDokumentServiceTest {
                 it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
                 it.first().id shouldBe dokumentdistribusjon.id
                 (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe
-                    JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Distribuering(
+                    JournalføringOgDistribueringsFeil.Distribuering(
                         KunneIkkeBestilleBrevForDokument.MåJournalføresFørst,
                     )
             }
@@ -149,7 +150,7 @@ internal class DistribuerDokumentServiceTest {
                 it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
                 it.first().id shouldBe dokumentdistribusjon.id
                 (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe
-                    JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Distribuering(
+                    JournalføringOgDistribueringsFeil.Distribuering(
                         KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev,
                     )
             }

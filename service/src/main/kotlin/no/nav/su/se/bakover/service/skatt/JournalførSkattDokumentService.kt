@@ -6,8 +6,8 @@ import dokument.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
-import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
+import no.nav.su.se.bakover.service.journalføring.logResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.skatt.domain.DokumentSkattRepo
