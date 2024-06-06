@@ -1,20 +1,21 @@
-package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev
+package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev
 
 import arrow.core.Either
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.AvsenderMottaker
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.Fagsak
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalPostType
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførJsonRequest
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførendeEnhet
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostDokument
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBehandlingstema
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBruker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottaker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalPostType
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførJsonRequest
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførendeEnhet
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostDokument
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
-internal class JournalførBrevHttpClient(private val client: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient) : JournalførBrevClient {
+internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
     override fun journalførBrev(command: JournalførBrevCommand): Either<ClientError, JournalpostId> {
         val dokument = command.dokument
         return client.opprettJournalpost(
@@ -39,6 +40,6 @@ internal class JournalførBrevHttpClient(private val client: no.nav.su.se.bakove
     }
 }
 
-fun createJournalførBrevHttpClient(client: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient): JournalførBrevClient {
+fun createJournalførBrevHttpClient(client: JournalførHttpClient): JournalførBrevClient {
     return JournalførBrevHttpClient(client)
 }

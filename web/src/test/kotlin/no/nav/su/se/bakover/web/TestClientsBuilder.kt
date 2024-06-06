@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostIdGeneratorForFakes
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.JournalførBrevFakeClient
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.JournalførSøknadFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
 import vilkår.skatt.infrastructure.client.SkatteClientStub

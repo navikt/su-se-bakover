@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.journalfør
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.DokumentVariant
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.DokumentVariant
 import org.junit.jupiter.api.Test
 
 internal class JournalpostCommandTest {

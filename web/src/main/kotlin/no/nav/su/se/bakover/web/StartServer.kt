@@ -21,7 +21,8 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.dokument.application.DokumentServices
-import no.nav.su.se.bakover.dokument.infrastructure.database.Dokumentkomponenter
+import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -154,7 +155,7 @@ fun Application.susebakover(
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
         )
         Dokumentkomponenter(
-            repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
+            repos = DokumentRepos(
                 clock = clock,
                 sessionFactory = dokumentRepos.sessionFactory,
                 hendelseRepo = dokumentRepos.hendelseRepo,

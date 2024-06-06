@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring
+package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring
 
 import arrow.core.left
 import arrow.core.right

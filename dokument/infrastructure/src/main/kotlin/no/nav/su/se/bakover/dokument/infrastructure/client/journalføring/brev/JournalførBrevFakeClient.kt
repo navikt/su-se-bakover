@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev
+package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev
 
 import arrow.core.Either
 import arrow.core.right
@@ -6,7 +6,7 @@ import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostIdGeneratorForFakes
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 
 /**
  * Åpen for å kunne aksesseres av tester.

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.database.distribuering
+package no.nav.su.se.bakover.dokument.infrastructure.client.distribuering
 
 import arrow.core.Either
 import arrow.core.left
@@ -36,14 +36,18 @@ class DokDistFordelingClient(
         distribusjonstidspunkt: Distribusjonstidspunkt,
         distribueringsadresse: Distribueringsadresse?,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
-        val body =
-            byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt, distribueringsadresse)
+        val requestBody = toDokDistRequestJson(
+            journalpostId = journalPostId,
+            distribusjonstype = distribusjonstype,
+            distribusjonstidspunkt = distribusjonstidspunkt,
+            distribueringsadresse = distribueringsadresse,
+        )
         val (_, _, result) = "${dokDistConfig.url}$DOK_DIST_FORDELING_PATH".httpPost()
             .authentication().bearer(azureAd.getSystemToken(dokDistConfig.clientId))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Nav-CallId", getOrCreateCorrelationIdFromThreadLocal())
-            .body(body).responseString()
+            .body(requestBody).responseString()
 
         return result.fold(
             { hentBrevbestillingsId(it, journalPostId).right() },
@@ -75,60 +79,4 @@ class DokDistFordelingClient(
         }
         return BrevbestillingId(brevbestillingsId ?: "ikke_mottatt_fra_ekstern_tjeneste")
     }
-
-    internal fun byggDistribusjonPostJson(
-        journalPostId: JournalpostId,
-        distribusjonstype: Distribusjonstype,
-        distribusjonstidspunkt: Distribusjonstidspunkt,
-        distribueringsadresse: Distribueringsadresse? = null,
-    ): String {
-        return """
-                    {
-                        "journalpostId": "$journalPostId",
-                        "bestillendeFagsystem": "SUPSTONAD",
-                        "dokumentProdApp": "SU_SE_BAKOVER",
-                        "distribusjonstype": "${distribusjonstype.toDokdistFordelingType()}",
-                        "distribusjonstidspunkt": "${distribusjonstidspunkt.toDokdistFordelingType()}",
-                        "adresse": ${distribueringsadresse?.toJson() ?: "null"}
-                    }
-        """.trimIndent()
-    }
-
-    private fun Distribusjonstype.toDokdistFordelingType() = when (this) {
-        Distribusjonstype.VEDTAK -> PayloadTyper.Distribusjonstype.VEDTAK.value
-        Distribusjonstype.VIKTIG -> PayloadTyper.Distribusjonstype.VIKTIG.value
-        Distribusjonstype.ANNET -> PayloadTyper.Distribusjonstype.ANNET.value
-    }
-
-    private fun Distribusjonstidspunkt.toDokdistFordelingType() = when (this) {
-        Distribusjonstidspunkt.UMIDDELBART -> PayloadTyper.Distribusjonstidspunkt.UMIDDELBART.value
-        Distribusjonstidspunkt.KJERNETID -> PayloadTyper.Distribusjonstidspunkt.KJERNETID.value
-    }
-}
-
-private interface PayloadTyper {
-    enum class Distribusjonstype(val value: String) {
-        VEDTAK("VEDTAK"),
-        VIKTIG("VIKTIG"),
-        ANNET("ANNET"),
-    }
-
-    enum class Distribusjonstidspunkt(val value: String) {
-        UMIDDELBART("UMIDDELBART"),
-        KJERNETID("KJERNETID"),
-    }
-}
-
-private fun Distribueringsadresse.toJson(): String {
-    return """
-        {
-          "adressetype":"norskPostadresse",
-          "adresselinje1":"${this.adresselinje1}",
-          "adresselinje2":"${this.adresselinje2}",
-          "adresselinje3":"${this.adresselinje3}",
-          "postnummer":"${this.postnummer}",
-          "poststed":" ${this.poststed}",
-          "land":"NO",
-        }
-    """.trimIndent()
 }

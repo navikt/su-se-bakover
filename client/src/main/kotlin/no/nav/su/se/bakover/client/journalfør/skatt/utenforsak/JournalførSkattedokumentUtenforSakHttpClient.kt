@@ -3,14 +3,14 @@ package no.nav.su.se.bakover.client.journalfør.skatt.utenforsak
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.Fagsak
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalPostType
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførJsonRequest
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførendeEnhet
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostDokument
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBehandlingstema
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBruker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalPostType
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførJsonRequest
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførendeEnhet
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostDokument
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakCommand
 

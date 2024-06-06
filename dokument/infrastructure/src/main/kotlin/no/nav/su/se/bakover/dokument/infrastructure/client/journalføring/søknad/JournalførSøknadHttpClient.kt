@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad
+package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad
 
 import arrow.core.Either
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
@@ -6,20 +6,21 @@ import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.AvsenderMottaker
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.Fagsak
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalPostType
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførJsonRequest
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførendeEnhet
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalpostDokument
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.Kanal
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBehandlingstema
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.tilBruker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottaker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalPostType
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførJsonRequest
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførendeEnhet
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostDokument
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Kanal
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
 /**
  * TODO jah: Denne bør egentlig bo i :søknad-modulen som ikke eksisterer på dette tidspunktet.
  */
-internal class JournalførSøknadHttpClient(private val client: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient) : JournalførSøknadClient {
+internal class JournalførSøknadHttpClient(private val client: JournalførHttpClient) : JournalførSøknadClient {
     override fun journalførSøknad(command: JournalførSøknadCommand): Either<ClientError, JournalpostId> {
         return client.opprettJournalpost(
             JournalførJsonRequest(
@@ -49,6 +50,6 @@ internal class JournalførSøknadHttpClient(private val client: no.nav.su.se.bak
     }
 }
 
-fun createJournalførSøknadHttpClient(client: no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient): JournalførSøknadClient {
+fun createJournalførSøknadHttpClient(client: JournalførHttpClient): JournalførSøknadClient {
     return JournalførSøknadHttpClient(client)
 }

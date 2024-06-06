@@ -27,9 +27,10 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
-import no.nav.su.se.bakover.dokument.infrastructure.database.distribuering.DokDistFordelingClient
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.brev.createJournalførBrevHttpClient
-import no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.søknad.createJournalførSøknadHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.createJournalførSøknadHttpClient
 import vilkår.skatt.infrastructure.client.SkatteClient
 import java.time.Clock
 
@@ -89,7 +90,7 @@ data class ProdClientsBuilder(
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
-                val client = no.nav.su.se.bakover.dokument.infrastructure.database.journalføring.JournalførHttpClient(
+                val client = JournalførHttpClient(
                     dokArkivConfig = applicationConfig.clientsConfig.dokArkivConfig,
                     azureAd = oAuth,
                 )
