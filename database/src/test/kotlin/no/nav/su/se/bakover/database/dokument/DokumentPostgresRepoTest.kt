@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.dokument
 import arrow.core.getOrElse
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.collections.shouldHaveSize
@@ -62,6 +63,16 @@ internal class DokumentPostgresRepoTest {
             dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
             dokumentRepo.hentForRevurdering(revurdering.id.value) shouldHaveSize 1
             dokumentRepo.hentForKlage(klage.id.value) shouldHaveSize 1
+            dokumentRepo.hentDokumentdistribusjonForDokumentId(original.id)!!.also {
+                it shouldBe Dokumentdistribusjon(
+                    // Denne genereres i repoets lagre funksjon
+                    id = it.id,
+                    opprettet = original.opprettet,
+                    endret = original.opprettet,
+                    dokument = original,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                )
+            }
         }
     }
 
