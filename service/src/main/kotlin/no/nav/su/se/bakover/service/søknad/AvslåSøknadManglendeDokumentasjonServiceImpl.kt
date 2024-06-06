@@ -92,7 +92,11 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                             oppgaveId = it,
                             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
                         ).mapLeft {
-                            log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
+                            if (it.feilPgaAlleredeFerdigstilt()) {
+                                log.warn("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon fordi den allerede er lukket for søknad ${command.søknadId}, for sak ${sak.id}")
+                            } else {
+                                log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
+                            }
                             it
                         }
                     },

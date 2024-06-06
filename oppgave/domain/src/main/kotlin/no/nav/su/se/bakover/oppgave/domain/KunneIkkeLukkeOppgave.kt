@@ -5,6 +5,15 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 sealed interface KunneIkkeLukkeOppgave {
     val oppgaveId: OppgaveId
 
+    fun feilPgaAlleredeFerdigstilt(): Boolean = when (this) {
+        is FeilVedOppdateringAvOppgave -> when (this.originalFeil) {
+            is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> true
+            else -> false
+        }
+
+        else -> false
+    }
+
     data class FeilVedHentingAvOppgave(override val oppgaveId: OppgaveId) : KunneIkkeLukkeOppgave {
         override fun toSikkerloggString() = toString()
         override fun toString(): String = "FeilVedHentingAvOppgave(oppaveId=$oppgaveId)"
