@@ -85,7 +85,7 @@ fun KunneIkkeDistribuereJournalførtDokument.toResultat(): Resultat {
         is KunneIkkeDistribuereJournalførtDokument.FantIkkeDokument -> Feilresponser.fantIkkeDokument(this.dokumentId)
         is KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon -> when (this.underliggendeFeil) {
             is KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev -> HttpStatusCode.BadRequest.errorJson(
-                message = "Feil ved bestilling av brev for dokumentet ${this.dokumentId} med journalpostId ${this.journalpostId} og brevbestillingId ${this.brevbestillingId}.",
+                message = "Feil ved bestilling av brev for dokumentet ${this.dokumentId} med journalpostId ${this.journalpostId}.",
                 code = "feil_ved_bestilling_av_brev",
 
             )

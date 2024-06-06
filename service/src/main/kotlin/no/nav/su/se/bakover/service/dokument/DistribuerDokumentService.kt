@@ -110,7 +110,6 @@ class DistribuerDokumentService(
             KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon(
                 dokumentId = dokumentId,
                 journalpostId = JournalpostId(dokument.journalpostId!!),
-                brevbestillingId = BrevbestillingId(dokument.brevbestillingId!!),
                 underliggendeFeil = feil,
             )
         }.map {

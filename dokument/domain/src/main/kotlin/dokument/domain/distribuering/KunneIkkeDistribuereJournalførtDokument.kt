@@ -23,7 +23,6 @@ sealed interface KunneIkkeDistribuereJournalførtDokument {
     data class FeilVedDistribusjon(
         val dokumentId: UUID,
         val journalpostId: JournalpostId,
-        val brevbestillingId: BrevbestillingId,
         val underliggendeFeil: KunneIkkeBestilleBrevForDokument,
     ) : KunneIkkeDistribuereJournalførtDokument
 
