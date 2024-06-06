@@ -61,6 +61,9 @@ sealed interface Dokument {
         }
     }
 
+    /**
+     * TODO jah: I visse tilfeller journalfører vi uten å sende brev. F.eks. skattemelding (notat). I de tilfellene er det rart å at vi knytter distribusjonsdata til dokumentet. i.e. distribusjonstype, distribusjonstidspunkt og brevbestillingId.
+     */
     sealed interface MedMetadata : Dokument {
         val metadata: Metadata
         val distribusjonstype: Distribusjonstype

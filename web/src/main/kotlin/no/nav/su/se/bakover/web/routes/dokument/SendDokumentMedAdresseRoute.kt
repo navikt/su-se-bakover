@@ -24,16 +24,12 @@ import java.util.UUID
 fun Route.sendDokumentMedAdresse(
     brevService: DistribuerDokumentService,
 ) {
-    data class Adresse(
+    data class Body(
         val adresselinje1: String? = null,
         val adresselinje2: String? = null,
         val adresselinje3: String? = null,
         val postnummer: String,
         val poststed: String,
-    )
-
-    data class Body(
-        val adresse: Adresse,
     ) {
         fun toDomain(
             sakId: UUID,
@@ -43,11 +39,11 @@ fun Route.sendDokumentMedAdresse(
                 sakId = sakId,
                 dokumentId = dokumentId,
                 distribueringsadresse = Distribueringsadresse(
-                    adresselinje1 = adresse.adresselinje1,
-                    adresselinje2 = adresse.adresselinje2,
-                    adresselinje3 = adresse.adresselinje3,
-                    postnummer = adresse.postnummer,
-                    poststed = adresse.poststed,
+                    adresselinje1 = adresselinje1,
+                    adresselinje2 = adresselinje2,
+                    adresselinje3 = adresselinje3,
+                    postnummer = postnummer,
+                    poststed = poststed,
                 ),
             )
         }

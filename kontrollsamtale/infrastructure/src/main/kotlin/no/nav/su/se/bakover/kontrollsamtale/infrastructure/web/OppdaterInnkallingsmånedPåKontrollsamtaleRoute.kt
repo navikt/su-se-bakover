@@ -26,6 +26,7 @@ import java.util.UUID
 fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
+    data class MyEx(val feil: Resultat) : RuntimeException()
     data class Body(
         val innkallingsmåned: String,
     ) {
