@@ -10,6 +10,7 @@ import dokument.domain.brev.KunneIkkeJournalføreDokument
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -70,7 +71,12 @@ class JournalførDokumentServiceTest {
     @Test
     fun `journalfør dokument - dokument allerede journalført`() {
         val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("done")))
+            .copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                    JournalpostId("done"),
+                    Failures.EMPTY,
+                ),
+            )
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
         }

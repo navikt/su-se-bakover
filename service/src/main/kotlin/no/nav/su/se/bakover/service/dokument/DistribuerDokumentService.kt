@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.service.dokument
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.Distribusjonstidspunkt
-import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentRepo
@@ -12,7 +10,6 @@ import dokument.domain.Dokumentdistribusjon
 import dokument.domain.KunneIkkeJournalføreOgDistribuereBrev
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
-import dokument.domain.brev.KunneIkkeDistribuereBrev
 import dokument.domain.distribuering.DistribuerDokumentCommand
 import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.DokDistFordeling
@@ -27,6 +24,7 @@ import no.nav.su.se.bakover.service.journalføring.logResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tilgangstyring.application.TilgangstyringService
+import java.time.Clock
 
 /**
  * Distribuerer 'vanlige' dokumenter (f.eks vedtak). Ment å bli kallt fra en jobb
@@ -38,57 +36,46 @@ class DistribuerDokumentService(
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val distribuerDokumentHendelserKonsument: DistribuerDokumentHendelserKonsument,
     private val tilgangstyringService: TilgangstyringService,
+    private val clock: Clock,
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     fun distribuer(): List<JournalføringOgDistribueringsResultat> = dokumentRepo.hentDokumenterForDistribusjon()
-        .map { distribusjon -> distribuerDokument(distribusjon, distribusjon.dokument.distribueringsadresse).tilResultat(distribusjon, log) }
+        .map { distribusjon ->
+            distribuerDokument(
+                distribusjon,
+                distribusjon.dokument.distribueringsadresse,
+            ).tilResultat(distribusjon, log)
+        }
         .also { it.logResultat("Dokumentdistribusjon", log) }
 
     private fun distribuerDokument(
         dokumentdistribusjon: Dokumentdistribusjon,
         distribueringsadresse: Distribueringsadresse? = null,
     ): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
-        return dokumentdistribusjon.distribuerBrev { jounalpostId ->
-            distribuerBrev(
+        return dokumentdistribusjon.distribuerBrev(clock) { jounalpostId ->
+            dokDistFordeling.bestillDistribusjon(
                 journalpostId = jounalpostId,
                 distribusjonstype = dokumentdistribusjon.dokument.distribusjonstype,
                 distribusjonstidspunkt = dokumentdistribusjon.dokument.distribusjonstidspunkt,
                 distribueringsadresse = distribueringsadresse,
             )
-                .mapLeft {
-                    KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
-                        journalpostId = jounalpostId,
-                    )
-                }
         }.mapLeft {
             when (it) {
                 is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> return dokumentdistribusjon.right()
-                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev
-                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.MåJournalføresFørst -> KunneIkkeBestilleBrevForDokument.MåJournalføresFørst
+                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.OppdatertFailures -> {
+                    // Vi må lagre distribusjonFailures for at backoff-algoritmen skal fungere.
+                    dokumentRepo.oppdaterDokumentdistribusjon(it.dokumentdistribusjon)
+                    KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev
+                }
+
+                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.MåJournalføresFørst -> KunneIkkeBestilleBrevForDokument.MåJournalføresFørst
+                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.ForTidligÅPrøvePåNytt -> KunneIkkeBestilleBrevForDokument.ForTidligÅPrøvePåNytt
             }
         }.map {
             dokumentRepo.oppdaterDokumentdistribusjon(it)
             it
         }
-    }
-
-    private fun distribuerBrev(
-        journalpostId: JournalpostId,
-        distribusjonstype: Distribusjonstype,
-        distribusjonstidspunkt: Distribusjonstidspunkt,
-        distribueringsadresse: Distribueringsadresse? = null,
-    ): Either<KunneIkkeDistribuereBrev, BrevbestillingId> {
-        return dokDistFordeling.bestillDistribusjon(
-            journalpostId,
-            distribusjonstype,
-            distribusjonstidspunkt,
-            distribueringsadresse,
-        )
-            .mapLeft {
-                log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
-                KunneIkkeDistribuereBrev
-            }
     }
 
     fun distribuerDokument(command: DistribuerDokumentCommand): Either<KunneIkkeDistribuereJournalførtDokument, Dokument.MedMetadata> {
@@ -99,7 +86,7 @@ class DistribuerDokumentService(
         val dokumentId = command.dokumentId
 
         dokumentRepo.hentDokumentdistribusjonForDokumentId(dokumentId)?.let {
-            return distribuerDokumentDokumentRepo(it, command.distribueringsadresse)
+            return distribuerDokumentForDokumentRepo(it, command.distribueringsadresse)
         }
         dokumentHendelseRepo.hentDokumentHendelserForSakId(command.sakId).hentSerieForDokumentId(dokumentId)?.let {
             return distribuerDokumentForHendelse(it, command.distribueringsadresse)
@@ -108,7 +95,7 @@ class DistribuerDokumentService(
         return KunneIkkeDistribuereJournalførtDokument.FantIkkeDokument(dokumentId).left()
     }
 
-    private fun distribuerDokumentDokumentRepo(
+    private fun distribuerDokumentForDokumentRepo(
         dokumentdistribusjon: Dokumentdistribusjon,
         distribueringsadresse: Distribueringsadresse,
     ): Either<KunneIkkeDistribuereJournalførtDokument, Dokument.MedMetadata> {
@@ -125,15 +112,14 @@ class DistribuerDokumentService(
             return KunneIkkeDistribuereJournalførtDokument.IkkeJournalført(dokumentId).left()
         }
         val journalpostId = JournalpostId(dokument.journalpostId!!)
-        return dokumentdistribusjon.distribuerBrev {
+        // Siden en saksbehandler har trigget denne kommandoen, så kan vi ignorere backoff-strategien.
+        return dokumentdistribusjon.distribuerBrev(clock, ignoreBackoff = true) {
             dokDistFordeling.bestillDistribusjon(
-                journalPostId = it,
+                journalpostId = it,
                 distribusjonstype = dokument.distribusjonstype,
                 distribusjonstidspunkt = dokument.distribusjonstidspunkt,
                 distribueringsadresse = distribueringsadresse,
-            ).mapLeft {
-                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(journalpostId)
-            }
+            )
         }.mapLeft {
             KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon(
                 dokumentId = dokumentId,

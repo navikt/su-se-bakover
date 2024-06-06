@@ -8,6 +8,7 @@ import dokument.domain.brev.BrevbestillingId
 import dokument.domain.hendelser.DokumentHendelseRepo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -89,11 +91,12 @@ class DokumentPostgresRepo(
     override fun hentForSak(sakId: UUID): List<Dokument.MedMetadata> {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
             sessionFactory.withSessionContext { ct ->
-                val dokumenterFraHendelser = dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId, ct).tilDokumenterMedMetadata(
-                    hentDokumentForHendelseId = { hendelseId ->
-                        dokumentHendelseRepo.hentFilFor(hendelseId, ct)
-                    },
-                )
+                val dokumenterFraHendelser =
+                    dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId, ct).tilDokumenterMedMetadata(
+                        hentDokumentForHendelseId = { hendelseId ->
+                            dokumentHendelseRepo.hentFilFor(hendelseId, ct)
+                        },
+                    )
                 (
                     ct.withSession {
                         """
@@ -239,7 +242,9 @@ class DokumentPostgresRepo(
                 update dokument_distribusjon set
                     journalpostId = :journalpostId,
                     brevbestillingId = :brevbestillingId,
-                    endret = :endret
+                    endret = :endret,
+                    distribusjon_failure_count = :distribusjon_failure_count,
+                    distribusjon_last_failure_timestamp = :distribusjon_last_failure_timestamp
                 where id = :id
                 """.trimIndent()
                     .oppdatering(
@@ -252,6 +257,8 @@ class DokumentPostgresRepo(
                                 dokumentdistribusjon.journalføringOgBrevdistribusjon,
                             ),
                             "endret" to Tidspunkt.now(clock),
+                            "distribusjon_failure_count" to dokumentdistribusjon.distribusjonFailures.count,
+                            "distribusjon_last_failure_timestamp" to dokumentdistribusjon.distribusjonFailures.last,
                         ),
                         session,
                     )
@@ -265,8 +272,8 @@ class DokumentPostgresRepo(
 
     private fun lagreDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon, tx: TransactionalSession) {
         """
-            insert into dokument_distribusjon(id, opprettet, endret, dokumentId, journalpostId, brevbestillingId)
-            values (:id, :opprettet, :endret, :dokumentId, :journalpostId, :brevbestillingId)
+            insert into dokument_distribusjon(id, opprettet, endret, dokumentId, journalpostId, brevbestillingId, distribusjon_failure_count, distribusjon_last_failure_timestamp)
+            values (:id, :opprettet, :endret, :dokumentId, :journalpostId, :brevbestillingId, :distribusjon_failure_count, :distribusjon_last_failure_timestamp)
         """.trimIndent()
             .insert(
                 mapOf(
@@ -274,6 +281,8 @@ class DokumentPostgresRepo(
                     "opprettet" to dokumentdistribusjon.opprettet,
                     "endret" to dokumentdistribusjon.endret,
                     "dokumentId" to dokumentdistribusjon.dokument.id,
+                    "distribusjon_failure_count" to dokumentdistribusjon.distribusjonFailures.count,
+                    "distribusjon_last_failure_timestamp" to dokumentdistribusjon.distribusjonFailures.last,
                 ),
                 tx,
             )
@@ -375,6 +384,10 @@ class DokumentPostgresRepo(
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = stringOrNull("journalpostid")?.let { JournalpostId(it) },
                 iverksattBrevbestillingId = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) },
+                distribusjonFailures = Failures(
+                    count = long("distribusjon_failure_count"),
+                    last = tidspunktOrNull("distribusjon_last_failure_timestamp"),
+                ),
             ),
         )
     }

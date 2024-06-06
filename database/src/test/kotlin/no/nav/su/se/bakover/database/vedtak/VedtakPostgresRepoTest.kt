@@ -763,7 +763,7 @@ internal class VedtakPostgresRepoTest {
                 dokumentRepo.oppdaterDokumentdistribusjon(
                     journalført.journalfør { JournalpostId("jp").right() }.getOrElse {
                         fail { "Skulle fått journalført" }
-                    }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                    }.distribuerBrev(testDataHelper.clock) { BrevbestillingId("brev").right() }.getOrElse {
                         fail { "Skulle fått bestilt brev" }
                     },
                 )

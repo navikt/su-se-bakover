@@ -125,8 +125,10 @@ class DistribuerDokumentHendelserKonsument(
                 journalpostId = journalpostId,
             ).left()
         }
+        // TODO jah: Her hopper vi bukk over [dokument.domain.Dokumentdistribusjon] og vil skippe retry-backoff logikk.
+        //  Vi måtte uansett ha persistert en (failure)-hendelse for å kunne benytte oss av retry-backoff logikken.
         return dokDistFordeling.bestillDistribusjon(
-            journalPostId = journalpostId,
+            journalpostId = journalpostId,
             distribusjonstype = generertDokumentHendelse.dokumentUtenFil.distribusjonstype,
             distribusjonstidspunkt = generertDokumentHendelse.dokumentUtenFil.distribusjonstidspunkt,
             distribueringsadresse = distribueringsadresse,

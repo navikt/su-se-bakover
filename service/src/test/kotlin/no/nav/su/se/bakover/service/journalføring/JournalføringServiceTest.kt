@@ -9,6 +9,7 @@ import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -72,7 +73,10 @@ class JournalføringServiceTest {
         verify(dokumentRepo).oppdaterDokumentdistribusjon(
             argThat {
                 it shouldBe dokumentDis.copy(
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("1")),
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                        JournalpostId("1"),
+                        Failures.EMPTY,
+                    ),
                 )
             },
         )
