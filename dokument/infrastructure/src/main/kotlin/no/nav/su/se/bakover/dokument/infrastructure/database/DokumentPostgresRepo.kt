@@ -185,7 +185,7 @@ class DokumentPostgresRepo(
                 """.trimIndent()
                     .hent(
                         mapOf(
-                            "id" to dokumentId,
+                            "dokumentId" to dokumentId,
                         ),
                         session,
                     ) {
