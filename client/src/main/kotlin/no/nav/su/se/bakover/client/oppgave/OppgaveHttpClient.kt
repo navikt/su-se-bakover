@@ -254,7 +254,7 @@ internal class OppgaveHttpClient(
                 val body = it.body()
                 if (it.isSuccess()) {
                     val oppgaveResponse = deserialize<OppgaveResponse>(body)
-                    log.info("Lagret oppgave med id $oppgaveResponse i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
+                    log.info("Lagret oppgave med id ${oppgaveResponse.getOppgaveId()} i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
                     sikkerLogg.info("Lagret oppgave i oppgave. status=${it.statusCode()} body=$body")
 
                     OppgaveHttpKallResponse(
@@ -267,7 +267,7 @@ internal class OppgaveHttpClient(
                     ).right()
                 } else {
                     log.error(
-                        "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}, body=$body",
+                        "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}. Se sikkerlogg for innhold av body",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
                     sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
@@ -304,9 +304,10 @@ internal class OppgaveHttpClient(
                     ).right()
                 } else {
                     log.error(
-                        "Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}",
+                        "Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
+                    sikkerLogg.error("Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}")
                     KunneIkkeSøkeEtterOppgave.left()
                 }
             }

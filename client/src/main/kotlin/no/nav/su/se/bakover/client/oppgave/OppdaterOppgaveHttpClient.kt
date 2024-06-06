@@ -142,6 +142,10 @@ internal class OppdaterOppgaveHttpClient(
                     ).right()
                 } else {
                     log.error(
+                        "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    sikkerLogg.error(
                         "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
