@@ -1,5 +1,6 @@
 package dokument.domain.hendelser
 
+import dokument.domain.Dokument
 import dokument.domain.DokumentHendelser
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -33,11 +34,21 @@ interface DokumentHendelseRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): DokumentHendelser
+    fun hentDokumentHendelserForSakId(sakId: UUID, sessionContext: SessionContext? = null): DokumentHendelser
+
+    fun hentDokumentMedMetadataForSakId(sakId: UUID, sessionContext: SessionContext? = null): List<Dokument.MedMetadata>
+
+    fun hentDokumentMedMetadataForSakIdOgDokumentId(
+        sakId: UUID,
+        dokumentId: UUID,
+        sessionContext: SessionContext? = null,
+    ): Dokument.MedMetadata?
     fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?
     fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
-    fun hentHendelseOgFilForDokument(dokumentId: UUID, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
-    fun hentDokumentHendelseForRelatert(relatertHendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
+    fun hentHendelseOgFilForDokumentId(dokumentId: UUID, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
+
+    fun hentHendelseForDokumentId(dokumentId: UUID, sessionContext: SessionContext? = null): DokumentHendelse?
+    fun hentHendelseForRelatertHendelseId(relatertHendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentVedtaksbrevdatoForSakOgVedtakId(sakId: UUID, vedtakId: UUID, sessionContext: SessionContext? = null): LocalDate?
 }

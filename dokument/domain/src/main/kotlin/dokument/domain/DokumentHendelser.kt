@@ -5,6 +5,8 @@ import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
+import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
@@ -27,10 +29,26 @@ data class DokumentHendelser(
         }
     }
 
+    fun hentSerieForDokumentId(dokumentId: UUID): DokumentHendelseSerie? {
+        return serier.singleOrNullOrThrow {
+            it.dokumentId == dokumentId
+        }
+    }
+
     fun hentSerieForRelatertHendelse(hendelseId: HendelseId): DokumentHendelseSerie? {
-        return serier.find {
+        return serier.singleOrNullOrThrow {
             it.dokumenter.map { it.relatertHendelse }.contains(hendelseId)
         }
+    }
+
+    fun hentSerieForHendelseId(hendelseId: HendelseId): DokumentHendelseSerie? {
+        return serier.singleOrNullOrThrow {
+            it.dokumenter.map { it.hendelseId }.contains(hendelseId)
+        }
+    }
+
+    fun hentDokumentIdForJournalpostId(journalpostId: JournalpostId): UUID? {
+        return serier.mapNotNull { it.hentDokumentIdForJournalpostId(journalpostId) }.singleOrNull()
     }
 
     fun hentGenererte(): List<GenerertDokumentHendelse> {

@@ -188,7 +188,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     hendelser = flatMappedHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
-                    dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId, openSessionContext)
+                    dokumentHendelser = dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId, openSessionContext)
                         .filter { dokumentHendelseSerie ->
                             flatMappedHendelser.any { dokumentHendelseSerie.relatertHendelse == it.hendelseId }
                         }.let {

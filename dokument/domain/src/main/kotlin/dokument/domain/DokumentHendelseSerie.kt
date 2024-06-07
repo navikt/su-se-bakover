@@ -15,8 +15,10 @@ data class DokumentHendelseSerie(
     val sakId: UUID,
     val dokumenter: NonEmptyList<DokumentHendelse>,
 ) : List<DokumentHendelse> by dokumenter {
-    /** Dette vil være hendelsen som første til dokumentgenereringen og denne dokumenthendelsesserien*/
+    /** Dette vil være hendelsen som førte til dokumentgenereringen og denne dokumenthendelsesserien*/
     val relatertHendelse = dokumenter[0].relatertHendelse
+
+    val dokumentId: UUID = generertDokument().dokumentUtenFil.id
 
     fun leggTilHendelse(hendelse: DokumentHendelse): DokumentHendelseSerie {
         return DokumentHendelseSerie(sakId, dokumenter + hendelse)
@@ -61,6 +63,8 @@ data class DokumentHendelseSerie(
         return journalpostHendelseOrNull()?.journalpostId
     }
 
+    fun harJournalført(): Boolean = journalpostHendelseOrNull() != null
+
     fun journalpostHendelseOrNull(): JournalførtDokumentHendelse? {
         // init garanterer at et evt. element 1 er JournalførtDokumentHendelse
         return dokumenter.getOrNull(1) as JournalførtDokumentHendelse?
@@ -70,9 +74,21 @@ data class DokumentHendelseSerie(
         return distribuertDokumentHendelse()?.brevbestillingId
     }
 
+    fun harBestiltBrev(): Boolean = distribuertDokumentHendelse() != null
+
     fun distribuertDokumentHendelse(): DistribuertDokumentHendelse? {
         // init garanterer at et evt. element 2 er DistribuertDokumentHendelse
         return dokumenter.getOrNull(2) as DistribuertDokumentHendelse?
+    }
+
+    fun hentDokumentIdForJournalpostId(journalpostId: JournalpostId): UUID? {
+        return journalpostHendelseOrNull()?.let {
+            if (it.journalpostId == journalpostId) {
+                dokumentId
+            } else {
+                null
+            }
+        }
     }
 
     init {
@@ -84,6 +100,11 @@ data class DokumentHendelseSerie(
         dokumenter.zipWithNext { a, b ->
             require(a.versjon < b.versjon) {
                 "Forventer at dokumenter er sortert etter versjon. Var ${a.versjon} og ${b.versjon}"
+            }
+        }
+        dokumenter.zipWithNext { a, b ->
+            require(a.hendelseId == b.relatertHendelse) {
+                "Forventer at neste dokument, peker på forrige, men var aId: ${a.hendelseId}, aRelatertHendelse: ${a.relatertHendelse} og bId: ${b.hendelseId}, bRelatertHendelse: ${b.relatertHendelse}"
             }
         }
         if (dokumenter.isNotEmpty()) {

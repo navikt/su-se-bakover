@@ -14,5 +14,3 @@ interface DokDistFordeling {
         distribueringsadresse: Distribueringsadresse? = null,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId>
 }
-
-data object KunneIkkeBestilleDistribusjon

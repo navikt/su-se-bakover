@@ -69,8 +69,8 @@ sealed interface Dokument {
         val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
 
-        val journalpostId get() = metadata.journalpostId
-        val brevbestillingId get() = metadata.brevbestillingId
+        val journalpostId: String? get() = metadata.journalpostId
+        val brevbestillingId: String? get() = metadata.brevbestillingId
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),

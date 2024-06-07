@@ -2,14 +2,17 @@ package no.nav.su.se.bakover.test.persistence.dokument
 
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil
+import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.dokumentUtenFil
 import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.generertDokumentHendelse
 import no.nav.su.se.bakover.test.hendelse.hendelseFil
-import no.nav.su.se.bakover.test.hendelse.lagretDokumentForUtsendelseHendelse
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import java.util.UUID
 
@@ -24,16 +27,20 @@ class PersistertDokumentHendelseTestData(
         versjon: Hendelsesversjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakId)!!.inc(),
         relaterteHendelse: HendelseId,
         generertDokumentJson: String = "{}",
-        dokumentMetdata: Dokument.Metadata = Dokument.Metadata(
+        dokumentMedMetadata: Dokument.Metadata = Dokument.Metadata(
             sakId = sakId,
         ),
         dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(
             generertDokumentJson = generertDokumentJson,
-            metadata = dokumentMetdata,
+            metadata = dokumentMedMetadata,
         ),
         skalSendeBrev: Boolean = true,
-    ) {
-        val hendelse = lagretDokumentForUtsendelseHendelse(
+        hendelseFil: HendelseFil = hendelseFil(
+            hendelseId = hendelseId,
+        ),
+        meta: DefaultHendelseMetadata = defaultHendelseMetadata(),
+    ): Triple<GenerertDokumentHendelse, HendelseFil, DefaultHendelseMetadata> {
+        val hendelse: GenerertDokumentHendelse = generertDokumentHendelse(
             hendelseId = hendelseId,
             hendelsesTidspunkt = hendelsesTidspunkt,
             versjon = versjon,
@@ -44,10 +51,9 @@ class PersistertDokumentHendelseTestData(
         )
         testDataHelper.dokumentHendelseRepo.lagreGenerertDokumentHendelse(
             hendelse = hendelse,
-            hendelseFil = hendelseFil(
-                hendelseId = hendelseId,
-            ),
-            meta = defaultHendelseMetadata(),
+            hendelseFil = hendelseFil,
+            meta = meta,
         )
+        return Triple(hendelse, hendelseFil, meta)
     }
 }

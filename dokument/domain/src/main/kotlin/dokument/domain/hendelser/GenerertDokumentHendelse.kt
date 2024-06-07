@@ -30,6 +30,8 @@ data class GenerertDokumentHendelse(
 
     override val entitetId: UUID = sakId
 
+    val dokumentId = dokumentUtenFil.id
+
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId)
         return this.versjon.compareTo(other.versjon)

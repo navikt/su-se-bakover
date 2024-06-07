@@ -45,6 +45,7 @@ internal data class GenerertDokumentHendelseDbJson(
                     tilbakekrevingsbehandlingId = deserialized.dokumentMeta.tilbakekrevingsbehandlingId,
                     journalpostId = deserialized.dokumentMeta.journalpostId,
                     brevbestillingId = deserialized.dokumentMeta.brevbestillingsId,
+                    vedtakId = deserialized.dokumentMeta.vedtakId,
                 ),
                 distribusjonstype = deserialized.distribusjonstype.toDomain(),
                 distribusjonstidspunkt = deserialized.distribusjonstidspunkt.toDomain(),

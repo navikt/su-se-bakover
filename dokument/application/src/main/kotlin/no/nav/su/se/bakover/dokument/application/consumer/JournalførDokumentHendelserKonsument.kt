@@ -79,7 +79,7 @@ class JournalførDokumentHendelserKonsument(
         nesteVersjon: Hendelsesversjon,
     ) {
         val sakId = sak.id
-        val dokumentHendelser = dokumentHendelseRepo.hentForSak(sakId)
+        val dokumentHendelser = dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId)
 
         dokumentHendelser.any { it.relatertHendelse == hendelseId }.ifTrue {
             hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)

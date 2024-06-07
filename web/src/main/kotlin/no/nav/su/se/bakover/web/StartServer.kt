@@ -128,7 +128,7 @@ fun Application.susebakover(
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -144,24 +144,18 @@ fun Application.susebakover(
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
-            tilgangstyringService = tilgangstyringService,
+            tilgangstyringService = _tilgangstyringService,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {
-        val dokumentRepos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
+        val dokumentRepos = DokumentRepos(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             hendelseRepo = databaseRepos.hendelseRepo,
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
         )
         Dokumentkomponenter(
-            repos = DokumentRepos(
-                clock = clock,
-                sessionFactory = dokumentRepos.sessionFactory,
-                hendelseRepo = dokumentRepos.hendelseRepo,
-                hendelsekonsumenterRepo = dokumentRepos.hendelsekonsumenterRepo,
-                dokumentHendelseRepo = dokumentRepos.dokumentHendelseRepo,
-            ),
+            repos = dokumentRepos,
             services = DokumentServices(
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
@@ -191,6 +185,13 @@ fun Application.susebakover(
     tilgangstyringService: TilgangstyringService = TilgangstyringService(
         personService = services.person,
     ),
+    distribuerDokumentService: DistribuerDokumentService = DistribuerDokumentService(
+        dokDistFordeling = clients.dokDistFordeling,
+        dokumentRepo = databaseRepos.dokumentRepo,
+        dokumentHendelseRepo = dokumentkomponenter.repos.dokumentHendelseRepo,
+        distribuerDokumentHendelserKonsument = dokumentkomponenter.services.distribuerDokumentHendelserKonsument,
+        tilgangstyringService = tilgangstyringService,
+    ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
     tilbakekrevingskomponenter(
@@ -208,11 +209,6 @@ fun Application.susebakover(
         applicationConfig.oppdrag.tilbakekreving,
         tilgangstyringService,
     ).also {
-        val distribuerDokumentService = DistribuerDokumentService(
-            dokDistFordeling = clients.dokDistFordeling,
-            dokumentRepo = databaseRepos.dokumentRepo,
-            tilgangstyringService = tilgangstyringService,
-        )
         setupKtor(
             services = services,
             clock = clock,

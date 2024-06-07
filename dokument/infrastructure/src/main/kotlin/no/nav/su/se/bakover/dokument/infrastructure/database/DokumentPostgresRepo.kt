@@ -85,10 +85,10 @@ class DokumentPostgresRepo(
         }
     }
 
-    override fun hentForSak(id: UUID): List<Dokument.MedMetadata> {
+    override fun hentForSak(sakId: UUID): List<Dokument.MedMetadata> {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
             sessionFactory.withSessionContext { ct ->
-                val dokumenterFraHendelser = dokumentHendelseRepo.hentForSak(id, ct).tilDokumenterMedMetadata(
+                val dokumenterFraHendelser = dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId, ct).tilDokumenterMedMetadata(
                     hentDokumentForHendelseId = { hendelseId ->
                         dokumentHendelseRepo.hentFilFor(hendelseId, ct)
                     },
@@ -98,7 +98,7 @@ class DokumentPostgresRepo(
                         """
                 $joinDokumentOgDistribusjonQuery and sakId = :id
                         """.trimIndent()
-                            .hentListe(mapOf("id" to id), it) {
+                            .hentListe(mapOf("id" to sakId), it) {
                                 it.toDokumentMedStatus()
                             }
                     } + dokumenterFraHendelser
