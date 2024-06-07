@@ -17,13 +17,16 @@ sealed interface KunneIkkeOppdatereOppgave {
         val jsonRequest: String?,
         val jsonResponse: String,
     ) : KunneIkkeOppdatereOppgave {
-        override fun toSikkerloggString() = "OppgaveErFerdigstilt(ferdigstiltTidspunkt=$ferdigstiltTidspunkt,ferdigstiltAv=$ferdigstiltAv),jsonRequest=*****,jsonResponse=*****)"
-        override fun toString() = "OppgaveErFerdigstilt(ferdigstiltTidspunkt=$ferdigstiltTidspunkt,ferdigstiltAv=$ferdigstiltAv),jsonRequest=$jsonRequest,jsonResponse=$jsonResponse)"
+        override fun toSikkerloggString() =
+            "OppgaveErFerdigstilt(ferdigstiltTidspunkt=$ferdigstiltTidspunkt,ferdigstiltAv=$ferdigstiltAv),jsonRequest=*****,jsonResponse=*****)"
+
+        override fun toString() = "OppgaveErFerdigstilt(ferdigstiltTidspunkt=$ferdigstiltTidspunkt,*****)"
     }
 
     data object FeilVedRequest : KunneIkkeOppdatereOppgave {
         override fun toSikkerloggString() = toString()
     }
+
     data object FeilVedHentingAvToken : KunneIkkeOppdatereOppgave {
         override fun toSikkerloggString() = toString()
     }
