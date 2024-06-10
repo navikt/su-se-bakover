@@ -154,6 +154,8 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakId = sakInfo.sakId,
                     tilbakekrevingsbehandlingId = forhåndsvarsleHendelse.id.value,
                 ),
+                // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                distribueringsadresse = null,
             )
 
         val dokumentHendelse = behandling.lagDokumenthendelseForForhåndsvarsel(

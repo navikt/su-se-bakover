@@ -211,6 +211,7 @@ private fun AppComponents.verifiserDokumenterPåSak(
                     journalpostId = it.metadata.journalpostId!!,
                     brevbestillingId = it.metadata.brevbestillingId!!,
                 ),
+                distribueringsadresse = null,
             )
         }
 }

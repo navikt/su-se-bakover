@@ -584,6 +584,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                             sakId = sak!!.id,
                             søknadId = søknad!!.id,
                         ),
+                        distribueringsadresse = null,
                     )
                 },
                 argThat { it shouldBe TestSessionFactory.transactionContext },

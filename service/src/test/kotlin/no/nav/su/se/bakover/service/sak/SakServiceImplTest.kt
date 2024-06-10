@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.right
+import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -10,9 +12,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -20,6 +24,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -34,6 +39,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
@@ -41,6 +47,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class SakServiceImplTest {
@@ -293,8 +300,65 @@ internal class SakServiceImplTest {
                     saksbehandler = saksbehandler,
                     tittel = "Brev tittel",
                     fritekst = "Brev fritekst",
+                    distribueringsadresse = null,
                 ),
             ).shouldBeRight()
+    }
+
+    @Test
+    fun `lagrer og sender fritekst dokument med adresse`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val sakRepo: SakRepo = mock {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val expectedGenerertDokument = dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet")
+        val brevService = mock<BrevService> {
+            on {
+                lagDokument(
+                    any<GenererDokumentCommand>(),
+                    anyOrNull(),
+                )
+            } doReturn expectedGenerertDokument.right()
+        }
+        val dokumentRepo = mock<DokumentRepo> {
+            doNothing().whenever(it).lagre(any(), anyOrNull())
+        }
+
+        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock())
+            .lagreOgSendFritekstDokument(
+                request = OpprettDokumentRequest(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    tittel = "tittel",
+                    fritekst = "fritekst",
+                    distribueringsadresse = Distribueringsadresse(
+                        adresselinje1 = "adresselinje1",
+                        adresselinje2 = "adresselinje2",
+                        adresselinje3 = null,
+                        postnummer = "postnummer",
+                        poststed = "poststed",
+                    ),
+                ),
+            ).getOrFail()
+
+        verify(sakRepo).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(brevService).lagDokument(
+            argThat {
+                it shouldBe FritekstDokumentCommand(
+                    fødselsnummer = sak.fnr,
+                    saksnummer = sak.saksnummer,
+                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                    brevTittel = "tittel",
+                    fritekst = "fritekst",
+                )
+            },
+            anyOrNull(),
+        )
+        verify(dokumentRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+
+        verifyNoMoreInteractions(sakRepo)
+        verifyNoMoreInteractions(brevService)
+        verifyNoMoreInteractions(dokumentRepo)
     }
 
     @Test

@@ -616,6 +616,8 @@ class RevurderingServiceImpl(
                                 sakId = revurdering.sakId,
                                 revurderingId = revurdering.id.value,
                             ),
+                            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                            distribueringsadresse = null,
                         ),
                         transactionContext = tx,
                     )
@@ -968,6 +970,8 @@ class RevurderingServiceImpl(
                             sakId = revurdering.sakId,
                             revurderingId = revurdering.id.value,
                         ),
+                        // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                        distribueringsadresse = null,
                     )
                     sessionFactory.withTransactionContext {
                         brevService.lagreDokument(dokumentMedMetaData, it)

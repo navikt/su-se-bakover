@@ -1,6 +1,7 @@
 package dokument.domain
 
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
+import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.test.dokumentMedMetadataVedtak
@@ -22,6 +23,7 @@ class DokumentMedMetadataUtenFilTest {
                 distribusjonstype = it.distribusjonstype,
                 distribusjonstidspunkt = it.distribusjonstidspunkt,
                 generertDokumentJson = it.generertDokumentJson,
+                distribueringsadresse = it.distribueringsadresse,
             )
         }
     }
@@ -30,7 +32,15 @@ class DokumentMedMetadataUtenFilTest {
     fun `mapper til korrekt DokumentMedMetadata`() {
         val pdf = PdfA("content".toByteArray())
 
-        dokumentUtenFil().let {
+        dokumentUtenFil(
+            distribueringsadresse = Distribueringsadresse(
+                "linje1",
+                "linje2",
+                "linje3",
+                "postnummer",
+                "poststed",
+            ),
+        ).let {
             it.toDokumentMedMetadata(pdf, null, null) shouldBe
                 Dokument.MedMetadata.Vedtak(
                     utenMetadata = Dokument.UtenMetadata.Vedtak(
@@ -41,6 +51,13 @@ class DokumentMedMetadataUtenFilTest {
                         generertDokumentJson = it.generertDokumentJson,
                     ),
                     metadata = it.metadata,
+                    distribueringsadresse = Distribueringsadresse(
+                        "linje1",
+                        "linje2",
+                        "linje3",
+                        "postnummer",
+                        "poststed",
+                    ),
                 )
         }
 
@@ -57,6 +74,7 @@ class DokumentMedMetadataUtenFilTest {
                         generertDokumentJson = it.generertDokumentJson,
                     ),
                     metadata = it.metadata,
+                    distribueringsadresse = it.distribueringsadresse,
                 )
         }
 
@@ -73,6 +91,7 @@ class DokumentMedMetadataUtenFilTest {
                         generertDokumentJson = it.generertDokumentJson,
                     ),
                     metadata = it.metadata,
+                    distribueringsadresse = it.distribueringsadresse,
                 )
         }
     }

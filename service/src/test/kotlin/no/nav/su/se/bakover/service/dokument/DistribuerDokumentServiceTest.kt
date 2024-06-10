@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribuering
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
@@ -59,7 +60,7 @@ internal class DistribuerDokumentServiceTest {
         val dokumentdistribusjon = dokumentdistribusjon()
             .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
+            on { hentDokumenterForDistribusjon() } doReturn listOf(Pair(dokumentdistribusjon, null))
         }
         val dokdistFordeling = mock<DokDistFordeling> {
             on { this.bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn BrevbestillingId("id").right()
@@ -90,10 +91,49 @@ internal class DistribuerDokumentServiceTest {
     }
 
     @Test
+    fun `distribuerer dokumentet til angitt adresse`() {
+        val dokumentdistribusjon = dokumentdistribusjon()
+            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForDistribusjon() } doReturn listOf(
+                Pair(dokumentdistribusjon, nyDistribueringsAdresse()),
+            )
+        }
+        val dokdistFordeling = mock<DokDistFordeling> {
+            on { this.bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn BrevbestillingId("id").right()
+        }
+
+        ServiceOgMocks(dokumentRepo = dokumentRepo, dokDistFordeling = dokdistFordeling).dokumentService.distribuer()
+            .let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
+                it.first().brevbestillingsId shouldBe BrevbestillingId("id")
+            }
+        verify(dokumentRepo).hentDokumenterForDistribusjon()
+        verify(dokdistFordeling).bestillDistribusjon(
+            argThat { it shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId() },
+            argThat { it shouldBe Distribusjonstype.VEDTAK },
+            argThat { it shouldBe Distribusjonstidspunkt.KJERNETID },
+            argThat { it shouldBe nyDistribueringsAdresse() },
+        )
+        verify(dokumentRepo).oppdaterDokumentdistribusjon(
+            dokumentdistribusjon.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    JournalpostId("very"),
+                    BrevbestillingId("id"),
+                ),
+            ),
+        )
+
+        verifyNoMoreInteractions(dokumentRepo)
+        verifyNoMoreInteractions(dokdistFordeling)
+    }
+
+    @Test
     fun `distribuer dokument - ikke journalført`() {
         val dokumentdistribusjon = dokumentdistribusjon()
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(Pair(dokumentdistribusjon, null))
         }
         ServiceOgMocks(dokumentRepo = dokumentRepo).let {
             it.dokumentService.distribuer().let {
@@ -120,7 +160,7 @@ internal class DistribuerDokumentServiceTest {
                 ),
             )
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(Pair(dokumentdistribusjon, null))
         }
 
         ServiceOgMocks(dokumentRepo = dokumentRepo).let {
@@ -141,7 +181,7 @@ internal class DistribuerDokumentServiceTest {
         val dokumentdistribusjon = dokumentdistribusjon()
             .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("sad")))
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(Pair(dokumentdistribusjon, null))
         }
         val dokDistMock = mock<DokDistFordeling> {
             on { bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn KunneIkkeBestilleDistribusjon.left()
@@ -201,6 +241,7 @@ internal class DistribuerDokumentServiceTest {
             generertDokument = pdfATom(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(sakId = sakinfo.sakId),
+            distribueringsadresse = null,
         ),
         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
     )

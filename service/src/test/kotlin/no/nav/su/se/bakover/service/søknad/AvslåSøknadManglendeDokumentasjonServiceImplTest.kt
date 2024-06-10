@@ -215,7 +215,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                                 journalpostId = null,
                                 brevbestillingId = null,
                             ),
-
+                            distribueringsadresse = null,
                         ),
                         oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
                     )
@@ -354,7 +354,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                                 journalpostId = null,
                                 brevbestillingId = null,
                             ),
-
+                            distribueringsadresse = null,
                         ),
                         oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
                     )

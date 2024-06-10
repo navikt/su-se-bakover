@@ -306,6 +306,7 @@ internal class IverksettAvvistKlageTest {
                         klageId = klage.id.value,
                         vedtakId = expectedVedtak!!.id,
                     ),
+                    distribueringsadresse = null,
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },

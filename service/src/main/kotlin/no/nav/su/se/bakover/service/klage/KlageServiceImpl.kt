@@ -300,6 +300,8 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
+            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+            distribueringsadresse = null,
         )
 
         val journalpostIdForVedtak = vedtakService.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
@@ -363,6 +365,8 @@ class KlageServiceImpl(
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             ),
+            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+            distribueringsadresse = null,
         )
         try {
             sessionFactory.withTransactionContext {

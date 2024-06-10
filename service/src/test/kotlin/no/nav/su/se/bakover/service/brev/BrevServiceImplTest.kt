@@ -284,7 +284,7 @@ internal class BrevServiceImplTest {
             generertDokument = pdfATom(),
             generertDokumentJson = "{}",
         )
-        return utenMetadata.leggTilMetadata(metadata)
+        return utenMetadata.leggTilMetadata(metadata, distribueringsadresse = null)
     }
 
     data object DummyPdfInnhold : PdfInnhold {

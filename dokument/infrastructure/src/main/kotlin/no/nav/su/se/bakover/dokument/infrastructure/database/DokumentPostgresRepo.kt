@@ -5,6 +5,7 @@ import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -38,8 +39,8 @@ class DokumentPostgresRepo(
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             sessionFactory.withTransaction(transactionContext) { tx ->
                 """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId)
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId)
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, distribueringsadresse)
+                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :distribueringsadresse::jsonb)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -59,6 +60,7 @@ class DokumentPostgresRepo(
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
                             "klageId" to dokument.metadata.klageId,
+                            "distribueringsadresse" to dokument.distribueringsadresse?.toDbJson(),
                         ),
                         tx,
                     )
@@ -198,17 +200,18 @@ class DokumentPostgresRepo(
     /**
      * Henter max antall dokumenter basert på [antallSomSkalHentes]
      */
-    override fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int): List<Dokumentdistribusjon> {
+    override fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int): List<Pair<Dokumentdistribusjon, Distribueringsadresse?>> {
         return dbMetrics.timeQuery("hentDokumenterForDistribusjon") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument_distribusjon
+                select dd.*, d.distribueringsadresse from dokument_distribusjon dd join dokument d on dd.dokumentid = d.id
                 where brevbestillingId is null and journalpostId is not null
-                order by opprettet asc
+                order by dd.opprettet asc
                 limit :limit
                 """.trimIndent()
                     .hentListe(mapOf("limit" to antallSomSkalHentes), session) {
-                        it.toDokumentdistribusjon(session)
+                        it.toDokumentdistribusjon(session) to it.stringOrNull("distribueringsadresse")
+                            ?.let { deserializeDistribueringsadresse(it) }
                     }
             }
         }
@@ -300,6 +303,7 @@ class DokumentPostgresRepo(
         val tittel = string("tittel")
         val brevbestillingId = stringOrNull("brevbestillingid")
         val journalpostId = stringOrNull("journalpostid")
+        val distribueringsadresse = stringOrNull("distribueringsadresse")?.let { deserializeDistribueringsadresse(it) }
 
         return when (type) {
             DokumentKategori.INFORMASJON_VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
@@ -308,6 +312,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
@@ -325,6 +330,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
@@ -342,6 +348,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,

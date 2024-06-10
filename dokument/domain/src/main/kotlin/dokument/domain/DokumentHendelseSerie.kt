@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
 
+/**
+ * En serie med dokumenter vil ha opptil 3 tilstander i rekkefølge: Generert, Journalført og Distribuert.
+ */
 data class DokumentHendelseSerie(
     val sakId: UUID,
     val dokumenter: NonEmptyList<DokumentHendelse>,

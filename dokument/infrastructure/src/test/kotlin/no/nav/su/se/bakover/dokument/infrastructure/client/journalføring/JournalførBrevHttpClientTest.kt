@@ -52,6 +52,7 @@ internal class JournalførBrevHttpClientTest {
                         generertDokumentJson = "{}",
                     ),
                     metadata = metadata,
+                    distribueringsadresse = null,
                 ),
                 fnr = fnr,
             ),

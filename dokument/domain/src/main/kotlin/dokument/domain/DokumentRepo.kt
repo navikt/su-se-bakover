@@ -1,5 +1,6 @@
 package dokument.domain
 
+import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 
@@ -16,7 +17,11 @@ interface DokumentRepo {
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
     fun hentDokumentdistribusjonForDokumentId(dokumentId: UUID): Dokumentdistribusjon?
     fun hentDokumenterForJournalføring(antallSomSkalHentes: Int = 10): List<Dokumentdistribusjon>
-    fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int = 10): List<Dokumentdistribusjon>
+
+    /**
+     * Distribueringsadressen ligger på dokumentet. Vi henter den ut sammen med distribusjonen slik at brevet sendes til riktig sted
+     */
+    fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int = 10): List<Pair<Dokumentdistribusjon, Distribueringsadresse?>>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
 
     fun defaultTransactionContext(): TransactionContext

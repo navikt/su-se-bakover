@@ -42,7 +42,7 @@ class DistribuerDokumentService(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     fun distribuer(): List<JournalføringOgDistribueringsResultat> = dokumentRepo.hentDokumenterForDistribusjon()
-        .map { dokument -> distribuerDokument(dokument).tilResultat(dokument, log) }
+        .map { (dokument, distribueringsadresse) -> distribuerDokument(dokument, distribueringsadresse).tilResultat(dokument, log) }
         .also { it.logResultat("Distribuer dokument", log) }
 
     private fun distribuerDokument(
