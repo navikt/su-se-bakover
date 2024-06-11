@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.sak.harStønadForPeriode
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -243,6 +245,11 @@ class SakServiceImpl(
 
     override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> {
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
+    }
+
+    override fun harFnrStønadForPeriode(fnr: Fnr, periode: PeriodeMedOptionalTilOgMed): Boolean {
+        val sak: Sak = sakRepo.hentSak(fnr, Sakstype.UFØRE) ?: return false
+        return sak.harStønadForPeriode(periode)
     }
 
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
