@@ -19,12 +19,15 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -32,10 +35,12 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
+import no.nav.su.se.bakover.domain.sak.OpprettOppgaveDersomAktueltUførevedtakCommand
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.sak.harStønadForPeriode
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -54,6 +59,7 @@ class SakServiceImpl(
     private val brevService: BrevService,
     private val journalpostClient: QueryJournalpostClient,
     private val personService: PersonService,
+    private val oppgaveService: OppgaveService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -243,6 +249,76 @@ class SakServiceImpl(
 
     override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> {
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
+    }
+
+    override fun opprettOppgaveDersomAktueltUførevedtak(command: OpprettOppgaveDersomAktueltUførevedtakCommand) {
+        Either.catch {
+            val sak: Sak = sakRepo.hentSak(command.fnr, Sakstype.UFØRE) ?: run {
+                log.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Fant ikke sak for fnr. Command: {}. Se sikkerlogg for detaljer.",
+                    command,
+                )
+                sikkerLogg.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Fant ikke sak for fnr. Command: {}.",
+                    command.toSikkerloggString(),
+                )
+                return
+            }
+            val sakId = sak.id
+            val saksnummer = sak.saksnummer
+            if (command.erBehandlingstypeAutomatisk() && command.erVedtakstypeRegulering()) {
+                log.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Ignorerer behandlingstype AUTOMATISK med vedtakstype REGULERING. Command: {}, sakId: {}, saksnummer: {}. Se sikkerlogg for detaljer.",
+                    command,
+                    sakId,
+                    saksnummer,
+                )
+                sikkerLogg.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Ignorerer behandlingstype AUTOMATISK med vedtakstype REGULERING. Command: {}, sakId: {}, saksnummer: {}.",
+                    command.toSikkerloggString(),
+                    sakId,
+                    saksnummer,
+                )
+                return
+            }
+            if (!sak.harStønadForPeriode(command.periode)) {
+                log.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Fant ikke en stønadsperiode som overlapper med uførevedtaket. Command: {}, sakId: {}, saksnummer: {}. Se sikkerlogg for detaljer.",
+                    command,
+                    sakId,
+                    saksnummer,
+                )
+                sikkerLogg.debug(
+                    "opprettOppgaveDersomAktueltUførevedtak: Fant ikke en stønadsperiode som overlapper med uførevedtaket. Command: {}, sakId: {}, saksnummer: {}.",
+                    command.toSikkerloggString(),
+                    sakId,
+                    saksnummer,
+                )
+                return
+            }
+            oppgaveService.opprettOppgaveMedSystembruker(
+                OppgaveConfig.NyttUførevedtak(
+                    saksnummer = sak.saksnummer,
+                    fnr = command.fnr,
+                    periode = command.periode,
+                    uføreSakId = command.uføreSakId,
+                    uføreVedtakId = command.uføreVedtakId,
+                    uføreVedtakstype = command.uføreVedtakstype,
+                    uføreBehandlingstype = command.behandlingstype,
+                    sakstype = sak.type,
+                    clock = clock,
+                ),
+            )
+        }.onLeft {
+            log.error(
+                "opprettOppgaveDersomAktueltUførevedtak: Ukjent feil. Command: $command",
+                RuntimeException("Trigger stacktrace for debug."),
+            )
+            sikkerLogg.error(
+                "opprettOppgaveDersomAktueltUførevedtak: Ukjent feil. Command: ${command.toSikkerloggString()}",
+                it,
+            )
+        }
     }
 
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {

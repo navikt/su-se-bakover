@@ -73,6 +73,9 @@ data object ServiceBuilder {
             identClient = clients.identClient,
             clock = clock,
         )
+        val oppgaveService = OppgaveServiceImpl(
+            oppgaveClient = clients.oppgaveClient,
+        )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,
@@ -80,11 +83,9 @@ data object ServiceBuilder {
             brevService = brevService,
             clients.queryJournalpostClient,
             personService = personService,
+            oppgaveService = oppgaveService,
         ).apply { addObserver(statistikkEventObserver) }
 
-        val oppgaveService = OppgaveServiceImpl(
-            oppgaveClient = clients.oppgaveClient,
-        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,

@@ -11,6 +11,9 @@ data class PeriodeMedOptionalTilOgMed(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate? = null,
 ) {
+    init {
+        require(fraOgMed <= (tilOgMed ?: LocalDate.MAX)) { "PeriodeMedOptionalTilOgMed: Fra og med dato må være før eller lik til og med dato" }
+    }
 
     fun overlapper(other: PeriodeMedOptionalTilOgMed): Boolean {
         val thisEnd = tilOgMed ?: LocalDate.MAX

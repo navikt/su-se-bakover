@@ -68,6 +68,13 @@ interface SakService {
     fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
 
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
+
+    /**
+     * Spesialfunksjon for å opprette oppgave dersom Pesys/Penson/Uføre fatter et nytt vedtak.
+     * Vi sammenligner kun med SU-Uføre-vedtak i førsteomgang.
+     * TODO jah: Det er usikkert om denne funksjonen bør ligge i SakService.kt. Men det er raskeste veien til mål i denne omgangen.
+     * */
+    fun opprettOppgaveDersomAktueltUførevedtak(command: OpprettOppgaveDersomAktueltUførevedtakCommand)
 }
 
 data object FantIkkeSak
