@@ -111,12 +111,12 @@ internal class DokumentPostgresRepoTest {
 
             val journalført = dokumentRepo.hentDokumenterForDistribusjon().first()
 
-            journalført.first.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
+            journalført.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
                 JournalpostId("jp"),
             )
 
             dokumentRepo.oppdaterDokumentdistribusjon(
-                journalført.first.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                journalført.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
                     fail { "Skulle fått bestilt brev" }
                 },
             )
@@ -157,10 +157,10 @@ internal class DokumentPostgresRepoTest {
 
             val journalførtDistribusjon = dokumentRepo.hentDokumenterForDistribusjon().single()
             journalførtDistribusjon.let {
-                it.first.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
+                it.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
                     JournalpostId("jp"),
                 )
-                it.second shouldBe nyDistribueringsAdresse()
+                it.dokument.distribueringsadresse shouldBe nyDistribueringsAdresse()
             }
         }
     }

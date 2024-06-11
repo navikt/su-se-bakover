@@ -5,7 +5,6 @@ import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
-import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.hendelser.DokumentHendelseRepo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -200,18 +199,17 @@ class DokumentPostgresRepo(
     /**
      * Henter max antall dokumenter basert på [antallSomSkalHentes]
      */
-    override fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int): List<Pair<Dokumentdistribusjon, Distribueringsadresse?>> {
+    override fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int): List<Dokumentdistribusjon> {
         return dbMetrics.timeQuery("hentDokumenterForDistribusjon") {
             sessionFactory.withSession { session ->
                 """
-                select dd.*, d.distribueringsadresse from dokument_distribusjon dd join dokument d on dd.dokumentid = d.id
+                select * from dokument_distribusjon
                 where brevbestillingId is null and journalpostId is not null
-                order by dd.opprettet asc
+                order by opprettet asc
                 limit :limit
                 """.trimIndent()
                     .hentListe(mapOf("limit" to antallSomSkalHentes), session) {
-                        it.toDokumentdistribusjon(session) to it.stringOrNull("distribueringsadresse")
-                            ?.let { deserializeDistribueringsadresse(it) }
+                        it.toDokumentdistribusjon(session)
                     }
             }
         }

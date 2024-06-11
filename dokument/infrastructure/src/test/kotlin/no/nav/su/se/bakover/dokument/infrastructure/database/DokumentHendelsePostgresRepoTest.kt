@@ -113,6 +113,7 @@ class DokumentHendelsePostgresRepoTest {
                     generertDokument = hendelseFil.fil,
                     generertDokumentJson = generertDokumentJson,
                     metadata = dokumentMedMetadata,
+                    distribueringsadresse = null,
                 ),
             )
         }
@@ -155,6 +156,7 @@ class DokumentHendelsePostgresRepoTest {
                 generertDokument = hendelseFil.fil,
                 generertDokumentJson = generertDokumentJson,
                 metadata = dokumentMedMetadata,
+                distribueringsadresse = null,
             )
         }
     }

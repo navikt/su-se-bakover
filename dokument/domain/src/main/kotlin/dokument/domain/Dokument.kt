@@ -83,7 +83,7 @@ sealed interface Dokument {
          * Spesifisering av adressen som brevet skal sendes til. Hvis denne er lagt på, vil brevet alltid bli sendt ut av dokdist.
          * Ved null, vil dokdist finne adressen til mottakeren selv, og sender brevet der.
          *
-         * Eksempel der man vil legge til adresse er dersom brukeren er død, og man vil sende brevet til en annen person/adresse slik at brevet kommer frem uten at dokdist returnerer 409
+         * Eksempel der man vil legge til adresse er dersom brukeren er død, og man vil sende brevet til en annen person/adresse slik at brevet kommer frem uten at dokdist returnerer 410
          *
          * Lagt til 10.06.2024
          */
