@@ -11,25 +11,7 @@ import no.nav.su.se.bakover.test.dokumentUtenFil
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import java.util.UUID
 
-fun lagretDokumentForJournalføringHendelse(
-    hendelseId: HendelseId = HendelseId.generer(),
-    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
-    versjon: Hendelsesversjon = Hendelsesversjon(15),
-    sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    relaterteHendelse: HendelseId = HendelseId.generer(),
-    dokumentUtenFil: DokumentMedMetadataUtenFil = dokumentUtenFil(),
-    skalSendeBrev: Boolean = true,
-): GenerertDokumentHendelse = GenerertDokumentHendelse(
-    hendelseId = hendelseId,
-    hendelsestidspunkt = hendelsesTidspunkt,
-    versjon = versjon,
-    sakId = sakId,
-    relatertHendelse = relaterteHendelse,
-    dokumentUtenFil = dokumentUtenFil,
-    skalSendeBrev = skalSendeBrev,
-)
-
-fun lagretDokumentForUtsendelseHendelse(
+fun generertDokumentHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     versjon: Hendelsesversjon = Hendelsesversjon(15),

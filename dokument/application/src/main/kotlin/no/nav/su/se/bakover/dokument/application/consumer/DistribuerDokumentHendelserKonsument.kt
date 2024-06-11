@@ -1,15 +1,19 @@
 package no.nav.su.se.bakover.dokument.application.consumer
 
+import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.getOrElse
+import arrow.core.left
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.DokDistFordeling
+import dokument.domain.distribuering.KunneIkkeDistribuereJournalførtDokument
 import dokument.domain.hendelser.DistribuertDokumentHendelse
 import dokument.domain.hendelser.DokumentHendelseRepo
-import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokument
-import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -19,7 +23,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -40,11 +43,11 @@ class DistribuerDokumentHendelserKonsument(
             konsumentId = konsumentId,
             hendelsestype = JournalførtDokument,
         ).forEach { (sakId, hendelsesIder) ->
-            distribuerForSak(sakId = sakId, hendelsesIder = hendelsesIder, correlationId = correlationId)
+            distribuerForSakOgHendelser(sakId = sakId, hendelsesIder = hendelsesIder, correlationId = correlationId)
         }
     }
 
-    private fun distribuerForSak(
+    private fun distribuerForSakOgHendelser(
         sakId: UUID,
         hendelsesIder: Nel<HendelseId>,
         correlationId: CorrelationId,
@@ -53,10 +56,30 @@ class DistribuerDokumentHendelserKonsument(
             { log.error("Feil under distribuering: Kunne ikke hente sak $sakId for hendelser $hendelsesIder") },
             {
                 hendelsesIder.mapOneIndexed { index, hendelseId ->
-                    distribuerForSak(it, hendelseId, correlationId, it.versjon.inc(index))
+                    Either.catch {
+                        distribuerForSak(it, hendelseId, correlationId, it.versjon.inc(index))
+                    }.onLeft {
+                        log.error(
+                            "Feil under distribuering: Se sikkerlogg for mer context.",
+                            RuntimeException("Trigger stacktrace for debug."),
+                        )
+                        sikkerLogg.error("Feil under distribuering: Se sikkerlogg for mer context.", it)
+                    }
                 }
             },
         )
+    }
+
+    fun ditribuerForSakId(
+        sakId: UUID,
+        hendelseId: HendelseId,
+        correlationId: CorrelationId,
+        distribueringsadresse: Distribueringsadresse? = null,
+    ): Either<KunneIkkeDistribuereJournalførtDokument, DistribuertDokumentHendelse> {
+        val sak = sakService.hentSak(sakId).getOrElse {
+            throw IllegalArgumentException("Feil under distribuering: Kunne ikke hente sak $sakId for hendelse $hendelseId")
+        }
+        return distribuerForSak(sak, hendelseId, correlationId, sak.versjon.inc(), distribueringsadresse)
     }
 
     private fun distribuerForSak(
@@ -64,61 +87,72 @@ class DistribuerDokumentHendelserKonsument(
         hendelseId: HendelseId,
         correlationId: CorrelationId,
         nesteVersjon: Hendelsesversjon,
-    ) {
-        val lagretHendelse = dokumentHendelseRepo.hentHendelse(hendelseId) ?: return Unit.also {
-            log.error("Feil under distribuering: Kunne ikke hente hendelse $hendelseId for sak $sak")
-        }
+        distribueringsadresse: Distribueringsadresse? = null,
+    ): Either<KunneIkkeDistribuereJournalførtDokument, DistribuertDokumentHendelse> {
+        val sakId = sak.id
+        val saksnummer = sak.saksnummer
+        val dokumentHendelser = dokumentHendelseRepo.hentDokumentHendelserForSakId(sakId)
 
-        dokumentHendelseRepo.hentForSak(sak.id).any { it.relatertHendelse == hendelseId }.ifTrue {
+        val serie = dokumentHendelser.hentSerieForHendelseId(hendelseId)
+            ?: throw IllegalStateException("Feil under distribuering: Fant ikke dokumentserie. Konsumenten vil prøvde denne på nytt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer")
+
+        val dokumentId = serie.dokumentId
+        if (!serie.harJournalført()) {
+            log.error("Feil under distribuering: Prøvde å distribuere et dokument som ikke er journalført. Konsumenten vil prøvde denne på nytt. Dette må ryddes opp i manuelt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer, dokumentId: $dokumentId")
+            return KunneIkkeDistribuereJournalførtDokument.IkkeJournalført(
+                dokumentId = dokumentId,
+            ).left()
+        }
+        val journalpostId = serie.journalpostHendelseOrNull()!!.journalpostId
+        if (serie.harBestiltBrev()) {
             hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
-            log.error("Prøvde å distribuere dokument som allerede er distribuert. Sak ${sak.id}, hendelse $hendelseId. Konsumenten har lagret denne hendelsen")
-            return
+            log.error("Feil under distribuering: Prøvde å distribuere et dokument som allerede er distribuert. Konsumenten vil ikke prøve denne på nytt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer, dokumentId: $dokumentId, journalpostId: $journalpostId")
+            return KunneIkkeDistribuereJournalførtDokument.AlleredeDistribuert(
+                dokumentId = dokumentId,
+                journalpostId = journalpostId,
+                brevbestillingId = serie.brevbestillingIdOrNull()!!,
+            ).left()
         }
 
-        when (lagretHendelse) {
-            is GenerertDokumentHendelse -> return Unit.also {
-                log.error("Prøvde å distribuere et generert dokument hendelse $lagretHendelse, for sak $sak. Denne må journalføres først.")
-            }
+        val generertDokumentHendelse = serie.generertDokument()
+        val journalførtDokumentHendelse = serie.journalpostHendelseOrNull()!!
 
-            is JournalførtDokumentHendelse -> {
-                if (!lagretHendelse.skalSendeBrev) {
-                    hendelsekonsumenterRepo.lagre(lagretHendelse.hendelseId, konsumentId)
+        if (!generertDokumentHendelse.skalSendeBrev) {
+            log.info("Distribuering: Det skal ikke sendes brev for dette dokumentet. Konsumenten vil ikke prøve denne på nytt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer, dokumentId: $dokumentId, journalpostId: $journalpostId")
+            hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
+            return KunneIkkeDistribuereJournalførtDokument.SkalIkkeSendeBrev(
+                dokumentId = dokumentId,
+                journalpostId = journalpostId,
+            ).left()
+        }
+        return dokDistFordeling.bestillDistribusjon(
+            journalPostId = journalpostId,
+            distribusjonstype = generertDokumentHendelse.dokumentUtenFil.distribusjonstype,
+            distribusjonstidspunkt = generertDokumentHendelse.dokumentUtenFil.distribusjonstidspunkt,
+            distribueringsadresse = distribueringsadresse,
+        ).mapLeft {
+            log.error("Feil under distribuering: Klientfeil. Konsumenten vil ikke prøve denne på nytt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer, dokumentId: $dokumentId, journalpostId: $journalpostId.")
+            KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon(
+                dokumentId,
+                journalpostId,
+            )
+        }.map {
+            DistribuertDokumentHendelse(
+                hendelseId = HendelseId.generer(),
+                hendelsestidspunkt = Tidspunkt.now(clock),
+                versjon = nesteVersjon,
+                sakId = sakId,
+                relatertHendelse = journalførtDokumentHendelse.hendelseId,
+                brevbestillingId = it,
+            ).also { distribuertDokumentHendelse ->
+                sessionFactory.withSessionContext { tx ->
+                    dokumentHendelseRepo.lagreDistribuertDokumentHendelse(
+                        hendelse = distribuertDokumentHendelse,
+                        meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                        sessionContext = tx,
+                    )
+                    hendelsekonsumenterRepo.lagre(hendelseId, konsumentId, tx)
                 }
-
-                val relaterteHendelseForJournalførteDokument =
-                    (dokumentHendelseRepo.hentHendelse(lagretHendelse.relatertHendelse) as? GenerertDokumentHendelse)
-                        ?: return Unit.also { log.error("Fant ikke relaterte hendelse, eller var ikke i riktig tilstand, for ${lagretHendelse.hendelseId} for sak ${sak.id}") }
-
-                dokDistFordeling.bestillDistribusjon(
-                    journalPostId = lagretHendelse.journalpostId,
-                    distribusjonstype = relaterteHendelseForJournalførteDokument.dokumentUtenFil.distribusjonstype,
-                    distribusjonstidspunkt = relaterteHendelseForJournalførteDokument.dokumentUtenFil.distribusjonstidspunkt,
-                ).fold(
-                    { log.error("Feil ved distribuering av journalført dokument for hendelse $hendelseId. Original feil: $it") },
-                    {
-                        DistribuertDokumentHendelse(
-                            hendelseId = HendelseId.generer(),
-                            hendelsestidspunkt = Tidspunkt.now(clock),
-                            versjon = nesteVersjon,
-                            sakId = sak.id,
-                            relatertHendelse = lagretHendelse.hendelseId,
-                            brevbestillingId = it,
-                        ).let { distribuertDokumentHendelse ->
-                            sessionFactory.withSessionContext { tx ->
-                                dokumentHendelseRepo.lagreDistribuertDokumentHendelse(
-                                    hendelse = distribuertDokumentHendelse,
-                                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
-                                    sessionContext = tx,
-                                )
-                                hendelsekonsumenterRepo.lagre(lagretHendelse.hendelseId, konsumentId, tx)
-                            }
-                        }
-                    },
-                )
-            }
-
-            is DistribuertDokumentHendelse -> return Unit.also {
-                log.error("Feil ved distribuering av journalført dokument. Dokumentet er allerede distribuert. Hendelse $hendelseId, for sak ${sak.id}")
             }
         }
     }

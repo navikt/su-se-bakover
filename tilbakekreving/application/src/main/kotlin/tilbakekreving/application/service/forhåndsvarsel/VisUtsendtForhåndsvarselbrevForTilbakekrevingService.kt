@@ -18,7 +18,7 @@ class VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun hent(command: VisUtsendtForhåndsvarselbrevCommand): Either<KunneIkkeHenteUtsendtForhåndsvarsel, PdfA> {
-        val dokumentOgFil = dokumentHendelseRepo.hentHendelseOgFilForDokument(command.dokumentId)
+        val dokumentOgFil = dokumentHendelseRepo.hentHendelseOgFilForDokumentId(command.dokumentId)
 
         return dokumentOgFil.wheneverEitherIsNull(
             {

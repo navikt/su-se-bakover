@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostgresRepo
 import java.time.Clock
 
-class DokumentRepos(
+data class DokumentRepos(
     val clock: Clock,
     val sessionFactory: SessionFactory,
     val hendelseRepo: HendelseRepo,
     val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    val dokumentHendelseRepo: DokumentHendelseRepo = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePostgresRepo(
+    val dokumentHendelseRepo: DokumentHendelseRepo = DokumentHendelsePostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
         sessionFactory,

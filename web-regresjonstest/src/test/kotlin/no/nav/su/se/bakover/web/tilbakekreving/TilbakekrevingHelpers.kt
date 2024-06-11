@@ -25,9 +25,10 @@ import tilbakekreving.domain.IverksattHendelse
 import java.util.UUID
 
 internal fun AppComponents.hentUtførteSideeffekter(sakId: String): UtførteSideeffekter {
-    val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).flatMap {
-        it.dokumenter
-    }
+    val dokumentHendelser =
+        this.databaseRepos.dokumentHendelseRepo.hentDokumentHendelserForSakId(UUID.fromString(sakId)).flatMap {
+            it.dokumenter
+        }
     val oppgaveHendelser = this.databaseRepos.oppgaveHendelseRepo.hentForSak(UUID.fromString(sakId))
     return UtførteSideeffekter(
         antallOpprettetOppgaver = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Opprettet>().size,
@@ -190,13 +191,14 @@ internal fun AppComponents.verifiserJournalførDokumenterKonsument(antallJournal
 
 internal fun AppComponents.verifiserDistribuerteDokumenterKonsument(antallDistribuerteDokumenter: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
-        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
+        val distribuerteDokumenter = (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'DistribuerDokumentHendelserKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
-            }.size shouldBe antallDistribuerteDokumenter
+            }
         }
+        distribuerteDokumenter.size shouldBe antallDistribuerteDokumenter
     }
 }
 
@@ -206,9 +208,10 @@ internal fun AppComponents.verifiserDokumentHendelser(
     antallJournalførteDokumenter: Int,
     antallDistribuerteDokumenter: Int,
 ) {
-    val dokumentHendelser = this.databaseRepos.dokumentHendelseRepo.hentForSak(UUID.fromString(sakId)).let {
-        it.flatMap { it.dokumenter }
-    }
+    val dokumentHendelser =
+        this.databaseRepos.dokumentHendelseRepo.hentDokumentHendelserForSakId(UUID.fromString(sakId)).let {
+            it.flatMap { it.dokumenter }
+        }
     dokumentHendelser.size shouldBe antallGenererteDokumenter + antallJournalførteDokumenter + antallDistribuerteDokumenter
 
     dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().size shouldBe antallGenererteDokumenter

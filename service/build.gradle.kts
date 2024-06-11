@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":beregning"))
     implementation(project(":client"))
     implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
     implementation(project(":dokument:application"))
     implementation(project(":dokument:domain"))
     implementation(project(":dokument:infrastructure"))

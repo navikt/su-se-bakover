@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.dokument.infrastructure.database
 
+import dokument.domain.Dokument
 import dokument.domain.DokumentHendelser
 import dokument.domain.hendelser.DistribuertDokument
 import dokument.domain.hendelser.DistribuertDokumentHendelse
@@ -47,8 +48,8 @@ class DokumentHendelsePostgresRepo(
             sessionContext = sessionContext,
             type = GenerertDokument,
             data = hendelse.dokumentUtenFil.toDbJson(
-                hendelse.relatertHendelse,
-                hendelse.skalSendeBrev,
+                relaterteHendelse = hendelse.relatertHendelse,
+                skalSendeBrev = hendelse.skalSendeBrev,
             ),
         )
     }
@@ -105,7 +106,7 @@ class DokumentHendelsePostgresRepo(
         }
     }
 
-    override fun hentForSak(sakId: UUID, sessionContext: SessionContext?): DokumentHendelser {
+    override fun hentDokumentHendelserForSakId(sakId: UUID, sessionContext: SessionContext?): DokumentHendelser {
         return (hendelseRepo as HendelsePostgresRepo).let { repo ->
             listOf(
                 GenerertDokument,
@@ -121,6 +122,29 @@ class DokumentHendelsePostgresRepo(
                 DokumentHendelser.create(sakId = sakId, dokumenter = it)
             }
         }
+    }
+
+    override fun hentDokumentMedMetadataForSakId(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): List<Dokument.MedMetadata> {
+        return hentDokumentHendelserForSakId(sakId, sessionContext).tilDokumenterMedMetadata(
+            hentDokumentForHendelseId = { hendelseId ->
+                hentFilFor(hendelseId, sessionContext)
+            },
+        )
+    }
+    override fun hentDokumentMedMetadataForSakIdOgDokumentId(
+        sakId: UUID,
+        dokumentId: UUID,
+        sessionContext: SessionContext?,
+    ): Dokument.MedMetadata? {
+        // TODO jah: Den kan optimaliseres ved å kun hente relaterte hendelser i en serie knyttet til dokumentId, men vi har ikke en id for serie, så vi må sjekke relaterte.
+        return hentDokumentHendelserForSakId(sakId, sessionContext).hentSerieForDokumentId(dokumentId)?.tilDokumentMedMetadata(
+            hentDokumentForHendelseId = { hendelseId ->
+                hentFilFor(hendelseId, sessionContext)
+            },
+        )
     }
 
     override fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext?): DokumentHendelse? {
@@ -139,14 +163,14 @@ class DokumentHendelsePostgresRepo(
         return Pair(hentHendelse(hendelseId, sessionContext), hentFilFor(hendelseId, sessionContext))
     }
 
-    override fun hentHendelseOgFilForDokument(
+    override fun hentHendelseOgFilForDokumentId(
         dokumentId: UUID,
         sessionContext: SessionContext?,
     ): Pair<DokumentHendelse?, HendelseFil?> {
         return sessionFactory.withSessionContext(sessionContext) { tx ->
             val hendelseOgFil = tx.withOptionalSession(sessionFactory) {
                 """
-                select hendelseid from hendelse where data ->> 'id' = :dokumentId
+                select hendelseid from hendelse where data ->> 'id' = :dokumentId and type = '$GenerertDokument'
                 """.trimIndent().hent(
                     mapOf("dokumentId" to dokumentId.toString()),
                     it,
@@ -158,7 +182,25 @@ class DokumentHendelsePostgresRepo(
         }
     }
 
-    override fun hentDokumentHendelseForRelatert(
+    override fun hentHendelseForDokumentId(
+        dokumentId: UUID,
+        sessionContext: SessionContext?,
+    ): GenerertDokumentHendelse? {
+        return sessionFactory.withSessionContext(sessionContext) { sx ->
+            sx.withOptionalSession(sessionFactory) {
+                """
+                select hendelseid from hendelse where data ->> 'id' = :dokumentId and type = '$GenerertDokument'
+                """.trimIndent().hent(
+                    mapOf("dokumentId" to dokumentId.toString()),
+                    it,
+                ) {
+                    hentHendelse(HendelseId.fromString(it.string("hendelseid")), sx) as GenerertDokumentHendelse
+                }
+            }
+        }
+    }
+
+    override fun hentHendelseForRelatertHendelseId(
         relatertHendelseId: HendelseId,
         sessionContext: SessionContext?,
     ): DokumentHendelse? {

@@ -79,11 +79,13 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
             }
             val sakEtterKallJson = hentSak(sakId, client)
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            val vedtakJsonEtter = JSONObject(sakEtterKallJson).getJSONArray("vedtak")
+            val vedtakIdEtter = UUID.fromString(vedtakJsonEtter.getJSONObject(2).getString("id"))
             if (verifiserRespons) {
                 if (utførSideeffekter) {
                     // hendelse + lukket oppgave + generering av brev + journalført + distribuert
                     saksversjonEtter shouldBe saksversjon + 5
-                    verifiserDokumenterPåSak(sakId, tilbakekrevingsbehandlingId, fnr)
+                    verifiserDokumenterPåSak(sakId, tilbakekrevingsbehandlingId, fnr, vedtakIdEtter)
                 } else {
                     // kun hendelsen
                     saksversjonEtter shouldBe saksversjon + 1
@@ -92,7 +94,7 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
                 JSONObject(sakEtterKallJson).isNull("uteståendeKravgrunnlag")
                 verifiserTilbakekrevingsVedtak(
                     tilbakekrevingsbehandlingId,
-                    JSONObject(sakEtterKallJson).getJSONArray("vedtak"),
+                    vedtakJsonEtter,
                 )
                 listOf(
                     responseJson,
@@ -152,6 +154,7 @@ private fun AppComponents.verifiserDokumenterPåSak(
     sakId: String,
     tilbakekrevingsbehandlingId: String,
     fnr: String,
+    vedtakId: UUID?,
 ) {
     val sakIdSomUUID = UUID.fromString(sakId)
     this.databaseRepos.dokumentRepo.hentForSak(sakIdSomUUID).filterIsInstance<Dokument.MedMetadata.Vedtak>()
@@ -201,7 +204,7 @@ private fun AppComponents.verifiserDokumenterPåSak(
                 metadata = Dokument.Metadata(
                     sakId = sakIdSomUUID,
                     søknadId = null,
-                    vedtakId = null,
+                    vedtakId = vedtakId,
                     revurderingId = null,
                     klageId = null,
                     tilbakekrevingsbehandlingId = UUID.fromString(tilbakekrevingsbehandlingId),

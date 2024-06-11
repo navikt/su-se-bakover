@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
-import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
 import dokument.domain.distribuering.DistribuerDokumentCommand
 import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.KunneIkkeDistribuereJournalførtDokument
@@ -83,24 +82,19 @@ fun KunneIkkeDistribuereJournalførtDokument.toResultat(): Resultat {
         }
 
         is KunneIkkeDistribuereJournalførtDokument.FantIkkeDokument -> Feilresponser.fantIkkeDokument(this.dokumentId)
-        is KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon -> when (this.underliggendeFeil) {
-            is KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev -> HttpStatusCode.BadRequest.errorJson(
-                message = "Feil ved bestilling av brev for dokumentet ${this.dokumentId} med journalpostId ${this.journalpostId}.",
-                code = "feil_ved_bestilling_av_brev",
-
-            )
-
-            is KunneIkkeBestilleBrevForDokument.MåJournalføresFørst -> {
-                HttpStatusCode.BadRequest.errorJson(
-                    message = "Dokumentet ${this.dokumentId} er ikke journalført. Dette er en forutsetning for å kunne distribuere dokumentet. Det gjøres automatisk.",
-                    code = "dokument_ikke_journalført",
-                )
-            }
-        }
+        is KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon -> HttpStatusCode.InternalServerError.errorJson(
+            message = "Feil ved bestilling av brev for dokumentet ${this.dokumentId} med journalpostId ${this.journalpostId}.",
+            code = "feil_ved_bestilling_av_brev",
+        )
 
         is KunneIkkeDistribuereJournalførtDokument.IkkeTilgang -> HttpStatusCode.Forbidden.errorJson(
             message = "Du har ikke tilgang til å distribuere dokumentet med $dokumentId",
             code = "ikke_tilgang_til_distribusjon",
+        )
+
+        is KunneIkkeDistribuereJournalførtDokument.SkalIkkeSendeBrev -> HttpStatusCode.BadRequest.errorJson(
+            message = "Behandlingen har vurdert det dithen at det ikke skal sendes brev for dokumentet ${this.dokumentId} med journalpostId ${this.journalpostId}.",
+            code = "skal_ikke_sende_brev",
         )
     }
 }

@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
@@ -102,6 +103,7 @@ fun Application.runApplicationWithMocks(
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     beregningStrategyFactory: BeregningStrategyFactory = mock(),
     resendUtbetalingService: ResendUtbetalingService = mock(),
+    distribuerDokumentService: DistribuerDokumentService = mock(),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
     return susebakover(
@@ -120,8 +122,10 @@ fun Application.runApplicationWithMocks(
         accessCheckProxy = accessCheckProxy,
         beregningStrategyFactory = beregningStrategyFactory,
         resendUtbetalingService = resendUtbetalingService,
+        distribuerDokumentService = distribuerDokumentService,
         extraRoutes = extraRoutes,
         disableConsumersAndJobs = true,
+
     )
 }
 

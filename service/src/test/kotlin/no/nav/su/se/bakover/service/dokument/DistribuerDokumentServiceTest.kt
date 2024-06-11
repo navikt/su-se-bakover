@@ -12,11 +12,13 @@ import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
+import dokument.domain.hendelser.DokumentHendelseRepo
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsFeil
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
@@ -172,11 +174,15 @@ internal class DistribuerDokumentServiceTest {
     private data class ServiceOgMocks(
         val dokDistFordeling: DokDistFordeling = mock(),
         val dokumentRepo: DokumentRepo = mock(),
+        val dokumentHendelseRepo: DokumentHendelseRepo = mock(),
+        val distribuerDokumentHendelserKonsument: DistribuerDokumentHendelserKonsument = mock(),
         val tilgangstyringService: TilgangstyringService = mock(),
     ) {
         val dokumentService = DistribuerDokumentService(
             dokDistFordeling = dokDistFordeling,
             dokumentRepo = dokumentRepo,
+            dokumentHendelseRepo = dokumentHendelseRepo,
+            distribuerDokumentHendelserKonsument = distribuerDokumentHendelserKonsument,
             tilgangstyringService = tilgangstyringService,
         )
 
