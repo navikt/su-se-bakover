@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.right
+import dokument.domain.Distribusjonstype
 import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
@@ -301,6 +302,7 @@ internal class SakServiceImplTest {
                     tittel = "Brev tittel",
                     fritekst = "Brev fritekst",
                     distribueringsadresse = null,
+                    distribusjonstype = Distribusjonstype.ANNET,
                 ),
             ).shouldBeRight()
     }
@@ -338,6 +340,7 @@ internal class SakServiceImplTest {
                         postnummer = "postnummer",
                         poststed = "poststed",
                     ),
+                    distribusjonstype = Distribusjonstype.ANNET,
                 ),
             ).getOrFail()
 
@@ -350,6 +353,7 @@ internal class SakServiceImplTest {
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                     brevTittel = "tittel",
                     fritekst = "fritekst",
+                    distribusjonstype = Distribusjonstype.ANNET,
                 )
             },
             anyOrNull(),

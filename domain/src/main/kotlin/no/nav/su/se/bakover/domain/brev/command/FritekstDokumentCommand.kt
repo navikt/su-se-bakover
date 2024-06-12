@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.command
 
+import dokument.domain.Distribusjonstype
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -14,4 +15,5 @@ data class FritekstDokumentCommand(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val brevTittel: String,
     val fritekst: String,
+    val distribusjonstype: Distribusjonstype,
 ) : GenererDokumentCommand

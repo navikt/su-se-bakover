@@ -21,7 +21,8 @@ fun lagreOgSendFritekstDokument(
     val body = """
       {
         "tittel": "$tittel",
-        "fritekst": "$fritekst"
+        "fritekst": "$fritekst",
+        "distribusjonstype": "ANNET"
       }
     """.trimIndent()
     return runBlocking {

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.KunneIkkeLageDokument
@@ -119,6 +120,7 @@ internal class BrevServiceImplTest {
         saksbehandler = saksbehandler,
         brevTittel = "En tittel",
         fritekst = "Litt fritekst",
+        distribusjonstype = Distribusjonstype.ANNET,
     )
 
     @Test

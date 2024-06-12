@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.dokumentMapper
 
+import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
@@ -48,8 +49,6 @@ fun PdfA.tilDokument(
             pdfInnhold = pdfInnhold,
         )
 
-        // På sikt vil vi kanskje la saksbehandler velge viktighetsgraden (viktig/annet) ved sending av fritekstbrev.
-        is FritekstDokumentCommand,
         is KlageDokumentCommand.Oppretthold,
         is AvsluttRevurderingDokumentCommand,
         is TrukketSøknadDokumentCommand,
@@ -58,6 +57,28 @@ fun PdfA.tilDokument(
             clock = clock,
             pdfInnhold = pdfInnhold,
         )
+
+        is FritekstDokumentCommand -> {
+            when (command.distribusjonstype) {
+                Distribusjonstype.VEDTAK -> vedtak(
+                    id = id,
+                    clock = clock,
+                    pdfInnhold = pdfInnhold,
+                )
+
+                Distribusjonstype.VIKTIG -> informasjonViktig(
+                    id = id,
+                    clock = clock,
+                    pdfInnhold = pdfInnhold,
+                )
+
+                Distribusjonstype.ANNET -> informasjonAnnet(
+                    id = id,
+                    clock = clock,
+                    pdfInnhold = pdfInnhold,
+                )
+            }
+        }
 
         is AvvistSøknadDokumentCommand -> when (command.brevvalg) {
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
