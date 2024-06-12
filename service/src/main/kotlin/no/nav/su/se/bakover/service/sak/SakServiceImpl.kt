@@ -158,6 +158,7 @@ class SakServiceImpl(
                 brevTittel = request.tittel,
                 fritekst = request.fritekst,
                 saksbehandler = request.saksbehandler,
+                distribusjonstype = request.distribusjonstype,
             ),
         ).mapLeft {
             KunneIkkeOppretteDokument.KunneIkkeLageDokument(it)

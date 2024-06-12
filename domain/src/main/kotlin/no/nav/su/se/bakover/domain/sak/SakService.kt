@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
+import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.Journalpost
@@ -92,6 +93,7 @@ data class OpprettDokumentRequest(
     val tittel: String,
     val fritekst: String,
     val distribueringsadresse: Distribueringsadresse?,
+    val distribusjonstype: Distribusjonstype,
 )
 
 sealed interface KunneIkkeOppretteDokument {

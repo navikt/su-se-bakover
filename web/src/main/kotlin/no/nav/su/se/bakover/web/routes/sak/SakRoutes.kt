@@ -269,6 +269,7 @@ internal fun Route.sakRoutes(
         val tittel: String,
         val fritekst: String,
         val adresse: DistribueringsadresseBody?,
+        val distribusjonstype: Distribusjonstype,
     )
 
     post("$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend") {
@@ -282,6 +283,7 @@ internal fun Route.sakRoutes(
                             tittel = body.tittel,
                             fritekst = body.fritekst,
                             distribueringsadresse = body.adresse?.toDomain(),
+                            distribusjonstype = body.distribusjonstype.toDomain(),
                         ),
                     )
 
@@ -308,6 +310,7 @@ internal fun Route.sakRoutes(
                             tittel = body.tittel,
                             fritekst = body.fritekst,
                             distribueringsadresse = body.adresse?.toDomain(),
+                            distribusjonstype = body.distribusjonstype.toDomain(),
                         ),
                     )
                     res.fold(
