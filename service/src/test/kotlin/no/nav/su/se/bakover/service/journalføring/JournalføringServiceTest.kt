@@ -151,6 +151,7 @@ private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
         generertDokument = pdfATom(),
         generertDokumentJson = "{}",
         metadata = Dokument.Metadata(sakId = sakinfo.sakId),
+        distribueringsadresse = null,
     ),
     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
 )

@@ -27,6 +27,7 @@ class GenerertDokumentHendelseDbJsonTest {
                 brevbestillingsId = null,
             ),
             skalSendeBrev = true,
+            distribueringsAdresseJson = null,
         ).also {
             val json = serialize(it)
             val deserialized = deserialize<GenerertDokumentHendelseDbJson>(json)

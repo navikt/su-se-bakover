@@ -16,6 +16,10 @@ interface DokumentRepo {
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
     fun hentDokumentdistribusjonForDokumentId(dokumentId: UUID): Dokumentdistribusjon?
     fun hentDokumenterForJournalføring(antallSomSkalHentes: Int = 10): List<Dokumentdistribusjon>
+
+    /**
+     * Distribueringsadressen ligger på dokumentet. Vi henter den ut sammen med distribusjonen slik at brevet sendes til riktig sted
+     */
     fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int = 10): List<Dokumentdistribusjon>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
 

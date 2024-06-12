@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
+import dokument.domain.distribuering.Distribueringsadresse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -216,7 +217,15 @@ internal fun Route.sakRoutes(
                             {
                                 Resultat.json(
                                     OK,
-                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson(formuegrenserFactory)))),
+                                    serialize(
+                                        (
+                                            Response(
+                                                it?.grunnlagsdataOgVilkårsvurderinger?.toJson(
+                                                    formuegrenserFactory,
+                                                ),
+                                            )
+                                            ),
+                                    ),
                                 )
                             },
                         ),
@@ -240,9 +249,26 @@ internal fun Route.sakRoutes(
         }
     }
 
+    data class DistribueringsadresseBody(
+        val adresselinje1: String,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val postnummer: String,
+        val poststed: String,
+    ) {
+        fun toDomain(): Distribueringsadresse = Distribueringsadresse(
+            adresselinje1 = adresselinje1,
+            adresselinje2 = adresselinje2,
+            adresselinje3 = adresselinje3,
+            postnummer = postnummer,
+            poststed = poststed,
+        )
+    }
+
     data class DokumentBody(
         val tittel: String,
         val fritekst: String,
+        val adresse: DistribueringsadresseBody?,
     )
 
     post("$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend") {
@@ -255,6 +281,7 @@ internal fun Route.sakRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                             tittel = body.tittel,
                             fritekst = body.fritekst,
+                            distribueringsadresse = body.adresse?.toDomain(),
                         ),
                     )
 
@@ -267,6 +294,9 @@ internal fun Route.sakRoutes(
         }
     }
 
+    /**
+     * Forhåndsvisning av fritekstdokument
+     */
     post("$SAK_PATH/{sakId}/fritekstDokument") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
@@ -277,6 +307,7 @@ internal fun Route.sakRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                             tittel = body.tittel,
                             fritekst = body.fritekst,
+                            distribueringsadresse = body.adresse?.toDomain(),
                         ),
                     )
                     res.fold(

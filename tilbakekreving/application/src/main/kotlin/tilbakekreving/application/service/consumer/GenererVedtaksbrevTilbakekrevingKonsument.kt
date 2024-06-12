@@ -158,6 +158,8 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
                     vedtakId = iverksattHendelse.vedtakId,
                     tilbakekrevingsbehandlingId = iverksattHendelse.id.value,
                 ),
+                // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                distribueringsadresse = null,
             )
 
         val dokumentHendelse = GenerertDokumentHendelse(

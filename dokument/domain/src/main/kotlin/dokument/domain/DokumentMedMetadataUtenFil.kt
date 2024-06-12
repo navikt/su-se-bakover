@@ -1,6 +1,7 @@
 package dokument.domain
 
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -19,6 +20,7 @@ data class DokumentMedMetadataUtenFil(
     val metadata: Dokument.Metadata,
     val distribusjonstype: Distribusjonstype,
     val distribusjonstidspunkt: Distribusjonstidspunkt,
+    val distribueringsadresse: Distribueringsadresse?,
     // TODO - denne kan sikkert sikkert flyttes til HendelseFil sammen med bytearrayet
     val generertDokumentJson: String,
 ) {
@@ -35,6 +37,7 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                distribueringsadresse = distribueringsadresse,
             )
 
             Distribusjonstype.VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
@@ -43,6 +46,7 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                distribueringsadresse = distribueringsadresse,
             )
 
             Distribusjonstype.ANNET -> Dokument.MedMetadata.Informasjon.Annet(
@@ -51,6 +55,7 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                distribueringsadresse = distribueringsadresse,
             )
         }
     }
@@ -95,6 +100,7 @@ data class DokumentMedMetadataUtenFil(
                 metadata = this.metadata,
                 distribusjonstype = this.distribusjonstype,
                 distribusjonstidspunkt = this.distribusjonstidspunkt,
+                distribueringsadresse = this.distribueringsadresse,
                 generertDokumentJson = this.generertDokumentJson,
             )
         }

@@ -276,6 +276,7 @@ internal class OversendKlageTest {
                         journalpostId = null,
                         brevbestillingId = null,
                     ),
+                    distribueringsadresse = null,
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },
@@ -498,6 +499,7 @@ internal class OversendKlageTest {
                         journalpostId = null,
                         brevbestillingId = null,
                     ),
+                    distribueringsadresse = null,
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },

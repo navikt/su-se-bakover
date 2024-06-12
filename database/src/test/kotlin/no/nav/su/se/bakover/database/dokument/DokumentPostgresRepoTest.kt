@@ -6,11 +6,13 @@ import dokument.domain.Dokument
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -46,16 +48,19 @@ internal class DokumentPostgresRepoTest {
                     revurderingId = revurdering.id.value,
                     klageId = klage.id.value,
                 ),
+                distribueringsadresse = Distribueringsadresse(
+                    adresselinje1 = "adresselinje2",
+                    adresselinje2 = null,
+                    adresselinje3 = null,
+                    postnummer = "postnummer",
+                    poststed = "poststed",
+                ),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
             val hentet = dokumentRepo.hentDokument(original.id)!!
 
-            hentet.shouldBeEqualToIgnoringFields(
-                original,
-                original::generertDokument,
-            )
-
+            hentet.shouldBeEqualToIgnoringFields(original, original::generertDokument)
             hentet.generertDokument shouldBe original.generertDokument
 
             dokumentRepo.hentForSak(sak.id) shouldHaveSize 1
@@ -77,7 +82,7 @@ internal class DokumentPostgresRepoTest {
     }
 
     @Test
-    fun `lagrer bestilling av brev for dokumenter og oppdaterer`() {
+    fun `journalfører og distribuerer dokumentdistribusjon`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
@@ -89,6 +94,7 @@ internal class DokumentPostgresRepoTest {
                 generertDokument = pdfATom(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
+                distribueringsadresse = null,
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
@@ -127,7 +133,40 @@ internal class DokumentPostgresRepoTest {
     }
 
     @Test
-    fun `henter dokument med status`() {
+    fun `henter dokument distribusjon sammen med distribueringsadresse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val dokumentRepo = testDataHelper.dokumentRepo
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val dokument = Dokument.MedMetadata.Informasjon.Annet(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                tittel = "tittel",
+                generertDokument = pdfATom(),
+                generertDokumentJson = """{"some":"json"}""",
+                metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
+                distribueringsadresse = nyDistribueringsAdresse(),
+            )
+            dokumentRepo.lagre(dokument, testDataHelper.sessionFactory.newTransactionContext())
+            val ikkeJournalførtEllerDistribuert = dokumentRepo.hentDokumenterForJournalføring().single()
+            ikkeJournalførtEllerDistribuert.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            dokumentRepo.oppdaterDokumentdistribusjon(
+                ikkeJournalførtEllerDistribuert.journalfør { JournalpostId("jp").right() }
+                    .getOrElse { fail("Skulle ha blitt journalført") },
+            )
+
+            val journalførtDistribusjon = dokumentRepo.hentDokumenterForDistribusjon().single()
+            journalførtDistribusjon.let {
+                it.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
+                    JournalpostId("jp"),
+                )
+                it.dokument.distribueringsadresse shouldBe nyDistribueringsAdresse()
+            }
+        }
+    }
+
+    @Test
+    fun `oppdaterer dokument distribusjon`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
@@ -139,25 +178,29 @@ internal class DokumentPostgresRepoTest {
                 generertDokument = pdfATom(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
+                distribueringsadresse = null,
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
-            val hentetDokumentUtenStatus = dokumentRepo.hentForSak(sak.id).first()
-            hentetDokumentUtenStatus.metadata.journalpostId shouldBe null
-            hentetDokumentUtenStatus.metadata.brevbestillingId shouldBe null
+            val uprossesertDokument = dokumentRepo.hentForSak(sak.id).first()
+            uprossesertDokument.metadata.journalpostId shouldBe null
+            uprossesertDokument.metadata.brevbestillingId shouldBe null
 
-            val journalført = dokumentRepo.hentDokumenterForJournalføring().first()
+            val dokumentdistribusjonUtenJournalpostIdOgBrevbestillingsId =
+                dokumentRepo.hentDokumenterForJournalføring().first()
+
             dokumentRepo.oppdaterDokumentdistribusjon(
-                journalført.journalfør { JournalpostId("jp").right() }.getOrElse {
-                    fail { "Skulle fått journalført" }
-                }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
-                    fail { "Skulle fått bestilt brev" }
-                },
+                dokumentdistribusjonUtenJournalpostIdOgBrevbestillingsId.journalfør { JournalpostId("jp").right() }
+                    .getOrElse {
+                        fail { "Skulle fått journalført" }
+                    }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                        fail { "Skulle fått bestilt brev" }
+                    },
             )
 
-            val hentetDokumentMedStatus = dokumentRepo.hentForSak(sak.id).first()
-            hentetDokumentMedStatus.metadata.journalpostId shouldBe "jp"
-            hentetDokumentMedStatus.metadata.brevbestillingId shouldBe "brev"
+            val sendtDokument = dokumentRepo.hentForSak(sak.id).first()
+            sendtDokument.metadata.journalpostId shouldBe "jp"
+            sendtDokument.metadata.brevbestillingId shouldBe "brev"
         }
     }
 }

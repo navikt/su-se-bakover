@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import dokument.domain.Dokument
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.common.UUID30
@@ -90,6 +91,7 @@ data class OpprettDokumentRequest(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val tittel: String,
     val fritekst: String,
+    val distribueringsadresse: Distribueringsadresse?,
 )
 
 sealed interface KunneIkkeOppretteDokument {

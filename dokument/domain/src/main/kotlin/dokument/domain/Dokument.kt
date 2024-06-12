@@ -1,5 +1,6 @@
 package dokument.domain
 
+import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
@@ -20,7 +21,7 @@ sealed interface Dokument {
 
     sealed interface UtenMetadata : Dokument {
 
-        fun leggTilMetadata(metadata: Metadata): MedMetadata
+        fun leggTilMetadata(metadata: Metadata, distribueringsadresse: Distribueringsadresse?): MedMetadata
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
@@ -29,8 +30,11 @@ sealed interface Dokument {
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
         ) : UtenMetadata {
-            override fun leggTilMetadata(metadata: Metadata): MedMetadata.Vedtak {
-                return MedMetadata.Vedtak(this, metadata)
+            override fun leggTilMetadata(
+                metadata: Metadata,
+                distribueringsadresse: Distribueringsadresse?,
+            ): MedMetadata.Vedtak {
+                return MedMetadata.Vedtak(this, metadata, distribueringsadresse)
             }
         }
 
@@ -42,8 +46,11 @@ sealed interface Dokument {
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
             ) : Informasjon {
-                override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Viktig {
-                    return MedMetadata.Informasjon.Viktig(this, metadata)
+                override fun leggTilMetadata(
+                    metadata: Metadata,
+                    distribueringsadresse: Distribueringsadresse?,
+                ): MedMetadata.Informasjon.Viktig {
+                    return MedMetadata.Informasjon.Viktig(this, metadata, distribueringsadresse)
                 }
             }
 
@@ -54,8 +61,11 @@ sealed interface Dokument {
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
             ) : Informasjon {
-                override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Annet {
-                    return MedMetadata.Informasjon.Annet(this, metadata)
+                override fun leggTilMetadata(
+                    metadata: Metadata,
+                    distribueringsadresse: Distribueringsadresse?,
+                ): MedMetadata.Informasjon.Annet {
+                    return MedMetadata.Informasjon.Annet(this, metadata, distribueringsadresse)
                 }
             }
         }
@@ -69,6 +79,16 @@ sealed interface Dokument {
         val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
 
+        /**
+         * Spesifisering av adressen som brevet skal sendes til. Hvis denne er lagt på, vil brevet alltid bli sendt ut av dokdist.
+         * Ved null, vil dokdist finne adressen til mottakeren selv, og sender brevet der.
+         *
+         * Eksempel der man vil legge til adresse er dersom brukeren er død, og man vil sende brevet til en annen person/adresse slik at brevet kommer frem uten at dokdist returnerer 410
+         *
+         * Lagt til 10.06.2024
+         */
+        val distribueringsadresse: Distribueringsadresse?
+
         val journalpostId: String? get() = metadata.journalpostId
         val brevbestillingId: String? get() = metadata.brevbestillingId
 
@@ -78,16 +98,22 @@ sealed interface Dokument {
             override val tittel: String,
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
+            override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 
-            constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(
+            constructor(
+                utenMetadata: UtenMetadata,
+                metadata: Metadata,
+                distribueringsadresse: Distribueringsadresse?,
+            ) : this(
                 id = utenMetadata.id,
                 opprettet = utenMetadata.opprettet,
                 tittel = utenMetadata.tittel,
                 generertDokument = utenMetadata.generertDokument,
                 generertDokumentJson = utenMetadata.generertDokumentJson,
+                distribueringsadresse = distribueringsadresse,
                 metadata = metadata,
             )
         }
@@ -102,16 +128,22 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
-                constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(
+                constructor(
+                    utenMetadata: UtenMetadata,
+                    metadata: Metadata,
+                    distribueringsadresse: Distribueringsadresse?,
+                ) : this(
                     id = utenMetadata.id,
                     opprettet = utenMetadata.opprettet,
                     tittel = utenMetadata.tittel,
                     generertDokument = utenMetadata.generertDokument,
                     generertDokumentJson = utenMetadata.generertDokumentJson,
+                    distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
                 )
             }
@@ -122,16 +154,22 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
 
-                constructor(utenMetadata: UtenMetadata, metadata: Metadata) : this(
+                constructor(
+                    utenMetadata: UtenMetadata,
+                    metadata: Metadata,
+                    distribueringsadresse: Distribueringsadresse?,
+                ) : this(
                     id = utenMetadata.id,
                     opprettet = utenMetadata.opprettet,
                     tittel = utenMetadata.tittel,
                     generertDokument = utenMetadata.generertDokument,
                     generertDokumentJson = utenMetadata.generertDokumentJson,
+                    distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
                 )
             }

@@ -38,8 +38,8 @@ class DokumentPostgresRepo(
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             sessionFactory.withTransaction(transactionContext) { tx ->
                 """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId)
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId)
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, distribueringsadresse)
+                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :distribueringsadresse::jsonb)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -59,6 +59,7 @@ class DokumentPostgresRepo(
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
                             "klageId" to dokument.metadata.klageId,
+                            "distribueringsadresse" to dokument.distribueringsadresse?.toDbJson(),
                         ),
                         tx,
                     )
@@ -300,6 +301,7 @@ class DokumentPostgresRepo(
         val tittel = string("tittel")
         val brevbestillingId = stringOrNull("brevbestillingid")
         val journalpostId = stringOrNull("journalpostid")
+        val distribueringsadresse = stringOrNull("distribueringsadresse")?.let { deserializeDistribueringsadresse(it) }
 
         return when (type) {
             DokumentKategori.INFORMASJON_VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
@@ -308,6 +310,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
@@ -325,6 +328,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
@@ -342,6 +346,7 @@ class DokumentPostgresRepo(
                 tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
+                distribueringsadresse = distribueringsadresse,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,

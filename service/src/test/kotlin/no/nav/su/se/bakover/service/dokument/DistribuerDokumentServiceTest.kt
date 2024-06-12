@@ -10,6 +10,7 @@ import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.brev.KunneIkkeBestilleBrevForDokument
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribuering
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
@@ -87,6 +89,43 @@ internal class DistribuerDokumentServiceTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `distribuerer dokumentet til angitt adresse`() {
+        val dokumentdistribusjon = dokumentdistribusjon(distribueringsadresse = nyDistribueringsAdresse())
+            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
+        }
+        val dokdistFordeling = mock<DokDistFordeling> {
+            on { this.bestillDistribusjon(any(), any(), any(), anyOrNull()) } doReturn BrevbestillingId("id").right()
+        }
+
+        ServiceOgMocks(dokumentRepo = dokumentRepo, dokDistFordeling = dokdistFordeling).dokumentService.distribuer()
+            .let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
+                it.first().brevbestillingsId shouldBe BrevbestillingId("id")
+            }
+        verify(dokumentRepo).hentDokumenterForDistribusjon()
+        verify(dokdistFordeling).bestillDistribusjon(
+            argThat { it shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId() },
+            argThat { it shouldBe Distribusjonstype.VEDTAK },
+            argThat { it shouldBe Distribusjonstidspunkt.KJERNETID },
+            argThat { it shouldBe nyDistribueringsAdresse() },
+        )
+        verify(dokumentRepo).oppdaterDokumentdistribusjon(
+            dokumentdistribusjon.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    JournalpostId("very"),
+                    BrevbestillingId("id"),
+                ),
+            ),
+        )
+
+        verifyNoMoreInteractions(dokumentRepo)
+        verifyNoMoreInteractions(dokdistFordeling)
     }
 
     @Test
@@ -191,7 +230,9 @@ internal class DistribuerDokumentServiceTest {
         }
     }
 
-    private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
+    private fun dokumentdistribusjon(
+        distribueringsadresse: Distribueringsadresse? = null,
+    ): Dokumentdistribusjon = Dokumentdistribusjon(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         dokument = Dokument.MedMetadata.Vedtak(
@@ -201,6 +242,7 @@ internal class DistribuerDokumentServiceTest {
             generertDokument = pdfATom(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(sakId = sakinfo.sakId),
+            distribueringsadresse = distribueringsadresse,
         ),
         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
     )

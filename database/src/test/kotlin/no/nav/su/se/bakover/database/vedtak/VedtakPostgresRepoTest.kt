@@ -756,6 +756,7 @@ internal class VedtakPostgresRepoTest {
                         sakId = sak.id,
                         vedtakId = vedtak.id,
                     ),
+                    distribueringsadresse = null,
                 )
                 dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
                 val journalført = dokumentRepo.hentDokumenterForJournalføring().first()

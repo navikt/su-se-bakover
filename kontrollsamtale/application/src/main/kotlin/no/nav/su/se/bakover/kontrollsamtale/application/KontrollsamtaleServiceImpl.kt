@@ -202,6 +202,8 @@ class KontrollsamtaleServiceImpl(
             .map {
                 it.leggTilMetadata(
                     metadata = Dokument.Metadata(sakId = sakId),
+                    // kan ikke sende kontrollsamtale brevet til en annen adresse enn brukerens adresse per nå
+                    distribueringsadresse = null,
                 )
             }
     }

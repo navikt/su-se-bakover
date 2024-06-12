@@ -158,6 +158,8 @@ class FerdigstillVedtakServiceImpl(
                     vedtakId = vedtak.id,
                     revurderingId = null,
                 ),
+                // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+                distribueringsadresse = null,
             )
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
 

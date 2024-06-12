@@ -149,7 +149,14 @@ data class SendPåminnelseNyStønadsperiodeContext(
                 ),
             ).map { dokument ->
                 sessionFactory.withTransactionContext { tx ->
-                    lagreDokument(dokument.leggTilMetadata(metadata = Dokument.Metadata(sakId = sak.id)), tx)
+                    lagreDokument(
+                        dokument.leggTilMetadata(
+                            metadata = Dokument.Metadata(sakId = sak.id),
+                            // vi kan ikke sende påminnelse til en annen adresse per nå
+                            distribueringsadresse = null,
+                        ),
+                        tx,
+                    )
                     sendt(sak.saksnummer, clock).also {
                         lagreContext(it, tx)
                     }
