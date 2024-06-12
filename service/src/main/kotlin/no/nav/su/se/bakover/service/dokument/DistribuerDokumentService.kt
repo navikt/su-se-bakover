@@ -43,7 +43,7 @@ class DistribuerDokumentService(
 
     fun distribuer(): List<JournalføringOgDistribueringsResultat> = dokumentRepo.hentDokumenterForDistribusjon()
         .map { distribusjon -> distribuerDokument(distribusjon, distribusjon.dokument.distribueringsadresse).tilResultat(distribusjon, log) }
-        .also { it.logResultat("Distribuer dokument", log) }
+        .also { it.logResultat("Dokumentdistribusjon", log) }
 
     private fun distribuerDokument(
         dokumentdistribusjon: Dokumentdistribusjon,

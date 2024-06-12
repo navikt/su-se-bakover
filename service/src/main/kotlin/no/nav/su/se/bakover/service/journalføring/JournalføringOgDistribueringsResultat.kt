@@ -36,18 +36,18 @@ sealed interface JournalføringOgDistribueringsResultat {
          */
         @JvmName("dokumentDistribusjonTilResultat")
         fun Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon>.tilResultat(
-            dokument: Dokumentdistribusjon,
+            distribusjon: Dokumentdistribusjon,
             log: Logger,
         ): JournalføringOgDistribueringsResultat {
             return this.fold(
                 ifLeft = {
                     log.error(
-                        "Kunne ikke distribuere dokument ${dokument.id}: $it",
+                        "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
                     Feil(
-                        dokument.id,
-                        dokument.journalføringOgBrevdistribusjon.journalpostId(),
+                        distribusjon.id,
+                        distribusjon.journalføringOgBrevdistribusjon.journalpostId(),
                         JournalføringOgDistribueringsFeil.Distribuering(it),
                     )
                 },
@@ -112,6 +112,7 @@ sealed interface JournalføringOgDistribueringsResultat {
         }
     }
 }
+
 fun List<JournalføringOgDistribueringsResultat>.logResultat(logContext: String, log: Logger) {
     this.ifNotEmpty {
         val ok = this.ok()
@@ -123,6 +124,7 @@ fun List<JournalføringOgDistribueringsResultat>.logResultat(logContext: String,
         }
     }
 }
+
 fun List<JournalføringOgDistribueringsResultat>.ok(): List<UUID> =
     this.filterIsInstance<JournalføringOgDistribueringsResultat.Ok>().map { it.id }
 
