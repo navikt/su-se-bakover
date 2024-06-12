@@ -140,6 +140,7 @@ class DistribuerDokumentService(
                 journalpostId = journalpostId,
             )
         }.map {
+            dokumentRepo.oppdaterDokumentdistribusjon(it)
             it.dokument
         }
     }
