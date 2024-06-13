@@ -63,7 +63,7 @@ class FerdigstillVedtakServiceImpl(
             Unit.right()
         } else {
             if (!utbetaling.kvittering.erKvittertOk()) {
-                log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
+                log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK. Denne vil ikke bli prøvd på nytt. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}, kvittering: ${utbetaling.kvittering.utbetalingsstatus}")
                 Unit.right()
             } else {
                 log.info("Kvittering OK. Ferdigstiller vedtak etter utbetaling. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
