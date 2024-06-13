@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.right
 import dokument.domain.Distribusjonstype
+import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
@@ -10,6 +11,7 @@ import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -18,6 +20,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -25,6 +28,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -327,7 +331,7 @@ internal class SakServiceImplTest {
         }
 
         val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock())
-            .lagreOgSendFritekstDokument(
+            .genererLagreOgSendFritekstDokument(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -363,6 +367,40 @@ internal class SakServiceImplTest {
         verifyNoMoreInteractions(sakRepo)
         verifyNoMoreInteractions(brevService)
         verifyNoMoreInteractions(dokumentRepo)
+    }
+
+    @Test
+    fun `lagrer og sender et fritekst dokument der saksbehandler har lastet opp pdf`() {
+        val expecedSakId = UUID.randomUUID()
+        val dokumentRepo = mock<DokumentRepo> {
+            doNothing().whenever(it).lagre(any(), anyOrNull())
+        }
+
+        val actual =
+            SakServiceImpl(mock(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendFritekstDokument(
+                request = JournalførOgSendDokumentCommand(
+                    sakId = expecedSakId,
+                    saksbehandler = saksbehandler,
+                    journaltittel = "Vedtaksbrev om nytt vedtak",
+                    pdf = PdfA(content = "".toByteArray()),
+                    distribueringsadresse = null,
+                    distribusjonstype = Distribusjonstype.VEDTAK,
+                ),
+            )
+
+        actual shouldBe Dokument.MedMetadata.Vedtak(
+            utenMetadata = Dokument.UtenMetadata.Vedtak(
+                // id'en blir generert på innsiden av opprettelsen av dokumentet
+                id = actual.id,
+                opprettet = fixedTidspunkt,
+                tittel = "Vedtaksbrev om nytt vedtak",
+                generertDokument = PdfA(content = "".toByteArray()),
+                //language=json
+                generertDokumentJson = """{"saksbehandler":"saksbehandler","journaltittel":"Vedtaksbrev om nytt vedtak","distribueringsadresse":null,"distribusjonstype":"VEDTAK","kommentar":"Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"}""",
+            ),
+            metadata = Dokument.Metadata(sakId = expecedSakId),
+            distribueringsadresse = null,
+        )
     }
 
     @Test

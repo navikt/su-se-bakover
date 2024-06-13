@@ -104,7 +104,7 @@ sealed interface Dokument {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 
             constructor(
-                utenMetadata: UtenMetadata,
+                utenMetadata: UtenMetadata.Vedtak,
                 metadata: Metadata,
                 distribueringsadresse: Distribueringsadresse?,
             ) : this(
@@ -134,7 +134,7 @@ sealed interface Dokument {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
                 constructor(
-                    utenMetadata: UtenMetadata,
+                    utenMetadata: UtenMetadata.Informasjon.Viktig,
                     metadata: Metadata,
                     distribueringsadresse: Distribueringsadresse?,
                 ) : this(
@@ -160,7 +160,7 @@ sealed interface Dokument {
                 override val distribusjonstype = Distribusjonstype.ANNET
 
                 constructor(
-                    utenMetadata: UtenMetadata,
+                    utenMetadata: UtenMetadata.Informasjon.Annet,
                     metadata: Metadata,
                     distribueringsadresse: Distribueringsadresse?,
                 ) : this(

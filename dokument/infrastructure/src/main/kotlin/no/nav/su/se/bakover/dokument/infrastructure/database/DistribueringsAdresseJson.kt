@@ -4,7 +4,7 @@ import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 
-fun Distribueringsadresse.toDbJson(): String = serialize(
+internal fun Distribueringsadresse.toDbJson(): String = serialize(
     DistribueringsAdresseJson(
         adresselinje1 = adresselinje1,
         adresselinje2 = adresselinje2,
@@ -14,7 +14,7 @@ fun Distribueringsadresse.toDbJson(): String = serialize(
     ),
 )
 
-fun deserializeDistribueringsadresse(json: String): Distribueringsadresse =
+internal fun deserializeDistribueringsadresse(json: String): Distribueringsadresse =
     deserialize<DistribueringsAdresseJson>(json).let {
         Distribueringsadresse(
             adresselinje1 = it.adresselinje1,

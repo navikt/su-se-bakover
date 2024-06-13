@@ -120,6 +120,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilU
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -396,7 +397,12 @@ open class AccessCheckProxy(
                     return services.sak.opprettFritekstDokument(request)
                 }
 
-                override fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+                override fun genererLagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.sak.genererLagreOgSendFritekstDokument(request)
+                }
+
+                override fun lagreOgSendFritekstDokument(request: JournalførOgSendDokumentCommand): Dokument.MedMetadata {
                     assertHarTilgangTilSak(request.sakId)
                     return services.sak.lagreOgSendFritekstDokument(request)
                 }

@@ -65,7 +65,8 @@ interface SakService {
 
     fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
     fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata>
-    fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>
+    fun genererLagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>
+    fun lagreOgSendFritekstDokument(request: JournalførOgSendDokumentCommand): Dokument.MedMetadata
     fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
     fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
 
