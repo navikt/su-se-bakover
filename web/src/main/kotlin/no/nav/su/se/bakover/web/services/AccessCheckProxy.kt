@@ -125,6 +125,7 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
+import no.nav.su.se.bakover.domain.sak.OpprettOppgaveDersomAktueltUførevedtakCommand
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
@@ -412,6 +413,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakIdSaksnummerOgFnrForAlleSaker() = kastKanKunKallesFraAnnenService()
+
+                override fun opprettOppgaveDersomAktueltUførevedtak(command: OpprettOppgaveDersomAktueltUførevedtakCommand) {
+                    // Denne skal kun kalles av eksterne systembrukere og andre servicer.
+                    return services.sak.opprettOppgaveDersomAktueltUførevedtak(command)
+                }
 
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)

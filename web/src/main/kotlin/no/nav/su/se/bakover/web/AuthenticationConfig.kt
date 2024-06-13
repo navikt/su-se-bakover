@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import no.nav.su.se.bakover.common.auth.AzureAd
@@ -11,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -55,44 +58,90 @@ internal fun Application.configureAuthentication(
         }
 
     install(Authentication) {
-        jwt("jwt") {
-            verifier(jwkProvider, azureAd.issuer)
-            realm = "su-se-bakover"
-            validate { credentials ->
-                try {
-                    requireNotNull(credentials.payload.audience) {
-                        "Auth: Missing audience in token"
-                    }
-                    require(
-                        credentials.payload.audience.any {
-                            it == applicationConfig.azure.clientId ||
-                                // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
-                                it == """api://${applicationConfig.azure.clientId}/.default"""
-                        },
-                    ) {
-                        "Auth: Valid audience not found in claims"
-                    }
-                    val allowedGroups = applicationConfig.azure.groups.asList()
-                    require(getGroupsFromJWT(applicationConfig, credentials).any { allowedGroups.contains(it) }) {
-                        "Auth: Valid group not found in claims"
-                    }
-                    JWTPrincipal(credentials.payload)
-                } catch (e: Throwable) {
-                    log.debug("Auth: Validation error during authentication", e)
-                    null
+        jwtSuSeFramover(jwkProvider, azureAd, applicationConfig, log)
+        jwtFrikort(jwkStsProvider, stsJwkConfig, applicationConfig, log)
+        jwtPerson(jwkProvider, azureAd, applicationConfig, log)
+    }
+}
+
+private fun AuthenticationConfig.jwtSuSeFramover(
+    jwkProvider: JwkProvider,
+    azureAd: AzureAd,
+    applicationConfig: ApplicationConfig,
+    log: Logger,
+) {
+    jwt("jwt") {
+        verifier(jwkProvider, azureAd.issuer)
+        realm = "su-se-bakover"
+        validate { credentials ->
+            try {
+                requireNotNull(credentials.payload.audience) {
+                    "Auth: Missing audience in token"
                 }
+                require(
+                    credentials.payload.audience.any {
+                        it == applicationConfig.azure.clientId ||
+                            // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
+                            it == """api://${applicationConfig.azure.clientId}/.default"""
+                    },
+                ) {
+                    "Auth: Valid audience not found in claims"
+                }
+                val allowedGroups = applicationConfig.azure.groups.asList()
+                require(getGroupsFromJWT(applicationConfig, credentials).any { allowedGroups.contains(it) }) {
+                    "Auth: Valid group not found in claims"
+                }
+                JWTPrincipal(credentials.payload)
+            } catch (e: Throwable) {
+                log.debug("Auth: Validation error during authentication", e)
+                null
             }
         }
-        jwt("frikort") {
-            verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
-            realm = "su-se-bakover"
-            validate { credentials ->
-                if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
-                    log.debug("Frikort Auth: Invalid subject")
-                    null
-                } else {
-                    JWTPrincipal(credentials.payload)
+    }
+}
+
+private fun AuthenticationConfig.jwtFrikort(
+    jwkStsProvider: JwkProvider,
+    stsJwkConfig: JSONObject,
+    applicationConfig: ApplicationConfig,
+    log: Logger,
+) {
+    jwt("frikort") {
+        verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
+        realm = "su-se-bakover"
+        validate { credentials ->
+            if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
+                log.debug("Frikort Auth: Invalid subject")
+                null
+            } else {
+                JWTPrincipal(credentials.payload)
+            }
+        }
+    }
+}
+
+private fun AuthenticationConfig.jwtPerson(
+    jwkProvider: JwkProvider,
+    azureAd: AzureAd,
+    applicationConfig: ApplicationConfig,
+    log: Logger,
+) {
+    jwt("pensjon") {
+        verifier(jwkProvider, azureAd.issuer)
+        realm = "su-se-bakover"
+        validate { credentials ->
+            try {
+                requireNotNull(credentials.payload.audience) { "Auth: Missing audience in token" }
+                require(
+                    credentials.payload.audience.any { it == applicationConfig.azure.clientId },
+                ) { "Auth pensjon: Valid audience not found in claims" }
+                require(getGroupsFromJWT(applicationConfig, credentials).any { it == "pensjon" }) {
+                    "Auth pensjon: Valid group not found in claims"
                 }
+                JWTPrincipal(credentials.payload)
+            } catch (e: Throwable) {
+                log.debug("Auth pensjon: Validation error during authentication", e)
+                null
             }
         }
     }

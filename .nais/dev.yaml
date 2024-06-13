@@ -27,6 +27,12 @@ spec:
           permissions:
             roles:
               - frikort
+        - application: pensjon-pen-q2
+          namespace: teampensjon
+          cluster: dev-fss
+          permissions:
+              roles:
+              - pensjon
     outbound:
       rules:
         - application: kodeverk-dev

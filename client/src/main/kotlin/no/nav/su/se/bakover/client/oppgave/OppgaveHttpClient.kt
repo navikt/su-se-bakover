@@ -221,6 +221,12 @@ internal class OppgaveHttpClient(
                     Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
             }
+
+            is OppgaveConfig.NyttUførevedtak -> {
+                "--- ${
+                    Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${config.toBeskrivelse()}"
+            }
         }
 
         return Either.catch {

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
+import no.nav.su.se.bakover.domain.sak.UførevedtakBehandlingstype
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
 import java.time.LocalDate
@@ -161,6 +163,30 @@ sealed interface OppgaveConfig {
     data class Institusjonsopphold(
         val saksnummer: Saksnummer,
         val sakstype: Sakstype,
+        override val fnr: Fnr,
+        override val clock: Clock,
+    ) : OppgaveConfig {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = when (sakstype) {
+            Sakstype.ALDER -> Behandlingstema.SU_ALDER
+            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+        }
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+    }
+
+    data class NyttUførevedtak(
+        val saksnummer: Saksnummer,
+        val sakstype: Sakstype,
+        val periode: PeriodeMedOptionalTilOgMed,
+        val uføreSakId: String,
+        val uføreVedtakId: String,
+        val uføreVedtakstype: String,
+        val uføreBehandlingstype: UførevedtakBehandlingstype,
         override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
