@@ -14,9 +14,10 @@ import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.infrastructure.JobberOgConsumers
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
-import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -69,7 +70,7 @@ fun startJobberOgConsumers(
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     dokumentKomponenter: Dokumentkomponenter,
     distribuerDokumentService: DistribuerDokumentService,
-) {
+): JobberOgConsumers {
     val runCheckFactory = RunCheckFactory(
         leaderPodLookup = clients.leaderPodLookup,
         applicationConfig = applicationConfig,
@@ -88,22 +89,7 @@ fun startJobberOgConsumers(
         dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
     )
 
-    val initialDelay = object {
-        var initialDelay: Duration = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-            Duration.ofMinutes(5)
-        } else {
-            Duration.ofSeconds(5)
-        }
-        fun next(): Duration {
-            return initialDelay.also {
-                if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-                    initialDelay.plus(Duration.ofSeconds(30))
-                } else {
-                    initialDelay.plus(Duration.ofSeconds(5))
-                }
-            }
-        }
-    }
+    val initialDelay = InitialDelay(applicationConfig.runtimeEnvironment)
 
     val utbetalingskvitteringKomponenter = UtbetalingskvitteringKomponenter.create(
         sakService = services.sak,
@@ -114,9 +100,11 @@ fun startJobberOgConsumers(
         dbMetrics = dbMetrics,
         utbetalingService = services.utbetaling,
         ferdigstillVedtakService = services.ferdigstillVedtak,
-        xmlMapperForUtbetalingskvittering = kvitteringXmlTilSaksnummerOgUtbetalingId(xmlMapperForUtbetalingskvittering),
+        xmlMapperForUtbetalingskvittering = kvitteringXmlTilSaksnummerOgUtbetalingId(
+            xmlMapperForUtbetalingskvittering,
+        ),
     )
-    startAsynkroneUtbetalingsprosesser(
+    val oppdragJobberOgConsumers = startAsynkroneUtbetalingsprosesser(
         utbetalingskvitteringKomponenter = utbetalingskvitteringKomponenter,
         oppdragConfig = applicationConfig.oppdrag,
         jmsConfig = jmsConfig,
@@ -126,32 +114,178 @@ fun startJobberOgConsumers(
         utbetalingRepo = databaseRepos.utbetaling,
     )
 
-    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        val isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod
-
-        PersonhendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
-            personhendelseService = services.personhendelseService,
+    return when (applicationConfig.runtimeEnvironment) {
+        ApplicationConfig.RuntimeEnvironment.Nais -> naisJobberOgConsumers(
+            services = services,
+            databaseRepos = databaseRepos,
+            applicationConfig = applicationConfig,
             clock = clock,
+            runCheckFactory = runCheckFactory,
+            dokumentKomponenter = dokumentKomponenter,
+            distribuerDokumentService = distribuerDokumentService,
+            initialDelay = initialDelay,
+            journalførDokumentService = journalførDokumentService,
+            journalførDokumentSkattService = journalførDokumentSkattService,
+            jmsConfig = jmsConfig,
+            tilbakekrevingskomponenter = tilbakekrevingskomponenter,
         )
-        KlageinstanshendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
+
+        ApplicationConfig.RuntimeEnvironment.Local ->
+            localJobberOgConsumers(
+                initialDelay,
+                runCheckFactory,
+                journalførDokumentService,
+                journalførDokumentSkattService,
+                distribuerDokumentService,
+                services,
+                clock,
+                databaseRepos,
+                tilbakekrevingskomponenter,
+                dokumentKomponenter,
+            )
+
+        ApplicationConfig.RuntimeEnvironment.Test -> JobberOgConsumers(
+            jobs = emptyList(),
+            consumers = emptyList(),
+        )
+    }.plus(oppdragJobberOgConsumers)
+}
+
+private fun localJobberOgConsumers(
+    initialDelay: InitialDelay,
+    runCheckFactory: RunCheckFactory,
+    journalførDokumentService: JournalførDokumentService,
+    journalførDokumentSkattService: JournalførSkattDokumentService,
+    distribuerDokumentService: DistribuerDokumentService,
+    services: Services,
+    clock: Clock,
+    databaseRepos: DatabaseRepos,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    dokumentKomponenter: Dokumentkomponenter,
+): JobberOgConsumers {
+    val jobber = listOf(
+        JournalførDokumentJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+            journalføringService = JournalføringService(
+                journalførDokumentService = journalførDokumentService,
+                journalførSkattDokumentService = journalførDokumentSkattService,
+            ),
+        ),
+
+        DistribuerDokumentJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+            distribueringService = distribuerDokumentService,
+        ),
+
+        GrensesnittsavstemingJob.startJob(
+            avstemmingService = services.avstemming,
+            starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
+            periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
+        ),
+
+        KonsistensavstemmingJob.startJob(
+            avstemmingService = services.avstemming,
+            kjøreplan = emptySet(),
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofMinutes(5),
+            clock = clock,
+            runCheckFactory = runCheckFactory,
+        ),
+
+        KlageinstanshendelseJob.startJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
-            clock = clock,
-        )
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
+        ),
 
-        // holder inst på kun i dev inntil videre
+        PersonhendelseOppgaveJob.startJob(
+            personhendelseService = services.personhendelseService,
+            periode = Duration.ofMinutes(5),
+            initialDelay = initialDelay.next(),
+            runCheckFactory = runCheckFactory,
+        ),
+
+        KontrollsamtaleinnkallingJob.startJob(
+            kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
+            starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
+            periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
+        ),
+
+        LokalMottaKravgrunnlagJob.startJob(
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            sessionFactory = databaseRepos.sessionFactory,
+            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
+            clock = clock,
+        ),
+
+        Tilbakekrevingsjobber.startJob(
+            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
+            opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
+            genererDokumenterForForhåndsvarselKonsument = tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument,
+            lukkOppgaveKonsument = tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument,
+            oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
+            genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+        ),
+
+        DokumentJobber.startJob(
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+            journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
+            distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
+        ),
+
+        SendPåminnelseNyStønadsperiodeJob.startJob(
+            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            initialDelay = initialDelay.next(),
+            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
+            runCheckFactory = runCheckFactory,
+        ),
+
+        StansYtelseVedManglendeOppmøteKontrollsamtaleJob.startJob(
+            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            initialDelay = initialDelay.next(),
+            service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
+            runCheckFactory = runCheckFactory,
+        ),
+    )
+    return JobberOgConsumers(
+        jobs = jobber,
+        // Vi starter ikke consumers lokalt. Disse må emuleres manuelt eller erstattes av jobber. Som f.eks. LokalMottaKravgrunnlagJob
+        consumers = emptyList(),
+    )
+}
+
+private fun naisJobberOgConsumers(
+    services: Services,
+    databaseRepos: DatabaseRepos,
+    applicationConfig: ApplicationConfig,
+    clock: Clock,
+    runCheckFactory: RunCheckFactory,
+    dokumentKomponenter: Dokumentkomponenter,
+    distribuerDokumentService: DistribuerDokumentService,
+    initialDelay: InitialDelay,
+    journalførDokumentService: JournalførDokumentService,
+    journalførDokumentSkattService: JournalførSkattDokumentService,
+    jmsConfig: JmsConfig,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+): JobberOgConsumers {
+    val isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod
+
+    val jobber = listOfNotNull(
+        // holder inst på kun i preprod inntil videre
         if (!isProd) {
-            val institusjonsoppholdService = EksternInstitusjonsoppholdKonsument(
-                institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
-                sakRepo = databaseRepos.sak,
-                clock = clock,
-            )
-            InstitusjonsoppholdConsumer(
-                config = applicationConfig.institusjonsoppholdKafkaConfig,
-                institusjonsoppholdService = institusjonsoppholdService,
-                clock = clock,
-            )
             val hendelseskonsument = OpprettOppgaverForInstitusjonsoppholdshendelser(
                 oppgaveService = services.oppgave,
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
@@ -162,15 +296,17 @@ fun startJobberOgConsumers(
                 sessionFactory = databaseRepos.sessionFactory,
                 hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
             )
-            InstitusjonsoppholdOppgaveJob(
+            InstitusjonsoppholdOppgaveJob.startJob(
                 hendelseskonsument = hendelseskonsument,
                 periode = Duration.of(5, ChronoUnit.MINUTES),
                 initialDelay = initialDelay.next(),
                 runCheckFactory = runCheckFactory,
-            ).schedule()
-        }
+            )
+        } else {
+            null
+        },
 
-        JournalførDokumentJob(
+        JournalførDokumentJob.startJob(
             initialDelay = initialDelay.next(),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
@@ -178,23 +314,23 @@ fun startJobberOgConsumers(
                 journalførDokumentService = journalførDokumentService,
                 journalførSkattDokumentService = journalførDokumentSkattService,
             ),
-        ).schedule()
+        ),
 
-        DistribuerDokumentJob(
+        DistribuerDokumentJob.startJob(
             initialDelay = initialDelay.next(),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             distribueringService = distribuerDokumentService,
-        ).schedule()
+        ),
 
-        GrensesnittsavstemingJob(
+        GrensesnittsavstemingJob.startJob(
             avstemmingService = services.avstemming,
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        KonsistensavstemmingJob(
+        KonsistensavstemmingJob.startJob(
             avstemmingService = services.avstemming,
             kjøreplan = if (isProd) {
                 setOf(
@@ -230,19 +366,20 @@ fun startJobberOgConsumers(
                 emptySet()
             },
             initialDelay = initialDelay.next(),
+            // Kjører hver fjerde time for å være rimelig sikker på at jobben faktisk blir kjørt
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        KlageinstanshendelseJob(
+        KlageinstanshendelseJob.startJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
             initialDelay = initialDelay.next(),
             periode = Duration.of(15, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        PersonhendelseOppgaveJob(
+        PersonhendelseOppgaveJob.startJob(
             personhendelseService = services.personhendelseService,
             initialDelay = initialDelay.next(),
             periode = if (isProd) {
@@ -251,9 +388,9 @@ fun startJobberOgConsumers(
                 Duration.of(15, ChronoUnit.MINUTES)
             },
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        KontrollsamtaleinnkallingJob(
+        KontrollsamtaleinnkallingJob.startJob(
             kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
             starttidspunkt = if (isProd) {
                 ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(7, 0, 0))
@@ -266,23 +403,16 @@ fun startJobberOgConsumers(
                 Duration.of(15, ChronoUnit.MINUTES)
             },
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        DokumentJobber(
+        DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
-        ).schedule()
-
-        KravgrunnlagIbmMqConsumer(
-            queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
-            globalJmsContext = jmsConfig.jmsContext,
-            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
-        )
-
-        Tilbakekrevingsjobber(
+        ),
+        Tilbakekrevingsjobber.startJob(
             knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
             opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
             genererDokumenterForForhåndsvarselKonsument = tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument,
@@ -292,116 +422,55 @@ fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        SendPåminnelseNyStønadsperiodeJob(
+        SendPåminnelseNyStønadsperiodeJob.startJob(
             intervall = Duration.of(4, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
             runCheckFactory = runCheckFactory,
-        ).schedule()
+        ),
 
-        StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
+        StansYtelseVedManglendeOppmøteKontrollsamtaleJob.startJob(
             intervall = Duration.of(2, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
-        ).schedule()
-    } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        JournalførDokumentJob(
-            initialDelay = initialDelay.next(),
-            periode = Duration.ofSeconds(10),
-            runCheckFactory = runCheckFactory,
-            journalføringService = JournalføringService(
-                journalførDokumentService = journalførDokumentService,
-                journalførSkattDokumentService = journalførDokumentSkattService,
-            ),
-        ).schedule()
-
-        DistribuerDokumentJob(
-            initialDelay = initialDelay.next(),
-            periode = Duration.ofSeconds(10),
-            runCheckFactory = runCheckFactory,
-            distribueringService = distribuerDokumentService,
-        ).schedule()
-
-        GrensesnittsavstemingJob(
-            avstemmingService = services.avstemming,
-            starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
-            periode = Duration.ofMinutes(5),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        KonsistensavstemmingJob(
-            avstemmingService = services.avstemming,
-            kjøreplan = emptySet(),
-            initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(5),
-            clock = clock,
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        KlageinstanshendelseJob(
-            klageinstanshendelseService = services.klageinstanshendelseService,
-            initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(5),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        PersonhendelseOppgaveJob(
-            personhendelseService = services.personhendelseService,
-            periode = Duration.ofMinutes(5),
-            initialDelay = initialDelay.next(),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        KontrollsamtaleinnkallingJob(
-            kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
-            starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
-            periode = Duration.ofMinutes(5),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        LokalMottaKravgrunnlagJob(
-            initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
-            sessionFactory = databaseRepos.sessionFactory,
+        ),
+    )
+    val consumers = listOfNotNull(
+        // holder inst på kun i preprod inntil videre
+        if (!isProd) {
+            val institusjonsoppholdService = EksternInstitusjonsoppholdKonsument(
+                institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
+                sakRepo = databaseRepos.sak,
+                clock = clock,
+            )
+            InstitusjonsoppholdConsumer(
+                config = applicationConfig.institusjonsoppholdKafkaConfig,
+                institusjonsoppholdService = institusjonsoppholdService,
+            )
+        } else {
+            null
+        },
+        KravgrunnlagIbmMqConsumer(
+            queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
+            globalJmsContext = jmsConfig.jmsContext,
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
+        ),
+        PersonhendelseConsumer(
+            consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
+            personhendelseService = services.personhendelseService,
             clock = clock,
-        ).schedule()
-
-        Tilbakekrevingsjobber(
-            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
-            opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
-            genererDokumenterForForhåndsvarselKonsument = tilbakekrevingskomponenter.services.genererDokumentForForhåndsvarselTilbakekrevingKonsument,
-            lukkOppgaveKonsument = tilbakekrevingskomponenter.services.lukkOppgaveForTilbakekrevingshendelserKonsument,
-            oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
-            genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
-            initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        DokumentJobber(
-            initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
-            runCheckFactory = runCheckFactory,
-            journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
-            distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
-        ).schedule()
-
-        SendPåminnelseNyStønadsperiodeJob(
-            intervall = Duration.of(1, ChronoUnit.MINUTES),
-            initialDelay = initialDelay.next(),
-            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-
-        StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
-            intervall = Duration.of(1, ChronoUnit.MINUTES),
-            initialDelay = initialDelay.next(),
-            service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
-            runCheckFactory = runCheckFactory,
-        ).schedule()
-    }
+        ),
+        KlageinstanshendelseConsumer(
+            consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
+            klageinstanshendelseService = services.klageinstanshendelseService,
+            clock = clock,
+        ),
+    )
+    return JobberOgConsumers(
+        jobs = jobber,
+        consumers = consumers,
+    )
 }

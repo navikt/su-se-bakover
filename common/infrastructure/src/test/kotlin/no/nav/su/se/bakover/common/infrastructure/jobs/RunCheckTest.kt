@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.shouldRun
 import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test

@@ -1,75 +1,48 @@
 package no.nav.su.se.bakover.web.services.avstemming
 
-import arrow.core.Either
-import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
-import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
-import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import økonomi.domain.Fagområde
 import java.time.Duration
 import java.util.Date
-import kotlin.concurrent.fixedRateTimer
 
 internal class GrensesnittsavstemingJob(
-    private val avstemmingService: AvstemmingService,
-    private val starttidspunkt: Date,
-    private val periode: Duration,
-    private val runCheckFactory: RunCheckFactory,
-) {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
-    private val jobName = this::class.simpleName!!
-
-    fun schedule() {
-        log.info("Scheduling grensesnittsavstemming at time $starttidspunkt, with period $periode")
-        fixedRateTimer(
-            name = jobName,
-            daemon = true,
-            startAt = starttidspunkt,
-            period = periode.toMillis(),
-        ) {
-            Grensesnittsavstemming(
-                avstemmingService = avstemmingService,
+    private val stoppableJob: StoppableJob,
+) : StoppableJob by stoppableJob {
+    companion object {
+        fun startJob(
+            avstemmingService: AvstemmingService,
+            starttidspunkt: Date,
+            periode: Duration,
+            runCheckFactory: RunCheckFactory,
+        ): GrensesnittsavstemingJob {
+            val log = LoggerFactory.getLogger(GrensesnittsavstemingJob::class.java)
+            val jobName = GrensesnittsavstemingJob::class.simpleName!!
+            return startStoppableJob(
                 jobName = jobName,
-                runCheckFactory = runCheckFactory,
-            ).run()
-        }
-    }
+                startAt = starttidspunkt,
+                intervall = periode,
+                log = log,
+                runJobCheck = listOf(runCheckFactory.leaderPod()),
+            ) {
+                Fagområde.entries.forEach { fagområde ->
+                    when (fagområde) {
+                        Fagområde.SUALDER -> {
+                            // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
+                        }
 
-    class Grensesnittsavstemming(
-        val avstemmingService: AvstemmingService,
-        val jobName: String,
-        val runCheckFactory: RunCheckFactory,
-    ) {
-        private val log = LoggerFactory.getLogger(this::class.java)
-
-        fun run() {
-            Either.catch {
-                listOf(runCheckFactory.leaderPod())
-                    .shouldRun()
-                    .ifTrue {
-                        withCorrelationId {
-                            Fagområde.entries.forEach { fagområde ->
-                                when (fagområde) {
-                                    Fagområde.SUALDER -> {
-                                        // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
-                                    }
-                                    Fagområde.SUUFORE -> {
-                                        log.info("Executing $jobName")
-                                        avstemmingService.grensesnittsavstemming(fagområde).fold(
-                                            { log.error("$jobName failed with error: $it") },
-                                            { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
-                                        )
-                                    }
-                                }
-                            }
+                        Fagområde.SUUFORE -> {
+                            avstemmingService.grensesnittsavstemming(fagområde).fold(
+                                { log.error("$jobName failed with error: $it") },
+                                { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
+                            )
                         }
                     }
-            }.mapLeft {
-                log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
-            }
+                }
+            }.let { GrensesnittsavstemingJob(it) }
         }
     }
 }

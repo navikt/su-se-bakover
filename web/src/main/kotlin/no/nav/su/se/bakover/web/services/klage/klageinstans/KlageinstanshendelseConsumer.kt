@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 import arrow.core.Either
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import org.apache.kafka.clients.consumer.Consumer
@@ -26,12 +28,16 @@ class KlageinstanshendelseConsumer(
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KlageinstanshendelseConsumer::class.java),
     private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
-) {
+) : StoppableConsumer {
+
+    override val consumerName = topicName
+    private val job: Job
+
     init {
         log.info("$topicName: Setter opp Kafka consumer.")
         consumer.subscribe(listOf(topicName))
 
-        CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(Dispatchers.IO).launch {
 
             while (this.isActive) {
                 Either.catch {
@@ -46,6 +52,14 @@ class KlageinstanshendelseConsumer(
                     log.error("$topicName: Ukjent feil ved konsumering.", it)
                     delay(5.seconds)
                 }
+            }
+            log.info("$topicName: Stopper Kafka-consumer.")
+            Either.catch {
+                consumer.close()
+            }.onLeft {
+                log.error("$topicName: Feil ved lukking av consumer.", it)
+            }.onRight {
+                log.info("$topicName: Consumer lukket.")
             }
         }
     }
@@ -91,5 +105,16 @@ class KlageinstanshendelseConsumer(
             consumer.commitSync(offsets)
         }
         log.debug("$topicName: Prosessert ferdig meldingene.")
+    }
+
+    override fun stop() {
+        log.info("$topicName: stop() kalt. Kanseller Couroutine Job. Inflight meldinger vil bli prosessert ferdig.")
+        Either.catch {
+            job.cancel()
+        }.onLeft {
+            log.error("$topicName: Feil under kansellering av Couroutine Job.", it)
+        }.onRight {
+            log.info("$topicName: Couroutine Job kansellert. Inflight meldinger vil bli prosessert ferdig.")
+        }
     }
 }

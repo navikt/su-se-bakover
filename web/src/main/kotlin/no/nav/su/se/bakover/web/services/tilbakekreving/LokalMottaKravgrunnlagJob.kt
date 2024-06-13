@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
@@ -27,35 +28,35 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
 import java.time.Duration
-import kotlin.concurrent.fixedRateTimer
 
 internal class LokalMottaKravgrunnlagJob(
-    private val initialDelay: Duration,
-    private val intervall: Duration = Duration.ofMinutes(1),
-    private val sessionFactory: SessionFactory,
-    private val service: RåttKravgrunnlagService,
-    private val clock: Clock,
-) {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val stoppableJob: StoppableJob,
+) : StoppableJob by stoppableJob {
+    companion object {
+        fun startJob(
+            initialDelay: Duration,
+            intervall: Duration = Duration.ofMinutes(1),
+            sessionFactory: SessionFactory,
+            service: RåttKravgrunnlagService,
+            clock: Clock,
+        ): LokalMottaKravgrunnlagJob {
+            val log = LoggerFactory.getLogger(LokalMottaKravgrunnlagJob::class.java)
+            val jobName = "local-motta-kravgrunnlag"
+            log.error("Lokal jobb: Startet skedulert jobb '$jobName' for mottak av kravgrunnlag som kjører med intervall $intervall")
 
-    fun schedule() {
-        log.error("Lokal jobb: Startet skedulert jobb for mottak av kravgrunnlag som kjører med intervall $intervall")
-        val jobName = "local-motta-kravgrunnlag"
-        fixedRateTimer(
-            name = jobName,
-            daemon = true,
-            initialDelay = initialDelay.toMillis(),
-            period = intervall.toMillis(),
-        ) {
-            Either.catch {
+            return startStoppableJob(
+                jobName = jobName,
+                initialDelay = initialDelay,
+                intervall = intervall,
+                log = log,
+                runJobCheck = emptyList(),
+            ) {
                 lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
                     sessionFactory = sessionFactory,
                     service = service,
                     clock = clock,
                 )
-            }.mapLeft {
-                log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
-            }
+            }.let { LokalMottaKravgrunnlagJob(it) }
         }
     }
 }
