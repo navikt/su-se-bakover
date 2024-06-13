@@ -10,6 +10,7 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -195,9 +196,18 @@ class FerdigstillVedtakServiceImpl(
         }
 
         return lukkOppgave(oppgaveId).onLeft {
-            log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
+            if (it.feilPgaAlleredeFerdigstilt()) {
+                log.warn("Kunne ikke lukke oppgave fordi den allerede er ferdigstilt. OppgaveId: $oppgaveId for behandlingId: ${behandling.id}, sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}. Feil: $it. Se sikklerlogg for detaljer.", RuntimeException("Trigger stacktrace for enklere debugging"))
+                sikkerLogg.warn("Kunne ikke lukke oppgave fordi den allerede er ferdigstilt. OppgaveId: $oppgaveId for behandlingId: ${behandling.id}, sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}. Feil: ${it.toSikkerloggString()}")
+                return null.right()
+            }
+            log.error(
+                "Kunne ikke lukke oppgave. OppgaveId: $oppgaveId for behandlingId: ${behandling.id}, sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}. Feil: $it. Se sikkerlogg for detaljer.",
+                RuntimeException("Trigger stacktrace for enklere debugging"),
+            )
+            sikkerLogg.error("Kunne ikke lukke oppgave. OppgaveId: $oppgaveId for behandlingId: ${behandling.id}, sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}. Feil: ${it.toSikkerloggString()}")
         }.map {
-            log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
+            log.info("Lukket oppgave. OppgaveId: $oppgaveId for behandlingId: ${behandling.id}, sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}")
             oppgaveId
         }
     }
