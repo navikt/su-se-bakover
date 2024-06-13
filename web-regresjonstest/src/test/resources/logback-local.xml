@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="logback-audit-config-local.xml"/>
-    <include resource="logback-secure-config-local.xml"/>
+    <include file="bootstrap/src/main/resources/logback-audit-config-local.xml"/>
+    <include file="bootstrap/src/main/resources/logback-secure-config-local.xml"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <logger name="no.nav" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

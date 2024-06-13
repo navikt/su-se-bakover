@@ -1,4 +1,4 @@
-package økonomi.infrastructure.kvittering.consumer.lokal
+package økonomi.infrastructure.kvittering.lokal
 
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata

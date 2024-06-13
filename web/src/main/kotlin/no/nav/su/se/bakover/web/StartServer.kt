@@ -4,6 +4,7 @@ import beregning.domain.BeregningStrategyFactory
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.Route
@@ -224,7 +225,7 @@ fun Application.susebakover(
             distribuerDokumentService = distribuerDokumentService,
         )
         if (!disableConsumersAndJobs) {
-            startJobberOgConsumers(
+            val jobberOgConsumers = startJobberOgConsumers(
                 services = services,
                 clients = clients,
                 databaseRepos = databaseRepos,
@@ -236,6 +237,9 @@ fun Application.susebakover(
                 dokumentKomponenter = dokumentkomponenter,
                 distribuerDokumentService = distribuerDokumentService,
             )
+            environment.monitor.subscribe(ApplicationStopping) {
+                jobberOgConsumers.stop()
+            }
         }
     }
 }

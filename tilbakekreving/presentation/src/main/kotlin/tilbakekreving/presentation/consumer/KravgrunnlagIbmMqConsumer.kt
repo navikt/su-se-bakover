@@ -1,5 +1,7 @@
 package tilbakekreving.presentation.consumer
 
+import arrow.core.Either
+import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
@@ -21,10 +23,12 @@ class KravgrunnlagIbmMqConsumer(
     queueName: String,
     globalJmsContext: JMSContext,
     private val service: RåttKravgrunnlagService,
-) {
+) : StoppableConsumer {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
     private val consumer = jmsContext.createConsumer(jmsContext.createQueue(queueName))
+
+    override val consumerName = queueName
 
     init {
         consumer.setMessageListener { message ->
@@ -48,5 +52,17 @@ class KravgrunnlagIbmMqConsumer(
         jmsContext.setExceptionListener { exception -> log.error("Feil mot $queueName", exception) }
 
         jmsContext.start()
+    }
+
+    override fun stop() {
+        log.info("KravgrunnlagIbmMqConsumer: Stopper JMSConsumer og JMSContext. Denne blokker til alle inflight meldinger er prosessert.")
+        Either.catch {
+            consumer.close()
+            jmsContext.close()
+        }.onLeft {
+            log.error("KravgrunnlagIbmMqConsumer: Feil under stop().", it)
+        }.onRight {
+            log.info("KravgrunnlagIbmMqConsumer: JMSConsumer og JMSContext stoppet.")
+        }
     }
 }
