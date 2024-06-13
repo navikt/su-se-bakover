@@ -59,18 +59,18 @@ class FerdigstillVedtakServiceImpl(
     ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit> {
         return if (utbetaling.trengerIkkeFerdigstilles()) {
             // Merk at vi heller ikke prøver lukke oppgaver her. Det går fint så lenge vi ikke oppretter oppgaver for stans/gjenopptak.
-            log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
+            log.info("Utbetaling trenger ikke ferdigstilles. Lukker heller ikke oppgaver. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
             Unit.right()
         } else {
             if (!utbetaling.kvittering.erKvittertOk()) {
                 log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
                 Unit.right()
             } else {
-                log.info("Ferdigstiller vedtak etter utbetaling")
+                log.info("Kvittering OK. Ferdigstiller vedtak etter utbetaling. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
                 val vedtak = vedtakService.hentForUtbetaling(utbetaling.id, transactionContext)
                     ?: return KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(utbetaling.id)
                         .left().also {
-                            log.error("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.")
+                            log.error("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
                         }
                 return ferdigstillVedtak(vedtak, transactionContext).map { Unit }
             }
@@ -84,11 +84,11 @@ class FerdigstillVedtakServiceImpl(
             vedtak as VedtakSomKanRevurderes
             ferdigstillVedtak(vedtak, null).onLeft {
                 log.error(
-                    "Kunne ikke ferdigstille vedtak ${vedtak.id}: $it",
+                    "Kunne ikke ferdigstille vedtak. VedtakId: $vedtakId, behandlingId: ${vedtak.behandling.id}, sakId: ${vedtak.behandling.sakId}, saksnummer: ${vedtak.behandling.saksnummer}. Feil: $it.",
                     RuntimeException("Trigger stacktrace for enklere debugging"),
                 )
             }.map {
-                log.info("Ferdigstilte vedtak ${vedtak.id}")
+                log.info("Ferdigstilte vedtak. VedtakId: $vedtakId, behandlingId: ${vedtak.behandling.id}, sakId: ${vedtak.behandling.sakId}, saksnummer: ${vedtak.behandling.saksnummer}")
                 vedtak
             }
         }
