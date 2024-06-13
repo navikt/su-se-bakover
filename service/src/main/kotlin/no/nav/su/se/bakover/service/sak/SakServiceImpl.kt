@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -165,10 +166,16 @@ class SakServiceImpl(
         }
     }
 
-    override fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+    override fun genererLagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
         return opprettFritekstDokument(request).map {
             it.leggTilMetadata(Dokument.Metadata(sakId = request.sakId), request.distribueringsadresse)
         }.onRight {
+            dokumentRepo.lagre(it)
+        }
+    }
+
+    override fun lagreOgSendFritekstDokument(request: JournalførOgSendDokumentCommand): Dokument.MedMetadata {
+        return request.opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
         }
     }

@@ -32,7 +32,7 @@ data class DokumentMedMetadataUtenFil(
     ): Dokument.MedMetadata {
         return when (distribusjonstype) {
             Distribusjonstype.VEDTAK -> Dokument.MedMetadata.Vedtak(
-                utenMetadata = toDokumentUtenMetadata(pdf),
+                utenMetadata = toDokumentUtenMetadata(pdf) as Dokument.UtenMetadata.Vedtak,
                 metadata = metadata.copy(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
@@ -41,7 +41,7 @@ data class DokumentMedMetadataUtenFil(
             )
 
             Distribusjonstype.VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
-                utenMetadata = toDokumentUtenMetadata(pdf),
+                utenMetadata = toDokumentUtenMetadata(pdf) as Dokument.UtenMetadata.Informasjon.Viktig,
                 metadata = metadata.copy(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
@@ -50,7 +50,7 @@ data class DokumentMedMetadataUtenFil(
             )
 
             Distribusjonstype.ANNET -> Dokument.MedMetadata.Informasjon.Annet(
-                utenMetadata = toDokumentUtenMetadata(pdf),
+                utenMetadata = toDokumentUtenMetadata(pdf) as Dokument.UtenMetadata.Informasjon.Annet,
                 metadata = metadata.copy(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
