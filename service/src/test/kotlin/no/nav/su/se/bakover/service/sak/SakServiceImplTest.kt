@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
-import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -299,7 +299,7 @@ internal class SakServiceImplTest {
         }
 
         SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock(), mock())
-            .opprettFritekstDokument(
+            .genererFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -331,7 +331,7 @@ internal class SakServiceImplTest {
         }
 
         val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock())
-            .genererLagreOgSendFritekstDokument(
+            .genererLagreOgSendFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -377,8 +377,8 @@ internal class SakServiceImplTest {
         }
 
         val actual =
-            SakServiceImpl(mock(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendFritekstDokument(
-                request = JournalførOgSendDokumentCommand(
+            SakServiceImpl(mock(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
+                request = JournalførOgSendOpplastetPdfSomBrevCommand(
                     sakId = expecedSakId,
                     saksbehandler = saksbehandler,
                     journaltittel = "Vedtaksbrev om nytt vedtak",

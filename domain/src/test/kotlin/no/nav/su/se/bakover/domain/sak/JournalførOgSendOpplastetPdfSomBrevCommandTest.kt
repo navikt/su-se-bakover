@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class JournalførOgSendDokumentCommandTest {
+class JournalførOgSendOpplastetPdfSomBrevCommandTest {
 
     @Test
     fun `oppretter dokument med metadata`() {
@@ -86,7 +86,7 @@ class JournalførOgSendDokumentCommandTest {
         pdf: PdfA = PdfA("pdf".toByteArray()),
         distribueringsadresse: Distribueringsadresse? = null,
         distribusjonstype: Distribusjonstype = Distribusjonstype.VEDTAK,
-    ) = JournalførOgSendDokumentCommand(
+    ) = JournalførOgSendOpplastetPdfSomBrevCommand(
         sakId = sakId,
         saksbehandler = saksbehandler,
         journaltittel = journaltittel,

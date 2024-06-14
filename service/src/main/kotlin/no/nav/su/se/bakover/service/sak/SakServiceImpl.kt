@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
-import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -148,7 +148,7 @@ class SakServiceImpl(
         return sakRepo.hentSakForSøknad(søknadId)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata> {
+    override fun genererFritekstbrevPåSak(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata> {
         val sak = sakRepo.hentSak(request.sakId)
             ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
 
@@ -166,15 +166,18 @@ class SakServiceImpl(
         }
     }
 
-    override fun genererLagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
-        return opprettFritekstDokument(request).map {
+    override fun genererLagreOgSendFritekstbrevPåSak(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+        return genererFritekstbrevPåSak(request).map {
             it.leggTilMetadata(Dokument.Metadata(sakId = request.sakId), request.distribueringsadresse)
         }.onRight {
             dokumentRepo.lagre(it)
         }
     }
 
-    override fun lagreOgSendFritekstDokument(request: JournalførOgSendDokumentCommand): Dokument.MedMetadata {
+    override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
+        /**
+         * vi tar for god fisk at sakId finnes. Det vil smelle i databasen hvis sakId(foreign key) ikke finnes
+         */
         return request.opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
         }

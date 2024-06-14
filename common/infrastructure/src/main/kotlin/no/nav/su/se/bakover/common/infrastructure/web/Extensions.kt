@@ -221,3 +221,6 @@ suspend inline fun <reified T> ApplicationCall.withBody(
                 }.onRight(ifRight)
         }
 }
+
+fun ApplicationCall.isMultipartFormDataRequest(): Boolean =
+    this.request.headers["content-type"]?.contains("multipart/form-data") ?: false

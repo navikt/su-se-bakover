@@ -3,25 +3,18 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
-import dokument.domain.distribuering.Distribueringsadresse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.http.content.streamProvider
 import io.ktor.server.application.call
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -30,6 +23,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.isMultipartFormDataRequest
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -38,7 +32,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
@@ -256,78 +249,26 @@ internal fun Route.sakRoutes(
         }
     }
 
-    data class DistribueringsadresseBody(
-        val adresselinje1: String,
-        val adresselinje2: String?,
-        val adresselinje3: String?,
-        val postnummer: String,
-        val poststed: String,
-    ) {
-        fun toDomain(): Distribueringsadresse = Distribueringsadresse(
-            adresselinje1 = adresselinje1,
-            adresselinje2 = adresselinje2,
-            adresselinje3 = adresselinje3,
-            postnummer = postnummer,
-            poststed = poststed,
-        )
-    }
-
-    data class DokumentBody(
-        val tittel: String,
-        val fritekst: String,
-        val adresse: DistribueringsadresseBody?,
-        val distribusjonstype: Distribusjonstype,
-    )
-
     post("$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                when (call.request.headers["content-type"]?.contains("multipart/form-data")) {
+                when (call.isMultipartFormDataRequest()) {
                     /**
                      * Dersom requesten er multipart, har dem lagt på en allerede generert PDF, og vi skal bare
                      * journalføre, og distribuere denne.
                      */
-                    true -> {
-                        val parts = call.receiveMultipart().readAllParts()
-
-                        /**
-                         * Vi forventer en viss rekkefølge fra frontend på innholdet i formdata
-                         * 1. journaltittel
-                         * 2. distribusjonstype
-                         * 3. pdf
-                         * 4. distribueringsadresse - Denne er den eneste som er optional, og kommer sist i rekkefølgen
-                         */
-                        val journaltittel: String = (parts[0] as PartData.FormItem).value
-                        val distribusjonstype: dokument.domain.Distribusjonstype =
-                            Distribusjonstype.valueOf((parts[1] as PartData.FormItem).value).toDomain()
-                        val pdfContent: ByteArray = (parts[2] as PartData.FileItem).streamProvider().readBytes()
-                        val distribueringsadresse: Distribueringsadresse? = parts.getOrNull(3)?.let {
-                            val distribueringsadresseAsJson = (it as PartData.FormItem).value
-                            deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
-                        }
-
-                        sakService.lagreOgSendFritekstDokument(
-                            request = JournalførOgSendDokumentCommand(
-                                sakId = sakId,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                                journaltittel = journaltittel,
-                                pdf = PdfA(content = pdfContent),
-                                distribueringsadresse = distribueringsadresse,
-                                distribusjonstype = distribusjonstype,
-                            ),
-                        )
-
+                    true -> call.lagCommandForLagreOgSendOpplastetPdfPåSak(sakId).let {
+                        sakService.lagreOgSendOpplastetPdfPåSak(request = it)
                         call.svar(Resultat.accepted())
                     }
+
                     /**
                      * så lenge requesten ikke er spesifikk multipart/form-data så vil den bli behandlet som en vanlig text/plain / app/json
                      * vi forventer at frontend sender en body med fritekst, og vi skal generere dokumentet
                      */
-                    null,
-                    false,
-                    -> {
+                    false -> {
                         call.withBody<DokumentBody> { body ->
-                            val res = sakService.genererLagreOgSendFritekstDokument(
+                            val res = sakService.genererLagreOgSendFritekstbrevPåSak(
                                 OpprettDokumentRequest(
                                     sakId = sakId,
                                     saksbehandler = call.suUserContext.saksbehandler,
@@ -358,7 +299,7 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
-                    val res = sakService.opprettFritekstDokument(
+                    val res = sakService.genererFritekstbrevPåSak(
                         OpprettDokumentRequest(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,

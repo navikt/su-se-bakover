@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.Clock
 import java.util.UUID
 
-data class JournalførOgSendDokumentCommand(
+data class JournalførOgSendOpplastetPdfSomBrevCommand(
     val sakId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val journaltittel: String,
@@ -19,6 +19,7 @@ data class JournalførOgSendDokumentCommand(
     val distribusjonstype: Distribusjonstype,
 ) {
     fun opprettDokumentMedMetadata(clock: Clock): Dokument.MedMetadata {
+        // TODO - enkel løsning, men det er ikke ønskelig at domenet skal forholde seg til json
         val generertDokumentJson = createJson()
 
         return when (this.distribusjonstype) {

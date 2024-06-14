@@ -120,7 +120,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilU
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
-import no.nav.su.se.bakover.domain.sak.JournalførOgSendDokumentCommand
+import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -392,19 +392,19 @@ open class AccessCheckProxy(
                     return services.sak.hentSakForSøknad(søknadId)
                 }
 
-                override fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata> {
+                override fun genererFritekstbrevPåSak(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata> {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.sak.opprettFritekstDokument(request)
+                    return services.sak.genererFritekstbrevPåSak(request)
                 }
 
-                override fun genererLagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+                override fun genererLagreOgSendFritekstbrevPåSak(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.sak.genererLagreOgSendFritekstDokument(request)
+                    return services.sak.genererLagreOgSendFritekstbrevPåSak(request)
                 }
 
-                override fun lagreOgSendFritekstDokument(request: JournalførOgSendDokumentCommand): Dokument.MedMetadata {
+                override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.sak.lagreOgSendFritekstDokument(request)
+                    return services.sak.lagreOgSendOpplastetPdfPåSak(request)
                 }
 
                 override fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
