@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -75,6 +76,7 @@ interface SakService {
     fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
 
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
+    fun harFnrStønadForPeriode(fnr: Fnr, periode: PeriodeMedOptionalTilOgMed): Boolean
 }
 
 data object FantIkkeSak

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenla
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
+import no.nav.su.se.bakover.web.external.pensjonRoutes
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
@@ -59,6 +60,9 @@ internal fun Application.setupKtorRoutes(
     routing {
         authenticate("frikort") {
             frikortVedtakRoutes(services.vedtakService, clock)
+        }
+        authenticate("pensjon") {
+            pensjonRoutes(services.sak)
         }
 
         authenticate("jwt") {
