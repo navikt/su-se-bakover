@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.common.infrastructure.jobs
+package no.nav.su.se.bakover.common.infrastructure.job
 
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig

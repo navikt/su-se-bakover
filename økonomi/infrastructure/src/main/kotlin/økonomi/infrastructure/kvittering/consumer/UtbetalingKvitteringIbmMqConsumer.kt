@@ -1,5 +1,7 @@
 package økonomi.infrastructure.kvittering.consumer
 
+import arrow.core.Either
+import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
@@ -13,10 +15,12 @@ internal class UtbetalingKvitteringIbmMqConsumer(
     kvitteringQueueName: String,
     globalJmsContext: JMSContext,
     private val råKvitteringService: RåKvitteringService,
-) {
+) : StoppableConsumer {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
     private val consumer = jmsContext.createConsumer(jmsContext.createQueue(kvitteringQueueName))
+
+    override val consumerName = kvitteringQueueName
 
     // TODO: Vurder å gjøre om dette til en jobb som poller med receive, i stedet for asynkron messageListener
     //  Da slipper vi sannsynligvis exceptionListeneren og vi har litt mer kontroll på når/hvordan tråden kjører
@@ -40,5 +44,17 @@ internal class UtbetalingKvitteringIbmMqConsumer(
         jmsContext.setExceptionListener { exception -> log.error("Feil mot $kvitteringQueueName", exception) }
 
         jmsContext.start()
+    }
+
+    override fun stop() {
+        log.info("UtbetalingKvitteringIbmMqConsumer: Stopper JMSConsumer og JMSContext. Denne blokker til alle inflight meldinger er prosessert.")
+        Either.catch {
+            consumer.close()
+            jmsContext.close()
+        }.onLeft {
+            log.error("UtbetalingKvitteringIbmMqConsumer: Feil under stop().", it)
+        }.onRight {
+            log.info("UtbetalingKvitteringIbmMqConsumer: JMSConsumer og JMSContext stoppet.")
+        }
     }
 }

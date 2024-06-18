@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="sikkerLogg" level="INFO" additivity="false">
+    <logger name="sikkerLogg" level="DEBUG" additivity="false">
         <appender-ref ref="secureAppender"/>
     </logger>
 </included>
