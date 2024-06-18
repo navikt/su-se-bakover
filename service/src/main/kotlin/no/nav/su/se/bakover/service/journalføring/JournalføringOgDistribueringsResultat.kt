@@ -128,5 +128,11 @@ fun List<JournalføringOgDistribueringsResultat>.logResultat(logContext: String,
 fun List<JournalføringOgDistribueringsResultat>.ok(): List<UUID> =
     this.filterIsInstance<JournalføringOgDistribueringsResultat.Ok>().map { it.id }
 
-fun List<JournalføringOgDistribueringsResultat>.feil() =
-    this.filterIsInstance<JournalføringOgDistribueringsResultat.Feil>().map { it.id }
+/**
+ * denne brukes kun i context for logging
+ * Vi er kun interessert i faktiske feil, ikke at vi prøver for tidlig
+ */
+private fun List<JournalføringOgDistribueringsResultat>.feil() =
+    this.filterIsInstance<JournalføringOgDistribueringsResultat.Feil>().filterNot {
+        it.originalFeil is JournalføringOgDistribueringsFeil.Distribuering && it.originalFeil.originalFeil is KunneIkkeBestilleBrevForDokument.ForTidligÅPrøvePåNytt
+    }.map { it.id }
