@@ -16,6 +16,7 @@ import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalAmount
 import java.time.temporal.TemporalUnit
 import java.util.Date
+import kotlin.time.toJavaDuration
 
 private val tidspunktPresisjon: ChronoUnit = ChronoUnit.MICROS
 
@@ -77,6 +78,7 @@ private constructor(
     override fun hashCode() = instant.hashCode()
     override fun plus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.plus(amount, unit).toTidspunkt()
     override fun plus(amount: TemporalAmount): Tidspunkt = instant.plus(amount).toTidspunkt()
+    fun plus(duration: kotlin.time.Duration): Tidspunkt = instant.plus(duration.toJavaDuration()).toTidspunkt()
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
     fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), tidspunktPresisjon)

@@ -10,7 +10,9 @@ import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.pdfATom
@@ -113,10 +115,11 @@ internal class DokumentPostgresRepoTest {
 
             journalført.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
                 JournalpostId("jp"),
+                Failures.EMPTY,
             )
 
             dokumentRepo.oppdaterDokumentdistribusjon(
-                journalført.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                journalført.distribuerBrev(fixedClock) { BrevbestillingId("brev").right() }.getOrElse {
                     fail { "Skulle fått bestilt brev" }
                 },
             )
@@ -128,6 +131,7 @@ internal class DokumentPostgresRepoTest {
             journalførtOgBestiltBrev.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("jp"),
                 BrevbestillingId("brev"),
+                Failures.EMPTY,
             )
         }
     }
@@ -159,6 +163,7 @@ internal class DokumentPostgresRepoTest {
             journalførtDistribusjon.let {
                 it.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.Journalført(
                     JournalpostId("jp"),
+                    Failures.EMPTY,
                 )
                 it.dokument.distribueringsadresse shouldBe nyDistribueringsAdresse()
             }
@@ -193,7 +198,7 @@ internal class DokumentPostgresRepoTest {
                 dokumentdistribusjonUtenJournalpostIdOgBrevbestillingsId.journalfør { JournalpostId("jp").right() }
                     .getOrElse {
                         fail { "Skulle fått journalført" }
-                    }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                    }.distribuerBrev(fixedClock) { BrevbestillingId("brev").right() }.getOrElse {
                         fail { "Skulle fått bestilt brev" }
                     },
             )

@@ -16,13 +16,16 @@ import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import dokument.domain.hendelser.DokumentHendelseRepo
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsFeil
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.pdfATom
@@ -37,6 +40,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.Person
 import tilgangstyring.application.TilgangstyringService
+import java.time.Clock
 import java.time.Year
 import java.util.UUID
 
@@ -59,7 +63,12 @@ internal class DistribuerDokumentServiceTest {
     @Test
     fun `distribuerer dokumenter`() {
         val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
+            .copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                    JournalpostId("very"),
+                    Failures.EMPTY,
+                ),
+            )
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
         }
@@ -86,6 +95,7 @@ internal class DistribuerDokumentServiceTest {
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     JournalpostId("very"),
                     BrevbestillingId("id"),
+                    Failures.EMPTY,
                 ),
             ),
         )
@@ -94,7 +104,12 @@ internal class DistribuerDokumentServiceTest {
     @Test
     fun `distribuerer dokumentet til angitt adresse`() {
         val dokumentdistribusjon = dokumentdistribusjon(distribueringsadresse = nyDistribueringsAdresse())
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
+            .copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                    JournalpostId("very"),
+                    Failures.EMPTY,
+                ),
+            )
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
         }
@@ -120,6 +135,7 @@ internal class DistribuerDokumentServiceTest {
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     JournalpostId("very"),
                     BrevbestillingId("id"),
+                    Failures.EMPTY,
                 ),
             ),
         )
@@ -145,7 +161,7 @@ internal class DistribuerDokumentServiceTest {
                     )
             }
             verify(dokumentRepo).hentDokumenterForDistribusjon()
-            it.verifyNoMoreInteraction()
+            it.verifyNoMoreInteractions()
         }
     }
 
@@ -156,6 +172,7 @@ internal class DistribuerDokumentServiceTest {
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     JournalpostId("very"),
                     BrevbestillingId("happy"),
+                    Failures.EMPTY,
                 ),
             )
         val dokumentRepo = mock<DokumentRepo> {
@@ -171,15 +188,20 @@ internal class DistribuerDokumentServiceTest {
                 it.first().brevbestillingsId shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.brevbestillingsId()
             }
             verify(dokumentRepo).hentDokumenterForDistribusjon()
-            it.verifyNoMoreInteraction()
+            it.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `distribuer dokument - feil ved bestilling av brev`() {
         val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("sad")))
-        val dokumentRepo = mock<DokumentRepo> {
+            .copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                    JournalpostId("sad"),
+                    Failures.EMPTY,
+                ),
+            )
+        val dokumentRepoMock = mock<DokumentRepo> {
             on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
         }
         val dokDistMock = mock<DokDistFordeling> {
@@ -188,7 +210,7 @@ internal class DistribuerDokumentServiceTest {
 
         ServiceOgMocks(
             dokDistFordeling = dokDistMock,
-            dokumentRepo = dokumentRepo,
+            dokumentRepo = dokumentRepoMock,
         ).let {
             it.dokumentService.distribuer().let {
                 it.size shouldBe 1
@@ -199,14 +221,24 @@ internal class DistribuerDokumentServiceTest {
                         KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev,
                     )
             }
-            verify(dokumentRepo).hentDokumenterForDistribusjon()
+            verify(dokumentRepoMock).hentDokumenterForDistribusjon()
             verify(dokDistMock).bestillDistribusjon(
                 JournalpostId("sad"),
                 Distribusjonstype.VEDTAK,
                 distribusjonstidspunkt,
                 null,
             )
-            it.verifyNoMoreInteraction()
+            verify(dokumentRepoMock).oppdaterDokumentdistribusjon(
+                argThat {
+                    it shouldBe dokumentdistribusjon.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                            journalpostId = JournalpostId("sad"),
+                            distribusjonFailures = Failures(count = 1, last = Tidspunkt.now(fixedClock)),
+                        ),
+                    )
+                },
+            )
+            it.verifyNoMoreInteractions()
         }
     }
 
@@ -216,6 +248,7 @@ internal class DistribuerDokumentServiceTest {
         val dokumentHendelseRepo: DokumentHendelseRepo = mock(),
         val distribuerDokumentHendelserKonsument: DistribuerDokumentHendelserKonsument = mock(),
         val tilgangstyringService: TilgangstyringService = mock(),
+        val clock: Clock = fixedClock,
     ) {
         val dokumentService = DistribuerDokumentService(
             dokDistFordeling = dokDistFordeling,
@@ -223,9 +256,10 @@ internal class DistribuerDokumentServiceTest {
             dokumentHendelseRepo = dokumentHendelseRepo,
             distribuerDokumentHendelserKonsument = distribuerDokumentHendelserKonsument,
             tilgangstyringService = tilgangstyringService,
+            clock = clock,
         )
 
-        fun verifyNoMoreInteraction() {
+        fun verifyNoMoreInteractions() {
             verifyNoMoreInteractions(dokDistFordeling, dokumentRepo)
         }
     }

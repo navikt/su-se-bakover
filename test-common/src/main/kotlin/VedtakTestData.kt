@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
@@ -412,6 +413,7 @@ val journalpostIdVedtak = JournalpostId("journalpostIdVedtak")
 val brevbestillingIdVedtak = BrevbestillingId("brevbestillingIdVedtak")
 val journalført: JournalføringOgBrevdistribusjon.Journalført = JournalføringOgBrevdistribusjon.Journalført(
     journalpostId = journalpostIdVedtak,
+    distribusjonFailures = Failures.EMPTY,
 )
 
 @Suppress("unused")
@@ -419,4 +421,5 @@ val journalførtOgDistribuertBrev: JournalføringOgBrevdistribusjon.Journalført
     JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
         journalpostId = journalpostIdVedtak,
         brevbestillingId = brevbestillingIdVedtak,
+        distribusjonFailures = Failures.EMPTY,
     )

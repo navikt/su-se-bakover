@@ -1,14 +1,21 @@
 package dokument.domain
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
 import dokument.domain.brev.BrevbestillingId
+import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
+import no.nav.su.se.bakover.common.domain.backoff.Failures
+import no.nav.su.se.bakover.common.domain.backoff.shouldRetry
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import java.time.Clock
 
 sealed interface JournalføringOgBrevdistribusjon {
     fun journalpostId(): JournalpostId?
     fun brevbestillingsId(): BrevbestillingId?
+    val distribusjonFailures: Failures
+    fun incDistribusjonFailures(clock: Clock): JournalføringOgBrevdistribusjon
     fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Journalført> {
         return when (this) {
             is IkkeJournalførtEllerDistribuert -> {
@@ -25,50 +32,84 @@ sealed interface JournalføringOgBrevdistribusjon {
         }
     }
 
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
+    fun distribuerBrev(
+        clock: Clock,
+        ignoreBackoff: Boolean = false,
+        distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeBestilleDistribusjon, BrevbestillingId>,
+    ): Either<KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
         return when (this) {
             is IkkeJournalførtEllerDistribuert -> {
-                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
+                KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
             }
 
             is Journalført -> {
-                distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
+                if (ignoreBackoff) {
+                    distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
+                        .mapLeft { KunneIkkeDistribuereBrev.OppdatertFailures(this.incDistribusjonFailures(clock)) }
+                } else {
+                    shouldRetryDistribusjon(clock).mapLeft {
+                        KunneIkkeDistribuereBrev.ForTidligÅPrøvePåNytt
+                    }.flatMap {
+                        distribuerBrev(journalpostId)
+                            .mapLeft { KunneIkkeDistribuereBrev.OppdatertFailures(this.incDistribusjonFailures(clock)) }
+                            .map { this.medDistribuertBrev(it) }
+                    }
+                }
             }
 
             is JournalførtOgDistribuertBrev -> {
-                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(journalpostId)
-                    .left()
+                KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(journalpostId, brevbestillingId).left()
             }
         }
     }
 
     data object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon {
-        fun medJournalpost(journalpostId: JournalpostId): Journalført = Journalført(journalpostId)
+        override val distribusjonFailures: Failures = Failures.EMPTY
+        fun medJournalpost(journalpostId: JournalpostId): Journalført = Journalført(journalpostId, distribusjonFailures)
 
         override fun journalpostId(): JournalpostId? = null
         override fun brevbestillingsId(): BrevbestillingId? = null
+        override fun incDistribusjonFailures(clock: Clock) =
+            throw java.lang.IllegalStateException("Kan ikke inkrementere failures for JournalførtOgDistribuertBrev")
     }
 
-    data class Journalført(val journalpostId: JournalpostId) : JournalføringOgBrevdistribusjon {
+    data class Journalført(
+        val journalpostId: JournalpostId,
+        override val distribusjonFailures: Failures,
+    ) : JournalføringOgBrevdistribusjon {
+
         fun medDistribuertBrev(brevbestillingId: BrevbestillingId): JournalførtOgDistribuertBrev =
-            JournalførtOgDistribuertBrev(journalpostId, brevbestillingId)
+            JournalførtOgDistribuertBrev(journalpostId, brevbestillingId, distribusjonFailures)
 
         override fun journalpostId() = journalpostId
         override fun brevbestillingsId(): BrevbestillingId? = null
+
+        fun shouldRetryDistribusjon(clock: Clock): Either<Unit, JournalføringOgBrevdistribusjon> {
+            return distribusjonFailures.shouldRetry(clock).map {
+                this.copy(distribusjonFailures = it)
+            }
+        }
+
+        override fun incDistribusjonFailures(clock: Clock) =
+            this.copy(distribusjonFailures = distribusjonFailures.inc(clock))
     }
 
     data class JournalførtOgDistribuertBrev(
         val journalpostId: JournalpostId,
         val brevbestillingId: BrevbestillingId,
+        override val distribusjonFailures: Failures,
     ) : JournalføringOgBrevdistribusjon {
         override fun journalpostId() = journalpostId
         override fun brevbestillingsId(): BrevbestillingId = brevbestillingId
+        override fun incDistribusjonFailures(clock: Clock) =
+            throw java.lang.IllegalStateException("Kan ikke inkrementere failures for JournalførtOgDistribuertBrev")
     }
 
     companion object {
         fun fromId(
             iverksattJournalpostId: JournalpostId?,
             iverksattBrevbestillingId: BrevbestillingId?,
+            distribusjonFailures: Failures,
         ): JournalføringOgBrevdistribusjon = when {
             iverksattJournalpostId == null && iverksattBrevbestillingId == null -> {
                 IkkeJournalførtEllerDistribuert
@@ -78,11 +119,12 @@ sealed interface JournalføringOgBrevdistribusjon {
                 JournalførtOgDistribuertBrev(
                     journalpostId = iverksattJournalpostId,
                     brevbestillingId = iverksattBrevbestillingId,
+                    distribusjonFailures = distribusjonFailures,
                 )
             }
 
             iverksattJournalpostId != null -> {
-                Journalført(iverksattJournalpostId)
+                Journalført(iverksattJournalpostId, distribusjonFailures)
             }
 
             else -> {
@@ -106,13 +148,35 @@ sealed interface JournalføringOgBrevdistribusjon {
                 is JournalførtOgDistribuertBrev -> e.brevbestillingId
             }
     }
+
+    sealed interface KunneIkkeDistribuereBrev {
+        data object MåJournalføresFørst : KunneIkkeDistribuereBrev
+        data class AlleredeDistribuertBrev(
+            val journalpostId: JournalpostId,
+            val brevbestillingId: BrevbestillingId,
+        ) : KunneIkkeDistribuereBrev
+
+        data class OppdatertFailures(
+            val journalføringOgBrevdistribusjon: Journalført,
+        ) : KunneIkkeDistribuereBrev
+
+        data object ForTidligÅPrøvePåNytt : KunneIkkeDistribuereBrev
+    }
 }
 
 sealed interface KunneIkkeJournalføreOgDistribuereBrev {
     sealed interface KunneIkkeDistribuereBrev : KunneIkkeJournalføreOgDistribuereBrev {
         data object MåJournalføresFørst : KunneIkkeDistribuereBrev
-        data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev
-        data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev
+        data class AlleredeDistribuertBrev(
+            val journalpostId: JournalpostId,
+            val brevbestillingId: BrevbestillingId,
+        ) : KunneIkkeDistribuereBrev
+        data class OppdatertFailures(
+            val journalpostId: JournalpostId,
+            val dokumentdistribusjon: Dokumentdistribusjon,
+        ) : KunneIkkeDistribuereBrev
+
+        data object ForTidligÅPrøvePåNytt : KunneIkkeDistribuereBrev
     }
 
     sealed interface KunneIkkeJournalføre : KunneIkkeJournalføreOgDistribuereBrev {

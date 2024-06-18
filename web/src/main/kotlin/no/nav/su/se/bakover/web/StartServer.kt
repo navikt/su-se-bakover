@@ -191,6 +191,7 @@ fun Application.susebakover(
         dokumentHendelseRepo = dokumentkomponenter.repos.dokumentHendelseRepo,
         distribuerDokumentHendelserKonsument = dokumentkomponenter.services.distribuerDokumentHendelserKonsument,
         tilgangstyringService = tilgangstyringService,
+        clock = clock,
     ),
     extraRoutes: Route.(services: Services) -> Unit = {},
 ) {

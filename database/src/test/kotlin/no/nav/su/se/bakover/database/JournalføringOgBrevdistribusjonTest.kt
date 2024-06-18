@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -16,6 +17,7 @@ internal class JournalføringOgBrevdistribusjonTest {
             JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = null,
                 iverksattBrevbestillingId = null,
+                distribusjonFailures = Failures.EMPTY,
             ) shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.also {
                 JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe null
                 JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
@@ -27,7 +29,11 @@ internal class JournalføringOgBrevdistribusjonTest {
             JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null,
-            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
+                distribusjonFailures = Failures.EMPTY,
+            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(
+                JournalpostId("13"),
+                Failures.EMPTY,
+            ).also {
                 JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
                 JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
@@ -38,9 +44,11 @@ internal class JournalføringOgBrevdistribusjonTest {
             JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45"),
+                distribusjonFailures = Failures.EMPTY,
             ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45"),
+                Failures.EMPTY,
             ).also {
                 JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
                 JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
@@ -53,6 +61,7 @@ internal class JournalføringOgBrevdistribusjonTest {
                 JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45"),
+                    distribusjonFailures = Failures.EMPTY,
                 )
             }
         }
@@ -65,7 +74,8 @@ internal class JournalføringOgBrevdistribusjonTest {
             JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null,
-            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
+                distribusjonFailures = Failures.EMPTY,
+            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13"), Failures.EMPTY).also {
                 JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
                 JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
@@ -76,9 +86,11 @@ internal class JournalføringOgBrevdistribusjonTest {
             JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45"),
+                distribusjonFailures = Failures.EMPTY,
             ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45"),
+                Failures.EMPTY,
             ).also {
                 JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
                 JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
@@ -91,6 +103,7 @@ internal class JournalføringOgBrevdistribusjonTest {
                 JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45"),
+                    distribusjonFailures = Failures.EMPTY,
                 )
             }
         }
