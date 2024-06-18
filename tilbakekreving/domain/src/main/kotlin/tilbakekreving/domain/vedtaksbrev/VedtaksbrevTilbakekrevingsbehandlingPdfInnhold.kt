@@ -17,6 +17,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     val fritekst: String?,
     val dato: String,
     val månedsoversiktMedSum: MånedsoversiktMedSum,
+    val skalTilbakekreve: Boolean,
 ) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
 
@@ -37,6 +38,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
                 // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
                 dato = LocalDate.now(clock).toBrevformat(),
                 månedsoversiktMedSum = command.vurderingerMedKrav.månedsoversiktMedSum(),
+                skalTilbakekreve = command.skalTilbakekreve,
             )
         }
     }

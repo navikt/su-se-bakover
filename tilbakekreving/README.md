@@ -4,6 +4,9 @@
 
 
 
+#### Tester
+Tester for tilbakekreving er stort sett gjort gjennom regresjonstester. Mindre unit-tester finnes 
+
 
 #### Flytdiagram
 ![Flytdiagram](./tilbakekreving-diagram.png)

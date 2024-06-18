@@ -51,6 +51,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 },
                 fritekst = behandling.vedtaksbrevvalg?.fritekst,
                 vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+                skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves() ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
             ),
         )
             .map { it.generertDokument }

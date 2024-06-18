@@ -42,6 +42,10 @@ data class VurderingerMedKrav private constructor(
         }
     }
 
+    fun minstEnPeriodeSkalTilbakekreves(): Boolean = perioder.any {
+        it is PeriodevurderingMedKrav.SkalTilbakekreve
+    }
+
     companion object {
         fun utledFra(
             vurderinger: Vurderinger,

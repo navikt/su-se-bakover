@@ -4,7 +4,9 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
 import no.nav.su.se.bakover.test.nyVurderinger
 import org.junit.jupiter.api.Test
@@ -30,5 +32,29 @@ class VurderingerMedKravTest {
             vurderinger = vurderingSomIkkeSamsvarerMedKravgrunnlag,
             kravgrunnlag = kravgrunnlag,
         ) shouldBe KunneIkkeVurdereTilbakekrevingsbehandling.VurderingeneStemmerIkkeOverensMedKravgrunnlaget.left()
+    }
+
+    @Test
+    fun `har minst en periode som skal tilbakekreves`() {
+        val kravgrunnlag = kravgrunnlag()
+        val vurderingSomSamsvarerMedKravgrunnlag = nyVurderinger()
+        VurderingerMedKrav.utledFra(
+            vurderinger = vurderingSomSamsvarerMedKravgrunnlag,
+            kravgrunnlag = kravgrunnlag,
+        ).getOrFail().minstEnPeriodeSkalTilbakekreves() shouldBe true
+    }
+
+    @Test
+    fun `har ingen perioder som skal tilbakekreves`() {
+        val kravgrunnlag = kravgrunnlag()
+        val vurderingSomSamsvarerMedKravgrunnlag = nyVurderinger(
+            perioderVurderinger = nonEmptyListOf(
+                Vurderinger.Periodevurdering(periode = januar(2021), vurdering = Vurdering.SkalIkkeTilbakekreve),
+            ),
+        )
+        VurderingerMedKrav.utledFra(
+            vurderinger = vurderingSomSamsvarerMedKravgrunnlag,
+            kravgrunnlag = kravgrunnlag,
+        ).getOrFail().minstEnPeriodeSkalTilbakekreves() shouldBe false
     }
 }

@@ -123,7 +123,7 @@ sealed interface UnderBehandling :
     }
 
     /**
-     * Når vi først er utfylt, kan vi ikke gå tilbake til påbegynt.
+     * Når vi først er utfylt, kan vi ikke gå tilbake til påbegynt (med unntak av oppdatering av kravgrunnlag).
      * Lovelige overganger er:
      *   * [AvbruttTilbakekrevingsbehandling]
      *   * [TilbakekrevingsbehandlingTilAttestering]

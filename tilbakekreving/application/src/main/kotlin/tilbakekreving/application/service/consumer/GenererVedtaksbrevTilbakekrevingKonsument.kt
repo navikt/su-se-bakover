@@ -148,6 +148,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             attestant = iverksattHendelse.utførtAv,
             fritekst = (behandling.vedtaksbrevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
             vurderingerMedKrav = behandling.vurderingerMedKrav,
+            skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
         )
 
         val dokument = brevService.lagDokument(command = command)
