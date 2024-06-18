@@ -41,10 +41,15 @@ sealed interface JournalføringOgDistribueringsResultat {
         ): JournalføringOgDistribueringsResultat {
             return this.fold(
                 ifLeft = {
-                    log.error(
-                        "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
+                    when (it) {
+                        KunneIkkeBestilleBrevForDokument.ForTidligÅPrøvePåNytt -> log.info("Kunne ikke distribuere ${distribusjon.id} fordi det er for tidlig å prøve på nytt for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}")
+                        KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev,
+                        KunneIkkeBestilleBrevForDokument.MåJournalføresFørst,
+                        -> log.error(
+                            "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}",
+                            RuntimeException("Genererer en stacktrace for enklere debugging."),
+                        )
+                    }
                     Feil(
                         distribusjon.id,
                         distribusjon.journalføringOgBrevdistribusjon.journalpostId(),
@@ -117,10 +122,23 @@ fun List<JournalføringOgDistribueringsResultat>.logResultat(logContext: String,
     this.ifNotEmpty {
         val ok = this.ok()
         val feil = this.feil()
-        if (feil.isEmpty()) {
-            log.info("$logContext $ok")
+        if (feil.second.isEmpty()) {
+            log.info(
+                """
+                $logContext ferdig:
+                Distribueringer som gikk ok: $ok
+                Distribueringer som er blitt ignorert: ${feil.first}
+                """.trimIndent(),
+            )
         } else {
-            log.error("$logContext feilet: $feil. Disse gikk ok: $ok")
+            log.error(
+                """
+                    $logContext feilet:
+                    Distribueringer som feilet: ${feil.second}
+                    Distribueringer som gikk ok: $ok
+                    Distribueringer som er blitt ignorert: ${feil.first}
+                """.trimIndent(),
+            )
         }
     }
 }
@@ -130,9 +148,12 @@ fun List<JournalføringOgDistribueringsResultat>.ok(): List<UUID> =
 
 /**
  * denne brukes kun i context for logging
- * Vi er kun interessert i faktiske feil, ikke at vi prøver for tidlig
+ *
+ * @return Pair<Feil som er for tidlig å prøve på nytt, faktisk feil>
  */
-private fun List<JournalføringOgDistribueringsResultat>.feil() =
-    this.filterIsInstance<JournalføringOgDistribueringsResultat.Feil>().filterNot {
+private fun List<JournalføringOgDistribueringsResultat>.feil(): Pair<List<UUID>, List<UUID>> =
+    this.filterIsInstance<JournalføringOgDistribueringsResultat.Feil>().partition {
         it.originalFeil is JournalføringOgDistribueringsFeil.Distribuering && it.originalFeil.originalFeil is KunneIkkeBestilleBrevForDokument.ForTidligÅPrøvePåNytt
-    }.map { it.id }
+    }.let {
+        it.first.map { it.id } to it.second.map { it.id }
+    }
