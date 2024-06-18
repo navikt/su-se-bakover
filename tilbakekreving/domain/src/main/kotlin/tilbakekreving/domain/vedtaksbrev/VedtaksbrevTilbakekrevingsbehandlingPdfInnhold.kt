@@ -18,6 +18,10 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
     val dato: String,
     val månedsoversiktMedSum: MånedsoversiktMedSum,
     val skalTilbakekreve: Boolean,
+    /**
+     * Summen av brutto beløp som skal ikke tilbakekreves. Dette vises dersom `skalTilbakekreve` er false.
+     */
+    val bruttoSkalIkkeTilbakekreveSummert: Int,
 ) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
 
@@ -39,6 +43,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
                 dato = LocalDate.now(clock).toBrevformat(),
                 månedsoversiktMedSum = command.vurderingerMedKrav.månedsoversiktMedSum(),
                 skalTilbakekreve = command.skalTilbakekreve,
+                bruttoSkalIkkeTilbakekreveSummert = command.vurderingerMedKrav.bruttoSkalIkkeTilbakekreveSummert,
             )
         }
     }

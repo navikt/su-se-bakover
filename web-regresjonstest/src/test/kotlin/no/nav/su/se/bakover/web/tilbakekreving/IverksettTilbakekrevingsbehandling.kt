@@ -187,7 +187,8 @@ private fun AppComponents.verifiserDokumenterPåSak(
                             "sumNettoSkalTilbakekreve":0
                           },
                           "sakstype":"UFØRE",
-                          "erAldersbrev":false
+                          "erAldersbrev":false,
+                          "bruttoSkalIkkeTilbakekreveSummert": 2383
                         }
                 """.trimIndent(),
                 actual = it.generertDokumentJson,
