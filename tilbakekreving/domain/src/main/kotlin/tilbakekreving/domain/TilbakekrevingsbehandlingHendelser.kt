@@ -77,11 +77,19 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             Tilbakekrevingsbehandlinger.empty(sakId)
         } else {
             toCurrentState().also {
-                it.behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>().let {
-                    if (it.size > 1) {
-                        throw IllegalStateException("Kun én iverksatt tilbakekrevingsbehandling kan referere til ett kravgrunnlag, men fant disse IDene: ${it.map { it.id }}")
+                it.behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>()
+                    .also { iverksattTilbakekrevingsbehandlinger ->
+                        iverksattTilbakekrevingsbehandlinger.map { it.kravgrunnlag.eksternKravgrunnlagId }.also {
+                            if (it.distinct().size != it.size) {
+                                throw IllegalStateException("Kun én iverksatt tilbakekrevingsbehandling kan referere til ett kravgrunnlag, men fant disse eksternKravgrunnlagIdene: $it")
+                            }
+                        }
+                        iverksattTilbakekrevingsbehandlinger.map { it.kravgrunnlag.eksternVedtakId }.also {
+                            if (it.distinct().size != it.size) {
+                                throw IllegalStateException("Kun én iverksatt tilbakekrevingsbehandling kan referere til ett kravgrunnlag, men fant disse eksternVedtakId: $it")
+                            }
+                        }
                     }
-                }
             }
         }
     }
@@ -98,7 +106,9 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                         hendelseId to hendelse.toDomain(
                             fnr = fnr,
                             kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId) != kravgrunnlagsDetaljer.kravgrunnlag,
+                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(
+                                kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId,
+                            ) != kravgrunnlagsDetaljer.kravgrunnlag,
                         ),
                     )
                 }
