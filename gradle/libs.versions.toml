@@ -99,7 +99,7 @@ commons-compress = { group = "org.apache.commons", name = "commons-compress", ve
 
 bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version = "1.78.1"}
 
-jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.1"}
+jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.3"}
 
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version = "5.3.1"}
 
