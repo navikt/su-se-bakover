@@ -34,7 +34,7 @@ class Tidspunkt
 private constructor(
     @JsonValue
     val instant: Instant,
-) : Temporal by instant, TemporalAdjuster by instant, Comparable<Instant> by instant, Serializable by instant {
+) : Temporal by instant, TemporalAdjuster by instant, Comparable<Tidspunkt>, Serializable by instant {
 
     init {
         val maxNanoPrecision = when (tidspunktPresisjon) {
@@ -67,11 +67,11 @@ private constructor(
         else -> false
     }
 
-    override fun compareTo(other: Instant): Int {
+    operator fun compareTo(other: Instant): Int {
         return this.instant.compareTo(other.truncatedTo(tidspunktPresisjon))
     }
 
-    operator fun compareTo(other: Tidspunkt): Int {
+    override fun compareTo(other: Tidspunkt): Int {
         return this.instant.compareTo(other.instant.truncatedTo(tidspunktPresisjon))
     }
 

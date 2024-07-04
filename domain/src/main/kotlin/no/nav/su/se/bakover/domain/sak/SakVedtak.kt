@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.sak
 
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import vedtak.domain.Vedtak
@@ -44,4 +45,11 @@ fun Sak.hentVedtakForIdEllerKast(vedtakId: UUID): Vedtak {
 
 fun Sak.hentVedtakForId(vedtakId: UUID): Vedtak? {
     return this.vedtakListe.find { it.id == vedtakId }
+}
+
+/**
+ * Henter siste vedtakstidspunkt for en sak. I.e. Vedtak.opprettet.
+ */
+fun Sak.sisteVedtakstidpunkt(): Tidspunkt? {
+    return this.vedtakListe.map { it.opprettet }.maxByOrNull { it } ?: null
 }

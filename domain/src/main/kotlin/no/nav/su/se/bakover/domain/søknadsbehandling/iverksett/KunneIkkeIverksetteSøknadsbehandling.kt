@@ -10,6 +10,7 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     ) : KunneIkkeIverksetteSøknadsbehandling
 
     data object SimuleringFørerTilFeilutbetaling : KunneIkkeIverksetteSøknadsbehandling
+    data object BeregningstidspunktErFørSisteVedtak : KunneIkkeIverksetteSøknadsbehandling
 
     /**
      * En stønadsperiode kan ikke overlappe tidligere stønadsperioder som har utbetalte måneder eller måneder som kommer til å bli utbetalt.

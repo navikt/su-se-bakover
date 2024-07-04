@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
+import no.nav.su.se.bakover.domain.sak.sisteVedtakstidpunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.fromSøknadsbehandlingInnvilget
@@ -47,8 +48,10 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
     either {
+        // John Are's vurdering: I utgangspunktet kan sjekken være der, det er kun når vi tar en sak med sivilstandsendring at vi kan komme borti feilutbetalinger og i de tilfellene så virker sjekken slik den skal.
         validerFeilutbetalinger(søknadsbehandling).bind()
         validerGjeldendeVedtak(søknadsbehandling).bind()
+        validerBeregningstidspunkt(søknadsbehandling).bind()
     }.onLeft {
         return it.left()
     }
@@ -107,6 +110,16 @@ private fun validerFeilutbetalinger(søknadsbehandling: SøknadsbehandlingTilAtt
         log.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Se sikkerlogg for simuleringsdetaljer.")
         sikkerLogg.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Simulering: ${søknadsbehandling.simulering}")
         return KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling.left()
+    }
+    return Unit.right()
+}
+
+private fun Sak.validerBeregningstidspunkt(søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.BeregningstidspunktErFørSisteVedtak, Unit> {
+    this.sisteVedtakstidpunkt()?.also {
+        // Kommentar jah: Denne sjekken kan forbedres. Vi ønsker egentlig at simuleringen under søknadsbehandlingen vi får fra oppdrag skal være basert på siste utbetalingslinje vi har sendt de. Da kan vi plukke opp blant annet feilutbetalinger.
+        if (søknadsbehandling.beregning.getOpprettet() <= it) {
+            return KunneIkkeIverksetteSøknadsbehandling.BeregningstidspunktErFørSisteVedtak.left()
+        }
     }
     return Unit.right()
 }

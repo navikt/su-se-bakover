@@ -75,6 +75,11 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
             code = "simulering_fører_til_feilutbetaling",
         )
 
+        is KunneIkkeIverksetteSøknadsbehandling.BeregningstidspunktErFørSisteVedtak -> HttpStatusCode.BadRequest.errorJson(
+            message = "Beregningstidspunkt er før siste vedtak.",
+            code = "beregningstidspunkt_er_før_siste_vedtak",
+        )
+
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
     }
