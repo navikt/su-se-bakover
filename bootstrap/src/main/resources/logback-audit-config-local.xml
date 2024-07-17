@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="auditLogger" level="INFO" additivity="false">
+    <logger name="auditLogger" level="DEBUG" additivity="false">
         <appender-ref ref="auditLogger"/>
     </logger>
 </included>

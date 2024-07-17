@@ -5,14 +5,15 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import no.nav.su.se.bakover.common.infrastructure.JobberOgConsumers
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
-import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
-import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
-import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
-import økonomi.infrastructure.kvittering.job.KvitteringshendelseJob
+import økonomi.infrastructure.kvittering.job.LokalKvitteringJob
+import økonomi.infrastructure.kvittering.job.UtbetalingskvitteringshendelseJob
+import økonomi.infrastructure.kvittering.lokal.LokalKvitteringService
 import java.time.Duration
 
 /**
@@ -29,38 +30,50 @@ fun startAsynkroneUtbetalingsprosesser(
     runCheckFactory: RunCheckFactory,
     initalDelay: () -> Duration,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
-) {
-    if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        // Har en init som starter consumern.
-        UtbetalingKvitteringIbmMqConsumer(
-            kvitteringQueueName = oppdragConfig.utbetaling.mqReplyTo,
-            globalJmsContext = jmsConfig.jmsContext,
-            råKvitteringService = utbetalingskvitteringKomponenter.råKvitteringService,
-        )
-
-        KvitteringshendelseJob(
-            knyttKvitteringTilSakOgUtbetalingService = utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService,
-            initialDelay = initalDelay(),
-            intervall = Duration.ofMinutes(1),
-            runCheckFactory = runCheckFactory,
-            ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
-        ).schedule()
-    } else {
-        LokalKvitteringJob(
-            lokalKvitteringService = LokalKvitteringService(
-                utbetalingRepo = utbetalingRepo,
-                råKvitteringService = utbetalingskvitteringKomponenter.råKvitteringService,
-                knyttKvitteringTilSakOgUtbetalingService = utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService,
-                ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
+): JobberOgConsumers {
+    return if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+        JobberOgConsumers(
+            consumers = listOf(
+                // Har en init som starter consumern.
+                UtbetalingKvitteringIbmMqConsumer(
+                    kvitteringQueueName = oppdragConfig.utbetaling.mqReplyTo,
+                    globalJmsContext = jmsConfig.jmsContext,
+                    råKvitteringService = utbetalingskvitteringKomponenter.råKvitteringService,
+                ),
             ),
-            intervall = Duration.ofSeconds(5),
-            initialDelay = initalDelay(),
-        ).schedule()
+            jobs = listOf(
+                UtbetalingskvitteringshendelseJob.startJob(
+                    knyttKvitteringTilSakOgUtbetalingService = utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService,
+                    initialDelay = initalDelay(),
+                    intervall = Duration.ofMinutes(1),
+                    runCheckFactory = runCheckFactory,
+                    ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
+                ),
+            ),
+        )
+    } else {
+        val lokalKvitteringService = LokalKvitteringService(
+            utbetalingRepo = utbetalingRepo,
+            råKvitteringService = utbetalingskvitteringKomponenter.råKvitteringService,
+            knyttKvitteringTilSakOgUtbetalingService = utbetalingskvitteringKomponenter.knyttKvitteringTilSakOgUtbetalingService,
+            ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
+        )
+        JobberOgConsumers(
+            consumers = emptyList(),
+            jobs = listOf(
+                LokalKvitteringJob.startJob(
+                    lokalKvitteringService = lokalKvitteringService,
+                    intervall = Duration.ofSeconds(5),
+                    initialDelay = initalDelay(),
+                ),
+            ),
+        )
     }
 }
 
-val xmlMapperForUtbetalingskvittering: XmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
-    registerModule(KotlinModule.Builder().build())
-    registerModule(JavaTimeModule())
-    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-}
+val xmlMapperForUtbetalingskvittering: XmlMapper =
+    XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
+        registerModule(KotlinModule.Builder().build())
+        registerModule(JavaTimeModule())
+        disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    }

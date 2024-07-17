@@ -1,50 +1,33 @@
 package no.nav.su.se.bakover.web.services
 
-import arrow.core.Either
-import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
-import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
-import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import java.net.InetAddress
 import java.time.Duration
-import kotlin.concurrent.fixedRateTimer
 
 internal class SendPåminnelseNyStønadsperiodeJob(
-    private val intervall: Duration,
-    private val initialDelay: Duration,
-    private val sendPåminnelseService: SendPåminnelserOmNyStønadsperiodeService,
-    private val runCheckFactory: RunCheckFactory,
-) {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
-    private val jobName = "SendPåminnelseNyStønadsperiodeJob"
-
-    private val toggle = "supstonad.ufore.automatisk.paaminnelse.ny.stonadsperiode"
-
-    fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med periode: $intervall. Mitt hostnavn er $hostName.")
-
-        fixedRateTimer(
-            name = jobName,
-            daemon = true,
-            period = intervall.toMillis(),
-            initialDelay = initialDelay.toMillis(),
-        ) {
-            Either.catch {
-                withCorrelationId {
-                    listOf(
-                        runCheckFactory.leaderPod(),
-                    ).shouldRun().ifTrue {
-                        sendPåminnelseService.sendPåminnelser()
-                    }
-                }
-            }.mapLeft {
-                log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
+    private val stoppableJob: StoppableJob,
+) : StoppableJob by stoppableJob {
+    companion object {
+        fun startJob(
+            intervall: Duration,
+            initialDelay: Duration,
+            sendPåminnelseService: SendPåminnelserOmNyStønadsperiodeService,
+            runCheckFactory: RunCheckFactory,
+        ): SendPåminnelseNyStønadsperiodeJob {
+            return startStoppableJob(
+                jobName = "SendPåminnelseNyStønadsperiodeJob",
+                initialDelay = initialDelay,
+                intervall = intervall,
+                log = LoggerFactory.getLogger(SendPåminnelseNyStønadsperiodeJob::class.java),
+                runJobCheck = listOf(runCheckFactory.leaderPod()),
+            ) {
+                sendPåminnelseService.sendPåminnelser()
+            }.let {
+                SendPåminnelseNyStønadsperiodeJob(it)
             }
         }
     }
-
-    private val hostName = InetAddress.getLocalHost().hostName
 }

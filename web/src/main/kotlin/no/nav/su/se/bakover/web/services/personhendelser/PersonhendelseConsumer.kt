@@ -5,9 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -23,6 +25,10 @@ import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
+/**
+ * Kafka-consumer for å konsumere personhendelser fra PDL.
+ * Starter konsumering i init.
+ */
 class PersonhendelseConsumer(
     private val consumer: Consumer<String, EksternPersonhendelse>,
     private val personhendelseService: PersonhendelseService,
@@ -32,13 +38,17 @@ class PersonhendelseConsumer(
     private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
     private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
     private val clock: Clock,
-) {
+) : StoppableConsumer {
+
+    override val consumerName = topicName
+
+    private val job: Job
 
     init {
         log.info("Personhendelse: Setter opp Kafka-Consumer som lytter på $topicName fra PDL")
         consumer.subscribe(listOf(topicName))
 
-        CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(Dispatchers.IO).launch {
             while (this.isActive) {
                 Either.catch {
                     withCorrelationIdSuspend {
@@ -56,6 +66,14 @@ class PersonhendelseConsumer(
                     consumer.enforceRebalance()
                     delay(60.seconds)
                 }
+            }
+            log.info("Personhendelse: Stopper konsumering og frigjør ressurser.")
+            Either.catch {
+                consumer.close()
+            }.onLeft {
+                log.error("Personhendelse: Feil ved lukking av consumer.", it)
+            }.onRight {
+                log.info("Personhendelse: Consumer lukket.")
             }
         }
     }
@@ -85,9 +103,8 @@ class PersonhendelseConsumer(
             consumer.commitSync(processedMessages)
         }
         log.debug(
-            "Personhendelse: Prosessert ferdig meldingene. Siste var til og med: ${
-                messages.last().value().opprettet
-            })",
+            "Personhendelse: Prosessert ferdig meldingene. Siste var til og med: {})",
+            messages.last().value().opprettet,
         )
     }
 
@@ -117,6 +134,17 @@ class PersonhendelseConsumer(
             )
             sikkerLogg.error("Personhendelse: Ukjent feil ved konsumering av personhendelse. Message: $message", it)
             Unit.left()
+        }
+    }
+
+    override fun stop() {
+        log.info("Personhendelse: Stopper konsumering av hendelser. Inflight meldinger vil bli prosessert ferdig.")
+        Either.catch {
+            job.cancel()
+        }.onLeft {
+            log.error("Personhendelse: Feil ved kanselliering av Couroutine Job", it)
+        }.onRight {
+            log.info("Personhendelse: Corutine Job kansellert. Inflight meldinger vil bli prosessert ferdig.")
         }
     }
 }
