@@ -37,7 +37,7 @@ internal class KonsistensavstemmingJobTest {
             clock = fixedClock,
             runCheckFactory = RunCheckFactory(
                 leaderPodLookup = mock {
-                    on { amITheLeader(any()) } doReturn false.right()
+                    on { amITheLeader(any()) } doReturn true.right()
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
