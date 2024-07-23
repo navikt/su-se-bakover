@@ -39,7 +39,7 @@ internal data class PdlClientConfig(
     val azureAd: AzureAd,
 )
 
-// docs for vanlige folk: https://pdldocs-navno.msappproxy.net/ekstern/index.html
+// docs for vanlige folk: https://pdl-docs.ansatt.nav.no/ekstern/index.html
 // api doc: https://github.com/navikt/pdl/blob/master/apps/api/src/main/resources/schemas/pdl.graphqls
 // Du kan leke med de ulike queryene her (naisdevice): https://pdl-playground.dev.intern.nav.no/editor
 
