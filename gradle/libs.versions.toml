@@ -83,7 +83,7 @@ json-schema-validator = { group = "com.networknt", name = "json-schema-validator
 
 com-ibm-mq-allclient = { group = "com.ibm.mq", name = "com.ibm.mq.allclient", version = "9.4.0.0"}
 
-avro = { group = "org.apache.avro", name = "avro", version = "1.11.3"}
+avro = { group = "org.apache.avro", name = "avro", version = "1.12.0"}
 
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version = "3.1.8"}
 
