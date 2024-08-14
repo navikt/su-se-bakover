@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.Fagområde
 import java.time.Duration
@@ -28,21 +29,33 @@ internal class GrensesnittsavstemingJob(
                 log = log,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
-                Fagområde.entries.forEach { fagområde ->
-                    when (fagområde) {
-                        Fagområde.SUALDER -> {
-                            // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
-                        }
+                run(
+                    avstemmingService = avstemmingService,
+                    log = log,
+                    jobName = jobName,
+                )
+            }.let { GrensesnittsavstemingJob(it) }
+        }
 
-                        Fagområde.SUUFORE -> {
-                            avstemmingService.grensesnittsavstemming(fagområde).fold(
-                                { log.error("$jobName failed with error: $it") },
-                                { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
-                            )
-                        }
+        fun run(
+            avstemmingService: AvstemmingService,
+            log: Logger,
+            jobName: String,
+        ) {
+            Fagområde.entries.forEach { fagområde ->
+                when (fagområde) {
+                    Fagområde.SUALDER -> {
+                        // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
+                    }
+
+                    Fagområde.SUUFORE -> {
+                        avstemmingService.grensesnittsavstemming(fagområde).fold(
+                            { log.error("$jobName failed with error: $it") },
+                            { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
+                        )
                     }
                 }
-            }.let { GrensesnittsavstemingJob(it) }
+            }
         }
     }
 }
