@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
@@ -42,8 +43,10 @@ import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import vedtak.domain.Vedtak
 import java.util.UUID
 
@@ -51,13 +54,14 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `fant ikke klage`() {
+        val (sak, _) = opprettetKlage()
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn null
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val klageId = KlageId.generer()
-        val request = VurderKlagevilkårRequest(
+        val request = VurderKlagevilkårCommand(
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             klageId = klageId,
             vedtakId = null,
@@ -65,83 +69,99 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             begrunnelse = null,
+            sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke vedtak`() {
+        val (sak, klage) = opprettetKlage()
         val mocks = KlageServiceMocks(
-            vedtakServiceMock = mock {
-                on { hentForVedtakId(any()) } doReturn null
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val vedtakId = UUID.randomUUID()
-        val request = VurderKlagevilkårRequest(
+        val request = VurderKlagevilkårCommand(
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-            klageId = KlageId.generer(),
+            klageId = klage.id,
             vedtakId = vedtakId,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             begrunnelse = null,
+            sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
-        verify(mocks.vedtakServiceMock).hentForVedtakId(vedtakId)
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kan ikke velge et vedtak som ikke skal sende brev ved vilkårsvurdering`() {
-        val vedtak = vedtakRevurderingIverksattInnvilget(
-            brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
-                null,
-                BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
-            ),
-        ).second
+        val (sak, klage) = opprettetKlage(
+            sakMedVedtak = vedtakRevurderingIverksattInnvilget(
+                brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                    null,
+                    BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                ),
+            ).first,
+        )
+
+        val revurderingsvedtak = sak.vedtakListe[1]
 
         val mocks = KlageServiceMocks(
-            vedtakServiceMock = mock { on { hentForVedtakId(any()) } doReturn vedtak },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
         )
 
         mocks.service.vilkårsvurder(
-            VurderKlagevilkårRequest(
-                klageId = KlageId.generer(),
+            VurderKlagevilkårCommand(
+                klageId = klage.id,
                 saksbehandler = saksbehandler,
-                vedtakId = vedtak.id,
+                vedtakId = revurderingsvedtak.id,
                 innenforFristen = null,
                 klagesDetPåKonkreteElementerIVedtaket = null,
                 erUnderskrevet = null,
                 begrunnelse = null,
+                sakId = sak.id,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
 
-        verify(mocks.vedtakServiceMock).hentForVedtakId(argShouldBe(vedtak.id))
+        verify(mocks.sakServiceMock).hentSak(argShouldBe(sak.id))
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
         verifiserUgyldigTilstandsovergang(
-            klage = vurdertKlageTilAttestering().second,
+            sak = sak,
+            klage = klage,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
+        val (sak, klage) = oversendtKlage()
         verifiserUgyldigTilstandsovergang(
-            klage = oversendtKlage().second,
+            sak = sak,
+            klage = klage,
         )
     }
 
     @Test
     fun `ugyldig tilstandsovergang fra Avvist`() {
+        val (sak, klage) = iverksattAvvistKlage()
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattAvvistKlage().second,
+            sak = sak,
+            klage = klage,
         )
     }
 
@@ -221,14 +241,15 @@ internal class VilkårsvurderKlageTest {
     }
 
     private fun verifiserUgyldigTilstandsovergang(
+        sak: Sak,
         klage: Klage,
     ) {
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
-        val request = VurderKlagevilkårRequest(
+        val request = VurderKlagevilkårCommand(
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = null,
@@ -236,12 +257,13 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             begrunnelse = null,
+            sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
             klage::class,
         ).left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -268,10 +290,11 @@ internal class VilkårsvurderKlageTest {
         val (sak, klage) = opprettetKlage()
         val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -283,10 +306,11 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
+            sak = sak,
             klage = klage,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -297,10 +321,11 @@ internal class VilkårsvurderKlageTest {
         val (sak, klage) = utfyltVilkårsvurdertKlageTilVurdering()
         val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -311,10 +336,11 @@ internal class VilkårsvurderKlageTest {
         val (sak, klage) = utfyltAvvistVilkårsvurdertKlage()
         val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -326,10 +352,11 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -341,10 +368,11 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
+            sak = sak,
             vedtak = vedtak,
             klage = klage,
         )
@@ -355,13 +383,14 @@ internal class VilkårsvurderKlageTest {
         val (sak, klage) = påbegyntVurdertKlage()
         val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
             klage = klage,
             vurderingerTilKlage = klage.vurderinger,
+            sak = sak,
         )
     }
 
@@ -371,13 +400,14 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
             klage = klage,
             vurderingerTilKlage = klage.vurderinger,
+            sak = sak,
         )
     }
 
@@ -387,13 +417,14 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
             klage = klage,
             vurderingerTilKlage = klage.vurderinger,
+            sak = sak,
         )
     }
 
@@ -403,15 +434,16 @@ internal class VilkårsvurderKlageTest {
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
-            vedtak = vedtak,
             klage = klage,
             attesteringer = klage.attesteringer,
+            sak = sak,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
             klage = klage,
             vurderingerTilKlage = klage.vurderinger,
             attesteringer = klage.attesteringer,
+            sak = sak,
         )
     }
 
@@ -432,21 +464,21 @@ internal class VilkårsvurderKlageTest {
     }
 
     private fun verifiserGyldigStatusovergangTilPåbegynt(
-        vedtak: Vedtak,
+        sak: Sak,
         klage: Klage,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
-            vedtakServiceMock = mock {
-                on { hentForVedtakId(any()) } doReturn vedtak
+            klageRepoMock = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+                doNothing().whenever(it).lagre(any(), any())
             },
         )
 
-        val request = VurderKlagevilkårRequest(
+        val request = VurderKlagevilkårCommand(
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = null,
@@ -454,6 +486,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             begrunnelse = null,
+            sakId = sak.id,
         )
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
@@ -474,7 +507,7 @@ internal class VilkårsvurderKlageTest {
             it shouldBe expectedKlage
         }
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
@@ -488,6 +521,7 @@ internal class VilkårsvurderKlageTest {
     }
 
     private fun verifiserGyldigStatusovergangTilUtfylt(
+        sak: Sak,
         vedtak: Vedtak,
         klage: Klage,
         vurderingerTilKlage: VurderingerTilKlage? = null,
@@ -498,11 +532,11 @@ internal class VilkårsvurderKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            vedtakServiceMock = mock {
-                on { hentForVedtakId(any()) } doReturn vedtak
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
-        val request = VurderKlagevilkårRequest(
+        val request = VurderKlagevilkårCommand(
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = vedtak.id,
@@ -510,6 +544,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
             begrunnelse = "SomeBegrunnelse",
+            sakId = sak.id,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
         mocks.service.vilkårsvurder(request).getOrFail().also {
@@ -537,9 +572,7 @@ internal class VilkårsvurderKlageTest {
             )
             it shouldBe expectedKlage
         }
-
-        verify(mocks.vedtakServiceMock).hentForVedtakId(vedtak.id)
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {

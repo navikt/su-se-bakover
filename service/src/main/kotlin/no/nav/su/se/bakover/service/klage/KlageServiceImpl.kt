@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.hentVedtakForId
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -127,22 +128,24 @@ class KlageServiceImpl(
         }.right()
     }
 
-    override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        return request.toDomain().flatMap {
-            it.vilkårsvurderinger.vedtakId?.let { vedtakId ->
-                val vedtak =
-                    vedtakService.hentForVedtakId(vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
-
-                if (!vedtak.skalSendeBrev) {
-                    return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
-                }
+    override fun vilkårsvurder(
+        command: VurderKlagevilkårCommand,
+    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+        val sak = sakService.hentSak(command.sakId).getOrElse {
+            throw RuntimeException("Fant ikke sak med id ${command.sakId}")
+        }
+        command.vedtakId?.let {
+            val vedtak = sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+            if (!vedtak.skalSendeBrev) {
+                // Dersom vi ikke har sendt ut et vedtaksbrev, kan det ikke beklages.
+                return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
             }
-            val klage = klageRepo.hentKlage(it.klageId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
-            klage.vilkårsvurder(
-                saksbehandler = it.saksbehandler,
-                vilkårsvurderinger = it.vilkårsvurderinger,
-            )
-        }.onRight {
+        }
+        val klage = sak.hentKlage(klageId = command.klageId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
+        return klage.vilkårsvurder(
+            saksbehandler = command.saksbehandler,
+            vilkårsvurderinger = command.vilkårsvurderinger,
+        ).onRight {
             klageRepo.lagre(it)
         }
     }
@@ -414,7 +417,10 @@ class KlageServiceImpl(
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).onRight {
             klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(it.oppgaveId, OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent))
+            oppgaveService.lukkOppgave(
+                it.oppgaveId,
+                OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+            )
             observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it))
         }
     }

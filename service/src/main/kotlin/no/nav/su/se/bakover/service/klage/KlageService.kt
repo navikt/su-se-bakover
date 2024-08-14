@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 interface KlageService {
     fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage>
 
-    fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
+    fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
     fun bekreftVilkårsvurderinger(
         klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,

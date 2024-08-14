@@ -204,7 +204,7 @@ import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
-import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
+import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -1072,7 +1072,7 @@ open class AccessCheckProxy(
                     return services.klageService.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                override fun vilkårsvurder(request: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.vilkårsvurder(request)
                 }

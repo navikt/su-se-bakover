@@ -54,7 +54,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
-import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
+import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import java.time.Clock
@@ -128,53 +128,56 @@ internal fun Route.klageRoutes(
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 val erUnderskrevet: Svarord?,
             )
-            call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
-                    val resultat = klageService.vilkårsvurder(
-                        VurderKlagevilkårRequest(
-                            klageId = KlageId(klageId),
-                            saksbehandler = call.suUserContext.saksbehandler,
-                            vedtakId = body.vedtakId,
-                            innenforFristen = when (body.innenforFristen) {
-                                Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
-                                null -> null
-                            },
-                            klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
-                            erUnderskrevet = when (body.erUnderskrevet) {
-                                Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
-                                null -> null
-                            },
-                            /*
-                             * https://trello.com/c/XPMsIuNe/1168-klages-formkrav-fjerne-begrunnelsesfeltet
-                             * Usikre om det blir behov for begrunnelse videre, eller om det endres til andre ting.
-                             * Per nå er begrunnelse fjernet helt fra frontend
-                             */
-                            begrunnelse = "",
-                        ),
-                    ).map {
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                        Resultat.json(OK, serialize(it.toJson()))
-                    }.getOrElse {
-                        when (it) {
-                            KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                            KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
-                            is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt -> BadRequest.errorJson(
-                                "Kan ikke avvise en klage som har tidligere vært oversendt",
-                                "kan_ikke_avvise_klage_som_har_vært_oversendt",
-                            )
+            call.withSakId { sakId ->
+                call.withKlageId { klageId ->
+                    call.withBody<Body> { body ->
+                        val resultat = klageService.vilkårsvurder(
+                            VurderKlagevilkårCommand(
+                                klageId = KlageId(klageId),
+                                saksbehandler = call.suUserContext.saksbehandler,
+                                vedtakId = body.vedtakId,
+                                innenforFristen = when (body.innenforFristen) {
+                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
+                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                    null -> null
+                                },
+                                klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
+                                erUnderskrevet = when (body.erUnderskrevet) {
+                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
+                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                    null -> null
+                                },
+                                /*
+                                 * https://trello.com/c/XPMsIuNe/1168-klages-formkrav-fjerne-begrunnelsesfeltet
+                                 * Usikre om det blir behov for begrunnelse videre, eller om det endres til andre ting.
+                                 * Per nå er begrunnelse fjernet helt fra frontend
+                                 */
+                                begrunnelse = "",
+                                sakId = sakId,
+                            ),
+                        ).map {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                            Resultat.json(OK, serialize(it.toJson()))
+                        }.getOrElse {
+                            when (it) {
+                                KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
+                                KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
+                                is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt -> BadRequest.errorJson(
+                                    "Kan ikke avvise en klage som har tidligere vært oversendt",
+                                    "kan_ikke_avvise_klage_som_har_vært_oversendt",
+                                )
 
-                            KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev -> BadRequest.errorJson(
-                                "Vedtak som ikke skal sende brev mangler dato-felt for klage-vedtak. Disse vedtakene kan ikke klages på",
-                                "vedtak_skal_ikke_sende_brev",
-                            )
+                                KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev -> BadRequest.errorJson(
+                                    "Vedtak som ikke skal sende brev mangler dato-felt for klage-vedtak. Disse vedtakene kan ikke klages på",
+                                    "vedtak_skal_ikke_sende_brev",
+                                )
+                            }
                         }
+                        call.svar(resultat)
                     }
-                    call.svar(resultat)
                 }
             }
         }
