@@ -30,35 +30,74 @@ data class Klageinstanshendelser private constructor(
     }
 }
 
-data class TolketKlageinstanshendelse(
-    val id: UUID,
-    val opprettet: Tidspunkt,
-    val avsluttetTidspunkt: Tidspunkt,
-    val klageId: KlageId,
-    val utfall: KlageinstansUtfall,
-    val journalpostIDer: List<JournalpostId>,
-) {
-    fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlageinstanshendelse(
-        id = id,
-        opprettet = opprettet,
-        klageId = klageId,
-        utfall = utfall,
-        journalpostIDer = journalpostIDer,
-        oppgaveId = oppgaveId,
-    )
+sealed interface TolketKlageinstanshendelse {
+
+    val id: UUID
+    val opprettet: Tidspunkt
+    val klageId: KlageId
+
+    fun tilProsessert(oppgaveId: OppgaveId): ProsessertKlageinstanshendelse
+
+    data class KlagebehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        val avsluttetTidspunkt: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        val journalpostIDer: List<JournalpostId>,
+    ) : TolketKlageinstanshendelse {
+        override fun tilProsessert(oppgaveId: OppgaveId) = ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet(
+            id = id,
+            opprettet = opprettet,
+            klageId = klageId,
+            utfall = utfall,
+            journalpostIDer = journalpostIDer,
+            oppgaveId = oppgaveId,
+        )
+    }
+
+    data class AnkebehandlingOpprettet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val mottattKlageinstans: Tidspunkt,
+    ) : TolketKlageinstanshendelse {
+        override fun tilProsessert(oppgaveId: OppgaveId) = ProsessertKlageinstanshendelse.AnkebehandlingOpprettet(
+            id = id,
+            opprettet = opprettet,
+            klageId = klageId,
+            mottattKlageinstans = mottattKlageinstans,
+            oppgaveId = oppgaveId,
+        )
+    }
 }
 
-data class ProsessertKlageinstanshendelse(
-    val id: UUID,
-    val opprettet: Tidspunkt,
-    val klageId: KlageId,
-    val utfall: KlageinstansUtfall,
-    /** Dersom Klageinstansen har sendt ut et eller flere brev */
-    val journalpostIDer: List<JournalpostId>,
-    val oppgaveId: OppgaveId?,
-)
+sealed interface ProsessertKlageinstanshendelse {
+    val id: UUID
+    val opprettet: Tidspunkt
+    val klageId: KlageId
+    val oppgaveId: OppgaveId
 
-enum class KlageinstansUtfall {
+    data class KlagebehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        /** Dersom Klageinstansen har sendt ut et eller flere brev */
+        val journalpostIDer: List<JournalpostId>,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
+
+    data class AnkebehandlingOpprettet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val mottattKlageinstans: Tidspunkt,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
+}
+
+enum class AvsluttetKlageinstansUtfall {
     TRUKKET,
     RETUR,
     OPPHEVET,
@@ -74,5 +113,5 @@ sealed interface KunneIkkeTolkeKlageinstanshendelse {
     data object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
 
     // TODO jah: Vi bør legge inn støtte for anke hendelser når de begynner å dukke opp.
-    data object AnkehendelserStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
+    data object AnkebehandlingAvsluttetStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
 }

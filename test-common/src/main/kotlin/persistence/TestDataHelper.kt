@@ -43,11 +43,11 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentHendelsePos
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -1728,7 +1728,7 @@ class TestDataHelper(
     fun persisterUprosessertKlageinstanshendelse(
         id: UUID = UUID.randomUUID(),
         klageId: KlageId = KlageId.generer(),
-        utfall: KlageinstansUtfall = KlageinstansUtfall.STADFESTELSE,
+        utfall: AvsluttetKlageinstansUtfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
         opprettet: Tidspunkt = Tidspunkt.now(clock),
     ): Pair<UUID, KlageId> {
         databaseRepos.klageinstanshendelseRepo.lagre(

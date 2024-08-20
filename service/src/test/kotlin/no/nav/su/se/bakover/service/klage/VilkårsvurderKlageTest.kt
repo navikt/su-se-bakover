@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
@@ -168,12 +168,12 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `kan ikke vilkårsvurdere fra vurdert, som er tidligere oversendt, til avvist`() {
         val klage = oversendtKlage().second.leggTilNyKlageinstanshendelse(
-            TolketKlageinstanshendelse(
+            TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = KlageId.generer(),
-                utfall = KlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.RETUR,
                 journalpostIDer = emptyList(),
             ),
             lagOppgaveCallback = { OppgaveId("o").right() },
@@ -196,12 +196,12 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `kan ikke vilkårsvurdere fra bekreftet vilkårsvurdert(TilVurdering), som er tidligere oversendt, til avvist`() {
         val klage = oversendtKlage().second.leggTilNyKlageinstanshendelse(
-            TolketKlageinstanshendelse(
+            TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = KlageId.generer(),
-                utfall = KlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.RETUR,
                 journalpostIDer = emptyList(),
             ),
             lagOppgaveCallback = { OppgaveId("o").right() },

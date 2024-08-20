@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import org.slf4j.LoggerFactory
@@ -84,9 +84,9 @@ sealed interface KlageinstanshendelseDto {
         override fun toDomain(
             id: UUID,
             opprettet: Tidspunkt,
-        ): Either<KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier, TolketKlageinstanshendelse> {
+        ): Either<KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier, TolketKlageinstanshendelse.KlagebehandlingAvsluttet> {
             return Either.catch {
-                TolketKlageinstanshendelse(
+                TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
                     id = id,
                     opprettet = opprettet,
                     avsluttetTidspunkt = parseKabalDatetime(detaljer.klagebehandlingAvsluttet.avsluttet),
@@ -113,16 +113,40 @@ sealed interface KlageinstanshendelseDto {
 
     data class AnkebehandlingOpprettetDetaljer(
         override val kildeReferanse: String,
+        val detaljer: DetaljerWrapper,
     ) : KlageinstanshendelseDto {
-        override fun toDomain(id: UUID, opprettet: Tidspunkt) =
-            KunneIkkeTolkeKlageinstanshendelse.AnkehendelserStøttesIkke.left()
+        override fun toDomain(
+            id: UUID,
+            opprettet: Tidspunkt,
+        ): Either<KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier, TolketKlageinstanshendelse> {
+            return Either.catch {
+                TolketKlageinstanshendelse.AnkebehandlingOpprettet(
+                    id = id,
+                    opprettet = opprettet,
+                    klageId = KlageId(UUID.fromString(kildeReferanse)),
+                    mottattKlageinstans = parseKabalDatetime(detaljer.ankebehandlingOpprettet.mottattKlageinstans),
+                )
+            }.mapLeft {
+                log.error("Kunne ikke tolke klageinstanshendelse.", it)
+                KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier
+            }
+        }
+
+        data class DetaljerWrapper(
+            val ankebehandlingOpprettet: Detaljer,
+        )
+
+        data class Detaljer(
+            // Eksempel: 2024-08-19T14:28:00.28460924
+            val mottattKlageinstans: String,
+        )
     }
 
     data class AnkebehandlingAvsluttetDetaljer(
         override val kildeReferanse: String,
     ) : KlageinstanshendelseDto {
         override fun toDomain(id: UUID, opprettet: Tidspunkt) =
-            KunneIkkeTolkeKlageinstanshendelse.AnkehendelserStøttesIkke.left()
+            KunneIkkeTolkeKlageinstanshendelse.AnkebehandlingAvsluttetStøttesIkke.left()
     }
 
     enum class Utfall {
@@ -136,15 +160,15 @@ sealed interface KlageinstanshendelseDto {
         AVVIST,
         ;
 
-        fun toDomain(): KlageinstansUtfall = when (this) {
-            TRUKKET -> KlageinstansUtfall.TRUKKET
-            RETUR -> KlageinstansUtfall.RETUR
-            OPPHEVET -> KlageinstansUtfall.OPPHEVET
-            MEDHOLD -> KlageinstansUtfall.MEDHOLD
-            DELVIS_MEDHOLD -> KlageinstansUtfall.DELVIS_MEDHOLD
-            STADFESTELSE -> KlageinstansUtfall.STADFESTELSE
-            UGUNST -> KlageinstansUtfall.UGUNST
-            AVVIST -> KlageinstansUtfall.AVVIST
+        fun toDomain(): AvsluttetKlageinstansUtfall = when (this) {
+            TRUKKET -> AvsluttetKlageinstansUtfall.TRUKKET
+            RETUR -> AvsluttetKlageinstansUtfall.RETUR
+            OPPHEVET -> AvsluttetKlageinstansUtfall.OPPHEVET
+            MEDHOLD -> AvsluttetKlageinstansUtfall.MEDHOLD
+            DELVIS_MEDHOLD -> AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD
+            STADFESTELSE -> AvsluttetKlageinstansUtfall.STADFESTELSE
+            UGUNST -> AvsluttetKlageinstansUtfall.UGUNST
+            AVVIST -> AvsluttetKlageinstansUtfall.AVVIST
         }
     }
 }

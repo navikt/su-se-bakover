@@ -5,9 +5,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -110,13 +111,13 @@ internal class KlageinstanshendelsePostgresRepoTest {
             ).also {
                 klageinstanshendelsePostgresRepo.lagre(it)
                 klageinstanshendelsePostgresRepo.lagre(
-                    ProsessertKlageinstanshendelse(
+                    ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet(
                         id = it.id,
                         opprettet = fixedTidspunkt,
                         klageId = klage.id,
-                        utfall = KlageinstansUtfall.STADFESTELSE,
+                        utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
                         journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
-                        oppgaveId = null,
+                        oppgaveId = oppgaveId,
                     ),
                 )
                 klageinstanshendelsePostgresRepo.hentUbehandlaKlageinstanshendelser() shouldBe emptyList()

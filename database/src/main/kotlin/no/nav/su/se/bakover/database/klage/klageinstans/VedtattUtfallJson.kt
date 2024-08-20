@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.klage.klageinstans
 
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 
 internal enum class UtfallJson(val databaseType: String) {
     TRUKKET("TRUKKET"),
@@ -14,24 +14,24 @@ internal enum class UtfallJson(val databaseType: String) {
     ;
 
     fun toDomain() = when (this) {
-        TRUKKET -> KlageinstansUtfall.TRUKKET
-        RETUR -> KlageinstansUtfall.RETUR
-        OPPHEVET -> KlageinstansUtfall.OPPHEVET
-        MEDHOLD -> KlageinstansUtfall.MEDHOLD
-        DELVIS_MEDHOLD -> KlageinstansUtfall.DELVIS_MEDHOLD
-        STADFESTELSE -> KlageinstansUtfall.STADFESTELSE
-        UGUNST -> KlageinstansUtfall.UGUNST
-        AVVIST -> KlageinstansUtfall.AVVIST
+        TRUKKET -> AvsluttetKlageinstansUtfall.TRUKKET
+        RETUR -> AvsluttetKlageinstansUtfall.RETUR
+        OPPHEVET -> AvsluttetKlageinstansUtfall.OPPHEVET
+        MEDHOLD -> AvsluttetKlageinstansUtfall.MEDHOLD
+        DELVIS_MEDHOLD -> AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD
+        STADFESTELSE -> AvsluttetKlageinstansUtfall.STADFESTELSE
+        UGUNST -> AvsluttetKlageinstansUtfall.UGUNST
+        AVVIST -> AvsluttetKlageinstansUtfall.AVVIST
     }
 }
 
-internal fun KlageinstansUtfall.toDatabaseType() = when (this) {
-    KlageinstansUtfall.TRUKKET -> UtfallJson.TRUKKET.databaseType
-    KlageinstansUtfall.RETUR -> UtfallJson.RETUR.databaseType
-    KlageinstansUtfall.OPPHEVET -> UtfallJson.OPPHEVET.databaseType
-    KlageinstansUtfall.MEDHOLD -> UtfallJson.MEDHOLD.databaseType
-    KlageinstansUtfall.DELVIS_MEDHOLD -> UtfallJson.DELVIS_MEDHOLD.databaseType
-    KlageinstansUtfall.STADFESTELSE -> UtfallJson.STADFESTELSE.databaseType
-    KlageinstansUtfall.UGUNST -> UtfallJson.UGUNST.databaseType
-    KlageinstansUtfall.AVVIST -> UtfallJson.AVVIST.databaseType
+internal fun AvsluttetKlageinstansUtfall.toDatabaseType() = when (this) {
+    AvsluttetKlageinstansUtfall.TRUKKET -> UtfallJson.TRUKKET.databaseType
+    AvsluttetKlageinstansUtfall.RETUR -> UtfallJson.RETUR.databaseType
+    AvsluttetKlageinstansUtfall.OPPHEVET -> UtfallJson.OPPHEVET.databaseType
+    AvsluttetKlageinstansUtfall.MEDHOLD -> UtfallJson.MEDHOLD.databaseType
+    AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD -> UtfallJson.DELVIS_MEDHOLD.databaseType
+    AvsluttetKlageinstansUtfall.STADFESTELSE -> UtfallJson.STADFESTELSE.databaseType
+    AvsluttetKlageinstansUtfall.UGUNST -> UtfallJson.UGUNST.databaseType
+    AvsluttetKlageinstansUtfall.AVVIST -> UtfallJson.AVVIST.databaseType
 }

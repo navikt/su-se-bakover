@@ -4,11 +4,11 @@ import behandling.klage.domain.VurderingerTilKlage
 import common.presentation.attestering.AttesteringJson
 import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
@@ -85,6 +85,7 @@ internal data class KlageJson(
                         ),
                         oppretthold = null,
                     )
+
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
@@ -92,6 +93,7 @@ internal data class KlageJson(
                             hjemler = hjemler.map { it.toString() },
                         ),
                     )
+
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
@@ -100,6 +102,7 @@ internal data class KlageJson(
                         ),
                         oppretthold = null,
                     )
+
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
@@ -113,7 +116,7 @@ internal data class KlageJson(
     }
 
     data class VedtattUtfallJson(
-        val utfall: String,
+        val utfall: String?,
         val opprettet: String,
     )
 }
@@ -140,6 +143,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -159,26 +163,31 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING.toString(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
+
         is VilkårsvurdertKlage.Utfylt.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VILKÅRSVURDERT_UTFYLT_AVVIST.toString(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is VilkårsvurdertKlage.Bekreftet.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING.toString(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
+
         is VilkårsvurdertKlage.Bekreftet.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VILKÅRSVURDERT_BEKREFTET_AVVIST.toString(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is VurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -198,11 +207,13 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
+
         is VurdertKlage.Utfylt -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttet)
         is VurdertKlage.Bekreftet -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VURDERT_BEKREFTET.toString(),
             avsluttet = avsluttet,
         )
+
         is AvvistKlage -> this.mapPåbegyntOgBekreftetTilKlageJson(Typer.AVVIST.toString(), avsluttet)
         is KlageTilAttestering.Vurdert -> KlageJson(
             id = this.id.toString(),
@@ -223,6 +234,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
+
         is KlageTilAttestering.Avvist -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -242,6 +254,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is OversendtKlage -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -262,6 +275,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
+
         is IverksattAvvistKlage -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -281,6 +295,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttet,
         )
+
         is AvsluttetKlage -> this.hentUnderliggendeKlage().toJson().copy(
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
             avsluttetTidspunkt = this.avsluttetTidspunkt.toString(),
@@ -527,15 +542,16 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(
 
 internal fun ProsessertKlageinstanshendelse.toJson(): KlageJson.VedtattUtfallJson {
     return KlageJson.VedtattUtfallJson(
-        utfall = when (this.utfall) {
-            KlageinstansUtfall.TRUKKET -> "TRUKKET"
-            KlageinstansUtfall.RETUR -> "RETUR"
-            KlageinstansUtfall.OPPHEVET -> "OPPHEVET"
-            KlageinstansUtfall.MEDHOLD -> "MEDHOLD"
-            KlageinstansUtfall.DELVIS_MEDHOLD -> "DELVIS_MEDHOLD"
-            KlageinstansUtfall.STADFESTELSE -> "STADFESTELSE"
-            KlageinstansUtfall.UGUNST -> "UGUNST"
-            KlageinstansUtfall.AVVIST -> "AVVIST"
+        utfall = when ((this as? ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet)?.utfall) {
+            AvsluttetKlageinstansUtfall.TRUKKET -> "TRUKKET"
+            AvsluttetKlageinstansUtfall.RETUR -> "RETUR"
+            AvsluttetKlageinstansUtfall.OPPHEVET -> "OPPHEVET"
+            AvsluttetKlageinstansUtfall.MEDHOLD -> "MEDHOLD"
+            AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD -> "DELVIS_MEDHOLD"
+            AvsluttetKlageinstansUtfall.STADFESTELSE -> "STADFESTELSE"
+            AvsluttetKlageinstansUtfall.UGUNST -> "UGUNST"
+            AvsluttetKlageinstansUtfall.AVVIST -> "AVVIST"
+            null -> null
         },
         opprettet = this.opprettet.toString(),
     )

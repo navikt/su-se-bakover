@@ -6,8 +6,8 @@ import behandling.klage.domain.UprosessertKlageinstanshendelse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
@@ -57,12 +57,12 @@ internal class KlageinstanshendelseServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
-        val mappedKlageinstanshendelse = TolketKlageinstanshendelse(
+        val mappedKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
             id = id,
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = klage.id,
-            utfall = KlageinstansUtfall.STADFESTELSE,
+            utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
             journalpostIDer = listOf(JournalpostId("123456")),
         )
 
@@ -75,12 +75,12 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
+                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
                     saksnummer = klage.saksnummer,
                     fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = KlageinstansUtfall.STADFESTELSE,
+                    utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
                     journalpostIDer = mappedKlageinstanshendelse.journalpostIDer,
                     avsluttetTidspunkt = fixedTidspunkt,
                 )
@@ -106,12 +106,12 @@ internal class KlageinstanshendelseServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
-        val mappedKlageinstanshendelse = TolketKlageinstanshendelse(
+        val mappedKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
             id = klageinstansId,
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = klage.id,
-            utfall = KlageinstansUtfall.RETUR,
+            utfall = AvsluttetKlageinstansUtfall.RETUR,
             journalpostIDer = listOf(JournalpostId("123456")),
         )
 
@@ -126,12 +126,12 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
                     saksnummer = klage.saksnummer,
                     fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = KlageinstansUtfall.RETUR,
+                    utfall = AvsluttetKlageinstansUtfall.RETUR,
                     journalpostIDer = listOf(JournalpostId("123456")),
                     avsluttetTidspunkt = fixedTidspunkt,
                 )
@@ -144,11 +144,11 @@ internal class KlageinstanshendelseServiceImplTest {
                 it.saksbehandler shouldBe klage.saksbehandler
                 it.klageinstanshendelser shouldBe Klageinstanshendelser.create(
                     listOf(
-                        ProsessertKlageinstanshendelse(
+                        ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet(
                             id = klageinstansId,
                             opprettet = fixedTidspunkt,
                             klageId = klage.id,
-                            utfall = KlageinstansUtfall.RETUR,
+                            utfall = AvsluttetKlageinstansUtfall.RETUR,
                             journalpostIDer = listOf(JournalpostId("123456")),
                             oppgaveId = OppgaveId("123"),
                         ),

@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -450,12 +450,12 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
+                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = KlageinstansUtfall.STADFESTELSE,
+                    utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                 ),
@@ -504,12 +504,12 @@ internal class OppgaveHttpClientTest {
             )
 
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = KlageinstansUtfall.RETUR,
+                    utfall = AvsluttetKlageinstansUtfall.RETUR,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                 ),
@@ -559,12 +559,12 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = KlageinstansUtfall.MEDHOLD,
+                    utfall = AvsluttetKlageinstansUtfall.MEDHOLD,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                 ),

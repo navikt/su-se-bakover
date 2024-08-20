@@ -9,11 +9,11 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilNyKlageinstansHendelse
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
@@ -54,8 +54,8 @@ class KlageinstanshendelseServiceImpl(
             )
                 .onLeft {
                     log.error(
-                        "Deserialisering av hendelse fra Klageinstans feilet for hendelseId: ${uprosessertKlageinstanshendelse.metadata.hendelseId}",
-                        it,
+                        "Deserialisering av hendelse fra Klageinstans feilet for hendelseId: ${uprosessertKlageinstanshendelse.metadata.hendelseId}, feil: $it",
+                        RuntimeException("Legger ved stacktrace for enklere debug."),
                     )
                     klageinstanshendelseRepo.markerSomFeil(uprosessertKlageinstanshendelse.id)
                 }
@@ -79,9 +79,7 @@ class KlageinstanshendelseServiceImpl(
             lagOppgaveConfig(
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
-                utfall = hendelse.utfall,
-                journalpostIDer = hendelse.journalpostIDer,
-                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                hendelse = hendelse,
             )
         }.onLeft {
             when (it) {
@@ -124,15 +122,57 @@ class KlageinstanshendelseServiceImpl(
     private fun lagOppgaveConfig(
         saksnummer: Saksnummer,
         fnr: Fnr,
-        utfall: KlageinstansUtfall,
+        hendelse: TolketKlageinstanshendelse,
+    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
+        return when (hendelse) {
+            is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> lagOppgaveConfigForAnkebehandlingOpprettet(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                mottattKlageinstans = hendelse.mottattKlageinstans,
+            )
+
+            is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> lagOppgaveConfigForKlagebehandlingAvsluttet(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utfall = hendelse.utfall,
+                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                journalpostIDer = hendelse.journalpostIDer,
+                clock = clock,
+            )
+        }
+    }
+
+    private fun lagOppgaveConfigForAnkebehandlingOpprettet(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        mottattKlageinstans: Tidspunkt,
+    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
+        return OppgaveConfig.Klage.Klageinstanshendelse.AnkebehandlingOpprettet(
+            saksnummer = saksnummer,
+            fnr = fnr,
+            mottattKlageinstans = mottattKlageinstans,
+            clock = clock,
+            tilordnetRessurs = null,
+        ).let {
+            oppgaveService.opprettOppgaveMedSystembruker(it).map {
+                it.oppgaveId
+            }.mapLeft { KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave }
+        }
+    }
+
+    private fun lagOppgaveConfigForKlagebehandlingAvsluttet(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        utfall: AvsluttetKlageinstansUtfall,
         avsluttetTidspunkt: Tidspunkt,
         journalpostIDer: List<JournalpostId>,
+        clock: Clock,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (utfall) {
-            KlageinstansUtfall.TRUKKET,
-            KlageinstansUtfall.AVVIST,
-            KlageinstansUtfall.STADFESTELSE,
-            -> OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
+            AvsluttetKlageinstansUtfall.TRUKKET,
+            AvsluttetKlageinstansUtfall.AVVIST,
+            AvsluttetKlageinstansUtfall.STADFESTELSE,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 tilordnetRessurs = null,
@@ -142,12 +182,12 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = journalpostIDer,
             )
 
-            KlageinstansUtfall.RETUR,
-            KlageinstansUtfall.OPPHEVET,
-            KlageinstansUtfall.MEDHOLD,
-            KlageinstansUtfall.DELVIS_MEDHOLD,
-            KlageinstansUtfall.UGUNST,
-            -> OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+            AvsluttetKlageinstansUtfall.RETUR,
+            AvsluttetKlageinstansUtfall.OPPHEVET,
+            AvsluttetKlageinstansUtfall.MEDHOLD,
+            AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD,
+            AvsluttetKlageinstansUtfall.UGUNST,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 tilordnetRessurs = null,

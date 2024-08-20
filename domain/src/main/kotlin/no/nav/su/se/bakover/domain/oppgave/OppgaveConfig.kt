@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
@@ -191,34 +191,49 @@ sealed interface OppgaveConfig {
          * 2) Oppgaver som krever ytterliggere saksbehandling på klagen. Disse lukker systemet selv.
          * */
         sealed interface Klageinstanshendelse : Klage {
-            val utfall: KlageinstansUtfall
-            val avsluttetTidspunkt: Tidspunkt
-            val journalpostIDer: List<JournalpostId>
 
-            // Kabal kan sende et eller flere brev. Så det er ikke lenger naturlig å knytte oppgaven til en spesifikk journalpost.
-            override val journalpostId: Nothing? get() = null
+            sealed interface KlagebehandlingAvsluttet : Klageinstanshendelse {
+                val utfall: AvsluttetKlageinstansUtfall
+                val avsluttetTidspunkt: Tidspunkt
+                val journalpostIDer: List<JournalpostId>
 
-            data class Handling(
-                override val saksnummer: Saksnummer,
-                override val fnr: Fnr,
-                override val tilordnetRessurs: NavIdentBruker?,
-                override val clock: Clock,
-                override val utfall: KlageinstansUtfall,
-                override val avsluttetTidspunkt: Tidspunkt,
-                override val journalpostIDer: List<JournalpostId>,
-            ) : Klageinstanshendelse {
-                override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+                // Kabal kan sende et eller flere brev. Så det er ikke lenger naturlig å knytte oppgaven til en spesifikk journalpost.
+                override val journalpostId: Nothing? get() = null
+
+                data class Handling(
+                    override val saksnummer: Saksnummer,
+                    override val fnr: Fnr,
+                    override val tilordnetRessurs: NavIdentBruker?,
+                    override val clock: Clock,
+                    override val utfall: AvsluttetKlageinstansUtfall,
+                    override val avsluttetTidspunkt: Tidspunkt,
+                    override val journalpostIDer: List<JournalpostId>,
+                ) : KlagebehandlingAvsluttet {
+                    override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+                }
+
+                data class Informasjon(
+                    override val saksnummer: Saksnummer,
+                    override val fnr: Fnr,
+                    override val tilordnetRessurs: NavIdentBruker?,
+                    override val clock: Clock,
+                    override val utfall: AvsluttetKlageinstansUtfall,
+                    override val avsluttetTidspunkt: Tidspunkt,
+                    override val journalpostIDer: List<JournalpostId>,
+                ) : KlagebehandlingAvsluttet {
+
+                    override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+                }
             }
 
-            data class Informasjon(
+            data class AnkebehandlingOpprettet(
                 override val saksnummer: Saksnummer,
                 override val fnr: Fnr,
                 override val tilordnetRessurs: NavIdentBruker?,
                 override val clock: Clock,
-                override val utfall: KlageinstansUtfall,
-                override val avsluttetTidspunkt: Tidspunkt,
-                override val journalpostIDer: List<JournalpostId>,
+                val mottattKlageinstans: Tidspunkt,
             ) : Klageinstanshendelse {
+                override val journalpostId: Nothing? get() = null
 
                 override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
             }
