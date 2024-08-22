@@ -95,7 +95,7 @@ vault-jdbc = { group = "com.github.navikt", name = "vault-jdbc", version = "1.3.
 
 postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.3"}
 
-commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.26.2"}
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1"}
 
 bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version = "1.78.1"}
 
