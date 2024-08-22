@@ -120,7 +120,7 @@ google-cloud-bom = { group = "com.google.cloud", name = "libraries-bom", version
 # google-cloud-bigquery versjon er hentet fra google-cloud-bom
 google-cloud-bigquery = { group = "com.google.cloud", name = "google-cloud-bigquery"}
 
-awaitility = { group = "org.awaitility", name = "awaitility", version = "4.2.1"}
+awaitility = { group = "org.awaitility", name = "awaitility", version = "4.2.2"}
 
 
 [plugins]
