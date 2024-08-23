@@ -56,23 +56,27 @@ data class OversendtKlage(
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
         return lagOppgaveCallback().map { oppgaveId ->
-            val oppdatertKlageinstanshendelser =
+            val oppdatertKlageinstanshendelser: Klageinstanshendelser =
                 this.klageinstanshendelser.leggTilNyttVedtak(tolketKlageinstanshendelse.tilProsessert(oppgaveId))
 
-            when (tolketKlageinstanshendelse.utfall) {
-                KlageinstansUtfall.TRUKKET,
-                KlageinstansUtfall.OPPHEVET,
-                KlageinstansUtfall.MEDHOLD,
-                KlageinstansUtfall.DELVIS_MEDHOLD,
-                KlageinstansUtfall.STADFESTELSE,
-                KlageinstansUtfall.UGUNST,
-                KlageinstansUtfall.AVVIST,
-                -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+            when (tolketKlageinstanshendelse) {
+                is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> when (tolketKlageinstanshendelse.utfall) {
+                    AvsluttetKlageinstansUtfall.TRUKKET,
+                    AvsluttetKlageinstansUtfall.OPPHEVET,
+                    AvsluttetKlageinstansUtfall.MEDHOLD,
+                    AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD,
+                    AvsluttetKlageinstansUtfall.STADFESTELSE,
+                    AvsluttetKlageinstansUtfall.UGUNST,
+                    AvsluttetKlageinstansUtfall.AVVIST,
+                    -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
 
-                KlageinstansUtfall.RETUR -> this.forrigeSteg.returFraKlageinstans(
-                    oppgaveId = oppgaveId,
-                    klageinstanshendelser = oppdatertKlageinstanshendelser,
-                )
+                    AvsluttetKlageinstansUtfall.RETUR -> this.forrigeSteg.returFraKlageinstans(
+                        oppgaveId = oppgaveId,
+                        klageinstanshendelser = oppdatertKlageinstanshendelser,
+                    )
+                }
+
+                is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
             }
         }
     }

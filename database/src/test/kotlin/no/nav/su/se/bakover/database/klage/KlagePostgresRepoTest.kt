@@ -8,7 +8,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -327,12 +327,12 @@ internal class KlagePostgresRepoTest {
             val klage = testDataHelper.persisterKlageOversendt()
             val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
-            val tolketKlageinstanshendelse = TolketKlageinstanshendelse(
+            val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
                 id = klageinstanshendelseId,
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = klage.id,
-                utfall = KlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.RETUR,
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 
@@ -361,12 +361,12 @@ internal class KlagePostgresRepoTest {
             val klage = testDataHelper.persisterKlageOversendt()
             val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
-            val tolketKlageinstanshendelse = TolketKlageinstanshendelse(
+            val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
                 id = klageinstanshendelseId,
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = klage.id,
-                utfall = KlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.RETUR,
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 

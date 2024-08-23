@@ -80,9 +80,10 @@ internal class KlageinstanshendelsePostgresRepo(
                             "id" to hendelse.id,
                             "type" to KlageinstanshendelseType.PROSESSERT.toString(),
                             "oppgaveid" to hendelse.oppgaveId,
-                            "utlest_utfall" to hendelse.utfall.toDatabaseType(),
-                            "utlest_journalpostid" to hendelse.journalpostIDer,
+                            "utlest_utfall" to (hendelse as? ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet)?.utfall?.toDatabaseType(),
+                            "utlest_journalpostid" to (hendelse as? ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet)?.journalpostIDer,
                             "utlest_klageid" to hendelse.klageId.value,
+                            "utlest_mottattKlageinstans" to (hendelse as? ProsessertKlageinstanshendelse.AnkebehandlingOpprettet)?.mottattKlageinstans,
                         ),
                         session = transaction,
                     )
@@ -139,14 +140,31 @@ internal class KlageinstanshendelsePostgresRepo(
                 ),
                 session,
             ) { row ->
-                ProsessertKlageinstanshendelse(
-                    id = row.uuid("id"),
-                    opprettet = row.tidspunkt("opprettet"),
-                    klageId = KlageId(row.uuid("utlest_klageid")),
-                    utfall = UtfallJson.valueOf(row.string("utlest_utfall")).toDomain(),
-                    journalpostIDer = row.array<String>("utlest_journalpostid").map { JournalpostId(it) },
-                    oppgaveId = OppgaveId(row.string("oppgaveid")),
-                )
+                require(KlageId(row.uuid("utlest_klageid")) == klageId) {
+                    "Fant klageinstanshendelse med klageId ${KlageId(row.uuid("utlest_klageid"))} som ikke matcher forventet klageId $klageId"
+                }
+                val id = row.uuid("id")
+                val opprettet = row.tidspunkt("opprettet")
+                val oppgaveId = OppgaveId(row.string("oppgaveid"))
+                val utlestUtfall = row.stringOrNull("utlest_utfall")
+                if (utlestUtfall != null) {
+                    ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet(
+                        id = id,
+                        opprettet = opprettet,
+                        klageId = klageId,
+                        utfall = UtfallJson.valueOf(utlestUtfall).toDomain(),
+                        journalpostIDer = row.array<String>("utlest_journalpostid").map { JournalpostId(it) },
+                        oppgaveId = oppgaveId,
+                    )
+                } else {
+                    ProsessertKlageinstanshendelse.AnkebehandlingOpprettet(
+                        id = id,
+                        opprettet = opprettet,
+                        klageId = klageId,
+                        oppgaveId = oppgaveId,
+                        mottattKlageinstans = row.tidspunkt("utlest_mottattKlageinstans"),
+                    )
+                }
             }
         }
     }
