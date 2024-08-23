@@ -93,7 +93,7 @@ hikaricp = { group = "com.zaxxer", name = "HikariCP", version = "5.1.0"}
 
 vault-jdbc = { group = "com.github.navikt", name = "vault-jdbc", version = "1.3.10"}
 
-postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.3"}
+postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.4"}
 
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1"}
 
