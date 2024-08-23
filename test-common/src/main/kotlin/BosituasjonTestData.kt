@@ -41,12 +41,13 @@ fun fullstendigMedEPSUnder67UførFlyktning(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = stønadsperiode2021.periode,
+    fnr: Fnr = Fnr.generer(),
 ): Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning =
     Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
         id = id,
         opprettet = opprettet,
         periode = periode,
-        fnr = Fnr.generer(),
+        fnr = fnr,
     )
 
 fun fullstendigMedEPSUnder67IkkeUførFlyktning(

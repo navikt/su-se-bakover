@@ -234,6 +234,22 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSakInfo(fnr: Fnr): SakInfo? {
+        return dbMetrics.timeQuery("hentSakInfoForFnr") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, saksnummer, fnr, type
+                FROM sak
+                WHERE fnr = :fnr
+                """.trimIndent().hent(
+                    mapOf("fnr" to fnr),
+                    session,
+                ) { row -> row.toSakInfo() }
+            }
+        }
+    }
+
     private fun Row.toSakInfo(): SakInfo {
         return SakInfo(
             sakId = uuid("id"),

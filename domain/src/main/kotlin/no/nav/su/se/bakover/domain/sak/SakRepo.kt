@@ -24,6 +24,7 @@ interface SakRepo {
     fun hentSak(hendelseId: HendelseId): Sak?
     fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
+    fun hentSakInfo(fnr: Fnr): SakInfo?
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>

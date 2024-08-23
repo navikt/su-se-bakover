@@ -328,6 +328,15 @@ internal fun Route.sakRoutes(
             }
         }
     }
+
+    get("$SAK_PATH/{sakId}/epsSak") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withSakId {
+                val sakIder = sakService.hentEpsSaksIderForBrukersSak(it)
+                call.svar(Resultat.json(OK, serialize(sakIder)))
+            }
+        }
+    }
 }
 
 fun KunneIkkeOppretteDokument.tilResultat(): Resultat = when (this) {

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
@@ -29,7 +30,10 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fullstendigMedEPSUnder67UførFlyktning
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -40,6 +44,7 @@ import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -417,7 +422,7 @@ internal class SakServiceImplTest {
         SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock())
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
-        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
         verify(queryJournalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer }, eq(50))
     }
 
@@ -432,6 +437,27 @@ internal class SakServiceImplTest {
             SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
                 .hentAlleJournalposter(sak.id)
         }
-        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
+    }
+
+    @Test
+    fun `henter saksIder for eps`() {
+        val (epsSak) = nySakMedjournalførtSøknadOgOppgave(sakId = UUID.randomUUID(), fnr = Fnr.generer())
+        val brukersSak = iverksattSøknadsbehandling(
+            customVilkår = listOf(formuevilkårMedEps0Innvilget(epsFnr = epsSak.fnr)),
+            customGrunnlag = listOf(fullstendigMedEPSUnder67UførFlyktning(fnr = epsSak.fnr)),
+        ).first
+        val sakRepo: SakRepo = mock {
+            on { hentSak(any<UUID>()) } doReturn brukersSak
+            on { hentSakInfo(any<Fnr>()) } doReturn epsSak.info()
+        }
+        SakServiceImpl(
+            sakRepo,
+            fixedClock,
+            mock(),
+            mock(),
+            mock(),
+            mock(),
+        ).hentEpsSaksIderForBrukersSak(brukersSak.id) shouldBe listOf(epsSak.id)
     }
 }
