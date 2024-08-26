@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test.vilkår
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
-import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagMedEps0Innvilget
@@ -66,6 +66,7 @@ fun formuevilkårUtenEps0Innvilget(
 fun formuevilkårMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
+    epsFnr: Fnr = no.nav.su.se.bakover.test.epsFnr,
     bosituasjon: NonEmptyList<Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
         Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),

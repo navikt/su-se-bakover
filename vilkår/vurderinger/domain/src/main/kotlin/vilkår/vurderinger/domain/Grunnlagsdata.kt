@@ -34,6 +34,9 @@ data class Grunnlagsdata private constructor(
     val fradragsgrunnlag: List<Fradragsgrunnlag>,
     val bosituasjon: List<Bosituasjon>,
 ) {
+    /**
+     * Distincte fnr for eps i bosituasjonen.
+     */
     val eps: List<Fnr> = bosituasjon.mapNotNull { it.eps }.distinct().sortedBy { it.toString() }
 
     /**

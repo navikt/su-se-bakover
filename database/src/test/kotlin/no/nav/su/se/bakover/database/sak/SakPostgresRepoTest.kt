@@ -127,6 +127,21 @@ internal class SakPostgresRepoTest {
     }
 
     @Test
+    fun `henter sakinfo for et gitt fnr`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
+            val (sak) = testDataHelper.persisterSøknadsbehandlingIverksatt()
+            val hentetSakInfo = repo.hentSakInfo(sak.fnr)
+
+            hentetSakInfo?.fnr shouldBe sak.fnr
+            hentetSakInfo?.sakId shouldBe sak.id
+            hentetSakInfo?.saksnummer shouldBe sak.saksnummer
+            hentetSakInfo?.type shouldBe sak.type
+        }
+    }
+
+    @Test
     fun `Henter alle restanser for alle saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)

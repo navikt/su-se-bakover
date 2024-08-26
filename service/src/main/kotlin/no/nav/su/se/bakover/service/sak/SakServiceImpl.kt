@@ -256,6 +256,12 @@ class SakServiceImpl(
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
     }
 
+    override fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID> {
+        val sak = sakRepo.hentSak(sakId) ?: throw IllegalArgumentException("Fant ikke sak med id $sakId")
+        val fnrs = sak.vedtakstidslinje()?.flatMap { it.grunnlagsdata.eps } ?: emptyList()
+        return fnrs.mapNotNull { sakRepo.hentSakInfo(it)?.sakId }
+    }
+
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
         if (sak == null) {
             return BegrensetSakinfo(false, null)

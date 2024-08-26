@@ -75,6 +75,7 @@ interface SakService {
     fun oppdaterFødselsnummer(command: OppdaterFødselsnummerPåSakCommand): Either<KunneIkkeOppdatereFødselsnummer, Sak>
 
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
+    fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID>
 }
 
 data object FantIkkeSak

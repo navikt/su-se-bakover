@@ -87,7 +87,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         )
         verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
-        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
         testMocks.verifyNoMoreInteractions()
     }
 
@@ -136,7 +136,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         )
         verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
-        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
 
         verify(oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
