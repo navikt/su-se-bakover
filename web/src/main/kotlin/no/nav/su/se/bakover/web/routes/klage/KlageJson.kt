@@ -118,6 +118,7 @@ internal data class KlageJson(
     data class VedtattUtfallJson(
         val utfall: String?,
         val opprettet: String,
+        val klageinstansMottok: String?,
     )
 }
 
@@ -554,5 +555,6 @@ internal fun ProsessertKlageinstanshendelse.toJson(): KlageJson.VedtattUtfallJso
             null -> null
         },
         opprettet = this.opprettet.toString(),
+        klageinstansMottok = (this as? ProsessertKlageinstanshendelse.AnkebehandlingOpprettet)?.mottattKlageinstans?.toString(),
     )
 }

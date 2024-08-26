@@ -92,7 +92,7 @@ sealed interface ProsessertKlageinstanshendelse {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val klageId: KlageId,
-        val mottattKlageinstans: Tidspunkt,
+        val mottattKlageinstans: Tidspunkt?,
         override val oppgaveId: OppgaveId,
     ) : ProsessertKlageinstanshendelse
 }

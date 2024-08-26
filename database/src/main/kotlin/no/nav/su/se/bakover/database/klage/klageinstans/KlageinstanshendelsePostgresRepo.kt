@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
@@ -162,7 +163,7 @@ internal class KlageinstanshendelsePostgresRepo(
                         opprettet = opprettet,
                         klageId = klageId,
                         oppgaveId = oppgaveId,
-                        mottattKlageinstans = row.tidspunkt("utlest_mottattKlageinstans"),
+                        mottattKlageinstans = row.tidspunktOrNull("utlest_mottattKlageinstans"),
                     )
                 }
             }
