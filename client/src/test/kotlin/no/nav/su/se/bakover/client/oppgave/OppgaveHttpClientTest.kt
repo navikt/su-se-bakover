@@ -608,7 +608,8 @@ internal class OppgaveHttpClientTest {
                     "aktivDato": "2021-01-01",
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
-                    "tilordnetRessurs": ${tilordnetRessurs?.let { "\"$it\"" }}
+                    "tilordnetRessurs": ${tilordnetRessurs?.let { "\"$it\"" }},
+                    "tildeltEnhetsnr":  ${tilordnetRessurs?.let { "\"4815\"" }}
                 }
         """.trimIndent()
     }
@@ -623,7 +624,7 @@ internal class OppgaveHttpClientTest {
         return """
                 {
                   "id": 123,
-                  "tildeltEnhetsnr": "4811",
+                  "tildeltEnhetsnr": "4815",
                   "journalpostId": "$journalpostId",
                   "saksreferanse": "$søknadId",
                   "aktoerId": "$aktørId",

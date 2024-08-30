@@ -15,4 +15,11 @@ internal data class OppgaveRequest(
     val fristFerdigstillelse: LocalDate,
     val prioritet: String,
     val tilordnetRessurs: String?,
-)
+    val tildeltEnhetsnr: String?,
+) {
+    init {
+        if (tilordnetRessurs != null) {
+            require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må være satt når tilordnetRessurs er satt" }
+        }
+    }
+}

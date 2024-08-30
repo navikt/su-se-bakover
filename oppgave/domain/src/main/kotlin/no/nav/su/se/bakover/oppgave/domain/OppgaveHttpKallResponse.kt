@@ -16,14 +16,5 @@ data class OppgaveHttpKallResponse(
     val response: String,
     val beskrivelse: String,
     val tilordnetRessurs: String?,
-    /**
-     * påkrevd hvis tilordnetRessurs er utfylt
-     */
     val tildeltEnhetsnr: String?,
-) {
-    init {
-        if (tilordnetRessurs != null) {
-            require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må være satt når tilordnetRessurs er satt" }
-        }
-    }
-}
+)

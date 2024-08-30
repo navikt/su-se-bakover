@@ -238,6 +238,7 @@ internal class OppgaveHttpClient(
                     fristFerdigstillelse = config.fristFerdigstillelse,
                     prioritet = "NORM",
                     tilordnetRessurs = config.tilordnetRessurs?.toString(),
+                    tildeltEnhetsnr = config.tildeltEnhetsnr,
                 ),
             )
 
@@ -264,7 +265,7 @@ internal class OppgaveHttpClient(
                         response = body,
                         beskrivelse = beskrivelse,
                         tilordnetRessurs = config.tilordnetRessurs?.navIdent,
-                        tildeltEnhetsnr = config.tildeltEnhetsnr,
+                        tildeltEnhetsnr = oppgaveResponse.tildeltEnhetsnr,
                     ).right()
                 } else {
                     log.error(
