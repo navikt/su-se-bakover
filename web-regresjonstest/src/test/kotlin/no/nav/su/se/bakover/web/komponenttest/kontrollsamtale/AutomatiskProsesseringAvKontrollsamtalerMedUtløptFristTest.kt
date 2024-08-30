@@ -476,6 +476,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                                 response = "",
                                 beskrivelse = "",
                                 tilordnetRessurs = "",
+                                tildeltEnhetsnr = "",
                             ).right()
                         } else {
                             if (underTest.erOppgavefeil(mockData.nåværendeKjøring)) {
@@ -488,6 +489,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                                     response = "",
                                     beskrivelse = "",
                                     tilordnetRessurs = "",
+                                    tildeltEnhetsnr = "",
                                 ).right()
                             }
                         }

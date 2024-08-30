@@ -13,6 +13,7 @@ fun nyOppgaveHttpKallResponse(
     response: String = "response",
     beskrivelse: String = "beskrivelse",
     tilordnetRessurs: String? = "tilordnetRessurs",
+    tildeltEnhetsnr: String? = "tildeltEnhetsnr",
 ): OppgaveHttpKallResponse = OppgaveHttpKallResponse(
     oppgaveId = oppgaveId,
     oppgavetype = oppgavetype,
@@ -20,4 +21,5 @@ fun nyOppgaveHttpKallResponse(
     response = response,
     beskrivelse = beskrivelse,
     tilordnetRessurs = tilordnetRessurs,
+    tildeltEnhetsnr = tildeltEnhetsnr,
 )

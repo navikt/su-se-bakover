@@ -139,6 +139,7 @@ internal class OppdaterOppgaveHttpClient(
                         response = it.body(),
                         beskrivelse = data.beskrivelse,
                         tilordnetRessurs = tilordnetRessurs,
+                        tildeltEnhetsnr = if (tilordnetRessurs == null) null else oppgave.tildeltEnhetsnr,
                     ).right()
                 } else {
                     log.error(

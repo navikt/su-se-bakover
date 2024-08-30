@@ -28,6 +28,7 @@ data object OppgaveClientStub : OppgaveClient {
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
             tilordnetRessurs = "stubbedTilordnetRessurs",
+            tildeltEnhetsnr = "stubbedTildeltEnhetsnr",
         ).right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
@@ -38,6 +39,7 @@ data object OppgaveClientStub : OppgaveClient {
             beskrivelse = "stubbedBeskrivelse",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
             tilordnetRessurs = "stubbedTilordnetRessurs",
+            tildeltEnhetsnr = "stubbedTildeltEnhetsnr",
         ).right().also { log.info("OppgaveClientStub oppretter oppgave med systembruker: $config") }
 
     override fun lukkOppgave(
@@ -54,6 +56,11 @@ data object OppgaveClientStub : OppgaveClient {
                 is OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs -> null
                 is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> tilordnetRessurs.navIdent
                 is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> "stubbedTilordnetRessurs"
+            },
+            tildeltEnhetsnr = when (tilordnetRessurs) {
+                OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs -> null
+                is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> "stubbedTildeltEnhetsnr"
+                OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> "stubbedTildeltEnhetsnr"
             },
         ).right().also { log.info("OppgaveClientStub lukker oppgave med oppgaveId: $oppgaveId") }
 
@@ -72,6 +79,11 @@ data object OppgaveClientStub : OppgaveClient {
                 is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> tilordnetRessurs.navIdent
                 is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> "stubbedTilordnetRessurs"
             },
+            tildeltEnhetsnr = when (tilordnetRessurs) {
+                OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs -> null
+                is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> "stubbedTildeltEnhetsnr"
+                OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> "stubbedTildeltEnhetsnr"
+            },
         ).right().also { log.info("OppgaveClientStub lukker oppgave med systembruker og oppgaveId: $oppgaveId") }
 
     override fun oppdaterOppgave(
@@ -84,6 +96,7 @@ data object OppgaveClientStub : OppgaveClient {
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
         tilordnetRessurs = "stubbedTilordnetRessurs",
+        tildeltEnhetsnr = "stubbedTildeltEnhetsnr",
     ).right()
         .also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: ${oppdatertOppgaveInfo.beskrivelse}") }
 
@@ -97,6 +110,7 @@ data object OppgaveClientStub : OppgaveClient {
         beskrivelse = "stubbedBeskrivelse",
         oppgavetype = Oppgavetype.BEHANDLE_SAK,
         tilordnetRessurs = "stubbedTilordnetRessurs",
+        tildeltEnhetsnr = "stubbedTildeltEnhetsnr",
     ).right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med data: $oppdatertOppgaveInfo") }
 
     override fun hentOppgave(
