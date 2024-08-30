@@ -25,6 +25,11 @@ sealed interface OppgaveConfig {
     val oppgavetype: Oppgavetype
     val behandlingstype: Behandlingstype
     val tilordnetRessurs: NavIdentBruker?
+
+    /**
+     * Påkrevd dersom tilordnetRessurs brukes
+     */
+    val tildeltEnhetsnr: String? get() = if (tilordnetRessurs == null) null else "4815"
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
@@ -40,6 +45,13 @@ sealed interface OppgaveConfig {
         override val clock: Clock,
         val sakstype: Sakstype,
     ) : OppgaveConfig {
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = when (sakstype) {
             Sakstype.ALDER -> Behandlingstema.SU_ALDER
@@ -57,6 +69,12 @@ sealed interface OppgaveConfig {
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
@@ -72,6 +90,12 @@ sealed interface OppgaveConfig {
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
@@ -87,6 +111,12 @@ sealed interface OppgaveConfig {
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
@@ -102,6 +132,12 @@ sealed interface OppgaveConfig {
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
     ) : OppgaveConfig {
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
@@ -125,6 +161,12 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
     }
 
     data class KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
@@ -141,6 +183,12 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(3)
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
     }
 
     data class Kontrollsamtale(
@@ -156,6 +204,12 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.FREMLEGGING
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
     }
 
     data class Institusjonsopphold(
@@ -175,6 +229,12 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
     }
 
     sealed interface Klage : OppgaveConfig {
@@ -209,6 +269,12 @@ sealed interface OppgaveConfig {
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
                 ) : KlagebehandlingAvsluttet {
+                    init {
+                        if (tilordnetRessurs != null) {
+                            require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+                        }
+                    }
+
                     override val oppgavetype = Oppgavetype.BEHANDLE_SAK
                 }
 
@@ -221,6 +287,11 @@ sealed interface OppgaveConfig {
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
                 ) : KlagebehandlingAvsluttet {
+                    init {
+                        if (tilordnetRessurs != null) {
+                            require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+                        }
+                    }
 
                     override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
                 }
@@ -233,6 +304,12 @@ sealed interface OppgaveConfig {
                 override val clock: Clock,
                 val mottattKlageinstans: Tidspunkt,
             ) : Klageinstanshendelse {
+                init {
+                    if (tilordnetRessurs != null) {
+                        require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+                    }
+                }
+
                 override val journalpostId: Nothing? get() = null
 
                 override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
@@ -251,6 +328,12 @@ sealed interface OppgaveConfig {
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
         ) : Klage {
+            init {
+                if (tilordnetRessurs != null) {
+                    require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+                }
+            }
+
             override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         }
 
@@ -265,6 +348,12 @@ sealed interface OppgaveConfig {
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
         ) : Klage {
+            init {
+                if (tilordnetRessurs != null) {
+                    require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+                }
+            }
+
             override val oppgavetype = Oppgavetype.ATTESTERING
         }
     }
