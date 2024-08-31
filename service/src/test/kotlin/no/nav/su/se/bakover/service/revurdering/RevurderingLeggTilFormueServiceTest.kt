@@ -25,10 +25,10 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -46,7 +46,7 @@ import org.mockito.kotlin.verify
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import vilkår.vurderinger.domain.Konsistensproblem
 import java.util.UUID
 
@@ -57,7 +57,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         val nyFormue = LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
             periode = år(2021),
             epsFormue = null,
-            søkersFormue = Verdier.empty(),
+            søkersFormue = Formueverdier.empty(),
             begrunnelse = null,
         )
         val (sak, opprettet) = opprettetRevurdering(
@@ -125,8 +125,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = listOf(
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2021),
-                            epsFormue = Verdier.empty(),
-                            søkersFormue = Verdier.empty(),
+                            epsFormue = Formueverdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
@@ -162,7 +162,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2020),
                             epsFormue = null,
-                            søkersFormue = Verdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
@@ -198,7 +198,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.januar(2021), 31.mars(2021)),
                             epsFormue = null,
-                            søkersFormue = Verdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
@@ -242,14 +242,14 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = listOf(
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = periodeJanMars2021,
-                            epsFormue = Verdier.empty(),
-                            søkersFormue = Verdier.empty(),
+                            epsFormue = Formueverdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = periodeMarsDesember2021,
-                            epsFormue = Verdier.empty(),
-                            søkersFormue = Verdier.empty(),
+                            epsFormue = Formueverdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
@@ -282,8 +282,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = listOf(
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2021),
-                            epsFormue = Verdier.empty(),
-                            søkersFormue = Verdier.empty(),
+                            epsFormue = Formueverdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
@@ -328,15 +328,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2021),
                             epsFormue = null,
-                            søkersFormue = Verdier.create(
+                            søkersFormue = formueverdier(
                                 verdiIkkePrimærbolig = 10000000,
-                                verdiEiendommer = 0,
-                                verdiKjøretøy = 0,
-                                innskudd = 0,
-                                verdipapir = 0,
-                                pengerSkyldt = 0,
-                                kontanter = 0,
-                                depositumskonto = 0,
                             ),
                             begrunnelse = ":(",
                         ),
@@ -377,21 +370,14 @@ internal class RevurderingLeggTilFormueServiceTest {
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.januar(2021), 31.mai(2021)),
                             epsFormue = null,
-                            søkersFormue = Verdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = ":)",
                         ),
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.juni(2021), 31.desember(2021)),
                             epsFormue = null,
-                            søkersFormue = Verdier.create(
+                            søkersFormue = formueverdier(
                                 verdiIkkePrimærbolig = 10000000,
-                                verdiEiendommer = 0,
-                                verdiKjøretøy = 0,
-                                innskudd = 0,
-                                verdipapir = 0,
-                                pengerSkyldt = 0,
-                                kontanter = 0,
-                                depositumskonto = 0,
                             ),
                             begrunnelse = ":(",
                         ),
@@ -420,7 +406,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2021),
                             epsFormue = null,
-                            søkersFormue = Verdier.empty(),
+                            søkersFormue = Formueverdier.empty(),
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),

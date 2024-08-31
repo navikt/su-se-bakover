@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.DokumentRepo
+import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
@@ -278,11 +278,16 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.observer).handle(
                 argThat {
                     it shouldBe StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
-                        vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
-                            avslag = expectedAvslag,
-                            clock = fixedClock,
-                        ).copy(
+                        vedtak = VedtakAvslagBeregning.createFromPersistence(
                             id = (it as StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag).vedtak.id,
+                            opprettet = expectedAvslag.opprettet,
+                            behandling = expectedAvslag,
+                            saksbehandler = expectedAvslag.saksbehandler,
+                            attestant = expectedAvslag.attesteringer.hentSisteAttestering().attestant,
+                            periode = expectedAvslag.periode,
+                            beregning = expectedAvslag.beregning,
+                            avslagsgrunner = expectedAvslag.avslagsgrunner,
+                            dokumenttilstand = Dokumenttilstand.GENERERT,
                         ),
                     )
                 },

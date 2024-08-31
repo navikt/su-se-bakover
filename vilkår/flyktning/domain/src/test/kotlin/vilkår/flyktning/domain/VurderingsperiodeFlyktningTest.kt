@@ -39,23 +39,27 @@ internal class VurderingsperiodeFlyktningTest {
 
     @Test
     fun `kopierer korrekte verdier`() {
-        VurderingsperiodeFlyktning.create(
+        val beforeCopy = VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
             periode = år(2021),
-        ).copy(CopyArgs.Tidslinje.Full).let {
-            it shouldBe it.copy()
-        }
+        )
+        val afterCopy = beforeCopy.copy(CopyArgs.Tidslinje.Full)
+        afterCopy shouldBe VurderingsperiodeFlyktning.create(
+            id = afterCopy.id,
+            opprettet = fixedTidspunkt,
+            vurdering = Vurdering.Innvilget,
+            periode = år(2021),
+        )
 
-        VurderingsperiodeFlyktning.create(
-            id = vilkårId,
+        val afterCopy2 = beforeCopy.copy(CopyArgs.Tidslinje.NyPeriode(mai(2021)))
+        afterCopy2 shouldBe VurderingsperiodeFlyktning.create(
+            id = afterCopy2.id,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            periode = år(2021),
-        ).copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
-            it shouldBe it.copy(periode = mai(2021))
-        }
+            periode = mai(2021),
+        )
     }
 
     @Test

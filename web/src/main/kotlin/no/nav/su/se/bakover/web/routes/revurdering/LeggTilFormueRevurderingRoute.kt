@@ -36,8 +36,8 @@ import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.KunneIkkeLageFormueVerdier
-import vilkår.formue.domain.Verdier
 import vilkår.vurderinger.tilResultat
 import java.time.Clock
 import java.util.UUID
@@ -51,7 +51,7 @@ private data class FormueBody(
 
     companion object {
         private fun lagFormuegrunnlag(json: FormuegrunnlagJson.VerdierJson) =
-            Verdier.tryCreate(
+            Formueverdier.tryCreate(
                 verdiIkkePrimærbolig = json.verdiIkkePrimærbolig,
                 verdiEiendommer = json.verdiEiendommer,
                 verdiKjøretøy = json.verdiKjøretøy,

@@ -118,7 +118,7 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
     }
 
     private fun Row.toVurderingsperiode(): VurderingsperiodeLovligOpphold {
-        return VurderingsperiodeLovligOpphold.tryCreate(
+        return VurderingsperiodeLovligOpphold.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),

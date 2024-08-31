@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -24,7 +23,7 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderUtenEPS
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
@@ -149,7 +148,7 @@ class LeggTilBosituasjonKonsistentProblemTest {
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true
                 oppdatert.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
-                oppdatert.vilkårsvurderinger.formue.grunnlag.single().epsFormue shouldBe Verdier.empty()
+                oppdatert.vilkårsvurderinger.formue.grunnlag.single().epsFormue shouldBe Formueverdier.empty()
             }
         }
     }

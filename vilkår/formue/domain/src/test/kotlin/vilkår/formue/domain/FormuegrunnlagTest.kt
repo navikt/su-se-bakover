@@ -2,6 +2,7 @@ package vilkår.formue.domain
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -14,9 +15,9 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -30,7 +31,7 @@ internal class FormuegrunnlagTest {
         @Test
         fun `Formue verdier kan ikke være negative for create`() {
             assertThrows<IllegalArgumentException> {
-                Verdier.create(
+                formueverdier(
                     verdiIkkePrimærbolig = -1,
                     verdiEiendommer = -2,
                     verdiKjøretøy = -3,
@@ -45,7 +46,7 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `Formue verdier kan ikke være negative for try create`() {
-            Verdier.tryCreate(
+            Formueverdier.tryCreate(
                 verdiIkkePrimærbolig = -1,
                 verdiEiendommer = -2,
                 verdiKjøretøy = -3,
@@ -59,20 +60,22 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `alle verdier som 0 skal bli 0`() {
-            Verdier.empty().sumVerdier() shouldBe 0
+            Formueverdier.empty().sumVerdier() shouldBe 0
         }
 
         @Test
-        fun `dersom depositum er høyere enn innskud, blir ikke sum negativ`() {
-            Verdier.empty().copy(
-                innskudd = 100,
-                depositumskonto = 200,
-            ).sumVerdier() shouldBe 0
+        fun `feiler dersom depositum er høyere enn innskudd`() {
+            shouldThrow<IllegalArgumentException> {
+                formueverdier(
+                    innskudd = 199,
+                    depositumskonto = 200,
+                ).sumVerdier() shouldBe 0
+            }.message shouldBe "DepositumErStørreEnnInnskudd"
         }
 
         @Test
         fun `Depositum blir trekket fra innskud`() {
-            Verdier.empty().copy(
+            formueverdier(
                 innskudd = 500,
                 depositumskonto = 200,
             ).sumVerdier() shouldBe 300
@@ -80,7 +83,7 @@ internal class FormuegrunnlagTest {
 
         @Test
         fun `Innskudd blir ikke trekket fra dersom depositum er 0`() {
-            Verdier.empty().copy(
+            formueverdier(
                 innskudd = 500,
                 depositumskonto = 0,
             ).sumVerdier() shouldBe 500
@@ -101,7 +104,7 @@ internal class FormuegrunnlagTest {
             opprettet = Tidspunkt.EPOCH,
             periode = januar(2021),
             epsFormue = null,
-            søkersFormue = Verdier.create(
+            søkersFormue = formueverdier(
                 verdiIkkePrimærbolig = 1,
                 verdiEiendommer = 1,
                 verdiKjøretøy = 1,
@@ -125,7 +128,7 @@ internal class FormuegrunnlagTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 periode = januar(2021),
-                epsFormue = Verdier.create(
+                epsFormue = formueverdier(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,
@@ -135,7 +138,7 @@ internal class FormuegrunnlagTest {
                     kontanter = 1,
                     depositumskonto = 1,
                 ),
-                søkersFormue = Verdier.create(
+                søkersFormue = formueverdier(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,
@@ -167,7 +170,7 @@ internal class FormuegrunnlagTest {
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Verdier.empty(),
+                søkersFormue = Formueverdier.empty(),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
         }
@@ -182,7 +185,7 @@ internal class FormuegrunnlagTest {
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Verdier.empty(),
+                søkersFormue = Formueverdier.empty(),
                 behandlingsPeriode = år(2021),
             )
 
@@ -191,7 +194,7 @@ internal class FormuegrunnlagTest {
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
-                søkersFormue = Verdier.empty(),
+                søkersFormue = Formueverdier.empty(),
                 behandlingsPeriode = år(2021),
             ).right()
         }
@@ -218,7 +221,7 @@ internal class FormuegrunnlagTest {
         val f1 = lagFormuegrunnlag(periodeInnenfor2021 = januar(2021))
         val f2 = lagFormuegrunnlag(
             periodeInnenfor2021 = februar(2021),
-            søkersFormue = Verdier.empty().copy(
+            søkersFormue = formueverdier(
                 verdiEiendommer = 100,
             ),
         )
@@ -230,11 +233,11 @@ internal class FormuegrunnlagTest {
     fun `2 formue grunnlag som tilstøter, men eps verdier er ulik`() {
         val f1 = lagFormuegrunnlag(
             periodeInnenfor2021 = januar(2021),
-            epsFormue = Verdier.empty().copy(verdiEiendommer = 40),
+            epsFormue = formueverdier(verdiEiendommer = 40),
         )
         val f2 = lagFormuegrunnlag(
             periodeInnenfor2021 = februar(2021),
-            epsFormue = Verdier.empty().copy(verdiEiendommer = 100),
+            epsFormue = formueverdier(verdiEiendommer = 100),
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
@@ -252,8 +255,8 @@ internal class FormuegrunnlagTest {
     private fun lagFormuegrunnlag(
         opprettet: Tidspunkt = fixedTidspunkt,
         periodeInnenfor2021: Periode,
-        søkersFormue: Verdier = Verdier.empty(),
-        epsFormue: Verdier? = null,
+        søkersFormue: Formueverdier = Formueverdier.empty(),
+        epsFormue: Formueverdier? = null,
     ): Formuegrunnlag {
         return Formuegrunnlag.create(
             opprettet = opprettet,

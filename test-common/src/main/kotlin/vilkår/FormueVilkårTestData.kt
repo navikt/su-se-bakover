@@ -9,18 +9,17 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagMedEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
 import vilkår.common.domain.grunnlag.periode
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
 import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
@@ -132,12 +131,12 @@ fun avslåttFormueVilkår(
     }
     val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
-            Verdier.empty().copy(verdiEiendommer = 15_000) to
-                Verdier.empty().copy(verdiEiendommer = 150_000)
+            formueverdier(verdiEiendommer = 15_000) to
+                formueverdier(verdiEiendommer = 150_000)
         }
 
         false -> {
-            Verdier.empty().copy(verdiEiendommer = 150_000) to
+            formueverdier(verdiEiendommer = 150_000) to
                 null
         }
     }
@@ -184,12 +183,12 @@ private fun innvilgetFormueVilkår(
     }
     val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
-            Verdier.empty().copy(verdiEiendommer = 15_000) to
-                Verdier.empty().copy(verdiEiendommer = 15_000)
+            formueverdier(verdiEiendommer = 15_000) to
+                formueverdier(verdiEiendommer = 15_000)
         }
 
         false -> {
-            Verdier.empty().copy(verdiEiendommer = 15_000) to
+            formueverdier(verdiEiendommer = 15_000) to
                 null
         }
     }

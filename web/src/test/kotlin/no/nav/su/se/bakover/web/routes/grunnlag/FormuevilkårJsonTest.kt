@@ -11,12 +11,12 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
 import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
@@ -37,7 +37,7 @@ internal class FormuevilkårJsonTest {
                         id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
                         opprettet = fixedTidspunkt,
                         periode = janJun,
-                        epsFormue = Verdier.create(
+                        epsFormue = formueverdier(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,
@@ -47,7 +47,7 @@ internal class FormuevilkårJsonTest {
                             kontanter = 7,
                             depositumskonto = 2,
                         ),
-                        søkersFormue = Verdier.create(
+                        søkersFormue = formueverdier(
                             verdiIkkePrimærbolig = 9,
                             verdiEiendommer = 10,
                             verdiKjøretøy = 11,
@@ -70,7 +70,7 @@ internal class FormuevilkårJsonTest {
                         opprettet = fixedTidspunkt,
                         periode = julDes,
                         epsFormue = null,
-                        søkersFormue = Verdier.create(
+                        søkersFormue = formueverdier(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,

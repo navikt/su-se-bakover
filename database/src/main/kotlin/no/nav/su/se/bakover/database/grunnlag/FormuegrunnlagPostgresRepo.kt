@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.BehandlingsId
@@ -15,7 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import java.util.UUID
 
 internal class FormuegrunnlagPostgresRepo(
@@ -122,8 +121,8 @@ private data class FormueverdierJson(
     val kontanter: Int,
     val depositumskonto: Int,
 ) {
-    fun toDomain(): Verdier {
-        return Verdier.tryCreate(
+    fun toDomain(): Formueverdier {
+        return Formueverdier.create(
             verdiIkkePrimærbolig = verdiIkkePrimærbolig,
             verdiEiendommer = verdiEiendommer,
             verdiKjøretøy = verdiKjøretøy,
@@ -132,13 +131,11 @@ private data class FormueverdierJson(
             pengerSkyldt = pengerSkyldt,
             kontanter = kontanter,
             depositumskonto = depositumskonto,
-        ).getOrElse {
-            throw IllegalArgumentException(it.toString())
-        }
+        )
     }
 }
 
-private fun Verdier.toJson(): FormueverdierJson {
+private fun Formueverdier.toJson(): FormueverdierJson {
     return FormueverdierJson(
         verdiIkkePrimærbolig = verdiIkkePrimærbolig,
         verdiEiendommer = verdiEiendommer,

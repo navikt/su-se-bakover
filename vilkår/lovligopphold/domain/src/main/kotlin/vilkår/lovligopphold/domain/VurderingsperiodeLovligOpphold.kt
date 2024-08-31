@@ -18,7 +18,7 @@ data class VurderingsperiodeLovligOpphold private constructor(
     override val periode: Periode,
 ) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
 
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = tryCreate(
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = create(
         id = id,
         opprettet = opprettet,
         vurdering = vurdering,
@@ -58,16 +58,18 @@ data class VurderingsperiodeLovligOpphold private constructor(
     }
 
     companion object {
-        fun tryCreate(
+        fun create(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
             vurderingsperiode: Periode,
-        ) = VurderingsperiodeLovligOpphold(
-            id = id,
-            opprettet = opprettet,
-            vurdering = vurdering,
-            periode = vurderingsperiode,
-        )
+        ): VurderingsperiodeLovligOpphold {
+            return VurderingsperiodeLovligOpphold(
+                id = id,
+                opprettet = opprettet,
+                vurdering = vurdering,
+                periode = vurderingsperiode,
+            )
+        }
     }
 }

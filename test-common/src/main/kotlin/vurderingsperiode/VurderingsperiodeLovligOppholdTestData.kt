@@ -13,7 +13,7 @@ fun vurderingsperiodeLovligOppholdInnvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     vurdering: Vurdering = Vurdering.Innvilget,
     vurderingsperiode: Periode = år(2021),
-) = VurderingsperiodeLovligOpphold.tryCreate(
+) = VurderingsperiodeLovligOpphold.create(
     id = id,
     opprettet = opprettet,
     vurdering = vurdering,
@@ -25,7 +25,7 @@ fun vurderingsperiodeLovligOppholdAvslag(
     opprettet: Tidspunkt = fixedTidspunkt,
     vurdering: Vurdering = Vurdering.Avslag,
     vurderingsperiode: Periode = år(2021),
-) = VurderingsperiodeLovligOpphold.tryCreate(
+) = VurderingsperiodeLovligOpphold.create(
     id = id,
     opprettet = opprettet,
     vurdering = vurdering,

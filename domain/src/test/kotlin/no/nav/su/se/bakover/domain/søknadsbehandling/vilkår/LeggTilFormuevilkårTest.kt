@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.vilkår
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
@@ -12,7 +11,7 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 
 internal class LeggTilFormuevilkårTest {
 
@@ -27,7 +26,7 @@ internal class LeggTilFormuevilkårTest {
                             LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                                 periode = avslag.periode,
                                 epsFormue = null,
-                                søkersFormue = Verdier.empty(),
+                                søkersFormue = Formueverdier.empty(),
                                 begrunnelse = null,
                                 måInnhenteMerInformasjon = false,
                             ),
@@ -55,7 +54,7 @@ internal class LeggTilFormuevilkårTest {
                             LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                                 periode = innvilget.periode,
                                 epsFormue = null,
-                                søkersFormue = Verdier.empty(),
+                                søkersFormue = Formueverdier.empty(),
                                 begrunnelse = null,
                                 måInnhenteMerInformasjon = false,
                             ),

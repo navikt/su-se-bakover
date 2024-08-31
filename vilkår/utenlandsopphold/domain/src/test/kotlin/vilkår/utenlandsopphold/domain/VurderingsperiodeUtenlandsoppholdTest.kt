@@ -65,7 +65,17 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
             vurderingsperiode = år(2021),
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
-                it shouldBe it.copy()
+                it shouldBe VurderingsperiodeUtenlandsopphold.create(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    vurdering = Vurdering.Innvilget,
+                    grunnlag = Utenlandsoppholdgrunnlag(
+                        id = it.grunnlag!!.id,
+                        opprettet = fixedTidspunkt,
+                        periode = år(2021),
+                    ),
+                    periode = år(2021),
+                )
             }
 
         VurderingsperiodeUtenlandsopphold.tryCreate(
@@ -79,7 +89,17 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
             ),
             vurderingsperiode = år(2021),
         ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
-            it shouldBe it.copy(periode = mai(2021))
+            it shouldBe VurderingsperiodeUtenlandsopphold.create(
+                id = it.id,
+                opprettet = it.opprettet,
+                vurdering = it.vurdering,
+                grunnlag = Utenlandsoppholdgrunnlag(
+                    id = it.grunnlag!!.id,
+                    opprettet = fixedTidspunkt,
+                    periode = mai(2021),
+                ),
+                periode = mai(2021),
+            )
         }
     }
 

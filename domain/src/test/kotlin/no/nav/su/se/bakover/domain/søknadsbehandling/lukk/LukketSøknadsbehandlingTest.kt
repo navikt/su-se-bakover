@@ -60,8 +60,8 @@ internal class LukketSøknadsbehandlingTest {
                     lukketAv = saksbehandler,
                     innsendtAv = veileder,
                 ),
-            ).copy(
-                søknadsbehandlingsHistorikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+            ).oppdaterSøknadshistorikkForTest(
+                historikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     nySøknadsbehandlingshendelse(
                         tidspunkt = command.lukketTidspunkt,
                         saksbehandler = command.saksbehandler,

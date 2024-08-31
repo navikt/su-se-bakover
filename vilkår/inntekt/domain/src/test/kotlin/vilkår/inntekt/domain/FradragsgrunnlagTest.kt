@@ -393,7 +393,17 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
         listOf(fBruker, fEps).fjernFradragEPS(EmptyPerioder).let {
-            it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
+            it shouldBe listOf(
+                fBruker,
+                nyFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10_000.0,
+                    periode = år(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                    id = it[1].id,
+                ),
+            )
         }
     }
 
@@ -414,7 +424,17 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
         listOf(fBruker, fEps).fjernFradragEPS(NonEmptySlåttSammenIkkeOverlappendePerioder.create(år(2023))).let {
-            it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
+            it shouldBe listOf(
+                fBruker,
+                nyFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10_000.0,
+                    periode = år(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                    id = it[1].id,
+                ),
+            )
         }
     }
 

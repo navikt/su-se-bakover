@@ -47,7 +47,12 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
             vurdering = Vurdering.Innvilget,
             periode = år(2021),
         ).copy(CopyArgs.Tidslinje.Full).let {
-            it shouldBe it.copy()
+            it shouldBe VurderingsperiodeInstitusjonsopphold.create(
+                id = it.id,
+                opprettet = it.opprettet,
+                vurdering = it.vurdering,
+                periode = it.periode,
+            )
         }
 
         VurderingsperiodeInstitusjonsopphold.create(
@@ -56,7 +61,12 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
             vurdering = Vurdering.Innvilget,
             periode = år(2021),
         ).copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
-            it shouldBe it.copy(periode = mai(2021))
+            it shouldBe VurderingsperiodeInstitusjonsopphold.create(
+                id = it.id,
+                opprettet = it.opprettet,
+                vurdering = it.vurdering,
+                periode = mai(2021),
+            )
         }
     }
 
