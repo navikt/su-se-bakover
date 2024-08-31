@@ -48,7 +48,12 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             vurderingsperiode = år(2021),
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
-                it shouldBe it.copy()
+                it shouldBe VurderingsperiodeFastOppholdINorge.tryCreate(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    vurdering = Vurdering.Innvilget,
+                    vurderingsperiode = år(2021),
+                ).getOrFail()
             }
 
         VurderingsperiodeFastOppholdINorge.tryCreate(
@@ -57,7 +62,12 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             vurdering = Vurdering.Innvilget,
             vurderingsperiode = år(2021),
         ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
-            it shouldBe it.copy(periode = mai(2021))
+            it shouldBe VurderingsperiodeFastOppholdINorge.tryCreate(
+                id = it.id,
+                opprettet = fixedTidspunkt,
+                vurdering = Vurdering.Innvilget,
+                vurderingsperiode = mai(2021),
+            ).getOrFail()
         }
     }
 

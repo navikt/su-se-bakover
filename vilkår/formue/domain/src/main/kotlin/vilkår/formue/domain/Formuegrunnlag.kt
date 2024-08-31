@@ -17,8 +17,8 @@ data class Formuegrunnlag private constructor(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    val epsFormue: Verdier?,
-    val søkersFormue: Verdier,
+    val epsFormue: Formueverdier?,
+    val søkersFormue: Formueverdier,
 ) : Grunnlag, KanPlasseresPåTidslinje<Formuegrunnlag> {
 
     fun harEPSFormue(): Boolean {
@@ -27,16 +27,7 @@ data class Formuegrunnlag private constructor(
 
     fun leggTilTomEPSFormueHvisDenMangler(): Formuegrunnlag {
         return epsFormue?.let { this } ?: copy(
-            epsFormue = Verdier.create(
-                verdiIkkePrimærbolig = 0,
-                verdiEiendommer = 0,
-                verdiKjøretøy = 0,
-                innskudd = 0,
-                verdipapir = 0,
-                pengerSkyldt = 0,
-                kontanter = 0,
-                depositumskonto = 0,
-            ),
+            epsFormue = Formueverdier.empty(),
         )
     }
 
@@ -61,8 +52,8 @@ data class Formuegrunnlag private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             periode: Periode,
-            epsFormue: Verdier?,
-            søkersFormue: Verdier,
+            epsFormue: Formueverdier?,
+            søkersFormue: Formueverdier,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -84,8 +75,8 @@ data class Formuegrunnlag private constructor(
             id: UUID,
             opprettet: Tidspunkt,
             periode: Periode,
-            epsFormue: Verdier?,
-            søkersFormue: Verdier,
+            epsFormue: Formueverdier?,
+            søkersFormue: Formueverdier,
         ): Formuegrunnlag {
             return Formuegrunnlag(
                 id = id,

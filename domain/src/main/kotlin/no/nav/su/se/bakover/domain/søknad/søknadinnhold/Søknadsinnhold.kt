@@ -28,15 +28,7 @@ sealed interface SøknadInnhold {
     val forNav: ForNav
     val ektefelle: Ektefelle?
 
-    fun oppdaterFnr(fnr: Fnr) = when (this) {
-        is SøknadsinnholdAlder -> this.copy(
-            personopplysninger = personopplysninger.copy(fnr = fnr),
-        )
-
-        is SøknadsinnholdUføre -> this.copy(
-            personopplysninger = personopplysninger.copy(fnr = fnr),
-        )
-    }
+    fun oppdaterFnr(fnr: Fnr): SøknadInnhold
 
     fun type() = when (this) {
         is SøknadsinnholdAlder -> Sakstype.ALDER
@@ -126,6 +118,12 @@ data class SøknadsinnholdAlder private constructor(
         ) =
             if (!oppholdstillatelse.erNorskStatsborger && oppholdstillatelse.harOppholdstillatelse == true && oppholdstillatelseAlder.familiegjenforening == null) FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.FamiliegjenforeningErIkkeutfylt.left() else Unit.right()
     }
+
+    override fun oppdaterFnr(fnr: Fnr): SøknadsinnholdAlder {
+        return this.copy(
+            personopplysninger = Personopplysninger(fnr),
+        )
+    }
 }
 
 data class SøknadsinnholdUføre private constructor(
@@ -170,6 +168,11 @@ data class SøknadsinnholdUføre private constructor(
                 ektefelle = ektefelle,
             ).right()
         }
+    }
+    override fun oppdaterFnr(fnr: Fnr): SøknadsinnholdUføre {
+        return this.copy(
+            personopplysninger = Personopplysninger(fnr),
+        )
     }
 }
 

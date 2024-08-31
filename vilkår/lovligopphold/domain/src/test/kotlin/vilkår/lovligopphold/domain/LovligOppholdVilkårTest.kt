@@ -41,14 +41,14 @@ internal class LovligOppholdVilkårTest {
 
     @Test
     fun `lager tidslinje for vilkår, vurderingsperioder og grunnlag`() {
-        val v1 = VurderingsperiodeLovligOpphold.tryCreate(
+        val v1 = VurderingsperiodeLovligOpphold.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,
             vurderingsperiode = mai(2021),
         )
 
-        val v2 = VurderingsperiodeLovligOpphold.tryCreate(
+        val v2 = VurderingsperiodeLovligOpphold.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             vurdering = Vurdering.Innvilget,

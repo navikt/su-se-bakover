@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
@@ -46,7 +47,9 @@ import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vedtak.domain.VedtakSomKanRevurderes
+import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.Grunnlagsdata
 
@@ -91,10 +94,28 @@ internal class GjeldendeVedtaksdataTest {
         )
         data.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
             listOf(
-                fradragSøknadsbehandling.nyFradragsperiode(januar(2021)..april(2021)).copy(
+                Fradragsgrunnlag.create(
+                    id = fradragSøknadsbehandling.id,
                     opprettet = Tidspunkt.parse("2021-01-01T01:03:44.456789Z"),
+                    fradrag = FradragForPeriode(
+                        fradragstype = fradragSøknadsbehandling.fradragstype,
+                        månedsbeløp = fradragSøknadsbehandling.månedsbeløp,
+                        periode = januar(2021)..april(2021),
+                        utenlandskInntekt = fradragSøknadsbehandling.utenlandskInntekt,
+                        tilhører = fradragSøknadsbehandling.tilhører,
+                    ),
                 ),
-                fradragRevurdering.copy(opprettet = Tidspunkt.parse("2021-01-01T01:03:44.456789Z")),
+                Fradragsgrunnlag.create(
+                    id = fradragRevurdering.id,
+                    opprettet = Tidspunkt.parse("2021-01-01T01:03:44.456789Z"),
+                    fradrag = FradragForPeriode(
+                        fradragstype = fradragRevurdering.fradragstype,
+                        månedsbeløp = fradragRevurdering.månedsbeløp,
+                        periode = mai(2021)..desember(2021),
+                        utenlandskInntekt = fradragRevurdering.utenlandskInntekt,
+                        tilhører = fradragRevurdering.tilhører,
+                    ),
+                ),
             ),
         )
     }
@@ -146,8 +167,20 @@ internal class GjeldendeVedtaksdataTest {
         )
         data.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
             listOf(
-                fradragSøknadsbehandling.copy(opprettet = Tidspunkt.parse("2021-01-01T01:03:28.456789Z")),
-                fradragRevurdering.copy(opprettet = Tidspunkt.parse("2021-01-01T01:03:28.456789Z")),
+                nyFradragsgrunnlag(
+                    periode = stønadsperiodeFørstegangsvedtak.periode,
+                    månedsbeløp = fradragSøknadsbehandling.fradrag.månedsbeløp,
+                    opprettet = Tidspunkt.parse("2021-01-01T01:03:28.456789Z"),
+                    id = fradragSøknadsbehandling.id,
+                    type = fradragSøknadsbehandling.fradragstype,
+                ),
+                nyFradragsgrunnlag(
+                    periode = stønadsperiodeNyPeriode.periode,
+                    månedsbeløp = fradragRevurdering.fradrag.månedsbeløp,
+                    opprettet = Tidspunkt.parse("2021-01-01T01:03:28.456789Z"),
+                    id = fradragRevurdering.id,
+                    type = fradragRevurdering.fradragstype,
+                ),
             ),
         )
     }
@@ -241,8 +274,13 @@ internal class GjeldendeVedtaksdataTest {
             )
             it.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
                 listOf(
-                    fradragRevurdering.nyFradragsperiode(januar(2021)..februar(2021))
-                        .copy(opprettet = Tidspunkt.parse("2021-02-01T00:01:35Z")),
+                    nyFradragsgrunnlag(
+                        periode = revurderingsperiode,
+                        månedsbeløp = 5000.0,
+                        opprettet = Tidspunkt.parse("2021-02-01T00:01:35Z"),
+                        id = fradragRevurdering.id,
+                        type = fradragRevurdering.fradragstype,
+                    ),
                     nyFradragsgrunnlag(
                         periode = juni(2021),
                         opprettet = Tidspunkt.parse("2021-02-01T00:01:35Z"),

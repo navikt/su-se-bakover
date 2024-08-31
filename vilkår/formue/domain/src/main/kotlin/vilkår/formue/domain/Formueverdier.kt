@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 
-data class Verdier private constructor(
+data class Formueverdier private constructor(
     val verdiIkkePrimærbolig: Int,
     val verdiEiendommer: Int,
     val verdiKjøretøy: Int,
@@ -37,7 +37,7 @@ data class Verdier private constructor(
             pengerSkyldt: Int,
             kontanter: Int,
             depositumskonto: Int,
-        ): Verdier = tryCreate(
+        ): Formueverdier = tryCreate(
             verdiIkkePrimærbolig = verdiIkkePrimærbolig,
             verdiEiendommer = verdiEiendommer,
             verdiKjøretøy = verdiKjøretøy,
@@ -57,7 +57,7 @@ data class Verdier private constructor(
             pengerSkyldt: Int,
             kontanter: Int,
             depositumskonto: Int,
-        ): Either<KunneIkkeLageFormueVerdier, Verdier> {
+        ): Either<KunneIkkeLageFormueVerdier, Formueverdier> {
             if (depositumskonto > innskudd) {
                 return KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd.left()
             }
@@ -75,7 +75,7 @@ data class Verdier private constructor(
                 return KunneIkkeLageFormueVerdier.VerdierKanIkkeVæreNegativ.left()
             }
 
-            return Verdier(
+            return Formueverdier(
                 verdiIkkePrimærbolig = verdiIkkePrimærbolig,
                 verdiEiendommer = verdiEiendommer,
                 verdiKjøretøy = verdiKjøretøy,
@@ -86,6 +86,17 @@ data class Verdier private constructor(
                 depositumskonto = depositumskonto,
             ).right()
         }
+
+        fun empty() = create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        )
 
         fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): SlåttSammenIkkeOverlappendePerioder {
             return map { it.periode }.minsteAntallSammenhengendePerioder()

@@ -22,10 +22,20 @@ internal class VurderingsperiodeLovligOppholdTest {
     @Test
     fun `kopierer korrekte verdier`() {
         vurderingsperiodeLovligOppholdInnvilget().copy(CopyArgs.Tidslinje.Full).let {
-            it shouldBe it.copy()
+            it shouldBe VurderingsperiodeLovligOpphold.create(
+                id = it.id,
+                opprettet = it.opprettet,
+                vurdering = it.vurdering,
+                vurderingsperiode = it.periode,
+            )
         }
         vurderingsperiodeLovligOppholdInnvilget().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
-            it shouldBe it.copy(periode = mai(2021))
+            it shouldBe VurderingsperiodeLovligOpphold.create(
+                id = it.id,
+                opprettet = it.opprettet,
+                vurdering = it.vurdering,
+                vurderingsperiode = mai(2021),
+            )
         }
     }
 

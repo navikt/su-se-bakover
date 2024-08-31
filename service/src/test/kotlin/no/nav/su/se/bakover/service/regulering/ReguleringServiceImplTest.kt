@@ -717,7 +717,9 @@ internal class ReguleringServiceImplTest {
                 vedtakListe = if (lagFeilutbetaling) {
                     listOf(
                         (sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling).let { vedtak ->
-                            vedtak.copy(
+                            VedtakInnvilgetSøknadsbehandling.createFromPersistence(
+                                id = vedtak.id,
+                                opprettet = vedtak.opprettet,
                                 behandling = vedtak.behandling.let {
                                     it.copy(
                                         grunnlagsdataOgVilkårsvurderinger = it.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
@@ -725,6 +727,13 @@ internal class ReguleringServiceImplTest {
                                         ),
                                     )
                                 },
+                                saksbehandler = vedtak.saksbehandler,
+                                attestant = vedtak.attestant,
+                                periode = vedtak.periode,
+                                beregning = vedtak.beregning,
+                                simulering = vedtak.simulering,
+                                utbetalingId = vedtak.utbetalingId,
+                                dokumenttilstand = vedtak.dokumenttilstand,
                             )
                         },
                     )

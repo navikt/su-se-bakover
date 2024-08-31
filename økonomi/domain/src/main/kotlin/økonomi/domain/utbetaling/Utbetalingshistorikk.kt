@@ -197,8 +197,7 @@ class ForrigeUtbetalingslinjeKoblendeListe() : LinkedList<Utbetalingslinje>() {
         return true
     }
 
-    override fun addLast(e: Utbetalingslinje?) {
-        checkNotNull(e) { "Kan ikke legge til null" }
+    override fun addLast(e: Utbetalingslinje) {
         val siste = peekLast()
         if (siste != null) {
             when (e) {

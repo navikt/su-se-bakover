@@ -23,10 +23,10 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
@@ -53,10 +53,19 @@ internal class FormueVilkårTest {
             periodeInnenfor2021 = Periode.create(1.januar(2021), 28.februar(2021)),
             grunnlagsId = actual.first().grunnlag.id,
         )
-        actual.last() shouldBe f3.copy(
+
+        actual.last() shouldBe lagFormueVurderingsperiode(
             id = actual.last().id,
-            grunnlag = f3.grunnlag.copy(
+            periodeInnenfor2021 = mars(2021),
+            grunnlagsId = actual.last().grunnlag.id,
+            vurdering = Vurdering.Avslag,
+            grunnlag = Formuegrunnlag.create(
                 id = actual.last().grunnlag.id,
+                periode = mars(2021),
+                opprettet = fixedTidspunkt,
+                epsFormue = null,
+                søkersFormue = formueverdier(innskudd = 1000000),
+                behandlingsPeriode = år(2021),
             ),
         )
     }
@@ -99,7 +108,7 @@ internal class FormueVilkårTest {
                 opprettet = fixedTidspunkt,
                 periode = februar(2021),
                 epsFormue = null,
-                søkersFormue = Verdier.empty().copy(
+                søkersFormue = formueverdier(
                     verdiEiendommer = 100,
                 ),
                 år(2021),
@@ -119,7 +128,7 @@ internal class FormueVilkårTest {
                 opprettet = fixedTidspunkt,
                 periode = februar(2021),
                 epsFormue = null,
-                søkersFormue = Verdier.empty(),
+                søkersFormue = Formueverdier.empty(),
                 år(2021),
             ),
         )
@@ -171,7 +180,16 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
+            opprinneligVilkår.fjernEPSFormue(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    Periode.create(
+                        1.januar(
+                            2021,
+                        ),
+                        31.mars(2021),
+                    ),
+                ),
+            ).let { nyttVilkår ->
                 nyttVilkår.vurderingsperioder shouldHaveSize 1
 
                 nyttVilkår.vurderingsperioder[0].let {
@@ -190,7 +208,16 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.fjernEPSFormue(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    Periode.create(
+                        1.januar(
+                            2021,
+                        ),
+                        31.mars(2021),
+                    ),
+                ),
+            )
                 .erLik(opprinneligVilkår)
         }
     }
@@ -215,7 +242,16 @@ internal class FormueVilkårTest {
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
             ),
         ).let { opprinneligVilkår ->
-            opprinneligVilkår.fjernEPSFormue(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.februar(2022), 31.juli(2022))))
+            opprinneligVilkår.fjernEPSFormue(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    Periode.create(
+                        1.februar(
+                            2022,
+                        ),
+                        31.juli(2022),
+                    ),
+                ),
+            )
                 .erLik(opprinneligVilkår)
         }
     }
@@ -254,7 +290,11 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe false
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    Periode.create(1.januar(2021), 31.mars(2021)),
+                ),
+            )
                 .let {
                     opprinneligVilkår.harEPSFormue() shouldBe false
                     it.grunnlag shouldHaveSize 1
@@ -273,7 +313,11 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.harEPSFormue() shouldBe true
-            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(NonEmptySlåttSammenIkkeOverlappendePerioder.create(Periode.create(1.januar(2021), 31.mars(2021))))
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(
+                NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                    Periode.create(1.januar(2021), 31.mars(2021)),
+                ),
+            )
                 .let {
                     opprinneligVilkår.harEPSFormue() shouldBe true
                     it.erLik(opprinneligVilkår) shouldBe true
@@ -303,7 +347,7 @@ internal class FormueVilkårTest {
             periode = periodeInnenfor2021,
             opprettet = tidspunkt,
             epsFormue = null,
-            søkersFormue = Verdier.empty(),
+            søkersFormue = Formueverdier.empty(),
             behandlingsPeriode = år(2021),
         ),
     ): VurderingsperiodeFormue {

@@ -19,7 +19,7 @@ import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.lovligopphold.domain.LovligOppholdVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
@@ -59,8 +59,8 @@ fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt,
     periode: Periode,
-    epsFormue: Verdier?,
-    søkersFormue: Verdier,
+    epsFormue: Formueverdier?,
+    søkersFormue: Formueverdier,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
     id = id,
@@ -70,17 +70,6 @@ fun Formuegrunnlag.Companion.create(
     søkersFormue = søkersFormue,
     behandlingsPeriode = behandlingsPeriode,
 ).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
-
-fun Verdier.Companion.empty() = create(
-    verdiIkkePrimærbolig = 0,
-    verdiEiendommer = 0,
-    verdiKjøretøy = 0,
-    innskudd = 0,
-    verdipapir = 0,
-    pengerSkyldt = 0,
-    kontanter = 0,
-    depositumskonto = 0,
-)
 
 /**
  * checking that all the objects are deeply equal, except id, which should be not equal
@@ -293,7 +282,7 @@ fun List<Bosituasjon>.shouldBeEqualToExceptId(expected: List<Bosituasjon>) {
 }
 
 fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
-    this.shouldBe(expected.copy(id = this.id))
+    this.shouldBe(Fradragsgrunnlag.create(id, expected.opprettet, expected.fradrag))
     this.id shouldNotBe expected.id
 }
 

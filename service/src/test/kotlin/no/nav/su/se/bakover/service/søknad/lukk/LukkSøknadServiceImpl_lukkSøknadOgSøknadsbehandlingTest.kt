@@ -497,8 +497,8 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         fun expectedLukketSøknadsbehandling() = LukketSøknadsbehandling.createFromPersistedState(
             søknadsbehandling = søknadsbehandling!!,
             søknad = expectedLukketSøknad(),
-        ).copy(
-            søknadsbehandlingsHistorikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+        ).oppdaterSøknadshistorikkForTest(
+            historikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 nySøknadsbehandlingshendelse(
                     tidspunkt = fixedTidspunkt,
                     saksbehandler = saksbehandler,

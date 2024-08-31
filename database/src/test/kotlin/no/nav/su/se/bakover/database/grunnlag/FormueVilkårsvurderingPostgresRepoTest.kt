@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.Test
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
@@ -45,7 +46,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     private fun formuegrunnlag(
         periode: Periode,
-        søkersFormue: Verdier = Verdier.create(
+        søkersFormue: Formueverdier = formueverdier(
             verdiIkkePrimærbolig = 9,
             verdiEiendommer = 10,
             verdiKjøretøy = 11,
@@ -55,7 +56,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             kontanter = 15,
             depositumskonto = 10,
         ),
-        epsFormue: Verdier? = Verdier.create(
+        epsFormue: Formueverdier? = formueverdier(
             verdiIkkePrimærbolig = 1,
             verdiEiendommer = 2,
             verdiKjøretøy = 3,
@@ -131,7 +132,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 grunnlag = nonEmptyListOf(
                     formuegrunnlag(
                         periode = periode,
-                        epsFormue = Verdier.create(
+                        epsFormue = formueverdier(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,

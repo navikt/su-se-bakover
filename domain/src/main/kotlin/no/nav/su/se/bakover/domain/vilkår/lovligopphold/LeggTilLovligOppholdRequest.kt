@@ -43,7 +43,7 @@ data class LeggTilLovligOppholdRequest(
     private fun toVurderingsperiode(
         clock: Clock,
     ) = vurderinger.map {
-        VurderingsperiodeLovligOpphold.tryCreate(
+        VurderingsperiodeLovligOpphold.create(
             opprettet = Tidspunkt.now(clock),
             vurdering = it.status.toResultat(),
             vurderingsperiode = it.periode,

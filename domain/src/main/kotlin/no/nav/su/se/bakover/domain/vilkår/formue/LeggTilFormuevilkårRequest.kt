@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendels
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formuegrunnlag
+import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.KunneIkkeLageFormueGrunnlag
-import vilkår.formue.domain.Verdier
 import vilkår.vurderinger.domain.Konsistensproblem
 
 data class LeggTilFormuevilkårRequest(
@@ -68,23 +68,23 @@ data class LeggTilFormuevilkårRequest(
 
     sealed interface Grunnlag {
         val periode: Periode
-        val epsFormue: Verdier?
-        val søkersFormue: Verdier
+        val epsFormue: Formueverdier?
+        val søkersFormue: Formueverdier
         val begrunnelse: String?
         val måInnhenteMerInformasjon: Boolean
 
         data class Søknadsbehandling(
             override val periode: Periode,
-            override val epsFormue: Verdier?,
-            override val søkersFormue: Verdier,
+            override val epsFormue: Formueverdier?,
+            override val søkersFormue: Formueverdier,
             override val begrunnelse: String?,
             override val måInnhenteMerInformasjon: Boolean,
         ) : Grunnlag
 
         data class Revurdering(
             override val periode: Periode,
-            override val epsFormue: Verdier?,
-            override val søkersFormue: Verdier,
+            override val epsFormue: Formueverdier?,
+            override val søkersFormue: Formueverdier,
             override val begrunnelse: String?,
 
         ) : Grunnlag {

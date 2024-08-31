@@ -33,13 +33,13 @@ import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeType
@@ -57,7 +57,6 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.UføreVilkår
@@ -278,15 +277,15 @@ internal class VedtakstidslinjeTest {
                     opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = januar(2021)..juni(2021),
                     epsFormue = null,
-                    søkersFormue = Verdier.empty().copy(verdiEiendommer = 1000),
+                    søkersFormue = formueverdier(verdiEiendommer = 1000),
                     behandlingsPeriode = periode,
                 ),
                 Formuegrunnlag.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = juli(2021)..desember(2021),
-                    epsFormue = Verdier.empty().copy(verdiEiendommer = 15000),
-                    søkersFormue = Verdier.empty().copy(verdiEiendommer = 1000),
+                    epsFormue = formueverdier(verdiEiendommer = 15000),
+                    søkersFormue = formueverdier(verdiEiendommer = 1000),
                     behandlingsPeriode = periode,
                 ),
             ),
@@ -368,8 +367,7 @@ internal class VedtakstidslinjeTest {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id
                                                 it.periode shouldBe Periode.create(1.mai(2021), 30.juni(2021))
                                                 it.epsFormue shouldBe null
-                                                it.søkersFormue shouldBe Verdier.empty()
-                                                    .copy(verdiEiendommer = 1000)
+                                                it.søkersFormue shouldBe formueverdier(verdiEiendommer = 1000)
                                             }
                                         }
 
@@ -384,10 +382,8 @@ internal class VedtakstidslinjeTest {
                                             vurderingsperiodecopy.grunnlag.let {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id
                                                 it.periode shouldBe Periode.create(1.juli(2021), 31.juli(2021))
-                                                it.epsFormue shouldBe Verdier.empty()
-                                                    .copy(verdiEiendommer = 15000)
-                                                it.søkersFormue shouldBe Verdier.empty()
-                                                    .copy(verdiEiendommer = 1000)
+                                                it.epsFormue shouldBe formueverdier(verdiEiendommer = 15000)
+                                                it.søkersFormue shouldBe formueverdier(verdiEiendommer = 1000)
                                             }
                                         }
                                     }

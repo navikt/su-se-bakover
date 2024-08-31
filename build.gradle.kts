@@ -137,6 +137,7 @@ subprojects {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
             freeCompilerArgs.add("-progressive")
+            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
             allWarningsAsErrors.set(true)
         }
     }

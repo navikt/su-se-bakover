@@ -10,7 +10,7 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harOverlappende
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.perioderMedEPS
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier.Companion.minsteAntallSammenhengendePerioder
+import vilkår.formue.domain.Formueverdier.Companion.minsteAntallSammenhengendePerioder
 import vilkår.formue.domain.harOverlappende
 import vilkår.formue.domain.perioderMedEPS
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag

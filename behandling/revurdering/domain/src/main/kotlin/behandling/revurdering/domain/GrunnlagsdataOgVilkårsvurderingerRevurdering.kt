@@ -82,7 +82,7 @@ data class GrunnlagsdataOgVilkårsvurderingerRevurdering(
     }
 
     override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderingerRevurdering {
-        return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
+        return copy(grunnlagsdata = grunnlagsdata.oppdaterFradragsgrunnlag(fradragsgrunnlag))
     }
 
     /* jah: Beholdes så lenge command-typene støtter fradragstypen avkorting. En mulighet er å splitte fradragstypene i command/query slik at vi ikke trenger bekymre oss for at ugyldige fradrag sniker seg inn i beregningen. */

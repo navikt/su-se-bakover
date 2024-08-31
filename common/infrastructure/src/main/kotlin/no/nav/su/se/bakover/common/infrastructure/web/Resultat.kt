@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
-data class Resultat private constructor(
+data class Resultat(
     val httpCode: HttpStatusCode,
     val json: String,
     private val contentType: ContentType,

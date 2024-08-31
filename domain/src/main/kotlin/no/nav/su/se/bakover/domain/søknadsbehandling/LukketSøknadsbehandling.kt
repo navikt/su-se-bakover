@@ -14,13 +14,13 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import org.jetbrains.annotations.TestOnly
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 
 /**
  * En avvist søknadsbehandling kan resultere i et "vedtak" eller "avbrutt". Derfor arver den fra "avsluttet" og ikke "avbrutt" eller "vedtak".
  * "Trukket" og "Bortfalt" anses som "avbrutt".
  */
-
 data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
@@ -168,5 +168,18 @@ data class LukketSøknadsbehandling private constructor(
             }
             return Unit.right()
         }
+    }
+
+    /**
+     * TODO jah: Det er litt uheldig at søknadsbehandlingshistorikken ligger på LukketSøknad, men ikke den underliggende søknadsbehandlingen når den lukkes fra domenet, men den ligger på begge når den hentes fra databasen. Sammen med en private konstruktør, blir det vanskelig å teste.
+     *  Måtte legge til denne funksjonen pga. privat konstruktør.
+     */
+    @TestOnly
+    fun oppdaterSøknadshistorikkForTest(historikk: Søknadsbehandlingshistorikk): LukketSøknadsbehandling {
+        return LukketSøknadsbehandling(
+            underliggendeSøknadsbehandling = underliggendeSøknadsbehandling,
+            søknad = søknad,
+            søknadsbehandlingsHistorikk = historikk,
+        )
     }
 }

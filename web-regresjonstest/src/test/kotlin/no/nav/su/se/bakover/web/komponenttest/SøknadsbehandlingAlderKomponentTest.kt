@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -47,7 +46,7 @@ import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
@@ -203,7 +202,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                             LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                                 periode = stønadsperiode2022.periode,
                                 epsFormue = null,
-                                søkersFormue = Verdier.empty(),
+                                søkersFormue = Formueverdier.empty(),
                                 begrunnelse = null,
                                 måInnhenteMerInformasjon = false,
                             ),

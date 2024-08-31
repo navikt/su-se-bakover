@@ -4,10 +4,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
+import vilkår.formue.domain.Formueverdier
 import java.util.UUID
 
 fun formueGrunnlagUtenEps0Innvilget(
@@ -19,7 +18,7 @@ fun formueGrunnlagUtenEps0Innvilget(
         opprettet = opprettet,
         periode = periode,
         epsFormue = null,
-        søkersFormue = Verdier.empty(),
+        søkersFormue = Formueverdier.empty(),
         behandlingsPeriode = periode,
     )
 }
@@ -32,8 +31,8 @@ fun formueGrunnlagMedEps0Innvilget(
         id = UUID.randomUUID(),
         opprettet = opprettet,
         periode = periode,
-        epsFormue = Verdier.empty(),
-        søkersFormue = Verdier.empty(),
+        epsFormue = Formueverdier.empty(),
+        søkersFormue = Formueverdier.empty(),
         behandlingsPeriode = periode,
     )
 }
@@ -48,16 +47,34 @@ fun formueGrunnlagUtenEpsAvslått(
         opprettet = opprettet,
         periode = periode,
         epsFormue = null,
-        søkersFormue = Verdier.create(
-            verdiIkkePrimærbolig = 0,
-            verdiEiendommer = 0,
-            verdiKjøretøy = 0,
+        søkersFormue = formueverdier(
             innskudd = 1000000,
-            verdipapir = 0,
-            pengerSkyldt = 0,
-            kontanter = 0,
-            depositumskonto = 0,
         ),
         behandlingsPeriode = periode,
+    )
+}
+
+/**
+ * Defaulter til 0 for alle felter.
+ */
+fun formueverdier(
+    verdiIkkePrimærbolig: Int = 0,
+    verdiEiendommer: Int = 0,
+    verdiKjøretøy: Int = 0,
+    innskudd: Int = 0,
+    verdipapir: Int = 0,
+    pengerSkyldt: Int = 0,
+    kontanter: Int = 0,
+    depositumskonto: Int = 0,
+): Formueverdier {
+    return Formueverdier.create(
+        verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+        verdiEiendommer = verdiEiendommer,
+        verdiKjøretøy = verdiKjøretøy,
+        innskudd = innskudd,
+        verdipapir = verdipapir,
+        pengerSkyldt = pengerSkyldt,
+        kontanter = kontanter,
+        depositumskonto = depositumskonto,
     )
 }

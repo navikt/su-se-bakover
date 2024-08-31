@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
@@ -52,7 +53,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 )
 
                 grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
-                    fradragsgrunnlag1.copy(
+                    Fradragsgrunnlag.create(
+                        id = fradragsgrunnlag1.id,
+                        opprettet = fradragsgrunnlag1.opprettet,
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 5000.0,
@@ -65,7 +68,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
-                    fradragsgrunnlag2.copy(
+                    Fradragsgrunnlag.create(
+                        id = fradragsgrunnlag2.id,
+                        opprettet = fradragsgrunnlag2.opprettet,
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Kontantstøtte,
                             månedsbeløp = 15000.0,
@@ -109,7 +114,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 )
 
                 grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
-                    grunnlag.copy(
+                    Fradragsgrunnlag.create(
+                        id = grunnlag.id,
+                        opprettet = grunnlag.opprettet,
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Annet("vet ikke hva dette er"),
                             månedsbeløp = 15000.0,

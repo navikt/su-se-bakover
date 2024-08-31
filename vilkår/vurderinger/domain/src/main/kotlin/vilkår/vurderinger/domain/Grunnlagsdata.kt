@@ -194,6 +194,10 @@ data class Grunnlagsdata private constructor(
      * Gir et Map fra måned til fødselsnummer for eps innenfor dette grunnlaget.
      */
     fun epsForMåned(): Map<Måned, Fnr> = this.bosituasjon.epsForMåned()
+
+    fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Grunnlagsdata {
+        return this.copy(fradragsgrunnlag = fradragsgrunnlag)
+    }
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {

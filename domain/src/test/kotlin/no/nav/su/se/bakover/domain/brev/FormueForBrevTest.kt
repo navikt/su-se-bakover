@@ -4,9 +4,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import org.junit.jupiter.api.Test
 import vilkår.formue.domain.Formuegrunnlag
-import vilkår.formue.domain.Verdier
 import java.util.UUID
 
 internal class FormueForBrevTest {
@@ -19,7 +19,7 @@ internal class FormueForBrevTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            epsFormue = Verdier.create(
+            epsFormue = formueverdier(
                 verdiIkkePrimærbolig = 10,
                 verdiEiendommer = 10,
                 verdiKjøretøy = 10,
@@ -29,7 +29,7 @@ internal class FormueForBrevTest {
                 kontanter = 10,
                 depositumskonto = 10,
             ),
-            søkersFormue = Verdier.create(
+            søkersFormue = formueverdier(
                 verdiIkkePrimærbolig = 10,
                 verdiEiendommer = 10,
                 verdiKjøretøy = 10,
@@ -67,7 +67,7 @@ internal class FormueForBrevTest {
 
     @Test
     fun `regner ut verdiene av formuen riktig`() {
-        val verdier = Verdier.create(
+        val verdier = formueverdier(
             verdiIkkePrimærbolig = 10,
             verdiEiendommer = 10,
             verdiKjøretøy = 10,

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import vilkår.inntekt.domain.grunnlag.slåSammen
@@ -156,7 +157,13 @@ internal class FradragsgrunnlagSlåSammenTest {
 
         actual.shouldBeEqualToExceptId(
             listOf(
-                dagpengerAlene.copy(id = UUID.randomUUID()),
+                nyFradragsgrunnlag(
+                    periode = januar(2021),
+                    månedsbeløp = 99.0,
+                    type = Fradragstype.Dagpenger,
+                    tilhører = FradragTilhører.BRUKER,
+                    utenlandskInntekt = null,
+                ),
                 // BRUKER
                 nyFradragsgrunnlag(
                     periode = januar(2021),
@@ -169,7 +176,11 @@ internal class FradragsgrunnlagSlåSammenTest {
                         kurs = 1.0,
                     ),
                 ),
-                sbu9.copy(id = UUID.randomUUID()),
+                Fradragsgrunnlag.create(
+                    fradrag = sbu9.fradrag,
+                    opprettet = sbu9.opprettet,
+                    id = UUID.randomUUID(),
+                ),
                 nyFradragsgrunnlag(
                     periode = januar(2021),
                     månedsbeløp = 3.0,
@@ -177,7 +188,11 @@ internal class FradragsgrunnlagSlåSammenTest {
                     tilhører = FradragTilhører.BRUKER,
                     utenlandskInntekt = null,
                 ),
-                sb3.copy(id = UUID.randomUUID()),
+                Fradragsgrunnlag.create(
+                    fradrag = sb3.fradrag,
+                    opprettet = sb3.opprettet,
+                    id = UUID.randomUUID(),
+                ),
 
                 // EPS
                 nyFradragsgrunnlag(
@@ -191,7 +206,11 @@ internal class FradragsgrunnlagSlåSammenTest {
                         kurs = 1.0,
                     ),
                 ),
-                seu12.copy(id = UUID.randomUUID()),
+                Fradragsgrunnlag.create(
+                    fradrag = seu12.fradrag,
+                    opprettet = seu12.opprettet,
+                    id = UUID.randomUUID(),
+                ),
                 nyFradragsgrunnlag(
                     periode = januar(2021),
                     månedsbeløp = 9.0,
@@ -199,7 +218,11 @@ internal class FradragsgrunnlagSlåSammenTest {
                     tilhører = FradragTilhører.EPS,
                     utenlandskInntekt = null,
                 ),
-                se6.copy(id = UUID.randomUUID()),
+                Fradragsgrunnlag.create(
+                    fradrag = se6.fradrag,
+                    opprettet = se6.opprettet,
+                    id = UUID.randomUUID(),
+                ),
             ),
         )
     }
