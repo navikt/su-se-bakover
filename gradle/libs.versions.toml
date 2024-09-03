@@ -77,7 +77,7 @@ kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer"
 flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway"}
 flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway"}
 
-dotenv-kotlin = { group = "io.github.cdimascio", name = "dotenv-kotlin", version = "6.4.1" }
+dotenv-kotlin = { group = "io.github.cdimascio", name = "dotenv-kotlin", version = "6.4.2" }
 
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version = "1.5.1" }
 
