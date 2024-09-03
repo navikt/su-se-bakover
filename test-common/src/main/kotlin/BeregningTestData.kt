@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
 import beregning.domain.BeregningFactory
+import beregning.domain.BeregningForMåned
 import beregning.domain.Beregningsgrunnlag
 import beregning.domain.Beregningsperiode
 import beregning.domain.utledBeregningsstrategi
@@ -12,16 +13,23 @@ import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
+import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrunnlag
+import java.time.Clock
+import java.time.LocalDate
 
 /**
  * forventet inntekt 1 000 000
@@ -74,6 +82,9 @@ fun beregning(
      * Selvom fradragFraSaksbehandler krever List<Fradrag> for øyeblikket vil den bli refaktorert til List<FradragGrunnlag> i fremtiden.
      */
     fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
+    satsFactory: SatsFactory = satsFactoryTestPåDato(),
+    sakstype: Sakstype = Sakstype.UFØRE,
+    clock: Clock = fixedClock,
 ): Beregning {
     if (fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }) {
         throw IllegalArgumentException("Foreventet inntekt etter uføre populeres via uføregrunnlag")
@@ -82,20 +93,47 @@ fun beregning(
         beregningsperiode = periode,
         uføregrunnlag = uføregrunnlag,
         fradragFraSaksbehandler = fradragsgrunnlag,
-    ).let {
-        return BeregningFactory(clock = fixedClock).ny(
-            fradrag = it.fradrag,
+    ).let { beregningsgrunnlag ->
+        return BeregningFactory(clock = clock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode,
                     bosituasjon.utledBeregningsstrategi(
-                        satsFactoryTestPåDato(),
-                        // TODO("endre oppsett av testdata slik at dette kan hentes fra aktuell behandling")
-                        Sakstype.UFØRE,
+                        satsFactory = satsFactory,
+                        sakstype = sakstype,
                     ),
                 ),
             ),
         )
     }
+}
+
+fun forventetInntekt0FradragForMåned(
+    måned: Måned,
+): FradragForMåned {
+    return FradragForMåned(
+        fradragstype = Fradragstype.ForventetInntekt,
+        månedsbeløp = 0.0,
+        måned = måned,
+        tilhører = FradragTilhører.BRUKER,
+    )
+}
+
+fun beregningForMåned(
+    måned: Måned,
+    fradrag: List<FradragForMåned>,
+    beregningsDag: LocalDate,
+    fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned = satsFactoryTestPåDato(beregningsDag).høyUføre(måned),
+    sumYtelse: Int,
+    sumFradrag: Double,
+): BeregningForMåned {
+    return BeregningForMåned(
+        måned = måned,
+        fradrag = fradrag,
+        fullSupplerendeStønadForMåned = fullSupplerendeStønadForMåned,
+        sumYtelse = sumYtelse,
+        sumFradrag = sumFradrag,
+    )
 }

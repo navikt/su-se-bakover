@@ -35,7 +35,7 @@ sealed interface VurderOpphørVedRevurdering {
         private val beregning: Beregning,
         private val clock: Clock,
     ) : VurderOpphørVedRevurdering {
-        val resultat = when (
+        val resultat: OpphørVedRevurdering = when (
             val opphør = setOf(
                 VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
                 VurderOmBeregningGirOpphørVedRevurdering(beregning, clock).resultat,
@@ -51,6 +51,13 @@ sealed interface VurderOpphørVedRevurdering {
 sealed interface OpphørVedRevurdering {
     data class Ja(val opphørsgrunner: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering
     data object Nei : OpphørVedRevurdering
+
+    /**
+     * @return true dersom opphørsgrunnene inneholder Opphørsgrunn.SU_UNDER_MINSTEGRENSE eller Opphørsgrunn.FOR_HØY_INNTEKT
+     */
+    fun erOpphørPgaInntekt(): Boolean {
+        return this is Ja && (this.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE) || this.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT))
+    }
 }
 
 data class VurderOmVilkårGirOpphørVedRevurdering(

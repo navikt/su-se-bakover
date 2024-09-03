@@ -532,17 +532,19 @@ fun lagFradragsgrunnlag(
     periode: Periode,
     utenlandskInntekt: UtenlandskInntekt? = null,
     tilhører: FradragTilhører,
-) = Fradragsgrunnlag.tryCreate(
-    id = id,
-    opprettet = opprettet,
-    fradrag = FradragFactory.nyFradragsperiode(
-        fradragstype = type,
-        månedsbeløp = månedsbeløp,
-        periode = periode,
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = tilhører,
-    ),
-).getOrFail()
+): Fradragsgrunnlag {
+    return Fradragsgrunnlag.tryCreate(
+        id = id,
+        opprettet = opprettet,
+        fradrag = FradragFactory.nyFradragsperiode(
+            fradragstype = type,
+            månedsbeløp = månedsbeløp,
+            periode = periode,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører,
+        ),
+    ).getOrFail()
+}
 
 fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     begrunnelse: String = "begrunnelsensen",

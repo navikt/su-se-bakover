@@ -6,7 +6,6 @@ import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
-import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
 import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.CopyArgs
@@ -33,6 +32,7 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
                         }
                         if (utfall.isEmpty()) Unit.right() else utfall.left()
                     }
+
                     OpphørVedRevurdering.Nei -> Unit.right()
                 }
             }
@@ -64,58 +64,20 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
                         if (!opphørVedRevurdering.opphørsdatoErTidligesteDatoIRevurdering()) {
                             utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned)
                         }
-                        if (setOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE).containsAll(opphørVedRevurdering.opphørsgrunner)) {
-                            if (harAndreBeløpsendringerEnnMånederUnderMinstegrense()) {
-                                utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
-                            }
-                            if (!fullstendigOpphør()) {
-                                utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
-                            }
-                        }
-                        if (setOf(Opphørsgrunn.FOR_HØY_INNTEKT).containsAll(opphørVedRevurdering.opphørsgrunner)) {
-                            if (harAndreBeløpsendringerEnnMånederMedBeløp0()) {
-                                utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
-                            }
-                            if (!fullstendigOpphør()) {
-                                utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
-                            }
+                        if (opphørVedRevurdering.erOpphørPgaInntekt()) {
+                            if (!fullstendigOpphør()) utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
                         }
                         if (setOf(Opphørsgrunn.UFØRHET).containsAll(opphørVedRevurdering.opphørsgrunner) && harBeløpsendringerEkskludertForventetInntekt()) {
                             utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
                         }
                         if (utfall.isEmpty()) Unit.right() else utfall.left()
                     }
+
                     OpphørVedRevurdering.Nei -> Unit.right()
                 }
             }
 
         private fun fullstendigOpphør(): Boolean = nyBeregning.harAlleMånederMerknadForAvslag()
-
-        private fun harAndreBeløpsendringerEnnMånederUnderMinstegrense(): Boolean {
-            return harBeløpsendringer(
-                nyBeregning.getMånedsberegninger()
-                    .filterNot {
-                        it.getMerknader().contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
-                    },
-            )
-        }
-
-        private fun harAndreBeløpsendringerEnnMånederMedBeløp0(): Boolean {
-            return harBeløpsendringer(
-                nyBeregning.getMånedsberegninger()
-                    .filterNot {
-                        !it.getMerknader()
-                            .contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats) && it.getSumYtelse() == 0
-                    },
-            )
-        }
-
-        private fun harBeløpsendringer(nyeMånedsberegninger: List<Månedsberegning>): Boolean {
-            return gjeldendeMånedsberegninger.associate { it.periode to it.getSumYtelse() }
-                .let { tidligereMånederOgBeløp ->
-                    nyeMånedsberegninger.any { tidligereMånederOgBeløp[it.periode] != it.getSumYtelse() }
-                }
-        }
 
         private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
             val nyeFradrag = nyBeregning.getMånedsberegninger().flatMap { månedsberegning ->

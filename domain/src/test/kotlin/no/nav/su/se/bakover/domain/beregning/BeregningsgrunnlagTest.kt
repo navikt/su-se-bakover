@@ -15,7 +15,9 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -279,7 +281,7 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = emptyList(),
-        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder((februar(2021)..november(2021)).måneder()).left()
 
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
@@ -292,7 +294,7 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = emptyList(),
-        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder(listOf(desember(2021))).left()
 
         Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsperiode,
@@ -305,7 +307,7 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = emptyList(),
-        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder(januar(2021).måneder()).left()
 
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,

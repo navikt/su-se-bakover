@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.revurdering
+package no.nav.su.se.bakover.domain.revurdering.opphør
 
 import arrow.core.nonEmptyListOf
 import behandling.revurdering.domain.Opphørsgrunn
@@ -16,8 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
-import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
-import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp

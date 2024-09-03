@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.revurdering
+package no.nav.su.se.bakover.domain.revurdering.opphør
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
-import no.nav.su.se.bakover.domain.revurdering.opphør.IdentifiserRevurderingsopphørSomIkkeStøttes
-import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -125,7 +123,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
-            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         ).left()
     }
@@ -158,7 +155,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
-            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         ).left()
     }

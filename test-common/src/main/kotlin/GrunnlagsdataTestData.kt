@@ -179,3 +179,13 @@ fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Fradragsgrunn
         tilhører = tilhører,
     )
 }
+
+fun fradragsgrunnlagForventetInntekt0(periode: Periode, tilhører: FradragTilhører): Fradragsgrunnlag {
+    return lagFradragsgrunnlag(
+        type = Fradragstype.ForventetInntekt,
+        månedsbeløp = 0.0,
+        periode = periode,
+        utenlandskInntekt = null,
+        tilhører = tilhører,
+    )
+}
