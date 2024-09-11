@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.vilkårsvurderinger
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -80,6 +81,24 @@ fun innvilgetUførevilkår(
                 periode = periode,
             ),
         ),
+    )
+}
+
+fun innvilgetUførevilkårFraGrunnlag(
+    vurderingsperiodeId: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    grunnlag: NonEmptyList<Uføregrunnlag>,
+): UføreVilkår.Vurdert {
+    return UføreVilkår.Vurdert.create(
+        vurderingsperioder = grunnlag.map {
+            VurderingsperiodeUføre.create(
+                id = vurderingsperiodeId,
+                opprettet = opprettet,
+                vurdering = Vurdering.Innvilget,
+                grunnlag = it,
+                periode = it.periode,
+            )
+        },
     )
 }
 

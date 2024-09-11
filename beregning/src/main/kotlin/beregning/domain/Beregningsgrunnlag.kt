@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import org.jetbrains.annotations.TestOnly
@@ -77,7 +78,11 @@ data class Beregningsgrunnlag private constructor(
                         forventedeInntekter.flatMap { it.periode.måneder() }.contains(it)
                     }
                 ) {
-                    return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+                    return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder(
+                        beregningsperiode.måneder().filterNot { it ->
+                            forventedeInntekter.flatMap { it.periode.måneder() }.contains(it)
+                        },
+                    ).left()
                 }
             }
 
@@ -90,5 +95,5 @@ sealed interface UgyldigBeregningsgrunnlag {
     data object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag
     data object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag
     data object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag
-    data object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag
+    data class ManglerForventetInntektForEnkelteMåneder(val måneder: List<Måned>) : UgyldigBeregningsgrunnlag
 }

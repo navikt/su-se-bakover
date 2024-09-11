@@ -43,7 +43,16 @@ data class OpphørsvedtakPdfInnhold(
         ): OpphørsvedtakPdfInnhold {
             return OpphørsvedtakPdfInnhold(
                 personalia = personalia,
-                opphørsgrunner = command.opphørsgrunner,
+                opphørsgrunner = command.opphørsgrunner.filter {
+                    !(
+                        command.opphørsgrunner.containsAll(
+                            listOf(
+                                Opphørsgrunn.FOR_HØY_INNTEKT,
+                                Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
+                            ),
+                        ) && it == Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+                        )
+                },
                 avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
                 harEktefelle = command.harEktefelle,
                 beregningsperioder = if (
