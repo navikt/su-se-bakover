@@ -81,7 +81,7 @@ dotenv-kotlin = { group = "io.github.cdimascio", name = "dotenv-kotlin", version
 
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version = "1.5.1" }
 
-com-ibm-mq-allclient = { group = "com.ibm.mq", name = "com.ibm.mq.allclient", version = "9.4.0.0"}
+com-ibm-mq-allclient = { group = "com.ibm.mq", name = "com.ibm.mq.allclient", version = "9.4.0.5"}
 
 avro = { group = "org.apache.avro", name = "avro", version = "1.12.0"}
 
