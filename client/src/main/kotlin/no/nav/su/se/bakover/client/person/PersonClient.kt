@@ -71,13 +71,13 @@ internal class PersonClient(
     ): Either<KunneIkkeHentePerson, Person> {
         val brukerToken = hentBrukerToken()
         return personCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.person(fnr, brukerToken).map { toPerson(it) }
+            pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
         }
     }
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
         return personCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
-            pdlClient.personForSystembruker(fnr).map { toPerson(it) }
+            pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
         }
     }
 
@@ -94,11 +94,11 @@ internal class PersonClient(
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
         return personCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.person(fnr, brukerToken).map { toPerson(it) }
+            pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
         }.map { }
     }
 
-    private fun toPerson(pdlData: PdlData) = Person(
+    private fun toPerson(pdlData: PdlData, token: JwtToken) = Person(
         ident = Ident(pdlData.ident.fnr, pdlData.ident.aktørId),
         navn = pdlData.navn.let {
             Person.Navn(
@@ -112,11 +112,11 @@ internal class PersonClient(
             Person.Adresse(
                 adresselinje = it.adresselinje,
                 poststed = it.postnummer?.let { postnummer ->
-                    toPoststed(postnummer)
+                    toPoststed(postnummer, token)
                 },
                 bruksenhet = it.bruksenhet,
                 kommune = it.kommunenummer?.let { kommunenummer ->
-                    toKommune(kommunenummer)
+                    toKommune(kommunenummer, token)
                 },
                 landkode = it.landkode,
                 adressetype = it.adressetype,
@@ -145,14 +145,14 @@ internal class PersonClient(
         dødsdato = pdlData.dødsdato,
     )
 
-    private fun toPoststed(postnummer: String) = Person.Poststed(
+    private fun toPoststed(postnummer: String, token: JwtToken) = Person.Poststed(
         postnummer = postnummer,
-        poststed = config.kodeverk.hentPoststed(postnummer).getOrNull(),
+        poststed = config.kodeverk.hentPoststed(postnummer, token).getOrNull(),
     )
 
-    private fun toKommune(kommunenummer: String) = Person.Kommune(
+    private fun toKommune(kommunenummer: String, token: JwtToken) = Person.Kommune(
         kommunenummer = kommunenummer,
-        kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer).getOrNull(),
+        kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
