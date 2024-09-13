@@ -50,8 +50,10 @@ data class ProdClientsBuilder(
             wellknownUrl = azureConfig.wellKnownUrl,
         )
         val kodeverk = KodeverkHttpClient(
-            baseUrl = clientsConfig.kodeverkUrl,
+            baseUrl = clientsConfig.kodeverkConfig.url,
             consumerId = SU_SE_BAKOVER_CONSUMER_ID,
+            kodeverkClientId = clientsConfig.kodeverkConfig.clientId,
+            azureAd = oAuth,
         )
         val tokenOppslag = StsClient(
             baseUrl = clientsConfig.stsUrl,

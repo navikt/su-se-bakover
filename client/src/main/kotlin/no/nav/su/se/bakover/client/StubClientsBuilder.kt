@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
@@ -52,12 +51,13 @@ class StubClientsBuilder(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
+        val oauth = AzureClient(
+            applicationConfig.azure.clientId,
+            applicationConfig.azure.clientSecret,
+            applicationConfig.azure.wellKnownUrl,
+        )
         return Clients(
-            oauth = AzureClient(
-                applicationConfig.azure.clientId,
-                applicationConfig.azure.clientSecret,
-                applicationConfig.azure.wellKnownUrl,
-            ),
+            oauth = oauth,
             personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
                 TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
@@ -79,7 +79,7 @@ class StubClientsBuilder(
                 ).also { log.warn("********** Using stubs for ${JournalførClients::class.java} **********") }
             },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
-            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, SU_SE_BAKOVER_CONSUMER_ID),
+            kodeverk = KodeverkHttpClient("mocked", "mocked", oauth, "mocked"),
             simuleringClient = SimuleringStub(
                 clock = clock,
                 utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },

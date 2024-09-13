@@ -211,7 +211,6 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val kodeverkUrl: String,
         val stsUrl: String,
         val stsSamlUrl: String,
         val skjermingUrl: String,
@@ -221,13 +220,13 @@ data class ApplicationConfig(
         val skatteetatenConfig: SkatteetatenConfig,
         val dokArkivConfig: DokArkivConfig,
         val dokDistConfig: DokDistConfig,
+        val kodeverkConfig: KodeverkConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                kodeverkUrl = getEnvironmentVariableOrThrow("KODEVERK_URL"),
                 stsUrl = getEnvironmentVariableOrThrow(
                     "STS_URL",
                 ),
@@ -241,13 +240,13 @@ data class ApplicationConfig(
                 skatteetatenConfig = SkatteetatenConfig.createFromEnvironmentVariables(),
                 dokArkivConfig = DokArkivConfig.createFromEnvironmentVariables(),
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
+                kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                kodeverkUrl = "mocked",
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
                     "mocked",
@@ -263,6 +262,7 @@ data class ApplicationConfig(
                 skatteetatenConfig = SkatteetatenConfig.createLocalConfig(),
                 dokArkivConfig = DokArkivConfig.createLocalConfig(),
                 dokDistConfig = DokDistConfig.createLocalConfig(),
+                kodeverkConfig = KodeverkConfig.createLocalConfig(),
             )
         }
 
@@ -348,6 +348,25 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = SafConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
+
+        data class KodeverkConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = KodeverkConfig(
+                    url = getEnvironmentVariableOrThrow("KODEVERK_URL"),
+                    clientId = getEnvironmentVariableOrThrow(
+                        "KODEVERK_CLIENT_ID",
+                    ),
+                )
+
+                fun createLocalConfig() = KodeverkConfig(
                     url = "mocked",
                     clientId = "mocked",
                 )

@@ -104,7 +104,6 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            kodeverkUrl = "kodeverkUrl",
             stsUrl = "stsUrl",
             stsSamlUrl = "stsSamlUrl",
             skjermingUrl = "skjermingUrl",
@@ -132,6 +131,10 @@ class ApplicationConfigTest {
             dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(
                 url = "dokDistUrl",
                 clientId = "dokDistClientId",
+            ),
+            kodeverkConfig = ApplicationConfig.ClientsConfig.KodeverkConfig(
+                url = "kodeverkUrl",
+                clientId = "kodeverkClientId",
             ),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
@@ -217,6 +220,7 @@ class ApplicationConfigTest {
                 "SKATT_CLIENT_ID" to "skattClientId",
                 "INSTITUSJONSOPPHOLD_TOPIC" to "INSTITUSJONSOPPHOLD_TOPIC",
                 "KODEVERK_URL" to "kodeverkUrl",
+                "KODEVERK_CLIENT_ID" to "kodeverkClientId",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -284,7 +288,6 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    kodeverkUrl = "mocked",
                     stsUrl = "mocked",
                     stsSamlUrl = "mocked",
                     skjermingUrl = "mocked",
@@ -310,6 +313,10 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(
+                        url = "mocked",
+                        clientId = "mocked",
+                    ),
+                    kodeverkConfig = ApplicationConfig.ClientsConfig.KodeverkConfig(
                         url = "mocked",
                         clientId = "mocked",
                     ),

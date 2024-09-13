@@ -73,7 +73,6 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        kodeverkUrl = "kodeverkUrl",
         stsUrl = "stsUrl",
         stsSamlUrl = "stsSamlUrl",
         skjermingUrl = "skjermingUrl",
@@ -101,6 +100,10 @@ fun applicationConfig() = ApplicationConfig(
         dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(
             url = "dokDistUrl",
             clientId = "dokDistClientId",
+        ),
+        kodeverkConfig = ApplicationConfig.ClientsConfig.KodeverkConfig(
+            url = "kodeverkUrl",
+            clientId = "kodeverkClientId",
         ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

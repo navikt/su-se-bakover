@@ -5,10 +5,14 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
+import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 
 internal class KodeverkHttpClientTest {
+
+    private val tokenOppslag = AzureClientStub
 
     @Test
     fun `Sjekk at vi finner poststed`() {
@@ -19,8 +23,8 @@ internal class KodeverkHttpClientTest {
                         WireMock.ok(resultatPoststedJson),
                     ),
             )
-            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad")
-            client.hentPoststed("1479") shouldBe "KURLAND".right()
+            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad", tokenOppslag, "kodeverkClientId")
+            client.hentPoststed("1479", JwtToken.SystemToken) shouldBe "KURLAND".right()
         }
     }
 
@@ -39,8 +43,8 @@ internal class KodeverkHttpClientTest {
                     ),
             )
 
-            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad")
-            client.hentPoststed("1479") shouldBe "KURLAND".right()
+            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad", tokenOppslag, "kodeverkClientId")
+            client.hentPoststed("1479", JwtToken.SystemToken) shouldBe "KURLAND".right()
         }
     }
 
@@ -53,8 +57,8 @@ internal class KodeverkHttpClientTest {
                         WireMock.ok(resultatPoststedJson),
                     ),
             )
-            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad")
-            client.hentPoststed("XXXX") shouldBe null.right()
+            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad", tokenOppslag, "kodeverkClientId")
+            client.hentPoststed("XXXX", JwtToken.SystemToken) shouldBe null.right()
         }
     }
 
@@ -67,8 +71,8 @@ internal class KodeverkHttpClientTest {
                         WireMock.serverError(),
                     ),
             )
-            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad")
-            client.hentPoststed("XXXX") shouldBe CouldNotGetKode.left()
+            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad", tokenOppslag, "kodeverkClientId")
+            client.hentPoststed("XXXX", JwtToken.SystemToken) shouldBe CouldNotGetKode.left()
         }
     }
 
@@ -83,8 +87,8 @@ internal class KodeverkHttpClientTest {
                         WireMock.ok(resultatKommuneJson),
                     ),
             )
-            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad")
-            client.hentKommunenavn("1103") shouldBe "Stavanger".right()
+            val client = KodeverkHttpClient(baseUrl(), "srvsupstonad", tokenOppslag, "kodeverkClientId")
+            client.hentKommunenavn("1103", JwtToken.SystemToken) shouldBe "Stavanger".right()
         }
     }
 
