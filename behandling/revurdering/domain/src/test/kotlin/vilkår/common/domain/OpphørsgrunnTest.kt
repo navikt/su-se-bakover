@@ -40,4 +40,27 @@ internal class OpphørsgrunnTest {
             Opphørsgrunn.FORMUE,
         )
     }
+
+    @Test
+    fun `Filtrer ikke enkel FOR_HØY_INNTEKT`() {
+        listOf(
+            Opphørsgrunn.FOR_HØY_INNTEKT,
+        ).slåSammenForHøyInntektOgSuUnderMinstegrense() shouldBe listOf(
+            Opphørsgrunn.FOR_HØY_INNTEKT,
+        )
+    }
+
+    @Test
+    fun `Filtrer ikke enkel SU_UNDER_MINSTEGRENSE`() {
+        listOf(
+            Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
+        ).slåSammenForHøyInntektOgSuUnderMinstegrense() shouldBe listOf(
+            Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
+        )
+    }
+
+    @Test
+    fun `tom liste`() {
+        emptyList<Opphørsgrunn>().slåSammenForHøyInntektOgSuUnderMinstegrense() shouldBe emptyList()
+    }
 }

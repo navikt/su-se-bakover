@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
+import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
@@ -43,16 +44,8 @@ data class OpphørsvedtakPdfInnhold(
         ): OpphørsvedtakPdfInnhold {
             return OpphørsvedtakPdfInnhold(
                 personalia = personalia,
-                opphørsgrunner = command.opphørsgrunner.filter {
-                    !(
-                        command.opphørsgrunner.containsAll(
-                            listOf(
-                                Opphørsgrunn.FOR_HØY_INNTEKT,
-                                Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
-                            ),
-                        ) && it == Opphørsgrunn.SU_UNDER_MINSTEGRENSE
-                        )
-                },
+                // Hvis både FOR_HØY_INNTEKT og SU_UNDER_MINSTEGRENSE, ønsker vi kun FOR_HØY_INNTEKT
+                opphørsgrunner = command.opphørsgrunner.slåSammenForHøyInntektOgSuUnderMinstegrense(),
                 avslagsparagrafer = command.opphørsgrunner.getDistinkteParagrafer(),
                 harEktefelle = command.harEktefelle,
                 beregningsperioder = if (

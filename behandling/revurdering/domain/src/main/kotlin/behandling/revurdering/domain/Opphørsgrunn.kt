@@ -60,11 +60,11 @@ fun Avslagsgrunn.tilOpphørsgrunn(): Opphørsgrunn {
 fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =
     this.map { it.getParagrafer() }.flatten().distinct().sorted()
 
-fun List<Avslagsgrunn>.tilOpphørsgrunn(): List<Opphørsgrunn> = this.map { it.tilOpphørsgrunn() }
+fun List<Avslagsgrunn>.tilOpphørsgrunn(): List<Opphørsgrunn> = this.map { it.tilOpphørsgrunn() }.distinct()
 
 fun List<Opphørsgrunn>.slåSammenForHøyInntektOgSuUnderMinstegrense(): List<Opphørsgrunn> {
     return when {
-        this.contains(Opphørsgrunn.FOR_HØY_INNTEKT) && this.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE) -> this.filterNot { it == Opphørsgrunn.SU_UNDER_MINSTEGRENSE }
+        this.containsAll(listOf(Opphørsgrunn.FOR_HØY_INNTEKT, Opphørsgrunn.SU_UNDER_MINSTEGRENSE)) -> this.filterNot { it == Opphørsgrunn.SU_UNDER_MINSTEGRENSE }
         else -> this
     }
 }
