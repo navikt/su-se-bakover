@@ -27,6 +27,11 @@ spec:
           permissions:
             roles:
               - frikort
+        - application: "frikorttjenester-q2"
+          namespace: "teamfrikort"
+          permissions:
+            roles:
+              - frikort
     outbound:
       rules:
         - application: kodeverk-dev
