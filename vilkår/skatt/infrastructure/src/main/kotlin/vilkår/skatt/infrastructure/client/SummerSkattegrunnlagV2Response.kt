@@ -11,39 +11,45 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.skatt.domain.Stadie
+import vilkår.skatt.infrastructure.client.SummerSkattegrunnlagV2Response.SummertSkattegrunnlagsV2Object.Kjoeretoey
 import java.time.LocalDate
 import java.time.Year
-import vilkår.skatt.infrastructure.client.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering
 
-private val log = LoggerFactory.getLogger(SpesifisertSummertSkattegrunnlagResponseJson::class.java)
+private val log = LoggerFactory.getLogger(SummerSkattegrunnlagV2Response::class.java)
 
-internal data class SpesifisertSummertSkattegrunnlagResponseJson(
-    val grunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = emptyList(),
-    val skatteoppgjoersdato: String?,
-    val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = null,
+internal data class SummerSkattegrunnlagV2Response(
+    val ajourholdstidspunkt: String? = null,
+    val grunnlag: List<SummertSkattegrunnlagsV2Object>? = emptyList(),
+    val inntektsår: String? = null,
+    val kildeskattPaaLoennGrunnlag: List<SummertSkattegrunnlagsV2Object>? = emptyList(),
+    val personidentifikator: String? = null,
+    val skatteoppgjoersdato: String? = null,
+    val skjermet: Boolean? = null,
+    val stadie: String? = null,
+    val svalbardGrunnlag: List<SummertSkattegrunnlagsV2Object>? = emptyList(),
 ) {
 
     /**
      * @param spesifisering I følge modellen til skatt, kan et innslag ha 0, 1 eller flere spesifiseringer.
      */
-    internal data class SpesifisertSummertSkattegrunnlagsobjekt(
+    internal data class SummertSkattegrunnlagsV2Object(
         val beloep: String,
-        val spesifisering: List<EksternSpesifisering>? = null,
-        val tekniskNavn: String,
         val kategori: String,
+        val spesifisering: List<Kjoeretoey>? = null,
+        val tekniskNavn: String,
     ) {
         /**
-         * Finnes mange forskjellige typer spesifisering. Vi er bare interessert i kjøretøy
+         * Finnes mange forskjellige typer spesifisering. Vi er bare interessert i kjøretøy og det er også den eneste rettighetspakken vi har.
          */
-        data class Spesifisering(
+        data class Kjoeretoey(
             val type: String,
-            val beloep: String?,
-            val registreringsnummer: String?,
-            val fabrikatnavn: String?,
-            val aarForFoerstegangsregistrering: String?,
-            val formuesverdi: String?,
-            val antattVerdiSomNytt: String?,
-            val antattMarkedsverdi: String?,
+            val aarForFoerstegangsregistrering: String? = null,
+            val antattMarkedsverdi: String? = null,
+            val antattVerdiSomNytt: String? = null,
+            val beloep: String? = null,
+            val fabrikatnavn: String? = null,
+            val formuesverdi: String? = null,
+            val registreringsnummer: String? = null,
         )
 
         fun toDomain(år: Year, stadie: Stadie): Skattegrunnlag.Grunnlag {
@@ -109,7 +115,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
             stadie: Stadie,
         ): Either<SkatteoppslagFeil, Skattegrunnlag.SkattegrunnlagForÅr> {
             return Either.catch {
-                deserialize<SpesifisertSummertSkattegrunnlagResponseJson>(json)
+                deserialize<SummerSkattegrunnlagV2Response>(json)
             }.flatMap {
                 it.toDomain(inntektsår, stadie)
             }.mapLeft {
@@ -124,7 +130,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
     }
 }
 
-private fun List<EksternSpesifisering>.toDomain(): List<Skattegrunnlag.Spesifisering.Kjøretøy> {
+private fun List<Kjoeretoey>.toDomain(): List<Skattegrunnlag.Spesifisering.Kjøretøy> {
     return this.mapNotNull {
         when (it.type) {
             "Kjoeretoey" -> Skattegrunnlag.Spesifisering.Kjøretøy(
@@ -145,7 +151,7 @@ private fun List<EksternSpesifisering>.toDomain(): List<Skattegrunnlag.Spesifise
     }
 }
 
-private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
+private fun SummerSkattegrunnlagV2Response.toDomain(
     år: Year,
     stadie: Stadie,
 ): Either<Throwable, Skattegrunnlag.SkattegrunnlagForÅr> {
