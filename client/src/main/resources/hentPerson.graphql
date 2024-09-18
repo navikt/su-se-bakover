@@ -108,7 +108,7 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
             type,
             relatertVedSivilstand
         },
-        foedsel {
+        foedselsdato {
             foedselsdato,
             foedselsaar
         },

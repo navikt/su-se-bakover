@@ -97,7 +97,7 @@ internal class PdlClient(
             adresse = alleAdresser,
             statsborgerskap = person.statsborgerskap.firstOrNull()?.land,
             sivilstand = person.sivilstand.firstOrNull(),
-            fødsel = person.foedsel.map {
+            fødsel = person.foedselsdato.map {
                 PdlData.Fødsel(
                     foedselsaar = it.foedselsaar,
                     foedselsdato = it.foedselsdato,
@@ -267,7 +267,7 @@ internal data class HentPerson(
     val oppholdsadresse: List<Oppholdsadresse>,
     val statsborgerskap: List<Statsborgerskap>,
     val sivilstand: List<SivilstandResponse>,
-    val foedsel: List<Fødsel>,
+    val foedselsdato: List<Fødselsdato>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val fullmakt: List<Fullmakt>,
@@ -308,7 +308,7 @@ internal data class Id(
     val historisk: Boolean,
 )
 
-internal data class Fødsel(
+internal data class Fødselsdato(
     val foedselsdato: LocalDate?,
     val foedselsaar: Int,
 )
