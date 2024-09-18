@@ -363,7 +363,7 @@ internal class PdlClientTest {
                       "relatertVedSivilstand": "12345678901"
                       }
                   ],
-                  "foedsel": [
+                  "foedselsdato": [
                   {
                     "foedselsdato": "2021-12-21",
                     "foedselsaar": 2021
@@ -501,7 +501,7 @@ internal class PdlClientTest {
                       "relatertVedSivilstand": "12345678901"
                       }
                   ],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -647,7 +647,7 @@ internal class PdlClientTest {
                       "relatertVedSivilstand": "12345678901"
                       }
                   ],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -743,7 +743,7 @@ internal class PdlClientTest {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -810,7 +810,7 @@ internal class PdlClientTest {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -877,7 +877,7 @@ internal class PdlClientTest {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -939,7 +939,7 @@ internal class PdlClientTest {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "foedsel": [],
+                  "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
