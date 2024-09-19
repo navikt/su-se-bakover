@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Cache
 import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
+import no.nav.su.se.bakover.client.representasjon.RepresentasjonHttpClient
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
@@ -23,6 +24,7 @@ internal data class PersonClientConfig(
     val skjerming: Skjerming,
     val kontaktOgReservasjonsregister: KontaktOgReservasjonsregister,
     val pdlClientConfig: PdlClientConfig,
+    val representasjonClient: RepresentasjonHttpClient,
 )
 
 /**
