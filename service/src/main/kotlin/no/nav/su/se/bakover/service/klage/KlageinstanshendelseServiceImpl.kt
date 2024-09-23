@@ -125,34 +125,63 @@ class KlageinstanshendelseServiceImpl(
         hendelse: TolketKlageinstanshendelse,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (hendelse) {
-            is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> lagOppgaveConfigForAnkebehandlingOpprettet(
+            is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> lagOppgaveForKlageinstansOpprettetHendelse(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 mottattKlageinstans = hendelse.mottattKlageinstans,
+                hendelsestype = "AnkebehandlingOpprettet",
             )
 
-            is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> lagOppgaveConfigForKlagebehandlingAvsluttet(
+            is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utfall = hendelse.utfall,
                 avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
                 journalpostIDer = hendelse.journalpostIDer,
                 clock = clock,
+                hendelsestype = "KlagebehandlingAvsluttet",
+            )
+
+            is TolketKlageinstanshendelse.AnkeITrygderettenAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utfall = hendelse.utfall,
+                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                journalpostIDer = hendelse.journalpostIDer,
+                clock = clock,
+                hendelsestype = "AnkeITrygderettenAvsluttet",
+            )
+            is TolketKlageinstanshendelse.AnkeITrygderettenOpprettet -> lagOppgaveForKlageinstansOpprettetHendelse(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                mottattKlageinstans = hendelse.sendtTilTrygderetten,
+                hendelsestype = "AnkeITrygderettenOpprettet",
+            )
+            is TolketKlageinstanshendelse.AnkebehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utfall = hendelse.utfall,
+                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                journalpostIDer = hendelse.journalpostIDer,
+                clock = clock,
+                hendelsestype = "AnkebehandlingAvsluttet",
             )
         }
     }
 
-    private fun lagOppgaveConfigForAnkebehandlingOpprettet(
+    private fun lagOppgaveForKlageinstansOpprettetHendelse(
         saksnummer: Saksnummer,
         fnr: Fnr,
         mottattKlageinstans: Tidspunkt,
+        hendelsestype: String,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
-        return OppgaveConfig.Klage.Klageinstanshendelse.AnkebehandlingOpprettet(
+        return OppgaveConfig.Klage.Klageinstanshendelse.BehandlingOpprettet(
             saksnummer = saksnummer,
             fnr = fnr,
-            mottattKlageinstans = mottattKlageinstans,
+            mottatt = mottattKlageinstans,
             clock = clock,
             tilordnetRessurs = null,
+            hendelsestype = hendelsestype,
         ).let {
             oppgaveService.opprettOppgaveMedSystembruker(it).map {
                 it.oppgaveId
@@ -160,19 +189,18 @@ class KlageinstanshendelseServiceImpl(
         }
     }
 
-    private fun lagOppgaveConfigForKlagebehandlingAvsluttet(
+    private fun lagOppgaveConfigForKlageinstansAvsluttetHendelse(
         saksnummer: Saksnummer,
         fnr: Fnr,
         utfall: AvsluttetKlageinstansUtfall,
         avsluttetTidspunkt: Tidspunkt,
         journalpostIDer: List<JournalpostId>,
         clock: Clock,
+        hendelsestype: String,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (utfall) {
-            AvsluttetKlageinstansUtfall.TRUKKET,
-            AvsluttetKlageinstansUtfall.AVVIST,
-            AvsluttetKlageinstansUtfall.STADFESTELSE,
-            -> OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
+            is AvsluttetKlageinstansUtfall.TilInformasjon,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 tilordnetRessurs = null,
@@ -180,14 +208,11 @@ class KlageinstanshendelseServiceImpl(
                 utfall = utfall,
                 avsluttetTidspunkt = avsluttetTidspunkt,
                 journalpostIDer = journalpostIDer,
+                hendelsestype = hendelsestype,
             )
 
-            AvsluttetKlageinstansUtfall.RETUR,
-            AvsluttetKlageinstansUtfall.OPPHEVET,
-            AvsluttetKlageinstansUtfall.MEDHOLD,
-            AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD,
-            AvsluttetKlageinstansUtfall.UGUNST,
-            -> OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
+            is AvsluttetKlageinstansUtfall.KreverHandling, AvsluttetKlageinstansUtfall.Retur,
+            -> OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 tilordnetRessurs = null,
@@ -195,6 +220,7 @@ class KlageinstanshendelseServiceImpl(
                 utfall = utfall,
                 avsluttetTidspunkt = avsluttetTidspunkt,
                 journalpostIDer = journalpostIDer,
+                hendelsestype = hendelsestype,
             )
         }.let {
             oppgaveService.opprettOppgaveMedSystembruker(it).map {

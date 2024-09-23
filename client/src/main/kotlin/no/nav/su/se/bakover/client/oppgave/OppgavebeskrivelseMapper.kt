@@ -10,11 +10,13 @@ import person.domain.SivilstandTyper
 data object OppgavebeskrivelseMapper {
     fun map(config: OppgaveConfig.Klage.Klageinstanshendelse): String {
         return when (config) {
-            is OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet -> "Utfall: ${config.utfall.toReadableName()}" +
+            is OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall -> "Utfall: ${config.utfall.toReadableName()}" +
+                "\nHendelsestype: ${config.hendelsestype}" +
                 "\nRelevante JournalpostIDer: ${config.journalpostIDer.joinToString(", ")}" +
-                "\nKlageinstans sin behandling ble avsluttet den ${config.avsluttetTidspunkt.toOppgaveFormat()}" +
+                "\nAvsluttet tidspunkt: ${config.avsluttetTidspunkt.toOppgaveFormat()}" +
                 "\n\n${config.utfall.lukkBeskrivelse()}"
-            is OppgaveConfig.Klage.Klageinstanshendelse.AnkebehandlingOpprettet -> "Klageinstans mottok en ny anke den ${config.mottattKlageinstans.toOppgaveFormat()}"
+
+            is OppgaveConfig.Klage.Klageinstanshendelse.BehandlingOpprettet -> "Mottok en ny hendelse fra Kabal/KA/Klageinstansen. Hendelsestype: ${config.hendelsestype}. Deres tidspunkt: ${config.mottatt.toOppgaveFormat()}"
         }
     }
 
@@ -81,31 +83,24 @@ data object OppgavebeskrivelseMapper {
     }
 
     private fun AvsluttetKlageinstansUtfall.toReadableName() = when (this) {
-        AvsluttetKlageinstansUtfall.TRUKKET -> "Trukket"
-        AvsluttetKlageinstansUtfall.RETUR -> "Retur"
-        AvsluttetKlageinstansUtfall.OPPHEVET -> "Opphevet"
-        AvsluttetKlageinstansUtfall.MEDHOLD -> "Medhold"
-        AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD -> "Delvis medhold"
-        AvsluttetKlageinstansUtfall.STADFESTELSE -> "Stadfestelse"
-        AvsluttetKlageinstansUtfall.UGUNST -> "Ugunst"
-        AvsluttetKlageinstansUtfall.AVVIST -> "Avvist"
+        AvsluttetKlageinstansUtfall.KreverHandling.DelvisMedhold -> "Delvis medhold"
+        AvsluttetKlageinstansUtfall.KreverHandling.Medhold -> "Medhold"
+        AvsluttetKlageinstansUtfall.KreverHandling.Opphevet -> "Opphevet"
+        AvsluttetKlageinstansUtfall.KreverHandling.Ugunst -> "Ugunst"
+        AvsluttetKlageinstansUtfall.Retur -> "Retur"
+        AvsluttetKlageinstansUtfall.TilInformasjon.Avvist -> "Avvist"
+        AvsluttetKlageinstansUtfall.TilInformasjon.Henvist -> "Henvist"
+        AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse -> "Stadfestelse"
+        AvsluttetKlageinstansUtfall.TilInformasjon.Trukket -> "Trukket"
     }
 
     private fun AvsluttetKlageinstansUtfall.lukkBeskrivelse() = when (this) {
-        /*
-         * Informasjonsoppgaver som må lukkes manuelt.
-         * */
-        AvsluttetKlageinstansUtfall.STADFESTELSE,
-        AvsluttetKlageinstansUtfall.TRUKKET,
-        AvsluttetKlageinstansUtfall.AVVIST,
+        is AvsluttetKlageinstansUtfall.TilInformasjon,
         -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
-        /* Oppgaver som krever ytterligere handlinger og må lukkes manuelt. */
-        AvsluttetKlageinstansUtfall.UGUNST,
-        AvsluttetKlageinstansUtfall.OPPHEVET,
-        AvsluttetKlageinstansUtfall.MEDHOLD,
-        AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD,
+
+        is AvsluttetKlageinstansUtfall.KreverHandling,
         -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
-        /* Oppgaver som krever ytterligere handling. Oppgaver lukkes automatisk av `su-se-bakover` */
-        AvsluttetKlageinstansUtfall.RETUR -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
+
+        is AvsluttetKlageinstansUtfall.Retur -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
     }
 }

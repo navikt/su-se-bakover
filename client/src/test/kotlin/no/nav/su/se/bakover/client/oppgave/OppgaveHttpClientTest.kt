@@ -428,7 +428,7 @@ internal class OppgaveHttpClientTest {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.""",
+                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.""",
                 oppgavetype = "VUR_KONS_YTE",
                 behandlingstype = "ae0058",
             )
@@ -450,14 +450,15 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
+                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+                    utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                    hendelsestype = "enHendelse",
                 ),
             ).getOrFail()
 
@@ -466,7 +467,7 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
@@ -483,7 +484,7 @@ internal class OppgaveHttpClientTest {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
+                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
                 behandlingstype = "ae0058",
             )
             val response = createResponse(oppgavetype = "ATT")
@@ -504,14 +505,15 @@ internal class OppgaveHttpClientTest {
             )
 
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
+                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.RETUR,
+                    utfall = AvsluttetKlageinstansUtfall.Retur,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                    hendelsestype = "enHendelse",
                 ),
             ).getOrFail()
 
@@ -520,7 +522,7 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
@@ -537,7 +539,7 @@ internal class OppgaveHttpClientTest {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Medhold\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt.""",
+                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
                 behandlingstype = "ae0058",
             )
 
@@ -559,14 +561,15 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
+                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.MEDHOLD,
+                    utfall = AvsluttetKlageinstansUtfall.Retur,
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                    hendelsestype = "enHendelse",
                 ),
             ).getOrFail()
 
@@ -575,7 +578,7 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Medhold\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt.",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId

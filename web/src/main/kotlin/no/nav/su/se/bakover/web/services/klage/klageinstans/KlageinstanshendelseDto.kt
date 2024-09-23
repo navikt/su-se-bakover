@@ -2,16 +2,12 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.left
-import behandling.klage.domain.KlageId
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
-import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
-import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import org.slf4j.LoggerFactory
@@ -36,16 +32,28 @@ import java.util.UUID
 )
 @JsonSubTypes(
     JsonSubTypes.Type(
-        value = KlageinstanshendelseDto.KlagebehandlingAvsluttetDetaljer::class,
+        value = KlagebehandlingAvsluttetDto::class,
         name = "KLAGEBEHANDLING_AVSLUTTET",
     ),
     JsonSubTypes.Type(
-        value = KlageinstanshendelseDto.AnkebehandlingOpprettetDetaljer::class,
+        value = AnkebehandlingOpprettetDto::class,
         name = "ANKEBEHANDLING_OPPRETTET",
     ),
     JsonSubTypes.Type(
-        value = KlageinstanshendelseDto.AnkebehandlingAvsluttetDetaljer::class,
+        value = AnkebehandlingAvsluttetDto::class,
         name = "ANKEBEHANDLING_AVSLUTTET",
+    ),
+    JsonSubTypes.Type(
+        value = AnkeITrygderettenbehandlingOpprettetDto::class,
+        name = "ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET",
+    ),
+    JsonSubTypes.Type(
+        value = BehandlingEtterTrygderettenOpphevetAvsluttet::class,
+        name = "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET",
+    ),
+    JsonSubTypes.Type(
+        value = BehandlingFeilregistrertDto::class,
+        name = "BEHANDLING_FEILREGISTRERT",
     ),
 )
 sealed interface KlageinstanshendelseDto {
@@ -76,104 +84,9 @@ sealed interface KlageinstanshendelseDto {
         id: UUID,
         opprettet: Tidspunkt,
     ): Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>
-
-    data class KlagebehandlingAvsluttetDetaljer(
-        override val kildeReferanse: String,
-        val detaljer: DetaljerWrapper,
-    ) : KlageinstanshendelseDto {
-        override fun toDomain(
-            id: UUID,
-            opprettet: Tidspunkt,
-        ): Either<KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier, TolketKlageinstanshendelse.KlagebehandlingAvsluttet> {
-            return Either.catch {
-                TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
-                    id = id,
-                    opprettet = opprettet,
-                    avsluttetTidspunkt = parseKabalDatetime(detaljer.klagebehandlingAvsluttet.avsluttet),
-                    klageId = KlageId(UUID.fromString(kildeReferanse)),
-                    utfall = detaljer.klagebehandlingAvsluttet.utfall.toDomain(),
-                    journalpostIDer = detaljer.klagebehandlingAvsluttet.journalpostReferanser.map { JournalpostId(it) },
-                )
-            }.mapLeft {
-                log.error("Kunne ikke tolke klageinstanshendelse.", it)
-                KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier
-            }
-        }
-
-        data class DetaljerWrapper(
-            val klagebehandlingAvsluttet: Detaljer,
-        )
-
-        data class Detaljer(
-            val avsluttet: String,
-            val utfall: Utfall,
-            val journalpostReferanser: List<String>,
-        )
-    }
-
-    data class AnkebehandlingOpprettetDetaljer(
-        override val kildeReferanse: String,
-        val detaljer: DetaljerWrapper,
-    ) : KlageinstanshendelseDto {
-        override fun toDomain(
-            id: UUID,
-            opprettet: Tidspunkt,
-        ): Either<KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier, TolketKlageinstanshendelse> {
-            return Either.catch {
-                TolketKlageinstanshendelse.AnkebehandlingOpprettet(
-                    id = id,
-                    opprettet = opprettet,
-                    klageId = KlageId(UUID.fromString(kildeReferanse)),
-                    mottattKlageinstans = parseKabalDatetime(detaljer.ankebehandlingOpprettet.mottattKlageinstans),
-                )
-            }.mapLeft {
-                log.error("Kunne ikke tolke klageinstanshendelse.", it)
-                KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier
-            }
-        }
-
-        data class DetaljerWrapper(
-            val ankebehandlingOpprettet: Detaljer,
-        )
-
-        data class Detaljer(
-            // Eksempel: 2024-08-19T14:28:00.28460924
-            val mottattKlageinstans: String,
-        )
-    }
-
-    data class AnkebehandlingAvsluttetDetaljer(
-        override val kildeReferanse: String,
-    ) : KlageinstanshendelseDto {
-        override fun toDomain(id: UUID, opprettet: Tidspunkt) =
-            KunneIkkeTolkeKlageinstanshendelse.AnkebehandlingAvsluttetStøttesIkke.left()
-    }
-
-    enum class Utfall {
-        TRUKKET,
-        RETUR,
-        OPPHEVET,
-        MEDHOLD,
-        DELVIS_MEDHOLD,
-        STADFESTELSE,
-        UGUNST,
-        AVVIST,
-        ;
-
-        fun toDomain(): AvsluttetKlageinstansUtfall = when (this) {
-            TRUKKET -> AvsluttetKlageinstansUtfall.TRUKKET
-            RETUR -> AvsluttetKlageinstansUtfall.RETUR
-            OPPHEVET -> AvsluttetKlageinstansUtfall.OPPHEVET
-            MEDHOLD -> AvsluttetKlageinstansUtfall.MEDHOLD
-            DELVIS_MEDHOLD -> AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD
-            STADFESTELSE -> AvsluttetKlageinstansUtfall.STADFESTELSE
-            UGUNST -> AvsluttetKlageinstansUtfall.UGUNST
-            AVVIST -> AvsluttetKlageinstansUtfall.AVVIST
-        }
-    }
 }
 
-private fun parseKabalDatetime(isoString: String): Tidspunkt {
+internal fun parseKabalDatetime(isoString: String): Tidspunkt {
     return try {
         // Dersom Kabal begynner å legge på tidssone, skal vi kunne parse den direkte til en [Instant].
         Instant.parse(isoString).toTidspunkt()

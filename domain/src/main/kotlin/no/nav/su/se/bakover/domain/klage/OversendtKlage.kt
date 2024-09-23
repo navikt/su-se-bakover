@@ -60,23 +60,34 @@ data class OversendtKlage(
                 this.klageinstanshendelser.leggTilNyttVedtak(tolketKlageinstanshendelse.tilProsessert(oppgaveId))
 
             when (tolketKlageinstanshendelse) {
-                is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> when (tolketKlageinstanshendelse.utfall) {
-                    AvsluttetKlageinstansUtfall.TRUKKET,
-                    AvsluttetKlageinstansUtfall.OPPHEVET,
-                    AvsluttetKlageinstansUtfall.MEDHOLD,
-                    AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD,
-                    AvsluttetKlageinstansUtfall.STADFESTELSE,
-                    AvsluttetKlageinstansUtfall.UGUNST,
-                    AvsluttetKlageinstansUtfall.AVVIST,
-                    -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
-
-                    AvsluttetKlageinstansUtfall.RETUR -> this.forrigeSteg.returFraKlageinstans(
+                is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> if (tolketKlageinstanshendelse.erAvsluttetMedRetur()) {
+                    this.forrigeSteg.returFraKlageinstans(
                         oppgaveId = oppgaveId,
                         klageinstanshendelser = oppdatertKlageinstanshendelser,
                     )
+                } else {
+                    this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
                 }
 
                 is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+                is TolketKlageinstanshendelse.AnkebehandlingAvsluttet -> if (tolketKlageinstanshendelse.erAvsluttetMedRetur()) {
+                    this.forrigeSteg.returFraKlageinstans(
+                        oppgaveId = oppgaveId,
+                        klageinstanshendelser = oppdatertKlageinstanshendelser,
+                    )
+                } else {
+                    this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+                }
+
+                is TolketKlageinstanshendelse.AnkeITrygderettenOpprettet -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+                is TolketKlageinstanshendelse.AnkeITrygderettenAvsluttet -> if (tolketKlageinstanshendelse.erAvsluttetMedRetur()) {
+                    this.forrigeSteg.returFraKlageinstans(
+                        oppgaveId = oppgaveId,
+                        klageinstanshendelser = oppdatertKlageinstanshendelser,
+                    )
+                } else {
+                    this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+                }
             }
         }
     }

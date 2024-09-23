@@ -544,14 +544,15 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(
 internal fun ProsessertKlageinstanshendelse.toJson(): KlageJson.VedtattUtfallJson {
     return KlageJson.VedtattUtfallJson(
         utfall = when ((this as? ProsessertKlageinstanshendelse.KlagebehandlingAvsluttet)?.utfall) {
-            AvsluttetKlageinstansUtfall.TRUKKET -> "TRUKKET"
-            AvsluttetKlageinstansUtfall.RETUR -> "RETUR"
-            AvsluttetKlageinstansUtfall.OPPHEVET -> "OPPHEVET"
-            AvsluttetKlageinstansUtfall.MEDHOLD -> "MEDHOLD"
-            AvsluttetKlageinstansUtfall.DELVIS_MEDHOLD -> "DELVIS_MEDHOLD"
-            AvsluttetKlageinstansUtfall.STADFESTELSE -> "STADFESTELSE"
-            AvsluttetKlageinstansUtfall.UGUNST -> "UGUNST"
-            AvsluttetKlageinstansUtfall.AVVIST -> "AVVIST"
+            AvsluttetKlageinstansUtfall.KreverHandling.DelvisMedhold -> "DELVIS_MEDHOLD"
+            AvsluttetKlageinstansUtfall.KreverHandling.Medhold -> "MEDHOLD"
+            AvsluttetKlageinstansUtfall.KreverHandling.Opphevet -> "OPPHEVET"
+            AvsluttetKlageinstansUtfall.KreverHandling.Ugunst -> "UGUNST"
+            AvsluttetKlageinstansUtfall.Retur -> "RETUR"
+            AvsluttetKlageinstansUtfall.TilInformasjon.Avvist -> "AVVIST"
+            AvsluttetKlageinstansUtfall.TilInformasjon.Henvist -> "HENVIST"
+            AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse -> "STADFESTELSE"
+            AvsluttetKlageinstansUtfall.TilInformasjon.Trukket -> "TRUKKET"
             null -> null
         },
         opprettet = this.opprettet.toString(),

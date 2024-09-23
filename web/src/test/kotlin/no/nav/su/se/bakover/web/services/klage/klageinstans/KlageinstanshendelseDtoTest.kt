@@ -34,7 +34,7 @@ internal class KlageinstanshendelseDtoTest {
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = kildeReferanse,
-            utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+            utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
             journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
         ).right()
     }
@@ -60,7 +60,7 @@ internal class KlageinstanshendelseDtoTest {
     }
 
     @Test
-    fun `Kan deserialisere avsluttet ankebehandling`() {
+    fun `Kan deserialisere feilregistrert`() {
         val id = UUID.randomUUID()
         val kildeReferanse = UUID.randomUUID()
 
@@ -69,11 +69,11 @@ internal class KlageinstanshendelseDtoTest {
             opprettet = fixedTidspunkt,
             json = klagebehandlingAvsluttetJson(
                 kildeReferanse = kildeReferanse.toString(),
-                type = "ANKEBEHANDLING_AVSLUTTET",
+                type = "BEHANDLING_FEILREGISTRERT",
                 journalpostReferanser = listOf("123", "456"),
                 avsluttetTidspunkt = "2021-01-01T01:02:03.456789+01:00",
             ),
-        ) shouldBe KunneIkkeTolkeKlageinstanshendelse.AnkebehandlingAvsluttetStøttesIkke.left()
+        ) shouldBe KunneIkkeTolkeKlageinstanshendelse.BehandlingFeilregistrertStøttesIkke.left()
     }
 
     private fun klagebehandlingAvsluttetJson(

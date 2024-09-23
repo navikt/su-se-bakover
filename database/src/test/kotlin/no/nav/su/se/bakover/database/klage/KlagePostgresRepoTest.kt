@@ -332,7 +332,7 @@ internal class KlagePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = klage.id,
-                utfall = AvsluttetKlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.Retur,
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 
@@ -366,7 +366,7 @@ internal class KlagePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 avsluttetTidspunkt = fixedTidspunkt,
                 klageId = klage.id,
-                utfall = AvsluttetKlageinstansUtfall.RETUR,
+                utfall = AvsluttetKlageinstansUtfall.Retur,
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 

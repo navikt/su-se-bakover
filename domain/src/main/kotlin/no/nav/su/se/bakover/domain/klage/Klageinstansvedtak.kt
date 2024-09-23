@@ -38,6 +38,8 @@ sealed interface TolketKlageinstanshendelse {
 
     fun tilProsessert(oppgaveId: OppgaveId): ProsessertKlageinstanshendelse
 
+    fun erAvsluttetMedRetur(): Boolean
+
     data class KlagebehandlingAvsluttet(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -54,6 +56,8 @@ sealed interface TolketKlageinstanshendelse {
             journalpostIDer = journalpostIDer,
             oppgaveId = oppgaveId,
         )
+
+        override fun erAvsluttetMedRetur() = utfall is AvsluttetKlageinstansUtfall.Retur
     }
 
     data class AnkebehandlingOpprettet(
@@ -69,6 +73,65 @@ sealed interface TolketKlageinstanshendelse {
             mottattKlageinstans = mottattKlageinstans,
             oppgaveId = oppgaveId,
         )
+        override fun erAvsluttetMedRetur() = false
+    }
+
+    data class AnkebehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        val avsluttetTidspunkt: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        val journalpostIDer: List<JournalpostId>,
+    ) : TolketKlageinstanshendelse {
+        override fun tilProsessert(oppgaveId: OppgaveId) = ProsessertKlageinstanshendelse.AnkebehandlingAvsluttet(
+            id = id,
+            opprettet = opprettet,
+            klageId = klageId,
+            utfall = utfall,
+            journalpostIDer = journalpostIDer,
+            oppgaveId = oppgaveId,
+        )
+        override fun erAvsluttetMedRetur() = utfall is AvsluttetKlageinstansUtfall.Retur
+    }
+
+    data class AnkeITrygderettenOpprettet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val sendtTilTrygderetten: Tidspunkt,
+        val utfall: String,
+    ) : TolketKlageinstanshendelse {
+        override fun tilProsessert(oppgaveId: OppgaveId) = ProsessertKlageinstanshendelse.AnkebehandlingOpprettet(
+            id = id,
+            opprettet = opprettet,
+            klageId = klageId,
+            mottattKlageinstans = sendtTilTrygderetten,
+            oppgaveId = oppgaveId,
+        )
+
+        override fun erAvsluttetMedRetur() = false
+    }
+
+    data class AnkeITrygderettenAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        val avsluttetTidspunkt: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        val journalpostIDer: List<JournalpostId>,
+    ) : TolketKlageinstanshendelse {
+        override fun tilProsessert(oppgaveId: OppgaveId): ProsessertKlageinstanshendelse.AnkeITrygderettenAvsluttet {
+            return ProsessertKlageinstanshendelse.AnkeITrygderettenAvsluttet(
+                id = id,
+                opprettet = opprettet,
+                klageId = klageId,
+                utfall = utfall,
+                journalpostIDer = journalpostIDer,
+                oppgaveId = oppgaveId,
+            )
+        }
+        override fun erAvsluttetMedRetur() = utfall is AvsluttetKlageinstansUtfall.Retur
     }
 }
 
@@ -95,23 +158,62 @@ sealed interface ProsessertKlageinstanshendelse {
         val mottattKlageinstans: Tidspunkt?,
         override val oppgaveId: OppgaveId,
     ) : ProsessertKlageinstanshendelse
+
+    data class AnkebehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        /** Dersom Klageinstansen har sendt ut et eller flere brev */
+        val journalpostIDer: List<JournalpostId>,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
+
+    data class AnkeITrygderettenOpprettet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val mottattKlageinstans: Tidspunkt?,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
+
+    data class AnkeITrygderettenAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        /** Dersom Klageinstansen har sendt ut et eller flere brev */
+        val journalpostIDer: List<JournalpostId>,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
 }
 
-enum class AvsluttetKlageinstansUtfall {
-    TRUKKET,
-    RETUR,
-    OPPHEVET,
-    MEDHOLD,
-    DELVIS_MEDHOLD,
-    STADFESTELSE,
-    UGUNST,
-    AVVIST,
+/** Disse følger Kabal/klageinstansen. Merk at dette er kun avsluttet utfall og ikke oversendelsesutfall (e.g. til trygderetten) */
+sealed interface AvsluttetKlageinstansUtfall {
+    fun erRetur(): Boolean = this is Retur
+
+    data object Retur : AvsluttetKlageinstansUtfall
+    sealed interface KreverHandling : AvsluttetKlageinstansUtfall {
+        data object Ugunst : KreverHandling
+        data object Opphevet : KreverHandling
+        data object Medhold : KreverHandling
+        data object DelvisMedhold : KreverHandling
+    }
+
+    sealed interface TilInformasjon : AvsluttetKlageinstansUtfall {
+        data object Stadfestelse : TilInformasjon
+        data object Trukket : TilInformasjon
+        data object Avvist : TilInformasjon
+
+        /** Dette er trygderetten er en henvisning til KA om at de må behandle anken på nytt. */
+        data object Henvist : TilInformasjon
+    }
 }
 
 sealed interface KunneIkkeTolkeKlageinstanshendelse {
     data object KunneIkkeDeserialisere : KunneIkkeTolkeKlageinstanshendelse
     data object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
 
-    // TODO jah: Vi bør legge inn støtte for anke hendelser når de begynner å dukke opp.
-    data object AnkebehandlingAvsluttetStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
+    // TODO jah: Vi bør legge inn støtte for dette når de begynner å dukke opp.
+    data object BehandlingFeilregistrertStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
 }
