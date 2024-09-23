@@ -18,7 +18,6 @@ data class Person(
     val skjermet: Boolean? = null,
     val kontaktinfo: Kontaktinfo? = null,
     val vergemål: Boolean? = null,
-    val fullmakt: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {
     fun getAlder(påDato: LocalDate): Int? = fødsel?.getAlder(påDato)

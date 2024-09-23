@@ -51,7 +51,6 @@ data class PersonOppslagStub(
             kanKontaktesDigitalt = true,
         ),
         vergemål = null,
-        fullmakt = null,
         dødsdato = dødsdato,
     )
 

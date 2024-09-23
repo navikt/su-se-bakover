@@ -105,7 +105,6 @@ internal class PdlClient(
             }.firstOrNull(),
             adressebeskyttelse = person.adressebeskyttelse.firstOrNull()?.gradering,
             vergemålEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
-            fullmakt = person.fullmakt.isNotEmpty(),
             dødsdato = person.doedsfall.let { doedsfall ->
                 if (doedsfall.isEmpty()) {
                     null
@@ -270,7 +269,6 @@ internal data class HentPerson(
     val foedselsdato: List<Fødselsdato>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
-    val fullmakt: List<Fullmakt>,
     val doedsfall: List<Doedsfall>,
 )
 
@@ -325,18 +323,6 @@ internal data class VergemaalEllerFremtidsfullmakt(
     data class VergeEllerFullmektig(
         val motpartsPersonident: String,
     )
-}
-
-internal data class Fullmakt(
-    val motpartsRolle: FullmaktsRolle,
-    val gyldigFraOgMed: LocalDate,
-    val gyldigTilOgMed: LocalDate,
-) {
-    @Suppress("unused")
-    enum class FullmaktsRolle {
-        FULLMAKTSGIVER,
-        FULLMEKTIG,
-    }
 }
 
 internal data class Doedsfall(

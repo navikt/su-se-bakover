@@ -124,7 +124,6 @@ internal class PersonRoutesKtTest {
                         "språk": "nb",
                         "kanKontaktesDigitalt": true
                     },
-                    "fullmakt": null,
                     "vergemål": null,
                     "dødsdato": "2021-01-21"
                 }

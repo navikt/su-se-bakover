@@ -121,11 +121,6 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
                 motpartsPersonident
             }
         },
-        fullmakt(historikk: $historikk) {
-            motpartsRolle
-            gyldigFraOgMed
-            gyldigTilOgMed
-        }
         doedsfall{
             doedsdato
         }
