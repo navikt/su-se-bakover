@@ -85,7 +85,6 @@ data class PersonResponseJson(
     val skjermet: Boolean?,
     val kontaktinfo: KontaktinfoJson?,
     val vergemål: Boolean?,
-    val fullmakt: Boolean?,
     val dødsdato: LocalDate?,
 ) {
     data class NavnJson(
@@ -188,7 +187,6 @@ data class PersonResponseJson(
                 )
             },
             vergemål = this.vergemål,
-            fullmakt = this.fullmakt,
             dødsdato = this.dødsdato,
         )
     }

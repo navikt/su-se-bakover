@@ -141,7 +141,6 @@ internal class PersonClient(
         skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
         kontaktinfo = kontaktinfo(pdlData.ident.fnr),
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
-        fullmakt = pdlData.fullmakt,
         dødsdato = pdlData.dødsdato,
     )
 

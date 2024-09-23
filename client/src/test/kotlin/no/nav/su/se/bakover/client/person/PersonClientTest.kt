@@ -219,7 +219,6 @@ internal class PersonClientTest {
             ),
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
             dødsdato = 22.februar(2022),
         )
 
@@ -253,7 +252,6 @@ internal class PersonClientTest {
                 kanKontaktesDigitalt = true,
             ),
             vergemål = pdlData().vergemålEllerFremtidsfullmakt,
-            fullmakt = pdlData().fullmakt,
             dødsdato = pdlData().dødsdato!!,
         )
 

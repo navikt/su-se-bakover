@@ -50,7 +50,6 @@ internal class PdlClientTest {
         fødsel = null,
         adressebeskyttelse = null,
         vergemålEllerFremtidsfullmakt = false,
-        fullmakt = false,
         dødsdato = 21.desember(2021),
     )
 
@@ -371,7 +370,6 @@ internal class PdlClientTest {
       ],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "doedsfall": [
                     {
                       "doedsdato": "2021-12-21"
@@ -504,7 +502,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "doedsfall": [
                     {
                       "doedsdato": "2021-12-21"
@@ -650,7 +647,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "doedsfall": []
                 },
                 "hentIdenter": {
@@ -746,7 +742,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "sivilstand": [],
                   "doedsfall": []
                 },
@@ -813,7 +808,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "sivilstand": [],
                   "doedsfall": []
                 },
@@ -880,7 +874,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "sivilstand": [],
                   "doedsfall": []
                 },
@@ -942,7 +935,6 @@ internal class PdlClientTest {
                   "foedselsdato": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": [],
                   "sivilstand": [],
                   "doedsfall": [
                     {
