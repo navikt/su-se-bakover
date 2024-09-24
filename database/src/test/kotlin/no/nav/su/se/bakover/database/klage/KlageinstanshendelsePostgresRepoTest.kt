@@ -115,7 +115,7 @@ internal class KlageinstanshendelsePostgresRepoTest {
                         id = it.id,
                         opprettet = fixedTidspunkt,
                         klageId = klage.id,
-                        utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+                        utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
                         journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
                         oppgaveId = oppgaveId,
                     ),

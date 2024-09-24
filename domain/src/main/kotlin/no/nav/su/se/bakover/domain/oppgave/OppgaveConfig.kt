@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
@@ -251,9 +250,10 @@ sealed interface OppgaveConfig {
          * 2) Oppgaver som krever ytterliggere saksbehandling på klagen. Disse lukker systemet selv.
          * */
         sealed interface Klageinstanshendelse : Klage {
+            val hendelsestype: String
 
-            sealed interface KlagebehandlingAvsluttet : Klageinstanshendelse {
-                val utfall: AvsluttetKlageinstansUtfall
+            sealed interface AvsluttetKlageinstansUtfall : Klageinstanshendelse {
+                val utfall: no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
                 val avsluttetTidspunkt: Tidspunkt
                 val journalpostIDer: List<JournalpostId>
 
@@ -265,10 +265,11 @@ sealed interface OppgaveConfig {
                     override val fnr: Fnr,
                     override val tilordnetRessurs: NavIdentBruker?,
                     override val clock: Clock,
-                    override val utfall: AvsluttetKlageinstansUtfall,
+                    override val utfall: no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall,
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
-                ) : KlagebehandlingAvsluttet {
+                    override val hendelsestype: String,
+                ) : AvsluttetKlageinstansUtfall {
                     init {
                         if (tilordnetRessurs != null) {
                             require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
@@ -283,10 +284,11 @@ sealed interface OppgaveConfig {
                     override val fnr: Fnr,
                     override val tilordnetRessurs: NavIdentBruker?,
                     override val clock: Clock,
-                    override val utfall: AvsluttetKlageinstansUtfall,
+                    override val utfall: no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall,
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
-                ) : KlagebehandlingAvsluttet {
+                    override val hendelsestype: String,
+                ) : AvsluttetKlageinstansUtfall {
                     init {
                         if (tilordnetRessurs != null) {
                             require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
@@ -297,12 +299,13 @@ sealed interface OppgaveConfig {
                 }
             }
 
-            data class AnkebehandlingOpprettet(
+            data class BehandlingOpprettet(
                 override val saksnummer: Saksnummer,
                 override val fnr: Fnr,
                 override val tilordnetRessurs: NavIdentBruker?,
                 override val clock: Clock,
-                val mottattKlageinstans: Tidspunkt,
+                val mottatt: Tidspunkt,
+                override val hendelsestype: String,
             ) : Klageinstanshendelse {
                 init {
                     if (tilordnetRessurs != null) {

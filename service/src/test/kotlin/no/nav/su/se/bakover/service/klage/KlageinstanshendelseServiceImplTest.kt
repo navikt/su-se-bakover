@@ -62,7 +62,7 @@ internal class KlageinstanshendelseServiceImplTest {
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = klage.id,
-            utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+            utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
             journalpostIDer = listOf(JournalpostId("123456")),
         )
 
@@ -75,14 +75,15 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Informasjon(
+                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
                     saksnummer = klage.saksnummer,
                     fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+                    utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
                     journalpostIDer = mappedKlageinstanshendelse.journalpostIDer,
                     avsluttetTidspunkt = fixedTidspunkt,
+                    hendelsestype = "KlagebehandlingAvsluttet",
                 )
             },
         )
@@ -111,7 +112,7 @@ internal class KlageinstanshendelseServiceImplTest {
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = klage.id,
-            utfall = AvsluttetKlageinstansUtfall.RETUR,
+            utfall = AvsluttetKlageinstansUtfall.Retur,
             journalpostIDer = listOf(JournalpostId("123456")),
         )
 
@@ -126,14 +127,15 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.KlagebehandlingAvsluttet.Handling(
+                it shouldBe OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
                     saksnummer = klage.saksnummer,
                     fnr = klage.fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.RETUR,
+                    utfall = AvsluttetKlageinstansUtfall.Retur,
                     journalpostIDer = listOf(JournalpostId("123456")),
                     avsluttetTidspunkt = fixedTidspunkt,
+                    hendelsestype = "KlagebehandlingAvsluttet",
                 )
             },
         )
@@ -148,7 +150,7 @@ internal class KlageinstanshendelseServiceImplTest {
                             id = klageinstansId,
                             opprettet = fixedTidspunkt,
                             klageId = klage.id,
-                            utfall = AvsluttetKlageinstansUtfall.RETUR,
+                            utfall = AvsluttetKlageinstansUtfall.Retur,
                             journalpostIDer = listOf(JournalpostId("123456")),
                             oppgaveId = OppgaveId("123"),
                         ),

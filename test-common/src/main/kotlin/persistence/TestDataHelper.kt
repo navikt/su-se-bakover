@@ -1728,7 +1728,7 @@ class TestDataHelper(
     fun persisterUprosessertKlageinstanshendelse(
         id: UUID = UUID.randomUUID(),
         klageId: KlageId = KlageId.generer(),
-        utfall: AvsluttetKlageinstansUtfall = AvsluttetKlageinstansUtfall.STADFESTELSE,
+        utfall: AvsluttetKlageinstansUtfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
         opprettet: Tidspunkt = Tidspunkt.now(clock),
     ): Pair<UUID, KlageId> {
         databaseRepos.klageinstanshendelseRepo.lagre(
