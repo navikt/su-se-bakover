@@ -89,7 +89,7 @@ caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version
 
 kotliquery = { group = "com.github.seratch", name = "kotliquery", version = "1.9.0"}
 
-hikaricp = { group = "com.zaxxer", name = "HikariCP", version = "5.1.0"}
+hikaricp = { group = "com.zaxxer", name = "HikariCP", version = "6.0.0"}
 
 vault-jdbc = { group = "com.github.navikt", name = "vault-jdbc", version = "1.3.10"}
 
