@@ -95,5 +95,24 @@ internal fun Application.configureAuthentication(
                 }
             }
         }
+        jwt("frikort2") {
+            verifier(jwkProvider, azureAd.issuer)
+            realm = "su-se-bakover"
+            validate { credentials ->
+                try {
+                    requireNotNull(credentials.payload.audience) { "Auth: Missing audience in token" }
+                    require(credentials.payload.audience.any { it == applicationConfig.azure.clientId }) {
+                        "Auth: Valid audience not found in claims"
+                    }
+                    require(getGroupsFromJWT(applicationConfig, credentials).any { it == "frikort" }) {
+                        "Auth: Valid group not found in claims. Required: [frikort]"
+                    }
+                    JWTPrincipal(credentials.payload)
+                } catch (e: Throwable) {
+                    log.debug("Auth: Validation error during authentication", e)
+                    null
+                }
+            }
+        }
     }
 }

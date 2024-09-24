@@ -57,7 +57,7 @@ internal fun Application.setupKtorRoutes(
     distribuerDokumentService: DistribuerDokumentService,
 ) {
     routing {
-        authenticate("frikort") {
+        authenticate("frikort", "frikort2") {
             frikortVedtakRoutes(services.vedtakService, clock)
         }
 
