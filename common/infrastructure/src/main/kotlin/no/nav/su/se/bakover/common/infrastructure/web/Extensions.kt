@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.web
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import com.auth0.jwt.interfaces.Payload
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -63,7 +64,9 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
     return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         applicationConfig.azure.groups.asList()
     } else {
-        payload.getClaim("groups").asList(String::class.java)
+        Either.catch {
+            payload.getClaim("groups")?.asList(String::class.java) ?: emptyList<String>()
+        }.getOrElse { emptyList<String>() }
     }
 }
 
