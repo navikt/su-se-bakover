@@ -59,6 +59,7 @@ internal fun Application.configureAuthentication(
             verifier(jwkProvider, azureAd.issuer)
             realm = "su-se-bakover"
             validate { credentials ->
+                log.debug("jwt-auth su-se-framover: Validating token")
                 try {
                     requireNotNull(credentials.payload.audience) {
                         "jwt-auth su-se-framover: Missing audience in token"
@@ -89,6 +90,7 @@ internal fun Application.configureAuthentication(
             log.debug("jwt-auth frikort sts: Verifisert frikort sts-token mot issuer")
             realm = "su-se-bakover"
             validate { credentials ->
+                log.debug("jwt-auth frikort sts: Validating token")
                 if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
                     log.debug("jwt-auth frikort sts: Invalid subject")
                     null
@@ -104,6 +106,7 @@ internal fun Application.configureAuthentication(
             log.debug("jwt-auth frikort azure: Verifisert frikort azure-token mot issuer")
             realm = "su-se-bakover"
             validate { credentials ->
+                log.debug("jwt-auth frikort azure: Validating token")
                 try {
                     requireNotNull(credentials.payload.audience) { "Frikort2 auth: Missing audience in token" }
                     require(credentials.payload.audience.any { it == applicationConfig.azure.clientId }) {
