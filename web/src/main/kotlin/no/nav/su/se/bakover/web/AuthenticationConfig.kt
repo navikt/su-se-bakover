@@ -61,7 +61,7 @@ internal fun Application.configureAuthentication(
             validate { credentials ->
                 try {
                     requireNotNull(credentials.payload.audience) {
-                        "Auth: Missing audience in token"
+                        "jwt-auth su-se-framover: Missing audience in token"
                     }
                     require(
                         credentials.payload.audience.any {
@@ -70,46 +70,52 @@ internal fun Application.configureAuthentication(
                                 it == """api://${applicationConfig.azure.clientId}/.default"""
                         },
                     ) {
-                        "Auth: Valid audience not found in claims"
+                        "jwt-auth su-se-framover: Valid audience not found in claims"
                     }
                     val allowedGroups = applicationConfig.azure.groups.asList()
                     require(getGroupsFromJWT(applicationConfig, credentials).any { allowedGroups.contains(it) }) {
-                        "Auth: Valid group not found in claims"
+                        "jwt-auth su-se-framover: Valid group not found in claims"
                     }
                     JWTPrincipal(credentials.payload)
                 } catch (e: Throwable) {
-                    log.debug("Auth: Validation error during authentication", e)
+                    log.debug("jwt-auth su-se-framover: Validation error during authentication", e)
                     null
                 }
             }
         }
         jwt("frikort") {
+            log.debug("jwt-auth frikort sts: Verifiserer frikort sts-token")
             verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
+            log.debug("jwt-auth frikort sts: Verifisert frikort sts-token mot issuer")
             realm = "su-se-bakover"
             validate { credentials ->
                 if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
-                    log.debug("Frikort Auth: Invalid subject")
+                    log.debug("jwt-auth frikort sts: Invalid subject")
                     null
                 } else {
+                    log.debug("jwt-auth frikort sts: Gyldig token.")
                     JWTPrincipal(credentials.payload)
                 }
             }
         }
         jwt("frikort2") {
+            log.debug("jwt-auth frikort azure: Verifiserer frikort azure-token")
             verifier(jwkProvider, azureAd.issuer)
+            log.debug("jwt-auth frikort azure: Verifisert frikort azure-token mot issuer")
             realm = "su-se-bakover"
             validate { credentials ->
                 try {
-                    requireNotNull(credentials.payload.audience) { "Auth: Missing audience in token" }
+                    requireNotNull(credentials.payload.audience) { "Frikort2 auth: Missing audience in token" }
                     require(credentials.payload.audience.any { it == applicationConfig.azure.clientId }) {
-                        "Auth: Valid audience not found in claims"
+                        "jwt-auth frikort azure: Valid audience not found in claims"
                     }
                     require(getGroupsFromJWT(applicationConfig, credentials).any { it == "frikort" }) {
-                        "Auth: Valid group not found in claims. Required: [frikort]"
+                        "jwt-auth frikort azure: Valid group not found in claims. Required: [frikort]"
                     }
+                    log.debug("jwt-auth frikort azure: Gyldig token.")
                     JWTPrincipal(credentials.payload)
                 } catch (e: Throwable) {
-                    log.debug("Auth: Validation error during authentication", e)
+                    log.debug("jwt-auth frikort azure: Validation error during authentication", e)
                     null
                 }
             }
