@@ -21,7 +21,7 @@ internal fun Application.configureAuthentication(
     applicationConfig: ApplicationConfig,
     tokenOppslag: TokenOppslag,
 ) {
-    val log: Logger = LoggerFactory.getLogger("Application.configureAuthentication()")
+    val log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.configureAuthentication()")
 
     val jwkProvider =
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {

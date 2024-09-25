@@ -117,7 +117,7 @@ private fun Application.setupKtorCallId() {
 }
 
 private fun Application.setupKtorExceptionHandling(
-    log: Logger = LoggerFactory.getLogger("Application.setupKtorExceptionHandling"),
+    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.setupKtorExceptionHandling"),
 ) {
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->

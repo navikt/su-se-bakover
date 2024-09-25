@@ -60,7 +60,7 @@ internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
-    log: Logger = LoggerFactory.getLogger("Route.underkjennRevurdering"),
+    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.revurdering.Route.underkjennRevurdering"),
 ) {
     patch("$REVURDERING_PATH/{revurderingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
