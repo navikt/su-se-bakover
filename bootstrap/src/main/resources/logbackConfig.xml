@@ -6,6 +6,8 @@
 
     <logger name="com.zaxxer.hikari" level="INFO"/>
     <logger name="no.nav" level="DEBUG"/>
+    <!-- Debugger hvorfor man ikke kan lage systemtoken fra postman og kalle su/frikort -->
+    <logger name="io.ktor.auth" level="TRACE"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT_JSON"/>
