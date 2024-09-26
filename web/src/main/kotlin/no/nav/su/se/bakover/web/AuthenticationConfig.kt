@@ -4,12 +4,14 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -101,19 +103,23 @@ internal fun Application.configureAuthentication(
             }
         }
         jwt("frikort2") {
-            log.debug("jwt-auth frikort azure: Verifiserer frikort azure-token")
             verifier(jwkProvider, azureAd.issuer)
-            log.debug("jwt-auth frikort azure: Verifisert frikort azure-token mot issuer")
             realm = "su-se-bakover"
             validate { credentials ->
                 log.debug("jwt-auth frikort azure: Validating token")
                 try {
-                    requireNotNull(credentials.payload.audience) { "Frikort2 auth: Missing audience in token" }
-                    require(credentials.payload.audience.any { it == applicationConfig.azure.clientId }) {
-                        "jwt-auth frikort azure: Valid audience not found in claims"
+                    val printableToken = credentials.payload.claims.mapValues { it.value.asMap() }.toString()
+                    requireNotNull(credentials.payload.audience) {
+                        sikkerLogg.debug("jwt-auth frikort azure: Mangler audience-token. Token: $printableToken")
+                        "jwt-auth frikort azure: Mangler audience-token. Se sikkerlogg for mer informasjon."
                     }
-                    require(getGroupsFromJWT(applicationConfig, credentials).any { it == "frikort" }) {
-                        "jwt-auth frikort azure: Valid group not found in claims. Required: [frikort]"
+                    require(credentials.payload.audience.any { it == applicationConfig.azure.clientId }) {
+                        sikkerLogg.debug("jwt-auth frikort azure: audience-token var ikke gyldig. Forventet audience: ${applicationConfig.azure.clientId}. Token: $printableToken")
+                        "jwt-auth frikort azure: audience-token var ikke gyldig. Se sikkerlogg for mer informasjon."
+                    }
+                    require(credentials.getRoles().any { it == "frikort" }) {
+                        sikkerLogg.debug("jwt-auth frikort azure: Forventet claim 'roles' inneholder 'frikort'. Token: $printableToken")
+                        "jwt-auth frikort azure: Forventet claim 'roles' inneholder 'frikort'. Se sikkerlogg for mer informasjon."
                     }
                     log.debug("jwt-auth frikort azure: Gyldig token.")
                     JWTPrincipal(credentials.payload)
@@ -124,4 +130,8 @@ internal fun Application.configureAuthentication(
             }
         }
     }
+}
+
+fun JWTCredential.getRoles(): List<String> {
+    return this.payload.getClaim("roles")?.asList(String::class.java) ?: emptyList()
 }
