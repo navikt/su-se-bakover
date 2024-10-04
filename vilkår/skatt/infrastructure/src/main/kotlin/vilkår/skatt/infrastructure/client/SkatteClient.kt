@@ -130,13 +130,14 @@ class SkatteClient(
     ): Either<SkatteoppslagFeil, Skattegrunnlag.SkattegrunnlagForÅr> {
         val url = "${skatteetatenConfig.apiBaseUrl}/api/v2/summertskattegrunnlag"
         val params =
-            "personidentifikator=$fnr&inntektsaar=$inntektsÅr&stadie=${stadie.verdi}&rettighetspakke=${skatteetatenConfig.rettighetspakke}"
+            "inntektsaar=$inntektsÅr&stadie=${stadie.verdi}&rettighetspakke=${skatteetatenConfig.rettighetspakke}"
         val getRequest = HttpRequest.newBuilder()
             .uri(URI.create("$url?$params"))
             .setHeader("Accept", "application/json")
             .setHeader("Authorization", "Bearer $token")
             .setHeader("Nav-Call-Id", correlationId.toString())
             .setHeader("Nav-Consumer-Id", skatteetatenConfig.consumerId)
+            .setHeader("Nav-Personident", fnr.toString())
             .GET()
             .build()
 

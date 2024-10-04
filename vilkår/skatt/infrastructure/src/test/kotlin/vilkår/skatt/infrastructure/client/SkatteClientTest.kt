@@ -3,6 +3,7 @@ package vilkår.skatt.infrastructure.client
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.matching
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -267,9 +268,11 @@ internal class SkatteClientTest {
 
     @Test
     fun `success response gir mapped data`() {
+        val fnr = Fnr(fnr = "04900148157")
         startedWireMockServerWithCorrelationId {
             stubFor(
                 WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                    .withHeader("Nav-Personident", matching(fnr.toString()))
                     .willReturn(
                         WireMock.ok(
                             """
@@ -333,7 +336,7 @@ internal class SkatteClientTest {
 
             val år = Year.of(2021)
             client(baseUrl()).hentSamletSkattegrunnlag(
-                fnr = Fnr(fnr = "04900148157"),
+                fnr = fnr,
                 år = år,
             ) shouldBe SamletSkattegrunnlagForÅr(
                 utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
