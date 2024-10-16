@@ -30,6 +30,12 @@ interface KravgrunnlagRepo {
 
     fun lagreKravgrunnlagPåSakHendelse(
         hendelse: KravgrunnlagPåSakHendelse,
+        meta: AnnullerKravgrunnlagStatusEndringMeta,
+        sessionContext: SessionContext? = null,
+    )
+
+    fun lagreKravgrunnlagPåSakHendelse(
+        hendelse: KravgrunnlagPåSakHendelse,
         meta: DefaultHendelseMetadata,
         sessionContext: SessionContext? = null,
     )

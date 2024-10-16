@@ -5,7 +5,7 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 fun Kravgrunnlagstatus.toDbString(): String =
     when (this) {
         Kravgrunnlagstatus.Annullert -> "Annullert"
-        Kravgrunnlagstatus.AnnullertVedOmg -> "AnnulertVedOmg"
+        Kravgrunnlagstatus.AnnullertVedOmg -> "AnnullertVedOmg"
         Kravgrunnlagstatus.Avsluttet -> "Avsluttet"
         Kravgrunnlagstatus.Ferdigbehandlet -> "Ferdigbehandlet"
         Kravgrunnlagstatus.Endret -> "Endret"
@@ -17,8 +17,8 @@ fun Kravgrunnlagstatus.toDbString(): String =
 
 fun String.toKravgrunnlagStatus(): Kravgrunnlagstatus {
     return when (this) {
-        "Annulert" -> Kravgrunnlagstatus.Annullert
-        "AnnulertVedOmg" -> Kravgrunnlagstatus.AnnullertVedOmg
+        "Annullert" -> Kravgrunnlagstatus.Annullert
+        "AnnullertVedOmg" -> Kravgrunnlagstatus.AnnullertVedOmg
         "Avsluttet" -> Kravgrunnlagstatus.Avsluttet
         "Ferdigbehandlet" -> Kravgrunnlagstatus.Ferdigbehandlet
         "Endret" -> Kravgrunnlagstatus.Endret

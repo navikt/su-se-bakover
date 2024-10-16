@@ -6,6 +6,7 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbake
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
+import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagService
 import tilbakekreving.application.service.kravgrunnlag.OppdaterKravgrunnlagService
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
@@ -19,6 +20,7 @@ import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekre
 import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
 import tilbakekreving.presentation.api.forhåndsvarsel.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute
 import tilbakekreving.presentation.api.iverksett.iverksettTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.kravgrunnlag.annullerKravgrunnlagRoute
 import tilbakekreving.presentation.api.kravgrunnlag.oppdaterKravgrunnlagRoute
 import tilbakekreving.presentation.api.notat.notatTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
@@ -43,6 +45,7 @@ fun Route.tilbakekrevingRoutes(
     avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService,
     oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
     notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService,
+    annullerKravgrunnlagService: AnnullerKravgrunnlagService,
 ) {
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
     this.vurderTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
@@ -57,4 +60,5 @@ fun Route.tilbakekrevingRoutes(
     this.avbrytTilbakekrevingsbehandlingRoute(avbrytTilbakekrevingsbehandlingService)
     this.oppdaterKravgrunnlagRoute(oppdaterKravgrunnlagService)
     this.notatTilbakekrevingsbehandlingRoute(notatTilbakekrevingsbehandlingService)
+    this.annullerKravgrunnlagRoute(annullerKravgrunnlagService)
 }

@@ -38,11 +38,11 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     override val konsumentId = HendelseskonsumentId("KnyttKravgrunnlagTilSakOgUtbetaling")
 
     /**
-     * Funksjonen logger feilene selv, men returnerer en throwable for testene sin del.
+     * Funksjonen logger feilene selv, men returnerer for testene sin del.
      */
     fun knyttKravgrunnlagTilSakOgUtbetaling(
         correlationId: CorrelationId,
-    ): Either<Nel<Throwable>, Unit> {
+    ): Either<Nel<Throwable>, List<HendelseId>> {
         return Either.catch {
             kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
                 konsumentId = konsumentId,
@@ -56,14 +56,16 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             )
             nonEmptyListOf(it)
         }.flatMap {
-            it.flattenOrAccumulate().map { }
+            it.flattenOrAccumulate().map {
+                it.mapNotNull { it.second }
+            }
         }
     }
 
     private fun prosesserEnHendelse(
         hendelseId: HendelseId,
         correlationId: CorrelationId,
-    ): Either<Throwable, Unit> {
+    ): Either<Throwable, Pair<HendelseId, HendelseId?>> {
         return Either.catch {
             val (råttKravgrunnlagHendelse, meta) =
                 kravgrunnlagRepo.hentRåttKravgrunnlagHendelseMedMetadataForHendelseId(hendelseId) ?: run {
@@ -93,20 +95,30 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     hendelseId = hendelseId,
                     konsumentId = konsumentId,
                 )
-                return Unit.right()
+                return Pair(hendelseId, null).right()
             }
             when (kravgrunnlagPåSakHendelse) {
-                is KravgrunnlagDetaljerPåSakHendelse -> prosesserDetaljer(
-                    hendelseId = hendelseId,
-                    kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
-                    correlationId = correlationId,
-                )
+                is KravgrunnlagDetaljerPåSakHendelse -> {
+                    Pair(
+                        hendelseId,
+                        prosesserDetaljer(
+                            hendelseId = hendelseId,
+                            kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                            correlationId = correlationId,
+                        ),
+                    )
+                }
 
-                is KravgrunnlagStatusendringPåSakHendelse -> prosesserStatus(
-                    hendelseId = hendelseId,
-                    kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
-                    correlationId = correlationId,
-                )
+                is KravgrunnlagStatusendringPåSakHendelse -> {
+                    Pair(
+                        hendelseId,
+                        prosesserStatus(
+                            hendelseId = hendelseId,
+                            kravgrunnlagPåSakHendelse = kravgrunnlagPåSakHendelse,
+                            correlationId = correlationId,
+                        ),
+                    )
+                }
             }
         }.onLeft {
             log.error("Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception for hendelsen $hendelseId", it)
@@ -117,7 +129,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         hendelseId: HendelseId,
         kravgrunnlagPåSakHendelse: KravgrunnlagStatusendringPåSakHendelse,
         correlationId: CorrelationId,
-    ) {
+    ): HendelseId {
         // Statusendringene har ikke noen unik indikator i seg selv, annet enn JMS-meldingen sin id. Siden vi ikke får til noen god dedup. så vi aksepterer alle statusendringer.
         sessionFactory.withTransactionContext { tx ->
             kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
@@ -131,13 +143,14 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 context = tx,
             )
         }
+        return kravgrunnlagPåSakHendelse.hendelseId
     }
 
     private fun prosesserDetaljer(
         hendelseId: HendelseId,
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
         correlationId: CorrelationId,
-    ) {
+    ): HendelseId {
         sessionFactory.withTransactionContext { tx ->
             kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
                 hendelse = kravgrunnlagPåSakHendelse,
@@ -150,5 +163,6 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 context = tx,
             )
         }
+        return kravgrunnlagPåSakHendelse.hendelseId
     }
 }

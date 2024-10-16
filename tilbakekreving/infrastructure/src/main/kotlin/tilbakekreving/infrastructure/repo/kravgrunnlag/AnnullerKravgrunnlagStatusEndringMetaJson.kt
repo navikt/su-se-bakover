@@ -1,21 +1,21 @@
-package tilbakekreving.infrastructure.repo.iverksatt
+package tilbakekreving.infrastructure.repo.kravgrunnlag
 
 import no.nav.su.se.bakover.common.infrastructure.ident.BrukerrolleJson
 import no.nav.su.se.bakover.common.infrastructure.ident.toBrukerrollerJson
 import no.nav.su.se.bakover.common.serialize
-import tilbakekreving.domain.iverksettelse.IverksattHendelseMetadata
+import tilbakekreving.domain.kravgrunnlag.repo.AnnullerKravgrunnlagStatusEndringMeta
 import tilbakekreving.infrastructure.repo.TilbakekrevingsvedtakForsendelseDbJson
 
-data class IverksattHendelseMetadataDbJson(
+data class AnnullerKravgrunnlagStatusEndringMetaJson(
     val correlationId: String,
     val ident: String,
     val brukerroller: List<BrukerrolleJson>,
     val tilbakekrevingsvedtakForsendelse: TilbakekrevingsvedtakForsendelseDbJson,
 )
 
-fun IverksattHendelseMetadata.toDbJson(): String {
+fun AnnullerKravgrunnlagStatusEndringMeta.toDbJson(): String {
     return serialize(
-        IverksattHendelseMetadataDbJson(
+        AnnullerKravgrunnlagStatusEndringMetaJson(
             correlationId = correlationId.toString(),
             ident = ident.toString(),
             brukerroller = brukerroller.toBrukerrollerJson(),

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.kravgrunnlag
 
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringXml
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -14,7 +15,7 @@ import tilbakekreving.presentation.Tilbakekrevingskomponenter
  */
 internal fun AppComponents.emulerViMottarKravgrunnlagDetaljer(
     overstyrUtbetalingId: List<UUID30?>? = null,
-) {
+): List<HendelseId> {
     // Emulerer at det kommer detaljer på køen som matcher revurderingen sin simulering.
     lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
         sessionFactory = this.databaseRepos.sessionFactory,
@@ -25,7 +26,10 @@ internal fun AppComponents.emulerViMottarKravgrunnlagDetaljer(
     // Siden vi ikke kjører jobbene i test-miljøet må vi også kjøre denne konsumenten.
     this.tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument.knyttKravgrunnlagTilSakOgUtbetaling(
         correlationId = CorrelationId.generate(),
-    )
+    ).map {
+        return it
+    }
+    return emptyList()
 }
 
 internal fun AppComponents.emulerViMottarKravgrunnlagstatusendring(

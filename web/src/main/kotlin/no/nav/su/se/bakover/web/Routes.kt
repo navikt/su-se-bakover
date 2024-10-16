@@ -154,6 +154,7 @@ internal fun Application.setupKtorRoutes(
                         avbrytTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.avbrytTilbakekrevingsbehandlingService,
                         oppdaterKravgrunnlagService = tilbakekrevingskomponenter.services.oppdaterKravgrunnlagService,
                         notatTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.notatTilbakekrevingsbehandlingService,
+                        annullerKravgrunnlagService = tilbakekrevingskomponenter.services.annullerKravgrunnlagService,
                     )
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)

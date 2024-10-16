@@ -1,5 +1,8 @@
 package tilbakekreving.domain.kravgrunnlag
 
+/**
+ * Statuser som kan komme fra oppdrag: https://confluence.adeo.no/display/OKSY/Detaljer+om+de+enkelte+ID-koder?preview=/178067795/334793028/Skjermbilde%20M437.GIF
+ */
 enum class Kravgrunnlagstatus {
     Annullert,
 

@@ -4,6 +4,7 @@ import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentHendelser
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -204,8 +205,25 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             hendelser = sorterteHendelser.filter { it.id == behandlingsid },
         )
 
+    fun hentKravgrunnlagOgBehandlingFor(kravgrunnlagHendelseId: HendelseId): Pair<Kravgrunnlag, Tilbakekrevingsbehandling?>? {
+        val kravgrunnlag = kravgrunnlagPåSak.hentSisteKravgrunnlag().let {
+            if (it == null) return null
+            if (it.hendelseId != kravgrunnlagHendelseId) {
+                // TODO - burde vi kaste hvis kravgrunnlaget ikke er det siste?
+                return null
+            }
+            it
+        }
+
+        val behandling = this.currentState.behandlinger.singleOrNullOrThrow {
+            it.kravgrunnlag.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
+        }
+
+        return Pair(kravgrunnlag, behandling)
+    }
+
     /**
-     * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet.
+     * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet | annullert.
      * Det er kun det siste mottatte kravgrunnlaget som kan være utestående.
      * Et kravgrunnlag er avsluttet dersom vi har iverksatt en tilbakekrevingsbehandling eller kravgrunnlaget har blitt avsluttet på annen måte (statuser fra oppdrag).
      * Merk at et kravgrunnlag vil være utestående helt til behandlingen er iverksatt eller det er overskrevet av en nyere status eller et nyere kravgrunnlag.
