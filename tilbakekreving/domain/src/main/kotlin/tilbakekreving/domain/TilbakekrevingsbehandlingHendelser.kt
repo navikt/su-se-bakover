@@ -4,6 +4,7 @@ import dokument.domain.DokumentHendelseSerie
 import dokument.domain.DokumentHendelser
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -203,6 +204,15 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             behandlingsId = behandlingsid,
             hendelser = sorterteHendelser.filter { it.id == behandlingsid },
         )
+
+    fun hentKravrunnlag(kravgrunnlagHendelseId: HendelseId): Kravgrunnlag? {
+        return kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(kravgrunnlagHendelseId)?.kravgrunnlag
+    }
+
+    fun hentBehandlingForKravgrunnlag(kravgrunnlagHendelseId: HendelseId): Tilbakekrevingsbehandling? =
+        this.currentState.behandlinger.singleOrNullOrThrow {
+            it.kravgrunnlag.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
+        }
 
     /**
      * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet.

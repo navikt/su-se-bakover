@@ -11,6 +11,10 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.util.UUID
 
+/**
+ * Forholder seg til eksterne oppdateringer fra oppdrag.
+ * Lag en ny hendelsestype dersom du skal oppdatere kravgrunnlaget fra vår side
+ */
 data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,

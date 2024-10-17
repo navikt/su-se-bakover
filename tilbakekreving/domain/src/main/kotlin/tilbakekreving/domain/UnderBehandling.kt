@@ -27,6 +27,7 @@ sealed interface UnderBehandling :
     KanVurdere,
     KanForhåndsvarsle,
     KanOppdatereNotat,
+    KanAnnullere,
     UnderBehandlingEllerTilAttestering {
 
     override val vurderingerMedKrav: VurderingerMedKrav?

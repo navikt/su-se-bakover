@@ -379,3 +379,16 @@ internal fun verifiserKravgrunnlagPåSak(
         JSONObject(sakJson).getInt("versjon") shouldBe versjon
     }
 }
+
+internal fun hentKravgrunnlagPåSak(
+    sakId: String,
+    client: HttpClient,
+): String? {
+    return hentSak(sakId, client = client).let {
+        if (JSONObject(it).isNull("uteståendeKravgrunnlag")) {
+            null
+        } else {
+            JSONObject(it).getJSONObject("uteståendeKravgrunnlag").toString()
+        }
+    }
+}

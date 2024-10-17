@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.common.infrastructure.soap.buildSoapEnvelope
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.slf4j.LoggerFactory
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.vedtak.KunneIkkeAnnullerePåbegynteVedtak
 import tilbakekreving.domain.vedtak.KunneIkkeSendeTilbakekrevingsvedtak
 import tilbakekreving.domain.vedtak.Tilbakekrevingsklient
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
@@ -99,7 +101,8 @@ class TilbakekrevingSoapClient(
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = soapRequest,
                         tidspunkt = Tidspunkt.now(clock),
-                        responseXml = soapResponse ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
+                        responseXml = soapResponse
+                            ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
                     )
                 }
         }.mapLeft { throwable ->
@@ -112,6 +115,74 @@ class TilbakekrevingSoapClient(
                 throwable,
             )
             KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
+        }.flatten()
+    }
+
+    /*
+    https://confluence.adeo.no/display/OKSY/Detaljer+om+de+enkelte+ID-koder?preview=/178067795/178067800/worddav1549728a4f1bb4ae0651e7017a7cae86.png
+     */
+    override fun annullerKravgrunnlag(
+        annullertAv: NavIdentBruker.Saksbehandler,
+        kravgrunnlagSomSkalAnnulleres: Kravgrunnlag,
+    ): Either<KunneIkkeAnnullerePåbegynteVedtak, RåTilbakekrevingsvedtakForsendelse> {
+        val soapBody = buildTilbakekrevingAnnulleringSoapRequest(
+            eksternVedtakId = kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId,
+            saksbehandletAv = annullertAv.navIdent,
+        )
+        val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
+
+        val assertion = getSamlToken(kravgrunnlagSomSkalAnnulleres.saksnummer, soapBody).getOrElse { TODO() }
+
+        return Either.catch {
+            val soapRequest = buildSoapEnvelope(
+                action = ACTION,
+                messageId = UUID.randomUUID().toString(),
+                serviceUrl = baseUrl,
+                assertion = assertion,
+                body = soapBody,
+            )
+            val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
+                .header("SOAPAction", ACTION)
+                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
+                .build()
+            val (soapResponse: String?, status: Int) = client.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+                .let {
+                    it.body() to it.statusCode()
+                }
+
+            if (status != 200) {
+                log.error(
+                    "Feil ved sending av tilbakekrevingsvedtak: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status. Se sikkerlogg for request.",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                sikkerLogg.error("Feil ved sending av tilbakekrevingsvedtak: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, Response: $soapResponse Request: $soapRequest")
+                return KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag.left()
+            }
+
+            kontrollerResponse(soapRequest, soapResponse, saksnummer)
+                .map {
+                    log.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.")
+                    sikkerLogg.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest.")
+
+                    RåTilbakekrevingsvedtakForsendelse(
+                        requestXml = soapRequest,
+                        tidspunkt = Tidspunkt.now(clock),
+                        responseXml = soapResponse
+                            ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
+                    )
+                }.mapLeft {
+                    KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
+                }
+        }.mapLeft { throwable ->
+            log.error(
+                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId}. Se sikkerlogg for detaljer.",
+                RuntimeException("Legger på stacktrace for enklere debug"),
+            )
+            sikkerLogg.error(
+                "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId}. Se vanlig logg for stacktrace.",
+                throwable,
+            )
+            KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
         }.flatten()
     }
 

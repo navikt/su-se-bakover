@@ -18,6 +18,7 @@ import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbake
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
+import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagService
 import tilbakekreving.application.service.kravgrunnlag.OppdaterKravgrunnlagService
 import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
@@ -60,6 +61,7 @@ class TilbakekrevingServices(
     val oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
     val notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService,
     val vedtaksbrevTilbakekrevingKonsument: GenererVedtaksbrevTilbakekrevingKonsument,
+    val annullerKravgrunnlagService: AnnullerKravgrunnlagService,
 ) {
     companion object {
         fun create(
@@ -207,6 +209,15 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    sessionFactory = sessionFactory,
+                    clock = clock,
+                ),
+                annullerKravgrunnlagService = AnnullerKravgrunnlagService(
+                    tilgangstyring = tilgangstyringService,
+                    tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    sakService = sakService,
+                    kravgrunnlagRepo = kravgrunnlagRepo,
+                    tilbakekrevingsklient = tilbakekrevingsklient,
                     sessionFactory = sessionFactory,
                     clock = clock,
                 ),

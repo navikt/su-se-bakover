@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgres
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagPåSakHendelser
+import tilbakekreving.domain.kravgrunnlag.repo.AnnullerKravgrunnlagStatusEndringMeta
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.repo.kravgrunnlag.RåttKravgrunnlagDbJson.Companion.toJson
@@ -69,12 +70,23 @@ class KravgrunnlagPostgresRepo(
             }
     }
 
-    /**
-     * Denne er kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
-     */
     override fun lagreKravgrunnlagPåSakHendelse(
         hendelse: KravgrunnlagPåSakHendelse,
         meta: DefaultHendelseMetadata,
+        sessionContext: SessionContext?,
+    ) {
+        (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
+            hendelse = hendelse,
+            type = KnyttetKravgrunnlagTilSakHendelsestype,
+            data = hendelse.toDbJson(),
+            meta = meta.toDbJson(),
+            sessionContext = sessionContext,
+        )
+    }
+
+    override fun lagreKravgrunnlagPåSakHendelse(
+        hendelse: KravgrunnlagPåSakHendelse,
+        meta: AnnullerKravgrunnlagStatusEndringMeta,
         sessionContext: SessionContext?,
     ) {
         (hendelseRepo as HendelsePostgresRepo).persisterHendelse(

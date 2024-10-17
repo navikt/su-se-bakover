@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseConversionError
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseOk
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseVedtakIdFinnesIkke
@@ -74,6 +76,30 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+            ).getOrFail().shouldBeEqualToIgnoringFields(
+                RåTilbakekrevingsvedtakForsendelse(
+                    requestXml = "ignore-me",
+                    responseXml = responseXml,
+                    tidspunkt = fixedTidspunkt,
+                ),
+                RåTilbakekrevingsvedtakForsendelse::requestXml,
+            )
+        }
+    }
+
+    @Test
+    fun `annullerer et kravgrunnlag`() {
+        val responseXml = tilbakekrevingSoapResponseOk()
+
+        startedWireMockServerWithCorrelationId {
+            stubFor(wiremockBuilder("/c").willReturn(WireMock.okXml(responseXml)))
+            TilbakekrevingSoapClient(
+                baseUrl = "${this.baseUrl()}/c",
+                samlTokenProvider = FakeSamlTokenProvider(),
+                clock = fixedClock,
+            ).annullerKravgrunnlag(
+                annullertAv = saksbehandler,
+                kravgrunnlagSomSkalAnnulleres = kravgrunnlag(),
             ).getOrFail().shouldBeEqualToIgnoringFields(
                 RåTilbakekrevingsvedtakForsendelse(
                     requestXml = "ignore-me",
