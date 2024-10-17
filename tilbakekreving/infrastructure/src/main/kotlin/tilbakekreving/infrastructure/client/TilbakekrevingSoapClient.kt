@@ -126,7 +126,7 @@ class TilbakekrevingSoapClient(
         kravgrunnlagSomSkalAnnulleres: Kravgrunnlag,
     ): Either<KunneIkkeAnnullerePåbegynteVedtak, RåTilbakekrevingsvedtakForsendelse> {
         val soapBody = buildTilbakekrevingAnnulleringSoapRequest(
-            eksternVedtakId = kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId,
+            eksternVedtakId = kravgrunnlagSomSkalAnnulleres.eksternVedtakId,
             saksbehandletAv = annullertAv.navIdent,
         )
         val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
@@ -263,7 +263,7 @@ class TilbakekrevingSoapClient(
             Alvorlighetsgrad.OK_MED_VARSEL,
             -> {
                 log.error(
-                    "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer.",
+                    "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer, og request.",
                     RuntimeException("Legger på stacktrace for enklere debug"),
                 )
                 sikkerLogg.error(

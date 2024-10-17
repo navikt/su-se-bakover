@@ -102,7 +102,7 @@ internal class TilbakekrevingSoapClientTest {
                 kravgrunnlagSomSkalAnnulleres = kravgrunnlag(),
             ).getOrFail().shouldBeEqualToIgnoringFields(
                 RåTilbakekrevingsvedtakForsendelse(
-                    requestXml = "ignore-me",
+                    requestXml = expectedAnnulleringRequestXml,
                     responseXml = responseXml,
                     tidspunkt = fixedTidspunkt,
                 ),

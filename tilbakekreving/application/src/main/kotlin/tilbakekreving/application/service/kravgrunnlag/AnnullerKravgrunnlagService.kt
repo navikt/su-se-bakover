@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -43,23 +44,35 @@ class AnnullerKravgrunnlagService(
         }
         val tilbakekrevingsbehandlingHendelser = tilbakekrevingsbehandlingRepo.hentForSak(command.sakId)
         val uteståendeKravgrunnlagPåSak = tilbakekrevingsbehandlingHendelser.hentUteståendeKravgrunnlag()
-            ?: return KunneIkkeAnnullereKravgrunnlag.SakenHarIkkeKravgrunnlagSomKanAnnulleres.left()
+            ?: return KunneIkkeAnnullereKravgrunnlag.SakenHarIkkeKravgrunnlagSomKanAnnulleres.left().also {
+                log.error("Prøvde å annullere et kravgrunnlag på en sak ${sak.saksnummer} som ikke har et utestående kravgrunnlag. Se sikkerlogg for mer informasjon.")
+                sikkerLogg.error("Prøvde å annullere et kravgrunnlag på en sak ${sak.saksnummer} som ikke har et utestående kravgrunnlag. Command: $command")
+            }
         val kravgrunnlag = tilbakekrevingsbehandlingHendelser.hentKravrunnlag(command.kravgrunnlagHendelseId)
-            ?: return KunneIkkeAnnullereKravgrunnlag.FantIkkeKravgrunnlag.left()
+            ?: return KunneIkkeAnnullereKravgrunnlag.FantIkkeKravgrunnlag.left().also {
+                log.error("Prøvde å annullere et kravgrunnlag som ikke finnes på sak ${sak.saksnummer}. Se sikkerlogg for mer informasjon.")
+                sikkerLogg.error("Prøvde å annullere et kravgrunnlag som ikke finnes på sak ${sak.saksnummer}. Command: $command")
+            }
 
         if (uteståendeKravgrunnlagPåSak.hendelseId != kravgrunnlag.hendelseId) {
-            return KunneIkkeAnnullereKravgrunnlag.InnsendtHendelseIdErIkkeDenSistePåSaken.left()
+            return KunneIkkeAnnullereKravgrunnlag.InnsendtHendelseIdErIkkeDenSistePåSaken.left().also {
+                log.error("Prøvde å annullere et kravgrunnlag som ikke er det siste på saken ${sak.saksnummer}. Se sikkerlogg for mer informasjon.")
+                sikkerLogg.error("Prøvde å annullere et kravgrunnlag som ikke er det siste på saken ${sak.saksnummer}. Command: $command")
+            }
         }
 
         val behandling =
             tilbakekrevingsbehandlingHendelser.hentBehandlingForKravgrunnlag(uteståendeKravgrunnlagPåSak.hendelseId)
 
-        val (avbruttHendelse, avbruttBehandling) = behandling?.let {
-            (it as? KanAnnullere)?.annuller(
+        val (avbruttHendelse, avbruttBehandling) = behandling?.let { tilbakekrevingsbehandling ->
+            (tilbakekrevingsbehandling as? KanAnnullere)?.annuller(
                 annulleringstidspunkt = Tidspunkt.now(clock),
                 annullertAv = command.annullertAv,
                 versjon = command.klientensSisteSaksversjon.inc(),
-            ) ?: return KunneIkkeAnnullereKravgrunnlag.BehandlingenErIFeilTilstandForÅAnnullere.left()
+            ) ?: return KunneIkkeAnnullereKravgrunnlag.BehandlingenErIFeilTilstandForÅAnnullere.left().also {
+                log.error("Prøvde å annullere en tilbakekrevingsbehandling ${tilbakekrevingsbehandling.id} som ikke kan annulleres. Se sikkerlogg for mer informasjon.")
+                sikkerLogg.error("Prøvde å annullere en tilbakekrevingsbehandling ${tilbakekrevingsbehandling.id} som ikke kan annulleres. Command: $command")
+            }
         } ?: (null to null)
 
         return tilbakekrevingsklient.annullerKravgrunnlag(command.annullertAv, kravgrunnlag).mapLeft {
