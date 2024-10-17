@@ -60,16 +60,15 @@ internal fun verifiserResponse(
 ) {
     val expected = if (verifiserBehandling != null) {
         """{
-            "tilbakekrevingsbehandling":{
                 "id":"${verifiserBehandling.behandlingsId}",
                 "sakId":"${verifiserBehandling.sakId}",
-                "opprettet":"2021-02-01T01:03:49.456789Z",
+                "opprettet":"2021-02-01T01:03:47.456789Z",
                 "opprettetAv":"Z990Lokal",
                 "kravgrunnlag":{
                  "hendelseId":${verifiserBehandling.kravgrunnlagHendelseId},
                  "eksternKravgrunnlagsId":"123456",
                  "eksternVedtakId":"654321",
-                 "kontrollfelt":"2021-02-01-02.03.43.456789",
+                 "kontrollfelt":"2021-02-01-02.03.42.456789",
                  "status":"NY",
                  "grunnlagsperiode":[{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"},"betaltSkattForYtelsesgruppen":"1192","bruttoTidligereUtbetalt":"10946","bruttoNyUtbetaling":"8563","bruttoFeilutbetaling":"2383","nettoFeilutbetaling":"1191","skatteProsent":"50","skattFeilutbetaling":"1192"}],
                  "summertBetaltSkattForYtelsesgruppen":"1192",
@@ -87,17 +86,19 @@ internal fun verifiserResponse(
                 "sendtTilAttesteringAv":null,
                 "attesteringer":[],
                 "erKravgrunnlagUtdatert":false,
-                "avsluttetTidspunkt":"2021-02-01T01:03:53.456789Z",
+                "avsluttetTidspunkt":"2021-02-01T01:03:51.456789Z",
                 "notat":null
-        }
         }
         """.trimIndent()
     } else {
-        """{
-            "tilbakekrevingsbehandling":null
-        }
-        """.trimIndent()
+        null
     }
 
-    actual.shouldBeSimilarJsonTo(expected)
+    actual.shouldBeSimilarJsonTo(
+        """{
+         "uteståendeKravgrunnlag": null,
+         "tilbakekrevingsbehandling": $expected
+        }
+        """.trimIndent(),
+    )
 }

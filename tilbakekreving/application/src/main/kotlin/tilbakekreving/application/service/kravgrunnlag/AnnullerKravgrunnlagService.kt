@@ -12,7 +12,6 @@ import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanAnnullere
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.AnnullerKravgrunnlagCommand
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.repo.AnnullerKravgrunnlagStatusEndringMeta
@@ -32,7 +31,7 @@ class AnnullerKravgrunnlagService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun annuller(command: AnnullerKravgrunnlagCommand): Either<KunneIkkeAnnullereKravgrunnlag, Pair<Kravgrunnlag?, AvbruttTilbakekrevingsbehandling?>> {
+    fun annuller(command: AnnullerKravgrunnlagCommand): Either<KunneIkkeAnnullereKravgrunnlag, AvbruttTilbakekrevingsbehandling?> {
         tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
             return KunneIkkeAnnullereKravgrunnlag.IkkeTilgang(it).left()
         }
@@ -42,7 +41,6 @@ class AnnullerKravgrunnlagService(
         if (sak.versjon != command.klientensSisteSaksversjon) {
             log.info("Oppdater kravgrunnlag - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
         }
-
         val tilbakekrevingsbehandlingHendelser = tilbakekrevingsbehandlingRepo.hentForSak(command.sakId)
         val uteståendeKravgrunnlagPåSak = tilbakekrevingsbehandlingHendelser.hentUteståendeKravgrunnlag()
             ?: return KunneIkkeAnnullereKravgrunnlag.SakenHarIkkeKravgrunnlagSomKanAnnulleres.left()
@@ -78,7 +76,7 @@ class AnnullerKravgrunnlagService(
                         saksnummer = sak.saksnummer,
                         eksternVedtakId = uteståendeKravgrunnlagPåSak.eksternVedtakId,
                         status = Kravgrunnlagstatus.Annullert,
-                        eksternTidspunkt = uteståendeKravgrunnlagPåSak.eksternTidspunkt,
+                        eksternTidspunkt = råTilbakekrevingsvedtakForsendelse.tidspunkt,
                     ),
                     AnnullerKravgrunnlagStatusEndringMeta(
                         correlationId = command.correlationId,
@@ -96,7 +94,7 @@ class AnnullerKravgrunnlagService(
                     )
                 }
             }
-            null to avbruttBehandling
+            avbruttBehandling
         }
     }
 }

@@ -9,14 +9,10 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
-import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagstatusendring
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
-import no.nav.su.se.bakover.web.sak.hent.hentSak
-import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 internal class AnnullerKravgrunnlagIT {
@@ -38,7 +34,6 @@ internal class AnnullerKravgrunnlagIT {
                 appComponents = appComponents,
             )
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
-            val saksnummer = hentSaksnummer(hentSak(sakId, client))
             opprettIverksattRevurdering(
                 sakid = sakId,
                 fraogmed = 1.januar(2021).toString(),
@@ -52,21 +47,11 @@ internal class AnnullerKravgrunnlagIT {
                 it.size shouldBe 1
             }
             // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
-            val eksternVedtakId = hentKravgrunnlagPåSak(sakId, client).let {
-                JSONObject(it).getString("eksternVedtakId")!!
-            }
-
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,
                 kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
                 saksversjon = 5,
                 client = this.client,
-            )
-            appComponents.emulerViMottarKravgrunnlagstatusendring(
-                saksnummer = saksnummer,
-                fnr = fnr,
-                eksternVedtakId = eksternVedtakId,
-                status = "ANNU",
             )
             hentKravgrunnlagPåSak(sakId, client) shouldBe null
         }
@@ -89,7 +74,6 @@ internal class AnnullerKravgrunnlagIT {
                 appComponents = appComponents,
             )
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
-            val saksnummer = hentSaksnummer(hentSak(sakId, client))
             opprettIverksattRevurdering(
                 sakid = sakId,
                 fraogmed = 1.januar(2021).toString(),
@@ -104,15 +88,12 @@ internal class AnnullerKravgrunnlagIT {
             }
             // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
             verifiserKravgrunnlagPåSak(sakId, client, true, 4)
-            val eksternVedtakId = hentKravgrunnlagPåSak(sakId, client).let {
-                JSONObject(it).getString("eksternVedtakId")!!
-            }
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
                 saksversjon = 4,
                 client = this.client,
-                expectedKontrollfelt = "2021-02-01-02.03.43.456789",
+                expectedKontrollfelt = "2021-02-01-02.03.42.456789",
             )
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,
@@ -124,12 +105,6 @@ internal class AnnullerKravgrunnlagIT {
                     sakId = sakId,
                     kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
                 ),
-            )
-            appComponents.emulerViMottarKravgrunnlagstatusendring(
-                saksnummer = saksnummer,
-                fnr = fnr,
-                eksternVedtakId = eksternVedtakId,
-                status = "ANNU",
             )
             hentKravgrunnlagPåSak(sakId, client) shouldBe null
         }
