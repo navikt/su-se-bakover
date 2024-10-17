@@ -89,7 +89,6 @@ internal class TilbakekrevingSoapClientTest {
 
     @Test
     fun `annullerer et kravgrunnlag`() {
-        // TODO - oppdater testen til å inneholde en responsen som vi får fra oppdrag. Mulig den er lik iverksettelse?
         val responseXml = tilbakekrevingSoapResponseOk()
 
         startedWireMockServerWithCorrelationId {

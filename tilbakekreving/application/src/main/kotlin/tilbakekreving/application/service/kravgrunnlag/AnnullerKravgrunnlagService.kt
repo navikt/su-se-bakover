@@ -69,7 +69,7 @@ class AnnullerKravgrunnlagService(
                 kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
                     KravgrunnlagStatusendringPåSakHendelse(
                         hendelseId = HendelseId.generer(),
-                        versjon = command.klientensSisteSaksversjon.inc(2),
+                        versjon = if (avbruttHendelse == null) command.klientensSisteSaksversjon.inc() else command.klientensSisteSaksversjon.inc(2),
                         sakId = sak.id,
                         hendelsestidspunkt = Tidspunkt.now(clock),
                         tidligereHendelseId = uteståendeKravgrunnlagPåSak.hendelseId,
