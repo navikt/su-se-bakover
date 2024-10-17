@@ -205,22 +205,14 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             hendelser = sorterteHendelser.filter { it.id == behandlingsid },
         )
 
-    fun hentKravgrunnlagOgBehandlingFor(kravgrunnlagHendelseId: HendelseId): Pair<Kravgrunnlag, Tilbakekrevingsbehandling?>? {
-        val kravgrunnlag = kravgrunnlagPåSak.hentSisteKravgrunnlag().let {
-            if (it == null) return null
-            if (it.hendelseId != kravgrunnlagHendelseId) {
-                // TODO - burde vi kaste hvis kravgrunnlaget ikke er det siste?
-                return null
-            }
-            it
-        }
+    fun hentKravrunnlag(kravgrunnlagHendelseId: HendelseId): Kravgrunnlag? {
+        return kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(kravgrunnlagHendelseId)?.kravgrunnlag
+    }
 
-        val behandling = this.currentState.behandlinger.singleOrNullOrThrow {
+    fun hentBehandlingForKravgrunnlag(kravgrunnlagHendelseId: HendelseId): Tilbakekrevingsbehandling? =
+        this.currentState.behandlinger.singleOrNullOrThrow {
             it.kravgrunnlag.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
         }
-
-        return Pair(kravgrunnlag, behandling)
-    }
 
     /**
      * Henter det siste utestående kravgrunnlaget, dersom det finnes et kravgrunnlag og det ikke er avsluttet.

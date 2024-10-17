@@ -60,7 +60,7 @@ internal fun Route.annullerKravgrunnlagRoute(
                                         Resultat.json(
                                             HttpStatusCode.OK,
                                             serialize(
-                                                AnnullerResponse(tilbakekrevingsbehandling = it?.toJson()),
+                                                AnnullerResponse(tilbakekrevingsbehandling = it.second?.toJson()),
                                             ),
                                         ),
                                     )
