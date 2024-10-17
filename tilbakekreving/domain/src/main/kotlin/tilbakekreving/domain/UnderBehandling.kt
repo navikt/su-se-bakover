@@ -3,7 +3,6 @@ package tilbakekreving.domain
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -35,24 +34,6 @@ sealed interface UnderBehandling :
     val erUnderkjent: Boolean
 
     override fun erÅpen() = true
-
-    override fun annuller(
-        annulleringstidspunkt: Tidspunkt,
-        annullertAv: NavIdentBruker.Saksbehandler,
-        versjon: Hendelsesversjon,
-    ): Pair<AvbruttHendelse, AvbruttTilbakekrevingsbehandling> {
-        val hendelse = AvbruttHendelse(
-            hendelseId = HendelseId.generer(),
-            id = this.id,
-            utførtAv = annullertAv,
-            tidligereHendelseId = this.hendelseId,
-            hendelsestidspunkt = annulleringstidspunkt,
-            sakId = this.sakId,
-            versjon = versjon,
-            begrunnelse = "Behandling er blitt avbrutt fordi kravgrunnlaget skal annulleres.",
-        )
-        return hendelse to hendelse.applyToState(this)
-    }
 
     /**
      * Kan kun gå fra [OpprettetTilbakekrevingsbehandling] til [Påbegynt], men ikke tilbake til [OpprettetTilbakekrevingsbehandling].

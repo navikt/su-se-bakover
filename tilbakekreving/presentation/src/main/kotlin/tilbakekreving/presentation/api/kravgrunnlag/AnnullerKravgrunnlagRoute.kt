@@ -21,7 +21,6 @@ import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagServi
 import tilbakekreving.application.service.kravgrunnlag.KunneIkkeAnnullereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.AnnullerKravgrunnlagCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
-import tilbakekreving.presentation.api.common.KravgrunnlagJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
@@ -61,10 +60,7 @@ internal fun Route.annullerKravgrunnlagRoute(
                                         Resultat.json(
                                             HttpStatusCode.OK,
                                             serialize(
-                                                AnnullerResponse(
-                                                    uteståendeKravgrunnlag = null,
-                                                    tilbakekrevingsbehandling = it.second?.toJson(),
-                                                ),
+                                                AnnullerResponse(tilbakekrevingsbehandling = it?.toJson()),
                                             ),
                                         ),
                                     )
@@ -79,7 +75,6 @@ internal fun Route.annullerKravgrunnlagRoute(
 }
 
 data class AnnullerResponse(
-    val uteståendeKravgrunnlag: KravgrunnlagJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
 )
 

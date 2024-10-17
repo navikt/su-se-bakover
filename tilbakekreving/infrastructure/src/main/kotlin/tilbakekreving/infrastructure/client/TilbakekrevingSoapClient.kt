@@ -127,7 +127,7 @@ class TilbakekrevingSoapClient(
     ): Either<KunneIkkeAnnullerePåbegynteVedtak, RåTilbakekrevingsvedtakForsendelse> {
         val soapBody = buildTilbakekrevingAnnulleringSoapRequest(
             eksternVedtakId = kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId,
-            saksbehandledAv = annullertAv.navIdent,
+            saksbehandletAv = annullertAv.navIdent,
         )
         val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
 

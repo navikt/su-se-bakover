@@ -73,22 +73,4 @@ data class OpprettetTilbakekrevingsbehandling(
         versjon = versjon,
         notat = notat,
     )
-
-    override fun annuller(
-        annulleringstidspunkt: Tidspunkt,
-        annullertAv: NavIdentBruker.Saksbehandler,
-        versjon: Hendelsesversjon,
-    ): Pair<AvbruttHendelse, AvbruttTilbakekrevingsbehandling> {
-        val hendelse = AvbruttHendelse(
-            hendelseId = HendelseId.generer(),
-            id = this.id,
-            utførtAv = annullertAv,
-            tidligereHendelseId = this.hendelseId,
-            hendelsestidspunkt = annulleringstidspunkt,
-            sakId = this.sakId,
-            versjon = versjon,
-            begrunnelse = "Behandling er blitt avbrutt fordi kravgrunnlaget skal annulleres.",
-        )
-        return hendelse to hendelse.applyToState(this)
-    }
 }

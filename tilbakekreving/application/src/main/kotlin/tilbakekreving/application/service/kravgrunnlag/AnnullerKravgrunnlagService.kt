@@ -3,7 +3,6 @@ package tilbakekreving.application.service.kravgrunnlag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -13,7 +12,6 @@ import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanAnnullere
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.AnnullerKravgrunnlagCommand
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagStatusendringPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.repo.AnnullerKravgrunnlagStatusEndringMeta
@@ -35,7 +33,7 @@ class AnnullerKravgrunnlagService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun annuller(command: AnnullerKravgrunnlagCommand): Either<KunneIkkeAnnullereKravgrunnlag, Pair<Kravgrunnlag, AvbruttTilbakekrevingsbehandling?>> {
+    fun annuller(command: AnnullerKravgrunnlagCommand): Either<KunneIkkeAnnullereKravgrunnlag, AvbruttTilbakekrevingsbehandling?> {
         tilgangstyring.assertHarTilgangTilSak(command.sakId).onLeft {
             return KunneIkkeAnnullereKravgrunnlag.IkkeTilgang(it).left()
         }
@@ -60,7 +58,7 @@ class AnnullerKravgrunnlagService(
 
         val avbruttHendelseOgBehandling = kravgrunnlagOgBehandling.second.let {
             if (it != null) {
-                (kravgrunnlagOgBehandling.second as? KanAnnullere)?.annuller(
+                (it as? KanAnnullere)?.annuller(
                     annulleringstidspunkt = Tidspunkt.now(clock),
                     annullertAv = command.annullertAv,
                     versjon = command.klientensSisteSaksversjon.inc(),
@@ -70,48 +68,41 @@ class AnnullerKravgrunnlagService(
             }
         }
 
-        return tilbakekrevingsklient.annullerKravgrunnlag(command.annullertAv, kravgrunnlagOgBehandling.first).fold(
-            ifLeft = {
-                KunneIkkeAnnullereKravgrunnlag.FeilMotTilbakekrevingskomponenten(it).left()
-            },
-            ifRight = { råTilbakekrevingsvedtakForsendelse ->
-                sessionFactory.withTransactionContext {
-                    kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
-                        KravgrunnlagStatusendringPåSakHendelse(
-                            hendelseId = HendelseId.generer(),
-                            versjon = command.klientensSisteSaksversjon.inc(2),
-                            sakId = command.sakId,
-                            hendelsestidspunkt = Tidspunkt.now(clock),
-                            tidligereHendelseId = uteståendeKravgrunnlagPåSak.hendelseId,
-                            saksnummer = sak.saksnummer,
-                            eksternVedtakId = uteståendeKravgrunnlagPåSak.eksternVedtakId,
-                            status = Kravgrunnlagstatus.Annullert,
-                            eksternTidspunkt = uteståendeKravgrunnlagPåSak.eksternTidspunkt,
-                        ),
-                        AnnullerKravgrunnlagStatusEndringMeta(
-                            correlationId = command.correlationId,
-                            ident = command.utførtAv,
-                            brukerroller = command.brukerroller,
-                            tilbakekrevingsvedtakForsendelse = råTilbakekrevingsvedtakForsendelse,
-                        ),
-                        it,
+        return tilbakekrevingsklient.annullerKravgrunnlag(command.annullertAv, kravgrunnlagOgBehandling.first).mapLeft {
+            KunneIkkeAnnullereKravgrunnlag.FeilMotTilbakekrevingskomponenten(it)
+        }.map { råTilbakekrevingsvedtakForsendelse ->
+            sessionFactory.withTransactionContext {
+                kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
+                    KravgrunnlagStatusendringPåSakHendelse(
+                        hendelseId = HendelseId.generer(),
+                        versjon = command.klientensSisteSaksversjon.inc(2),
+                        sakId = command.sakId,
+                        hendelsestidspunkt = Tidspunkt.now(clock),
+                        tidligereHendelseId = uteståendeKravgrunnlagPåSak.hendelseId,
+                        saksnummer = sak.saksnummer,
+                        eksternVedtakId = uteståendeKravgrunnlagPåSak.eksternVedtakId,
+                        status = Kravgrunnlagstatus.Annullert,
+                        eksternTidspunkt = uteståendeKravgrunnlagPåSak.eksternTidspunkt,
+                    ),
+                    AnnullerKravgrunnlagStatusEndringMeta(
+                        correlationId = command.correlationId,
+                        ident = command.utførtAv,
+                        brukerroller = command.brukerroller,
+                        tilbakekrevingsvedtakForsendelse = råTilbakekrevingsvedtakForsendelse,
+                    ),
+                    it,
+                )
+                if (avbruttHendelseOgBehandling != null) {
+                    tilbakekrevingsbehandlingRepo.lagre(
+                        hendelse = avbruttHendelseOgBehandling.first,
+                        meta = command.toDefaultHendelsesMetadata(),
+                        sessionContext = it,
                     )
-                    if (avbruttHendelseOgBehandling != null) {
-                        tilbakekrevingsbehandlingRepo.lagre(
-                            hendelse = avbruttHendelseOgBehandling.first,
-                            meta = command.toDefaultHendelsesMetadata(),
-                            sessionContext = it,
-                        )
-                    }
                 }
+            }
 
-                val nyeHendelser = tilbakekrevingsbehandlingRepo.hentForSak(command.sakId)
-                val sisteKravgrunnlag = nyeHendelser.kravgrunnlagPåSak.hentSisteKravgrunnlag()
-                    ?: throw IllegalStateException("Fant ikke siste kravgrunnlag etter annullering for sak ${sak.id}, nummer ${sak.saksnummer}")
-
-                Pair(sisteKravgrunnlag, avbruttHendelseOgBehandling?.second).right()
-            },
-        )
+            avbruttHendelseOgBehandling?.second
+        }
     }
 }
 

@@ -8,7 +8,7 @@ package tilbakekreving.infrastructure.client
  */
 internal fun buildTilbakekrevingAnnulleringSoapRequest(
     eksternVedtakId: String,
-    saksbehandledAv: String,
+    saksbehandletAv: String,
 ): String {
     return """
 <ns4:tilbakekrevingsvedtakRequest xmlns:ns2="urn:no:nav:tilbakekreving:typer:v1"
@@ -17,7 +17,7 @@ internal fun buildTilbakekrevingAnnulleringSoapRequest(
   <tilbakekrevingsvedtak>
     <ns3:kodeAksjon>A</ns3:kodeAksjon>
     <ns3:vedtakId>$eksternVedtakId</ns3:vedtakId>
-    <ns3:saksbehId>$saksbehandledAv</ns3:saksbehId>
+    <ns3:saksbehId>$saksbehandletAv</ns3:saksbehId>
   </tilbakekrevingsvedtak>
 </ns4:tilbakekrevingsvedtakRequest>
     """.trimIndent()

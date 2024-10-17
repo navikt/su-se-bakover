@@ -9,12 +9,14 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
+import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagstatusendring
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 internal class AnnullerKravgrunnlagIT {
@@ -50,7 +52,9 @@ internal class AnnullerKravgrunnlagIT {
                 it.size shouldBe 1
             }
             // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
-            verifiserKravgrunnlagPåSak(sakId, client, true, 4)
+            val eksternVedtakId = hentKravgrunnlagPåSak(sakId, client).let {
+                JSONObject(it).getString("eksternVedtakId")!!
+            }
 
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,
@@ -58,6 +62,13 @@ internal class AnnullerKravgrunnlagIT {
                 saksversjon = 5,
                 client = this.client,
             )
+            appComponents.emulerViMottarKravgrunnlagstatusendring(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                eksternVedtakId = eksternVedtakId,
+                status = "ANNU",
+            )
+            hentKravgrunnlagPåSak(sakId, client) shouldBe null
         }
     }
 
@@ -93,6 +104,9 @@ internal class AnnullerKravgrunnlagIT {
             }
             // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
             verifiserKravgrunnlagPåSak(sakId, client, true, 4)
+            val eksternVedtakId = hentKravgrunnlagPåSak(sakId, client).let {
+                JSONObject(it).getString("eksternVedtakId")!!
+            }
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
@@ -111,6 +125,13 @@ internal class AnnullerKravgrunnlagIT {
                     kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
                 ),
             )
+            appComponents.emulerViMottarKravgrunnlagstatusendring(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                eksternVedtakId = eksternVedtakId,
+                status = "ANNU",
+            )
+            hentKravgrunnlagPåSak(sakId, client) shouldBe null
         }
     }
 }

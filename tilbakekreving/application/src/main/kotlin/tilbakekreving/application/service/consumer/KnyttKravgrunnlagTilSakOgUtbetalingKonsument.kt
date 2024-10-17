@@ -57,7 +57,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             nonEmptyListOf(it)
         }.flatMap {
             it.flattenOrAccumulate().map {
-                it.mapNotNull { it.second }
+                it.mapNotNull { it.knyttetKravgrunnlagPåSakHendelse }
             }
         }
     }
@@ -65,7 +65,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private fun prosesserEnHendelse(
         hendelseId: HendelseId,
         correlationId: CorrelationId,
-    ): Either<Throwable, Pair<HendelseId, HendelseId?>> {
+    ): Either<Throwable, ProsseserteHendelser> {
         return Either.catch {
             val (råttKravgrunnlagHendelse, meta) =
                 kravgrunnlagRepo.hentRåttKravgrunnlagHendelseMedMetadataForHendelseId(hendelseId) ?: run {
@@ -95,11 +95,11 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     hendelseId = hendelseId,
                     konsumentId = konsumentId,
                 )
-                return Pair(hendelseId, null).right()
+                return ProsseserteHendelser(hendelseId, null).right()
             }
             when (kravgrunnlagPåSakHendelse) {
                 is KravgrunnlagDetaljerPåSakHendelse -> {
-                    Pair(
+                    ProsseserteHendelser(
                         hendelseId,
                         prosesserDetaljer(
                             hendelseId = hendelseId,
@@ -110,7 +110,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 }
 
                 is KravgrunnlagStatusendringPåSakHendelse -> {
-                    Pair(
+                    ProsseserteHendelser(
                         hendelseId,
                         prosesserStatus(
                             hendelseId = hendelseId,
@@ -166,3 +166,11 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         return kravgrunnlagPåSakHendelse.hendelseId
     }
 }
+
+private data class ProsseserteHendelser(
+    /**
+     * aka tidligere hendelseId for nye hendelsen som er blitt knyttet til saken
+     */
+    val hendelsenSomErBlittProsessert: HendelseId,
+    val knyttetKravgrunnlagPåSakHendelse: HendelseId?,
+)
