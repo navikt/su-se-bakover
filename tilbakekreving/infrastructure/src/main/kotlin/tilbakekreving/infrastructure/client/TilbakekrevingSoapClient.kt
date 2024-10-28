@@ -30,8 +30,11 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID
 
-private const val ACTION =
+private const val TILBAKEKREV_ACTION =
     "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/tilbakekrevingsvedtakRequest"
+
+private const val ANNULLER_ACTION =
+    "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/kravgrunnlagAnnulerRequest"
 
 class TilbakekrevingSoapClient(
     private val baseUrl: String,
@@ -66,14 +69,14 @@ class TilbakekrevingSoapClient(
             val assertion = getSamlToken(saksnummer, soapBody).getOrElse { return it.left() }
 
             val soapRequest = buildSoapEnvelope(
-                action = ACTION,
+                action = TILBAKEKREV_ACTION,
                 messageId = UUID.randomUUID().toString(),
                 serviceUrl = baseUrl,
                 assertion = assertion,
                 body = soapBody,
             )
             val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
-                .header("SOAPAction", ACTION)
+                .header("SOAPAction", TILBAKEKREV_ACTION)
                 .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                 .build()
             val (soapResponse: String?, status: Int) = client.send(httpRequest, HttpResponse.BodyHandlers.ofString())
@@ -119,18 +122,20 @@ class TilbakekrevingSoapClient(
         )
         val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
 
-        val assertion = getSamlToken(kravgrunnlagSomSkalAnnulleres.saksnummer, soapBody).getOrElse { TODO() }
+        val assertion = getSamlToken(kravgrunnlagSomSkalAnnulleres.saksnummer, soapBody).getOrElse {
+            return KunneIkkeAnnullerePåbegynteVedtak.FeilVedGenereringAvToken.left()
+        }
 
         return Either.catch {
             val soapRequest = buildSoapEnvelope(
-                action = ACTION,
+                action = ANNULLER_ACTION,
                 messageId = UUID.randomUUID().toString(),
                 serviceUrl = baseUrl,
                 assertion = assertion,
                 body = soapBody,
             )
             val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
-                .header("SOAPAction", ACTION)
+                .header("SOAPAction", ANNULLER_ACTION)
                 .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                 .build()
             val (soapResponse: String?, status: Int) = client.send(httpRequest, HttpResponse.BodyHandlers.ofString())

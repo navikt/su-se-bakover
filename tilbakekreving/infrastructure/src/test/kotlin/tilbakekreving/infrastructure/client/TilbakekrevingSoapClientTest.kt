@@ -26,7 +26,7 @@ internal class TilbakekrevingSoapClientTest {
     fun `conversion error`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                wiremockBuilder("/a").willReturn(
+                wiremockBuilder("/a", "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/tilbakekrevingsvedtakRequest").willReturn(
                     WireMock.jsonResponse(tilbakekrevingSoapResponseConversionError(), 500),
                 ),
             )
@@ -45,7 +45,7 @@ internal class TilbakekrevingSoapClientTest {
     fun `vedtak id finnes ikke`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                wiremockBuilder("/b").willReturn(
+                wiremockBuilder("/b", "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/tilbakekrevingsvedtakRequest").willReturn(
                     WireMock.okXml(tilbakekrevingSoapResponseVedtakIdFinnesIkke()),
                 ),
             )
@@ -65,7 +65,7 @@ internal class TilbakekrevingSoapClientTest {
         val responseXml = tilbakekrevingSoapResponseOk()
         startedWireMockServerWithCorrelationId {
             stubFor(
-                wiremockBuilder("/c").willReturn(
+                wiremockBuilder("/c", "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/tilbakekrevingsvedtakRequest").willReturn(
                     WireMock.okXml(responseXml),
                 ),
             )
@@ -92,7 +92,7 @@ internal class TilbakekrevingSoapClientTest {
         val responseXml = tilbakekrevingSoapResponseOk()
 
         startedWireMockServerWithCorrelationId {
-            stubFor(wiremockBuilder("/c").willReturn(WireMock.okXml(responseXml)))
+            stubFor(wiremockBuilder("/c", "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/kravgrunnlagAnnulerRequest").willReturn(WireMock.okXml(responseXml)))
             TilbakekrevingSoapClient(
                 baseUrl = "${this.baseUrl()}/c",
                 samlTokenProvider = FakeSamlTokenProvider(),
@@ -112,8 +112,8 @@ internal class TilbakekrevingSoapClientTest {
     }
 }
 
-private fun wiremockBuilder(testUrl: String): MappingBuilder =
+private fun wiremockBuilder(testUrl: String, portType: String): MappingBuilder =
     WireMock.post(WireMock.urlPathEqualTo(testUrl)).withHeader(
         "SOAPAction",
-        WireMock.equalTo("http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/tilbakekrevingsvedtakRequest"),
+        WireMock.equalTo(portType),
     )

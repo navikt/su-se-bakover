@@ -26,4 +26,5 @@ interface Tilbakekrevingsklient {
 sealed interface KunneIkkeAnnullerePåbegynteVedtak {
     data object FeilStatusFraOppdrag : KunneIkkeAnnullerePåbegynteVedtak
     data object UkjentFeil : KunneIkkeAnnullerePåbegynteVedtak
+    data object FeilVedGenereringAvToken : KunneIkkeAnnullerePåbegynteVedtak
 }
