@@ -11,14 +11,12 @@ internal fun buildTilbakekrevingAnnulleringSoapRequest(
     saksbehandletAv: String,
 ): String {
     return """
-<ns4:tilbakekrevingsvedtakRequest xmlns:ns2="urn:no:nav:tilbakekreving:typer:v1"
-                                  xmlns:ns4="http://okonomi.nav.no/tilbakekrevingService/"
-                                  xmlns:ns3="urn:no:nav:tilbakekreving:tilbakekrevingsvedtak:vedtak:v1">
-  <tilbakekrevingsvedtak>
-    <ns3:kodeAksjon>A</ns3:kodeAksjon>
-    <ns3:vedtakId>$eksternVedtakId</ns3:vedtakId>
-    <ns3:saksbehId>$saksbehandletAv</ns3:saksbehId>
-  </tilbakekrevingsvedtak>
-</ns4:tilbakekrevingsvedtakRequest>
+    <ns1:kravgrunnlagAnnulerRequest xmlns:ns1=“http://okonomi.nav.no/tilbakekrevingService/”  xmlns:ns2=“urn:no:nav:tilbakekreving:kravgrunnlag:annuller:v1">
+        <ns1:annullerkravgrunnlag>
+            <ns3:kodeAksjon>A</ns3:kodeAksjon>
+            <ns3:vedtakId>$eksternVedtakId</ns3:vedtakId>
+            <ns3:saksbehId>$saksbehandletAv</ns3:saksbehId>
+        </ns1:annullerkravgrunnlag>
+    </ns1:kravgrunnlagAnnulerRequest>
     """.trimIndent()
 }
