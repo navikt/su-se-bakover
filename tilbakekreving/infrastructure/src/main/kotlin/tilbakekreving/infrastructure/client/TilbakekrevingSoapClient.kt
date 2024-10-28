@@ -91,19 +91,7 @@ class TilbakekrevingSoapClient(
 
             kontrollerResponse(soapRequest, soapResponse, saksnummer)
                 .map {
-                    log.info(
-                        "SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.",
-                    )
-                    sikkerLogg.info(
-                        "SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest. ",
-                    )
-
-                    RåTilbakekrevingsvedtakForsendelse(
-                        requestXml = soapRequest,
-                        tidspunkt = Tidspunkt.now(clock),
-                        responseXml = soapResponse
-                            ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
-                    )
+                    mapKontrollertResponse(saksnummer, soapResponse, soapRequest)
                 }
         }.mapLeft { throwable ->
             log.error(
@@ -152,24 +140,16 @@ class TilbakekrevingSoapClient(
 
             if (status != 200) {
                 log.error(
-                    "Feil ved sending av tilbakekrevingsvedtak: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status. Se sikkerlogg for request.",
+                    "Feil ved annullering av kravgrunnlag: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status. Se sikkerlogg for request.",
                     RuntimeException("Trigger stacktrace"),
                 )
-                sikkerLogg.error("Feil ved sending av tilbakekrevingsvedtak: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, Response: $soapResponse Request: $soapRequest")
+                sikkerLogg.error("Feil ved annullering av kravgrunnlag: Forventet statusCode 200 for saksnummer: $saksnummer, statusCode: $status, Response: $soapResponse Request: $soapRequest")
                 return KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag.left()
             }
 
             kontrollerResponse(soapRequest, soapResponse, saksnummer)
                 .map {
-                    log.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.")
-                    sikkerLogg.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest.")
-
-                    RåTilbakekrevingsvedtakForsendelse(
-                        requestXml = soapRequest,
-                        tidspunkt = Tidspunkt.now(clock),
-                        responseXml = soapResponse
-                            ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
-                    )
+                    mapKontrollertResponse(saksnummer, soapResponse, soapRequest)
                 }.mapLeft {
                     KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
                 }
@@ -248,6 +228,22 @@ class TilbakekrevingSoapClient(
                     )
                 }
             },
+        )
+    }
+
+    private fun mapKontrollertResponse(
+        saksnummer: Saksnummer,
+        soapResponse: String?,
+        soapRequest: String,
+    ): RåTilbakekrevingsvedtakForsendelse {
+        log.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.")
+        sikkerLogg.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest.")
+
+        return RåTilbakekrevingsvedtakForsendelse(
+            requestXml = soapRequest,
+            tidspunkt = Tidspunkt.now(clock),
+            responseXml = soapResponse
+                ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
         )
     }
 
